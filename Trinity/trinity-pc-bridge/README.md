@@ -32,3 +32,17 @@ npm start
 ```
 
 Minimálne nastav `TRINITY_GATEWAY_KEY`, `TRINITY_URL` a `TRINITY_WORKSPACE_ROOTS`. Gateway kľúč musí zodpovedať Worker secretu. Voliteľné integrácie sa aktivujú iba prítomnosťou ich lokálnych premenných.
+
+## Pripojenie z pracovnej plochy vo Windows
+
+Skript `Install-TrinityDesktop.ps1` vytvorí priečinok **Trinity PC**, odkaz
+**Pripojiť Trinity** na pracovnej ploche a automatické spustenie po prihlásení.
+Tajomstvá zostávajú iba v lokálnom `.env`; odkazy ich neobsahujú.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Install-TrinityDesktop.ps1
+```
+
+Automatické spustenie možno odstrániť opätovným spustením s prepínačom
+`-DisableAutoStart`. Pripojenie možno kedykoľvek ukončiť odkazom
+**Odpojiť Trinity**.
