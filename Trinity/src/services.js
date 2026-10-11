@@ -57,7 +57,9 @@ export async function readiness(env) {
 }
 export async function runScheduledHealth(env,cron){
   const checks=await serviceStatus(env),reachable=checks.filter(item=>item.status==='reachable').length,
-    failed=checks.filter(item=>item.status==='error').map(item=>item.binding),summary={cron,reachable,total:checks.length,failed,checked_at:new Date().toISOString()};
+    failed=checks.filter(item=>item.status!=='reachable').map(item=>item.binding),
+    not_configured=checks.filter(item=>item.status==='not_configured').map(item=>item.binding),
+    summary={cron,reachable,total:checks.length,failed,not_configured,healthy:reachable===checks.length,checked_at:new Date().toISOString()};
   await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('scheduled_health_check',?)").bind(JSON.stringify(summary)).run();
   console.log(JSON.stringify({event:'scheduled_health_check',...summary}));
   return summary;

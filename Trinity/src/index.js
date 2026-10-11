@@ -32,7 +32,7 @@ import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
 export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
-const TRINITY_VERSION='9.4.0';
+const TRINITY_VERSION='9.4.1';
 const json=(data,status=200)=>Response.json(data,{status});
 const uuid=z.string().uuid();
 const MCP_READ_TOOLS=new Set(['trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status']);
