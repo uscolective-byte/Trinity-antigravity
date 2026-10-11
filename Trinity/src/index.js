@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {buildOnlyPreviewResponse,isBuildOnlyPreview} from './preview-mode.js';
 import {TrinityAgent,ChatAgent,GuardianAgent} from './legacy.js';
 import {TrinityOperations} from './workflow.js';
 import {AGENTS,shouldDelegate} from './registry.js';
@@ -34,7 +35,7 @@ export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
 const TRINITY_VERSION='9.4.0';
 const json=(data,status=200)=>Response.json(data,{status});
 const uuid=z.string().uuid();
-const MCP_READ_TOOLS=new Set(['list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status']);
+const MCP_READ_TOOLS=new Set(['trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status']);
 function requireAdmin(user){if(!['admin','owner'].includes(user.role))throw new HttpError(403,'Táto operácia je dostupná iba správcovi Trinity.');}
 function requireOwner(user){if(user.role!=='owner')throw new HttpError(403,'Táto operácia je dostupná iba vlastníkovi Trinity.');}
 async function handleScopedMcp(request,env,ctx){
@@ -48,6 +49,8 @@ async function handleScopedMcp(request,env,ctx){
   return handleMcp(forwarded,env,ctx,{projectControl:true});
 }
 async function route(request,env,ctx){
+  const previewResponse=buildOnlyPreviewResponse(request,env,{version:TRINITY_VERSION,agents:AGENTS.length});
+  if(previewResponse)return previewResponse;
   const url=new URL(request.url),path=url.pathname;
   if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
     'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
@@ -412,6 +415,6 @@ export default {
       if(status===500)console.error(JSON.stringify({event:'request_failed',path:new URL(request.url).pathname}));
       return secure(json({error:status===500?'Interná chyba. Pozri záznamy služby.':e instanceof z.ZodError?'Neplatné údaje požiadavky.':e.message},status));}
   },
-  async scheduled(controller,env,ctx){ctx.waitUntil(runScheduledHealth(env,controller.cron));},
-  async email(message,env){await handleInboundEmail(message,env);}
+  async scheduled(controller,env,ctx){if(isBuildOnlyPreview(env))return;ctx.waitUntil(runScheduledHealth(env,controller.cron));},
+  async email(message,env){if(isBuildOnlyPreview(env)){message.setReject('Build-only Preview does not accept email.');return;}await handleInboundEmail(message,env);}
 };
