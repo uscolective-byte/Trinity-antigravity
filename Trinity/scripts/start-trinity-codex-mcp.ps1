@@ -1,6 +1,11 @@
+[CmdletBinding()]
+param([ValidatePattern('^[a-z0-9-]+$')][string]$CredentialName = 'gemini-mcp')
+
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$protected = (Get-Content -LiteralPath (Join-Path $root '.credentials\access.dpapi') -Raw).Trim()
+$credentialPath = Join-Path $root ".credentials\$CredentialName.dpapi"
+if (-not (Test-Path -LiteralPath $credentialPath)) { throw "Trinity MCP credential '$CredentialName' is not provisioned." }
+$protected = (Get-Content -LiteralPath $credentialPath -Raw).Trim()
 $secure = ConvertTo-SecureString $protected
 $ptr = [IntPtr]::Zero
 try {

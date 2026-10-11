@@ -13,14 +13,14 @@ const result=data=>({content:[{type:'text',text:JSON.stringify(data,null,2)}]});
 
 export function handleMcp(request,env,ctx,access={}){
   return createMcpHandler(()=>{
-  const server=new McpServer({name:'trinity',version:'9.4.1'});
+  const server=new McpServer({name:'trinity',version:'9.4.2'});
     const projectControlAllowed=()=>access.projectControl?Promise.resolve(true):geminiProjectControlEnabled(env,env.TRINITY_OWNER_EMAIL||'');
 
     server.registerTool('trinity_status',{description:'Overí aktuálnu pripravenosť jadra a stav registra pluginov. Netvrdí prístup k PC ani ROOT_ADMIN.',inputSchema:{}},
       async()=>{
         const state=await readiness(env);
         const plugins=env.DB?await listPlugins(env):[];
-        return result({service:'trinity',mcp_version:'9.4.0',...state,plugins:{catalog:plugins.length,installed:plugins.filter(p=>p.installed).length,enabled:plugins.filter(p=>p.enabled).length},pc_access:'not-checked',checked_at:new Date().toISOString()});
+        return result({service:'trinity',mcp_version:'9.4.2',...state,plugins:{catalog:plugins.length,installed:plugins.filter(p=>p.installed).length,enabled:plugins.filter(p=>p.enabled).length},pc_access:'not-checked',checked_at:new Date().toISOString()});
       });
 
     // ── Pôvodné nástroje ──
@@ -48,13 +48,13 @@ export function handleMcp(request,env,ctx,access={}){
     server.registerTool('check_services',{description:'Skutočná dostupnosť pripojených služieb.',inputSchema:{}},
       async()=>result(await serviceStatus(env)));
 
-    // ── Dev nástroje pre Antigravity / Gemini prístup k projektu ──
-    server.registerTool('get_source_file',{description:'Prečíta zdrojový súbor Trinity projektu. Vyžaduje gemini project_control.',
+    // ── Ohraničené vývojárske nástroje pre autorizovaných MCP klientov ──
+    server.registerTool('get_source_file',{description:'Prečíta zdrojový súbor Trinity projektu cez ohraničenú PC bránu.',
       inputSchema:{path:z.string().min(1).max(500)}},
       async({path})=>{
         const enabled=await projectControlAllowed();
-        if(!enabled)return result({error:'Gemini project_control nie je zapnutý. Zapni ho v OPS → AI poskytovatelia.'});
-        const action=await createSystemAction(env,{action:'read',payload:{path},rationale:'Gemini MCP: čítanie zdrojového súboru'},'mcp:gemini');
+        if(!enabled)return result({error:'Riadenie projektu nie je pre tohto MCP klienta zapnuté.'});
+        const action=await createSystemAction(env,{action:'read',payload:{path},rationale:'MCP klient: čítanie zdrojového súboru'},'mcp:client');
         // Auto-approved read — počkáme
         for(let i=0;i<60;i++){
           await new Promise(r=>setTimeout(r,1000));
@@ -65,12 +65,12 @@ export function handleMcp(request,env,ctx,access={}){
         return result({error:'PC Bridge neodpovedal. Je spustený?'});
       });
 
-    server.registerTool('edit_source_file',{description:'Upraví zdrojový súbor Trinity projektu (selfwrite). Vyžaduje gemini project_control + schválenie.',
+    server.registerTool('edit_source_file',{description:'Navrhne úpravu zdrojového súboru Trinity projektu. Zápis vyžaduje samostatné schválenie.',
       inputSchema:{path:z.string().min(1).max(500),content:z.string().min(1).max(500000),rationale:z.string().min(10).max(500)}},
       async({path,content,rationale})=>{
         const enabled=await projectControlAllowed();
-        if(!enabled)return result({error:'Gemini project_control nie je zapnutý.'});
-        const action=await createSystemAction(env,{action:'selfwrite',payload:{path,content},rationale:`Gemini MCP: ${rationale}`},'mcp:gemini');
+        if(!enabled)return result({error:'Riadenie projektu nie je pre tohto MCP klienta zapnuté.'});
+        const action=await createSystemAction(env,{action:'selfwrite',payload:{path,content},rationale:`MCP klient: ${rationale}`},'mcp:client');
         return result({id:action.id,status:action.status,approval_required:true,
           note:`Čaká na schválenie príkazom SCHVÁĽ ${action.id} v Trinity chate.`});
       });
@@ -79,8 +79,8 @@ export function handleMcp(request,env,ctx,access={}){
       inputSchema:{path:z.string().max(500).optional(),depth:z.number().int().min(1).max(3).optional()}},
       async({path,depth})=>{
         const enabled=await projectControlAllowed();
-        if(!enabled)return result({error:'Gemini project_control nie je zapnutý.'});
-        const action=await createSystemAction(env,{action:'read',payload:{path:path||'.',depth:depth||2},rationale:'Gemini MCP: výpis súborov projektu'},'mcp:gemini');
+        if(!enabled)return result({error:'Riadenie projektu nie je pre tohto MCP klienta zapnuté.'});
+        const action=await createSystemAction(env,{action:'read',payload:{path:path||'.',depth:depth||2},rationale:'MCP klient: výpis súborov projektu'},'mcp:client');
         for(let i=0;i<60;i++){
           await new Promise(r=>setTimeout(r,1000));
           const cur=await getSystemAction(env,action.id);
@@ -94,23 +94,23 @@ export function handleMcp(request,env,ctx,access={}){
       inputSchema:{cwd:z.string().max(500).optional()}},
       async({cwd})=>{
         const enabled=await projectControlAllowed();
-        if(!enabled)return result({error:'Gemini project_control nie je zapnutý.'});
-        const action=await createSystemAction(env,{action:'run',payload:{command:'npm run build',cwd:cwd||'.',allowNonZero:false},rationale:'Gemini MCP: wrangler build'},'mcp:gemini');
+        if(!enabled)return result({error:'Riadenie projektu nie je pre tohto MCP klienta zapnuté.'});
+        const action=await createSystemAction(env,{action:'run',payload:{command:'npm run build',cwd:cwd||'.',allowNonZero:false},rationale:'MCP klient: wrangler build'},'mcp:client');
         return result({id:action.id,status:action.status,approval_required:action.status==='proposed',
           note:`Čaká na schválenie príkazom SCHVÁĽ ${action.id}.`});
       });
 
-    server.registerTool('request_project_action',{description:'Navrhne ohraničenú akciu Gemini Operatora. Zmeny sa nikdy nevykonajú bez samostatného schválenia vlastníka.',
+    server.registerTool('request_project_action',{description:'Navrhne ohraničenú akciu autorizovaného MCP klienta. Zmeny sa nikdy nevykonajú bez samostatného schválenia vlastníka.',
       inputSchema:{action:z.enum(['read','write','edit','selfwrite','run','deploy','share','upload','upgrade','screenshot','open_app','notify','system_info','scrape','web_fetch','download','git_commit','git_pr']),payload:z.record(z.string(),z.unknown()).default({}),rationale:z.string().min(5).max(1000)}},
       async({action,payload,rationale})=>{
         const enabled=await projectControlAllowed();
-        if(!enabled)return result({error:'Gemini project_control nie je zapnutý.'});
-        const proposed=await createSystemAction(env,{action,payload,rationale:`Gemini MCP: ${rationale}`},'mcp:gemini');
+        if(!enabled)return result({error:'Riadenie projektu nie je pre tohto MCP klienta zapnuté.'});
+        const proposed=await createSystemAction(env,{action,payload,rationale:`MCP klient: ${rationale}`},'mcp:client');
         return result({id:proposed.id,action:proposed.action,status:proposed.status,approval_required:proposed.status==='proposed',
           next_step:proposed.status==='proposed'?`Vlastník musí v Trinity chate odoslať SCHVÁĽ ${proposed.id}.`:'Akcia čaká na PC bránu.'});
       });
 
-    server.registerTool('get_project_action',{description:'Vráti stav a overený doklad Gemini Operator akcie.',
+    server.registerTool('get_project_action',{description:'Vráti stav a overený doklad projektovej akcie MCP klienta.',
       inputSchema:{id:z.string().uuid()}},
       async({id})=>{
         const action=await getSystemAction(env,id);

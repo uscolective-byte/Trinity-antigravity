@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "trinity": {
+      "type": "stdio",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/start-trinity-codex-mcp.ps1",
+        "-CredentialName",
+        "copilot-mcp"
+      ]
+    }
+  }
+}
