@@ -4,7 +4,7 @@ import {TrinityAgent,ChatAgent,GuardianAgent} from './legacy.js';
 import {TrinityOperations} from './workflow.js';
 import {AGENTS,SKILLS,shouldDelegate} from './registry.js';
 import {createJob,getJob} from './jobs.js';
-import {authenticate,checkOrigin,hash,HttpError,rateLimit,readJSON,secure,validKey,issueSession,allowDevConnection} from './security.js';
+import {authenticate,checkOrigin,hash,HttpError,rateLimit,readJSON,secure,validKey,issueSession,allowDevConnection,sessionCookie} from './security.js';
 import {callModel,serviceStatus,runScheduledHealth,readiness} from './services.js';
 import {searchMemory,runTool} from './tools.js';
 import {PLUGINS,listPlugins,pluginEnabled,installPlugin,installAllPlugins} from './plugins.js';
@@ -32,7 +32,7 @@ import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
 export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
-const TRINITY_VERSION='9.4.2';
+const TRINITY_VERSION='9.4.3';
 const json=(data,status=200)=>Response.json(data,{status});
 const uuid=z.string().uuid();
 const MCP_READ_TOOLS=new Set(['trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status']);
@@ -82,19 +82,19 @@ async function route(request,env,ctx){
     await rateLimit(env,`google-callback:${(await hash(request.headers.get('CF-Connecting-IP')||'unknown')).slice(0,24)}`,10,300);
     return finishGoogleLogin(request,env);
   }
-  checkOrigin(request);
+  checkOrigin(request,env);
   if(path==='/api/ops/dev-login'&&request.method==='POST'){
     if(googleAuthRequired(env))throw new HttpError(403,'Použi prihlásenie cez Google.');
     if(!await allowDevConnection(request,env))throw new HttpError(401,'Automatický vývojový vstup pre toto pripojenie nie je dostupný.');
     await rateLimit(env,'dev-login',20,60);
-    return issueSession(env,Date.parse(env.TRINITY_DEV_UNTIL));
+    return issueSession(env,env.TRINITY_DEV_UNTIL?Date.parse(env.TRINITY_DEV_UNTIL):undefined,env.TRINITY_OWNER_EMAIL||null,request);
   }
   if(path==='/api/ops/login'&&request.method==='POST'){
     if(googleAuthRequired(env))throw new HttpError(403,'Prihlásenie prístupovým kľúčom je vypnuté. Použi Google.');
     await rateLimit(env,'login:'+(await hash(request.headers.get('CF-Connecting-IP')||'local')).slice(0,24),10,300);
     const {key}=z.object({key:z.string().max(2048)}).parse(await readJSON(request));
     if(!await validKey(key,env))throw new HttpError(401,'Nesprávny prístupový kľúč.');
-    return issueSession(env,undefined,env.TRINITY_OWNER_EMAIL||null);
+    return issueSession(env,undefined,env.TRINITY_OWNER_EMAIL||null,request);
   }
   if(path==='/api/ops/redeem'&&request.method==='POST'){
     if(googleAuthRequired(env))throw new HttpError(403,'Jednorazové kľúče sú vypnuté. Použi Google.');
@@ -102,12 +102,12 @@ async function route(request,env,ctx){
     const {ticket}=z.object({ticket:z.string().regex(/^[a-f0-9]{64}$/)}).parse(await readJSON(request));
     const used=await env.DB.prepare('DELETE FROM ops_login_tickets WHERE token_hash=? RETURNING expires_at').bind(await hash(ticket)).first();
     if(!used||used.expires_at<Date.now())throw new HttpError(401,'Odkaz vypršal alebo už bol použitý. Otvor znovu OTVORIT-TRINITY.cmd.');
-    return issueSession(env);
+    return issueSession(env,undefined,null,request);
   }
   if(path==='/api/ops/logout'&&request.method==='POST'){
     const session=request.headers.get('Cookie')?.match(/(?:^|;\s*)trinity_session=([a-f0-9]{64})(?:;|$)/)?.[1];
     if(session)await env.DB.prepare('DELETE FROM ops_sessions WHERE token_hash=?').bind(await hash(session)).run();
-    const response=json({ok:true});response.headers.set('Set-Cookie','trinity_session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0');return response;
+    const response=json({ok:true});response.headers.set('Set-Cookie',sessionCookie('',0,request,env));return response;
   }
   if(path==='/api/system/actions/claim'&&request.method==='POST'){
     const gateway=await authenticateGateway(request,env);await rateLimit(env,`gateway-claim:${gateway}`,120);

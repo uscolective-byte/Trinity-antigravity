@@ -14,16 +14,27 @@ export async function validKey(token, env) {
   }
   return false;
 }
-export async function issueSession(env,until=Date.now()+43200000,email=null){
+export function localLoopbackRequest(request,env={}){
+  try{
+    const target=new URL(request.url);
+    return env.TRINITY_LOCAL_DEV_AUTH==='1'&&target.protocol==='http:';
+  }catch{return false;}
+}
+export function sessionCookie(value,maxAge,request,env={}){
+  const secure=request&&localLoopbackRequest(request,env)?'':'; Secure';
+  return `trinity_session=${value}; Path=/; HttpOnly${secure}; SameSite=Strict; Max-Age=${Math.max(0,Math.floor(maxAge))}`;
+}
+export async function issueSession(env,until=Date.now()+43200000,email=null,request=null){
   const token=Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('hex');
   const expires=Math.min(Date.now()+43200000,until);
   if(email)await env.DB.prepare('INSERT INTO ops_sessions(token_hash,expires_at,email) VALUES(?,?,?)').bind(await hash(token),expires,email.trim().toLowerCase()).run();
   else await env.DB.prepare('INSERT INTO ops_sessions(token_hash,expires_at) VALUES(?,?)').bind(await hash(token),expires).run();
   await env.DB.prepare('DELETE FROM ops_sessions WHERE expires_at < ?').bind(Date.now()).run();
-  return Response.json({ok:true},{headers:{'Set-Cookie':`trinity_session=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${Math.max(0,Math.floor((expires-Date.now())/1000))}`}});
+  return Response.json({ok:true},{headers:{'Set-Cookie':sessionCookie(token,(expires-Date.now())/1000,request,env)}});
 }
 export async function allowDevConnection(request,env){
   const ip=request.headers.get('CF-Connecting-IP');
+  if(localLoopbackRequest(request,env))return true;
   if(!ip||!env.TRINITY_DEV_IP||!env.TRINITY_DEV_UNTIL||Date.parse(env.TRINITY_DEV_UNTIL)<Date.now()||!Number.isFinite(Date.parse(env.TRINITY_DEV_UNTIL)))return false;
   return equal(ip,env.TRINITY_DEV_IP);
 }
@@ -48,9 +59,9 @@ export async function authenticate(request, env) {
   }
   throw new HttpError(401, 'Prihlás sa do Trinity.');
 }
-export function checkOrigin(request) {
+export function checkOrigin(request,env={}) {
   const origin = request.headers.get('Origin');
-  if (origin && origin !== new URL(request.url).origin) throw new HttpError(403, 'Cudzí pôvod požiadavky je zakázaný.');
+  if (origin && origin !== new URL(request.url).origin&&!localLoopbackRequest(request,env)) throw new HttpError(403, 'Cudzí pôvod požiadavky je zakázaný.');
 }
 export async function readJSON(request, limit = 24000) {
   if (!request.headers.get('Content-Type')?.includes('application/json')) throw new HttpError(415, 'Vyžaduje sa JSON.');

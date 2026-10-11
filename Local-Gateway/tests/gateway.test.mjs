@@ -7,6 +7,7 @@ import {resolveSafePath,validatePackage,RUN_TASKS} from '../src/policy.mjs';
 import {ProposalStore,sha256} from '../src/store.mjs';
 import {executeProposal,readWorkspaceFile} from '../src/executor.mjs';
 import {validateDesktopRequest} from '../src/desktop.mjs';
+import {startBridgeHeartbeat} from '../src/bridge-heartbeat.mjs';
 
 async function workspace(){const root=await mkdtemp(path.join(os.tmpdir(),'trinity-gateway-'));await mkdir(path.join(root,'Trinity'),{recursive:true});await writeFile(path.join(root,'Trinity','a.txt'),'old','utf8');return root;}
 
@@ -44,4 +45,25 @@ test('desktop controller is allowlisted and rejects broad control',()=>{
   assert.throws(()=>validateDesktopRequest({task:'desktop-control',operation:'launch',app:'powershell'}),/povolenom zozname/);
   assert.throws(()=>validateDesktopRequest({task:'desktop-control',operation:'type',app:'explorer',text:'x'}),/Poznámkovom bloku/);
   assert.throws(()=>validateDesktopRequest({task:'desktop-control',operation:'click',app:'notepad'}),/nie je povolená/);
+});
+
+test('PC bridge heartbeat uses the deployed v2 agent contract',async()=>{
+  const originalFetch=globalThis.fetch;
+  let payload;
+  globalThis.fetch=async(_url,options)=>{
+    payload=JSON.parse(options.body);
+    return Response.json({ok:true,receivedAt:'2026-10-11T00:00:00.000Z'});
+  };
+  try{
+    const connected=new Promise((resolve,reject)=>{
+      const timer=setTimeout(()=>reject(new Error('heartbeat timeout')),1000);
+      const stop=startBridgeHeartbeat({baseUrl:'https://bridge.example',key:'test-only',intervalMs:60_000,onState:state=>{
+        if(state.status==='connected'){clearTimeout(timer);stop();resolve(state);}
+      }});
+    });
+    await connected;
+    assert.equal(payload.agent,'trinity-pc-v2');
+    assert.equal(payload.hostname,os.hostname());
+    assert.equal(payload.gateway_id,'gateway:morhfeus-windows');
+  } finally { globalThis.fetch=originalFetch; }
 });

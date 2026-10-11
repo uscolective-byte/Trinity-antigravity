@@ -1,3 +1,5 @@
+import os from 'node:os';
+
 async function postHeartbeat(baseUrl,key,body){
   const response=await fetch(`${baseUrl.replace(/\/$/,'')}/v1/heartbeat`,{
     method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},
@@ -14,7 +16,7 @@ export function startBridgeHeartbeat({baseUrl,key,gatewayId='gateway:morhfeus-wi
   const schedule=delay=>{if(state.stopped)return;clearTimeout(state.timer);state.timer=setTimeout(beat,delay);state.timer.unref();};
   async function beat(){
     if(state.stopped||state.busy)return;state.busy=true;
-    try{const result=await postHeartbeat(baseUrl,key,{gateway_id:gatewayId,version,capabilities});state.failures=0;onState({status:'connected',last_seen:result.last_seen||Date.now(),last_success_at:new Date().toISOString(),consecutive_failures:0});}
+    try{const result=await postHeartbeat(baseUrl,key,{agent:'trinity-pc-v2',hostname:os.hostname(),gateway_id:gatewayId,version,capabilities});state.failures=0;onState({status:'connected',last_seen:result.last_seen||result.receivedAt||Date.now(),last_success_at:new Date().toISOString(),consecutive_failures:0});}
     catch(error){state.failures++;const retry=Math.min(maxBackoffMs,intervalMs*2**Math.min(state.failures,5));onState({status:'disconnected',error:error.message,next_retry_ms:retry,consecutive_failures:state.failures});}
     finally{state.busy=false;schedule(state.failures?Math.min(maxBackoffMs,intervalMs*2**Math.min(state.failures,5)):intervalMs);}
   }

@@ -69,7 +69,7 @@ export async function finishGoogleLogin(request,env){
     .bind(identity.email,identity.sub,identity.name,isAdmin?'admin':'user',isAdmin?'active':'pending').run();
   const user=await env.DB.prepare('SELECT role,status FROM ops_users WHERE email=?').bind(identity.email).first();
   if(!user||user.status!=='active')return redirect(user?.status==='pending'?'/?auth=pending':'/?auth=denied',[clearStateCookie]);
-  const session=await issueSession(env,undefined,identity.email),sessionCookie=session.headers.get('Set-Cookie');
+  const session=await issueSession(env,undefined,identity.email,request),sessionCookie=session.headers.get('Set-Cookie');
   await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('google_login',?)").bind(JSON.stringify({email:identity.email,role:user.role,at:now})).run();
   return redirect('/?auth=success',[clearStateCookie,sessionCookie]);
 }
