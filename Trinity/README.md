@@ -21,10 +21,20 @@ Trinity má stálu komunikačnú osobnosť a rozhodovací proces `kontext → pl
 
 ## Živé adresy
 
-- Chat: <https://auru.dev/>
-- Pokročilé centrum: <https://auru.dev/ops>
+- Chat: <https://auru.space/>
+- Pokročilé centrum: <https://auru.space/ops>
 - Worker: <https://trinity.saboivan2008.workers.dev/>
-- MCP: `POST https://auru.dev/mcp` (vyžaduje autorizáciu)
+- MCP: `POST https://auru.space/mcp` (vyžaduje autorizáciu)
+
+## Gemini MCP most
+
+Gemini sa nepripája cez voľne spustiteľný Python skript. Používa produkčný MCP endpoint a samostatný 90-dňový kľúč s oprávneniami `mcp:read` a `mcp:write`. Kľúč nie je správca Trinity, nefunguje na ostatných privátnych API a zmenové nástroje zostávajú za schvaľovacou bránou a auditným dokladom PC Bridge.
+
+1. Vytvor kľúč bez vypísania hodnoty: `powershell -ExecutionPolicy Bypass -File scripts/provision-gemini-mcp.ps1`.
+2. V Gemini pridaj vlastnú MCP aplikáciu s URL `https://auru.space/mcp`.
+3. Keď formulár vyžiada Bearer token, skopíruj ho bezpečne cez `powershell -ExecutionPolicy Bypass -File scripts/copy-gemini-mcp-token.ps1`.
+
+Token je lokálne uložený iba zašifrovaný Windows DPAPI v ignorovanom priečinku `.credentials`. Opätovné vytvorenie je zámerne blokované; rotácia vyžaduje prepínač `-Rotate` a starý záznam treba následne zrušiť v Nastaveniach Trinity.
 
 ## Ako Trinity pracuje
 

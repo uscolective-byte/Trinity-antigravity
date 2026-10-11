@@ -1,6 +1,6 @@
 {
   "name": "trinity-operational-center",
-  "version": "9.3.1",
+  "version": "9.4.0",
   "private": true,
   "type": "module",
   "scripts": {

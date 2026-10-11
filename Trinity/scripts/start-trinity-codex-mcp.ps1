@@ -6,7 +6,7 @@ $ptr = [IntPtr]::Zero
 try {
   $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
   $env:TRINITY_MCP_TOKEN = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
-  $env:TRINITY_MCP_URL = 'https://auru.dev'
+  $env:TRINITY_MCP_URL = 'https://auru.space'
   Set-Location $root
   node scripts/trinity-codex-mcp.mjs
 } finally {

@@ -3,7 +3,7 @@ import {serveStdio} from '@modelcontextprotocol/server/stdio';
 import {z} from 'zod';
 const token=process.env.TRINITY_MCP_TOKEN;
 if(!token)throw new Error('TRINITY_MCP_TOKEN is missing.');
-const base=(process.env.TRINITY_MCP_URL||'https://auru.dev').replace(/\/$/,'');
+const base=(process.env.TRINITY_MCP_URL||'https://auru.space').replace(/\/$/,'');
 async function api(path,{method='GET',body}={}){
   const response=await fetch(base+path,{method,headers:{Authorization:'Bearer '+token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(25_000)});
   const text=await response.text();let data;try{data=JSON.parse(text);}catch{data={raw:text};}

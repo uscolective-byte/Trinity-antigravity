@@ -31,11 +31,22 @@ import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
 export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
-const TRINITY_VERSION='9.3.1';
+const TRINITY_VERSION='9.4.0';
 const json=(data,status=200)=>Response.json(data,{status});
 const uuid=z.string().uuid();
+const MCP_READ_TOOLS=new Set(['list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status']);
 function requireAdmin(user){if(!['admin','owner'].includes(user.role))throw new HttpError(403,'Táto operácia je dostupná iba správcovi Trinity.');}
 function requireOwner(user){if(user.role!=='owner')throw new HttpError(403,'Táto operácia je dostupná iba vlastníkovi Trinity.');}
+async function handleScopedMcp(request,env,ctx){
+  if(request.method!=='POST')throw new HttpError(405,'MCP API kľúč podporuje iba POST požiadavky.');
+  const body=await readJSON(request,60000);
+  const scope=body.method==='tools/call'&&!MCP_READ_TOOLS.has(body.params?.name)?'mcp:write':'mcp:read';
+  const client=await authenticateApiKey(request,env,scope);
+  if(!await pluginEnabled(env,'mcp'))throw new HttpError(503,'MCP rozšírenie je vypnuté.');
+  if(body.method==='tools/call'&&body.params?.name==='dispatch_task')await rateLimit(env,`job:api:${client.id}`,12);
+  const forwarded=new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify(body)});
+  return handleMcp(forwarded,env,ctx,{projectControl:true});
+}
 async function route(request,env,ctx){
   const url=new URL(request.url),path=url.pathname;
   if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
@@ -111,6 +122,8 @@ async function route(request,env,ctx){
     const gateway=await authenticateGateway(request,env);await rateLimit(env,`gateway-receipt:${gateway}`,120);
     return json({action:await finishSystemAction(env,uuid.parse(gatewayReceipt[1]),gateway,await readJSON(request,180000))});
   }
+  const bearer=request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||request.headers.get('X-Trinity-API-Key')||'';
+  if(path==='/mcp'&&bearer.startsWith('trn_live_'))return handleScopedMcp(request,env,ctx);
   const user=await authenticate(request,env);
   const ownerId=(user.email||user.id).trim().toLowerCase();
   if(path==='/api/assistant/media/status'&&request.method==='GET')return json(mediaStatus(env));
