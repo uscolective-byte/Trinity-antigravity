@@ -1,0 +1,23 @@
+name: Runner Smoke Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/runner-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runner-smoke:
+    name: Verify GitHub-hosted runner allocation
+    runs-on: ubuntu-22.04
+    timeout-minutes: 2
+    steps:
+      - name: Runner initialized
+        run: |
+          echo 'GitHub-hosted runner started successfully.'
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Commit: $GITHUB_SHA"
