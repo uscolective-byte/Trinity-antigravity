@@ -46,21 +46,12 @@ test('production routing is unchanged when build-only mode is absent', () => {
   }
 });
 
-test('production and development domains use isolated Worker resources', () => {
+test('explicit Preview configuration contains no production resources or AI calls', () => {
   const config = JSON.parse(readFileSync('wrangler.jsonc', 'utf8').replace(/^\uFEFF/, ''));
   assert.deepEqual(config.previews, {vars: {TRINITY_PREVIEW_MODE: 'build-only'}});
   assert.equal(config.vars.TRINITY_PREVIEW_MODE, undefined);
-  assert.equal(config.vars.TRINITY_ENV, 'production');
   assert.equal(config.ai.binding, 'AI');
   assert.ok(config.d1_databases.some(database => database.binding === 'DB'));
   assert.ok(config.routes.some(route => route.pattern === 'auru.space'));
-  assert.ok(!config.routes.some(route => route.pattern === 'auru.dev'));
-  const development=config.env.development;
-  assert.equal(development.name,'trinity-development');
-  assert.equal(development.vars.TRINITY_ENV,'development');
-  assert.ok(development.routes.some(route=>route.pattern==='auru.dev'));
-  assert.notEqual(development.d1_databases.find(database=>database.binding==='DB').database_id,config.d1_databases.find(database=>database.binding==='DB').database_id);
-  assert.notEqual(development.r2_buckets.find(bucket=>bucket.binding==='ARTIFACTS').bucket_name,config.r2_buckets.find(bucket=>bucket.binding==='ARTIFACTS').bucket_name);
-  assert.notEqual(development.kv_namespaces.find(namespace=>namespace.binding==='Mastermind').id,config.kv_namespaces.find(namespace=>namespace.binding==='Mastermind').id);
-  assert.equal(development.services,undefined);
+  assert.ok(config.routes.some(route => route.pattern === 'auru.dev'));
 });

@@ -23,7 +23,6 @@ import {listAIProviders,configureAIProvider,recordAIProviderCheck} from './ai-pr
 import {createPortfolio,listPortfolios,getPortfolio,recordTrade,setQuote} from './trading.js';
 import {getWallet,transactWallet} from './wallet.js';
 import {handleInboundEmail} from './email.js';
-import {TRINITY2_CAPABILITIES,rolePermissions,requireCapability,updateRolePermission,analyzeImage,transcribeAudio,synthesizeSpeech,listVisualWorkflows,saveVisualWorkflow,listIncidents,resolveIncident,recordHealthIncident,exportAudit} from './trinity2.js';
 import html from '../public/index.html';
 import appJS from '../public/app.js.txt';
 import css from '../public/style.css';
@@ -33,9 +32,8 @@ import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
 export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
-const TRINITY_VERSION='10.0.0';
+const TRINITY_VERSION='9.4.3';
 const json=(data,status=200)=>Response.json(data,{status});
-const runtimeEnvironment=(request,env)=>['localhost','127.0.0.1','::1'].includes(new URL(request.url).hostname)?'local':env.TRINITY_ENV||'local';
 const uuid=z.string().uuid();
 const MCP_READ_TOOLS=new Set(['trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status']);
 function requireAdmin(user){if(!['admin','owner'].includes(user.role))throw new HttpError(403,'Táto operácia je dostupná iba správcovi Trinity.');}
@@ -63,13 +61,13 @@ async function route(request,env,ctx){
   if(request.method==='GET'&&path==='/builder.css')return new Response(builderCSS,{headers:{'Content-Type':'text/css; charset=utf-8'}});
   if(request.method==='GET'&&path==='/theme.css')return new Response('',{headers:{'Content-Type':'text/css'}});
   if(path==='/health'||path==='/api/health'){
-    const response=json({service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),agents:AGENTS.length,status:'serving',truth_mode:'evidence-required'});const origin=request.headers.get('Origin');
+    const response=json({service:'Trinity',version:TRINITY_VERSION,agents:AGENTS.length,status:'serving',truth_mode:'evidence-required'});const origin=request.headers.get('Origin');
     if(['https://trinity-morhfeus-20261001.web.app','https://trinity-morhfeus-20261001.firebaseapp.com'].includes(origin)){response.headers.set('Access-Control-Allow-Origin',origin);response.headers.set('Vary','Origin');}
     return response;
   }
   if(path==='/ready'&&request.method==='GET'){
     const state=await readiness(env);
-    return json({service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),...state},state.ready?200:503);
+    return json({service:'Trinity',version:TRINITY_VERSION,...state},state.ready?200:503);
   }
   if(path==='/api/auth/config'&&request.method==='GET')return json({google_enabled:googleAuthRequired(env)&&googleOAuthConfigured(env),google_required:googleAuthRequired(env)});
   const generatedApi=path.match(/^\/api\/v1\/generated\/([a-z0-9]+(?:-[a-z0-9]+)*)$/);
@@ -131,46 +129,7 @@ async function route(request,env,ctx){
   if(path==='/mcp'&&bearer.startsWith('trn_live_'))return handleScopedMcp(request,env,ctx);
   const user=await authenticate(request,env);
   const ownerId=(user.email||user.id).trim().toLowerCase();
-  const control=await readControl(env);
-  if(control.emergency_stop&&!['/api/ops/status','/api/ops/control','/api/ops/logout','/api/assistant/rbac','/api/assistant/audit/export'].includes(path))assertRunning(control);
   if(path==='/api/assistant/media/status'&&request.method==='GET')return json(mediaStatus(env));
-  if(path==='/api/assistant/media/analyze-image'&&request.method==='POST'){
-    await requireCapability(env,user,'analyze_image');await rateLimit(env,`vision:${user.id}`,12,300);
-    return json(await analyzeImage(env,await readJSON(request,8_100_000)));
-  }
-  if(path==='/api/assistant/media/transcribe'&&request.method==='POST'){
-    await requireCapability(env,user,'transcribe_audio');await rateLimit(env,`stt:${user.id}`,12,300);
-    return json(await transcribeAudio(env,await readJSON(request,12_100_000)));
-  }
-  if(path==='/api/assistant/media/speech'&&request.method==='POST'){
-    await requireCapability(env,user,'text_to_speech');await rateLimit(env,`tts:${user.id}`,20,300);
-    return json(await synthesizeSpeech(env,await readJSON(request,8000)));
-  }
-  const audioRoute=path.match(/^\/api\/assistant\/media\/audio\/([0-9a-f-]+)$/i);
-  if(audioRoute&&request.method==='GET'){
-    const id=uuid.parse(audioRoute[1]),object=await env.ARTIFACTS.get(`media/audio/${id}.mp3`);if(!object)throw new HttpError(404,'Zvuk neexistuje.');
-    return new Response(object.body,{headers:{'Content-Type':object.httpMetadata?.contentType||'audio/mpeg','Cache-Control':'private, max-age=3600','X-Content-Type-Options':'nosniff'}});
-  }
-  if(path==='/api/assistant/rbac'&&request.method==='GET'){
-    const roles=user.role==='owner'?['owner','admin','user']:[user.role];const items=[];for(const role of roles)items.push({role,permissions:await rolePermissions(env,role)});
-    return json({capabilities:TRINITY2_CAPABILITIES,items});
-  }
-  if(path==='/api/assistant/rbac'&&request.method==='POST'){
-    requireOwner(user);const input=z.object({role:z.enum(['admin','user']),capability:z.enum(TRINITY2_CAPABILITIES),allowed:z.boolean()}).strict().parse(await readJSON(request));
-    return json(await updateRolePermission(env,{...input,updatedBy:user.email||user.id}));
-  }
-  if(path==='/api/assistant/workflows'){
-    await requireCapability(env,user,'manage_workflows');
-    if(request.method==='GET')return json({items:await listVisualWorkflows(env,ownerId)});
-    if(request.method==='POST')return json({item:await saveVisualWorkflow(env,ownerId,await readJSON(request,50000))},201);
-  }
-  if(path==='/api/assistant/incidents'&&request.method==='GET'){requireAdmin(user);return json({items:await listIncidents(env)});}
-  const incidentRoute=path.match(/^\/api\/assistant\/incidents\/([0-9a-f-]+)\/resolve$/i);
-  if(incidentRoute&&request.method==='POST'){requireAdmin(user);return json({item:await resolveIncident(env,uuid.parse(incidentRoute[1]),user.email||user.id)});}
-  if(path==='/api/assistant/audit/export'&&request.method==='GET'){
-    await requireCapability(env,user,'view_audit');const format=url.searchParams.get('format')==='csv'?'csv':'json',file=await exportAudit(env,format);
-    return new Response(file.content,{headers:{'Content-Type':file.contentType,'Content-Disposition':`attachment; filename="${file.filename}"`,'Cache-Control':'no-store'}});
-  }
   if(path==='/api/ops/control'){
     requireAdmin(user);
     if(request.method==='GET')return json(await readControl(env));
@@ -181,6 +140,8 @@ async function route(request,env,ctx){
       return json(await readControl(env));
     }
   }
+  const control=await readControl(env);
+  if(control.emergency_stop&&!['/api/ops/status','/api/ops/control','/api/ops/logout'].includes(path))assertRunning(control);
   if(path==='/api/ops/users/pending'&&request.method==='GET'){
     requireAdmin(user);
     const rows=await env.DB.prepare("SELECT email,display_name,created_at FROM ops_users WHERE status='pending' AND role='user' ORDER BY created_at").all();
@@ -365,7 +326,6 @@ async function route(request,env,ctx){
     return json({name:'Trinity',version:TRINITY_VERSION,agents:AGENTS.length,identity:'single',account:{email:user.email||null,role:user.role||null},control,consciousness:false,truth_mode:'evidence-required',truth_policy_version:TRUTH_POLICY_VERSION,jobs:counts.results,
       development_access_until:env.TRINITY_DEV_UNTIL||null,
       providers:{'workers-ai':env.AI?'configured':'missing',openai:env.OPENAI_API_KEY?'configured':'missing',gemini:(await listAIProviders(env,ownerId)).items.find(item=>item.id==='gemini')?.enabled?'configured':'missing',ollama:env.OLLAMA_SECRET||env.OLLAMA_API_KEY?'configured':'missing'},
-      trinity_2:{multimodal:!!env.AI,voice:!!env.AI,granular_rbac:true,visual_workflows:true,incident_monitoring:true,audit_export:true,global_worker_runtime:true},
       memory:await env.DB.prepare('SELECT (SELECT COUNT(*) FROM ops_memory) AS notes,(SELECT COUNT(*) FROM memory_long) AS legacy,(SELECT COUNT(*) FROM ops_jobs) AS conversations').first(),
       storage:{database:!!env.DB,cache:!!env.Mastermind,artifacts:!!env.ARTIFACTS,workflow:!!env.OPS_WORKFLOW}});
   }
@@ -465,6 +425,6 @@ export default {
       if(status===500)console.error(JSON.stringify({event:'request_failed',path:new URL(request.url).pathname}));
       return secure(json({error:status===500?'Interná chyba. Pozri záznamy služby.':e instanceof z.ZodError?'Neplatné údaje požiadavky.':e.message},status));}
   },
-  async scheduled(controller,env,ctx){if(isBuildOnlyPreview(env))return;ctx.waitUntil((async()=>{const summary=await runScheduledHealth(env,controller.cron);await recordHealthIncident(env,summary);})());},
+  async scheduled(controller,env,ctx){if(isBuildOnlyPreview(env))return;ctx.waitUntil(runScheduledHealth(env,controller.cron));},
   async email(message,env){if(isBuildOnlyPreview(env)){message.setReject('Build-only Preview does not accept email.');return;}await handleInboundEmail(message,env);}
 };
