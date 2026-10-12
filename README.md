@@ -1,5 +1,7 @@
 # Morhfeus
 
+[![CodeQL Security](https://github.com/uscolective-byte/trinity-morhfeus/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/trinity-morhfeus/actions/workflows/codeql.yml?query=branch%3Amain)
+
 Hlavný pracovný priečinok projektu Trinity. Od 1. októbra 2026 sa nové zdrojové súbory, návrhy, overenia a dokumentácia ukladajú sem.
 
 ## Štruktúra
