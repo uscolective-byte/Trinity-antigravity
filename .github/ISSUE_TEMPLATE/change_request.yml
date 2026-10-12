@@ -1,0 +1,31 @@
+name: Zmena / rozšírenie Trinity
+description: Plán pre bezpečnú implementáciu a audit
+title: "[Change] "
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Cieľ a definícia úspechu
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Riziko
+      options:
+        - low
+        - medium
+        - high
+        - critical
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Komponenty / API / migrácie
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Dôkazy, testy a schválenia
