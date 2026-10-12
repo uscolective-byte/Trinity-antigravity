@@ -1,0 +1,11 @@
+# Enforced only after a ruleset/branch protection requiring CODEOWNERS review is enabled.
+# Verify membership and write permission before replacing this account.
+/.github/ @uscolective-byte
+/Trinity/src/ @uscolective-byte
+/Trinity/migrations/ @uscolective-byte
+/Trinity/workers/ @uscolective-byte
+/Trinity/services/ @uscolective-byte
+/PC-Bridge-Worker/ @uscolective-byte
+/Local-Gateway/ @uscolective-byte
+/Audit-Worker/ @uscolective-byte
+/security/ @uscolective-byte

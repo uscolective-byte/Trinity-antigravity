@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Trinity AI Change Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "generated_by",
+    "reviewed",
+    "risk",
+    "component",
+    "description",
+    "source_pr"
+  ],
+  "properties": {
+    "generated_by": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 100
+    },
+    "reviewed": {
+      "type": "boolean"
+    },
+    "risk": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "component": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._/-]{1,100}$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 2000
+    },
+    "source_pr": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "reviewed_by": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 2
+    },
+    "reviewed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "reviewed": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reviewed_by",
+          "reviewed_at"
+        ],
+        "properties": {
+          "reviewed_by": {
+            "type": "string",
+            "minLength": 2
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  ]
+}

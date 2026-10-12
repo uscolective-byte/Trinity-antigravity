@@ -1,0 +1,39 @@
+name: Chyba / incident Trinity
+description: Nahlásenie chyby bez zverejnenia tokenov a osobných údajov
+title: "[Bug] "
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Komponent
+      options:
+        - Trinity Worker
+        - D1 / R2
+        - GitHub Actions
+        - PC Bridge
+        - Local Gateway
+        - Copilot Integration
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Čo sa pokazilo?
+      description: Opíš očakávané a skutočné správanie. Tajomstvá odstráň.
+    validations:
+      required: true
+  - type: textarea
+    id: reproducer
+    attributes:
+      label: Kroky na reprodukciu
+    validations:
+      required: true
+  - type: input
+    id: run
+    attributes:
+      label: URL neúspešného CI behu (voliteľné)
+  - type: textarea
+    id: impact
+    attributes:
+      label: Dopad, priorita a návrh rollbacku
