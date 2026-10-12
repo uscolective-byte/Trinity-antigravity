@@ -83,7 +83,6 @@ jobs:
           TRINITY_JOB_STATUS: ${{ job.status }}
           TRINITY_DEPLOY_ENV: development
         run: node Trinity/scripts/create-audit-log.mjs
-[![CodeQL Security](https://github.com/uscolective-byte/trinity-morhfeus/actions/workflows/codeql.yml/badge.svg?branch=feature%2Fmorpheus-security-pipeline-20261012)](https://github.com/uscolective-byte/trinity-morhfeus/actions/workflows/codeql.yml)
       - name: Workflow summary
         if: always()
         run: |
