@@ -1,4 +1,5 @@
 /** Dedicated, scoped CI audit ingestion. No arbitrary SQL, no admin API, no deploy capability. */
+import openapi from './openapi.mjs';
 const encoder = new TextEncoder();
 const json = (body,status=200) => Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
 const MAX_BYTES = 4096;
@@ -38,6 +39,7 @@ export async function verifySignature(headers,raw,secret,nowMs=Date.now()){
 }
 export async function handleRequest(request,env){
   const path=new URL(request.url).pathname;
+  if(path==='/openapi.json'&&request.method==='GET')return json(openapi);
   if(path==='/health'&&request.method==='GET') return json({service:'trinity-audit',ready:Boolean(env?.DB?.prepare&&env?.AUDIT_HMAC_KEY?.length>=32&&env?.AUDIT_ALLOWED_REPOS)},env?.DB?.prepare&&env?.AUDIT_HMAC_KEY?.length>=32&&env?.AUDIT_ALLOWED_REPOS?200:503);
   if(path!=='/v1/audit') return json({error:'Not found'},404);
   if(request.method!=='POST') return json({error:'Method not allowed'},405);
