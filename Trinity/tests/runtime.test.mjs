@@ -9,7 +9,7 @@ let mf,db;const key='test-only-not-a-real-secret-123456789';const gatewayKey='te
 const url='https://trinity.test';
 async function req(path,body,auth=true,extra={}){return mf.dispatchFetch(url+path,{method:body===undefined?'GET':'POST',headers:{...(auth?{Authorization:'Bearer '+key}:{}),...(body===undefined?{}:{'Content-Type':'application/json'}),...extra},body:body===undefined?undefined:JSON.stringify(body)});}
 before(async()=>{
-  const modules=readdirSync('dist').filter(x=>!x.endsWith('.map')&&!x.endsWith('.md')).map(name=>({type:name==='index.js'?'ESModule':'Text',path:resolve('dist',name)}));
+  const modules=readdirSync('dist').filter(x=>!x.endsWith('.map')&&!x.endsWith('.md')).map(name=>({type:name==='integrations-entry.js'?'ESModule':'Text',path:resolve('dist',name)}));
   modules.sort((a,b)=>a.type==='ESModule'?-1:b.type==='ESModule'?1:0);
   mf=new Miniflare(convertV4MiniflareOptions({workers:[{name:'trinity',modules,compatibilityDate:'2026-10-01',compatibilityFlags:['nodejs_compat'],bindings:{TRINITY_OPS_KEY:key,TRINITY_GATEWAY_KEY:gatewayKey,TRINITY_VAULT_KEY:Buffer.alloc(32,7).toString('base64url'),OLLAMA_API_KEY:'test-only-ollama-key',OLLAMA_MODEL:'gemma4:31b'},d1Databases:{DB:'test-db'},r2Buckets:{ARTIFACTS:'test-r2'},
     serviceBindings:{AI:{name:'mock',entrypoint:'MockAI'}},workflows:{OPS_WORKFLOW:{name:'test-workflow',className:'TrinityOperations'}}},

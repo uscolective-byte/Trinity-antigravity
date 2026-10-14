@@ -11,3 +11,7 @@ Prototypy/
 .env
 .env.*
 .dev.vars
+
+**/dist-integrations/
+
+.deployment-backups/
