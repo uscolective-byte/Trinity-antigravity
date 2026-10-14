@@ -11,3 +11,5 @@ Prototypy/
 .env
 .env.*
 .dev.vars
+
+**/dist-integrations/
