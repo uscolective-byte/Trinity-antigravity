@@ -63,7 +63,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(PC_TOOLS.has(name)&&executionContext.adminAuthorized!==true)throw new Error('PC nástroje sú dostupné iba v serverom overenom admin režime.');
   if(!INTERNAL_TOOLS.has(name)&&name!=='install_plugin')await ensureToolEnabled(env,name);
   if(name==='request_system_action'&&input&&typeof input==='object')input={action:input.action,payload:input.payload||(typeof input.resource==='string'?{path:input.resource}:{}),rationale:input.rationale||input.reason};
-  const args=TOOL_SCHEMAS[name].parse(input);
+  const args=PC_TOOLS.has(name)?null:TOOL_SCHEMAS[name].parse(input);
   if(name==='plan_work')return planTask(args.task);
   if(PRACTICAL_TOOL_NAMES.includes(name))return runPracticalTool(name,args);
   if(name==='json_tool'){
@@ -189,7 +189,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       pc_screenshot:z.object({}).strict(),
       pc_run:z.object({command:z.string().min(1).max(4000),cwd:z.string().optional(),timeout:z.number().int().min(1000).max(120000).optional(),allowNonZero:z.boolean().optional()}).strict(),
       pc_file_read:z.object({path:z.string().min(1).max(2000),depth:z.number().int().min(1).max(3).optional()}).strict(),
-      pc_file_write:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000)}).strict(),
+      pc_file_write:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000),expected_sha256:z.string().regex(/^(absent|[a-f0-9]{64})$/).default('absent')}).strict(),
       pc_file_append:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000)}).strict(),
       pc_file_edit:z.object({path:z.string().min(1).max(2000),find:z.string().min(1).max(200000),replace:z.string().max(200000)}).strict(),
       pc_directory_create:z.object({path:z.string().min(1).max(2000)}).strict(),
@@ -206,8 +206,23 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const parsedArgs=pcSchema[name].parse(input);
     let payload=parsedArgs;
     if(name==='pc_file_read')payload={path:parsedArgs.path,depth:parsedArgs.depth};
-    if(name==='pc_file_write')payload={path:parsedArgs.path,content:parsedArgs.content};
-    if(name==='pc_file_append')payload={path:parsedArgs.path,content:parsedArgs.content,operation:'append'};
+    if(name==='pc_file_write')payload={path:parsedArgs.path,content:parsedArgs.content,expected_sha256:parsedArgs.expected_sha256};
+    if(name==='pc_run'){
+      const task={'npm run build':'build','npm test':'tests','git status --short':'git-status','git diff --check':'diff-check'}[parsedArgs.command.trim()];
+      if(!task)throw new Error('Miestna brána povoľuje iba npm run build, npm test, git status --short a git diff --check.');
+      if(parsedArgs.cwd&&!['Trinity','Local-Gateway'].includes(parsedArgs.cwd))throw new Error('Použi relatívny projekt Trinity alebo Local-Gateway.');
+      payload={project:parsedArgs.cwd||'Trinity',task};
+    }
+    if(name==='pc_file_append'||name==='pc_file_edit'){
+      const readAction=await createSystemAction(env,{action:'read',payload:{path:parsedArgs.path},rationale:'Overenie obsahu pred upravou suboru.'},'admin:agent:trinity',{adminAuthorized:true});
+      const before=await waitForSystemAction(env,readAction);
+      const receipt=before.receipt;
+      if(before.status!=='completed'||typeof receipt?.content!=='string'||!/^[a-f0-9]{64}$/.test(receipt.sha256||''))throw new Error('Pred úpravou chýba overené čítanie súboru.');
+      if(name==='pc_file_edit'&&receipt.content.split(parsedArgs.find).length!==2)throw new Error('Hľadaný text musí byť v súbore presne raz.');
+      const content=name==='pc_file_append'?receipt.content+parsedArgs.content:receipt.content.replace(parsedArgs.find,()=>parsedArgs.replace);
+      if(new TextEncoder().encode(content).byteLength>500000)throw new Error('Upravený súbor je príliš veľký.');
+      payload={path:parsedArgs.path,content,expected_sha256:receipt.sha256};
+    }
     if(name==='pc_directory_create')payload={path:parsedArgs.path,operation:'mkdir'};
     const rationale=`Trinity tool: ${name}`;
     const adminAuthorized=executionContext.adminAuthorized===true;
@@ -242,9 +257,9 @@ export const TOOL_HELP={
   ...PRACTICAL_TOOL_HELP,
   // ── PC Bridge nástroje ──
   pc_screenshot:'Spraví screenshot obrazovky a vráti base64 PNG + rozlíšenie: {}',
-  pc_run:'Spustí adminom autorizovaný PowerShell príkaz v povolenom workspace a vráti stdout/stderr: {command:string,cwd?:string,timeout?:ms,allowNonZero?:bool}',
-  pc_file_read:'Prečíta súbor alebo vypíše adresár z PC: {path:string,depth?:1-3}',
-  pc_file_write:'Zapíše súbor na PC (vyžaduje schválenie): {path:string,content:string}',
+  pc_run:'Spustí iba povolenú úlohu: {command:"npm run build"|"npm test"|"git status --short"|"git diff --check",cwd?:"Trinity"|"Local-Gateway"}. Nepoužívaj shellové reťazenie.',
+  pc_file_read:'Prečíta súbor z projektu: {path:string}. Cesta musí byť relatívna, napríklad Trinity/package.json; poverenia sú blokované.',
+  pc_file_write:'Vytvorí nový súbor alebo prepíše súbor iba pri zhodnom SHA-256 z pc_file_read: {path:string,content:string,expected_sha256?:string}. Predvolené absent odmietne prepísanie existujúceho súboru.',
   pc_file_append:'Pridá obsah na koniec súboru v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string,content:string}',
   pc_file_edit:'Nahradí text v súbore v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string,find:string,replace:string}',
   pc_directory_create:'Vytvorí adresár v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string}',

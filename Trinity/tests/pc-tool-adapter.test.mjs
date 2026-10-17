@@ -1,0 +1,27 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {runTool} from '../src/tools.js';
+
+test('admin PC tools validate their own schema and dispatch bounded gateway payloads',async()=>{
+  const payloads=[];
+  const env={DB:{prepare(sql){return {
+    bind(...values){if(sql.startsWith('INSERT INTO ops_system_actions'))payloads.push(JSON.parse(values[2]));return this;},
+    async run(){return {};},async first(){return sql.includes('ops_plugins')?{installed:1,enabled:1}:{id:'test-action',action:'read',status:'completed',payload_json:'{}',receipt_json:JSON.stringify({content:'verified',sha256:'a'.repeat(64)})};}
+  };}}};
+  const agent={tools:['pc_file_read','pc_file_write','pc_file_edit','pc_file_append','pc_run']};
+  await assert.rejects(runTool(env,agent,'pc_file_read',{path:'Trinity/package.json'}),/admin/);
+  const read=await runTool(env,agent,'pc_file_read',{path:'Trinity/package.json'},{adminAuthorized:true});
+  assert.equal(read.content,'verified');
+  await runTool(env,agent,'pc_file_write',{path:'Trinity/new.txt',content:'new'},{adminAuthorized:true});
+  assert.equal(payloads.at(-1).expected_sha256,'absent');
+  await runTool(env,agent,'pc_file_append',{path:'Trinity/new.txt',content:' appended'},{adminAuthorized:true});
+  assert.deepEqual(payloads.at(-1),{path:'Trinity/new.txt',content:'verified appended',expected_sha256:'a'.repeat(64)});
+  await runTool(env,agent,'pc_file_edit',{path:'Trinity/new.txt',find:'verified',replace:'$& replaced'},{adminAuthorized:true});
+  assert.equal(payloads.at(-1).content,'$& replaced');
+  await assert.rejects(runTool(env,agent,'pc_file_edit',{path:'Trinity/new.txt',find:'missing',replace:'x'},{adminAuthorized:true}),/presne raz/);
+  await runTool(env,agent,'pc_run',{command:'npm run build',cwd:'Trinity'},{adminAuthorized:true});
+  assert.deepEqual(payloads.at(-1),{project:'Trinity',task:'build'});
+  const before=payloads.length;
+  await assert.rejects(runTool(env,agent,'pc_run',{command:'npm run build; arbitrary'},{adminAuthorized:true}),/povoľuje/);
+  assert.equal(payloads.length,before);
+});
