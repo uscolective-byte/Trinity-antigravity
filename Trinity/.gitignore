@@ -9,3 +9,5 @@ workers/**/work/
 .firecrawl/
 worker-configuration.d.ts
 !worker-configuration.example.d.ts
+
+dist-development/

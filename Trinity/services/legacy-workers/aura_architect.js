@@ -1,4 +1,4 @@
-// AURA Architect — navrhuje systémovú architektúru
+// Reconciled with the deployed Worker on 2026-10-17; retain both deployed and repository actions.
 export default {
   async fetch(request, env) {
     if (request.method !== "POST") return Response.json({ ok: false, error: "Method not allowed" }, { status: 405 });
@@ -9,11 +9,35 @@ export default {
     try {
       if (call.action === "architect.design") {
         const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", { messages: [
-          { role: "system", content: "Si AURA Architect. Navrhni systémovú architektúru. Poskytni: komponenty, dátové toky, spojenia, potrebné tabuľky. JSON: {components:[], data_flows:[], connections:[], tables:[]}" },
-          { role: "user", content: "Požiadavky: " + d.requirements }
+          { role: "system", content: "Si AURA Architect. Navrhni systémovú architektúru. VRÁŤ JSON: {components:[{name,responsibility,technology,connections:[]}],data_flow,scalability_notes,security_notes}" },
+          { role: "user", content: "Požiadavky: " + (d.requirements || "") + "\nŠkála: " + (d.scale || "medium") + "\nObmedzenia: " + (d.constraints || "") }
         ]});
         let result; try { result = JSON.parse(ai.response); } catch { result = { raw: ai.response }; }
-        await env.DB.prepare("INSERT INTO graph_nodes (id, type, label, properties, content, created_at) VALUES (lower(hex(randomblob(16))), 'architecture', ?, '{}', ?, datetime('now'))").bind("Architecture: " + (d.requirements||"").slice(0,50), ai.response).run();
+        await env.DB.prepare("INSERT INTO thoughts (id, thought_type, content, trigger_message, resulting_action, created_at) VALUES (?, 'architecture', ?, ?, ?, datetime('now'))").bind(crypto.randomUUID(), JSON.stringify(result), d.requirements||"", "architect.design").run();
+        return Response.json({ ok: true, result, traceId, from: "aura-architect" });
+      }
+      if (call.action === "architect.review") {
+        const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", { messages: [
+          { role: "system", content: "Si AURA Architect. Zhodnoť architektúru. VRÁŤ JSON: {score,strengths:[],weaknesses:[],recommendations:[],risk_level}" },
+          { role: "user", content: "Architektúra na review:\n" + (d.architecture || d.description || "") }
+        ]});
+        let result; try { result = JSON.parse(ai.response); } catch { result = { raw: ai.response }; }
+        return Response.json({ ok: true, result, traceId, from: "aura-architect" });
+      }
+      if (call.action === "architect.evaluate") {
+        const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", { messages: [
+          { role: "system", content: "Si AURA Architect. Vyhodnoť technologické možnosti. VRÁŤ JSON: {recommendation,alternatives:[{name,pros:[],cons:[],fit_score}],reasoning}" },
+          { role: "user", content: "Problém: " + (d.problem || "") + "\nMožnosti: " + JSON.stringify(d.options || []) }
+        ]});
+        let result; try { result = JSON.parse(ai.response); } catch { result = { raw: ai.response }; }
+        return Response.json({ ok: true, result, traceId, from: "aura-architect" });
+      }
+      if (call.action === "architect.diagram") {
+        const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", { messages: [
+          { role: "system", content: "Si AURA Architect. Generuj textovú reprezentáciu architektúry (Mermaid diagram). VRÁŤ JSON: {mermaid,description,legend:[]}" },
+          { role: "user", content: "Systém: " + (d.system || "") + "\nKomponenty: " + (d.components || "") }
+        ]});
+        let result; try { result = JSON.parse(ai.response); } catch { result = { raw: ai.response }; }
         return Response.json({ ok: true, result, traceId, from: "aura-architect" });
       }
       if (call.action === "architect.graph") {
@@ -32,8 +56,7 @@ export default {
       if (call.action === "aura.status") {
         return Response.json({ ok: true, result: { agent: "architect", role: "Navrhuje systémovú architektúru a komponenty", status: "active" }, traceId, from: "aura-architect" });
       }
-      const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", { messages: [{ role: "system", content: "Si AURA Architect. Navrhni architektúru." }, { role: "user", content: d.prompt || call.action }] });
-      return Response.json({ ok: true, result: { response: ai.response }, traceId, from: "aura-architect" });
+      return Response.json({ ok: false, error: "Unknown action: " + call.action, traceId, from: "aura-architect" });
     } catch (e) { return Response.json({ ok: false, error: e.message, traceId, from: "aura-architect" }); }
   }
 };

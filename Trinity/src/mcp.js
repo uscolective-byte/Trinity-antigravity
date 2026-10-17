@@ -1,4 +1,5 @@
 import {McpServer} from '@modelcontextprotocol/server';
+import {TRINITY_VERSION,releaseMetadata} from './version.js';
 import {createMcpHandler} from 'agents/mcp/server';
 import {z} from 'zod';
 import {AGENTS} from './registry.js';
@@ -13,14 +14,14 @@ const result=data=>({content:[{type:'text',text:JSON.stringify(data,null,2)}]});
 
 export function handleMcp(request,env,ctx,access={}){
   return createMcpHandler(()=>{
-  const server=new McpServer({name:'trinity',version:'9.4.3'});
+  const server=new McpServer({name:'trinity',version:TRINITY_VERSION});
     const projectControlAllowed=()=>access.projectControl?Promise.resolve(true):geminiProjectControlEnabled(env,env.TRINITY_OWNER_EMAIL||'');
 
     server.registerTool('trinity_status',{description:'Overí aktuálnu pripravenosť jadra a stav registra pluginov. Netvrdí prístup k PC ani ROOT_ADMIN.',inputSchema:{}},
       async()=>{
         const state=await readiness(env);
         const plugins=env.DB?await listPlugins(env):[];
-        return result({service:'trinity',mcp_version:'9.4.3',...state,plugins:{catalog:plugins.length,installed:plugins.filter(p=>p.installed).length,enabled:plugins.filter(p=>p.enabled).length},pc_access:'not-checked',checked_at:new Date().toISOString()});
+        return result({service:'trinity',mcp_version:TRINITY_VERSION,deployment:releaseMetadata(env),...state,plugins:{catalog:plugins.length,installed:plugins.filter(p=>p.installed).length,enabled:plugins.filter(p=>p.enabled).length},pc_access:'not-checked',checked_at:new Date().toISOString()});
       });
 
     // ── Pôvodné nástroje ──

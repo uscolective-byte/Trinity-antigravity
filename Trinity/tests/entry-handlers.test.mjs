@@ -5,7 +5,7 @@ import {build} from 'esbuild';
 test('integration wrappers forward cron and email to the core handler',async()=>{
   const result=await build({entryPoints:['services/integrations-entry.js'],bundle:true,write:false,format:'esm',platform:'node',plugins:[{
     name:'core-event-probe',setup(builder){
-      builder.onLoad({filter:/\/src\/index\.js$/},()=>({contents:`
+      builder.onLoad({filter:/[\\/]src[\\/]index\.js$/},()=>({contents:`
         export class TrinityAgent {} export class ChatAgent {} export class GuardianAgent {} export class TrinityOperations {}
         export default {fetch(){return new Response('core');},scheduled(event,env,ctx){return {event,env,ctx,type:'cron'};},email(message,env,ctx){return {message,env,ctx,type:'email'};}};
       `,loader:'js'}));
