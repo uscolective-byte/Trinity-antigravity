@@ -62,7 +62,8 @@ test('production and development domains use isolated Worker resources', () => {
   assert.notEqual(development.d1_databases.find(database=>database.binding==='DB').database_id,config.d1_databases.find(database=>database.binding==='DB').database_id);
   assert.notEqual(development.r2_buckets.find(bucket=>bucket.binding==='ARTIFACTS').bucket_name,config.r2_buckets.find(bucket=>bucket.binding==='ARTIFACTS').bucket_name);
   assert.notEqual(development.kv_namespaces.find(namespace=>namespace.binding==='Mastermind').id,config.kv_namespaces.find(namespace=>namespace.binding==='Mastermind').id);
-  assert.deepEqual(development.services,[]);
+  assert.deepEqual(development.services,[{binding:'KNOWLEDGE_SERVICE',service:'trinity-knowledge-development'}]);
+  assert.ok(config.services.some(binding=>binding.binding==='KNOWLEDGE_SERVICE'&&binding.service==='trinity-knowledge'));
   assert.deepEqual(config.version_metadata,{binding:'CF_VERSION_METADATA'});
   assert.deepEqual(development.version_metadata,config.version_metadata);
 });

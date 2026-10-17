@@ -1,4 +1,5 @@
 import {capabilityStatus} from './capability-status.js';
+import {handleKnowledge} from '../services/knowledge-api.js';
 import {z} from 'zod';
 import {TRINITY_VERSION,releaseMetadata} from './version.js';
 import {buildOnlyPreviewResponse,isBuildOnlyPreview} from './preview-mode.js';
@@ -54,6 +55,8 @@ async function handleScopedMcp(request,env,ctx){
 async function route(request,env,ctx){
   const previewResponse=buildOnlyPreviewResponse(request,env,{version:TRINITY_VERSION,agents:AGENTS.length});
   if(previewResponse)return previewResponse;
+  const knowledgeResponse=await handleKnowledge(request,env);
+  if(knowledgeResponse)return knowledgeResponse;
   const url=new URL(request.url),path=url.pathname;
   if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
     'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});

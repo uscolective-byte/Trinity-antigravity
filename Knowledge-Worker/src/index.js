@@ -19,6 +19,7 @@ export class KnowledgeStore extends DurableObject {
       return {id:doc.source_id,title:doc.title,text:doc.text,hash,origin,url,updated_at,unchanged:false};
     });
   }
+  status(){return {service:'trinity-knowledge',ready:true,documents:this.sql.exec('SELECT COUNT(*) AS n FROM documents').one().n,checked_at:new Date().toISOString()};}
   get(id){return this.sql.exec('SELECT * FROM documents WHERE id=?',id).toArray()[0]||null;}
   search(query){const words=terms(query);if(!words.length)return {passages:[],untrusted_context:true};
     const score=words.map(()=>'(CASE WHEN instr(c.search_text,?)>0 THEN 1 ELSE 0 END)').join('+');
@@ -29,6 +30,7 @@ export class KnowledgeStore extends DurableObject {
 export default class KnowledgeService extends WorkerEntrypoint {
   store(){return this.env.KNOWLEDGE.get(this.env.KNOWLEDGE.idFromName('primary'));}
   getCatalog(){return catalog;}
+  getStatus(){return this.store().status();}
   importDocument(input){return this.store().put(document(input));}
   async refresh(id){const doc=await download(id);return this.store().put(doc,'catalog-fetch',doc.url);}
   search(query){return this.store().search(query);}
