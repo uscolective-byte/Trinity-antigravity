@@ -16,6 +16,8 @@ before(async()=>{
     {name:'mock',modules:true,compatibilityDate:'2026-10-01',script:`import {WorkerEntrypoint} from 'cloudflare:workers'; export class MockAI extends WorkerEntrypoint{async run(model,args){if(model.includes('flux'))return {image:btoa('mock-jpeg')};if(model.includes('whisper'))return {text:'test voice transcript'};if(model.includes('melotts'))return new Uint8Array([73,68,51]);const prompt=args.messages.at(-1).content;if(prompt==='FAIL_TEST'||(prompt==='FAIL_PLANNER'&&args.messages[0].content.includes('Rozlož zadanie na vykonateľné kroky')))throw new Error('Simulated failure');if(prompt.includes('STUDIO_TEST')){const revised=prompt.includes('STUDIO_TEST_REVISION');return {response:'<!doctype html><html><head><title>Studio test</title></head><body><main><h1>'+(revised?'Revised':'Created')+'</h1></main></body></html>'};}return {response:'TEST_MODEL_RESULT'};}} export default {fetch(){return new Response('mock')}};`} ]}));
   db=await mf.getD1Database('DB','trinity');
   await db.batch([
+    db.prepare('CREATE TABLE audit_log(id INTEGER PRIMARY KEY,module TEXT NOT NULL,action TEXT NOT NULL,details TEXT)'),
+    db.prepare("INSERT INTO audit_log(module,action,details) VALUES('legacy','preserve','existing history')"),
     db.prepare('CREATE TABLE memory(id TEXT PRIMARY KEY,content TEXT)'),
     db.prepare('CREATE TABLE knowledge(id INTEGER PRIMARY KEY,topic TEXT,content TEXT)'),
     db.prepare('CREATE TABLE personality(id INTEGER PRIMARY KEY,trait TEXT,value TEXT)'),
@@ -31,6 +33,13 @@ before(async()=>{
   }
 });
 after(async()=>{await mf?.dispose();});
+test('CI audit migrations preserve a pre-existing legacy audit table',async()=>{
+  const legacy=await db.prepare("SELECT details FROM audit_log WHERE module='legacy'").first();
+  assert.equal(legacy.details,'existing history');
+  const columns=await db.prepare("PRAGMA table_info('ops_ci_audit_log')").all();
+  assert.ok(columns.results.some(column=>column.name==='repo'));
+  assert.ok(columns.results.some(column=>column.name==='idempotency_key'));
+});
 test('public UI, liveness and readiness; private APIs',async()=>{assert.equal((await req('/',undefined,false)).status,200);const health=await(await req('/health',undefined,false)).json();assert.equal(health.agents,40);assert.equal(health.version,'10.0.1');assert.equal(health.deployment.id,'test-deployment');assert.equal(health.deployment.tag,'test-commit');const ready=await req('/ready',undefined,false);assert.equal(ready.status,200,await ready.clone().text());assert.equal((await ready.json()).checks.schema,true);assert.equal((await req('/api/ops/agents',undefined,false)).status,401);assert.equal((await req('/mcp',{},false)).status,401);});
 test('login sets protected cookie and logout revokes it',async()=>{const r=await req('/api/ops/login',{key},false);assert.equal(r.status,200);const c=r.headers.get('set-cookie');assert.match(c,/HttpOnly/);assert.match(c,/Secure/);assert.match(c,/SameSite=Strict/);assert.equal((await req('/api/ops/status',undefined,false,{Cookie:c.split(';')[0]})).status,200);await req('/api/ops/logout',{},false,{Cookie:c.split(';')[0]});assert.equal((await req('/api/ops/status',undefined,false,{Cookie:c.split(';')[0]})).status,401);});
 test('Google auth stays dormant and the authenticated owner is recognized',async()=>{const config=await(await req('/api/auth/config',undefined,false)).json();assert.deepEqual(config,{google_enabled:false,google_required:false});assert.equal((await req('/api/auth/google/start',undefined,false)).status,404);const pending=await req('/api/ops/users/pending');assert.equal(pending.status,200);assert.equal((await req('/api/ops/users/example%40gmail.com/approve',{})).status,404);});
