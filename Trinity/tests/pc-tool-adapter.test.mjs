@@ -8,7 +8,7 @@ test('admin PC tools validate their own schema and dispatch bounded gateway payl
     bind(...values){if(sql.startsWith('INSERT INTO ops_system_actions'))payloads.push(JSON.parse(values[2]));return this;},
     async run(){return {};},async first(){return sql.includes('ops_plugins')?{installed:1,enabled:1}:{id:'test-action',action:'read',status:'completed',payload_json:'{}',receipt_json:JSON.stringify({content:'verified',sha256:'a'.repeat(64)})};}
   };}}};
-  const agent={tools:['pc_file_read','pc_file_write','pc_file_edit','pc_file_append','pc_run']};
+  const agent={tools:['pc_run_script','pc_file_read','pc_file_write','pc_file_edit','pc_file_append','pc_run']};
   await assert.rejects(runTool(env,agent,'pc_file_read',{path:'Trinity/package.json'}),/admin/);
   const read=await runTool(env,agent,'pc_file_read',{path:'Trinity/package.json'},{adminAuthorized:true});
   assert.equal(read.content,'verified');
@@ -21,6 +21,11 @@ test('admin PC tools validate their own schema and dispatch bounded gateway payl
   await assert.rejects(runTool(env,agent,'pc_file_edit',{path:'Trinity/new.txt',find:'missing',replace:'x'},{adminAuthorized:true}),/presne raz/);
   await runTool(env,agent,'pc_run',{command:'npm run build',cwd:'Trinity'},{adminAuthorized:true});
   assert.deepEqual(payloads.at(-1),{project:'Trinity',task:'build'});
+  await assert.rejects(runTool(env,agent,'pc_run_script',{runtime:'node',path:'Trinity/workspace/scripts/test.mjs',expected_sha256:'a'.repeat(64)}),/admin/);
+  await runTool(env,agent,'pc_run_script',{runtime:'python',path:'Trinity/workspace/scripts/test.py',expected_sha256:'a'.repeat(64),args:['literal value']},{adminAuthorized:true});
+  assert.deepEqual(payloads.at(-1),{task:'script',runtime:'python',path:'Trinity/workspace/scripts/test.py',expected_sha256:'a'.repeat(64),args:['literal value'],timeout_ms:30000});
+  await runTool(env,agent,'pc_run',{command:'python --version'},{adminAuthorized:true});
+  assert.equal(payloads.at(-1).task,'python-version');
   const before=payloads.length;
   await assert.rejects(runTool(env,agent,'pc_run',{command:'npm run build; arbitrary'},{adminAuthorized:true}),/povoľuje/);
   assert.equal(payloads.length,before);

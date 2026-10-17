@@ -52,6 +52,9 @@ export async function resolveSafePath(workspaceRoot,relativePath,{allowMissing=f
 }
 
 export const RUN_TASKS=Object.freeze({
+  'node-version':{command:process.execPath,args:['--version']},
+  'python-version':{command:process.env.TRINITY_PYTHON_PATH||'python',args:['--version']},
+  'cmd-version':{command:'cmd.exe',args:['/d','/c','ver']},
   'git-status':{command:'git',args:['status','--short']},
   'diff-check':{command:'git',args:['diff','--check']},
   tests:{command:'npm',args:['test']},

@@ -12,6 +12,10 @@ test('heartbeat and configured secrets cannot masquerade as completed PC executi
   const report=summarizeCapabilities(env,{connected:true},[receipt],now);
   assert.equal(find(report,'files').execution_verified,true);
   assert.equal(find(report,'build').execution_verified,false);
+  const script={...receipt,action:'run',receipt_json:'{"task":"script","success":true}'};
+  assert.equal(find(summarizeCapabilities(env,{connected:true},[script],now),'scripts').execution_verified,true);
+  assert.equal(find(summarizeCapabilities(env,{connected:true},[script],now),'build').execution_verified,false);
+  assert.equal(find(summarizeCapabilities(env,{connected:true},[{...script,receipt_json:'{"task":"node-version","success":true}'}],now),'scripts').execution_verified,false);
   assert.equal(JSON.stringify(report).includes('never-return-this'),false);
   for(const row of [{...receipt,completed_at:0},{...receipt,completed_at:now+1000},{...receipt,receipt_json:'{}'},{...receipt,receipt_json:'{"success":false}'},{...receipt,receipt_json:'invalid'}]){
     assert.equal(find(summarizeCapabilities(env,{connected:true},[row],now),'files').execution_verified,false);
