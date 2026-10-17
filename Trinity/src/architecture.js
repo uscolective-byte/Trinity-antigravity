@@ -12,8 +12,8 @@ OVERENÉ V ZDROJI A TESTOCH:
 - PC Bridge je samostatný Cloudflare Worker binding trinity-pc-bridge, ktorý eviduje heartbeat a stav lokálneho gateway.
 - Lokálny PC Bridge 2.0 používa allowlist pracovných priečinkov a aplikácií, chránený gateway secret, auditovanú akciu a doklad o výsledku. Serverom overený admin môže konkrétny príkaz v aktuálnej požiadavke autorizovať priamo; ostatné zdroje vytvárajú iba návrh.
 - Na počítači je Ollama s modelmi qwen3:4b-instruct, trinity-local:4b a qwen3:4b. Lokálny model je dostupný cez schválenú bránu, nie ako verejný endpoint.
-- Overené lokálne testy aktuálneho Worker zdroja: Trinity 129/129. Bezpečnostné jadro PC Bridge je samostatná súčasť a jeho stav sa musí overovať samostatne.
-- Overený lokálny stav pri poslednej kontrole: gateway ready, cloud connected, pc_bridge connected. Tento stav je časový a nesmie sa tvrdiť ako trvalý bez nového health checku.
+- Počet úspešných testov preber iba z aktuálneho testovacieho protokolu. Bezpečnostné jadro PC Bridge je samostatná súčasť a jeho stav sa musí overovať samostatne.
+- Pripojenie gateway a PC Bridge nie je týmto textom potvrdené. Aktuálny stav over cez pc_status a doklad konkrétnej akcie; dostupnosť cloudového Workera nepotvrdzuje spojenie s počítačom.
 - Implementované moduly v kóde zahŕňajú chat, workflow, D1 pamäť, projekty, AI Studio, pluginy/nástroje, obrázky a analýzu obrazu cez Workers AI, prepis hlasu, syntézu hlasu, vizuálne workflow, granulárne role, monitoring incidentov, export auditu, autentifikáciu, schvaľované systémové akcie a emergency stop.
 
 KONFIGUROVANÉ, ALE V TOMTO DOKUMENTE NEPREHLASUJ ZA PLNÚ PRODUKČNÚ GARANCIU:
