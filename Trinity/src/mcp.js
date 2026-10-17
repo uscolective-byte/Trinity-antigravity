@@ -1,3 +1,4 @@
+import {capabilityStatus} from './capability-status.js';
 import {McpServer} from '@modelcontextprotocol/server';
 import {TRINITY_VERSION,releaseMetadata} from './version.js';
 import {createMcpHandler} from 'agents/mcp/server';
@@ -23,6 +24,8 @@ export function handleMcp(request,env,ctx,access={}){
         const plugins=env.DB?await listPlugins(env):[];
         return result({service:'trinity',mcp_version:TRINITY_VERSION,deployment:releaseMetadata(env),...state,plugins:{catalog:plugins.length,installed:plugins.filter(p=>p.installed).length,enabled:plugins.filter(p=>p.enabled).length},pc_access:'not-checked',checked_at:new Date().toISOString()});
       });
+
+    server.registerTool('get_capability_status',{description:'Rozlisuje konfiguraciu, spojenie s PC a skutocne doklady vykonania za poslednych 15 minut.',inputSchema:{}},async()=>result(await capabilityStatus(env)));
 
     // ── Pôvodné nástroje ──
     server.registerTool('list_agents',{description:'Zoznam 40 špecialistov Trinity.',inputSchema:{}},

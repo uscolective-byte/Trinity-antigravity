@@ -18,6 +18,10 @@ Privátna systémová vrstva jednej Trinity. Počúva výhradne na `127.0.0.1:87
 3. Potom používaj `SPUSTIT-LOCAL.cmd`.
 4. `install-autostart.ps1` nastaví bezpečné automatické spustenie po prihlásení do Windows.
 
+Predvolený cieľ je produkcia `https://auru.space`. Pre vývoj používaj pri pripojení aj spustení `-Environment development`; používa samostatný `gateway-key-development.dpapi`. Vývojová brána potrebuje vlastné kompatibilné bindingy. Nikdy nezdieľaj produkčný kľúč s vývojovým prostredím. Spúšťač odstráni zdedené cloudové nastavenia pred načítaním zvoleného prostredia.
+
+Na Windows sa npm spúšťa cez jeho JS vstupný bod pomocou Node bez shellu. Nasadenie vyžaduje čistý pracovný strom a používa tag aktuálneho Git commitu.
+
 ## Ovládanie počítača
 
 Desktop Controller 1.1 podporuje zoznam otvorených okien, spustenie a aktivovanie povolených aplikácií a písanie do Poznámkového bloku. Pred každou desktopovou operáciou musí používateľ schváliť presné ID návrhu. Predvolený zoznam aplikácií: Poznámkový blok, Kalkulačka, Skicár a Prieskumník. Prehliadače, heslá, platby a neobmedzené príkazy nie sú povolené.

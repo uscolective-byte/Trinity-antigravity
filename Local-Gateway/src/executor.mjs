@@ -5,6 +5,7 @@ import {randomUUID} from 'node:crypto';
 import {resolveSafePath,RUN_TASKS,validatePackage,validateProject} from './policy.mjs';
 import {sha256} from './store.mjs';
 import {executeDesktop} from './desktop.mjs';
+import {processCommand} from './process-command.mjs';
 
 const MAX_TEXT=1_000_000;
 const MAX_OUTPUT=128_000;
@@ -23,7 +24,8 @@ async function runLocalInference(payload){
 
 async function runProcess(command,args,{cwd,timeoutMs=120_000}={}){
   return new Promise((resolve,reject)=>{
-    const child=spawn(command,args,{cwd,shell:false,windowsHide:true,env:{...process.env,CI:'1',NO_COLOR:'1'}});
+    const invocation=processCommand(command,args);
+    const child=spawn(invocation.command,invocation.args,{cwd,shell:false,windowsHide:true,env:{...process.env,CI:'1',NO_COLOR:'1'}});
     let stdout='',stderr='',settled=false;
     const timer=setTimeout(()=>{child.kill();if(!settled){settled=true;reject(new Error('Proces prekročil časový limit.'));}},timeoutMs);
     const collect=(current,chunk)=>(current+chunk.toString('utf8')).slice(-MAX_OUTPUT);
@@ -61,7 +63,13 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
   }
   if(proposal.action==='deploy'){
     const project=validateProject(payload.project);if(project!=='Trinity')throw new Error('Nasadenie je povolené iba pre Trinity.');
-    const cwd=await resolveSafePath(workspaceRoot,project);const result=await runProcess('npm',['run','deploy'],{cwd,timeoutMs:300_000});return {action:'deploy',project,...result};
+    const cwd=await resolveSafePath(workspaceRoot,project);
+    const identity=await runProcess('git',['rev-parse','HEAD'],{cwd});
+    const sourceCommit=identity.stdout.trim();
+    if(!identity.success||!/^([a-f0-9]{40}|[a-f0-9]{64})$/.test(sourceCommit))throw new Error('Nasadenie vyžaduje platný Git commit.');
+    const dirty=await runProcess('git',['status','--porcelain'],{cwd:workspaceRoot});
+    if(!dirty.success||dirty.stdout.trim())throw new Error('Pred nasadením commitni zmeny v projekte.');
+    const result=await runProcess('npm',['run','deploy','--','--tag',sourceCommit],{cwd,timeoutMs:300_000});return {action:'deploy',project,source_commit:sourceCommit,...result};
   }
   if(proposal.action==='upgrade'){
     const project=validateProject(payload.project);const spec=validatePackage(payload.package,payload.version);const cwd=await resolveSafePath(workspaceRoot,project);
