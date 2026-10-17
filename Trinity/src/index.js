@@ -1,3 +1,4 @@
+import {capabilityStatus} from './capability-status.js';
 import {z} from 'zod';
 import {TRINITY_VERSION,releaseMetadata} from './version.js';
 import {buildOnlyPreviewResponse,isBuildOnlyPreview} from './preview-mode.js';
@@ -37,7 +38,7 @@ export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
 const json=(data,status=200)=>Response.json(data,{status});
 const runtimeEnvironment=(request,env)=>['localhost','127.0.0.1','::1'].includes(new URL(request.url).hostname)?'local':env.TRINITY_ENV||'local';
 const uuid=z.string().uuid();
-const MCP_READ_TOOLS=new Set(['trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status']);
+const MCP_READ_TOOLS=new Set(['get_capability_status','trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status']);
 function requireAdmin(user){if(!['admin','owner'].includes(user.role))throw new HttpError(403,'Táto operácia je dostupná iba správcovi Trinity.');}
 function requireOwner(user){if(user.role!=='owner')throw new HttpError(403,'Táto operácia je dostupná iba vlastníkovi Trinity.');}
 async function handleScopedMcp(request,env,ctx){
@@ -131,6 +132,7 @@ async function route(request,env,ctx){
   if(path==='/mcp'&&bearer.startsWith('trn_live_'))return handleScopedMcp(request,env,ctx);
   const user=await authenticate(request,env);
   const ownerId=(user.email||user.id).trim().toLowerCase();
+  if(path==='/api/assistant/capabilities'&&request.method==='GET')return json(await capabilityStatus(env));
   const control=await readControl(env);
   if(control.emergency_stop&&!['/api/ops/status','/api/ops/control','/api/ops/logout','/api/assistant/rbac','/api/assistant/audit/export'].includes(path))assertRunning(control);
   if(path==='/api/assistant/media/status'&&request.method==='GET')return json(mediaStatus(env));

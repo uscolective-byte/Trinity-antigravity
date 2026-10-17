@@ -8,6 +8,15 @@ import {createSystemAction} from '../src/system-actions.js';
 let mf,db;const key='test-only-not-a-real-secret-123456789';const gatewayKey='test-only-gateway-secret-123456789012345';
 const url='https://trinity.test';
 async function req(path,body,auth=true,extra={}){return mf.dispatchFetch(url+path,{method:body===undefined?'GET':'POST',headers:{...(auth?{Authorization:'Bearer '+key}:{}),...(body===undefined?{}:{'Content-Type':'application/json'}),...extra},body:body===undefined?undefined:JSON.stringify(body)});}
+test('capability status requires authentication and does not mistake configured gateway for execution',async()=>{
+  assert.equal((await req('/api/assistant/capabilities',undefined,false)).status,401);
+  const response=await req('/api/assistant/capabilities');
+  assert.equal(response.status,200);
+  const report=await response.json();
+  assert.equal(report.pc_connected,false);
+  assert.equal(report.groups.find(group=>group.id==='files').status,'offline');
+  assert.equal(JSON.stringify(report).includes(gatewayKey),false);
+});
 before(async()=>{
   const modules=readdirSync('dist').filter(x=>!x.endsWith('.map')&&!x.endsWith('.md')).map(name=>({type:name==='index.js'?'ESModule':'Text',path:resolve('dist',name)}));
   modules.sort((a,b)=>a.type==='ESModule'?-1:b.type==='ESModule'?1:0);
