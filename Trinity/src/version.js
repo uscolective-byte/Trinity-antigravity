@@ -1,4 +1,4 @@
-export const TRINITY_VERSION='10.0.1';
+export const TRINITY_VERSION='10.1.0';
 
 export function releaseMetadata(env){
   const version=env.CF_VERSION_METADATA;

@@ -8,7 +8,7 @@ This change restores the already deployed 10.0.0 features onto current `main`, r
 
 Live service probes additionally found drift in `aura_architect`, `aura_codegen` and `aura_planner`. Their deployed action implementations were recovered and combined with the repository actions. The bounded wrapper now accepts both sets, requires idempotency for recovered writes and restores `aura.status` without AI calls. Existing approval checks remain enabled.
 
-Release 10.0.1 uses a shared version constant and Cloudflare version metadata in health and MCP status. Every release is tagged with its exact source commit. Production routes only `auru.space`; development routes only `auru.dev` and uses its separate resources.
+Release 10.1.0 uses a shared version constant and Cloudflare version metadata in health and MCP status. Every release is tagged with its exact source commit. Production routes only `auru.space`; development routes only `auru.dev` and uses its separate resources.
 
 Validation before rollout: 138 core tests passed before the Aura changes, with zero reported dependency vulnerabilities. Additional Aura regression tests cover restored status and recovered action contracts. Live production test jobs requested Workers AI, Gemini and Ollama and all completed with `42`. Provider requests and their completion are recorded separately from local mocked tests. Final rollout receipts are recorded after deployment.
 

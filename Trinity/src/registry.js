@@ -37,6 +37,13 @@ const groups = [
     ['market-research', 'Trhový a investičný analytik', 'Analyzuj trhy z aktuálnych zdrojov, posudzuj riziko, diverzifikáciu a papierové portfólio; nikdy negarantuj zisk ani nevykonávaj reálne obchody.'],
     ['document-analyst', 'Analytik dokumentov', 'Spracuj poskytnutý text, zhrň ho a uveď chýbajúce údaje.']
   ]],
+  ['Obchod a rast', [
+    ['business-development', 'Obchodný koordinátor', 'Vytvor dôkazmi podložený obchodný postup od výberu segmentu po návrh ponuky a meranie výsledku.'],
+    ['lead-research', 'Výskumník zákazníkov', 'Hľadaj iba verejné obchodné informácie, over potrebu a ukladaj zdroj každého signálu.'],
+    ['offer-strategist', 'Tvorca ponúk', 'Spoj overený problém zákazníka s konkrétnym rozsahom, cenou, prínosom a podmienkami dodania.'],
+    ['web-sales', 'Predaj webových služieb', 'Priprav personalizované návrhy webov a oslovenia; nič neposielaj bez samostatne autorizovaného kroku.'],
+    ['growth-analyst', 'Analytik rastu', 'Meraj leady, odpovede, zákazky, tržby, náklady a experimenty bez sľubovania zisku.']
+  ]],
   ['Tvorba', [
     ['ux', 'UX dizajnér', 'Navrhuj jednoduché používateľské postupy a informačnú architektúru.'],
     ['ui', 'UI dizajnér', 'Navrhuj konzistentné rozhrania a konkrétne vizuálne parametre.'],
@@ -70,6 +77,8 @@ const CORE_SKILLS=[
   {id:'memory-hygiene',name:'Dôveryhodná pracovná pamäť',description:'Vyber relevantné spomienky, zachovaj ich pôvod a nevydávaj staré hlásenia za aktuálny stav.',clusters:['Dáta a pamäť','Riadenie'],steps:['vybrať relevantné záznamy a odstrániť duplicity','oddeliť preferencie, historické údaje a aktuálne dôkazy','pri premenlivom stave použiť dostupný overovací nástroj'],success_checks:['zdroj zostáva priradený k záznamu','pamäť neudeľuje oprávnenia a nevypisuje tajomstvá']},
   {id:'integration-recovery',name:'Pripojenia bez slepých slučiek',description:'Over dostupný transport a autorizáciu; po zlyhaní zmeň postup, nie iba zopakuj rovnakú výzvu.',clusters:['Dáta a pamäť','Cloud a prevádzka','Podpora a automatizácia'],keywords:['mcp','pripoj','prepoj','connect','integr'],steps:['overiť endpoint, transport a skutočnú odpoveď','overiť autorizáciu bez zobrazenia tokenov','otestovať jeden neškodný nástroj a uviesť obmedzenia'],success_checks:['HTTP úspech sa nezamieňa s prístupom','pripojenie sa označí za hotové až po úspešnom nástroji']},
   {id:'clear-communication',name:'Zrozumiteľná spolupráca',description:'Najprv výsledok, potom krátke vysvetlenie a najviac jeden potrebný krok používateľa.',clusters:[],universal:true,steps:['vykonať dostupnú nezávislú prácu','oddeliť hotové, pripravené a blokované kroky','pri technickom probléme ponúknuť jeden konkrétny krok'],success_checks:['žiadne vymyslené dokončenie alebo prístup','bežná odpoveď nezahlcuje používateľa protokolom']},
+  {id:'customer-acquisition',name:'Získavanie zákazníkov',description:'Nájdi verejné dôkazy o potrebe, zorad príležitosti a priprav personalizovaný návrh bez automatického odosielania alebo spamu.',clusters:['Obchod a rast','Výskum'],keywords:['zakaznik','lead','ponuka','predaj','webstranka','linkedin','outreach'],steps:['vybrať segment, lokalitu a merateľnú službu','nájsť verejné signály potreby a zaznamenať zdroje','zoradiť príležitosti, pripraviť návrh a čakať na autorizáciu odoslania'],success_checks:['každé tvrdenie o firme má verejný dôkaz','návrh je označený ako neodoslaný','výsledok nesľubuje zisk']},
+  {id:'managed-evolution',name:'Riadené zlepšovanie Trinity',description:'Navrhni malú zmenu z dôkazov, vytvor ju v samostatnej vetve, otestuj a najprv over vo vývoji; produkcia a externé záväzky zostávajú samostatné kroky.',clusters:['Vývoj','Cloud a prevádzka','Kvalita a bezpečnosť','Riadenie'],keywords:['zlepsi','vylepsi','samostatne','autonomne','self-improve'],steps:['overiť aktuálny zdroj a problém','pripraviť ohraničenú zmenu a testy','nasadiť do vývoja a uložiť potvrdenia','produkciu vykonať iba cez auditovaný release krok'],success_checks:['testy a vývojový smoke test prešli','existuje vratný commit','vykonané akcie majú potvrdenie']},
 ];
 
 export const SKILLS=[...CORE_SKILLS,...EXTENDED_SKILLS];
@@ -80,7 +89,7 @@ export function selectSkills(agent,task='') {
 
 export const AGENTS = groups.flatMap(([cluster, roles]) => roles.map(([id, name, role]) => ({
   id, name, cluster, role,
-  tools: ['knowledge_search','plan_work','search_memory','project_snapshot','calculate','analyze_text','current_time','json_tool','hash_text','convert_units','extract_entities','format_text',...PRACTICAL_TOOL_NAMES,'list_capabilities','list_skills','list_connectors','install_plugin', ...(['Výskum'].includes(cluster)||id==='orchestrator' ? ['web_search'] : []),
+  tools: ['knowledge_search','plan_work','search_memory','project_snapshot','calculate','analyze_text','current_time','json_tool','hash_text','convert_units','extract_entities','format_text',...PRACTICAL_TOOL_NAMES,'list_capabilities','list_skills','list_connectors','install_plugin', ...(['Výskum','Obchod a rast'].includes(cluster)||id==='orchestrator' ? ['web_search'] : []),
     ...(['ui','writer','orchestrator'].includes(id)?['generate_image']:[]),
     ...(['market-research','orchestrator'].includes(id)?['portfolio_summary']:[]),
     ...(['Riadenie','Cloud a prevádzka','Dáta a pamäť','Kvalita a bezpečnosť','Podpora a automatizácia'].includes(cluster) ? ['service_status'] : []),
@@ -99,7 +108,8 @@ export function selectTeam(task, mode = 'single', agent = 'auto') {
     const normalized = task.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     selected = /cloudflare|worker|binding|deploy/.test(normalized) ? 'cloudflare'
       : /kod|code|python|javascript|program|api/.test(normalized) ? 'backend'
-      : /obchod|invest|portfolio|akci|krypto|trh|trading|stock|crypto/.test(normalized) ? 'market-research'
+      : /zakaznik|klient|lead|ponuk|predaj|webstrank|linkedin|outreach|zarob|prijem|trzb/.test(normalized) ? 'business-development'
+      : /invest|portfolio|akci|krypto|trh|trading|stock|crypto/.test(normalized) ? 'market-research'
       : /vyhlada|najdi|zdroj|research|vyskum/.test(normalized) ? 'researcher'
       : /text|napis|clanok|email/.test(normalized) ? 'writer'
       : /pamat|memory|databaz|sql/.test(normalized) ? 'database'

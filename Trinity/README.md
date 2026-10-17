@@ -1,6 +1,6 @@
 # Trinity na Cloudflare
 
-Produkčné operačné centrum jednej osobnej asistentky Trinity. Verejný chat používa jednu identitu; 40 interných špecializácií, dva AI poskytovatelia a nástroje zostávajú v pozadí.
+Produkčné operačné centrum jednej osobnej asistentky Trinity. Verejný chat používa jednu identitu; 45 interných špecializácií, dva AI poskytovatelia a nástroje zostávajú v pozadí.
 
 ## Google účty a schvaľovanie profilov
 

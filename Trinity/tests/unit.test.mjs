@@ -19,9 +19,9 @@ import {handleInboundEmail} from '../src/email.js';
 import {PLUGINS} from '../src/plugins.js';
 import {PRACTICAL_TOOL_NAMES,PRACTICAL_TOOL_SCHEMAS,runPracticalTool} from '../src/practical-skills.js';
 import {studioGenerationPlan} from '../src/studio.js';
-test('40 unique agents in eight departments',()=>{assert.equal(AGENTS.length,40);assert.equal(new Set(AGENTS.map(a=>a.id)).size,40);assert.equal(new Set(AGENTS.map(a=>a.cluster)).size,8);});
-test('20 practical skills are installed as real tools for every Trinity role',()=>{assert.equal(PRACTICAL_TOOL_NAMES.length,20);assert.equal(new Set(PRACTICAL_TOOL_NAMES).size,20);assert.ok(PRACTICAL_TOOL_NAMES.every(name=>PLUGINS.some(plugin=>plugin.tools.includes(name))));assert.ok(AGENTS.every(agent=>PRACTICAL_TOOL_NAMES.every(name=>agent.tools.includes(name))));});
-test('all 20 practical skill implementations execute real bounded work',()=>{
+test('45 unique agents in nine departments',()=>{assert.equal(AGENTS.length,45);assert.equal(new Set(AGENTS.map(a=>a.id)).size,45);assert.equal(new Set(AGENTS.map(a=>a.cluster)).size,9);});
+test('25 practical skills are installed as real tools for every Trinity role',()=>{assert.equal(PRACTICAL_TOOL_NAMES.length,25);assert.equal(new Set(PRACTICAL_TOOL_NAMES).size,25);assert.ok(PRACTICAL_TOOL_NAMES.every(name=>PLUGINS.some(plugin=>plugin.tools.includes(name))));assert.ok(AGENTS.every(agent=>PRACTICAL_TOOL_NAMES.every(name=>agent.tools.includes(name))));});
+test('all 25 practical skill implementations execute real bounded work',()=>{
   const cases=[
     ['date_math',{operation:'add_days',start:'2026-01-01',days:2},result=>assert.equal(result.date,'2026-01-03')],
     ['timezone_convert',{datetime:'2026-01-01T12:00:00Z',to_timezone:'Europe/Bratislava'},result=>assert.equal(result.utc,'2026-01-01T12:00:00.000Z')],
@@ -42,13 +42,20 @@ test('all 20 practical skill implementations execute real bounded work',()=>{
     ['markdown_inspect',{markdown:'# Nadpis\n- [x] Hotovo\n[Web](https://example.com)'},result=>assert.deepEqual([result.headings.length,result.completed_tasks,result.links.length],[1,1,1])],
     ['html_to_text',{html:'<style>x{}</style><p>Ahoj <b>Trinity</b></p>'},result=>assert.equal(result.text,'Ahoj Trinity')],
     ['business_math',{operation:'vat',amount:100,rate:20},result=>assert.equal(result.gross,120)],
+    ['prospect_queries',{service:'tvorba webu',industries:['kaderníctvo'],locations:['Bratislava']},result=>assert.equal(result.contacted,false)],
+    ['prospect_score',{prospects:[{name:'Firma A',signals:['no_website'],evidence:['verejný profil firmy']}]},result=>assert.equal(result.prospects[0].score,34)],
+    ['outreach_draft',{prospect_name:'Firma A',service:'nový web',observations:['chýba mobilná verzia'],benefit:'Zákazníci nájdu ponuku rýchlejšie.'},result=>assert.deepEqual([result.status,result.sent,result.send_required],['draft',false,true])],
+    ['revenue_model',{setup_price:500,monthly_price:50,delivery_cost:100,monthly_cost:100,leads_per_month:20,close_rate_pct:10,months:2},result=>assert.equal(result.total_customers,4)],
+    ['improvement_plan',{goal:'Zlepšiť obchodný postup',evidence:['Test ukázal chýbajúci krok'],tests:['npm test'],production_change:true},result=>assert.equal(result.production_approval_required,true)],
     ['geometry',{shape:'circle',radius:2},result=>assert.equal(result.area,Math.PI*4)]
   ];
-  assert.equal(cases.length,20);
+  assert.equal(cases.length,25);
   for(const [name,input,verify] of cases)verify(runPracticalTool(name,PRACTICAL_TOOL_SCHEMAS[name].parse(input)));
 });
 test('AI Studio settings create real provider fallback and quality plans',()=>{assert.deepEqual(studioGenerationPlan('gemini','fast',{}),{maxTokens:3600,directive:'Uprednostni čistú menšiu stránku a rýchle vytvorenie.',providers:['gemini','workers-ai']});const high=studioGenerationPlan('auto','high',{OLLAMA_SECRET:{}});assert.equal(high.maxTokens,8000);assert.deepEqual(high.providers,['ollama','workers-ai']);});
 test('routing and team deduplication',()=>{assert.deepEqual(selectTeam('Cloudflare binding','team'),['planner','cloudflare','qa','orchestrator']);assert.equal(selectTeam('test','team','orchestrator').length,3);});
+test('customer acquisition routes to owner business development',()=>{assert.deepEqual(selectTeam('Nájdi zákazníkov na LinkedIn pre tvorbu webstránok','single','auto'),['business-development']);});
+test('business and self-improvement tools are enforced as owner-only on the server',async()=>{const agent=AGENTS.find(item=>item.id==='business-development'),input={service:'tvorba webu',industries:['reštaurácia'],locations:['Bratislava']};await assert.rejects(runTool({},agent,'prospect_queries',input),/iba overenému ownerovi/);const env={DB:{prepare:()=>({bind(){return this;},first:async()=>({installed:1,enabled:1})})}};const result=await runTool(env,agent,'prospect_queries',input,{adminAuthorized:true});assert.equal(result.contacted,false);});
 test('work requests delegate while ordinary conversation stays direct',()=>{assert.equal(shouldDelegate('Ahoj Trinity'),false);assert.equal(shouldDelegate('Oprav a otestuj Cloudflare Worker'),true);assert.ok(AGENTS.find(a=>a.id==='orchestrator').tools.includes('web_search'));});
 test('fail closed and exact secret comparison',async()=>{assert.equal(await validKey('x',{}),false);assert.equal(await validKey('a'.repeat(32),{TRINITY_OPS_KEY:'b'.repeat(32)}),false);assert.equal(await validKey('a'.repeat(32),{TRINITY_OPS_KEY:'a'.repeat(32)}),true);});
 test('cross-origin blocked',()=>assert.throws(()=>checkOrigin(new Request('https://trinity.test/api',{headers:{Origin:'https://evil.test'}})),{status:403}));
