@@ -2,6 +2,7 @@ import {createSystemAction,getSystemAction} from './system-actions.js';
 import {getConfiguredAIProvider} from './ai-providers.js';
 
 export const SERVICES = {
+  KNOWLEDGE_SERVICE:{name:'Znalostná knižnica',rpc:'getStatus'},
   CORE: {name:'Jadro',action:'core.state.get'}, BUILDER:{name:'Vývoj',action:'build.list'},
   DISPATCHER:{name:'Dispatcher',action:'job.list'},
   MEMORY:{name:'Pamäť',path:'/memory?key=__trinity_health__',expected:[404]},
@@ -27,6 +28,11 @@ export async function serviceStatus(env, requested) {
     if(!env[binding]) return {binding,name:spec.name,status:'not_configured'};
     const start=Date.now();
     try {
+      if(spec.rpc){
+        let timer;let data;
+        try{data=await Promise.race([env[binding][spec.rpc](),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('RPC timeout')),12000);})]);}finally{clearTimeout(timer);}
+        return {binding,name:spec.name,status:data?.ready===true?'reachable':'error',duration_ms:Date.now()-start,probe:spec.rpc,note:'Overený prístup k úložisku dokumentov; nepotvrdzuje správnosť ich obsahu.'};
+      }
       const path=spec.path||'/';
       const init={method:spec.action?'POST':'GET',signal:AbortSignal.timeout(12000)};
       if(spec.action){init.headers={'Content-Type':'application/json'};init.body=JSON.stringify({action:spec.action,data:{limit:1},traceId:crypto.randomUUID()});}
