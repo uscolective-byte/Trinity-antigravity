@@ -27,6 +27,8 @@ if ($env:TRINITY_GATEWAY_KEY) {
   $env:TRINITY_PC_BRIDGE_URL = "$env:TRINITY_CLOUD_URL/api/system/pc-bridge"
 }
 Set-Location $root
+$pythonCommand=Get-Command python.exe -ErrorAction SilentlyContinue
+if($pythonCommand){$env:TRINITY_PYTHON_PATH=$pythonCommand.Source}
 try {
   node src/server.mjs
 }

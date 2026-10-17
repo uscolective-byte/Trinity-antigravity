@@ -6,6 +6,7 @@ import {resolveSafePath,RUN_TASKS,validatePackage,validateProject} from './polic
 import {sha256} from './store.mjs';
 import {executeDesktop} from './desktop.mjs';
 import {processCommand} from './process-command.mjs';
+import {scriptCommand} from './script-command.mjs';
 
 const MAX_TEXT=1_000_000;
 const MAX_OUTPUT=128_000;
@@ -22,12 +23,15 @@ async function runLocalInference(payload){
   return {action:'read',task:'local-inference',model,response:data.message.content,usage:{input:data.prompt_eval_count||0,output:data.eval_count||0},completed:true};
 }
 
-async function runProcess(command,args,{cwd,timeoutMs=120_000}={}){
+async function runProcess(command,args,{cwd,timeoutMs=120_000,environment,windowsVerbatimArguments=false}={}){
   return new Promise((resolve,reject)=>{
     const invocation=processCommand(command,args);
-    const child=spawn(invocation.command,invocation.args,{cwd,shell:false,windowsHide:true,env:{...process.env,CI:'1',NO_COLOR:'1'}});
+    const child=spawn(invocation.command,invocation.args,{cwd,shell:false,windowsHide:true,windowsVerbatimArguments,env:environment||{...process.env,CI:'1',NO_COLOR:'1'}});
     let stdout='',stderr='',settled=false;
-    const timer=setTimeout(()=>{child.kill();if(!settled){settled=true;reject(new Error('Proces prekročil časový limit.'));}},timeoutMs);
+    const timer=setTimeout(()=>{
+      if(process.platform==='win32'&&child.pid){const killer=spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});killer.on('error',()=>child.kill());}else child.kill();
+      if(!settled){settled=true;reject(new Error('Proces prekročil časový limit.'));}
+    },timeoutMs);
     const collect=(current,chunk)=>(current+chunk.toString('utf8')).slice(-MAX_OUTPUT);
     child.stdout.on('data',chunk=>{stdout=collect(stdout,chunk);});child.stderr.on('data',chunk=>{stderr=collect(stderr,chunk);});
     child.on('error',error=>{clearTimeout(timer);if(!settled){settled=true;reject(error);}});
@@ -57,6 +61,11 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
     return {action:proposal.action,path:payload.path,before_sha256:before,after_sha256:after,bytes:Buffer.byteLength(payload.content)};
   }
   if(proposal.action==='run'){
+    if(payload.task==='script'){
+      const invocation=await scriptCommand(workspaceRoot,payload);
+      const result=await runProcess(invocation.command,invocation.args,invocation);
+      return {action:'run',task:'script',runtime:payload.runtime,path:payload.path,script_sha256:invocation.script_sha256,...result};
+    }
     if(payload.task==='desktop-control')return {action:'run',task:'desktop-control',desktop:await executeDesktop(payload)};
     const project=validateProject(payload.project);const task=RUN_TASKS[payload.task];if(!task)throw new Error('Úloha nie je povolená.');
     const cwd=await resolveSafePath(workspaceRoot,project);const result=await runProcess(task.command,task.args,{cwd});return {action:'run',project,task:payload.task,...result};
