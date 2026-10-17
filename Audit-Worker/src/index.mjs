@@ -57,10 +57,10 @@ export async function handleRequest(request,env){
   const id=crypto.randomUUID(),timestamp=new Date().toISOString(),digest=await sha256(raw);
   try{
     const result=await env.DB.prepare(
-      'INSERT INTO audit_log (id,repo,sha,status,trigger,actor,branch,environment,duration_ms,ts,request_hash,idempotency_key) VALUES (?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(idempotency_key) DO NOTHING'
+      'INSERT INTO ops_ci_audit_log (id,repo,sha,status,trigger,actor,branch,environment,duration_ms,ts,request_hash,idempotency_key) VALUES (?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(idempotency_key) DO NOTHING'
     ).bind(id,payload.repo,payload.sha.toLowerCase(),payload.status,payload.trigger,payload.actor??null,payload.branch??null,payload.environment??null,payload.duration_ms??null,timestamp,digest,payload.event_id).run();
     if(result.meta?.changes===0){
-      const existing=await env.DB.prepare('SELECT id,request_hash FROM audit_log WHERE idempotency_key=?').bind(payload.event_id).first();
+      const existing=await env.DB.prepare('SELECT id,request_hash FROM ops_ci_audit_log WHERE idempotency_key=?').bind(payload.event_id).first();
       if(!existing||existing.request_hash!==digest)return json({error:'Idempotency key conflict'},409);
       return json({ok:true,id:existing.id,duplicate:true});
     }

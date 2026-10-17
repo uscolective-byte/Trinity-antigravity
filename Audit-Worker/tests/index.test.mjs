@@ -32,6 +32,7 @@ test('parameterized D1 insert succeeds',async()=>{
  }};
  const response=await handleRequest(new Request('https://audit.test/v1/audit',{method:'POST',headers:{'content-type':'application/json','X-Trinity-Audit-Timestamp':timestamp,'X-Trinity-Audit-Signature':'sha256='+signature},body}),env);
  assert.equal(response.status,201);
+ assert.match(query,/INSERT INTO ops_ci_audit_log/);
  assert.match(query,/VALUES/);
  assert.equal(bound[1],'uscolective-byte/trinity-morhfeus');
 });

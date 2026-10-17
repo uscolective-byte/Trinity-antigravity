@@ -12,13 +12,13 @@ import tester from './legacy-workers/aura_tester.js';
 const VERSION='2.0.0';
 const roles={
   aura_analyzer:{worker:analyzer,actions:['analyze.code','analyze.data','analyze.system','aura.status'],idempotent:['analyze.code']},
-  aura_architect:{worker:architect,actions:['architect.design','architect.edge.add','architect.graph','architect.node.add','aura.status'],idempotent:['architect.design','architect.edge.add','architect.node.add'],approval:['architect.edge.add','architect.node.add']},
-  aura_codegen:{worker:codegen,actions:['codegen.generate','codegen.migration','codegen.sql','aura.status'],idempotent:['codegen.generate']},
+  aura_architect:{worker:architect,actions:['architect.design','architect.review','architect.evaluate','architect.diagram','architect.edge.add','architect.graph','architect.node.add','aura.status'],idempotent:['architect.design','architect.edge.add','architect.node.add'],approval:['architect.edge.add','architect.node.add']},
+  aura_codegen:{worker:codegen,actions:['codegen.generate','codegen.refactor','codegen.scaffold','codegen.docs','codegen.migration','codegen.sql','aura.status'],idempotent:['codegen.generate','codegen.refactor','codegen.scaffold']},
   aura_deployer:{worker:deployer,actions:['deploy.stage','deploy.list','deploy.complete','deploy.rollback','aura.status'],idempotent:['deploy.stage','deploy.complete','deploy.rollback'],approval:['deploy.stage','deploy.complete','deploy.rollback']},
   aura_evolver:{worker:evolver,actions:['evolve.propose','evolve.history','evolve.reflections','aura.status'],idempotent:['evolve.propose']},
   aura_memory:{worker:memory,actions:['memory.synthesize','memory.consolidate','memory.semantic.search','aura.status'],idempotent:['memory.synthesize','memory.consolidate']},
   aura_optimizer:{worker:optimizer,actions:['optimize.system','optimize.query','optimize.tokens','aura.status']},
-  aura_planner:{worker:planner,actions:['plan.create','plan.decompose','plan.goals','aura.status'],idempotent:['plan.create']},
+  aura_planner:{worker:planner,actions:['plan.task','plan.project','plan.sprint','plan.timeline','plan.create','plan.decompose','plan.goals','aura.status'],idempotent:['plan.task','plan.project','plan.create']},
   aura_sentinel:{worker:sentinel,actions:['sentinel.alert','sentinel.monitor','sentinel.scan','aura.status'],idempotent:['sentinel.alert']},
   aura_tester:{worker:tester,actions:['test.endpoint','test.generate','test.system','test.validate','aura.status'],approval:['test.endpoint']}
 };
