@@ -1,19 +1,80 @@
-Q1# Morhfeus
+# Morhfeus / Trinity 10.2
 
 [![CodeQL Security](https://github.com/uscolective-byte/trinity-morhfeus/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/trinity-morhfeus/actions/workflows/codeql.yml?query=branch%3Amain)
+![Trinity Version](https://img.shields.io/badge/version-10.2.0-blue.svg)
+![Tests](https://img.shields.io/badge/tests-213%2F213%20passing-brightgreen.svg)
+![Deployment Status](https://img.shields.io/badge/status-serving-success.svg)
 
-Hlavný pracovný priečinok projektu Trinity. Od 1. októbra 2026 sa nové zdrojové súbory, návrhy, overenia a dokumentácia ukladajú sem.
+Hlavný pracovný priečinok autonómneho ekosystému **Trinity 10.2**. Trinity predstavuje osobnú AI asistentku s jednotnou stálou identitou, 45 odbornými špecializáciami, 57 zručnosťami a distribuovanou cloudovou aj desktopovou architektúrou.
 
-## Štruktúra
+---
 
-- `Trinity` – aktuálny produkčný Cloudflare Worker a hlavný zdrojový kód.
-- `Local-Gateway` – privátna lokálna brána pre schválené systémové operácie.
-- `PC-Bridge-Worker` – Cloudflare Worker pre heartbeat, stav PC a interné orchestrátorové RPC.
-- `Firebase` – Firebase Hosting stavového mosta na produkčnú Trinity.
-- `Prototypy` – staršie alebo pomocné verzie, ktoré nie sú produkčným zdrojom.
-- `Navrhy` – vizuálne koncepty.
-- `Dokumentacia` – aktuálny stav a história zmien.
-- `Zaznamy` – diagnostika, testy a staršie pracovné logy.
-- `Referencie` – lokálne technické referencie použité pri vývoji.
+## 🌐 Živé prostredia a prístup
 
-Zdrojom pravdy pre živú Trinity je priečinok `Trinity`. Prototypy sa nesmú vydávať za produkčnú verziu.
+| Prostredie | Doména | Worker | Cloudflare Version ID | Stav |
+|---|---|---|---|---|
+| **Produkcia** | <https://auru.space> | `trinity` | `fc77de09-aabf-473b-8d33-2d83b186de01` | `serving` |
+| **Vývoj** | <https://auru.dev> | `trinity-development` | `ad654534-4efd-4bc2-ac14-be07add85799` | `serving` |
+| **Lokálna brána** | `http://127.0.0.1:8791` | `Local-Gateway` | v1.3.0 | offline / on-demand |
+
+---
+
+## 🏛️ Architektúra 7 modulov ekosystému
+
+Celý projekt pozostáva zo 7 synchronizovaných modulov:
+
+1. **`Trinity/`** – Hlavné operačné centrum a backendový Cloudflare Worker (v10.2.0).
+   - Riadenie chatu a workflows (Cloudflare Workflow, Durable Objects `Brain`, `CHAT_AGENT`, `GUARDIAN_AGENT`).
+   - Perzistentná pamäť (Cloudflare D1 `trinity-v03`), rýchla vyrovnávacia pamäť (Workers KV `Mastermind`) a archív artefaktov (Cloudflare R2 `trinity-artifacts`).
+   - Webové rozhranie Trinity 10.2 (`/` pre chat asistent a `/ops` pre operačné centrum).
+   - Zabudovaná rýchla cesta pre priame otváranie programov na počítači cez PC Bridge.
+2. **`PC-Bridge-Worker/`** – Cloudflare Worker zabezpečujúci most medzi cloudom a lokálnym počítačom. Prijíma heartbeaty a synchronizuje schválené systémové akcie.
+3. **`Local-Gateway/`** – Privátna lokálna systémová brána na porte `127.0.0.1:8791`. Vykonáva bezpečné desktopové operácie na Windows PC (Kalkulačka, Poznámkový blok, Google Chrome, Paint, Prieskumník, Git a vývojárske príkazy).
+4. **`Capacity-Worker/`** – Monitorovanie systémových kapacít, tokenových rozpočtov, limitov a nákladov.
+5. **`Audit-Worker/`** – Zber telemetrie, auditných záznamov a bezpečnostných logov.
+6. **`Integrations-Worker/`** – Správa konektorov, externých poskytovateľov a OAuth rozhraní.
+7. **`Knowledge-Worker/`** – Sémantické vyhľadávanie v znalostnej báze a správa indexovaných dokumentov.
+
+### Pomocné priečinky
+- **`Dokumentacia/`** – Aktuálny stav, história zmien, architektúra a operačné manuály.
+- **`Firebase/`** – Stavový most a konfigurácia hostingu.
+- **`Navrhy/`** – Vizuálne a architektonické koncepty.
+
+---
+
+## 🚀 Spustenie a vývoj
+
+### 1. Spustenie PC Bridge na počítači
+Pre prepojenie Trinity s tvojím počítačom a aktiváciu zeleného odznaku **`PC: Online`**:
+- Dvojklikom spusti [Local-Gateway\SPUSTIT-LOCAL.cmd](file:///c:/Users/saboi/OneDrive/trinity/Local-Gateway/SPUSTIT-LOCAL.cmd).
+- Alebo cez PowerShell:
+  ```powershell
+  cd Local-Gateway
+  .\start.ps1
+  ```
+- Pre trvalé automatické spustenie pri štarte Windows:
+  ```powershell
+  cd Local-Gateway
+  .\install-autostart.ps1
+  ```
+
+### 2. Zostavenie a synchronizácia všetkých modulov
+Celý ekosystém je možné zostaviť a overiť jedným príkazom:
+```powershell
+.\SYNC-BUILD.ps1 -Test
+```
+
+### 3. Spustenie testov v Trinity
+```powershell
+cd Trinity
+npm test
+```
+*(Všetkých 213 testov overuje bezpečnosť, routing, RBAC, nástroje, pravdivosť a PC akcie).*
+
+---
+
+## 🔒 Bezpečnostné pravidlá a pravdivosť (Truth Policy)
+
+- **Žiadne tajomstvá v git repozitári**: Poverenia, kľúče, DPAPI súbory, `.env` a `.credentials` sa nikdy nečítajú verejne ani necommitujú.
+- **Režim dôkazov (Truth Mode)**: Trinity nepredstiera vedomie a neoznačuje externú akciu za hotovú bez potvrdeného záznamu (receipt) z overeného nástroja.
+- **Administrátorská autorizácia**: Nezvratné systémové akcie vyžadujú serverom overenú rolu administrátora alebo explicitné schválenie.
