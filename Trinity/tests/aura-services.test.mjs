@@ -27,3 +27,28 @@ test('recovered actions that store generated content require idempotency',async(
     assert.equal(response.status,400,action);assert.match((await response.json()).error,/idempotency_key/);
   }
 });
+
+test('all Aura workers expose aura.skills and can execute skills', async () => {
+  for (const role of ['aura_analyzer', 'aura_architect', 'aura_codegen', 'aura_deployer', 'aura_evolver', 'aura_memory', 'aura_optimizer', 'aura_planner', 'aura_sentinel', 'aura_tester']) {
+    const env = { ...base, WORKER_ROLE: role, ...(role === 'aura_deployer' ? { CODE_KV: {} } : {}) };
+    const resList = await worker.fetch(new Request('https://aura.internal/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'aura.skills', data: {} })
+    }), env);
+    assert.equal(resList.status, 200, role);
+    const bodyList = await resList.json();
+    assert.equal(bodyList.ok, true);
+    assert.ok(bodyList.skills_count >= 40);
+
+    const resExec = await worker.fetch(new Request('https://aura.internal/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'aura.execute_skill', data: { skill: 'semverCheck', params: { version: '2.1.0' } } })
+    }), env);
+    assert.equal(resExec.status, 200, role);
+    const bodyExec = await resExec.json();
+    assert.equal(bodyExec.ok, true);
+    assert.equal(bodyExec.result.major, 2);
+  }
+});
