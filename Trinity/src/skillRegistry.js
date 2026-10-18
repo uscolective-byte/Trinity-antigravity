@@ -9,6 +9,7 @@
 import { runPracticalTool } from './practical-skills.js';
 import { QuantumCoreEngine } from './quantum_core.js';
 import { processTeleologicalPrompt } from './quantum_pipeline.js';
+import { NeuralBrain, BRAIN_MODES } from './neural_brain.js';
 
 // In-memory cache a fallback stav circuit-breakeru
 const memoryCache = new Map();
@@ -1543,6 +1544,32 @@ export const quantumSkills = {
     const sessionId = params.session_id || 'quantum-skill';
     const bridgeActive = Boolean(params.bridgeActive || env.BRIDGE_SHARED_SECRET);
     return await processTeleologicalPrompt(env, query, sessionId, bridgeActive);
+  },
+  quantumParallelReason: (params = {}) => {
+    return QuantumCoreEngine.parallelReasoning(params.branches || [], { preference: params.preference || 'creative' });
+  },
+  quantumMultiAgentFusion: (params = {}) => {
+    return QuantumCoreEngine.fuseAgentOutputs(params.agentOutputs || {}, params.weights || {});
+  },
+  quantumErrorCorrection: (params = {}) => {
+    return QuantumCoreEngine.errorCorrectionLayer(params.draft || '', params.corrections || []);
+  }
+};
+
+export const neuralBrainSkills = {
+  brainSetMode: (params = {}) => {
+    const brain = new NeuralBrain();
+    const result = brain.setMode(params.mode || BRAIN_MODES.CREATIVITY);
+    return { ...result, directive: brain.getModeDirective() };
+  },
+  brainReflect: async (params = {}) => {
+    const brain = new NeuralBrain();
+    if (params.mode) brain.setMode(params.mode);
+    return await brain.reflectOnExecution(params.report || { task: params.task, outcome: params.outcome });
+  },
+  brainMemoryQuery: (params = {}) => {
+    const brain = new NeuralBrain();
+    return brain.memory.getMemorySnapshot();
   }
 };
 
@@ -1556,6 +1583,7 @@ export const skills = {
   ...productivityPlusSkills,
   ...extendedEngineeringSkills,
   ...quantumSkills,
+  ...neuralBrainSkills,
   ...chatGptSkills,
   ...userSkills
 };

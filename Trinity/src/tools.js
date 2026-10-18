@@ -14,11 +14,18 @@ import {TrinityCopilotAgent} from './copilot-agent.js';
 import {synthesizeSkill, synthesizePlugin, synthesizeApp, searchCatalog} from './universal-ecosystem.js';
 import {QuantumBrain} from './brain.js';
 import {processTeleologicalPrompt} from './quantum_pipeline.js';
+import {NeuralBrain, BRAIN_MODES} from './neural_brain.js';
+import {QuantumCoreEngine} from './quantum_core.js';
 
 export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status']);
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']);
 export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan']);
 export const TOOL_SCHEMAS={
+  brain_mode:z.object({mode:z.enum(['creativity','reasoning','strict','truth','autonomous']).optional()}).strict(),
+  brain_reflect:z.object({task:z.string().min(1).max(2000),outcome:z.string().min(1).max(5000),mode:z.enum(['creativity','reasoning','strict','truth','autonomous']).optional()}).strict(),
+  brain_memory:z.object({action:z.enum(['snapshot','set_ltm','get_ltm']).default('snapshot'),key:z.string().max(100).optional(),value:z.string().max(2000).optional()}).strict(),
+  quantum_parallel:z.object({branches:z.array(z.object({id:z.string(),hypothesis:z.string(),amplitude:z.number().optional(),tags:z.array(z.string()).optional()})).min(1).max(10),preference:z.enum(['creative','analytical','balanced']).default('creative')}).strict(),
+  quantum_fusion:z.object({agent_outputs:z.record(z.string(),z.object({content:z.string(),confidence:z.number().optional()})),weights:z.record(z.string(),z.number()).optional()}).strict(),
   quantum_deliberate:z.object({query:z.string().min(1).max(12000),session_id:z.string().max(100).optional(),bridge_check:z.boolean().optional()}).strict(),
   knowledge_search:z.object({query:z.string().trim().min(2).max(300)}).strict(),
   plan_work:z.object({task:z.string().trim().min(1).max(12000)}).strict(),
@@ -225,6 +232,49 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(name==='ecosystem_search'){
     return searchCatalog(args.query,args.domain);
   }
+  if(name==='brain_mode'){
+    const brain=new NeuralBrain();
+    if(args.mode) brain.setMode(args.mode);
+    return {
+      currentMode: brain.getMode(),
+      directive: brain.getModeDirective(),
+      _evidence: { effect: 'read', receipt_id: `brain:mode:${crypto.randomUUID()}` }
+    };
+  }
+  if(name==='brain_reflect'){
+    const brain=new NeuralBrain();
+    if(args.mode) brain.setMode(args.mode);
+    const reflection=await brain.reflectOnExecution({ task: args.task, outcome: args.outcome });
+    return {
+      reflection,
+      _evidence: { effect: 'write', receipt_id: `brain:reflect:${crypto.randomUUID()}` }
+    };
+  }
+  if(name==='brain_memory'){
+    const brain=new NeuralBrain();
+    if(args.action==='set_ltm'&&args.key&&args.value){
+      const saved=await brain.memory.setLTM(args.key, args.value);
+      return { success: true, saved };
+    }
+    if(args.action==='get_ltm'&&args.key){
+      return { key: args.key, entry: brain.memory.getLTM(args.key) };
+    }
+    return { snapshot: brain.memory.getMemorySnapshot() };
+  }
+  if(name==='quantum_parallel'){
+    const res=QuantumCoreEngine.parallelReasoning(args.branches, { preference: args.preference });
+    return {
+      ...res,
+      _evidence: { effect: 'read', receipt_id: `quantum:parallel:${crypto.randomUUID()}` }
+    };
+  }
+  if(name==='quantum_fusion'){
+    const res=QuantumCoreEngine.fuseAgentOutputs(args.agent_outputs, args.weights);
+    return {
+      ...res,
+      _evidence: { effect: 'read', receipt_id: `quantum:fusion:${crypto.randomUUID()}` }
+    };
+  }
   if(name==='quantum_deliberate'){
     const sessionId=args.session_id||'quantum-brain';
     const bridgeCheck=Boolean(args.bridge_check||env.BRIDGE_SHARED_SECRET);
@@ -382,4 +432,11 @@ export const TOOL_HELP={
   copilot_chat:'Spracuje dotaz cez TrinityCopilotAgent s auditom, cache a multi-step vykonaním: {query:string, session_id?:string, provider?:string}',
   ecosystem_synthesize:'Dynamicky syntetizuje novú schopnosť, plugin alebo aplikáciu v univerzálnom ekosystéme: {type:skill|plugin|app, name:string, domain:string, description:string, details?:object}',
   ecosystem_search:'Prehľadáva ekosystém naprieč všetkými univerzálnymi doménami a šablónami: {query?:string, domain?:string}',
-  quantum_deliberate:'Spustí kvantovo-teleologické uvažovanie nad úlohou: superpozícia myšlienok (téza/antitéza), fázová interferencia a vlnový kolaps do syntézy: {query:string, session_id?:string, bridge_check?:bool}'};
+  quantum_deliberate:'Spustí kvantovo-teleologické uvažovanie nad úlohou: superpozícia myšlienok (téza/antitéza), fázová interferencia a vlnový kolaps do syntézy: {query:string, session_id?:string, bridge_check?:bool}',
+  brain_mode:'Nastaví alebo prečíta dynamický režim mozgu Trinity: {mode?:creativity|reasoning|strict|truth|autonomous}',
+  brain_reflect:'Spustí self-reflection cyklus po úlohe: vyhodnotí úspechy, riziká a uloží poznatky do pamäte: {task:string, outcome:string, mode?:string}',
+  brain_memory:'Spravuje neurálne pamäťové vrstvy STM, LTM, CTM a ETM: {action?:snapshot|set_ltm|get_ltm, key?:string, value?:string}',
+  quantum_parallel:'Vyhodnotí 3 až 7 paralelných myšlienkových vetiev a vyberie najlepšiu: {branches:[], preference?:creative|analytical|balanced}',
+  quantum_fusion:'Zjednotí výstupy špecialistov (Guardian, Sentinel, Planner, Optimizer, Analyzer) do konsenzu: {agent_outputs:{}, weights?:{}}'
+};
+
