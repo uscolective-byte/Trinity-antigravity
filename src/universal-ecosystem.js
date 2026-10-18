@@ -50,6 +50,7 @@ class UniversalEcosystem {
   }
 
   _loadPredefinedCatalog() {
+    // Inicializácia základných aplikácií z predlôh
     for (const app of APPLICATION_TEMPLATES) {
       this._synthesizedApps.set(app.templateId, {
         id: app.templateId,
@@ -63,6 +64,9 @@ class UniversalEcosystem {
     }
   }
 
+  /**
+   * Dynamicky vytvorí a zaregistruje nový skill v Trinity
+   */
   synthesizeSkill(name, domain = 'software-dev', handlerOrOptions = {}) {
     if (!name || typeof name !== 'string') {
       throw new Error('Názov skillu musí byť neprázdny reťazec.');
@@ -94,12 +98,16 @@ class UniversalEcosystem {
       createdAt: new Date().toISOString()
     };
 
+    // Zaregistrovanie do hlavného SkillRegistry
     skillRegistry.register(skillId, handler, meta);
     this._synthesizedSkills.set(skillId, { handler, meta });
 
     return meta;
   }
 
+  /**
+   * Dynamicky vytvorí a zaregistruje nový plugin
+   */
   synthesizePlugin(name, domain = 'software-dev', skillNames = []) {
     if (!name || typeof name !== 'string') {
       throw new Error('Názov pluginu musí byť neprázdny reťazec.');
@@ -107,6 +115,7 @@ class UniversalEcosystem {
     const pluginId = `plugin_${name.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`;
     const domainMeta = UNIVERSAL_DOMAINS.find(d => d.id === domain) || UNIVERSAL_DOMAINS[0];
 
+    // Zabezpečí, že skilly priradené k pluginu existujú, prípadne ich vytvorí
     const registeredSkillIds = [];
     for (const sName of skillNames) {
       const sId = `skill_${sName.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`;
@@ -136,6 +145,9 @@ class UniversalEcosystem {
     return pluginManifest;
   }
 
+  /**
+   * Dynamicky vytvorí novú aplikáciu (alebo projekt v AI Studio / API Builder)
+   */
   synthesizeApp(name, domain = 'software-dev', options = {}) {
     if (!name || typeof name !== 'string') {
       throw new Error('Názov aplikácie musí byť neprázdny reťazec.');
@@ -161,9 +173,12 @@ class UniversalEcosystem {
     return appRecord;
   }
 
+  /**
+   * Vyhľadávanie naprieč celým ekosystémom aplikácií, pluginov a skillov
+   */
   searchCatalog(query = '', options = {}) {
     const q = (query || '').toLowerCase().trim();
-    const typeFilter = options.type;
+    const typeFilter = options.type; // 'app', 'plugin', 'skill' alebo null pre všetko
     const domainFilter = options.domain;
 
     const results = {
@@ -208,6 +223,9 @@ class UniversalEcosystem {
     return results;
   }
 
+  /**
+   * Vráti celkové štatistiky dostupného a generatívneho ekosystému
+   */
   getStats() {
     const appsCount = this._synthesizedApps.size;
     const pluginsCount = copilotPluginRegistry.list().length;
@@ -215,6 +233,7 @@ class UniversalEcosystem {
     const extendedSkillsCount = EXTENDED_SKILLS.length;
     const extendedPluginsCount = EXTENDED_PLUGINS.length;
 
+    // Počet možných deterministických a generatívnych kombinácií domén x skillov x pluginov x app šablón
     const virtualCombinations = UNIVERSAL_DOMAINS.length * 100000;
 
     return {
