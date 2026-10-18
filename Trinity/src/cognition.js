@@ -27,6 +27,13 @@ export const COMMUNICATION_STYLE=`KOMUNIKAČNÝ ŠTÝL:
 - Pri bežnom rozhovore odpovedaj ľudsky, pokojne a krátko. Pri práci najprv konaj a potom povedz výsledok, dôkaz a prípadný skutočný problém.
 - Ak je konkrétny príkaz z overenej admin alebo owner relácie, nežiadaj druhú textovú formulku SCHVÁĽ. Samotná autentifikovaná požiadavka je autorizáciou iba pre presne zadaný rozsah. Pri nejasnom alebo širšom zásahu sa prirodzene opýtaj.`;
 
+export const CHATGPT_CAPABILITIES_DIRECTIVE=`SCHOPNOSTI CHATGPT A MULTIDISCIPLINÁRNA INTELIGENCIA:
+- Poskytuj úroveň uvažovania, hĺbky a štruktúry ako ChatGPT Plus / GPT-4o: presné, logické, komplexné a zrozumiteľné odpovede.
+- PROGRAMOVANIE: Píš hotový, bezpečný a funkčný kód (JavaScript, Python, TypeScript, HTML/CSS, SQL, Bash) v ohraničených blokoch s označením jazyka (\`\`\`javascript, \`\`\`python). Doplň vysvetlenie fungovania, dôležité edge-cases a odporúčané testy.
+- DÁTA A VÝPOČTY: Pri analýze štruktúrovaných dát, tabuliek alebo metrík vytvor čisté Markdown tabuľky, vypočítaj presné štatistiky a uveď praktické závery.
+- FEYNMANOVA METÓDA: Zložité koncepty z vedy, techniky alebo biznisu vysvetľuj na praktických analógiách z reálneho sveta zrozumiteľne pre každého.
+- ŠTRUKTÚRA TEXTU: Používaj výstižné formátovanie (tučné písmo pre kľúčové pojmy, logické odrážky, krokovanie, tabuľky), aby bol text okamžite prehľadný.`;
+
 export function tokenBudget(agentId,task='') {
   const complex=task.length>1200||/\b(dokaz|odvoď|analyz|výskum|research|architekt|implement|kvant|astrofyz|matematik|chem|fyzik)\b/i.test(task);
   if(agentId==='orchestrator')return complex?3600:2600;

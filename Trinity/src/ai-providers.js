@@ -34,11 +34,14 @@ export async function listAIProviders(env,ownerId){
   const checks=decodeChecks(eventRows.results.filter(row=>decodeVerification(row.details)?.owner_id===ownerId));
   const geminiSetting=settings.results.find(item=>item.provider==='gemini')||null;
   const geminiSecrets=secrets.filter(item=>item.provider==='gemini');
+  const openaiSetting=settings.results.find(item=>item.provider==='openai')||null;
+  const openaiSecrets=secrets.filter(item=>item.provider==='openai');
   const environmentGemini=typeof env.GEMINI_API_KEY==='string'&&env.GEMINI_API_KEY.length>=8;
+  const environmentOpenAI=typeof env.OPENAI_API_KEY==='string'&&env.OPENAI_API_KEY.length>=20;
   const environmentOllama=!!(env.OLLAMA_SECRET||typeof env.OLLAMA_API_KEY==='string'&&env.OLLAMA_API_KEY.length>=8);
   return {items:[
     {id:'workers-ai',name:'Cloudflare Workers AI',configured:!!env.AI,enabled:true,model:env.AI_MODEL||'@cf/openai/gpt-oss-120b',managed_by:'cloudflare',last_check:checks.get('workers-ai')||null},
-    {id:'openai',name:'OpenAI / ChatGPT API',configured:typeof env.OPENAI_API_KEY==='string'&&env.OPENAI_API_KEY.length>=20,enabled:typeof env.OPENAI_API_KEY==='string'&&env.OPENAI_API_KEY.length>=20,model:env.OPENAI_MODEL||'gpt-5.6-luna',managed_by:'worker-secret',secret_source:'worker-secret',last_check:checks.get('openai')||null},
+    {id:'openai',name:'OpenAI / ChatGPT API',configured:!!openaiSetting||environmentOpenAI,enabled:openaiSetting?openaiSetting.enabled===1:environmentOpenAI,model:openaiSetting?.model||env.OPENAI_MODEL||'gpt-4o',managed_by:openaiSetting?'encrypted-vault':'worker-secret',secret_source:openaiSetting?'encrypted-vault':environmentOpenAI?'worker-secret':'bez poverenia',credentials:openaiSecrets,last_check:checks.get('openai')||null},
     {id:'ollama',name:'Ollama Cloud',configured:environmentOllama,enabled:environmentOllama,model:env.OLLAMA_MODEL||'gemma4:31b',managed_by:env.OLLAMA_SECRET?'secrets-store':'worker-secret',secret_source:env.OLLAMA_SECRET?'secrets-store':'worker-secret',last_check:checks.get('ollama')||null},
     {id:'gemini',name:'Google Gemini',configured:!!geminiSetting||environmentGemini,enabled:geminiSetting?geminiSetting.enabled===1:environmentGemini,project_control:geminiSetting?.project_control===1,approval_policy:'authenticated-admin-request',operator_policy:GEMINI_OPERATOR_POLICY,allowed_actions:GEMINI_OPERATOR_ACTIONS,model:geminiSetting?.model||env.GEMINI_MODEL||null,secret_id:geminiSetting?.secret_id||null,secret_source:geminiSetting?'encrypted-vault':environmentGemini?'worker-secret':null,credentials:geminiSecrets,updated_at:geminiSetting?.updated_at||null,last_check:checks.get('gemini')||null}
   ]};
@@ -84,7 +87,10 @@ export async function getConfiguredAIProvider(env,provider){
     }
     return {apiKey:env.GEMINI_API_KEY,model:`models/${model}`};
   }
-  if(!row)throw new HttpError(503,`${provider==='gemini'?'Gemini':'AI poskytovateľ'} nie je nakonfigurovaný a overený.`);
+  if(!row&&provider==='openai'&&typeof env.OPENAI_API_KEY==='string'&&env.OPENAI_API_KEY.length>=20){
+    return {apiKey:env.OPENAI_API_KEY,model:env.OPENAI_MODEL||'gpt-4o'};
+  }
+  if(!row)throw new HttpError(503,`${provider==='gemini'?'Gemini':provider==='openai'?'OpenAI / ChatGPT':'AI poskytovateľ'} nie je nakonfigurovaný a overený.`);
   const material=await getSecretMaterial(env,{ownerId:row.owner_id,id:row.secret_id,provider});
   return {apiKey:material.secret,model:row.model};
 }

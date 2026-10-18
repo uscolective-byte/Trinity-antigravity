@@ -2,7 +2,7 @@ import {z} from 'zod';
 import {HttpError} from './security.js';
 
 export const secretInputSchema=z.object({
-  provider:z.enum(['github','cloudflare','gemini','custom']),
+  provider:z.enum(['github','cloudflare','gemini','openai','custom']),
   name:z.string().trim().min(2).max(80),
   secret:z.string().trim().min(8).max(4096)
 }).strict();
@@ -38,6 +38,24 @@ async function verifyGemini(secret){
   if(!String(liveData.output_text||'').trim())throw new Error('Gemini živý test vrátil prázdnu odpoveď.');
   return {connected:true,models,model_count:models.length,generation_verified:true,verified_model:model};
 }
+async function verifyOpenAI(secret){
+  const response=await fetch('https://api.openai.com/v1/models',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(15000)});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(`OpenAI odmietlo API kľúč (HTTP ${response.status}).`);
+  const models=(data.data||[]).filter(item=>/^gpt-|^o1|^o3|^chatgpt/i.test(item.id)).map(item=>item.id).slice(0,50);
+  if(!models.length)models.push('gpt-4o','gpt-4o-mini');
+  const model=models.includes('gpt-4o')?'gpt-4o':models.includes('gpt-4o-mini')?'gpt-4o-mini':models[0];
+  const live=await fetch('https://api.openai.com/v1/chat/completions',{
+    method:'POST',headers:{Authorization:`Bearer ${secret}`,'Content-Type':'application/json'},
+    body:JSON.stringify({model,messages:[{role:'user',content:'Reply OK.'}],max_tokens:8,temperature:0}),
+    signal:AbortSignal.timeout(25000),redirect:'manual'
+  });
+  const liveData=await live.json().catch(()=>({}));
+  if(!live.ok)throw new Error(`OpenAI živý test zlyhal (HTTP ${live.status}): ${String(liveData.error?.message||'overenie zlyhalo').slice(0,240)}`);
+  const text=liveData.choices?.[0]?.message?.content||'';
+  if(!text.trim())throw new Error('OpenAI živý test vrátil prázdnu odpoveď.');
+  return {connected:true,models,model_count:models.length,generation_verified:true,verified_model:model};
+}
 export async function getSecretMaterial(env,{ownerId,id,provider}){const row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE id=? AND owner_id=? AND provider=? AND status!='revoked'").bind(id,ownerId,provider).first();if(!row)throw new HttpError(404,'Tajomstvo neexistuje.');return {...row,secret:await decrypt(env,row)};}
 export const isGeminiCandidate=name=>/gemini/i.test(String(name||''));
 export async function promoteCustomSecretToGemini(env,ownerId,id){
@@ -49,5 +67,5 @@ export async function promoteCustomSecretToGemini(env,ownerId,id){
     .bind(JSON.stringify({owner_id:ownerId,source_id:id,target_id:verified.id})).run();
   return verified;
 }
-export async function verifySecret(env,ownerId,id){const row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE id=? AND owner_id=? AND status!='revoked'").bind(id,ownerId).first();if(!row)throw new HttpError(404,'Tajomstvo neexistuje.');if(row.provider==='custom')throw new HttpError(400,'Vlastné tajomstvo nemá automatický test.');try{const secret=await decrypt(env,row);const verification=row.provider==='github'?await verifyGitHub(secret):row.provider==='cloudflare'?await verifyCloudflare(secret):await verifyGemini(secret);const changed=await env.DB.prepare("UPDATE ops_secret_vault SET status='verified',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=? RETURNING *").bind(JSON.stringify(verification),id).first();return present(changed);}catch(error){await env.DB.prepare("UPDATE ops_secret_vault SET status='failed',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(JSON.stringify({connected:false,error:error.message}),id).run();throw new HttpError(502,error.message);}}
+export async function verifySecret(env,ownerId,id){const row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE id=? AND owner_id=? AND status!='revoked'").bind(id,ownerId).first();if(!row)throw new HttpError(404,'Tajomstvo neexistuje.');if(row.provider==='custom')throw new HttpError(400,'Vlastné tajomstvo nemá automatický test.');try{const secret=await decrypt(env,row);const verification=row.provider==='github'?await verifyGitHub(secret):row.provider==='cloudflare'?await verifyCloudflare(secret):row.provider==='openai'?await verifyOpenAI(secret):await verifyGemini(secret);const changed=await env.DB.prepare("UPDATE ops_secret_vault SET status='verified',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=? RETURNING *").bind(JSON.stringify(verification),id).first();return present(changed);}catch(error){await env.DB.prepare("UPDATE ops_secret_vault SET status='failed',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(JSON.stringify({connected:false,error:error.message}),id).run();throw new HttpError(502,error.message);}}
 export async function revokeSecret(env,ownerId,id){const row=await env.DB.prepare("UPDATE ops_secret_vault SET status='revoked',secret_ciphertext='',secret_iv='',verification_json=NULL,revoked_at=datetime('now'),updated_at=datetime('now') WHERE id=? AND owner_id=? AND status!='revoked' RETURNING *").bind(id,ownerId).first();if(!row)throw new HttpError(404,'Aktívne tajomstvo neexistuje.');await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('secret_revoked',?)").bind(JSON.stringify({id,provider:row.provider,name:row.name,owner_id:ownerId})).run();return present(row);}
