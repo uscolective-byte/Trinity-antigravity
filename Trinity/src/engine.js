@@ -95,3 +95,5 @@ Nástroje: ${activeTools.map(t=>`${t}: ${TOOL_HELP[t]}`).join('; ')}.`},
   }
   throw new Error('Agent nevrátil bezpečný finálny výsledok.');
 }
+
+export { processTeleologicalPrompt } from './quantum_pipeline.js';
