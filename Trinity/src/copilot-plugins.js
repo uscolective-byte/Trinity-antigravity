@@ -138,6 +138,16 @@ export const BUILTIN_COPILOT_PLUGINS = [
     category: 'automation',
     enabled: true,
     required: false
+  },
+  {
+    id: 'copilot-studio-agent',
+    name: 'Microsoft Copilot Studio Agent (Direct Line)',
+    version: '1.0.0',
+    description: 'Trinity kladie otázky agentovi z Microsoft Copilot Studio cez webový kanál Direct Line.',
+    skills: ['copilotStudioAsk'],
+    category: 'integration',
+    enabled: true,
+    required: false
   }
 ];
 

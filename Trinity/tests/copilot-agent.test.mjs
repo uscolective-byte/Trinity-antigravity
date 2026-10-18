@@ -554,3 +554,32 @@ test('AI Studio skills sú zaregistrované a bezpečne zlyhajú bez D1', async (
   assert.match(res.error, /D1/);
 });
 
+
+test('copilotStudioAsk prejde Direct Line tok a nikdy nevráti tajný kód', async () => {
+  const realFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), method: init.method, auth: init.headers?.Authorization });
+    const u = String(url);
+    const json = body => new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    if (u.endsWith('/tokens/generate')) return json({ token: 'tok-1' });
+    if (u.endsWith('/v3/directline/conversations')) return json({ conversationId: 'c1', token: 'tok-2' });
+    if (init.method === 'POST' && u.includes('/activities')) return json({ id: 'c1|1' });
+    if (u.includes('/activities')) return json(u.includes('watermark=') ? { watermark: '2', activities: [] } : { watermark: '2', activities: [{ type: 'message', from: { id: 'bot' }, text: 'Ahoj z Copilot Studio' }] });
+    return new Response('nope', { status: 404 });
+  };
+  try {
+    const res = await skills.copilotStudioAsk({ query: 'Ahoj' }, { COPILOT_STUDIO_SECRET: 'tajny-test-kod' }, { pollMs: 5, timeoutMs: 3000 });
+    assert.equal(res.success, true);
+    assert.deepEqual(res.replies, ['Ahoj z Copilot Studio']);
+    assert.ok(!JSON.stringify(res).includes('tajny-test-kod'));
+    assert.equal(calls[0].auth, 'Bearer tajny-test-kod');
+    assert.equal(calls[1].auth, 'Bearer tok-1');
+    const missing = await skills.copilotStudioAsk({ query: 'Ahoj' }, {});
+    assert.equal(missing.success, false);
+    assert.match(missing.error, /COPILOT_STUDIO_SECRET/);
+    assert.ok(copilotPluginRegistry.isSkillEnabled('copilotStudioAsk'));
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});

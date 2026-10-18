@@ -1367,12 +1367,71 @@ export const studioSkills = {
   }
 };
 
+/**
+ * 2E) COPILOT STUDIO AGENT (Direct Line)
+ * Trinity položí otázku agentovi z Copilot Studio cez webový kanál (Direct Line).
+ * Tajný kód webového kanála je Worker secret COPILOT_STUDIO_SECRET; nikdy sa nevracia ani nezapisuje do logov.
+ */
+export const copilotStudioSkills = {
+  copilotStudioAsk: async (params, env = {}, options = {}) => {
+    const input = typeof params === 'string' ? { query: params } : (params || {});
+    const query = String(input.query || '').trim();
+    if (!query) return { success: false, error: 'Chýba query.' };
+    const secret = env?.COPILOT_STUDIO_SECRET;
+    if (!secret) return { success: false, error: 'COPILOT_STUDIO_SECRET nie je nastavený (wrangler secret put COPILOT_STUDIO_SECRET).' };
+    const base = String(env?.DIRECTLINE_URL || 'https://directline.botframework.com').replace(/\/+$/, '') + '/v3/directline';
+    const timeoutMs = Math.min(Math.max(Number(options.timeoutMs) || 20000, 3000), 45000);
+    const deadline = Date.now() + timeoutMs;
+    const call = async (path, method, bearer, body) => {
+      const resp = await fetch(base + path, {
+        method,
+        headers: { Authorization: `Bearer ${bearer}`, 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined,
+        signal: AbortSignal.timeout(Math.max(1000, deadline - Date.now()))
+      });
+      if (!resp.ok) throw new Error(`Direct Line ${method} ${path.split('?')[0]} zlyhalo (HTTP ${resp.status}).`);
+      return resp.json();
+    };
+    try {
+      const tokenData = await call('/tokens/generate', 'POST', secret, { user: { id: 'trinity' } });
+      const token = tokenData.token;
+      const conversation = await call('/conversations', 'POST', token);
+      const conversationId = conversation.conversationId;
+      const token2 = conversation.token || token;
+      await call(`/conversations/${encodeURIComponent(conversationId)}/activities`, 'POST', token2, {
+        type: 'message', from: { id: 'trinity' }, text: query, locale: input.locale || 'sk-SK'
+      });
+      const replies = [];
+      let watermark = '';
+      let quietPolls = 0;
+      while (Date.now() < deadline) {
+        const activities = await call(`/conversations/${encodeURIComponent(conversationId)}/activities${watermark ? `?watermark=${watermark}` : ''}`, 'GET', token2);
+        watermark = activities.watermark || watermark;
+        const fresh = (activities.activities || []).filter(a => a.type === 'message' && a.from?.id !== 'trinity' && a.text);
+        if (fresh.length) {
+          replies.push(...fresh.map(a => a.text));
+          quietPolls = 0;
+        } else if (replies.length) {
+          quietPolls += 1;
+          if (quietPolls >= 2) break;
+        }
+        await new Promise(resolve => setTimeout(resolve, options.pollMs ?? 1200));
+      }
+      if (!replies.length) return { success: false, error: 'Agent neodpovedal v časovom limite.', conversationId };
+      return { success: true, conversationId, replies };
+    } catch (error) {
+      return { success: false, error: String(error.message || error).replace(secret, '[redacted]') };
+    }
+  }
+};
+
 export const skills = {
   ...coreSkills,
   ...integrationSkills,
   ...dataverseSkills,
   ...geminiDeveloperSkills,
   ...studioSkills,
+  ...copilotStudioSkills,
   ...extendedEngineeringSkills,
   ...chatGptSkills,
   ...userSkills
