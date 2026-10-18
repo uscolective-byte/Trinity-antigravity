@@ -71,10 +71,13 @@ export async function TrinityCopilotAgent(query, env = {}, options = {}) {
           return platformResp;
         }
 
-        // B) Ak je v options požiadavka na konkrétny skill (napr. web_search, analyze_text, calculate)
-        if (options.skill && typeof skills[options.skill] === 'function') {
-          provider = `skill:${options.skill}`;
-          return await skills[options.skill](cleanQuery, env, options);
+        // B) Ak je v options požiadavka na konkrétny skill (napr. web_search, analyze_text, calculate alebo syntetizovaný skill)
+        if (options.skill) {
+          const targetSkill = skillRegistry.get(options.skill) || skills[options.skill];
+          if (typeof targetSkill === 'function') {
+            provider = `skill:${options.skill}`;
+            return await targetSkill(cleanQuery, env, options);
+          }
         }
 
         // C) Ak je dostupný AI model (Cloudflare Workers AI, Gemini alebo OpenAI)
