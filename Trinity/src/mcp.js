@@ -12,6 +12,8 @@ import {createSystemAction,getSystemAction,listSystemActions,approveSystemAction
 import {geminiProjectControlEnabled} from './ai-providers.js';
 import {TrinityCopilotAgent} from './copilot-agent.js';
 import {universalEcosystem} from './universal-ecosystem.js';
+import {runBrainCycle} from './brain.js';
+import {runEvolutionCycle} from './evolution.js';
 
 const result=data=>({content:[{type:'text',text:JSON.stringify(data,null,2)}]});
 
@@ -170,6 +172,12 @@ export function handleMcp(request,env,ctx,access={}){
     server.registerTool('synthesize_app',{description:'Dynamicky navrhne novú aplikáciu v rámci ekosystému Trinity.',
       inputSchema:{name:z.string().min(2).max(100),domain:z.string().default('software-dev'),type:z.string().default('web-app')}},
       async({name,domain,type})=>result(universalEcosystem.synthesizeApp(name,domain,{type})));
+
+    server.registerTool('trigger_brain_cycle',{description:'Spustí autonómny cyklus mozgu Trinity (kontrola stavu a úloh).',inputSchema:{}},
+      async()=>result(await runBrainCycle(env)));
+
+    server.registerTool('trigger_evolution_cycle',{description:'Spustí evolučný cyklus analýzy chýb a seba-zdokonaľovania.',inputSchema:{}},
+      async()=>result(await runEvolutionCycle(env)));
 
     return server;
   },{route:'/mcp'})(request,env,ctx);

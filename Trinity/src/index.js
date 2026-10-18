@@ -31,6 +31,8 @@ import {TrinityCopilotAgent} from './copilot-agent.js';
 import {skillRegistry} from './skillRegistry.js';
 import {copilotPluginRegistry} from './copilot-plugins.js';
 import {universalEcosystem,UNIVERSAL_DOMAINS,APPLICATION_TEMPLATES} from './universal-ecosystem.js';
+import {runBrainCycle} from './brain.js';
+import {runEvolutionCycle} from './evolution.js';
 import html from '../public/index.html';
 import appJS from '../public/app.js.txt';
 import css from '../public/style.css';
@@ -398,6 +400,8 @@ async function route(request,env,ctx){
     const d=z.object({name:z.string().min(2).max(100),domain:z.string().default('software-dev'),type:z.string().default('web-app'),prompt:z.string().optional(),features:z.array(z.string()).optional()}).parse(await readJSON(request));
     return json(universalEcosystem.synthesizeApp(d.name,d.domain,d),201);
   }
+  if(path==='/api/assistant/brain/run'&&request.method==='POST'){requireAdmin(user);return json(await runBrainCycle(env));}
+  if(path==='/api/assistant/evolution/run'&&request.method==='POST'){requireAdmin(user);return json(await runEvolutionCycle(env));}
   const mediaRoute=path.match(/^\/api\/assistant\/media\/images\/([0-9a-f-]+)$/i);
   if(mediaRoute&&request.method==='GET'){
     const id=uuid.parse(mediaRoute[1]);const object=await env.ARTIFACTS.get(`media/images/${id}.jpg`);
@@ -533,6 +537,6 @@ export default {
       if(status===500)console.error(JSON.stringify({event:'request_failed',path:new URL(request.url).pathname}));
       return secure(json({error:status===500?'Interná chyba. Pozri záznamy služby.':e instanceof z.ZodError?'Neplatné údaje požiadavky.':e.message},status));}
   },
-  async scheduled(controller,env,ctx){if(isBuildOnlyPreview(env))return;ctx.waitUntil((async()=>{const summary=await runScheduledHealth(env,controller.cron);await recordHealthIncident(env,summary);})());},
+  async scheduled(controller,env,ctx){if(isBuildOnlyPreview(env))return;ctx.waitUntil((async()=>{const summary=await runScheduledHealth(env,controller.cron);await recordHealthIncident(env,summary);await runBrainCycle(env);await runEvolutionCycle(env);})());},
   async email(message,env){if(isBuildOnlyPreview(env)){message.setReject('Build-only Preview does not accept email.');return;}await handleInboundEmail(message,env);}
 };

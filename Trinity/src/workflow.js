@@ -5,6 +5,7 @@ import {formatMemoryContext} from './memory-context.js';
 import {tokenBudget} from './cognition.js';
 import {readControl,assertRunning} from './control.js';
 import {getPCBridgeStatus} from './system-actions.js';
+import {createFollowupJob} from './followup.js';
 export class TrinityOperations extends WorkflowEntrypoint {
   async run(event, step) {
     const id=event.payload.job_id;
@@ -64,6 +65,7 @@ export class TrinityOperations extends WorkflowEntrypoint {
           this.env.DB.prepare("UPDATE ops_jobs SET status='completed',result=?,artifact_key=?,error=NULL,updated_at=datetime('now') WHERE id=?").bind(text,key,id),
           this.env.DB.prepare("INSERT INTO ops_events(job_id,action,details) VALUES(?,'completed',?)").bind(id,JSON.stringify({team,models:outputs.map(o=>o.model),skipped}))
         ]);
+        await createFollowupJob(this.env,job,text);
         return {job_id:id,status:'completed',artifact_key:key};
       });
     }catch(e){
