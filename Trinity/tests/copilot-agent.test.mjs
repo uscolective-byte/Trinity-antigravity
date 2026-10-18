@@ -544,3 +544,13 @@ test('Gemini developer skills never fabricate execution evidence', async () => {
   assert.equal(deploy.success, false);
   assert.equal(deploy.deployed, false);
 });
+
+test('AI Studio skills sú zaregistrované a bezpečne zlyhajú bez D1', async () => {
+  assert.ok(copilotPluginRegistry.isSkillEnabled('aiStudioBuild'));
+  assert.ok(copilotPluginRegistry.isSkillEnabled('aiStudioRevise'));
+  assert.ok(copilotPluginRegistry.isSkillEnabled('aiStudioList'));
+  const res = await skillRegistry.execute('aiStudioBuild', { prompt: 'Vytvor jednoduchy web' }, {});
+  assert.equal(res.success, false);
+  assert.match(res.error, /D1/);
+});
+

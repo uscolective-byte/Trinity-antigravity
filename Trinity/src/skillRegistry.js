@@ -1316,11 +1316,63 @@ export const geminiDeveloperSkills = {
 /**
  * Celý zjednotený objekt skills
  */
+/**
+ * 2D) AI STUDIO BUILDER SKILLS
+ * Umožňujú Copilot agentovi vytvárať a upravovať weby cez Trinity AI Studio.
+ * studio.js sa importuje dynamicky, aby nevznikla cyklická závislosť so services.js.
+ */
+export const studioSkills = {
+  aiStudioBuild: async (params, env = {}) => {
+    const input = typeof params === 'string' ? { prompt: params } : (params || {});
+    if (!env?.DB) return { success: false, error: 'AI Studio vyžaduje D1 databázu (env.DB).' };
+    try {
+      const { createStudioProject } = await import('./studio.js');
+      const project = await createStudioProject(env, 'primary', {
+        prompt: input.prompt,
+        ...(input.name ? { name: input.name } : {}),
+        provider: input.provider || 'auto',
+        quality: input.quality || 'balanced'
+      });
+      return { success: true, project: { id: project.id, name: project.name, version: project.version, status: project.status } };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  aiStudioRevise: async (params, env = {}) => {
+    const input = params || {};
+    if (!env?.DB) return { success: false, error: 'AI Studio vyžaduje D1 databázu (env.DB).' };
+    if (!input.project_id) return { success: false, error: 'Chýba project_id.' };
+    try {
+      const { reviseStudioProject } = await import('./studio.js');
+      const project = await reviseStudioProject(env, 'primary', input.project_id, {
+        prompt: input.prompt,
+        provider: input.provider || 'auto',
+        quality: input.quality || 'balanced'
+      });
+      return { success: true, project: { id: project.id, name: project.name, version: project.version, status: project.status } };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  aiStudioList: async (params, env = {}) => {
+    if (!env?.DB) return { success: false, error: 'AI Studio vyžaduje D1 databázu (env.DB).' };
+    try {
+      const { listStudioProjects } = await import('./studio.js');
+      return { success: true, items: await listStudioProjects(env, 'primary') };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+};
+
 export const skills = {
   ...coreSkills,
   ...integrationSkills,
   ...dataverseSkills,
   ...geminiDeveloperSkills,
+  ...studioSkills,
   ...extendedEngineeringSkills,
   ...chatGptSkills,
   ...userSkills

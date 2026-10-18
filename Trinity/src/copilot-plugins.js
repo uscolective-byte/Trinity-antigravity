@@ -128,6 +128,16 @@ export const BUILTIN_COPILOT_PLUGINS = [
     category: 'automation',
     enabled: true,
     required: false
+  },
+  {
+    id: 'ai-studio-builder',
+    name: 'AI Studio Builder Plugin',
+    version: '1.0.0',
+    description: 'Copilot agent vytvára, upravuje a vypisuje weby v Trinity AI Studio.',
+    skills: ['aiStudioBuild', 'aiStudioRevise', 'aiStudioList'],
+    category: 'automation',
+    enabled: true,
+    required: false
   }
 ];
 
