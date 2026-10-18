@@ -3,7 +3,7 @@
   "source_of_truth": "C:\\Users\\saboi\\Documents\\Codex\\Morhfeus\\Trinity",
   "production": {
     "version": "10.1.0",
-    "cloudflare_version_id": "a50a190e-c5ca-4021-8363-82ad2bfc3ca4",
+    "cloudflare_version_id": "0f5cda3b-8e71-4e96-8804-e3c6aebbbf8f",
     "worker_url": "https://trinity.saboivan2008.workers.dev/",
     "primary_url": "https://auru.space",
     "development_url": "https://auru.dev",
