@@ -118,6 +118,16 @@ export const BUILTIN_COPILOT_PLUGINS = [
     category: 'cloud',
     enabled: true,
     required: false
+  },
+  {
+    id: 'gemini-developer-pack',
+    name: 'Gemini Developer Agent & Automation Suite',
+    version: '1.0.0',
+    description: 'Vývoj a správa Trinity cez Gemini: diagnostika, spúšťanie overených príkazov, inšpekcia súborov a nasadzovanie.',
+    skills: ['geminiDevStatus', 'geminiDevRunCommand', 'geminiDevFileInspect', 'geminiDevDeploy'],
+    category: 'automation',
+    enabled: true,
+    required: false
   }
 ];
 

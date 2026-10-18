@@ -525,3 +525,22 @@ test('Microsoft Dataverse / Dynamics 365 Dataverse skills pracujú korektne', as
   assert.equal(agentRes.provider, 'skill:dataverseWhoAmI');
   assert.equal(agentRes.content.organization_id, '8659177c-c9ca-f111-be88-00224874567f');
 });
+
+test('Gemini developer skills never fabricate execution evidence', async () => {
+  assert.ok(copilotPluginRegistry.get('gemini-developer-pack'));
+  const status = await skills.geminiDevStatus({ TRINITY_ENV: 'production' });
+  assert.equal(status.connected, false);
+  assert.equal(status.environment, 'production');
+  assert.equal(status.status, 'not_connected');
+  const command = await skills.geminiDevRunCommand('npm test');
+  assert.equal(command.success, false);
+  assert.equal(command.executed, false);
+  assert.equal(command.exitCode, undefined);
+  const file = await skills.geminiDevFileInspect('src/index.js');
+  assert.equal(file.success, false);
+  assert.equal(file.inspected, false);
+  assert.equal(file.content, undefined);
+  const deploy = await skills.geminiDevDeploy('production', 'abc1234');
+  assert.equal(deploy.success, false);
+  assert.equal(deploy.deployed, false);
+});

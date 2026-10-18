@@ -1288,12 +1288,39 @@ export const dataverseSkills = {
 };
 
 /**
+ * 2C) GEMINI LOCAL & CLOUD DEVELOPER SKILLS
+ * Umožňuje vývoj Trinity cez Google Gemini na lokálnom PC aj v cloude
+ */
+export const geminiDeveloperSkills = {
+  geminiDevStatus: async (env = {}) => ({
+    success: true, status: 'not_connected', connected: false,
+    environment: env.TRINITY_ENV || env.ENVIRONMENT || 'unknown',
+    version: env.VERSION || null, active_agent: 'gemini-developer',
+    available_commands: [], tools_available: [],
+    error: 'Local developer bridge is not connected to this Worker.'
+  }),
+  geminiDevRunCommand: async (command) => ({
+    success: false, command, executed: false,
+    error: 'Command execution requires a connected local developer bridge.'
+  }),
+  geminiDevFileInspect: async (filePath) => ({
+    success: false, path: filePath, inspected: false,
+    error: 'File inspection requires a connected local developer bridge.'
+  }),
+  geminiDevDeploy: async (target = 'development', commitTag = '') => ({
+    success: false, target, commit_tag: commitTag, deployed: false,
+    error: 'Deployment requires a connected local developer bridge.'
+  })
+};
+
+/**
  * Celý zjednotený objekt skills
  */
 export const skills = {
   ...coreSkills,
   ...integrationSkills,
   ...dataverseSkills,
+  ...geminiDeveloperSkills,
   ...extendedEngineeringSkills,
   ...chatGptSkills,
   ...userSkills

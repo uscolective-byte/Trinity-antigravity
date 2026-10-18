@@ -60,6 +60,11 @@
                       "step":  7,
                       "name":  "Autonómny mozog (Brain) a evolučný cyklus (Evolution Engine)",
                       "status":  "completed"
+                  },
+                  {
+                      "step":  8,
+                      "name":  "Gemini Developer Agent & Lokálny terminálový chat s Trinity nástrojmi",
+                      "status":  "completed"
                   }
               ],
     "safety":  {
