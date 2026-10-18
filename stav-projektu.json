@@ -3,7 +3,9 @@
   "source_of_truth": "C:\\Users\\saboi\\Documents\\Codex\\Morhfeus\\Trinity",
   "production": {
     "version": "10.1.0",
-    "cloudflare_version_id": "0f5cda3b-8e71-4e96-8804-e3c6aebbbf8f",
+    "cloudflare_version_id": "81d73cf8-6508-4318-ae13-de8ce1cf0a21",
+    "development_cloudflare_version_id": "64162b93-351f-4af6-9b9c-2e764b2354d0",
+    "deployment_tag": "164a2bea0ccdd92dc32c3960f3766eddda995b82",
     "worker_url": "https://trinity.saboivan2008.workers.dev/",
     "primary_url": "https://auru.space",
     "development_url": "https://auru.dev",
@@ -12,7 +14,8 @@
   },
   "features": {
     "copilot_agent": "active",
-    "skills_count": 45,
+    "chatgpt_capabilities": "active",
+    "skills_count": 51,
     "copilot_plugins_count": 11,
     "universal_ecosystem": "active",
     "autonomous_brain": "active",
@@ -64,7 +67,7 @@
     "secret_vault_encrypted": true,
     "admin_confirmation_required": true
   },
-  "last_sync": "2026-10-18T06:40:00+02:00",
+  "last_sync": "2026-10-18T08:15:00+02:00",
   "build_status": "success",
-  "updated_at": "2026-10-18T06:40:00+02:00"
+  "updated_at": "2026-10-18T08:15:00+02:00"
 }
