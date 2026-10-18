@@ -21,10 +21,10 @@ export const BUILTIN_COPILOT_PLUGINS = [
   },
   {
     id: 'powerplatform-connector',
-    name: 'Power Platform & Copilot Studio Connector',
-    version: '1.0.0',
-    description: 'Integrácia s Microsoft Power Platform a Copilot Studio bot endpointmi.',
-    skills: ['callPowerPlatform'],
+    name: 'Power Platform & Dynamics 365 Dataverse Connector',
+    version: '2.0.0',
+    description: 'Integrácia s Microsoft Power Platform, Dynamics 365 Dataverse (CRM) a Copilot Studio.',
+    skills: ['callPowerPlatform', 'dataverseWhoAmI', 'dataverseQuery', 'dataverseCreateRecord', 'dataverseUpdateRecord', 'dataverseDeleteRecord'],
     category: 'integration',
     enabled: true,
     required: false

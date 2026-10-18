@@ -1057,11 +1057,243 @@ export const chatGptSkills = {
 };
 
 /**
+ * 2B) MICROSOFT DATAVERSE / POWER PLATFORM DYNAMICS 365 SKILLS
+ */
+export const DEFAULT_DATAVERSE_URL = 'https://org35ccf923.crm17.dynamics.com';
+export const DEFAULT_DATAVERSE_ORG_ID = '8659177c-c9ca-f111-be88-00224874567f';
+export const DEFAULT_DATAVERSE_ENV_ID = '263ab070-afaa-ebda-a227-c1f465562341';
+
+async function resolveDataverseToken(env, options = {}) {
+  if (options.token) return options.token;
+  if (env?.DATAVERSE_TOKEN) return env.DATAVERSE_TOKEN;
+  if (env?.POWER_PLATFORM_TOKEN) return env.POWER_PLATFORM_TOKEN;
+
+  const tenantId = options.tenantId || env?.MICROSOFT_TENANT_ID;
+  const clientId = options.clientId || env?.MICROSOFT_CLIENT_ID;
+  const clientSecret = options.clientSecret || env?.MICROSOFT_CLIENT_SECRET;
+  const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
+
+  if (tenantId && clientId && clientSecret) {
+    try {
+      const tokenResp = await fetch(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: clientId,
+          client_secret: clientSecret,
+          scope: `${instanceUrl}/.default`
+        }).toString(),
+        signal: AbortSignal.timeout(15000)
+      });
+      const tokenData = await tokenResp.json().catch(() => ({}));
+      if (tokenResp.ok && tokenData.access_token) {
+        return tokenData.access_token;
+      }
+    } catch {}
+  }
+  return null;
+}
+
+export const dataverseSkills = {
+  dataverseWhoAmI: async (env = {}, options = {}) => {
+    if (env && !env.DB && !env.AI && !env.DATAVERSE_TOKEN && typeof env === 'object' && Object.keys(options).length === 0) {
+      options = env;
+      env = {};
+    }
+    const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
+    const token = await resolveDataverseToken(env, options);
+
+    if (options.mock || !token) {
+      return {
+        instance_url: instanceUrl,
+        organization_id: DEFAULT_DATAVERSE_ORG_ID,
+        environment_id: DEFAULT_DATAVERSE_ENV_ID,
+        user_id: '8659177c-c9ca-f111-be88-00224874567f',
+        business_unit_id: DEFAULT_DATAVERSE_ORG_ID,
+        status: token ? 'connected' : 'mock-ready',
+        geo: 'Europe / EFTA (Switzerland)',
+        environment_type: 'Developer',
+        mock: !token || Boolean(options.mock)
+      };
+    }
+
+    const resp = await fetch(`${instanceUrl}/api/data/v9.2/WhoAmI`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        'OData-MaxVersion': '4.0',
+        'OData-Version': '4.0'
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!resp.ok) {
+      const txt = await resp.text().catch(() => '');
+      throw new Error(`Dataverse WhoAmI zlyhal (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
+    }
+    const data = await resp.json();
+    return {
+      instance_url: instanceUrl,
+      organization_id: data.OrganizationId,
+      user_id: data.UserId,
+      business_unit_id: data.BusinessUnitId,
+      status: 'connected'
+    };
+  },
+
+  dataverseQuery: async (entitySet, queryParams = {}, env = {}, options = {}) => {
+    if (!entitySet || typeof entitySet !== 'string') {
+      throw new Error('dataverseQuery vyžaduje názov entity (napr. accounts, contacts, incidents)');
+    }
+    const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
+    const token = await resolveDataverseToken(env, options);
+
+    if (options.mock || !token) {
+      return {
+        entitySet,
+        count: 2,
+        value: [
+          { id: 'mock-1', name: `Ukážkový záznam 1 (${entitySet})`, createdon: new Date().toISOString() },
+          { id: 'mock-2', name: `Ukážkový záznam 2 (${entitySet})`, createdon: new Date().toISOString() }
+        ],
+        instance_url: instanceUrl,
+        mock: !token || Boolean(options.mock)
+      };
+    }
+
+    const queryParts = [];
+    if (queryParams.$select) queryParts.push(`$select=${encodeURIComponent(queryParams.$select)}`);
+    if (queryParams.$filter) queryParts.push(`$filter=${encodeURIComponent(queryParams.$filter)}`);
+    if (queryParams.$top) queryParts.push(`$top=${Number(queryParams.$top)}`);
+    if (queryParams.$orderby) queryParts.push(`$orderby=${encodeURIComponent(queryParams.$orderby)}`);
+    if (queryParams.$expand) queryParts.push(`$expand=${encodeURIComponent(queryParams.$expand)}`);
+    const qs = queryParts.length ? `?${queryParts.join('&')}` : '';
+
+    const resp = await fetch(`${instanceUrl}/api/data/v9.2/${entitySet}${qs}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        'OData-MaxVersion': '4.0',
+        'OData-Version': '4.0'
+      },
+      signal: AbortSignal.timeout(20000)
+    });
+    if (!resp.ok) {
+      const txt = await resp.text().catch(() => '');
+      throw new Error(`Dataverse query zlyhal pre ${entitySet} (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
+    }
+    const data = await resp.json();
+    return {
+      entitySet,
+      value: data.value || [],
+      count: (data.value || []).length
+    };
+  },
+
+  dataverseCreateRecord: async (entitySet, recordData = {}, env = {}, options = {}) => {
+    if (!entitySet || typeof entitySet !== 'string') throw new Error('dataverseCreateRecord vyžaduje entitySet');
+    const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
+    const token = await resolveDataverseToken(env, options);
+
+    if (options.mock || !token) {
+      return {
+        id: 'mock-record-' + Date.now(),
+        entitySet,
+        ...recordData,
+        createdon: new Date().toISOString(),
+        mock: !token || Boolean(options.mock)
+      };
+    }
+
+    const resp = await fetch(`${instanceUrl}/api/data/v9.2/${entitySet}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json; charset=utf-8',
+        Accept: 'application/json',
+        'OData-MaxVersion': '4.0',
+        'OData-Version': '4.0',
+        Prefer: 'return=representation'
+      },
+      body: JSON.stringify(recordData),
+      signal: AbortSignal.timeout(20000)
+    });
+    if (!resp.ok) {
+      const txt = await resp.text().catch(() => '');
+      throw new Error(`Dataverse create zlyhal pre ${entitySet} (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
+    }
+    return await resp.json().catch(() => ({ entitySet, created: true }));
+  },
+
+  dataverseUpdateRecord: async (entitySet, id, recordData = {}, env = {}, options = {}) => {
+    if (!entitySet || !id) throw new Error('dataverseUpdateRecord vyžaduje entitySet a id');
+    const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
+    const token = await resolveDataverseToken(env, options);
+
+    if (options.mock || !token) {
+      return {
+        id,
+        entitySet,
+        ...recordData,
+        updatedon: new Date().toISOString(),
+        updated: true,
+        mock: !token || Boolean(options.mock)
+      };
+    }
+
+    const resp = await fetch(`${instanceUrl}/api/data/v9.2/${entitySet}(${id})`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json; charset=utf-8',
+        Accept: 'application/json',
+        'OData-MaxVersion': '4.0',
+        'OData-Version': '4.0',
+        Prefer: 'return=representation'
+      },
+      body: JSON.stringify(recordData),
+      signal: AbortSignal.timeout(20000)
+    });
+    if (!resp.ok) {
+      const txt = await resp.text().catch(() => '');
+      throw new Error(`Dataverse update zlyhal pre ${entitySet}(${id}) (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
+    }
+    return await resp.json().catch(() => ({ id, entitySet, updated: true }));
+  },
+
+  dataverseDeleteRecord: async (entitySet, id, env = {}, options = {}) => {
+    if (!entitySet || !id) throw new Error('dataverseDeleteRecord vyžaduje entitySet a id');
+    const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
+    const token = await resolveDataverseToken(env, options);
+
+    if (options.mock || !token) {
+      return { id, entitySet, deleted: true, mock: !token || Boolean(options.mock) };
+    }
+
+    const resp = await fetch(`${instanceUrl}/api/data/v9.2/${entitySet}(${id})`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'OData-MaxVersion': '4.0',
+        'OData-Version': '4.0'
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!resp.ok) {
+      const txt = await resp.text().catch(() => '');
+      throw new Error(`Dataverse delete zlyhal pre ${entitySet}(${id}) (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
+    }
+    return { id, entitySet, deleted: true };
+  }
+};
+
+/**
  * Celý zjednotený objekt skills
  */
 export const skills = {
   ...coreSkills,
   ...integrationSkills,
+  ...dataverseSkills,
   ...extendedEngineeringSkills,
   ...chatGptSkills,
   ...userSkills

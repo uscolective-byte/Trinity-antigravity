@@ -2,7 +2,7 @@ import {z} from 'zod';
 import {HttpError} from './security.js';
 
 export const secretInputSchema=z.object({
-  provider:z.enum(['github','cloudflare','gemini','openai','custom']),
+  provider:z.enum(['github','cloudflare','gemini','openai','dataverse','microsoft','powerplatform','custom']),
   name:z.string().trim().min(2).max(80),
   secret:z.string().trim().min(8).max(4096)
 }).strict();
@@ -56,6 +56,55 @@ async function verifyOpenAI(secret){
   if(!text.trim())throw new Error('OpenAI živý test vrátil prázdnu odpoveď.');
   return {connected:true,models,model_count:models.length,generation_verified:true,verified_model:model};
 }
+async function verifyDataverse(secret){
+  let token=secret;
+  let url='https://org35ccf923.crm17.dynamics.com';
+  try{
+    const parsed=JSON.parse(secret);
+    if(parsed.url)url=parsed.url;
+    if(parsed.token)token=parsed.token;
+    if(parsed.tenantId&&parsed.clientId&&parsed.clientSecret){
+      const tokenResp=await fetch(`https://login.microsoftonline.com/${parsed.tenantId}/oauth2/v2.0/token`,{
+        method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:new URLSearchParams({
+          grant_type:'client_credentials',
+          client_id:parsed.clientId,
+          client_secret:parsed.clientSecret,
+          scope:`${url.replace(/\/+$/,'')}/.default`
+        }).toString(),
+        signal:AbortSignal.timeout(15000)
+      });
+      const tokenData=await tokenResp.json().catch(()=>({}));
+      if(!tokenResp.ok||!tokenData.access_token){
+        throw new Error(`Microsoft Entra token zlyhal (HTTP ${tokenResp.status}): ${tokenData.error_description||tokenData.error||'neplatné poverenia'}`);
+      }
+      token=tokenData.access_token;
+    }
+  }catch(e){
+    if(e.message&&e.message.includes('Microsoft Entra token zlyhal'))throw e;
+  }
+  const cleanUrl=url.replace(/\/+$/,'');
+  const whoamiResp=await fetch(`${cleanUrl}/api/data/v9.2/WhoAmI`,{
+    headers:{
+      Authorization:`Bearer ${token}`,
+      Accept:'application/json',
+      'OData-MaxVersion':'4.0',
+      'OData-Version':'4.0'
+    },
+    signal:AbortSignal.timeout(15000)
+  });
+  const whoamiData=await whoamiResp.json().catch(()=>({}));
+  if(!whoamiResp.ok){
+    throw new Error(`Dataverse WhoAmI zlyhal (HTTP ${whoamiResp.status}): ${String(whoamiData.error?.message||'prístup zamietnutý').slice(0,240)}`);
+  }
+  return {
+    connected:true,
+    instance_url:cleanUrl,
+    organization_id:whoamiData.OrganizationId,
+    user_id:whoamiData.UserId,
+    business_unit_id:whoamiData.BusinessUnitId
+  };
+}
 export async function getSecretMaterial(env,{ownerId,id,provider}){const row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE id=? AND owner_id=? AND provider=? AND status!='revoked'").bind(id,ownerId,provider).first();if(!row)throw new HttpError(404,'Tajomstvo neexistuje.');return {...row,secret:await decrypt(env,row)};}
 export const isGeminiCandidate=name=>/gemini/i.test(String(name||''));
 export async function promoteCustomSecretToGemini(env,ownerId,id){
@@ -67,5 +116,5 @@ export async function promoteCustomSecretToGemini(env,ownerId,id){
     .bind(JSON.stringify({owner_id:ownerId,source_id:id,target_id:verified.id})).run();
   return verified;
 }
-export async function verifySecret(env,ownerId,id){const row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE id=? AND owner_id=? AND status!='revoked'").bind(id,ownerId).first();if(!row)throw new HttpError(404,'Tajomstvo neexistuje.');if(row.provider==='custom')throw new HttpError(400,'Vlastné tajomstvo nemá automatický test.');try{const secret=await decrypt(env,row);const verification=row.provider==='github'?await verifyGitHub(secret):row.provider==='cloudflare'?await verifyCloudflare(secret):row.provider==='openai'?await verifyOpenAI(secret):await verifyGemini(secret);const changed=await env.DB.prepare("UPDATE ops_secret_vault SET status='verified',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=? RETURNING *").bind(JSON.stringify(verification),id).first();return present(changed);}catch(error){await env.DB.prepare("UPDATE ops_secret_vault SET status='failed',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(JSON.stringify({connected:false,error:error.message}),id).run();throw new HttpError(502,error.message);}}
+export async function verifySecret(env,ownerId,id){const row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE id=? AND owner_id=? AND status!='revoked'").bind(id,ownerId).first();if(!row)throw new HttpError(404,'Tajomstvo neexistuje.');if(row.provider==='custom')throw new HttpError(400,'Vlastné tajomstvo nemá automatický test.');try{const secret=await decrypt(env,row);const verification=row.provider==='github'?await verifyGitHub(secret):row.provider==='cloudflare'?await verifyCloudflare(secret):row.provider==='openai'?await verifyOpenAI(secret):(row.provider==='dataverse'||row.provider==='microsoft'||row.provider==='powerplatform')?await verifyDataverse(secret):await verifyGemini(secret);const changed=await env.DB.prepare("UPDATE ops_secret_vault SET status='verified',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=? RETURNING *").bind(JSON.stringify(verification),id).first();return present(changed);}catch(error){await env.DB.prepare("UPDATE ops_secret_vault SET status='failed',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(JSON.stringify({connected:false,error:error.message}),id).run();throw new HttpError(502,error.message);}}
 export async function revokeSecret(env,ownerId,id){const row=await env.DB.prepare("UPDATE ops_secret_vault SET status='revoked',secret_ciphertext='',secret_iv='',verification_json=NULL,revoked_at=datetime('now'),updated_at=datetime('now') WHERE id=? AND owner_id=? AND status!='revoked' RETURNING *").bind(id,ownerId).first();if(!row)throw new HttpError(404,'Aktívne tajomstvo neexistuje.');await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('secret_revoked',?)").bind(JSON.stringify({id,provider:row.provider,name:row.name,owner_id:ownerId})).run();return present(row);}

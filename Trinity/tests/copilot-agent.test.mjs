@@ -482,3 +482,46 @@ test('TrinityCopilotAgent spracuje Power Platform volanie s fallbackom pri nedos
   assert.equal(resFallback.type, 'fallback');
   assert.ok(Array.isArray(resFallback.suggestions));
 });
+
+test('Microsoft Dataverse / Dynamics 365 Dataverse skills pracujú korektne', async () => {
+  const env = {
+    DATAVERSE_URL: 'https://org35ccf923.crm17.dynamics.com'
+  };
+
+  // 1. WhoAmI
+  const whoami = await skills.dataverseWhoAmI(env, { mock: true });
+  assert.equal(whoami.instance_url, 'https://org35ccf923.crm17.dynamics.com');
+  assert.equal(whoami.organization_id, '8659177c-c9ca-f111-be88-00224874567f');
+  assert.equal(whoami.environment_id, '263ab070-afaa-ebda-a227-c1f465562341');
+
+  // 2. Query
+  const queryRes = await skills.dataverseQuery('accounts', { $top: 5, $select: 'name,accountnumber' }, env, { mock: true });
+  assert.equal(queryRes.entitySet, 'accounts');
+  assert.ok(Array.isArray(queryRes.value));
+  assert.equal(queryRes.count, 2);
+
+  // 3. Create, Update, Delete CRUD
+  const created = await skills.dataverseCreateRecord('contacts', { firstname: 'Ivan', lastname: 'Trinity' }, env, { mock: true });
+  assert.ok(created.id);
+  assert.equal(created.firstname, 'Ivan');
+
+  const updated = await skills.dataverseUpdateRecord('contacts', created.id, { telephone1: '+421900000000' }, env, { mock: true });
+  assert.equal(updated.updated, true);
+  assert.equal(updated.telephone1, '+421900000000');
+
+  const deleted = await skills.dataverseDeleteRecord('contacts', created.id, env, { mock: true });
+  assert.equal(deleted.deleted, true);
+
+  // 4. Overenie cez SkillRegistry a TrinityCopilotAgent
+  assert.ok(skillRegistry.has('dataverseWhoAmI'));
+  const regWhoami = await skillRegistry.execute('dataverseWhoAmI', env, { mock: true });
+  assert.equal(regWhoami.organization_id, '8659177c-c9ca-f111-be88-00224874567f');
+
+  const mockDB = createMockDB();
+  const agentRes = await TrinityCopilotAgent('Over stav Dynamics 365', { DB: mockDB, ...env }, {
+    skill: 'dataverseWhoAmI',
+    mock: true
+  });
+  assert.equal(agentRes.provider, 'skill:dataverseWhoAmI');
+  assert.equal(agentRes.content.organization_id, '8659177c-c9ca-f111-be88-00224874567f');
+});
