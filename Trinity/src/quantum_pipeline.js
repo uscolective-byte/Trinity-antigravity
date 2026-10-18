@@ -40,12 +40,12 @@ export async function processTeleologicalPrompt(
 ) {
   const errors = [];
 
-  // 0. Overenie lokálneho bridge (ak je požadovaný)
+  // 0️⃣ Bridge verification
   let bridgeVerified = true;
   if (bridgeActive) {
     try {
       if (!env.BRIDGE_SHARED_SECRET) {
-        throw new Error("Chýba BRIDGE_SHARED_SECRET v konfigurácii prostredia.");
+        throw new Error("Missing BRIDGE_SHARED_SECRET");
       }
       bridgeVerified = true;
     } catch (e) {
@@ -54,7 +54,7 @@ export async function processTeleologicalPrompt(
     }
   }
 
-  // 1. Vyvolanie pamäte zameranej na Telos
+  // 1️⃣ Teleological recall
   const memoryEngine = new TeleologicalMemoryEngine(
     env.DB,
     env.VECTORIZE,
@@ -71,14 +71,12 @@ export async function processTeleologicalPrompt(
     errors.push(`Memory recall failed: ${e.message}`);
   }
 
-  const contextPrefix =
-    activeInvariants.length > 0
-      ? `Aktívne teleologické invarianty:\n${activeInvariants.join("\n")}\n\n`
-      : "";
+  const contextPrefix = activeInvariants.length
+    ? `Aktívne teleologické invarianty:\n${activeInvariants.join("\n")}\n\n`
+    : "";
 
   const defaultModel = env.AI_MODEL || "@cf/meta/llama-3.3-70b-instruct";
 
-  // Pomocná funkcia pre spustenie AI s bezpečným čítaním odpovede
   const runAi = async (systemPrompt, userText) => {
     if (!env.AI?.run) throw new Error("Workers AI nie je dostupné.");
     const res = await env.AI.run(defaultModel, {
@@ -90,7 +88,7 @@ export async function processTeleologicalPrompt(
     return res?.response || res?.output_text || (typeof res === 'string' ? res : '');
   };
 
-  // 2. Paralelné vetvenie do superpozície (Téza a Antitéza)
+  // 2️⃣ Thesis / Antithesis
   let thesisText = '';
   let antithesisText = '';
 
@@ -115,11 +113,11 @@ export async function processTeleologicalPrompt(
       coherenceScore: 0,
       destructiveInterferenceCount: 0,
       bridgeVerified,
-      errors
+      errors: errors.length ? errors : undefined
     };
   }
 
-  // 3. Vytvorenie stavovej superpozície
+  // 3️⃣ Vytvorenie stavovej superpozície
   const states = [
     {
       dimension: "thesis",
@@ -135,7 +133,7 @@ export async function processTeleologicalPrompt(
     }
   ];
 
-  // 4. Syntéza vedomia
+  // 4️⃣ Synthesis
   let synthesisText = '';
   try {
     synthesisText = await runAi(
@@ -155,12 +153,12 @@ export async function processTeleologicalPrompt(
     });
   }
 
-  // 5. Kolaps vlnovej funkcie do reality
+  // 5️⃣ Collapse
   const collapse = QuantumCoreEngine.collapseSuperposition(states, {
     exists: true
   });
 
-  // 6. Štruktúrovaná telemetria
+  // 6️⃣ Telemetria
   console.log("[Pipeline] userPrompt:", userPrompt);
   console.log("[Pipeline] activeInvariants:", activeInvariants.length);
   console.log("[Pipeline] dominantDimension:", collapse.dominantDimension);
@@ -168,7 +166,7 @@ export async function processTeleologicalPrompt(
   console.log("[Pipeline] bridgeVerified:", bridgeVerified);
   if (errors.length) console.error("[Pipeline] errors:", errors);
 
-  // 7. Kolapsovaný výsledok a diagnostické metriky
+  // 7️⃣ Výstup
   return {
     manifestedText: collapse.manifestedText,
     dominantDimension: collapse.dominantDimension,
