@@ -89,7 +89,7 @@ export function selectSkills(agent,task='') {
 
 export const AGENTS = groups.flatMap(([cluster, roles]) => roles.map(([id, name, role]) => ({
   id, name, cluster, role,
-  tools: ['knowledge_search','plan_work','search_memory','project_snapshot','calculate','analyze_text','current_time','json_tool','hash_text','convert_units','extract_entities','format_text',...PRACTICAL_TOOL_NAMES,'list_capabilities','list_skills','list_connectors','install_plugin', ...(['Výskum','Obchod a rast'].includes(cluster)||id==='orchestrator' ? ['web_search'] : []),
+  tools: ['knowledge_search','plan_work','search_memory','project_snapshot','calculate','analyze_text','current_time','json_tool','hash_text','convert_units','extract_entities','format_text',...PRACTICAL_TOOL_NAMES,'list_capabilities','list_skills','list_connectors','install_plugin','execute_skill','copilot_chat','ecosystem_synthesize','ecosystem_search', ...(['Výskum','Obchod a rast'].includes(cluster)||id==='orchestrator' ? ['web_search'] : []),
     ...(['ui','writer','orchestrator'].includes(id)?['generate_image']:[]),
     ...(['market-research','orchestrator'].includes(id)?['portfolio_summary']:[]),
     ...(['Riadenie','Cloud a prevádzka','Dáta a pamäť','Kvalita a bezpečnosť','Podpora a automatizácia'].includes(cluster) ? ['service_status'] : []),

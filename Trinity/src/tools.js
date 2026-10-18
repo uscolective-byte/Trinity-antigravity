@@ -8,8 +8,11 @@ import {getPortfolio} from './trading.js';
 import {PRACTICAL_TOOL_NAMES,PRACTICAL_TOOL_SCHEMAS,PRACTICAL_TOOL_HELP,runPracticalTool} from './practical-skills.js';
 import {planTask} from './planner.js';
 import {memorySearchTerms,selectMemoryRecords,sanitizeMemoryRecords} from './memory-context.js';
+import {skillRegistry} from './skillRegistry.js';
+import {TrinityCopilotAgent} from './copilot-agent.js';
+import {synthesizeSkill, synthesizePlugin, synthesizeApp, searchCatalog} from './universal-ecosystem.js';
 
-export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status']);
+export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','execute_skill','copilot_chat','ecosystem_synthesize','ecosystem_search']);
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']);
 export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan']);
 export const TOOL_SCHEMAS={
@@ -36,6 +39,10 @@ export const TOOL_SCHEMAS={
   ,convert_units:z.object({value:z.number().finite(),from:z.enum(['mm','cm','m','km','in','ft','yd','mi','mg','g','kg','oz','lb','c','f','k']),to:z.enum(['mm','cm','m','km','in','ft','yd','mi','mg','g','kg','oz','lb','c','f','k'])}).strict()
   ,extract_entities:z.object({text:z.string().max(50000)}).strict()
   ,format_text:z.object({text:z.string().max(20000),mode:z.enum(['lower','upper','title','slug','snake','kebab'])}).strict()
+  ,execute_skill:z.object({skill:z.string().min(1).max(80),params:z.record(z.string(),z.unknown()).default({})}).strict()
+  ,copilot_chat:z.object({query:z.string().min(1).max(12000),session_id:z.string().max(100).optional(),provider:z.string().max(50).optional()}).strict()
+  ,ecosystem_synthesize:z.object({type:z.enum(['skill','plugin','app']),name:z.string().min(1).max(100),domain:z.string().min(1).max(50),description:z.string().min(3).max(500),details:z.record(z.string(),z.unknown()).default({})}).strict()
+  ,ecosystem_search:z.object({query:z.string().max(200).default(''),domain:z.string().max(50).optional()}).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -184,6 +191,23 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const result=await getPortfolio(env,owner,id);
     return {...result,_evidence:{effect:'read',receipt_id:`portfolio:${id}`}};
   }
+  if(name==='execute_skill'){
+    const fn=skillRegistry.get(args.skill);
+    if(!fn)throw new Error(`Skill '${args.skill}' nebol nájdený v registry.`);
+    const result=await fn(args.params,env);
+    return {skill:args.skill,ok:true,result};
+  }
+  if(name==='copilot_chat'){
+    return await TrinityCopilotAgent(args.query,env,{sessionId:args.session_id,provider:args.provider});
+  }
+  if(name==='ecosystem_synthesize'){
+    if(args.type==='skill')return synthesizeSkill(args.name,args.domain,args.description,args.details);
+    if(args.type==='plugin')return synthesizePlugin(args.name,args.domain,args.description,args.details?.skills||[]);
+    if(args.type==='app')return synthesizeApp(args.name,args.domain,args.description,args.details);
+  }
+  if(name==='ecosystem_search'){
+    return searchCatalog(args.query,args.domain);
+  }
   // ── PC Bridge nástroje ──
   if(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr'].includes(name)){
     const pcActionMap={
@@ -286,4 +310,8 @@ export const TOOL_HELP={
   pc_git_pr:'Vytvorí Pull Request na GitHub (vyžaduje schválenie): {title:string,head:string,body?:string,base?:string}',
   // ── Existujúce nástroje ──
   search_memory:'Vyhľadá pamäť: {query:string}',project_snapshot:'Prečíta projekty a úlohy: {}',
-  service_status:'Overí služby: {binding?: názov služby}',web_search:'Vyhľadá aktuálne webové zdroje: {query:string}',generate_image:'Skutočne vytvorí obrázok a uloží ho do súkromného archívu: {prompt:string,seed?:integer}',portfolio_summary:'Prečíta simulované portfólio, pozície a zisk alebo stratu bez vykonania reálneho obchodu: {portfolio_id?:uuid}',calculate:'Presný výpočet {operation:add|subtract|multiply|divide|percentage|mean|power|sqrt|log10|sin|cos|tan,values:number[]}; trigonometria používa radiány',analyze_text:'Počet slov a znakov: {text:string}',current_time:'Skutočný čas a dátum: {timezone?: IANA názov}',json_tool:'Overí, formátuje, minifikuje alebo číta JSON: {operation, json, path?}',hash_text:'Vytvorí SHA-256 odtlačok textu: {text,algorithm?:"SHA-256"}',convert_units:'Prevádza jednotky dĺžky, hmotnosti a teploty: {value,from,to}',extract_entities:'Vyberie z textu e-maily, URL a dátumy: {text}',format_text:'Formátuje text: {text,mode:lower|upper|title|slug|snake|kebab}',list_capabilities:'Zoznam nainštalovaných verejných modulov Trinity: {query?: string}',list_skills:'Zoznam zabudovaných pracovných zručností Trinity: {query?: string}',list_connectors:'Skutočný stav nakonfigurovaných konektorov; nikdy nevracia tajomstvá: {}',install_plugin:'Nainštaluje alebo obnoví iba plugin z dôveryhodného katalógu Trinity: {id,reason}',request_system_action:'Vytvorí auditovanú internú akciu; v overenej admin relácii sa konkrétny príkaz autorizuje priamo, inak zostane návrhom: {action, payload, rationale}',system_action_status:'Overí stav a potvrdenie internej akcie: {id}'};
+  service_status:'Overí služby: {binding?: názov služby}',web_search:'Vyhľadá aktuálne webové zdroje: {query:string}',generate_image:'Skutočne vytvorí obrázok a uloží ho do súkromného archívu: {prompt:string,seed?:integer}',portfolio_summary:'Prečíta simulované portfólio, pozície a zisk alebo stratu bez vykonania reálneho obchodu: {portfolio_id?:uuid}',calculate:'Presný výpočet {operation:add|subtract|multiply|divide|percentage|mean|power|sqrt|log10|sin|cos|tan,values:number[]}; trigonometria používa radiány',analyze_text:'Počet slov a znakov: {text:string}',current_time:'Skutočný čas a dátum: {timezone?: IANA názov}',json_tool:'Overí, formátuje, minifikuje alebo číta JSON: {operation, json, path?}',hash_text:'Vytvorí SHA-256 odtlačok textu: {text,algorithm?:"SHA-256"}',convert_units:'Prevádza jednotky dĺžky, hmotnosti a teploty: {value,from,to}',extract_entities:'Vyberie z textu e-maily, URL a dátumy: {text}',format_text:'Formátuje text: {text,mode:lower|upper|title|slug|snake|kebab}',list_capabilities:'Zoznam nainštalovaných verejných modulov Trinity: {query?: string}',list_skills:'Zoznam zabudovaných pracovných zručností Trinity: {query?: string}',list_connectors:'Skutočný stav nakonfigurovaných konektorov; nikdy nevracia tajomstvá: {}',install_plugin:'Nainštaluje alebo obnoví iba plugin z dôveryhodného katalógu Trinity: {id,reason}',request_system_action:'Vytvorí auditovanú internú akciu; v overenej admin relácii sa konkrétny príkaz autorizuje priamo, inak zostane návrhom: {action, payload, rationale}',system_action_status:'Overí stav a potvrdenie internej akcie: {id}',
+  execute_skill:'Vykoná ľubovoľný skill zaregistrovaný v Trinity SkillRegistry: {skill:string, params?:object}',
+  copilot_chat:'Spracuje dotaz cez TrinityCopilotAgent s auditom, cache a multi-step vykonaním: {query:string, session_id?:string, provider?:string}',
+  ecosystem_synthesize:'Dynamicky syntetizuje novú schopnosť, plugin alebo aplikáciu v univerzálnom ekosystéme: {type:skill|plugin|app, name:string, domain:string, description:string, details?:object}',
+  ecosystem_search:'Prehľadáva ekosystém naprieč všetkými univerzálnymi doménami a šablónami: {query?:string, domain?:string}'};

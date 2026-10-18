@@ -251,3 +251,7 @@ class UniversalEcosystem {
 }
 
 export const universalEcosystem = new UniversalEcosystem();
+export const synthesizeSkill = (...args) => universalEcosystem.synthesizeSkill(...args);
+export const synthesizePlugin = (...args) => universalEcosystem.synthesizePlugin(...args);
+export const synthesizeApp = (...args) => universalEcosystem.synthesizeApp(...args);
+export const searchCatalog = (...args) => universalEcosystem.searchCatalog(...args);

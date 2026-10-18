@@ -6,13 +6,13 @@
  * 3️⃣ Užívateľské skilly (Dialog management, Multilingual support, Fallback, Rich-response formatting, Rate-limited UI feedback, Security & sanitisation)
  */
 
-import {runPracticalTool} from './practical-skills.js';
+import { runPracticalTool } from './practical-skills.js';
 
 // In-memory cache a fallback stav circuit-breakeru
 const memoryCache = new Map();
 const memoryCbState = new Map();
 const memoryRateLimits = new Map();
-const memorySessions = new Map();
+export const memorySessions = new Map();
 
 /**
  * 1️⃣ ZÁKLADNÉ SKILLY (CORE)
@@ -96,7 +96,7 @@ export const coreSkills = {
   logAudit: async (env, level, message, details = null) => {
     const consoleFn = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
     consoleFn(`[TrinityCopilotAgent ${String(level).toUpperCase()}]:`, message, details ? JSON.stringify(details) : '');
-    
+
     const timestamp = new Date().toISOString();
     if (env?.DB) {
       const detailsJson = details ? (typeof details === 'string' ? details : JSON.stringify(details)) : null;
@@ -108,7 +108,7 @@ export const coreSkills = {
         try {
           await env.DB.prepare("INSERT INTO ops_events (action, details) VALUES (?, ?)")
             .bind('copilot_audit', JSON.stringify({ level, message, details, timestamp })).run();
-        } catch (_) {}
+        } catch (_) { }
       }
     }
     return { logged: true, level, message, timestamp };
@@ -124,7 +124,7 @@ export const coreSkills = {
         attempt++;
         const statusMatch = e.message?.match(/HTTP\s+(\d{3})/i);
         const status = statusMatch ? parseInt(statusMatch[1], 10) : null;
-        
+
         // Ak ide o trvalú klientsku chybu (okrem 429), neopakuj
         if (status && status >= 400 && status < 500 && status !== 429) {
           throw e;
@@ -145,7 +145,7 @@ export const coreSkills = {
       if (env?.CB_STATE) raw = await env.CB_STATE.get(`cb:${serviceKey}`);
       else if (env?.Mastermind) raw = await env.Mastermind.get(`cb:${serviceKey}`);
       if (raw) {
-        try { return JSON.parse(raw); } catch {}
+        try { return JSON.parse(raw); } catch { }
       }
       return memoryCbState.get(serviceKey) || { state: 'CLOSED', failures: 0, lastFailure: 0, nextAttempt: 0 };
     },
@@ -227,7 +227,6 @@ export const coreSkills = {
           .bind(key, windowStart, windowStart).run();
       } catch (e) {
         if (e.message?.includes('Rate limit')) throw e;
-        // In-memory fallback
         count = memoryRateLimits.get(storageKey) || 0;
         if (count >= limit) throw new Error(`Rate limit exceeded for '${key}'. Maximum ${limit} requests per ${windowSec}s.`);
         memoryRateLimits.set(storageKey, count + 1);
@@ -253,7 +252,7 @@ export const coreSkills = {
         const val = await env.Mastermind.get(key);
         return val ? JSON.parse(val) : null;
       }
-    } catch (_) {}
+    } catch (_) { }
     const mem = memoryCache.get(key);
     if (mem && mem.expiresAt > Date.now()) return mem.value;
     return null;
@@ -270,7 +269,7 @@ export const coreSkills = {
         await env.Mastermind.put(key, str, { expirationTtl: ttlSeconds });
         return true;
       }
-    } catch (_) {}
+    } catch (_) { }
     memoryCache.set(key, { value: data, expiresAt: Date.now() + (ttlSeconds * 1000) });
     return true;
   },
@@ -286,7 +285,7 @@ export const coreSkills = {
         } else if (typeof env.METRICS.writeDataPoint === 'function') {
           env.METRICS.writeDataPoint({ blobs: [metricName, type], doubles: [value] });
         }
-      } catch (_) {}
+      } catch (_) { }
     }
     return { metric: metricName, value, type, recorded_at: new Date().toISOString() };
   }
@@ -538,10 +537,257 @@ export const integrationSkills = {
 };
 
 /**
+ * 2️⃣b ROZŠÍRENÉ INŽINIERSKE A PREVÁDZKOVÉ SKILLY
+ */
+export const extendedEngineeringSkills = {
+  codeRefactor: (code, options = {}) => {
+    const rawCode = (typeof code === 'object' && code !== null) ? (code.code || '') : code;
+    const opts = (typeof code === 'object' && code !== null) ? { ...code, ...options } : options;
+    if (typeof rawCode !== 'string') throw new Error('codeRefactor vyžaduje reťazec kódu.');
+    let result = rawCode;
+    if (opts.removeTrailingWhitespace !== false) {
+      result = result.split('\n').map(l => l.trimEnd()).join('\n');
+    }
+    if (opts.ensureTrailingNewline) {
+      if (!result.endsWith('\n')) result += '\n';
+    }
+    return {
+      original_length: rawCode.length,
+      refactored_length: result.length,
+      lines_count: result.split('\n').length,
+      refactored_code: result
+    };
+  },
+
+  sqlValidate: (sql, options = {}) => {
+    const rawSql = (typeof sql === 'object' && sql !== null) ? (sql.sql || sql.query || '') : sql;
+    if (!rawSql || typeof rawSql !== 'string') throw new Error('sqlValidate vyžaduje SQL dotaz.');
+    const trimmed = rawSql.trim();
+    const isSelect = /^SELECT\b/i.test(trimmed);
+    const isMutating = /^(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|TRUNCATE)\b/i.test(trimmed);
+    const hasUnsafeComment = /(--|\/\*|\*\/)/.test(trimmed);
+    return {
+      valid: trimmed.length > 0 && !hasUnsafeComment,
+      is_select: isSelect,
+      is_mutating: isMutating,
+      has_unsafe_comment: hasUnsafeComment,
+      has_multiple_statements: (trimmed.match(/;/g) || []).length > 1,
+      sanitized_preview: trimmed.slice(0, 100)
+    };
+  },
+
+  cryptoHash: async (text, algorithm = 'SHA-256') => {
+    const rawText = (typeof text === 'object' && text !== null) ? (text.text || text.data || '') : text;
+    const algoInput = (typeof text === 'object' && text !== null && text.algorithm) ? text.algorithm : algorithm;
+    if (typeof rawText !== 'string') throw new Error('cryptoHash vyžaduje textový reťazec.');
+    const validAlgos = ['SHA-1', 'SHA-256', 'SHA-384', 'SHA-512'];
+    const selectedAlgo = validAlgos.includes(String(algoInput).toUpperCase()) ? String(algoInput).toUpperCase() : 'SHA-256';
+    const digest = await crypto.subtle.digest(selectedAlgo, new TextEncoder().encode(rawText));
+    const hash = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+    return { algorithm: selectedAlgo, hash, byte_length: digest.byteLength };
+  },
+
+  diffCompare: (textA, textB) => {
+    const rawA = (typeof textA === 'object' && textA !== null) ? (textA.textA || textA.a || '') : textA;
+    const rawB = (typeof textA === 'object' && textA !== null) ? (textA.textB || textA.b || '') : textB;
+    const a = typeof rawA === 'string' ? rawA.split('\n') : [];
+    const b = typeof rawB === 'string' ? rawB.split('\n') : [];
+    const additions = b.filter(line => !a.includes(line));
+    const deletions = a.filter(line => !b.includes(line));
+    const unchanged = a.filter(line => b.includes(line));
+    return {
+      identical: rawA === rawB,
+      lines_a: a.length,
+      lines_b: b.length,
+      added_lines: additions.length,
+      deleted_lines: deletions.length,
+      unchanged_lines: unchanged.length,
+      sample_additions: additions.slice(0, 5),
+      sample_deletions: deletions.slice(0, 5)
+    };
+  },
+
+  jsonTransform: (jsonInput, paths = []) => {
+    const raw = (typeof jsonInput === 'object' && jsonInput !== null && 'json' in jsonInput) ? jsonInput.json : jsonInput;
+    const pList = (typeof jsonInput === 'object' && jsonInput !== null && Array.isArray(jsonInput.paths)) ? jsonInput.paths : paths;
+    const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (!data || typeof data !== 'object') throw new Error('jsonTransform vyžaduje platný objekt alebo pole.');
+    if (!pList.length) return { transformed: data };
+    const extract = {};
+    for (const p of pList) {
+      extract[p] = data[p] !== undefined ? data[p] : null;
+    }
+    return { transformed: extract };
+  },
+
+  semverCheck: (version) => {
+    const raw = (typeof version === 'object' && version !== null) ? (version.version || version.ver || '') : version;
+    if (typeof raw !== 'string') throw new Error('semverCheck vyžaduje verziu ako reťazec.');
+    const semverRegex = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+([0-9A-Za-z.-]+))?$/;
+    const match = raw.trim().match(semverRegex);
+    if (!match) return { valid: false, error: 'Reťazec nespĺňa formát SemVer (napr. 1.2.3).' };
+    const major = parseInt(match[1], 10);
+    const minor = parseInt(match[2], 10);
+    const patch = parseInt(match[3], 10);
+    return {
+      valid: true,
+      major,
+      minor,
+      patch,
+      prerelease: match[4] || null,
+      build: match[5] || null,
+      is_stable: major >= 1
+    };
+  },
+
+  jwtDecode: (token) => {
+    const raw = (typeof token === 'object' && token !== null) ? (token.token || token.jwt || '') : token;
+    if (!raw || typeof raw !== 'string') throw new Error('jwtDecode vyžaduje JWT token.');
+    const parts = raw.trim().split('.');
+    if (parts.length !== 3) throw new Error('Neplatný formát JWT (očakávajú sa 3 segmenty).');
+    const decodePart = (b64Url) => {
+      const b64 = b64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonStr = atob(b64);
+      return JSON.parse(jsonStr);
+    };
+    try {
+      const header = decodePart(parts[0]);
+      const payload = decodePart(parts[1]);
+      const isExpired = payload.exp ? (Date.now() >= payload.exp * 1000) : null;
+      return { header, payload, is_expired: isExpired };
+    } catch (e) {
+      throw new Error(`Chyba pri dekódovaní JWT: ${e.message}`);
+    }
+  },
+
+  htmlSanitize: (html) => {
+    const raw = (typeof html === 'object' && html !== null) ? (html.html || '') : html;
+    if (typeof raw !== 'string') return '';
+    return raw
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+      .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+      .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
+      .replace(/\bon\w+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi, '')
+      .replace(/javascript\s*:/gi, 'blocked:');
+  },
+
+  markdownToHtml: (markdown) => {
+    const raw = (typeof markdown === 'object' && markdown !== null) ? (markdown.markdown || markdown.md || '') : markdown;
+    if (typeof raw !== 'string') return '';
+    let html = raw
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+      .replace(/`([^`]+)`/gim, '<code>$1</code>')
+      .replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>')
+      .replace(/\n$/gim, '<br />');
+    return html.trim();
+  },
+
+  csvParse: (csvText, delimiter = ',') => {
+    const raw = (typeof csvText === 'object' && csvText !== null) ? (csvText.csv || csvText.csvText || '') : csvText;
+    const delim = (typeof csvText === 'object' && csvText !== null && csvText.delimiter) ? csvText.delimiter : delimiter;
+    if (typeof raw !== 'string') throw new Error('csvParse vyžaduje CSV text.');
+    const lines = raw.trim().split(/\r?\n/).filter(l => l.trim().length > 0);
+    if (!lines.length) return { headers: [], rows: [] };
+    const headers = lines[0].split(delim).map(h => h.trim().replace(/^["']|["']$/g, ''));
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(delim).map(c => c.trim().replace(/^["']|["']$/g, ''));
+      const obj = {};
+      headers.forEach((h, idx) => {
+        obj[h] = cols[idx] !== undefined ? cols[idx] : null;
+      });
+      rows.push(obj);
+    }
+    return { headers, row_count: rows.length, rows };
+  },
+
+  base64Codec: (input, mode = 'encode') => {
+    const raw = (typeof input === 'object' && input !== null) ? (input.input || input.text || '') : input;
+    const m = (typeof input === 'object' && input !== null && input.mode) ? input.mode : mode;
+    if (typeof raw !== 'string') throw new Error('base64Codec vyžaduje reťazec.');
+    if (m === 'decode') {
+      const decoded = atob(raw.trim());
+      return { mode: 'decode', result: decoded };
+    }
+    const encoded = btoa(raw);
+    return { mode: 'encode', result: encoded };
+  },
+
+  urlParse: (urlString) => {
+    const raw = (typeof urlString === 'object' && urlString !== null) ? (urlString.url || urlString.urlString || '') : urlString;
+    if (!raw || typeof raw !== 'string') throw new Error('urlParse vyžaduje URL adresu.');
+    const parsed = new URL(raw);
+    const params = Object.fromEntries(parsed.searchParams.entries());
+    return {
+      href: parsed.href,
+      protocol: parsed.protocol,
+      hostname: parsed.hostname,
+      port: parsed.port || (parsed.protocol === 'https:' ? '443' : '80'),
+      pathname: parsed.pathname,
+      search: parsed.search,
+      params,
+      hash: parsed.hash
+    };
+  },
+
+  ipCheck: (ip) => {
+    const raw = (typeof ip === 'object' && ip !== null) ? (ip.ip || '') : ip;
+    if (typeof raw !== 'string') return { valid: false };
+    const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
+    const isV4 = ipv4Regex.test(raw.trim());
+    const isV6 = !isV4 && ipv6Regex.test(raw.trim());
+    const isPrivate = isV4 && (/^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|127\.)/.test(raw.trim()));
+    return {
+      valid: isV4 || isV6,
+      type: isV4 ? 'IPv4' : isV6 ? 'IPv6' : null,
+      is_private: isPrivate
+    };
+  },
+
+  colorPalette: (primaryHex = '#4f46e5') => {
+    return {
+      primary: primaryHex,
+      surface: '#0f172a',
+      background: '#020617',
+      accent: '#06b6d4',
+      success: '#10b981',
+      warning: '#f59e0b',
+      danger: '#ef4444',
+      text: '#f8fafc',
+      muted: '#64748b'
+    };
+  },
+
+  cloudMetricEvaluate: (metrics = []) => {
+    if (!Array.isArray(metrics) || !metrics.length) return { evaluated: false, count: 0 };
+    const values = metrics.map(m => Number(m.value || m)).filter(v => !isNaN(v));
+    const sum = values.reduce((a, b) => a + b, 0);
+    const avg = sum / values.length;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    return {
+      evaluated: true,
+      count: values.length,
+      average: avg,
+      min,
+      max,
+      sum,
+      health_status: avg < 1000 ? 'healthy' : 'warning'
+    };
+  }
+};
+
+/**
  * 3️⃣ UŽÍVATEĽSKÉ SKILLY
  */
 export const userSkills = {
-  // Dialog-management: udržiava kontext medzi viacerými otázkami (session ID, históriu)
   dialogManagement: {
     async getContext(sessionId, env) {
       if (!sessionId) return [];
@@ -598,7 +844,6 @@ export const userSkills = {
     }
   },
 
-  // Multilingual support: automatické rozpoznanie jazyka a prekladová podpora
   detectLanguage: (text) => {
     if (!text || typeof text !== 'string') return 'sk';
     const lower = text.toLowerCase();
@@ -622,7 +867,6 @@ export const userSkills = {
     };
   },
 
-  // Fallback & fallback-prompt: keď agent nedokáže odpovedať, vráti preddefinovaný text a ponúkne alternatívy
   fallbackHandler: (query, lastError = null, options = {}) => {
     const lang = userSkills.detectLanguage(query);
     const errMessage = lastError ? (typeof lastError === 'string' ? lastError : lastError.message) : '';
@@ -654,10 +898,9 @@ export const userSkills = {
     };
   },
 
-  // Rich-response formatting: vráti štruktúrovaný JSON s typmi (text, markdown, table, image URL)
   formatRichResponse: (type, content, metadata = {}) => {
     return {
-      type, // 'text' | 'markdown' | 'table' | 'image' | 'json' | 'fallback' | 'error'
+      type,
       content,
       metadata: {
         timestamp: new Date().toISOString(),
@@ -666,7 +909,6 @@ export const userSkills = {
     };
   },
 
-  // Rate-limited UI feedback: HTTP 202 + Location header na polling endpoint
   rateLimitedFeedback: (jobId, status = 'processing', location = null) => {
     return {
       status: 202,
@@ -678,7 +920,6 @@ export const userSkills = {
     };
   },
 
-  // Security & sanitisation: odstráni XSS, bráni SQL injection, maskuje citlivé údaje
   securitySanitise: {
     sanitizeHtml: (input) => {
       if (typeof input !== 'string') return '';
@@ -711,11 +952,12 @@ export const userSkills = {
 };
 
 /**
- * Celý zjednotený objekt skills (tak ako je v zadaní)
+ * Celý zjednotený objekt skills
  */
 export const skills = {
   ...coreSkills,
   ...integrationSkills,
+  ...extendedEngineeringSkills,
   ...userSkills
 };
 
@@ -750,7 +992,7 @@ class SkillRegistry {
     const builtinList = Object.keys(skills).map(name => ({
       name,
       type: 'builtin',
-      category: Object.keys(coreSkills).includes(name) ? 'core' : Object.keys(integrationSkills).includes(name) ? 'integration' : 'user'
+      category: Object.keys(coreSkills).includes(name) ? 'core' : Object.keys(integrationSkills).includes(name) ? 'integration' : Object.keys(extendedEngineeringSkills).includes(name) ? 'engineering' : 'user'
     }));
     const customList = [...this._customSkills.entries()].map(([name, item]) => ({
       name,

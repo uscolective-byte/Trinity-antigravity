@@ -78,6 +78,46 @@ export const BUILTIN_COPILOT_PLUGINS = [
     category: 'user',
     enabled: true,
     required: true
+  },
+  {
+    id: 'security-devops',
+    name: 'Security & DevOps Toolkit',
+    version: '1.1.0',
+    description: 'Audit kódu, refactoring, kontrola SQL dotazov, kryptografické hashe, semver a JWT analýza.',
+    skills: ['codeRefactor', 'sqlValidate', 'cryptoHash', 'diffCompare', 'semverCheck', 'jwtDecode'],
+    category: 'security',
+    enabled: true,
+    required: false
+  },
+  {
+    id: 'data-intelligence',
+    name: 'Data Intelligence & Processing',
+    version: '1.1.0',
+    description: 'Inteligentná transformácia JSON ciest, RFC CSV parser, štatistika a Base64 kódovanie.',
+    skills: ['jsonTransform', 'csvParse', 'statistics', 'analyzeText', 'base64Codec'],
+    category: 'analytics',
+    enabled: true,
+    required: false
+  },
+  {
+    id: 'web-standards',
+    name: 'Web Standards & Network Defense',
+    version: '1.1.0',
+    description: 'Sanitizácia HTML, Markdown kompilátor, analýza URL a validácia IP adries.',
+    skills: ['htmlSanitize', 'markdownToHtml', 'urlParse', 'ipCheck', 'colorPalette'],
+    category: 'web',
+    enabled: true,
+    required: false
+  },
+  {
+    id: 'cloud-worker-ops',
+    name: 'Cloudflare Worker Operations & Telemetry',
+    version: '1.1.0',
+    description: 'Telemetria workerov, hodnotenie latencie, chybovosti a ochrana pred preťažením.',
+    skills: ['cloudMetricEvaluate', 'checkHttpStatus', 'circuitBreaker', 'rateLimiter', 'recordMetrics'],
+    category: 'cloud',
+    enabled: true,
+    required: false
   }
 ];
 
