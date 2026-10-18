@@ -32,6 +32,7 @@
       <h1 id="page-title">Komunikácia</h1>
     </div>
     <div class="header-actions">
+      <span class="badge" id="pc-bridge-status" title="Stav lokálnej PC brány">PC: Kontrola…</span>
       <button id="theme" aria-label="Prepnúť farebný režim">◐ Vzhľad</button>
       <span class="badge" id="connection">Pripájam sa…</span>
     </div>
@@ -112,6 +113,7 @@
             <select id="provider">
               <option value="workers-ai">Cloudflare AI</option>
               <option value="local">Môj Počítač (PC Bridge)</option>
+              <option value="gemini">Google Gemini API</option>
               <option value="openai">OpenAI / ChatGPT API</option>
               <option value="ollama">Ollama Cloud</option>
             </select>
@@ -245,6 +247,18 @@
           <p>Prístup cez existujúce tajomstvo „ollama“.</p>
           <button data-test-provider="ollama">Otestovať odpoveď</button>
           <pre id="test-ollama">Zatiaľ neoverené v tejto relácii.</pre>
+        </article>
+        <article class="panel">
+          <h3>Google Gemini API</h3>
+          <p>Google Gemini s modelmi 2.5 Pro a Flash.</p>
+          <button data-test-provider="gemini">Otestovať odpoveď</button>
+          <pre id="test-gemini">Zatiaľ neoverené v tejto relácii.</pre>
+        </article>
+        <article class="panel">
+          <h3>Môj Počítač (PC Bridge)</h3>
+          <p>Privátna systémová brána Local-Gateway (127.0.0.1:8791).</p>
+          <button data-test-provider="local">Otestovať PC Bridge</button>
+          <pre id="test-local">Lokálny dispečer pripravený.</pre>
         </article>
       </div>
       <div id="service-list" class="grid"></div>

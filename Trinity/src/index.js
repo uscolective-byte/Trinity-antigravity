@@ -441,6 +441,7 @@ async function route(request,env,ctx){
       trinity_2:{multimodal:!!env.AI,voice:!!env.AI,granular_rbac:true,visual_workflows:true,incident_monitoring:true,audit_export:true,global_worker_runtime:true},
       copilot:{engine:'active',plugins:copilotPluginRegistry.list().length,skills:skillRegistry.list().length,ecosystem:universalEcosystem.getStats()},
       memory:await env.DB.prepare('SELECT (SELECT COUNT(*) FROM ops_memory) AS notes,(SELECT COUNT(*) FROM memory_long) AS legacy,(SELECT COUNT(*) FROM ops_jobs) AS conversations').first(),
+      pc_bridge:await getPCBridgeStatus(env),
       storage:{database:!!env.DB,cache:!!env.Mastermind,artifacts:!!env.ARTIFACTS,workflow:!!env.OPS_WORKFLOW}});
   }
   if(path==='/api/ops/agents'&&request.method==='GET'){
