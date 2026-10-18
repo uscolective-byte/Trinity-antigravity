@@ -2,7 +2,7 @@ export const VERIFIED_ARCHITECTURE_CONTEXT = `
 ZDROJ PRAVDY ARCHITEKTÚRY TRINITY — používaj iba tieto údaje:
 
 OVERENÉ V ZDROJI A TESTOCH:
-- Ostrý verejný backend je Cloudflare Worker „trinity“, verzia aplikácie 10.1.0, na doméne auru.space.
+- Ostrý verejný backend je Cloudflare Worker „trinity“, verzia aplikácie 10.2.0, na doméne auru.space.
 - Vývojový backend je samostatný Cloudflare Worker „trinity-development“ na doméne auru.dev. Má oddelenú D1, KV, R2 a Workflow a nemá PC Bridge ani produkčné servisné bindingy.
 - Lokálny vývoj beží iba na localhost a v rozhraní sa prostredie zobrazuje ako PRODUKCIA, VÝVOJ alebo LOCAL.
 - Primárny AI provider je Cloudflare Workers AI s modelom @cf/openai/gpt-oss-120b.

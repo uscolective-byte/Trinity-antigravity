@@ -8,7 +8,7 @@ import {verifyGeminiArtifact} from '../scripts/gemini-verification.mjs';
 test('Gemini verification rejects false success, missing artifacts and stale receipts', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'trinity-gemini-'));
   const file = join(dir, 'receipt.json');
-  const expected = {nonce: 'fresh-run', version: '10.1.0', deployment_tag: 'source-commit'};
+  const expected = {nonce: 'fresh-run', version: '10.2.0', deployment_tag: 'source-commit'};
   try {
     await assert.rejects(verifyGeminiArtifact({status:'SUCCESS',denied_actions:[{action:'command'}]}, file, expected), /denied/);
     await assert.rejects(verifyGeminiArtifact({status:'SUCCESS'}, file, expected), /artifact/);
