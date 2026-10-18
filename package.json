@@ -5,6 +5,7 @@
   "scripts": {
     "sync": "powershell -ExecutionPolicy Bypass -File ./SYNC-BUILD.ps1 -Full -Test",
     "build": "powershell -ExecutionPolicy Bypass -File ./SYNC-BUILD.ps1 -Full -Test",
-    "deploy": "powershell -ExecutionPolicy Bypass -File ./SYNC-BUILD.ps1 -Full -Test -Deploy"
+    "deploy": "powershell -ExecutionPolicy Bypass -File ./SYNC-BUILD.ps1 -Full -Test -Deploy",
+    "test": "npm --prefix Trinity test"
   }
 }
