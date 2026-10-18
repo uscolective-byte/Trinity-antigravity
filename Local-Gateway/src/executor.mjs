@@ -92,5 +92,19 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
   }
   if(proposal.action==='read'&&payload.task==='local-inference')return runLocalInference(payload);
   if(proposal.action==='read')return readWorkspaceFile(workspaceRoot,payload.path);
+  if(proposal.action==='open_app'){
+    const appTarget=payload.target||payload.app||'calculator';
+    const appMap={
+      calculator:'calculator',calc:'calculator',kalkulacka:'calculator',
+      notepad:'notepad',poznamkovyblok:'notepad',
+      paint:'paint',skicar:'paint',
+      explorer:'explorer',prieskumnik:'explorer',
+      chrome:'chrome',edge:'edge'
+    };
+    const clean=String(appTarget).toLowerCase().replace(/[^a-z]/g,'');
+    const target=appMap[clean]||'calculator';
+    const desktop=await executeDesktop({task:'desktop-control',operation:'launch',app:target});
+    return {action:'open_app',target,desktop,success:true};
+  }
   throw new Error('Neznáma systémová akcia.');
 }

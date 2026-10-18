@@ -4,7 +4,7 @@ import {capabilityStatus} from './capability-status.js';
 import {boundedText,getOllamaKey,serviceStatus,SERVICES} from './services.js';
 import {ensureToolEnabled,pluginEnabled,listPlugins,installPlugin} from './plugins.js';
 import {SKILLS} from './registry.js';
-import {createSystemAction,getSystemAction,actionEvidence} from './system-actions.js';
+import {createSystemAction,getSystemAction,actionEvidence,getPCBridgeStatus} from './system-actions.js';
 import {getPortfolio} from './trading.js';
 import {PRACTICAL_TOOL_NAMES,PRACTICAL_TOOL_SCHEMAS,PRACTICAL_TOOL_HELP,runPracticalTool} from './practical-skills.js';
 import {planTask} from './planner.js';
@@ -291,11 +291,16 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const adminAuthorized=executionContext.adminAuthorized===true;
     const requester=adminAuthorized?'admin:agent:trinity':'agent:trinity';
     const action=await createSystemAction(env,{action:pcAction,payload,rationale},requester,{adminAuthorized});
-    const current=await waitForSystemAction(env,action,{attempts:120});
+    const pcStatus=await getPCBridgeStatus(env);
+    const maxAttempts=pcStatus.connected?12:2;
+    const current=await waitForSystemAction(env,action,{attempts:maxAttempts,intervalMs:1000});
     if(current.status==='completed')return{...current.receipt,_evidence:{effect:actionEffect(pcAction),actions:actionEvidence(pcAction),receipt_id:action.id}};
-    return {id:action.id,action:pcAction,status:current.status,approval_required:current.status==='proposed',
-      note:current.status==='proposed'?`Čaká na schválenie príkazom SCHVÁĽ ${action.id}.`:'Admin príkaz bol odovzdaný PC Bridge, ale potvrdenie výsledku ešte neprišlo.',
-      _evidence:{effect:'proposal'}};
+    const note=current.status==='proposed'
+      ? `Čaká na schválenie príkazom SCHVÁĽ ${action.id}.`
+      : pcStatus.connected
+        ? 'Admin príkaz bol odovzdaný PC Bridge, čaká na dokončenie.'
+        : 'Príkaz bol vytvorený a autorizovaný, ale lokálna brána (Local-Gateway) nie je pripojená. Spusť na počítači SPUSTIT-LOCAL.cmd pre vykonanie.';
+    return {id:action.id,action:pcAction,status:current.status,approval_required:current.status==='proposed',note,_evidence:{effect:'proposal'}};
   }
   if(name==='web_search') {
     const queryNorm=args.query.trim().toLowerCase();

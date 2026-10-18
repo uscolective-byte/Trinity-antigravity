@@ -21,6 +21,21 @@ function isImageRequest(task) {
   return /\b(fotku|fotografia|fotografiu|obrázok|obrazok|ilustráciu|ilustraciu|nakresli|portrét|portret)\b/i.test(task)
     || /\b(vygeneruj|vytvor)\b.*\b(fotku|fotografiu|obrázok|obrazok|ilustráciu|ilustraciu|portrét|portret)\b/i.test(task);
 }
+function isOpenAppRequest(task, context = '') {
+  const norm = (context.slice(-600) + ' ' + task).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const directApp = /\b(otvor|spust|spusti|zapni|launch|open)\b.*\b(kalkulack|calc|calculator|notepad|poznamkov|paint|skicar|kreslen|chrome|prehliadac|explorer|priecinok)\b/i.test(norm);
+  const followUp = /\b(iba|len)\s+mi\s+ju\s+(otvor|spust|spusti)\b/i.test(norm);
+  return directApp || followUp;
+}
+function resolveAppTarget(task, context = '') {
+  const norm = (context.slice(-600) + ' ' + task).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (/\b(kalkulack|calc|calculator|vypocitat|vypocet)\b/i.test(norm)) return 'calculator';
+  if (/\b(notepad|poznamkov|poznámky)\b/i.test(norm)) return 'notepad';
+  if (/\b(paint|skicar|kreslen)\b/i.test(norm)) return 'paint';
+  if (/\b(chrome|prehliadac)\b/i.test(norm)) return 'chrome';
+  if (/\b(explorer|priecinok|subory)\b/i.test(norm)) return 'explorer';
+  return 'calculator';
+}
 export async function runAgent(env, id, task, context='', provider='workers-ai', maxTokens=2600,language='auto',ownerMode=false) {
   const agent=agentById(id);if(!agent)throw new Error('Unknown agent');
   const executionPolicy=executionPolicyForProvider(provider,ownerMode);
@@ -34,6 +49,19 @@ export async function runAgent(env, id, task, context='', provider='workers-ai',
   const enabled=env.DB?(await listPlugins(env)).filter(p=>p.enabled).flatMap(p=>p.tools):agent.tools;
   const activeTools=agent.tools.filter(t=>enabled.includes(t)&&(!INTERNAL_TOOLS.has(t)||executionPolicy.allowInternal)&&(!PC_TOOLS.has(t)||executionPolicy.allowDirectPC));
   const activeSkills=selectSkills(agent,task);
+  if(id==='orchestrator'&&activeTools.includes('pc_open_app')&&isOpenAppRequest(task,context)){
+    const target=resolveAppTarget(task,context);
+    const appNames={calculator:'Kalkulačka',notepad:'Poznámkový blok',paint:'Skicár',chrome:'Google Chrome',explorer:'Prieskumník',edge:'Microsoft Edge'};
+    const appName=appNames[target]||target;
+    const started=Date.now();
+    const outcome=await runTool(env,agent,'pc_open_app',{target},{adminAuthorized:executionPolicy.directAdmin});
+    const receipt=outcome?._evidence?.receipt_id?{tool:'pc_open_app',status:'completed',effect:'mutation',actions:['execute'],receipt_id:outcome._evidence.receipt_id,verified_at:new Date().toISOString()}:{tool:'pc_open_app',status:'completed',effect:'read',receipt_id:outcome.id||crypto.randomUUID(),verified_at:new Date().toISOString()};
+    const isCompleted=outcome?.desktop?.operation==='launch'||outcome?.status==='completed';
+    const text=isCompleted
+      ?(language==='en'?`I have opened ${appName} on your computer.`:`Otvorila som aplikáciu ${appName} na tvojom počítači.`)
+      :(language==='en'?`I prepared the action to open ${appName} (Action ID: ${outcome.id}). To display the window, run Local-Gateway on your computer (SPUSTIT-LOCAL.cmd).`:`Pripravila som otvorenie aplikácie ${appName} na tvojom PC (ID akcie: ${outcome.id}).\n\nAby sa okno fyzicky zobrazilo na obrazovke, spusť na svojom počítači lokálnu bránu (\`Local-Gateway/SPUSTIT-LOCAL.cmd\`). Akcia sa vykoná ihneď po jej zapnutí.`);
+    return {text,model:'deterministic-policy',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
+  }
   if(id==='orchestrator'&&activeTools.includes('generate_image')&&isImageRequest(task)){
     const prompt=/\b(teba|trinity)\b/i.test(task)
       ?'Portrét digitálnej AI asistentky Trinity: elegantná futuristická ženská postava zo svetla, tmavomodré a tyrkysové tóny, priateľský profesionálny výraz, abstraktné dátové iskry v pozadí, bez textu, bez loga, kvalitná digitálna ilustrácia.'

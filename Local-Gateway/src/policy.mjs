@@ -10,7 +10,11 @@ export const CAPABILITIES=Object.freeze([
   {id:'deploy',risk:'critical',approval:true},
   {id:'share',risk:'critical',approval:true},
   {id:'upload',risk:'critical',approval:true},
-  {id:'upgrade',risk:'critical',approval:true}
+  {id:'upgrade',risk:'critical',approval:true},
+  {id:'open_app',risk:'change',approval:true},
+  {id:'screenshot',risk:'read',approval:false},
+  {id:'notify',risk:'read',approval:false},
+  {id:'system_info',risk:'read',approval:false}
 ]);
 
 export const ACTIONS=new Set(CAPABILITIES.map(item=>item.id));
