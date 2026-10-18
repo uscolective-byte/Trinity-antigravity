@@ -7,6 +7,8 @@
  */
 
 import { runPracticalTool } from './practical-skills.js';
+import { QuantumCoreEngine } from './quantum_core.js';
+import { processTeleologicalPrompt } from './quantum_pipeline.js';
 
 // In-memory cache a fallback stav circuit-breakeru
 const memoryCache = new Map();
@@ -1529,6 +1531,21 @@ export const productivityPlusSkills = {
   }
 };
 
+export const quantumSkills = {
+  quantumCollapse: (params = {}) => {
+    return QuantumCoreEngine.collapseSuperposition(params.states || [], params.empiricalAnchor || { exists: true });
+  },
+  quantumInterference: (params = {}) => {
+    return { interference: QuantumCoreEngine.computeInterference(params.stateA || {}, params.stateB || {}) };
+  },
+  quantumDeliberate: async (params = {}, env = {}) => {
+    const query = params.query || params.prompt || '';
+    const sessionId = params.session_id || 'quantum-skill';
+    const bridgeActive = Boolean(params.bridgeActive || env.BRIDGE_SHARED_SECRET);
+    return await processTeleologicalPrompt(env, query, sessionId, bridgeActive);
+  }
+};
+
 export const skills = {
   ...coreSkills,
   ...integrationSkills,
@@ -1538,6 +1555,7 @@ export const skills = {
   ...copilotStudioSkills,
   ...productivityPlusSkills,
   ...extendedEngineeringSkills,
+  ...quantumSkills,
   ...chatGptSkills,
   ...userSkills
 };

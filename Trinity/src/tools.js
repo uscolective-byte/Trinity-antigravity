@@ -12,11 +12,14 @@ import {memorySearchTerms,selectMemoryRecords,sanitizeMemoryRecords} from './mem
 import {skillRegistry} from './skillRegistry.js';
 import {TrinityCopilotAgent} from './copilot-agent.js';
 import {synthesizeSkill, synthesizePlugin, synthesizeApp, searchCatalog} from './universal-ecosystem.js';
+import {QuantumBrain} from './brain.js';
+import {processTeleologicalPrompt} from './quantum_pipeline.js';
 
 export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status']);
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']);
 export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan']);
 export const TOOL_SCHEMAS={
+  quantum_deliberate:z.object({query:z.string().min(1).max(12000),session_id:z.string().max(100).optional(),bridge_check:z.boolean().optional()}).strict(),
   knowledge_search:z.object({query:z.string().trim().min(2).max(300)}).strict(),
   plan_work:z.object({task:z.string().trim().min(1).max(12000)}).strict(),
   ...PRACTICAL_TOOL_SCHEMAS,
@@ -222,6 +225,19 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(name==='ecosystem_search'){
     return searchCatalog(args.query,args.domain);
   }
+  if(name==='quantum_deliberate'){
+    const sessionId=args.session_id||'quantum-brain';
+    const bridgeCheck=Boolean(args.bridge_check||env.BRIDGE_SHARED_SECRET);
+    const result=await processTeleologicalPrompt(env,args.query,sessionId,bridgeCheck);
+    return {
+      manifestedText:result.manifestedText,
+      dominantDimension:result.dominantDimension,
+      coherenceScore:result.coherenceScore,
+      destructiveInterferenceCount:result.destructiveInterferenceCount,
+      bridgeVerified:result.bridgeVerified,
+      _evidence:{effect:'read',receipt_id:`quantum:${crypto.randomUUID()}`}
+    };
+  }
   // ── PC Bridge nástroje ──
   if(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr'].includes(name)){
     const pcActionMap={
@@ -365,4 +381,5 @@ export const TOOL_HELP={
   execute_skill:'Vykoná ľubovoľný skill zaregistrovaný v Trinity SkillRegistry: {skill:string, params?:object}',
   copilot_chat:'Spracuje dotaz cez TrinityCopilotAgent s auditom, cache a multi-step vykonaním: {query:string, session_id?:string, provider?:string}',
   ecosystem_synthesize:'Dynamicky syntetizuje novú schopnosť, plugin alebo aplikáciu v univerzálnom ekosystéme: {type:skill|plugin|app, name:string, domain:string, description:string, details?:object}',
-  ecosystem_search:'Prehľadáva ekosystém naprieč všetkými univerzálnymi doménami a šablónami: {query?:string, domain?:string}'};
+  ecosystem_search:'Prehľadáva ekosystém naprieč všetkými univerzálnymi doménami a šablónami: {query?:string, domain?:string}',
+  quantum_deliberate:'Spustí kvantovo-teleologické uvažovanie nad úlohou: superpozícia myšlienok (téza/antitéza), fázová interferencia a vlnový kolaps do syntézy: {query:string, session_id?:string, bridge_check?:bool}'};
