@@ -1,137 +1,243 @@
 /**
- * Trinity Local Action Dispatcher
- * Priame vykonávanie akcií na počítači bez zbytočných filozofických vrstiev.
- * Prijme požiadavku -> vykoná na OS -> vráti výsledok do Trinity.
+ * Trinity Local Action Dispatcher (Hardened)
+ * Bezpečné vykonávanie lokálnych operácií na počítači.
+ * Eliminuje shell injection cez spawn(), ohraničuje prácu so súbormi a vynucuje whitelist.
  */
 
-import { exec } from "node:child_process";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import crypto from "node:crypto";
 
 const IS_WIN = process.platform === "win32";
+export const WORKDIR = path.resolve(os.homedir(), "trinity_local");
+
+// Zoznam povolených aplikácií
+export const ALLOWED_APPS = [
+  "notepad",
+  "calc",
+  "chrome",
+  "code",
+  "explorer"
+];
+
+// Zoznam striktne povolených vývojárskych príkazov
+export const ALLOWED_CMDS = [
+  "git status",
+  "git pull",
+  "npm install",
+  "npm run build",
+  "npm test",
+  "ls",
+  "dir"
+];
+
+function audit(entry) {
+  const logLine = `[AUDIT ${new Date().toISOString()}] ${JSON.stringify(entry)}`;
+  console.log(logLine);
+}
+
+export function safeSpawn(command, args = [], opts = {}) {
+  const { timeoutMs = 15000, cwd = WORKDIR } = opts;
+
+  return new Promise((resolve) => {
+    // Zabezpečenie existencie pracovného adresára
+    try {
+      fs.mkdirSync(WORKDIR, { recursive: true });
+    } catch {}
+
+    const child = spawn(command, args, {
+      shell: false,
+      cwd,
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout?.on("data", (d) => (stdout += d));
+    child.stderr?.on("data", (d) => (stderr += d));
+
+    const timer = setTimeout(() => {
+      try {
+        child.kill(IS_WIN ? undefined : "SIGKILL");
+      } catch {}
+      resolve({ success: false, output: "Timeout – operácia prekročila 15 sekúnd a bola ukončená." });
+    }, timeoutMs);
+
+    child.on("error", (err) => {
+      clearTimeout(timer);
+      resolve({ success: false, output: `Chyba procesu: ${err.message}` });
+    });
+
+    child.on("close", (code) => {
+      clearTimeout(timer);
+      if (code === 0) {
+        resolve({ success: true, output: stdout.trim() || "OK" });
+      } else {
+        resolve({
+          success: false,
+          output: stderr.trim() || stdout.trim() || `Proces skončil s kódom ${code}`
+        });
+      }
+    });
+  });
+}
 
 export const actions = {
   /**
-   * Spustenie bežnej aplikácie (Notepad, Kalkulačka, Prehliadač, VS Code atď.)
+   * 1. Bezpečné otvorenie aplikácie cez whitelist
    */
-  open_app: async (target) => {
-    return new Promise((resolve) => {
-      let command = "";
-      const lower = String(target || "").toLowerCase().trim();
+  async open_app(target) {
+    if (typeof target !== "string") {
+      return { success: false, output: "Cieľová aplikácia musí byť textový reťazec." };
+    }
 
-      if (IS_WIN) {
-        if (lower.includes("notepad") || lower.includes("poznamk")) {
-          command = "start notepad.exe";
-        } else if (lower.includes("calc") || lower.includes("kalkul")) {
-          command = "start calc.exe";
-        } else if (lower.includes("chrome")) {
-          command = "start chrome";
-        } else if (lower.includes("code") || lower.includes("vs")) {
-          command = "code";
-        } else if (lower.includes("explorer") || lower.includes("priecinok")) {
-          command = "start explorer .";
-        } else {
-          // Všeobecný štart pre Windows aplikácie / cesty
-          command = `start "" "${target}"`;
-        }
-      } else {
-        // macOS / Linux
-        command = process.platform === "darwin" ? `open -a "${target}"` : `xdg-open "${target}"`;
-      }
+    const lower = target.toLowerCase().trim();
+    const app = ALLOWED_APPS.find((a) => lower.includes(a));
+    if (!app) {
+      return { success: false, output: `Aplikácia "${target}" nie je v zozname povolených (${ALLOWED_APPS.join(", ")}).` };
+    }
 
-      exec(command, (error) => {
-        if (error) {
-          return resolve({ success: false, output: `Chyba pri spúšťaní: ${error.message}` });
-        }
-        resolve({ success: true, output: `Aplikácia "${target}" bola úspešne spustená na počítači.` });
-      });
-    });
-  },
-
-  /**
-   * Otvorenie konkrétnej webovej stránky v predvolenom prehliadači
-   */
-  open_url: async (url) => {
-    return new Promise((resolve) => {
-      const sanitizedUrl = String(url || "").startsWith("http://") || String(url || "").startsWith("https://")
-        ? url
-        : `https://${url}`;
-      const cmd = IS_WIN
-        ? `start "" "${sanitizedUrl}"`
-        : (process.platform === "darwin" ? `open "${sanitizedUrl}"` : `xdg-open "${sanitizedUrl}"`);
-
-      exec(cmd, (err) => {
-        if (err) return resolve({ success: false, output: err.message });
-        resolve({ success: true, output: `Webová stránka ${sanitizedUrl} otvorená v prehliadači.` });
-      });
-    });
-  },
-
-  /**
-   * Vytvorenie nového súboru s obsahom
-   */
-  create_file: async ({ filePath, content } = {}) => {
-    try {
-      if (!filePath) return { success: false, output: "Chýba cesta k súboru (filePath)." };
-      const fullPath = path.resolve(filePath);
-      fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-      fs.writeFileSync(fullPath, content || "", "utf-8");
-      return { success: true, output: `Súbor vytvorený: ${fullPath}` };
-    } catch (err) {
-      return { success: false, output: `Chyba zápisu: ${err.message}` };
+    if (IS_WIN) {
+      // Windows: bezpečné spustenie cez cmd /c start bez reťazenia
+      return await safeSpawn("cmd", ["/c", "start", "", `${app}.exe`]);
+    } else if (process.platform === "darwin") {
+      const macMap = {
+        notepad: "TextEdit",
+        calc: "Calculator",
+        chrome: "Google Chrome",
+        code: "Visual Studio Code",
+        explorer: "Finder"
+      };
+      const appName = macMap[app] || app;
+      return await safeSpawn("open", ["-a", appName]);
+    } else {
+      return await safeSpawn(app);
     }
   },
 
   /**
-   * Zistenie základného stavu systému (aby Trinity vedela, čo sa na PC deje)
+   * 2. Bezpečné otvorenie webovej URL adresy
    */
-  system_status: async () => {
+  async open_url(rawUrl) {
+    if (typeof rawUrl !== "string") {
+      return { success: false, output: "URL adresa musí byť text." };
+    }
+
+    let parsedUrl;
+    try {
+      if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(rawUrl)) {
+        parsedUrl = new URL(rawUrl);
+      } else {
+        parsedUrl = new URL(`https://${rawUrl}`);
+      }
+      if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+        return { success: false, output: "Povolené sú iba HTTP a HTTPS adresy." };
+      }
+    } catch (e) {
+      return { success: false, output: `Neplatná URL adresa: ${e.message}` };
+    }
+
+    if (IS_WIN) {
+      return await safeSpawn("cmd", ["/c", "start", "", parsedUrl.href]);
+    } else if (process.platform === "darwin") {
+      return await safeSpawn("open", [parsedUrl.href]);
+    } else {
+      return await safeSpawn("xdg-open", [parsedUrl.href]);
+    }
+  },
+
+  /**
+   * 3. Vytvorenie súboru (striktne ohraničené na ~/trinity_local)
+   */
+  async create_file(payload) {
+    if (!payload || typeof payload.filePath !== "string") {
+      return { success: false, output: "Neplatný payload. Očakáva sa objekt s { filePath, content }." };
+    }
+
+    const { filePath, content = "" } = payload;
+    try {
+      const fullPath = path.resolve(WORKDIR, filePath);
+      // Ochrana proti path-traversal (../)
+      if (!fullPath.startsWith(WORKDIR)) {
+        return { success: false, output: "Chyba: Zápis mimo povoleného priečinka ~/trinity_local je zablokovaný." };
+      }
+
+      fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+      fs.writeFileSync(fullPath, String(content), "utf-8");
+      return { success: true, output: `Súbor bezpečne vytvorený v: ${fullPath}` };
+    } catch (err) {
+      return { success: false, output: `Chyba zápisu na disk: ${err.message}` };
+    }
+  },
+
+  /**
+   * 4. Zistenie stavu systému
+   */
+  async system_status() {
     const freeMem = Math.round(os.freemem() / (1024 * 1024));
     const totalMem = Math.round(os.totalmem() / (1024 * 1024));
     return {
       success: true,
-      output: `Počítač beží (${os.type()} ${os.release()}). Pamäť: ${freeMem} MB voľných z ${totalMem} MB. Domovský priečinok: ${os.homedir()}`
+      output: `Počítač beží (${os.type()} ${os.release()}). Pamäť: ${freeMem} MB voľných z ${totalMem} MB. Pracovný priečinok: ${WORKDIR}`
     };
   },
 
   /**
-   * Vykonanie bežného vývojárskeho príkazu (git, npm, dir/ls)
+   * 5. Spustenie vývojárskeho príkazu (striktný whitelist bez voľného shellu)
    */
-  run_cmd: async (commandString) => {
-    return new Promise((resolve) => {
-      if (!commandString || typeof commandString !== 'string') {
-        return resolve({ success: false, output: "Chýba príkaz na vykonanie." });
-      }
-      exec(commandString, { timeout: 20000, maxBuffer: 1024 * 512 }, (err, stdout, stderr) => {
-        if (err) {
-          return resolve({ success: false, output: (stderr || err.message).trim() });
-        }
-        resolve({ success: true, output: (stdout || "Príkaz prebehol bez textového výstupu.").trim() });
-      });
-    });
+  async run_cmd(commandString) {
+    if (typeof commandString !== "string") {
+      return { success: false, output: "Príkaz musí byť textový reťazec." };
+    }
+
+    const trimmed = commandString.trim();
+    if (!ALLOWED_CMDS.includes(trimmed)) {
+      return { success: false, output: `Príkaz "${trimmed}" nie je na whiteliste. Povolené: ${ALLOWED_CMDS.join(", ")}` };
+    }
+
+    const parts = trimmed.split(/\s+/);
+    const cmd = parts[0];
+    const args = parts.slice(1);
+
+    if (IS_WIN && (cmd === "dir" || cmd === "echo")) {
+      return await safeSpawn("cmd", ["/c", cmd, ...args]);
+    }
+
+    return await safeSpawn(cmd, args);
   }
 };
 
 /**
- * Spracuje prichádzajúci príkaz z Trinity
- * @param {string} actionType - 'open_app' | 'open_url' | 'create_file' | 'system_status' | 'run_cmd'
- * @param {any} payload - argumenty pre akciu
+ * Spracuje prichádzajúcu požiadavku z Trinity
  */
 export async function dispatchAction(actionType, payload) {
   const handler = actions[actionType];
   if (!handler) {
     return {
       success: false,
-      output: `Neznámy typ akcie: "${actionType}". Dostupné: ${Object.keys(actions).join(', ')}`
+      output: `Neznáma akcia "${actionType}". Dostupné akcie: ${Object.keys(actions).join(", ")}`
     };
   }
+
+  let result;
   try {
-    return await handler(payload);
+    result = await handler(payload);
   } catch (err) {
-    return {
-      success: false,
-      output: `Chyba pri vykonávaní akcie ${actionType}: ${err.message}`
-    };
+    result = { success: false, output: `Chyba vykonania: ${err.message}` };
   }
+
+  // Auditovanie udalosti
+  audit({
+    id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+    action: actionType,
+    payload,
+    success: result.success
+  });
+
+  return result;
 }
+
+export default { dispatchAction, actions, WORKDIR, ALLOWED_APPS, ALLOWED_CMDS };
