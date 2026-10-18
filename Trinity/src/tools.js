@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {hash} from './security.js';
 import {capabilityStatus} from './capability-status.js';
 import {boundedText,getOllamaKey,serviceStatus,SERVICES} from './services.js';
 import {ensureToolEnabled,pluginEnabled,listPlugins,installPlugin} from './plugins.js';
@@ -23,7 +24,7 @@ export const TOOL_SCHEMAS={
   project_snapshot:z.object({}).strict(),
   service_status:z.object({binding:z.enum(Object.keys(SERVICES)).optional()}).strict(),
   web_search:z.object({query:z.string().min(3).max(500)}).strict()
-  ,generate_image:z.object({prompt:z.string().min(3).max(2048),seed:z.number().int().min(1).max(9999999999).optional()}).strict()
+  ,generate_image:z.object({prompt:z.string().min(3).max(2048),seed:z.number().int().min(1).max(9999999999).optional(),preview:z.boolean().optional()}).strict()
   ,calculate:z.object({operation:z.enum(['add','subtract','multiply','divide','percentage','mean','power','sqrt','log10','sin','cos','tan']),values:z.array(z.number().finite()).min(1).max(100)}).strict()
   ,analyze_text:z.object({text:z.string().max(20000)}).strict()
   ,current_time:z.object({timezone:z.string().min(1).max(80).default('Europe/Bratislava')}).strict()
@@ -142,6 +143,19 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(name==='generate_image'){
     if(!env.AI||!env.ARTIFACTS)throw new Error('Generovanie obrázkov nie je nakonfigurované.');
     const model=env.IMAGE_MODEL||'@cf/black-forest-labs/flux-1-schnell';
+    if(args.preview){
+      const previewId=crypto.randomUUID();
+      return {
+        id:previewId,
+        type:'image_preview',
+        preview:true,
+        model,
+        prompt:args.prompt,
+        seed:args.seed||null,
+        instructions:'Plán generovania obrázka pripravený. Pre finálne uloženie do R2 zopakujte volanie bez parametra preview.',
+        _evidence:{effect:'plan',actions:['generate_image_preview'],receipt_id:previewId}
+      };
+    }
     const imageInput={prompt:args.prompt};if(args.seed!==undefined)imageInput.seed=args.seed;
     const generated=await env.AI.run(model,imageInput);
     let bytes;
@@ -242,8 +256,23 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     if(name==='pc_file_read')payload={path:parsedArgs.path,depth:parsedArgs.depth};
     if(name==='pc_file_write')payload={path:parsedArgs.path,content:parsedArgs.content,expected_sha256:parsedArgs.expected_sha256};
     if(name==='pc_run'){
-      const task={'node --version':'node-version','python --version':'python-version','cmd /c ver':'cmd-version','npm run build':'build','npm test':'tests','git status --short':'git-status','git diff --check':'diff-check'}[parsedArgs.command.trim()];
-      if(!task)throw new Error('Miestna brána povoľuje zostavenie, testy, Git kontroly a verzie node --version, python --version, cmd /c ver. Na skripty použi pc_run_script.');
+      const task={
+        'node --version':'node-version',
+        'python --version':'python-version',
+        'cmd /c ver':'cmd-version',
+        'npm run build':'build',
+        'npm test':'tests',
+        'npm run deploy':'deploy',
+        'npm run start':'run-start',
+        'npm start':'start',
+        'docker compose up':'docker-compose-up',
+        'docker compose ps':'docker-compose-ps',
+        'docker ps':'docker-ps',
+        'git log -n 5':'git-log',
+        'git status --short':'git-status',
+        'git diff --check':'diff-check'
+      }[parsedArgs.command.trim()];
+      if(!task)throw new Error('Miestna brána povoľuje zostavenie, testy, nasadenie, štart, docker, Git kontroly a verzie node, python, cmd. Na vlastné skripty použi pc_run_script.');
       if(parsedArgs.cwd&&!['Trinity','Local-Gateway'].includes(parsedArgs.cwd))throw new Error('Použi relatívny projekt Trinity alebo Local-Gateway.');
       payload={project:parsedArgs.cwd||'Trinity',task};
     }
@@ -269,13 +298,30 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       _evidence:{effect:'proposal'}};
   }
   if(name==='web_search') {
+    const queryNorm=args.query.trim().toLowerCase();
+    const cacheKey=`cache:web_search:${await hash(queryNorm)}`;
+    if(env.Mastermind){
+      try{
+        const cachedRaw=await env.Mastermind.get(cacheKey);
+        if(cachedRaw){
+          const cached=JSON.parse(cachedRaw);
+          if(Array.isArray(cached?.results))return {results:cached.results,cached:true,cached_at:cached.cached_at};
+        }
+      }catch(_){}
+    }
     const key=await getOllamaKey(env);
     const r=await fetch('https://ollama.com/api/web_search',{method:'POST',
       headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},
       body:JSON.stringify({query:args.query,max_results:3}),signal:AbortSignal.timeout(20000),redirect:'manual'});
     if(!r.ok)throw new Error(`Web search HTTP ${r.status}`);
     const data=JSON.parse(await boundedText(r,80000));
-    return {results:(data.results||[]).map(r=>({title:r.title,url:r.url,content:(r.content||'').slice(0,3500)}))};
+    const results=(data.results||[]).map(r=>({title:r.title,url:r.url,content:(r.content||'').slice(0,3500)}));
+    if(env.Mastermind&&results.length){
+      try{
+        await env.Mastermind.put(cacheKey,JSON.stringify({results,cached_at:new Date().toISOString()}),{expirationTtl:3600});
+      }catch(_){}
+    }
+    return {results,cached:false};
   }
 }
 export async function recallMemory(env,task){
@@ -293,7 +339,7 @@ export const TOOL_HELP={
   ...PRACTICAL_TOOL_HELP,
   // ── PC Bridge nástroje ──
   pc_screenshot:'Spraví screenshot obrazovky a vráti base64 PNG + rozlíšenie: {}',
-  pc_run:'Spustí iba povolenú úlohu: {command:"npm run build"|"npm test"|"git status --short"|"git diff --check"|"node --version"|"python --version"|"cmd /c ver",cwd?:"Trinity"|"Local-Gateway"}. Nepoužívaj shellové reťazenie.',
+  pc_run:'Spustí iba povolenú úlohu: {command:"npm run build"|"npm test"|"npm run deploy"|"npm run start"|"npm start"|"docker compose up"|"docker compose ps"|"docker ps"|"git log -n 5"|"git status --short"|"git diff --check"|"node --version"|"python --version"|"cmd /c ver",cwd?:"Trinity"|"Local-Gateway"}. Nepoužívaj shellové reťazenie.',
   pc_file_read:'Prečíta súbor z projektu: {path:string}. Cesta musí byť relatívna, napríklad Trinity/package.json; poverenia sú blokované.',
   pc_file_write:'Vytvorí nový súbor alebo prepíše súbor iba pri zhodnom SHA-256 z pc_file_read: {path:string,content:string,expected_sha256?:string}. Predvolené absent odmietne prepísanie existujúceho súboru.',
   pc_file_append:'Pridá obsah na koniec súboru v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string,content:string}',

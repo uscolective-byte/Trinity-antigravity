@@ -58,7 +58,14 @@ export const RUN_TASKS=Object.freeze({
   'git-status':{command:'git',args:['status','--short']},
   'diff-check':{command:'git',args:['diff','--check']},
   tests:{command:'npm',args:['test']},
-  build:{command:'npm',args:['run','build']}
+  build:{command:'npm',args:['run','build']},
+  deploy:{command:'npm',args:['run','deploy']},
+  start:{command:'npm',args:['start']},
+  'run-start':{command:'npm',args:['run','start']},
+  'docker-compose-up':{command:'docker',args:['compose','up','-d']},
+  'docker-compose-ps':{command:'docker',args:['compose','ps']},
+  'docker-ps':{command:'docker',args:['ps']},
+  'git-log':{command:'git',args:['log','-n','5','--oneline']}
 });
 
 export function validateProject(value){
