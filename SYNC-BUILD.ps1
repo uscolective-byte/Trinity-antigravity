@@ -88,7 +88,11 @@ function Sync-Repository {
         if ($LASTEXITCODE -ne 0) { throw "Git repository not initialized" }
 
         & git fetch origin 2>&1 | Out-Null
-        & git pull origin master 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "Git fetch failed" }
+        $branch = & git branch --show-current
+        if ($branch -ne "main") { throw "Synchronization requires main; current branch: $branch" }
+        & git merge --ff-only origin/main 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "Fast-forward to origin/main failed" }
 
         Log "Git sync successful" "SUCCESS"
         Pop-Location
@@ -209,16 +213,16 @@ function Test-Module {
         if (Test-Path "package.json") {
             $packageJson = Get-Content "package.json" | ConvertFrom-Json
             if ($packageJson.scripts.test) {
-                & npm test 2>&1
+                & npm test 2>&1 | Out-Host
                 if ($LASTEXITCODE -eq 0) {
                     Log "Tests passed for $ModuleName" "SUCCESS"
                     Pop-Location
                     return $true
                 }
 
-                Log "Tests failed for $ModuleName (exit code: $LASTEXITCODE)" "WARN"
+                Log "Tests failed for $ModuleName (exit code: $LASTEXITCODE)" "ERROR"
                 Pop-Location
-                return $true
+                return $false
             }
         }
 
@@ -227,9 +231,9 @@ function Test-Module {
         return $true
     }
     catch {
-        Log "Testing $ModuleName failed: $_" "WARN"
+        Log "Testing $ModuleName failed: $_" "ERROR"
         Pop-Location
-        return $true
+        return $false
     }
 }
 
@@ -280,7 +284,7 @@ function Deploy-Module {
 
         if ($packageJson.scripts.deploy) {
             Log "Running deploy script..." "INFO"
-            & npm run deploy 2>&1
+            & npm run deploy 2>&1 | Out-Host
 
             if ($LASTEXITCODE -eq 0) {
                 Log "Deploy succeeded for $ModuleName" "SUCCESS"
@@ -353,7 +357,8 @@ if (-not (Test-Prerequisites)) {
 }
 
 if (-not (Sync-Repository)) {
-    Log "Git sync failed, continuing with local code..." "WARN"
+    Log "Git sync failed; stopping before build or deploy." "ERROR"
+    exit 1
 }
 
 Verify-Security | Out-Null
@@ -397,7 +402,7 @@ foreach ($module in $modules) {
 
     if ($buildResults[$module.Name] -and $Test) {
         Log "---" "INFO"
-        Test-Module -ModulePath $module.Path -ModuleName $module.Name
+        $buildResults[$module.Name] = Test-Module -ModulePath $module.Path -ModuleName $module.Name
         Log "---" "INFO"
     }
 }
@@ -409,7 +414,7 @@ if ($Deploy) {
 
     foreach ($module in $modules) {
         if ($buildResults[$module.Name]) {
-            Deploy-Module -ModulePath $module.Path -ModuleName $module.Name
+            $buildResults[$module.Name] = Deploy-Module -ModulePath $module.Path -ModuleName $module.Name
         }
     }
 }
