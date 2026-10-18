@@ -42,8 +42,6 @@ import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
 import themeCSS from '../public/assistant/theme.css';
-import premiumCSS from '../public/assistant/premium.css';
-import opsCommandCSS from '../public/ops-command.css';
 export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
 const json=(data,status=200)=>Response.json(data,{status});
 const runtimeEnvironment=(request,env)=>['localhost','127.0.0.1','::1'].includes(new URL(request.url).hostname)?'local':env.TRINITY_ENV||'local';
@@ -75,8 +73,6 @@ async function route(request,env,ctx){
   if(request.method==='GET'&&path==='/chat.css')return new Response(assistantCSS,{headers:{'Content-Type':'text/css; charset=utf-8'}});
   if(request.method==='GET'&&path==='/builder.css')return new Response(builderCSS,{headers:{'Content-Type':'text/css; charset=utf-8'}});
   if(request.method==='GET'&&path==='/theme.css')return new Response(themeCSS,{headers:{'Content-Type':'text/css; charset=utf-8'}});
-  if(request.method==='GET'&&path==='/premium.css')return new Response(premiumCSS,{headers:{'Content-Type':'text/css; charset=utf-8'}});
-  if(request.method==='GET'&&path==='/ops-command.css')return new Response(opsCommandCSS,{headers:{'Content-Type':'text/css; charset=utf-8'}});
   if(path==='/health'||path==='/api/health'){
     const response=json({service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),deployment:releaseMetadata(env),agents:AGENTS.length,status:'serving',truth_mode:'evidence-required'});const origin=request.headers.get('Origin');
     if(['https://trinity-morhfeus-20261001.web.app','https://trinity-morhfeus-20261001.firebaseapp.com'].includes(origin)){response.headers.set('Access-Control-Allow-Origin',origin);response.headers.set('Vary','Origin');}

@@ -13,7 +13,7 @@ import {skillRegistry} from './skillRegistry.js';
 import {TrinityCopilotAgent} from './copilot-agent.js';
 import {synthesizeSkill, synthesizePlugin, synthesizeApp, searchCatalog} from './universal-ecosystem.js';
 
-export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','execute_skill','copilot_chat','ecosystem_synthesize','ecosystem_search']);
+export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status']);
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']);
 export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan']);
 export const TOOL_SCHEMAS={
