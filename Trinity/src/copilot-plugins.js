@@ -148,6 +148,16 @@ export const BUILTIN_COPILOT_PLUGINS = [
     category: 'integration',
     enabled: true,
     required: false
+  },
+  {
+    id: 'productivity-plus',
+    name: 'Productivity Plus',
+    version: '1.0.0',
+    description: 'Praktické nástroje: slug, čas čítania, extraktívne zhrnutie, rozdiel dátumov a cron plán.',
+    skills: ['slugify', 'readingTime', 'extractiveSummary', 'dateDiff', 'cronNextRuns'],
+    category: 'analytics',
+    enabled: true,
+    required: false
   }
 ];
 

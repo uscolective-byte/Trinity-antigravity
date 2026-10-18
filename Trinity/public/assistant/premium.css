@@ -1,0 +1,237 @@
+/* Trinity · Aurora — vizuálna identita používateľského rozhrania (ui-user)
+   Vrstva nad chat.css / builder.css / theme.css. Žiadne externé zdroje (CSP: style-src 'self'). */
+
+body.ui-user {
+  --aurora-violet: 139, 92, 246;
+  --aurora-cyan: 56, 189, 248;
+  --aurora-mint: 52, 211, 153;
+  --aurora-rose: 244, 114, 182;
+  --radius-card: 22px;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.005em;
+}
+
+/* Živé aurora pozadie */
+body.ui-user::before {
+  content: '';
+  position: fixed;
+  inset: -25%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 42% at 18% 22%, rgba(var(--aurora-violet), 0.22), transparent 70%),
+    radial-gradient(34% 40% at 82% 16%, rgba(var(--aurora-cyan), 0.18), transparent 70%),
+    radial-gradient(40% 44% at 70% 84%, rgba(var(--aurora-mint), 0.12), transparent 70%),
+    radial-gradient(30% 36% at 22% 86%, rgba(var(--aurora-rose), 0.10), transparent 70%);
+  filter: blur(40px);
+  animation: aurora-drift 32s ease-in-out infinite alternate;
+}
+[data-theme="light"] body.ui-user::before { opacity: 0.55; }
+
+@keyframes aurora-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(-3%, 2%, 0) scale(1.06); }
+  100% { transform: translate3d(3%, -2%, 0) scale(1.02); }
+}
+
+/* Bočný panel */
+body.ui-user .sidebar {
+  background: linear-gradient(180deg, rgba(18, 26, 44, 0.72), rgba(10, 15, 28, 0.82));
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(22px) saturate(140%);
+}
+[data-theme="light"] body.ui-user .sidebar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(244, 247, 252, 0.86));
+  border-right-color: rgba(15, 23, 42, 0.08);
+}
+
+body.ui-user .brand-mark {
+  background: linear-gradient(135deg, rgb(var(--aurora-violet)), rgb(var(--aurora-cyan)));
+  color: #fff;
+  box-shadow: 0 8px 26px rgba(var(--aurora-violet), 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  border-radius: 14px;
+}
+
+body.ui-user .main-nav button {
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: transparent;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+body.ui-user .main-nav button:hover {
+  background: rgba(var(--aurora-cyan), 0.09);
+  transform: translateX(3px);
+}
+body.ui-user .main-nav button.active {
+  background: linear-gradient(135deg, rgba(var(--aurora-violet), 0.28), rgba(var(--aurora-cyan), 0.2));
+  border-color: rgba(var(--aurora-cyan), 0.35);
+  box-shadow: 0 8px 22px rgba(var(--aurora-violet), 0.2);
+}
+
+body.ui-user .new {
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(var(--aurora-violet), 0.9), rgba(var(--aurora-cyan), 0.85));
+  color: #fff;
+  border: 0;
+  box-shadow: 0 10px 28px rgba(var(--aurora-violet), 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+body.ui-user .new:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(var(--aurora-violet), 0.5); }
+
+/* Hlavička */
+body.ui-user header {
+  background: rgba(10, 15, 28, 0.55);
+  backdrop-filter: blur(20px) saturate(150%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+[data-theme="light"] body.ui-user header { background: rgba(255, 255, 255, 0.7); border-bottom-color: rgba(15, 23, 42, 0.07); }
+
+body.ui-user .page-heading strong {
+  font-size: clamp(20px, 2.2vw, 26px);
+  font-weight: 750;
+  background: linear-gradient(120deg, #fff 20%, rgb(var(--aurora-cyan)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+[data-theme="light"] body.ui-user .page-heading strong {
+  background: linear-gradient(120deg, #1e293b 20%, rgb(var(--aurora-violet)));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+body.ui-user .environment-badge {
+  border-radius: 999px;
+  background: rgba(var(--aurora-mint), 0.14);
+  border: 1px solid rgba(var(--aurora-mint), 0.4);
+  color: rgb(var(--aurora-mint));
+  font-weight: 650;
+}
+
+/* Hrdinská karta a živé jadro */
+body.ui-user .hero-card {
+  border-radius: 28px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(160deg, rgba(20, 28, 48, 0.88), rgba(12, 18, 34, 0.88)) padding-box,
+    linear-gradient(135deg, rgba(var(--aurora-violet), 0.7), rgba(var(--aurora-cyan), 0.5), rgba(var(--aurora-mint), 0.4)) border-box;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.35);
+}
+[data-theme="light"] body.ui-user .hero-card {
+  background:
+    linear-gradient(160deg, #fff, #f6f8fe) padding-box,
+    linear-gradient(135deg, rgba(var(--aurora-violet), 0.55), rgba(var(--aurora-cyan), 0.4)) border-box;
+  box-shadow: 0 24px 56px rgba(80, 90, 140, 0.16);
+}
+body.ui-user .hero-card h1 { font-weight: 800; letter-spacing: -0.02em; }
+body.ui-user .hero-card h1 em {
+  font-style: normal;
+  background: linear-gradient(110deg, rgb(var(--aurora-cyan)), rgb(var(--aurora-violet)) 60%, rgb(var(--aurora-rose)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+body.ui-user .living-core .core {
+  background: radial-gradient(circle at 35% 30%, #fff, rgb(var(--aurora-cyan)) 35%, rgb(var(--aurora-violet)));
+  box-shadow: 0 0 60px rgba(var(--aurora-violet), 0.6), 0 0 120px rgba(var(--aurora-cyan), 0.3);
+  animation: core-breathe 5s ease-in-out infinite;
+}
+@keyframes core-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.07); }
+}
+
+/* Karty a metriky */
+body.ui-user .panel,
+body.ui-user .metric,
+body.ui-user .project-card,
+body.ui-user .studio-card {
+  border-radius: var(--radius-card);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+body.ui-user .metric:hover,
+body.ui-user .project-card:hover,
+body.ui-user .studio-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(var(--aurora-cyan), 0.4);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(var(--aurora-cyan), 0.15);
+}
+body.ui-user .metric strong {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(26px, 3vw, 34px);
+}
+
+/* Tlačidlá */
+body.ui-user .primary {
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  font-weight: 650;
+  background: linear-gradient(135deg, rgb(var(--aurora-violet)), rgb(var(--aurora-cyan)));
+  box-shadow: 0 10px 26px rgba(var(--aurora-violet), 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+body.ui-user .primary:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 14px 34px rgba(var(--aurora-violet), 0.5); }
+body.ui-user .primary:active { transform: translateY(0); }
+body.ui-user button:focus-visible,
+body.ui-user input:focus-visible,
+body.ui-user textarea:focus-visible,
+body.ui-user select:focus-visible {
+  outline: 2px solid rgb(var(--aurora-cyan));
+  outline-offset: 2px;
+}
+
+/* Konverzácia */
+body.ui-user .message { animation: message-in 0.3s ease both; }
+@keyframes message-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+body.ui-user .message.user {
+  border-radius: 20px 20px 6px 20px;
+  background: linear-gradient(135deg, rgba(var(--aurora-violet), 0.3), rgba(var(--aurora-cyan), 0.22));
+  border: 1px solid rgba(var(--aurora-cyan), 0.35);
+}
+body.ui-user .message.assistant {
+  border-radius: 20px 20px 20px 6px;
+}
+body.ui-user .composer-wrap form {
+  border-radius: 24px;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+body.ui-user .composer-wrap form:focus-within {
+  border-color: rgba(var(--aurora-cyan), 0.7);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.4), 0 0 0 4px rgba(var(--aurora-cyan), 0.14);
+}
+
+/* Prihlásenie */
+body.ui-user #login {
+  border-radius: 28px;
+  backdrop-filter: blur(22px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+}
+
+/* Jemné posuvníky */
+body.ui-user ::-webkit-scrollbar { width: 10px; height: 10px; }
+body.ui-user ::-webkit-scrollbar-thumb {
+  background: rgba(var(--aurora-cyan), 0.25);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+body.ui-user ::-webkit-scrollbar-thumb:hover { background: rgba(var(--aurora-cyan), 0.45); background-clip: content-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  body.ui-user::before,
+  body.ui-user .living-core .core,
+  body.ui-user .message { animation: none; }
+  body.ui-user * { transition: none !important; }
+}
+
+/* Rešpektuje aj ručné nastavenie Znížený pohyb v Nastaveniach (trieda reduce-motion) */
+body.ui-user.reduce-motion::before,
+body.ui-user.reduce-motion .living-core .core,
+body.ui-user.reduce-motion .message { animation: none; }
+body.ui-user.reduce-motion * { transition: none !important; }

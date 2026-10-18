@@ -1425,6 +1425,110 @@ export const copilotStudioSkills = {
   }
 };
 
+/**
+ * 2F) PRODUCTIVITY PLUS – deterministické pomocné skilly (bez externých služieb)
+ */
+const SK_EN_STOPWORDS = new Set(('a aby aj ak ako ale alebo ani asi až bol bola boli bolo bude by byť či do ho ja jej jeho ju k každý keď ktorý len má mal mi mu my na nad nie od on ona oni po pre pri s sa si som su sú tak to toto tu ty už v vo z zo že ' +
+  'the a an and are as at be by for from has have he her his i in is it its of on or she that the their they this to was we were will with you your').split(' '));
+
+const splitSentences = (text) => String(text || '').replace(/\s+/g, ' ').match(/[^.!?…]+[.!?…]*/g)?.map(s => s.trim()).filter(Boolean) || [];
+const wordsOf = (text) => String(text || '').toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu) || [];
+
+function parseCronField(field, min, max) {
+  const values = new Set();
+  for (const part of String(field).split(',')) {
+    const m = part.match(/^(\*|\d+(?:-\d+)?)(?:\/(\d+))?$/);
+    if (!m) throw new Error(`Neplatné pole cron výrazu: '${field}'.`);
+    const step = m[2] ? Number(m[2]) : 1;
+    if (step < 1) throw new Error('Krok v cron výraze musí byť aspoň 1.');
+    let lo = min, hi = max;
+    if (m[1] !== '*') {
+      const [a, b] = m[1].split('-').map(Number);
+      lo = a; hi = b === undefined ? (m[2] ? max : a) : b;
+    }
+    if (lo < min || hi > max || lo > hi) throw new Error(`Hodnota mimo rozsahu ${min}-${max} v poli '${field}'.`);
+    for (let v = lo; v <= hi; v += step) values.add(v);
+  }
+  return values;
+}
+
+export const productivityPlusSkills = {
+  slugify: (params) => {
+    const text = typeof params === 'string' ? params : params?.text;
+    if (typeof text !== 'string' || !text.trim()) return { success: false, error: 'Chýba text.' };
+    const slug = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+    return { success: true, slug };
+  },
+
+  readingTime: (params) => {
+    const text = typeof params === 'string' ? params : params?.text;
+    if (typeof text !== 'string' || !text.trim()) return { success: false, error: 'Chýba text.' };
+    const wpm = Math.min(Math.max(Number(params?.wpm) || 200, 60), 600);
+    const words = wordsOf(text).length;
+    const minutes = words / wpm;
+    return { success: true, words, wpm, minutes: Math.max(1, Math.round(minutes)), seconds: Math.round(minutes * 60) };
+  },
+
+  extractiveSummary: (params) => {
+    const text = typeof params === 'string' ? params : params?.text;
+    if (typeof text !== 'string' || text.trim().length < 40) return { success: false, error: 'Text je príliš krátky na zhrnutie.' };
+    const sentences = splitSentences(text.slice(0, 50000));
+    const count = Math.min(Math.max(Number(params?.sentences) || 3, 1), 8);
+    if (sentences.length <= count) return { success: true, summary: sentences.join(' '), sentences: sentences.length, method: 'extractive' };
+    const freq = new Map();
+    for (const w of wordsOf(text)) if (w.length > 2 && !SK_EN_STOPWORDS.has(w)) freq.set(w, (freq.get(w) || 0) + 1);
+    const scored = sentences.map((s, index) => {
+      const ws = wordsOf(s).filter(w => freq.has(w));
+      const score = ws.reduce((sum, w) => sum + freq.get(w), 0) / Math.sqrt(Math.max(ws.length, 1));
+      return { s, index, score: score * (index === 0 ? 1.15 : 1) };
+    });
+    const picked = scored.sort((a, b) => b.score - a.score).slice(0, count).sort((a, b) => a.index - b.index);
+    return { success: true, summary: picked.map(p => p.s).join(' '), sentences: sentences.length, method: 'extractive' };
+  },
+
+  dateDiff: (params) => {
+    const from = new Date(params?.from), to = new Date(params?.to);
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return { success: false, error: 'Neplatný dátum (použi ISO, napr. 2026-10-18).' };
+    const ms = to - from;
+    const days = Math.round(ms / 86400000);
+    let business = 0;
+    const step = days >= 0 ? 1 : -1;
+    const cursor = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()));
+    for (let i = 0; i < Math.min(Math.abs(days), 36600); i++) {
+      cursor.setUTCDate(cursor.getUTCDate() + step);
+      const d = cursor.getUTCDay();
+      if (d !== 0 && d !== 6) business += step;
+    }
+    return { success: true, days, weeks: Math.round(days / 7 * 10) / 10, hours: Math.round(ms / 3600000), business_days: business, direction: ms >= 0 ? 'forward' : 'backward' };
+  },
+
+  cronNextRuns: (params) => {
+    const expression = typeof params === 'string' ? params : params?.expression;
+    const parts = String(expression || '').trim().split(/\s+/);
+    if (parts.length !== 5) return { success: false, error: 'Cron výraz musí mať 5 polí (minúta hodina deň mesiac deň-v-týždni).' };
+    try {
+      const minute = parseCronField(parts[0], 0, 59), hour = parseCronField(parts[1], 0, 23),
+        dom = parseCronField(parts[2], 1, 31), month = parseCronField(parts[3], 1, 12), dow = parseCronField(parts[4].replace(/\b7\b/g, '0'), 0, 6);
+      const domAny = parts[2] === '*', dowAny = parts[4] === '*';
+      const limit = Math.min(Math.max(Number(params?.count) || 3, 1), 10);
+      const start = params?.from ? new Date(params.from) : new Date();
+      if (Number.isNaN(start.getTime())) return { success: false, error: 'Neplatný dátum začiatku.' };
+      const cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate(), start.getUTCHours(), start.getUTCMinutes() + 1));
+      const runs = [];
+      for (let i = 0; i < 527040 && runs.length < limit; i++, cursor.setUTCMinutes(cursor.getUTCMinutes() + 1)) {
+        if (!minute.has(cursor.getUTCMinutes()) || !hour.has(cursor.getUTCHours()) || !month.has(cursor.getUTCMonth() + 1)) continue;
+        const domOk = dom.has(cursor.getUTCDate()), dowOk = dow.has(cursor.getUTCDay());
+        const dayOk = domAny && dowAny ? true : domAny ? dowOk : dowAny ? domOk : (domOk || dowOk);
+        if (dayOk) runs.push(cursor.toISOString());
+      }
+      return { success: true, expression: parts.join(' '), timezone: 'UTC', next_runs: runs };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+};
+
 export const skills = {
   ...coreSkills,
   ...integrationSkills,
@@ -1432,6 +1536,7 @@ export const skills = {
   ...geminiDeveloperSkills,
   ...studioSkills,
   ...copilotStudioSkills,
+  ...productivityPlusSkills,
   ...extendedEngineeringSkills,
   ...chatGptSkills,
   ...userSkills

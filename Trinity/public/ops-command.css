@@ -1,0 +1,147 @@
+/* Trinity · Command Center — vizuálna identita admin rozhrania (ui-admin)
+   Vrstva nad style.css + refresh.css. Zámerne odlišná paleta (grafit + jantár), aby bolo okamžite jasné,
+   že ide o správcovské prostredie. Žiadne externé zdroje (CSP: style-src 'self'). */
+
+body.ui-admin {
+  --bg: #0a0b0f;
+  --bg-gradient: radial-gradient(ellipse at 85% -10%, rgba(245, 158, 11, 0.13), transparent 52%),
+                 radial-gradient(ellipse at 10% 105%, rgba(239, 68, 68, 0.08), transparent 55%), #0a0b0f;
+  --panel: rgba(18, 20, 27, 0.82);
+  --panel-solid: #12141b;
+  --panel-hover: rgba(28, 31, 41, 0.92);
+  --line: rgba(255, 255, 255, 0.075);
+  --line-hover: rgba(245, 158, 11, 0.4);
+  --accent: #f59e0b;
+  --accent-rgb: 245, 158, 11;
+  --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  --accent-hover: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+  --glow: 0 0 25px rgba(245, 158, 11, 0.25);
+  --glow-sm: 0 0 12px rgba(245, 158, 11, 0.22);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme="light"] body.ui-admin {
+  --bg: #f7f5f0;
+  --bg-gradient: radial-gradient(ellipse at 85% 0%, #fde8c4 0%, transparent 46%),
+                 radial-gradient(ellipse at 10% 100%, #fee2e2 0%, transparent 46%), #f7f5f0;
+  --panel: rgba(255, 255, 255, 0.9);
+  --panel-solid: #ffffff;
+  --panel-hover: #faf7f0;
+  --line: #e7e1d3;
+  --line-hover: rgba(217, 119, 6, 0.4);
+  --accent: #d97706;
+  --accent-rgb: 217, 119, 6;
+  --accent-gradient: linear-gradient(135deg, #d97706 0%, #c2410c 100%);
+  --accent-hover: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+}
+
+/* Pás identifikujúci správcovské prostredie */
+body.ui-admin aside::before {
+  content: 'ADMIN · COMMAND CENTER';
+  display: block;
+  margin: 0 0 14px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-align: center;
+  color: #1a1203;
+  background: var(--accent-gradient);
+  box-shadow: var(--glow-sm);
+}
+
+body.ui-admin .brand-badge {
+  background: var(--accent-gradient);
+  color: #1a1203;
+  box-shadow: var(--glow-sm);
+}
+
+/* Hlavička s jantárovou linkou */
+body.ui-admin header {
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.28);
+  box-shadow: 0 1px 0 rgba(var(--accent-rgb), 0.06), 0 12px 34px rgba(0, 0, 0, 0.22);
+}
+body.ui-admin .header-eyebrow {
+  color: var(--accent);
+  letter-spacing: 0.16em;
+  font-weight: 700;
+}
+body.ui-admin #page-title { font-weight: 750; letter-spacing: -0.01em; }
+
+/* Navigácia */
+body.ui-admin nav button {
+  border-radius: 10px;
+  transition: background 0.18s ease, border-color 0.18s ease, padding-left 0.18s ease;
+}
+body.ui-admin nav button:hover { padding-left: 18px; }
+body.ui-admin nav button.active {
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.2), rgba(var(--accent-rgb), 0.04));
+  border-left: 3px solid var(--accent);
+  color: var(--text-heading);
+}
+
+/* Panely: kompaktnejšie a „prístrojové“ */
+body.ui-admin .panel {
+  border-radius: 14px;
+  border-left: 3px solid rgba(var(--accent-rgb), 0.45);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+body.ui-admin .panel:hover {
+  border-left-color: var(--accent);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.28);
+}
+
+/* Stavové odznaky a čísla v monospace */
+body.ui-admin .badge,
+body.ui-admin .dot + b,
+body.ui-admin code {
+  font-family: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, monospace;
+}
+body.ui-admin .badge {
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
+}
+
+/* Primárne akcie */
+body.ui-admin .primary {
+  color: #1a1203;
+  font-weight: 750;
+  border-radius: 10px;
+  background: var(--accent-gradient);
+  box-shadow: var(--glow-sm);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+body.ui-admin .primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--glow); }
+[data-theme="light"] body.ui-admin .primary { color: #fff; }
+
+body.ui-admin button:focus-visible,
+body.ui-admin input:focus-visible,
+body.ui-admin textarea:focus-visible,
+body.ui-admin select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Stav pripojenia: pulzujúca bodka */
+body.ui-admin .dot { animation: admin-pulse 2.4s ease-in-out infinite; }
+@keyframes admin-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55); }
+  50%      { box-shadow: 0 0 0 7px rgba(16, 185, 129, 0); }
+}
+
+/* Posuvníky */
+body.ui-admin ::-webkit-scrollbar { width: 10px; height: 10px; }
+body.ui-admin ::-webkit-scrollbar-thumb {
+  background: rgba(var(--accent-rgb), 0.28);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+body.ui-admin ::-webkit-scrollbar-thumb:hover { background: rgba(var(--accent-rgb), 0.5); background-clip: content-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  body.ui-admin .dot { animation: none; }
+  body.ui-admin * { transition: none !important; }
+}
