@@ -35,7 +35,7 @@ import {runBrainCycle} from './brain.js';
 import {runEvolutionCycle} from './evolution.js';
 import {listSelfImprovementProposals,createSelfImprovementProposal,approveSelfImprovementProposal,applySelfImprovementProposal} from './self-improvement.js';
 import {listDomains,getDomain,createDomain,registerDomain,checkDomainAvailability,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord} from './domains.js';
-import {listArtifacts} from './artifacts.js';
+import {listArtifacts,createArtifact,createPdfArtifact,getArtifact} from './artifacts.js';
 import html from '../public/index.html';
 import appJS from '../public/app.js.txt';
 import css from '../public/style.css';
@@ -339,6 +339,50 @@ async function route(request,env,ctx){
       return json(await deleteDnsRecord(env,domainIdOrName,recordId));
     }
   }
+  if(path==='/api/os/status'&&request.method==='GET'){
+    const [services,readinessState,memoryCount,taskCount,jobCount,pcBridge]=await Promise.all([
+      serviceStatus(env),
+      readiness(env),
+      env.DB?.prepare?env.DB.prepare('SELECT (SELECT COUNT(*) FROM ops_memory)+(SELECT COUNT(*) FROM memory_long) AS count').first().catch(()=>({count:0})):{count:0},
+      env.DB?.prepare?env.DB.prepare('SELECT COUNT(*) AS count FROM tasks').first().catch(()=>({count:0})):{count:0},
+      env.DB?.prepare?env.DB.prepare('SELECT COUNT(*) AS count FROM ops_jobs').first().catch(()=>({count:0})):{count:0},
+      getPCBridgeStatus(env)
+    ]);
+    const reachableServices=services.filter(s=>s.status==='reachable').length;
+    return json({
+      os_name:'Trinity Cognitive Cloud OS',
+      kernel_version:'10.2.0-cloud-kernel',
+      architecture:'Distributed Microservices & Neural Workers',
+      environment:runtimeEnvironment(request,env),
+      uptime:'continuous',
+      readiness:readinessState,
+      telemetry:{
+        total_workers:services.length,
+        reachable_workers:reachableServices,
+        healthy:reachableServices===services.length,
+        services
+      },
+      storage:{
+        database:'Cloudflare D1 (trinity-v03)',
+        cache:'Cloudflare KV (Mastermind)',
+        filesystem:'Cloudflare R2 (trinity-artifacts)',
+        memory_records:memoryCount?.count||0
+      },
+      processes:{
+        tasks_count:taskCount?.count||0,
+        jobs_count:jobCount?.count||0
+      },
+      hardware_bridge:pcBridge
+    });
+  }
+  if(path==='/api/os/processes'&&request.method==='GET'){
+    let tasks=[];let jobs=[];
+    if(env.DB?.prepare){
+      try{const tRows=await env.DB.prepare('SELECT id, title, status, assigned_agent, priority, created_at, updated_at FROM tasks ORDER BY created_at DESC LIMIT 50').all();tasks=tRows.results||[];}catch{}
+      try{const jRows=await env.DB.prepare('SELECT id, task, team, provider, status, created_at, updated_at FROM ops_jobs ORDER BY created_at DESC LIMIT 50').all();jobs=jRows.results||[];}catch{}
+    }
+    return json({tasks,jobs,total:tasks.length+jobs.length});
+  }
   if(path==='/api/assistant/settings'&&request.method==='GET'){
     const [plugins,memory,apis,keys,portfolios,pcBridge,secrets]=await Promise.all([
       listPlugins(env),env.DB.prepare('SELECT (SELECT COUNT(*) FROM ops_memory)+(SELECT COUNT(*) FROM memory_long) AS count').first(),
@@ -554,23 +598,45 @@ async function route(request,env,ctx){
     const headers=new Headers();object.writeHttpMetadata(headers);headers.set('Cache-Control','private, max-age=86400');headers.set('Content-Disposition',`inline; filename="trinity-${id}.jpg"`);
     return new Response(object.body,{headers});
   }
-  const fileRoute=path.match(/^\/api\/assistant\/files\/([0-9a-f-]+)\/([^/]+)$/i);
+  const fileRoute=path.match(/^\/api\/assistant\/files\/([0-9a-f-]+|[a-zA-Z0-9_\-.]+)\/([^/]+)$/i);
   if(fileRoute&&request.method==='GET'){
-    const id=uuid.parse(fileRoute[1]);
+    const id=fileRoute[1];
     const fname=decodeURIComponent(fileRoute[2]);
-    const key=`artifacts/${id}/${fname}`;
-    const object=await env.ARTIFACTS.get(key);
+    let key=`artifacts/${id}/${fname}`;
+    let object=await env.ARTIFACTS.get(key);
+    if(!object&&env.DB?.prepare){
+      try{
+        const row=await env.DB.prepare('SELECT r2_key,content_type FROM ops_artifacts WHERE id=? OR filename=?').bind(id,fname).first();
+        if(row&&row.r2_key){
+          key=row.r2_key;
+          object=await env.ARTIFACTS.get(key);
+        }
+      }catch{}
+    }
+    if(!object){
+      object=await env.ARTIFACTS.get(`artifacts/${id}`);
+      if(!object)object=await env.ARTIFACTS.get(fname);
+    }
     if(!object)throw new HttpError(404,`Súbor '${fname}' nebol nájdený v archíve.`);
     const isDownload=url.searchParams.get('download')==='1';
     const headers=new Headers();
-    object.writeHttpMetadata(headers);
+    if(typeof object.writeHttpMetadata==='function')object.writeHttpMetadata(headers);
+    if(!headers.has('Content-Type')&&object.httpMetadata?.contentType)headers.set('Content-Type',object.httpMetadata.contentType);
+    if(!headers.has('Content-Type'))headers.set('Content-Type','application/octet-stream');
     headers.set('Cache-Control','private, max-age=86400');
     headers.set('Content-Disposition',`${isDownload?'attachment':'inline'}; filename="${fname}"`);
     headers.set('X-Content-Type-Options','nosniff');
     return new Response(object.body,{headers});
   }
-  if(path==='/api/assistant/artifacts'&&request.method==='GET'){
-    return json({items:await listArtifacts(env,{limit:Number(url.searchParams.get('limit')||20),search:url.searchParams.get('search')||''})});
+  if(path==='/api/assistant/artifacts'){
+    if(request.method==='GET'){
+      return json({items:await listArtifacts(env,{limit:Number(url.searchParams.get('limit')||20),search:url.searchParams.get('search')||''})});
+    }
+    if(request.method==='POST'){
+      const body=await readJSON(request,10_000_000);
+      if(body.type==='pdf')return json({item:await createPdfArtifact(env,body)},201);
+      return json({item:await createArtifact(env,body)},201);
+    }
   }
   if(path==='/api/assistant/memory'){
     if(request.method==='GET')return json((await searchMemory(env,url.searchParams.get('q')||'')).records);

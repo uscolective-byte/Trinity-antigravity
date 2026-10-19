@@ -135,3 +135,21 @@ test('read-only MCP token can inspect readiness but cannot access private admin 
   assert.equal(response.status,200);assert.ok((await response.text()).includes('not-checked'));
   assert.equal((await mf.dispatchFetch(url+'/api/ops/status',{headers:{Authorization:'Bearer '+created.secret}})).status,401);
 });
+
+test('Trinity OS: /api/os/status a /api/os/processes vracia stav jadra a zoznam procesov',async()=>{
+  const statusRes=await req('/api/os/status');
+  assert.equal(statusRes.status,200);
+  const statusData=await statusRes.json();
+  assert.equal(statusData.os_name,'Trinity Cognitive Cloud OS');
+  assert.equal(statusData.kernel_version,'10.2.0-cloud-kernel');
+  assert.ok(statusData.telemetry);
+  assert.ok(statusData.storage);
+  assert.ok(statusData.processes);
+
+  const procRes=await req('/api/os/processes');
+  assert.equal(procRes.status,200);
+  const procData=await procRes.json();
+  assert.ok(Array.isArray(procData.tasks));
+  assert.ok(Array.isArray(procData.jobs));
+});
+
