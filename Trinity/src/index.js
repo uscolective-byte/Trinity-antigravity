@@ -33,6 +33,7 @@ import {copilotPluginRegistry} from './copilot-plugins.js';
 import {universalEcosystem,UNIVERSAL_DOMAINS,APPLICATION_TEMPLATES} from './universal-ecosystem.js';
 import {runBrainCycle} from './brain.js';
 import {runEvolutionCycle} from './evolution.js';
+import {listSelfImprovementProposals,createSelfImprovementProposal,approveSelfImprovementProposal,applySelfImprovementProposal} from './self-improvement.js';
 import html from '../public/index.html';
 import appJS from '../public/app.js.txt';
 import css from '../public/style.css';
@@ -401,6 +402,46 @@ async function route(request,env,ctx){
     await rateLimit(env,`synth-app:${user.id}`,30,300);
     const d=z.object({name:z.string().min(2).max(100),domain:z.string().default('software-dev'),type:z.string().default('web-app'),prompt:z.string().optional(),features:z.array(z.string()).optional()}).parse(await readJSON(request));
     return json(universalEcosystem.synthesizeApp(d.name,d.domain,d),201);
+  }
+  if(path==='/api/ops/self-improvement'&&request.method==='GET'){
+    requireAdmin(user);
+    return json({
+      items: await listSelfImprovementProposals(env),
+      capabilities: {
+        plugin_installation: true,
+        audited_approval: true,
+        self_modifying_runtime: false,
+        deployment: 'GitHub Actions: test-gated development deployment; production requires an explicit workflow approval or TRINITY_AUTO_DEPLOY_PRODUCTION=true repository variable.'
+      }
+    });
+  }
+  if(path==='/api/ops/self-improvement'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`self-improvement:${user.id}`,20,300);
+    const input=z.object({
+      title:z.string().trim().min(3).max(120),
+      description:z.string().trim().min(10).max(4000),
+      kind:z.enum(['plugin_install','code_improvement','deployment']),
+      plugin_id:z.string().regex(/^[a-z0-9-]{2,80}$/).optional()
+    }).strict().parse(await readJSON(request,6000));
+    if(input.kind==='plugin_install'&&!PLUGINS.some(p=>p.id===input.plugin_id))throw new HttpError(404,'Modul sa nenašiel v existujúcom katalógu Trinity.');
+    return json(await createSelfImprovementProposal(env,input,user.email||user.id),201);
+  }
+  const selfImprovementRoute=path.match(/^\\/api\\/ops\\/self-improvement\\/([0-9a-f-]+)\\/(approve|apply)$/i);
+  if(selfImprovementRoute&&request.method==='POST'){
+    const id=uuid.parse(selfImprovementRoute[1]);
+    if(selfImprovementRoute[2]==='approve'){
+      requireOwner(user);
+      z.object({}).strict().parse(await readJSON(request));
+      return json(await approveSelfImprovementProposal(env,id,user.email||user.id));
+    }
+    requireAdmin(user);
+    z.object({}).strict().parse(await readJSON(request));
+    return json(await applySelfImprovementProposal(env,id,user.email||user.id,async pluginId=>{
+      const plugin=PLUGINS.find(p=>p.id===pluginId);
+      if(!plugin)throw new HttpError(404,'Modul už nie je dostupný v katalógu Trinity.');
+      return await installPlugin(env,plugin.id);
+    }));
   }
   if(path==='/api/assistant/brain/run'&&request.method==='POST'){requireAdmin(user);return json(await runBrainCycle(env));}
   if(path==='/api/assistant/evolution/run'&&request.method==='POST'){requireAdmin(user);return json(await runEvolutionCycle(env));}
