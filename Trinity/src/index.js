@@ -508,7 +508,7 @@ async function route(request,env,ctx){
     const input=z.object({
       title:z.string().trim().min(3).max(120),
       description:z.string().trim().min(10).max(4000),
-      kind:z.enum(['plugin_install','code_improvement','deployment']),
+      kind:z.enum(['plugin_install','code_improvement','deployment','behavior_rule']),
       plugin_id:z.string().regex(/^[a-z0-9-]{2,80}$/).optional()
     }).strict().parse(await readJSON(request,6000));
     if(input.kind==='plugin_install'&&!PLUGINS.some(p=>p.id===input.plugin_id))throw new HttpError(404,'Modul sa nenašiel v existujúcom katalógu Trinity.');

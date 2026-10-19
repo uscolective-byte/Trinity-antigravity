@@ -1,6 +1,6 @@
-import {test} from 'node:test';
+﻿import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createSelfImprovementProposal, approveSelfImprovementProposal, applySelfImprovementProposal} from '../src/self-improvement.js';
+import {createSelfImprovementProposal, approveSelfImprovementProposal, applySelfImprovementProposal, ownerLearnBehaviorRule, behaviorRulesDirective} from '../src/self-improvement.js';
 
 function mockEnv() {
   const rows = new Map();
@@ -70,4 +70,13 @@ test('self-improvement rejects deployment and source-code changes as direct live
 test('plugin install proposals require a plugin id', async () => {
   const env=mockEnv();
   await assert.rejects(()=>createSelfImprovementProposal(env,{title:'Install module',description:'Install a module from the existing catalogue.',kind:'plugin_install'},'owner'),/plugin_id/i);
+});
+
+test('owner can teach Trinity an audited behavior rule that becomes active without code rewrite', async () => {
+  const env=mockEnv();
+  const applied=await ownerLearnBehaviorRule(env,'Pri odpovediach vždy najprv zhrň výsledok v jednej vete.','owner-chat');
+  assert.equal(applied.status,'applied');
+  assert.ok(env.events.some(e=>e.action==='self_improvement_rule_activated'));
+  assert.match(behaviorRulesDirective([applied]),/NAUČENÉ ZLEPŠENIA/);
+  assert.equal(behaviorRulesDirective([]),'');
 });
