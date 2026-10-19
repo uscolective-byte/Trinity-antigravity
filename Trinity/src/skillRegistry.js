@@ -10,6 +10,11 @@ import { runPracticalTool } from './practical-skills.js';
 import { QuantumCoreEngine } from './quantum_core.js';
 import { processTeleologicalPrompt } from './quantum_pipeline.js';
 import { NeuralBrain, BRAIN_MODES } from './neural_brain.js';
+import {
+  listDomains, getDomain, createDomain, registerDomain, updateDomain, deleteDomain,
+  listDomainForSale, sellDomain, listDomainForLease, leaseDomain, endDomainLease,
+  listDomainTransactions, getDomainMarketplace, listDnsRecords, addDnsRecord, deleteDnsRecord
+} from './domains.js';
 
 // In-memory cache a fallback stav circuit-breakeru
 const memoryCache = new Map();
@@ -1573,6 +1578,51 @@ export const neuralBrainSkills = {
   }
 };
 
+export const domainSkills = {
+  domainList: async (params = {}, env) => {
+    return await listDomains(env, params);
+  },
+  domainInspect: async (params = {}, env) => {
+    const domain = await getDomain(env, params.domain || params.id || params.name);
+    if (!domain) throw new Error(`Doména '${params.domain || params.id || params.name}' nebola nájdená.`);
+    const [dns_records, transactions] = await Promise.all([
+      listDnsRecords(env, domain.id),
+      listDomainTransactions(env, domain.id)
+    ]);
+    return { domain, dns_records, transactions };
+  },
+  domainCreate: async (params = {}, env) => {
+    return await createDomain(env, params);
+  },
+  domainRegister: async (params = {}, env) => {
+    return await registerDomain(env, params);
+  },
+  domainSaleListing: async (params = {}, env) => {
+    return await listDomainForSale(env, params.domain || params.id || params.name, params);
+  },
+  domainSell: async (params = {}, env) => {
+    return await sellDomain(env, params.domain || params.id || params.name, params);
+  },
+  domainLeaseListing: async (params = {}, env) => {
+    return await listDomainForLease(env, params.domain || params.id || params.name, params);
+  },
+  domainLease: async (params = {}, env) => {
+    return await leaseDomain(env, params.domain || params.id || params.name, params);
+  },
+  domainEndLease: async (params = {}, env) => {
+    return await endDomainLease(env, params.domain || params.id || params.name, params);
+  },
+  domainMarketplace: async (params = {}, env) => {
+    return await getDomainMarketplace(env);
+  },
+  domainSetDns: async (params = {}, env) => {
+    return await addDnsRecord(env, params.domain || params.id || params.name, params);
+  },
+  domainDeleteDns: async (params = {}, env) => {
+    return await deleteDnsRecord(env, params.domain || params.id || params.name, params.record_id || params.id);
+  }
+};
+
 export const skills = {
   ...coreSkills,
   ...integrationSkills,
@@ -1584,6 +1634,7 @@ export const skills = {
   ...extendedEngineeringSkills,
   ...quantumSkills,
   ...neuralBrainSkills,
+  ...domainSkills,
   ...chatGptSkills,
   ...userSkills
 };
@@ -1619,7 +1670,7 @@ class SkillRegistry {
     const builtinList = Object.keys(skills).map(name => ({
       name,
       type: 'builtin',
-      category: Object.keys(coreSkills).includes(name) ? 'core' : Object.keys(integrationSkills).includes(name) ? 'integration' : Object.keys(extendedEngineeringSkills).includes(name) ? 'engineering' : 'user'
+      category: Object.keys(coreSkills).includes(name) ? 'core' : Object.keys(integrationSkills).includes(name) ? 'integration' : Object.keys(extendedEngineeringSkills).includes(name) ? 'engineering' : Object.keys(domainSkills).includes(name) ? 'domains' : 'user'
     }));
     const customList = [...this._customSkills.entries()].map(([name, item]) => ({
       name,

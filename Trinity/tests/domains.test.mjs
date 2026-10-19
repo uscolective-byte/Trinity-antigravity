@@ -555,3 +555,42 @@ test('Domain Engine: Integrácia nástrojov do Trinity runTool a rolí (registr�
   assert.equal(inspectRes.domain.status, 'sold');
   assert.ok(inspectRes.transactions.length >= 2);
 });
+
+test('Domain Engine: TOOL_HELP a skillRegistry obsahujú všetky doménové nástroje a schopnosti', async () => {
+  const { TOOL_HELP } = await import('../src/tools.js');
+  const { skillRegistry } = await import('../src/skillRegistry.js');
+  const { READ_TOOLS } = await import('../src/truth.js');
+
+  const domainToolKeys = [
+    'domain_list',
+    'domain_inspect',
+    'domain_add',
+    'domain_register',
+    'domain_list_for_sale',
+    'domain_sell',
+    'domain_list_for_lease',
+    'domain_lease',
+    'domain_end_lease',
+    'domain_marketplace',
+    'domain_set_dns',
+    'domain_delete_dns'
+  ];
+
+  for (const toolKey of domainToolKeys) {
+    assert.ok(TOOL_HELP[toolKey], `TOOL_HELP[${toolKey}] nesmie byť undefined`);
+    assert.ok(TOOL_HELP[toolKey].length > 10, `Popis ${toolKey} musí byť zmysluplný`);
+  }
+
+  // Truth Policy read tools
+  assert.ok(READ_TOOLS.has('domain_list'));
+  assert.ok(READ_TOOLS.has('domain_inspect'));
+  assert.ok(READ_TOOLS.has('domain_marketplace'));
+
+  // Skill Registry kategória a schopnosti
+  const allSkills = skillRegistry.list();
+  const domainSkills = allSkills.filter(s => s.category === 'domains');
+  assert.ok(domainSkills.length >= 5, 'skillRegistry musí obsahovať aspoň 5 doménových schopností');
+  assert.ok(domainSkills.some(s => s.name === 'domainRegister'));
+  assert.ok(domainSkills.some(s => s.name === 'domainSetDns'));
+  assert.ok(domainSkills.some(s => s.name === 'domainSell'));
+});

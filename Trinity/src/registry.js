@@ -108,7 +108,8 @@ export function selectTeam(task, mode = 'single', agent = 'auto') {
   let selected = agent;
   if (selected === 'auto') {
     const normalized = task.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    selected = /cloudflare|worker|binding|deploy/.test(normalized) ? 'cloudflare'
+    selected = /domena|domeny|domenu|dns|nameserver|tld|registracia domen/.test(normalized) ? 'cloudflare'
+      : /cloudflare|worker|binding|deploy/.test(normalized) ? 'cloudflare'
       : /kod|code|python|javascript|program|api/.test(normalized) ? 'backend'
       : /zakaznik|klient|lead|ponuk|predaj|webstrank|linkedin|outreach|zarob|prijem|trzb/.test(normalized) ? 'business-development'
       : /invest|portfolio|akci|krypto|trh|trading|stock|crypto/.test(normalized) ? 'market-research'

@@ -275,31 +275,31 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   }
   if(name==='domain_add'){
     const domain=await createDomain(env,args);
-    return {domain,ok:true,_evidence:{effect:'write',receipt_id:`domain:add:${domain.id}`}};
+    return {domain,ok:true,_evidence:{effect:'mutation',actions:['change','create_file'],receipt_id:`domain:add:${domain.id}`}};
   }
   if(name==='domain_register'){
     const res=await registerDomain(env,args);
-    return {...res,ok:true,_evidence:{effect:'write',receipt_id:`domain:register:${res.domain.id}`}};
+    return {...res,ok:true,_evidence:{effect:'mutation',actions:['change','create_file'],receipt_id:`domain:register:${res.domain.id}`}};
   }
   if(name==='domain_list_for_sale'){
     const domain=await listDomainForSale(env,args.domain,args);
-    return {domain,ok:true,_evidence:{effect:'write',receipt_id:`domain:sale_list:${domain.id}`}};
+    return {domain,ok:true,_evidence:{effect:'mutation',actions:['change','publish'],receipt_id:`domain:sale_list:${domain.id}`}};
   }
   if(name==='domain_sell'){
     const res=await sellDomain(env,args.domain,args);
-    return {...res,_evidence:{effect:'write',receipt_id:`domain:sell:${res.transaction_id}`}};
+    return {...res,_evidence:{effect:'mutation',actions:['change','publish'],receipt_id:`domain:sell:${res.transaction_id}`}};
   }
   if(name==='domain_list_for_lease'){
     const domain=await listDomainForLease(env,args.domain,args);
-    return {domain,ok:true,_evidence:{effect:'write',receipt_id:`domain:lease_list:${domain.id}`}};
+    return {domain,ok:true,_evidence:{effect:'mutation',actions:['change','publish'],receipt_id:`domain:lease_list:${domain.id}`}};
   }
   if(name==='domain_lease'){
     const res=await leaseDomain(env,args.domain,args);
-    return {...res,_evidence:{effect:'write',receipt_id:`domain:lease:${res.transaction_id}`}};
+    return {...res,_evidence:{effect:'mutation',actions:['change','publish'],receipt_id:`domain:lease:${res.transaction_id}`}};
   }
   if(name==='domain_end_lease'){
     const res=await endDomainLease(env,args.domain,args);
-    return {...res,_evidence:{effect:'write',receipt_id:`domain:lease_end:${res.transaction_id}`}};
+    return {...res,_evidence:{effect:'mutation',actions:['change'],receipt_id:`domain:lease_end:${res.transaction_id}`}};
   }
   if(name==='domain_marketplace'){
     const marketplace=await getDomainMarketplace(env);
@@ -314,11 +314,11 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       proxied:args.proxied,
       priority:args.priority
     });
-    return {record,ok:true,_evidence:{effect:'write',receipt_id:`domain:dns:${record.id}`}};
+    return {record,ok:true,_evidence:{effect:'mutation',actions:['change'],receipt_id:`domain:dns:${record.id}`}};
   }
   if(name==='domain_delete_dns'){
     const res=await deleteDnsRecord(env,args.domain,args.record_id);
-    return {...res,_evidence:{effect:'write',receipt_id:`domain:dns:del:${args.record_id}`}};
+    return {...res,_evidence:{effect:'mutation',actions:['delete','change'],receipt_id:`domain:dns:del:${args.record_id}`}};
   }
   if(name==='brain_mode'){
     const brain=new NeuralBrain();
@@ -525,6 +525,18 @@ export const TOOL_HELP={
   brain_reflect:'Spustí self-reflection cyklus po úlohe: vyhodnotí úspechy, riziká a uloží poznatky do pamäte: {task:string, outcome:string, mode?:string}',
   brain_memory:'Spravuje neurálne pamäťové vrstvy STM, LTM, CTM a ETM: {action?:snapshot|set_ltm|get_ltm, key?:string, value?:string}',
   quantum_parallel:'Vyhodnotí 3 až 7 paralelných myšlienkových vetiev a vyberie najlepšiu: {branches:[], preference?:creative|analytical|balanced}',
-  quantum_fusion:'Zjednotí výstupy špecialistov (Guardian, Sentinel, Planner, Optimizer, Analyzer) do konsenzu: {agent_outputs:{}, weights?:{}}'
+  quantum_fusion:'Zjednotí výstupy špecialistov (Guardian, Sentinel, Planner, Optimizer, Analyzer) do konsenzu: {agent_outputs:{}, weights?:{}}',
+  domain_list:'Zoznam spravovaných domén v Trinity: {status?:active|pending|parked|for_sale|leased|sold|expired, listing_type?:none|sale|lease|both, search?:string}',
+  domain_inspect:'Detail domény, DNS záznamy a história transakcií: {domain:string (názov alebo ID domény)}',
+  domain_add:'Pridá existujúcu doménu do správy Trinity: {domain_name:string, registrar?:string, status?:active|parked|for_sale|leased, auto_renew?:boolean, notes?:string}',
+  domain_register:'Zaregistruje novú doménu cez Cloudflare Registrar: {domain_name:string, years?:1..10, auto_renew?:boolean, privacy?:boolean, notes?:string}',
+  domain_list_for_sale:'Zaradenie domény do ponuky na predaj: {domain:string, price:number, currency?:EUR|USD|GBP|CZK}',
+  domain_sell:'Dokončenie predaja domény a prevod na kupujúceho: {domain:string, buyer:string, price?:number, currency?:EUR|USD|GBP|CZK, notes?:string}',
+  domain_list_for_lease:'Zaradenie domény do ponuky na prenájom s mesačným nájomným: {domain:string, monthly_price:number, currency?:EUR|USD|GBP|CZK}',
+  domain_lease:'Uzavretie prenájmu domény s nájomcom a dobou trvania: {domain:string, tenant:string, monthly_price?:number, currency?:EUR|USD|GBP|CZK, duration_months?:1..120, notes?:string}',
+  domain_end_lease:'Ukončenie prenájmu domény a návrat do správy: {domain:string, reason?:string}',
+  domain_marketplace:'Verejné trhovisko domén ponúkaných na predaj a prenájom: {}',
+  domain_set_dns:'Vytvorí alebo upraví DNS záznam pre doménu: {domain:string, type:A|AAAA|CNAME|TXT|MX|NS|SRV|CAA, name:string, content:string, ttl?:number, proxied?:boolean, priority?:number}',
+  domain_delete_dns:'Odstráni DNS záznam domény: {domain:string, record_id:string}'
 };
 
