@@ -407,6 +407,7 @@ async function route(request,env,ctx){
     requireAdmin(user);
     return json({
       items: await listSelfImprovementProposals(env),
+      can_approve: user.role === 'owner',
       capabilities: {
         plugin_installation: true,
         audited_approval: true,
