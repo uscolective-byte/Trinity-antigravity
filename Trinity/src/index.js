@@ -35,6 +35,7 @@ import {runBrainCycle} from './brain.js';
 import {runEvolutionCycle} from './evolution.js';
 import {listSelfImprovementProposals,createSelfImprovementProposal,approveSelfImprovementProposal,applySelfImprovementProposal} from './self-improvement.js';
 import {listDomains,getDomain,createDomain,registerDomain,checkDomainAvailability,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord} from './domains.js';
+import {listArtifacts} from './artifacts.js';
 import html from '../public/index.html';
 import appJS from '../public/app.js.txt';
 import css from '../public/style.css';
@@ -552,6 +553,24 @@ async function route(request,env,ctx){
     if(!object)throw new HttpError(404,'Obrázok neexistuje.');
     const headers=new Headers();object.writeHttpMetadata(headers);headers.set('Cache-Control','private, max-age=86400');headers.set('Content-Disposition',`inline; filename="trinity-${id}.jpg"`);
     return new Response(object.body,{headers});
+  }
+  const fileRoute=path.match(/^\/api\/assistant\/files\/([0-9a-f-]+)\/([^/]+)$/i);
+  if(fileRoute&&request.method==='GET'){
+    const id=uuid.parse(fileRoute[1]);
+    const fname=decodeURIComponent(fileRoute[2]);
+    const key=`artifacts/${id}/${fname}`;
+    const object=await env.ARTIFACTS.get(key);
+    if(!object)throw new HttpError(404,`Súbor '${fname}' nebol nájdený v archíve.`);
+    const isDownload=url.searchParams.get('download')==='1';
+    const headers=new Headers();
+    object.writeHttpMetadata(headers);
+    headers.set('Cache-Control','private, max-age=86400');
+    headers.set('Content-Disposition',`${isDownload?'attachment':'inline'}; filename="${fname}"`);
+    headers.set('X-Content-Type-Options','nosniff');
+    return new Response(object.body,{headers});
+  }
+  if(path==='/api/assistant/artifacts'&&request.method==='GET'){
+    return json({items:await listArtifacts(env,{limit:Number(url.searchParams.get('limit')||20),search:url.searchParams.get('search')||''})});
   }
   if(path==='/api/assistant/memory'){
     if(request.method==='GET')return json((await searchMemory(env,url.searchParams.get('q')||'')).records);

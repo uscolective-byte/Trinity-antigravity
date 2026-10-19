@@ -37,7 +37,37 @@ function formatMarkdown(text){
   s=s.replace(/\n\n+/g,'<br><br>');
   return s;
 }
-function renderReply(target,text){target.innerHTML=formatMarkdown(text);const match=text.match(/\/api\/assistant\/media\/images\/[0-9a-f-]{36}/i);if(match){const image=document.createElement('img');image.className='generated-media';image.src=match[0];image.alt='Obrázok vytvorený Trinity';image.loading='lazy';target.append(image);}}
+function renderReply(target,text){
+  target.innerHTML=formatMarkdown(text);
+  const match=text.match(/\/api\/assistant\/media\/images\/[0-9a-f-]{36}/i);
+  if(match){
+    const image=document.createElement('img');
+    image.className='generated-media';
+    image.src=match[0];
+    image.alt='Obrázok vytvorený Trinity';
+    image.loading='lazy';
+    target.append(image);
+  }
+  const fileMatches=Array.from(text.matchAll(/\/api\/assistant\/files\/([0-9a-f-]{36})\/([a-zA-Z0-9._\-]+)/gi));
+  if(fileMatches.length){
+    for(const fm of fileMatches){
+      const url=fm[0];
+      const fname=fm[2];
+      const ext=fname.split('.').pop()?.toLowerCase();
+      let icon='📄';
+      if(ext==='pdf')icon='📕';
+      else if(ext==='py')icon='🐍';
+      else if(ext==='json')icon='📦';
+      else if(['js','ts','mjs'].includes(ext))icon='⚡';
+      else if(['jpg','png','webp','gif','svg'].includes(ext))icon='🖼️';
+      else if(ext==='csv')icon='📊';
+      const fileCard=document.createElement('div');
+      fileCard.className='generated-file-card';
+      fileCard.innerHTML=`<span class="file-icon">${icon}</span><div class="file-info"><b>${fname}</b><small>Vytvorený súbor v R2 archíve</small></div><a href="${url}?download=1" download="${fname}" class="file-download-btn">⬇ Stiahnuť</a><a href="${url}" target="_blank" rel="noopener" class="file-view-btn">Otvoriť ↗</a>`;
+      target.append(fileCard);
+    }
+  }
+}
 function bottom(){const area=$('chat-area');area.scrollTop=area.scrollHeight;}
 async function sessions(){const rows=await api('/sessions');$('sessions').replaceChildren();for(const row of rows){const button=node('button',row.title.slice(0,45));button.onclick=safe(async()=>{session=row.session;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');});$('sessions').append(button);}}
 const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY','Správa domén','Evidencia, DNS, predaj a prenájom domén.']};

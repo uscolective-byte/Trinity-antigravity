@@ -17,6 +17,7 @@ import {processTeleologicalPrompt} from './quantum_pipeline.js';
 import {NeuralBrain, BRAIN_MODES} from './neural_brain.js';
 import {QuantumCoreEngine} from './quantum_core.js';
 import {listDomains,getDomain,createDomain,registerDomain,checkDomainAvailability,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord,domainInputSchema,domainRegistrationSchema,domainSaleListingSchema,domainSaleSchema,domainLeaseListingSchema,domainLeaseSchema,domainEndLeaseSchema,dnsRecordInputSchema,DNS_RECORD_TYPES,DOMAIN_STATUSES,LISTING_TYPES} from './domains.js';
+import {createArtifact,createPdfArtifact,listArtifacts,getArtifact} from './artifacts.js';
 
 export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status']);
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']);
@@ -83,6 +84,26 @@ export const TOOL_SCHEMAS={
   ,domain_delete_dns:z.object({
     domain:z.string().trim().min(1).max(253),
     record_id:z.string().trim().min(1).max(100)
+  }).strict()
+  ,create_file:z.object({
+    filename:z.string().trim().min(1).max(255).regex(/^[a-zA-Z0-9_\-./]+$/),
+    content:z.string().max(10_000_000),
+    is_base64:z.boolean().default(false),
+    notes:z.string().max(500).optional()
+  }).strict()
+  ,create_pdf:z.object({
+    filename:z.string().trim().min(1).max(255).regex(/^[a-zA-Z0-9_\-.]+\.pdf$/i),
+    title:z.string().trim().min(1).max(200),
+    content:z.string().min(1).max(100_000),
+    author:z.string().max(100).default('Trinity AI'),
+    notes:z.string().max(500).optional()
+  }).strict()
+  ,list_artifacts:z.object({
+    limit:z.number().int().min(1).max(100).default(20),
+    search:z.string().max(100).optional()
+  }).strict()
+  ,read_artifact:z.object({
+    id:z.string().trim().min(1).max(300)
   }).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
@@ -326,6 +347,22 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const res=await deleteDnsRecord(env,args.domain,args.record_id);
     return {...res,_evidence:{effect:'mutation',actions:['delete','change'],receipt_id:`domain:dns:del:${args.record_id}`}};
   }
+  if(name==='create_file'){
+    const res=await createArtifact(env,{...args,createdBy:agent.id});
+    return {...res,_evidence:{effect:'mutation',action:'create_file',actions:['create_file'],receipt_id:`artifact:create:${res.id}`}};
+  }
+  if(name==='create_pdf'){
+    const res=await createPdfArtifact(env,{...args,createdBy:agent.id});
+    return {...res,_evidence:{effect:'mutation',action:'create_file',actions:['create_file'],receipt_id:`artifact:pdf:${res.id}`}};
+  }
+  if(name==='list_artifacts'){
+    const items=await listArtifacts(env,args);
+    return {items,total:items.length,_evidence:{effect:'read',receipt_id:`artifact:list:${crypto.randomUUID()}`}};
+  }
+  if(name==='read_artifact'){
+    const art=await getArtifact(env,args.id);
+    return {...art,_evidence:{effect:'read',receipt_id:`artifact:read:${crypto.randomUUID()}`}};
+  }
   if(name==='brain_mode'){
     const brain=new NeuralBrain();
     if(args.mode) brain.setMode(args.mode);
@@ -553,6 +590,10 @@ export const TOOL_HELP={
   domain_end_lease:'Ukončenie prenájmu domény a návrat do správy: {domain:string, reason?:string}',
   domain_marketplace:'Verejné trhovisko domén ponúkaných na predaj a prenájom: {}',
   domain_set_dns:'Vytvorí alebo upraví DNS záznam pre doménu: {domain:string, type:A|AAAA|CNAME|TXT|MX|NS|SRV|CAA, name:string, content:string, ttl?:number, proxied?:boolean, priority?:number}',
-  domain_delete_dns:'Odstráni DNS záznam domény: {domain:string, record_id:string}'
+  domain_delete_dns:'Odstráni DNS záznam domény: {domain:string, record_id:string}',
+  create_file:'Vytvorí a uloží akýkoľvek súbor (txt, py, json, js, html, css, csv, md, sql, svg atď.) do R2 archívu a vráti stiahnuteľný odkaz: {filename:string, content:string, is_base64?:boolean, notes?:string}',
+  create_pdf:'Vygeneruje platný formátovaný PDF dokument, uloží ho do R2 archívu a vráti stiahnuteľný odkaz: {filename:string, title:string, content:string, author?:string, notes?:string}',
+  list_artifacts:'Vypíše zoznam vytvorených súborov a dokumentov v archíve: {limit?:number, search?:string}',
+  read_artifact:'Prečíta obsah alebo metadáta vytvoreného súboru z archívu: {id:string}'
 };
 
