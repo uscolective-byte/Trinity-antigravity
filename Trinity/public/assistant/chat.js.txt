@@ -64,7 +64,7 @@ function renderSelfImprovement(data){
     info.append(node('b',item.title),node('small',`${item.kind} · ${item.status}`),node('p',item.description));
     card.append(info);
     if(item.plugin_id)card.append(node('small',`Modul: ${item.plugin_id}`));
-    if(item.status==='pending'&&state?.account?.role==='owner'){
+    if(item.status==='pending'&&data.can_approve===true){
       const approve=node('button','Schváliť návrh','primary');approve.type='button';
       approve.onclick=safe(async()=>{await api('/self-improvement/'+item.id+'/approve',{});await loadSettings();notice('Návrh bol schválený a zapísaný do auditu.');});
       card.append(approve);
