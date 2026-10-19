@@ -427,7 +427,7 @@ async function route(request,env,ctx){
     if(input.kind==='plugin_install'&&!PLUGINS.some(p=>p.id===input.plugin_id))throw new HttpError(404,'Modul sa nenašiel v existujúcom katalógu Trinity.');
     return json(await createSelfImprovementProposal(env,input,user.email||user.id),201);
   }
-  const selfImprovementRoute=path.match(/^\\/api\\/ops\\/self-improvement\\/([0-9a-f-]+)\\/(approve|apply)$/i);
+  const selfImprovementRoute=path.match(/^\/api\/ops\/self-improvement\/([0-9a-f-]+)\/(approve|apply)$/i);
   if(selfImprovementRoute&&request.method==='POST'){
     const id=uuid.parse(selfImprovementRoute[1]);
     if(selfImprovementRoute[2]==='approve'){
