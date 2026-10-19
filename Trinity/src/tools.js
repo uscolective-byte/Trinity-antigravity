@@ -28,6 +28,7 @@ export const TOOL_SCHEMAS={
   quantum_parallel:z.object({branches:z.array(z.object({id:z.string(),hypothesis:z.string(),amplitude:z.number().optional(),tags:z.array(z.string()).optional()})).min(1).max(10),preference:z.enum(['creative','analytical','balanced']).default('creative')}).strict(),
   quantum_fusion:z.object({agent_outputs:z.record(z.string(),z.object({content:z.string(),confidence:z.number().optional()})),weights:z.record(z.string(),z.number()).optional()}).strict(),
   quantum_deliberate:z.object({query:z.string().min(1).max(12000),session_id:z.string().max(100).optional(),bridge_check:z.boolean().optional()}).strict(),
+  quantum_accelerate:z.object({query:z.string().min(1).max(12000),context:z.record(z.string(),z.unknown()).optional()}).strict(),
   knowledge_search:z.object({query:z.string().trim().min(2).max(300)}).strict(),
   plan_work:z.object({task:z.string().trim().min(1).max(12000)}).strict(),
   ...PRACTICAL_TOOL_SCHEMAS,
@@ -376,6 +377,14 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       _evidence:{effect:'read',receipt_id:`quantum:${crypto.randomUUID()}`}
     };
   }
+  if(name==='quantum_accelerate'){
+    const { QCA } = await import('./qca.js');
+    const result = await QCA(args.query, args.context || {}, env);
+    return {
+      ...result,
+      _evidence: { effect: 'read', receipt_id: `qca:${crypto.randomUUID()}` }
+    };
+  }
   // ── PC Bridge nástroje ──
   if(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr'].includes(name)){
     const pcActionMap={
@@ -521,6 +530,7 @@ export const TOOL_HELP={
   ecosystem_synthesize:'Dynamicky syntetizuje novú schopnosť, plugin alebo aplikáciu v univerzálnom ekosystéme: {type:skill|plugin|app, name:string, domain:string, description:string, details?:object}',
   ecosystem_search:'Prehľadáva ekosystém naprieč všetkými univerzálnymi doménami a šablónami: {query?:string, domain?:string}',
   quantum_deliberate:'Spustí kvantovo-teleologické uvažovanie nad úlohou: superpozícia myšlienok (téza/antitéza), fázová interferencia a vlnový kolaps do syntézy: {query:string, session_id?:string, bridge_check?:bool}',
+  quantum_accelerate:'Spustí Quantum Cognitive Accelerator (QCA) meta-vrstvy Aura/Trinity: kompresia kontextu, 5 paralelných kvantových myšlienkových dráh, prediktívna rezonancia a samooprava: {query:string, context?:object}',
   brain_mode:'Nastaví alebo prečíta dynamický režim mozgu Trinity: {mode?:creativity|reasoning|strict|truth|autonomous}',
   brain_reflect:'Spustí self-reflection cyklus po úlohe: vyhodnotí úspechy, riziká a uloží poznatky do pamäte: {task:string, outcome:string, mode?:string}',
   brain_memory:'Spravuje neurálne pamäťové vrstvy STM, LTM, CTM a ETM: {action?:snapshot|set_ltm|get_ltm, key?:string, value?:string}',

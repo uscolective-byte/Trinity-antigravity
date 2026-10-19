@@ -1,9 +1,17 @@
-/**
- * Trinity Quantum Core Engine
- * Matematický aparát pre superpozíciu myšlienkových stavov, fázovú interferenciu a vlnový kolaps.
- */
+import { QCA } from './qca.js';
+export { QCA };
 
 export class QuantumCoreEngine {
+  /**
+   * Spustí Quantum Cognitive Accelerator (QCA) meta-vrstvy Trinity / Aura.
+   * @param {string} query
+   * @param {object} [context]
+   * @param {object} [env]
+   */
+  static async accelerate(query, context = {}, env = null) {
+    return await QCA(query, context, env);
+  }
+
   /**
    * Vypočíta interferenčný faktor medzi dvoma stavmi na základe amplitúd a fázového posunu.
    * @param {{amplitude: number, phaseAngle: number}} stateA

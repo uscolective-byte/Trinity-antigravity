@@ -10,6 +10,7 @@ import { runPracticalTool } from './practical-skills.js';
 import { QuantumCoreEngine } from './quantum_core.js';
 import { processTeleologicalPrompt } from './quantum_pipeline.js';
 import { NeuralBrain, BRAIN_MODES } from './neural_brain.js';
+import { QCA } from './qca.js';
 import {
   listDomains, getDomain, createDomain, registerDomain, updateDomain, deleteDomain,
   listDomainForSale, sellDomain, listDomainForLease, leaseDomain, endDomainLease,
@@ -1558,6 +1559,9 @@ export const quantumSkills = {
   },
   quantumErrorCorrection: (params = {}) => {
     return QuantumCoreEngine.errorCorrectionLayer(params.draft || '', params.corrections || []);
+  },
+  quantumQca: async (params = {}, env = null) => {
+    return await QCA(params.query || params.prompt || '', params.context || {}, env);
   }
 };
 
@@ -1670,7 +1674,7 @@ class SkillRegistry {
     const builtinList = Object.keys(skills).map(name => ({
       name,
       type: 'builtin',
-      category: Object.keys(coreSkills).includes(name) ? 'core' : Object.keys(integrationSkills).includes(name) ? 'integration' : Object.keys(extendedEngineeringSkills).includes(name) ? 'engineering' : Object.keys(domainSkills).includes(name) ? 'domains' : 'user'
+      category: Object.keys(coreSkills).includes(name) ? 'core' : Object.keys(integrationSkills).includes(name) ? 'integration' : Object.keys(extendedEngineeringSkills).includes(name) ? 'engineering' : Object.keys(domainSkills).includes(name) ? 'domains' : Object.keys(quantumSkills).includes(name) ? 'quantum' : 'user'
     }));
     const customList = [...this._customSkills.entries()].map(([name, item]) => ({
       name,
