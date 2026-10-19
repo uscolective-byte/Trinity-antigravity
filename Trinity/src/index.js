@@ -34,7 +34,7 @@ import {universalEcosystem,UNIVERSAL_DOMAINS,APPLICATION_TEMPLATES} from './univ
 import {runBrainCycle} from './brain.js';
 import {runEvolutionCycle} from './evolution.js';
 import {listSelfImprovementProposals,createSelfImprovementProposal,approveSelfImprovementProposal,applySelfImprovementProposal} from './self-improvement.js';
-import {listDomains,getDomain,createDomain,registerDomain,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord} from './domains.js';
+import {listDomains,getDomain,createDomain,registerDomain,checkDomainAvailability,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord} from './domains.js';
 import html from '../public/index.html';
 import appJS from '../public/app.js.txt';
 import css from '../public/style.css';
@@ -250,9 +250,23 @@ async function route(request,env,ctx){
     }
     if(request.method==='POST'){requireAdmin(user);return json({item:await createDomain(env,await readJSON(request,10000))},201);}
   }
+  if(path==='/api/assistant/domains/check'){
+    if(request.method==='GET'){
+      const dName=url.searchParams.get('domain');
+      if(!dName)throw new HttpError(400,'Parameter ?domain= je povinný.');
+      return json(await checkDomainAvailability(env,dName));
+    }
+    if(request.method==='POST'){
+      const b=await readJSON(request,1000);
+      if(!b.domain)throw new HttpError(400,'Pole domain je povinné.');
+      return json(await checkDomainAvailability(env,b.domain));
+    }
+  }
   if(path==='/api/assistant/domains/register'&&request.method==='POST'){
-    requireAdmin(user);
-    return json(await registerDomain(env,await readJSON(request,10000)),201);
+    const payload=await readJSON(request,10000);
+    if(payload.live_register)requireOwner(user);
+    else requireAdmin(user);
+    return json(await registerDomain(env,payload),201);
   }
   if(path==='/api/assistant/domains/marketplace'&&request.method==='GET'){
     return json(await getDomainMarketplace(env));

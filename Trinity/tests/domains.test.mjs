@@ -25,7 +25,8 @@ import {
   getDomainMarketplace,
   listDnsRecords,
   addDnsRecord,
-  deleteDnsRecord
+  deleteDnsRecord,
+  checkDomainAvailability
 } from '../src/domains.js';
 import { runTool } from '../src/tools.js';
 import { AGENTS } from '../src/registry.js';
@@ -562,6 +563,7 @@ test('Domain Engine: TOOL_HELP a skillRegistry obsahujú všetky doménové nás
   const { READ_TOOLS } = await import('../src/truth.js');
 
   const domainToolKeys = [
+    'domain_check',
     'domain_list',
     'domain_inspect',
     'domain_add',
@@ -582,6 +584,7 @@ test('Domain Engine: TOOL_HELP a skillRegistry obsahujú všetky doménové nás
   }
 
   // Truth Policy read tools
+  assert.ok(READ_TOOLS.has('domain_check'));
   assert.ok(READ_TOOLS.has('domain_list'));
   assert.ok(READ_TOOLS.has('domain_inspect'));
   assert.ok(READ_TOOLS.has('domain_marketplace'));
@@ -594,3 +597,98 @@ test('Domain Engine: TOOL_HELP a skillRegistry obsahujú všetky doménové nás
   assert.ok(domainSkills.some(s => s.name === 'domainSetDns'));
   assert.ok(domainSkills.some(s => s.name === 'domainSell'));
 });
+
+test('Domain Engine: Cloudflare Registrar live check a live registrácia', async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    // 1. Neúspešná konfigurácia (chýba token)
+    const noTokenEnv = { CF_ACCOUNT_ID: 'acc123' };
+    const noTokenRes = await checkDomainAvailability(noTokenEnv, 'test-domena.com');
+    assert.equal(noTokenRes.configured, false);
+    assert.equal(noTokenRes.registrable, null);
+
+    // 2. Úspešná live dostupnosť cez mockovaný fetch
+    let fetchCalledWith = null;
+    globalThis.fetch = async (url, opts) => {
+      fetchCalledWith = { url, opts };
+      if (url.includes('/registrar/domain-check')) {
+        return {
+          ok: true,
+          status: 200,
+          async json() {
+            return {
+              success: true,
+              result: {
+                domains: [
+                  {
+                    domain: 'nova-super-domena.com',
+                    registrable: true,
+                    reason: 'available',
+                    tier: 'standard',
+                    pricing: { registration_cost: 9.77, currency: 'USD' }
+                  }
+                ]
+              }
+            };
+          }
+        };
+      }
+      if (url.includes('/registrar/registrations')) {
+        return {
+          ok: true,
+          status: 200,
+          async json() {
+            return {
+              success: true,
+              result: {
+                id: 'cf-reg-workflow-999',
+                state: 'active',
+                context: {
+                  registration: {
+                    expires_at: '2028-10-19T00:00:00.000Z'
+                  }
+                }
+              }
+            };
+          }
+        };
+      }
+      return { ok: false, status: 404, async json() { return { success: false }; } };
+    };
+
+    const mockEnv = {
+      CF_ACCOUNT_ID: 'acc123',
+      CF_API_TOKEN: 'token-secret',
+      DB: createDomainMockDB()
+    };
+
+    const checkRes = await checkDomainAvailability(mockEnv, 'nova-super-domena.com');
+    assert.equal(checkRes.success, true);
+    assert.equal(checkRes.registrable, true);
+    assert.equal(checkRes.pricing?.registration_cost, 9.77);
+    assert.equal(checkRes.pricing?.currency, 'USD');
+
+    // 3. Spustenie cez runTool (domain_check)
+    const orchestrator = AGENTS.find(a => a.id === 'orchestrator');
+    const toolCheckRes = await runTool(mockEnv, orchestrator, 'domain_check', {
+      domain: 'nova-super-domena.com'
+    });
+    assert.equal(toolCheckRes.registrable, true);
+    assert.equal(toolCheckRes._evidence.effect, 'read');
+
+    // 4. Reálna live registrácia cez registerDomain
+    const liveRegRes = await registerDomain(mockEnv, {
+      domain_name: 'nova-super-domena.com',
+      years: 2,
+      live_register: true,
+      auto_renew: true
+    });
+    assert.equal(liveRegRes.domain.domain_name, 'nova-super-domena.com');
+    assert.equal(liveRegRes.domain.registrar, 'cloudflare');
+    assert.equal(liveRegRes.registration_receipt.live_registration, true);
+    assert.equal(liveRegRes.registration_receipt.cloudflare_workflow_id, 'cf-reg-workflow-999');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+

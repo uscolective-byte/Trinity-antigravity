@@ -40,7 +40,8 @@ export const domainRegistrationSchema = z.object({
   auto_renew: z.boolean().default(true),
   zone_id: z.string().trim().max(100).optional().nullable(),
   nameservers: z.array(z.string().trim().min(3).max(253)).max(10).optional().default([]),
-  notes: z.string().max(1000).optional().nullable()
+  notes: z.string().max(1000).optional().nullable(),
+  live_register: z.boolean().default(false)
 }).strict();
 
 export const domainSaleListingSchema = z.object({
@@ -159,6 +160,67 @@ function getCloudflareToken(env) {
   return env?.CLOUDFLARE_API_TOKEN || env?.CF_API_TOKEN || env?.CLOUDFLARE_TOKEN || null;
 }
 
+function getCloudflareAccountId(env) {
+  return env?.CF_ACCOUNT_ID || env?.CLOUDFLARE_ACCOUNT_ID || 'b60342e5e52f5646fbd4e913bb409334';
+}
+
+export async function checkDomainAvailability(env, rawDomain) {
+  const domain = domainNameSchema.parse(rawDomain);
+  const token = getCloudflareToken(env);
+  const accountId = getCloudflareAccountId(env);
+
+  if (!token) {
+    return {
+      domain_name: domain,
+      configured: false,
+      registrable: null,
+      message: 'Cloudflare Registrar API token (CF_API_TOKEN) nie je dostupný v prostredí.'
+    };
+  }
+
+  try {
+    const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/registrar/domain-check`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ domains: [domain] })
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      const err = (data.errors && data.errors[0]?.message) || `HTTP ${res.status}`;
+      return {
+        domain_name: domain,
+        configured: true,
+        success: false,
+        registrable: false,
+        error: err
+      };
+    }
+
+    const domainInfo = data.result?.domains?.[0] || {};
+    return {
+      domain_name: domain,
+      configured: true,
+      success: true,
+      registrable: Boolean(domainInfo.registrable),
+      reason: domainInfo.reason || (domainInfo.registrable ? 'available' : 'unavailable'),
+      tier: domainInfo.tier || 'standard',
+      pricing: domainInfo.pricing || null
+    };
+  } catch (err) {
+    return {
+      domain_name: domain,
+      configured: true,
+      success: false,
+      registrable: false,
+      error: err.message
+    };
+  }
+}
+
 export async function listDomains(env, filter = {}) {
   if (!env?.DB?.prepare) return [];
   let query = 'SELECT * FROM managed_domains';
@@ -252,7 +314,7 @@ export async function registerDomain(env, input) {
   }
 
   const now = new Date();
-  const expiresAt = new Date(now.getTime() + data.years * 365.25 * 24 * 3600 * 1000).toISOString();
+  let expiresAt = new Date(now.getTime() + data.years * 365.25 * 24 * 3600 * 1000).toISOString();
   const id = crypto.randomUUID();
   const txId = crypto.randomUUID();
   const nsJson = JSON.stringify(data.nameservers && data.nameservers.length > 0 ? data.nameservers : ['ns1.cloudflare.com', 'ns2.cloudflare.com']);
@@ -267,6 +329,58 @@ export async function registerDomain(env, input) {
     note: 'Evidencia v Trinity. Skutočnú registráciu domény ani zmenu DNS Trinity u registrátora nevykonala.'
   };
 
+  let cfRegistrationResult = null;
+  let transactionAmount = 0;
+  let transactionCurrency = 'EUR';
+
+  if (data.live_register) {
+    const token = getCloudflareToken(env);
+    const accountId = getCloudflareAccountId(env);
+    if (!token) {
+      throw new HttpError(400, 'Reálna registrácia cez Cloudflare zlyhala: CF_API_TOKEN nie je nastavený vo Workeri.');
+    }
+
+    try {
+      const cfRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/registrar/registrations`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          domain_name: data.domain_name,
+          auto_renew: data.auto_renew
+        })
+      });
+
+      const cfData = await cfRes.json().catch(() => ({}));
+      if (!cfRes.ok || !cfData.success) {
+        const errMsg = (cfData.errors && cfData.errors[0]?.message) || `HTTP ${cfRes.status}`;
+        throw new HttpError(400, `Cloudflare Registrar zamietol registráciu domény: ${errMsg}`);
+      }
+
+      cfRegistrationResult = cfData.result;
+      const regContext = cfRegistrationResult?.context?.registration || {};
+      if (regContext.expires_at) {
+        expiresAt = regContext.expires_at;
+      }
+
+      registrarReceipt = {
+        registrar: 'cloudflare',
+        registered_at: now.toISOString(),
+        expires_at: expiresAt,
+        auto_renew: data.auto_renew,
+        status: cfRegistrationResult.state || 'active',
+        live_registration: true,
+        cloudflare_workflow_id: cfRegistrationResult.id || null,
+        note: 'Reálna doména úspešne zaregistrovaná cez Cloudflare Registrar API.'
+      };
+    } catch (err) {
+      if (err instanceof HttpError) throw err;
+      throw new HttpError(502, `Komunikácia s Cloudflare Registrar zlyhala: ${err.message}`);
+    }
+  }
+
   await env.DB.batch([
     env.DB.prepare(`
       INSERT INTO managed_domains(
@@ -280,12 +394,12 @@ export async function registerDomain(env, input) {
       id,
       data.domain_name,
       data.zone_id || null,
-      data.registrar,
+      data.live_register ? 'cloudflare' : data.registrar,
       'active',
       data.auto_renew ? 1 : 0,
       expiresAt,
       nsJson,
-      data.notes || `Zaregistrovaná na ${data.years} rok(ov) cez ${data.registrar}`,
+      data.notes || (data.live_register ? 'Kúpená a registrovaná cez Cloudflare Registrar API' : `Zaregistrovaná na ${data.years} rok(ov) cez ${data.registrar}`),
       'none'
     ),
     env.DB.prepare(`
@@ -295,18 +409,18 @@ export async function registerDomain(env, input) {
       txId,
       id,
       data.domain_name,
-      'registration',
-      0,
-      'EUR',
-      data.registrar,
+      data.live_register ? 'live_registration' : 'registration',
+      transactionAmount,
+      transactionCurrency,
+      data.live_register ? 'Cloudflare Registrar' : data.registrar,
       JSON.stringify(registrarReceipt)
     ),
     env.DB.prepare("INSERT INTO ops_events(action, details) VALUES('domain_registered', ?)")
-      .bind(JSON.stringify({ id, domain_name: data.domain_name, registrar: data.registrar, years: data.years, expires_at: expiresAt }))
+      .bind(JSON.stringify({ id, domain_name: data.domain_name, registrar: data.live_register ? 'cloudflare' : data.registrar, years: data.years, expires_at: expiresAt, live_registration: Boolean(data.live_register) }))
   ]);
 
   const domain = await getDomain(env, id);
-  return { domain, registration_receipt: registrarReceipt };
+  return { domain, registration_receipt: registrarReceipt, cloudflare_result: cfRegistrationResult };
 }
 
 export async function updateDomain(env, idOrName, input) {

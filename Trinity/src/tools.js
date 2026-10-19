@@ -16,7 +16,7 @@ import {QuantumBrain} from './brain.js';
 import {processTeleologicalPrompt} from './quantum_pipeline.js';
 import {NeuralBrain, BRAIN_MODES} from './neural_brain.js';
 import {QuantumCoreEngine} from './quantum_core.js';
-import {listDomains,getDomain,createDomain,registerDomain,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord,domainInputSchema,domainRegistrationSchema,domainSaleListingSchema,domainSaleSchema,domainLeaseListingSchema,domainLeaseSchema,domainEndLeaseSchema,dnsRecordInputSchema,DNS_RECORD_TYPES,DOMAIN_STATUSES,LISTING_TYPES} from './domains.js';
+import {listDomains,getDomain,createDomain,registerDomain,checkDomainAvailability,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord,domainInputSchema,domainRegistrationSchema,domainSaleListingSchema,domainSaleSchema,domainLeaseListingSchema,domainLeaseSchema,domainEndLeaseSchema,dnsRecordInputSchema,DNS_RECORD_TYPES,DOMAIN_STATUSES,LISTING_TYPES} from './domains.js';
 
 export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status']);
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']);
@@ -61,6 +61,7 @@ export const TOOL_SCHEMAS={
     listing_type:z.enum(LISTING_TYPES).optional(),
     search:z.string().max(100).optional()
   }).strict()
+  ,domain_check:z.object({domain:z.string().trim().min(3).max(253)}).strict()
   ,domain_inspect:z.object({domain:z.string().trim().min(1).max(253)}).strict()
   ,domain_add:domainInputSchema
   ,domain_register:domainRegistrationSchema
@@ -260,6 +261,10 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   }
   if(name==='ecosystem_search'){
     return searchCatalog(args.query,args.domain);
+  }
+  if(name==='domain_check'){
+    const res=await checkDomainAvailability(env,args.domain);
+    return {...res,_evidence:{effect:'read',receipt_id:`domain:check:${crypto.randomUUID()}`}};
   }
   if(name==='domain_list'){
     const domains=await listDomains(env,args);
@@ -536,6 +541,7 @@ export const TOOL_HELP={
   brain_memory:'Spravuje neurálne pamäťové vrstvy STM, LTM, CTM a ETM: {action?:snapshot|set_ltm|get_ltm, key?:string, value?:string}',
   quantum_parallel:'Vyhodnotí 3 až 7 paralelných myšlienkových vetiev a vyberie najlepšiu: {branches:[], preference?:creative|analytical|balanced}',
   quantum_fusion:'Zjednotí výstupy špecialistov (Guardian, Sentinel, Planner, Optimizer, Analyzer) do konsenzu: {agent_outputs:{}, weights?:{}}',
+  domain_check:'Overí reálnu dostupnosť a cenu domény cez Cloudflare Registrar API: {domain:string}',
   domain_list:'Zoznam spravovaných domén v Trinity: {status?:active|pending|parked|for_sale|leased|sold|expired, listing_type?:none|sale|lease|both, search?:string}',
   domain_inspect:'Detail domény, DNS záznamy a história transakcií: {domain:string (názov alebo ID domény)}',
   domain_add:'Pridá existujúcu doménu do správy Trinity: {domain_name:string, registrar?:string, status?:active|parked|for_sale|leased, auto_renew?:boolean, notes?:string}',
