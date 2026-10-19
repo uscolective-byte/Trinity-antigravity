@@ -34,6 +34,7 @@ import {universalEcosystem,UNIVERSAL_DOMAINS,APPLICATION_TEMPLATES} from './univ
 import {runBrainCycle} from './brain.js';
 import {runEvolutionCycle} from './evolution.js';
 import {listSelfImprovementProposals,createSelfImprovementProposal,approveSelfImprovementProposal,applySelfImprovementProposal} from './self-improvement.js';
+import {listDomains,getDomain,createDomain,registerDomain,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord} from './domains.js';
 import html from '../public/index.html';
 import appJS from '../public/app.js.txt';
 import css from '../public/style.css';
@@ -237,6 +238,81 @@ async function route(request,env,ctx){
     if(request.method==='GET'&&!studioRoute[2])return json({project:await getStudioProject(env,'primary',id)});
     if(request.method==='POST'&&studioRoute[2]==='revise'){await rateLimit(env,`studio-revise:${user.id}`,8,300);return json({project:await reviseStudioProject(env,'primary',id,await readJSON(request,20000))});}
     if(request.method==='GET'&&studioRoute[2]==='export'){const project=await getStudioProject(env,'primary',id);return new Response(project.html,{headers:{'Content-Type':'text/html; charset=utf-8','Content-Disposition':`attachment; filename="${project.name.replace(/[^a-z0-9_-]+/gi,'-').slice(0,50)||'trinity-web'}.html"`}});}
+  }
+  if(path==='/api/assistant/domains'){
+    if(request.method==='GET'){
+      const filter={
+        status:url.searchParams.get('status')||undefined,
+        listing_type:url.searchParams.get('listing_type')||undefined,
+        search:url.searchParams.get('search')||undefined
+      };
+      return json({items:await listDomains(env,filter)});
+    }
+    if(request.method==='POST'){requireAdmin(user);return json({item:await createDomain(env,await readJSON(request,10000))},201);}
+  }
+  if(path==='/api/assistant/domains/register'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await registerDomain(env,await readJSON(request,10000)),201);
+  }
+  if(path==='/api/assistant/domains/marketplace'&&request.method==='GET'){
+    return json(await getDomainMarketplace(env));
+  }
+  const domainDetailRoute=path.match(/^\/api\/assistant\/domains\/([0-9a-f-]+|[a-z0-9.-]+\.[a-z]{2,})$/i);
+  if(domainDetailRoute){
+    const domainIdOrName=domainDetailRoute[1];
+    if(request.method==='GET'){
+      const item=await getDomain(env,domainIdOrName);
+      if(!item)throw new HttpError(404,'Doména nebola nájdená.');
+      const [dns_records,transactions]=await Promise.all([
+        listDnsRecords(env,item.id),
+        listDomainTransactions(env,item.id)
+      ]);
+      return json({item,dns_records,transactions});
+    }
+    if(request.method==='POST'||request.method==='PUT'){
+      requireAdmin(user);
+      return json({item:await updateDomain(env,domainIdOrName,await readJSON(request,10000))});
+    }
+    if(request.method==='DELETE'){
+      requireAdmin(user);
+      return json(await deleteDomain(env,domainIdOrName));
+    }
+  }
+  const domainSaleRoute=path.match(/^\/api\/assistant\/domains\/([0-9a-f-]+|[a-z0-9.-]+\.[a-z]{2,})\/(sale|sell)$/i);
+  if(domainSaleRoute&&request.method==='POST'){
+    requireAdmin(user);
+    const domainIdOrName=domainSaleRoute[1],action=domainSaleRoute[2];
+    const payload=await readJSON(request,10000);
+    if(action==='sale')return json({item:await listDomainForSale(env,domainIdOrName,payload)});
+    if(action==='sell')return json(await sellDomain(env,domainIdOrName,payload));
+  }
+  const domainLeaseRoute=path.match(/^\/api\/assistant\/domains\/([0-9a-f-]+|[a-z0-9.-]+\.[a-z]{2,})\/lease(?:\/(end))?$/i);
+  if(domainLeaseRoute&&request.method==='POST'){
+    requireAdmin(user);
+    const domainIdOrName=domainLeaseRoute[1],isEnd=Boolean(domainLeaseRoute[2]);
+    const payload=await readJSON(request,10000);
+    if(isEnd)return json(await endDomainLease(env,domainIdOrName,payload));
+    if(payload.tenant)return json(await leaseDomain(env,domainIdOrName,payload));
+    return json({item:await listDomainForLease(env,domainIdOrName,payload)});
+  }
+  const domainTransactionsRoute=path.match(/^\/api\/assistant\/domains\/([0-9a-f-]+|[a-z0-9.-]+\.[a-z]{2,})\/transactions$/i);
+  if(domainTransactionsRoute&&request.method==='GET'){
+    return json({items:await listDomainTransactions(env,domainTransactionsRoute[1])});
+  }
+  const domainDnsRoute=path.match(/^\/api\/assistant\/domains\/([0-9a-f-]+|[a-z0-9.-]+\.[a-z]{2,})\/dns(?:\/([0-9a-f-]+))?$/i);
+  if(domainDnsRoute){
+    const domainIdOrName=domainDnsRoute[1],recordId=domainDnsRoute[2];
+    if(request.method==='GET'&&!recordId){
+      return json({items:await listDnsRecords(env,domainIdOrName)});
+    }
+    if(request.method==='POST'&&!recordId){
+      requireAdmin(user);
+      return json({item:await addDnsRecord(env,domainIdOrName,await readJSON(request,10000))},201);
+    }
+    if(request.method==='DELETE'&&recordId){
+      requireAdmin(user);
+      return json(await deleteDnsRecord(env,domainIdOrName,recordId));
+    }
   }
   if(path==='/api/assistant/settings'&&request.method==='GET'){
     const [plugins,memory,apis,keys,portfolios,pcBridge,secrets]=await Promise.all([

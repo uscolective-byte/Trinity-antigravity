@@ -16,6 +16,7 @@ import {QuantumBrain} from './brain.js';
 import {processTeleologicalPrompt} from './quantum_pipeline.js';
 import {NeuralBrain, BRAIN_MODES} from './neural_brain.js';
 import {QuantumCoreEngine} from './quantum_core.js';
+import {listDomains,getDomain,createDomain,registerDomain,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord,domainInputSchema,domainRegistrationSchema,domainSaleListingSchema,domainSaleSchema,domainLeaseListingSchema,domainLeaseSchema,domainEndLeaseSchema,dnsRecordInputSchema,DNS_RECORD_TYPES,DOMAIN_STATUSES,LISTING_TYPES} from './domains.js';
 
 export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status']);
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']);
@@ -54,6 +55,33 @@ export const TOOL_SCHEMAS={
   ,copilot_chat:z.object({query:z.string().min(1).max(12000),session_id:z.string().max(100).optional(),provider:z.string().max(50).optional()}).strict()
   ,ecosystem_synthesize:z.object({type:z.enum(['skill','plugin','app']),name:z.string().min(1).max(100),domain:z.string().min(1).max(50),description:z.string().min(3).max(500),details:z.record(z.string(),z.unknown()).default({})}).strict()
   ,ecosystem_search:z.object({query:z.string().max(200).default(''),domain:z.string().max(50).optional()}).strict()
+  ,domain_list:z.object({
+    status:z.enum(DOMAIN_STATUSES).optional(),
+    listing_type:z.enum(LISTING_TYPES).optional(),
+    search:z.string().max(100).optional()
+  }).strict()
+  ,domain_inspect:z.object({domain:z.string().trim().min(1).max(253)}).strict()
+  ,domain_add:domainInputSchema
+  ,domain_register:domainRegistrationSchema
+  ,domain_list_for_sale:domainSaleListingSchema
+  ,domain_sell:domainSaleSchema
+  ,domain_list_for_lease:domainLeaseListingSchema
+  ,domain_lease:domainLeaseSchema
+  ,domain_end_lease:domainEndLeaseSchema
+  ,domain_marketplace:z.object({}).strict()
+  ,domain_set_dns:z.object({
+    domain:z.string().trim().min(1).max(253),
+    type:z.enum(DNS_RECORD_TYPES),
+    name:z.string().trim().min(1).max(253),
+    content:z.string().trim().min(1).max(4096),
+    ttl:z.number().int().min(1).max(86400).default(1),
+    proxied:z.boolean().default(true),
+    priority:z.number().int().min(0).max(65535).optional().nullable()
+  }).strict()
+  ,domain_delete_dns:z.object({
+    domain:z.string().trim().min(1).max(253),
+    record_id:z.string().trim().min(1).max(100)
+  }).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -231,6 +259,66 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   }
   if(name==='ecosystem_search'){
     return searchCatalog(args.query,args.domain);
+  }
+  if(name==='domain_list'){
+    const domains=await listDomains(env,args);
+    return {domains,total:domains.length,_evidence:{effect:'read',receipt_id:`domain:list:${crypto.randomUUID()}`}};
+  }
+  if(name==='domain_inspect'){
+    const domain=await getDomain(env,args.domain);
+    if(!domain)throw new Error(`Doména '${args.domain}' nebola nájdená v správe Trinity.`);
+    const [dns_records,transactions]=await Promise.all([
+      listDnsRecords(env,domain.id),
+      listDomainTransactions(env,domain.id)
+    ]);
+    return {domain,dns_records,transactions,_evidence:{effect:'read',receipt_id:`domain:inspect:${domain.id}`}};
+  }
+  if(name==='domain_add'){
+    const domain=await createDomain(env,args);
+    return {domain,ok:true,_evidence:{effect:'write',receipt_id:`domain:add:${domain.id}`}};
+  }
+  if(name==='domain_register'){
+    const res=await registerDomain(env,args);
+    return {...res,ok:true,_evidence:{effect:'write',receipt_id:`domain:register:${res.domain.id}`}};
+  }
+  if(name==='domain_list_for_sale'){
+    const domain=await listDomainForSale(env,args.domain,args);
+    return {domain,ok:true,_evidence:{effect:'write',receipt_id:`domain:sale_list:${domain.id}`}};
+  }
+  if(name==='domain_sell'){
+    const res=await sellDomain(env,args.domain,args);
+    return {...res,_evidence:{effect:'write',receipt_id:`domain:sell:${res.transaction_id}`}};
+  }
+  if(name==='domain_list_for_lease'){
+    const domain=await listDomainForLease(env,args.domain,args);
+    return {domain,ok:true,_evidence:{effect:'write',receipt_id:`domain:lease_list:${domain.id}`}};
+  }
+  if(name==='domain_lease'){
+    const res=await leaseDomain(env,args.domain,args);
+    return {...res,_evidence:{effect:'write',receipt_id:`domain:lease:${res.transaction_id}`}};
+  }
+  if(name==='domain_end_lease'){
+    const res=await endDomainLease(env,args.domain,args);
+    return {...res,_evidence:{effect:'write',receipt_id:`domain:lease_end:${res.transaction_id}`}};
+  }
+  if(name==='domain_marketplace'){
+    const marketplace=await getDomainMarketplace(env);
+    return {...marketplace,_evidence:{effect:'read',receipt_id:`domain:marketplace:${crypto.randomUUID()}`}};
+  }
+  if(name==='domain_set_dns'){
+    const record=await addDnsRecord(env,args.domain,{
+      type:args.type,
+      name:args.name,
+      content:args.content,
+      ttl:args.ttl,
+      proxied:args.proxied,
+      priority:args.priority
+    });
+    return {record,ok:true,_evidence:{effect:'write',receipt_id:`domain:dns:${record.id}`}};
+  }
+  if(name==='domain_delete_dns'){
+    const res=await deleteDnsRecord(env,args.domain,args.record_id);
+    return {...res,_evidence:{effect:'write',receipt_id:`domain:dns:del:${args.record_id}`}};
   }
   if(name==='brain_mode'){
     const brain=new NeuralBrain();

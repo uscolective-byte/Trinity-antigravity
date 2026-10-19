@@ -89,10 +89,12 @@ export function selectSkills(agent,task='') {
 
 export const AGENTS = groups.flatMap(([cluster, roles]) => roles.map(([id, name, role]) => ({
   id, name, cluster, role,
-  tools: ['knowledge_search','plan_work','search_memory','project_snapshot','calculate','analyze_text','current_time','json_tool','hash_text','convert_units','extract_entities','format_text',...PRACTICAL_TOOL_NAMES,'list_capabilities','list_skills','list_connectors','install_plugin','execute_skill','copilot_chat','ecosystem_synthesize','ecosystem_search','quantum_deliberate','brain_mode','brain_reflect','brain_memory','quantum_parallel','quantum_fusion', ...(['Výskum','Obchod a rast'].includes(cluster)||id==='orchestrator' ? ['web_search'] : []),
+  tools: ['knowledge_search','plan_work','search_memory','project_snapshot','calculate','analyze_text','current_time','json_tool','hash_text','convert_units','extract_entities','format_text',...PRACTICAL_TOOL_NAMES,'list_capabilities','list_skills','list_connectors','install_plugin','execute_skill','copilot_chat','ecosystem_synthesize','ecosystem_search','quantum_deliberate','brain_mode','brain_reflect','brain_memory','quantum_parallel','quantum_fusion','domain_list','domain_inspect','domain_marketplace', ...(['Výskum','Obchod a rast'].includes(cluster)||id==='orchestrator' ? ['web_search'] : []),
     ...(['ui','writer','orchestrator'].includes(id)?['generate_image']:[]),
     ...(['market-research','orchestrator'].includes(id)?['portfolio_summary']:[]),
     ...(['Riadenie','Cloud a prevádzka','Dáta a pamäť','Kvalita a bezpečnosť','Podpora a automatizácia'].includes(cluster) ? ['service_status'] : []),
+    ...(['Cloud a prevádzka','Riadenie'].includes(cluster)||['backend','architect','cloudflare','orchestrator'].includes(id)?['domain_add','domain_register','domain_set_dns','domain_delete_dns']:[]),
+    ...(['Obchod a rast','Riadenie'].includes(cluster)||['business-development','market-research','cloudflare','orchestrator'].includes(id)?['domain_list_for_sale','domain_sell','domain_list_for_lease','domain_lease','domain_end_lease']:[]),
     ...(id==='orchestrator'?['request_system_action','system_action_status','pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']:[]),
     ...(['backend','release','cloudflare'].includes(id)?['pc_git_commit','pc_git_pr','pc_run']:[])]
 })));
