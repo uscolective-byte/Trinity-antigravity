@@ -259,16 +259,13 @@ export async function registerDomain(env, input) {
 
   let registrarReceipt = {
     registrar: data.registrar,
-    registered_at: now.toISOString(),
+    recorded_at: now.toISOString(),
     expires_at: expiresAt,
     auto_renew: data.auto_renew,
-    status: 'registered'
+    status: 'recorded',
+    live_registration: false,
+    note: 'Evidencia v Trinity. Skutočnú registráciu domény ani zmenu DNS Trinity u registrátora nevykonala.'
   };
-
-  const token = getCloudflareToken(env);
-  if (token && data.registrar === 'cloudflare' && data.zone_id) {
-    registrarReceipt.synced_cloudflare = true;
-  }
 
   await env.DB.batch([
     env.DB.prepare(`
