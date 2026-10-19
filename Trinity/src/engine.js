@@ -7,6 +7,7 @@ import {approveSystemAction} from './system-actions.js';
 import {COMMUNICATION_STYLE,KNOWLEDGE_DIRECTIVE,REASONING_DIRECTIVE,CHATGPT_CAPABILITIES_DIRECTIVE,languageDirective} from './cognition.js';
 import {VERIFIED_ARCHITECTURE_CONTEXT} from './architecture.js';
 import {TRADING_DIRECTIVE} from './trading.js';
+import {memorySkills} from './memorySkill.js';
 export function parseAction(text) {
   const trimmed=text.trim().replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,'');
   try {const data=JSON.parse(trimmed);if(data.tool&&typeof data.tool==='string')return {tool:data.tool,arguments:data.arguments||{}};
@@ -39,6 +40,28 @@ function resolveAppTarget(task, context = '') {
 export async function runAgent(env, id, task, context='', provider='workers-ai', maxTokens=2600,language='auto',ownerMode=false) {
   const agent=agentById(id);if(!agent)throw new Error('Unknown agent');
   const executionPolicy=executionPolicyForProvider(provider,ownerMode);
+
+  // Naučenie sa nového príkazu cez !skill <cmd> = <instructions>
+  const learned = await memorySkills.learnFromChat(task, env);
+  if (learned) {
+    const text = learned.message;
+    const receipt = { tool: 'learn_command', status: 'completed', effect: 'mutation', actions: ['create_file','change'], receipt_id: `cmd:${learned.command}`, verified_at: new Date().toISOString() };
+    return { text, model: 'deterministic-memory', provider: 'internal', agent_id: id, tool_log: [receipt], truth: truthStatus(text, [receipt]), duration_ms: 0 };
+  }
+
+  // Vyhodnotenie vlastného príkazu !zoznam alebo !<cmd>
+  const customCmd = await memorySkills.resolveCustomCommand(task, env);
+  if (customCmd) {
+    if (customCmd.type === 'list') {
+      const text = customCmd.message;
+      const receipt = { tool: 'list_commands', status: 'completed', effect: 'read', receipt_id: 'cmd:list', verified_at: new Date().toISOString() };
+      return { text, model: 'deterministic-memory', provider: 'internal', agent_id: id, tool_log: [receipt], truth: truthStatus(text, [receipt]), duration_ms: 0 };
+    }
+    if (customCmd.type === 'execute') {
+      task = customCmd.expandedPrompt;
+    }
+  }
+
   const explicitApproval=task.trim().match(/^(?:SCHVÁĽ|SCHVAL|APPROVE)\s+([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i);
   if(id==='orchestrator'&&explicitApproval&&ownerMode){
     const action=await approveSystemAction(env,explicitApproval[1],'authenticated-user-command');

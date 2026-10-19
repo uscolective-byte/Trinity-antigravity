@@ -16,6 +16,8 @@ import {
   listDomainForSale, sellDomain, listDomainForLease, leaseDomain, endDomainLease,
   listDomainTransactions, getDomainMarketplace, listDnsRecords, addDnsRecord, deleteDnsRecord
 } from './domains.js';
+import { memorySkills } from './memorySkill.js';
+export { memorySkills };
 
 // In-memory cache a fallback stav circuit-breakeru
 const memoryCache = new Map();
@@ -1639,6 +1641,7 @@ export const skills = {
   ...quantumSkills,
   ...neuralBrainSkills,
   ...domainSkills,
+  ...memorySkills,
   ...chatGptSkills,
   ...userSkills
 };
@@ -1674,7 +1677,7 @@ class SkillRegistry {
     const builtinList = Object.keys(skills).map(name => ({
       name,
       type: 'builtin',
-      category: Object.keys(coreSkills).includes(name) ? 'core' : Object.keys(integrationSkills).includes(name) ? 'integration' : Object.keys(extendedEngineeringSkills).includes(name) ? 'engineering' : Object.keys(domainSkills).includes(name) ? 'domains' : Object.keys(quantumSkills).includes(name) ? 'quantum' : 'user'
+      category: Object.keys(coreSkills).includes(name) ? 'core' : Object.keys(integrationSkills).includes(name) ? 'integration' : Object.keys(extendedEngineeringSkills).includes(name) ? 'engineering' : Object.keys(domainSkills).includes(name) ? 'domains' : Object.keys(quantumSkills).includes(name) ? 'quantum' : Object.keys(memorySkills).includes(name) ? 'memory' : 'user'
     }));
     const customList = [...this._customSkills.entries()].map(([name, item]) => ({
       name,
