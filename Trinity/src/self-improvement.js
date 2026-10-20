@@ -1,5 +1,6 @@
 import {z} from 'zod';
 import {HttpError} from './security.js';
+import {prepareCodeImprovement,dispatchDeployment,githubRequest,mergeVerifiedImprovement} from './project-evolution.js';
 
 const proposalSchema = z.object({
   title: z.string().trim().min(3).max(120),
@@ -75,10 +76,25 @@ export async function applySelfImprovementProposal(env, id, actor, installPlugin
     await audit(env, 'self_improvement_rule_activated', {id, actor, title: row.title});
     return present(activated);
   }
+  if (['code_improvement','deployment'].includes(row.kind) && (env.TRINITY_GITHUB_TOKEN || env.GITHUB_TOKEN)) {
+    const previous = row.result_json ? JSON.parse(row.result_json) : null;
+    if (previous && !['failed'].includes(previous.status)) return present(row);
+    const claim = JSON.stringify({status:'preparing',started_at:new Date().toISOString()});
+    const lock = await env.DB.prepare("UPDATE self_improvement_proposals SET result_json=?,updated_at=datetime('now') WHERE id=? AND status='approved' AND coalesce(result_json,'')=? RETURNING *")
+      .bind(claim,id,row.result_json || '').first();
+    if (!lock) throw new HttpError(409,'Návrh už spracúva iný proces.');
+    try {
+      const result = row.kind === 'deployment' ? await dispatchDeployment(env) : await prepareCodeImprovement(env,row);
+      const updated = await env.DB.prepare("UPDATE self_improvement_proposals SET result_json=?,updated_at=datetime('now') WHERE id=? RETURNING *").bind(JSON.stringify(result),id).first();
+      await audit(env,'self_improvement_execution_started',{id,actor,status:result.status,url:result.url});
+      return present(updated);
+    } catch (error) {
+      await env.DB.prepare("UPDATE self_improvement_proposals SET result_json=?,updated_at=datetime('now') WHERE id=?").bind(JSON.stringify({status:'failed',error:error.message}),id).run();
+      throw error;
+    }
+  }
   if (row.kind !== 'plugin_install') {
-    throw new HttpError(409, row.kind === 'deployment'
-      ? 'Nasadenie vykonáva GitHub Actions po úspešných kontrolách; tento návrh sám nenasadzuje kód.'
-      : 'Zmena zdrojového kódu sa musí najprv vytvoriť v Git vetve a prejsť testami. Živý Worker nesmie prepisovať vlastný spustený kód.');
+    throw new HttpError(503, 'Chýba prepojenie GitHub: nastav Worker Secret TRINITY_GITHUB_TOKEN. Kódové návrhy používajú vetvu a PR, nasadenie vykonáva GitHub Actions.');
   }
   const result = await installPluginById(row.plugin_id);
   const updated = await env.DB.prepare(
@@ -124,4 +140,23 @@ export function behaviorRulesDirective(rules) {
   if (!rules?.length) return '';
   return 'NAUČENÉ ZLEPŠENIA (schválené vlastníkom, nikdy neobchádzajú bezpečnostné pravidlá ani pravdivosť): '
     + rules.map((r, i) => `${i + 1}) ${r.description}`).join(' ');
+}
+
+// A merged PR is source integration, never evidence of a successful deployment.
+export async function reconcileSelfImprovements(env) {
+  if (!(env.TRINITY_GITHUB_TOKEN || env.GITHUB_TOKEN)) return [];
+  const proposals = (await listSelfImprovementProposals(env)).filter(p=>p.status==='approved'&&p.result_json?.status==='pull_request_created').slice(0,3);
+  const results=[];
+  for (const proposal of proposals) {
+    const pr=await githubRequest(env,`/pulls/${proposal.result_json.pull_request}`);
+    if (!pr.merged_at) {
+      await mergeVerifiedImprovement(env,pr);
+      continue;
+    }
+    const receipt={...proposal.result_json,status:'merged',merge_sha:pr.merge_commit_sha,merged_at:pr.merged_at,deployed:false};
+    await env.DB.prepare("UPDATE self_improvement_proposals SET status='applied',result_json=?,updated_at=datetime('now') WHERE id=? AND status='approved'").bind(JSON.stringify(receipt),proposal.id).run();
+    await audit(env,'self_improvement_source_integrated',{id:proposal.id,merge_sha:pr.merge_commit_sha,deployed:false});
+    results.push(receipt);
+  }
+  return results;
 }

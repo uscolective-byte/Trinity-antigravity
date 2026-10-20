@@ -371,8 +371,8 @@ test('Domain Engine: Registrácia a správa domény v D1 s auditnou stopou', asy
 
   assert.ok(regRes.domain.id);
   assert.equal(regRes.domain.domain_name, 'trinity-cloud.org');
-  assert.equal(regRes.domain.status, 'active');
-  assert.ok(regRes.domain.expires_at);
+  assert.equal(regRes.domain.status, 'pending');
+  assert.equal(regRes.domain.expires_at,null);
 
   const txs = await listDomainTransactions(env, regRes.domain.id);
   assert.equal(txs.length, 1);
@@ -634,24 +634,7 @@ test('Domain Engine: Cloudflare Registrar live check a live registrácia', async
         };
       }
       if (url.includes('/registrar/registrations')) {
-        return {
-          ok: true,
-          status: 200,
-          async json() {
-            return {
-              success: true,
-              result: {
-                id: 'cf-reg-workflow-999',
-                state: 'active',
-                context: {
-                  registration: {
-                    expires_at: '2028-10-19T00:00:00.000Z'
-                  }
-                }
-              }
-            };
-          }
-        };
+        return Response.json({success:true,result:{id:'cf-reg-workflow-999',state:'succeeded',completed:true,context:{registration:{expires_at:'2027-10-20T00:00:00.000Z'}}}});
       }
       return { ok: false, status: 404, async json() { return { success: false }; } };
     };
@@ -679,7 +662,10 @@ test('Domain Engine: Cloudflare Registrar live check a live registrácia', async
     // 4. Reálna live registrácia cez registerDomain
     const liveRegRes = await registerDomain(mockEnv, {
       domain_name: 'nova-super-domena.com',
-      years: 2,
+      years: 1,
+      purchase_confirmed: true,
+      max_price: 10,
+      currency: 'USD',
       live_register: true,
       auto_renew: true
     });
@@ -692,3 +678,16 @@ test('Domain Engine: Cloudflare Registrar live check a live registrácia', async
   }
 });
 
+
+test('Live purchase requires a concrete confirmed price limit before any network mutation',async()=>{
+ const env={DB:createDomainMockDB(),CF_API_TOKEN:'test-token',CF_ACCOUNT_ID:'test-account'};
+ await assert.rejects(()=>registerDomain(env,{domain_name:'purchase.test',live_register:true}),/max_price/);
+ await assert.rejects(()=>registerDomain(env,{domain_name:'purchase.test',live_register:true,purchase_confirmed:true,max_price:10,years:2}),/1 rok/);
+});
+test('Async registration remains pending and quote failures never buy a domain',async()=>{
+ const old=globalThis.fetch;let purchases=0;const env={DB:createDomainMockDB(),CF_API_TOKEN:'test-token',CF_ACCOUNT_ID:'test-account'};
+ try{globalThis.fetch=async url=>{if(url.includes('domain-check'))return Response.json({success:true,result:{domains:[{registrable:true,pricing:{registration_cost:'9.77',currency:'USD'}}]}});purchases++;return Response.json({success:true,result:{state:'in_progress',completed:false}},{status:202});};
+ const r=await registerDomain(env,{domain_name:'purchase.test',live_register:true,purchase_confirmed:true,max_price:10});assert.equal(r.domain.status,'pending');assert.equal(r.registration_receipt.completed,false);assert.equal(r.domain.expires_at,null);assert.equal(purchases,1);
+ await assert.rejects(()=>registerDomain(env,{domain_name:'too-expensive.test',live_register:true,purchase_confirmed:true,max_price:1}),/Cena/);assert.equal(purchases,1);
+ }finally{globalThis.fetch=old;}
+});

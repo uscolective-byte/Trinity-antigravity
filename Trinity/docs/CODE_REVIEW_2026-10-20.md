@@ -32,7 +32,7 @@ Je dostupný cez admin endpoint `POST /api/copilot/skills/integrationReadiness/e
 
 Nové regresie overujú izoláciu používateľov/cache/histórie, nové request ID, odmietnutie nepovolených verejných nastavení na skutočnom Worker endpointe, nevykonanie opakovaného zápisu, admin gate, vypnutý plugin, redakciu diagnostického výsledku a Ollama-only cestu.
 
-Úvodná syntaktická kontrola 173 JS/MJS súborov identifikovala šesť súborov `Trinity/workers/downloaded/trinity-{core,skills,sentinel,dispatcher,guardian,memory}.js`, ktoré obsahujú surový multipart export namiesto samostatného JavaScriptu. Sú zachované ako zdrojové exporty; neboli automaticky nasadené ani vyhlásené za validné moduly. Ostatných 167 kontrolovaných súborov prešlo syntax kontrolou. Nové moduly prešli následným buildom a testami.
+Úvodná syntaktická kontrola 173 JS/MJS súborov identifikovala šesť súborov `Archive/cloudflare-exports/trinity-{core,skills,sentinel,dispatcher,guardian,memory}.multipart.txt`, ktoré obsahujú surový multipart export namiesto samostatného JavaScriptu. Sú zachované ako zdrojové exporty; neboli automaticky nasadené ani vyhlásené za validné moduly. Ostatných 167 kontrolovaných súborov prešlo syntax kontrolou. Nové moduly prešli následným buildom a testami.
 
 ## Zostávajúce hranice kontroly
 

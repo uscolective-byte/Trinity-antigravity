@@ -1,3 +1,7 @@
+import {scanForImprovements} from './maintenance-scan.js';
+import {inspectProject,readProjectSource} from './project-evolution.js';
+import {searchDomainNames,refreshDomainRegistration,createSubdomain,syncCloudflareDomains} from './domains.js';
+import {infrastructureStatus,hostStudioProject,listHostedSites} from './infrastructure.js';
 import {capabilityStatus} from './capability-status.js';
 import {handleKnowledge} from '../services/knowledge-api.js';
 import {z} from 'zod';
@@ -51,7 +55,7 @@ export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
 const json=(data,status=200)=>Response.json(data,{status});
 const runtimeEnvironment=(request,env)=>['localhost','127.0.0.1','::1'].includes(new URL(request.url).hostname)?'local':env.TRINITY_ENV||'local';
 const uuid=z.string().uuid();
-const MCP_READ_TOOLS=new Set(['get_capability_status','trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status','ecosystem_stats','search_ecosystem']);
+const MCP_READ_TOOLS=new Set(['trinity_control_panel','infrastructure_status','project_inspect','project_read','list_improvements','get_capability_status','trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status','ecosystem_stats','search_ecosystem']);
 function requireAdmin(user){if(!['admin','owner'].includes(user.role))throw new HttpError(403,'Táto operácia je dostupná iba správcovi Trinity.');}
 function requireOwner(user){if(user.role!=='owner')throw new HttpError(403,'Táto operácia je dostupná iba vlastníkovi Trinity.');}
 async function handleScopedMcp(request,env,ctx){
@@ -242,6 +246,18 @@ async function route(request,env,ctx){
     if(request.method==='POST'&&studioRoute[2]==='revise'){await rateLimit(env,`studio-revise:${user.id}`,8,300);return json({project:await reviseStudioProject(env,'primary',id,await readJSON(request,20000))});}
     if(request.method==='GET'&&studioRoute[2]==='export'){const project=await getStudioProject(env,'primary',id);return new Response(project.html,{headers:{'Content-Type':'text/html; charset=utf-8','Content-Disposition':`attachment; filename="${project.name.replace(/[^a-z0-9_-]+/gi,'-').slice(0,50)||'trinity-web'}.html"`}});}
   }
+  if(path==='/api/assistant/infrastructure'&&request.method==='GET'){requireAdmin(user);return json(infrastructureStatus(env));}
+  if(path==='/api/assistant/hosting'){
+    requireOwner(user);
+    if(request.method==='GET')return json({items:await listHostedSites(env)});
+    if(request.method==='POST'){await rateLimit(env,`hosting:${user.id}`,5,300);return json(await hostStudioProject(env,await readJSON(request,1000)),201);}
+  }
+  if(path==='/api/assistant/project/inspect'&&request.method==='POST'){requireAdmin(user);await rateLimit(env,`project:${user.id}`,20,300);const data=z.object({query:z.string().max(2000).default('')}).parse(await readJSON(request));return json(await inspectProject(env,data.query));}
+  if(path==='/api/assistant/project/source'&&request.method==='POST'){requireAdmin(user);const data=z.object({path:z.string().max(500),ref:z.string().regex(/^[a-f0-9]{40}$/).optional()}).parse(await readJSON(request));return json(await readProjectSource(env,data.path,data.ref));}
+  if(path==='/api/assistant/domains/search'&&request.method==='GET'){requireAdmin(user);return json(await searchDomainNames(env,url.searchParams.get('q')));}
+  if(path==='/api/assistant/domains/sync'&&request.method==='POST'){requireAdmin(user);return json(await syncCloudflareDomains(env));}
+  if(path==='/api/assistant/domains/registration-status'&&request.method==='POST'){requireAdmin(user);const data=z.object({domain:z.string()}).parse(await readJSON(request));return json(await refreshDomainRegistration(env,data.domain));}
+  if(path==='/api/assistant/domains/subdomain'&&request.method==='POST'){requireAdmin(user);return json(await createSubdomain(env,await readJSON(request)));}
   if(path==='/api/assistant/domains'){
     if(request.method==='GET'){
       const filter={
@@ -353,7 +369,7 @@ async function route(request,env,ctx){
     const reachableServices=services.filter(s=>s.status==='reachable').length;
     return json({
       os_name:'Trinity Cognitive Cloud OS',
-      kernel_version:'10.2.0-cloud-kernel',
+      kernel_version:TRINITY_VERSION+'-cloud-kernel',
       architecture:'Distributed Microservices & Neural Workers',
       environment:runtimeEnvironment(request,env),
       uptime:'continuous',
@@ -558,6 +574,9 @@ async function route(request,env,ctx){
       can_approve: user.role === 'owner',
       capabilities: {
         plugin_installation: true,
+        source_inspection: true,
+        code_changes: 'GitHub branch + PR + CI; no in-place runtime rewrite',
+        github_configured: Boolean(env.TRINITY_GITHUB_TOKEN||env.GITHUB_TOKEN),
         audited_approval: true,
         self_modifying_runtime: false,
         deployment: 'GitHub Actions: test-gated development deployment; production requires an explicit workflow approval or TRINITY_AUTO_DEPLOY_PRODUCTION=true repository variable.'
@@ -661,7 +680,7 @@ async function route(request,env,ctx){
       if(body.method==='tools/call'&&body.params?.name==='dispatch_task')await rateLimit(env,`job:${user.id}`,12);
       request=new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify(body)});
     }
-    return handleMcp(request,env,ctx);
+    return handleMcp(request,env,ctx,{projectControl:['admin','owner'].includes(user.role)});
   }
   if(path==='/api/ops/status'&&request.method==='GET'){
     const counts=await env.DB.prepare('SELECT status,COUNT(*) AS count FROM ops_jobs GROUP BY status').all();
@@ -770,6 +789,6 @@ export default {
       if(status===500)console.error(JSON.stringify({event:'request_failed',path:new URL(request.url).pathname}));
       return secure(json({error:status===500?'Interná chyba. Pozri záznamy služby.':e instanceof z.ZodError?'Neplatné údaje požiadavky.':e.message},status));}
   },
-  async scheduled(controller,env,ctx){if(isBuildOnlyPreview(env))return;ctx.waitUntil((async()=>{const summary=await runScheduledHealth(env,controller.cron);await recordHealthIncident(env,summary);await runBrainCycle(env);await runEvolutionCycle(env);})());},
+  async scheduled(controller,env,ctx){if(isBuildOnlyPreview(env))return;ctx.waitUntil((async()=>{const summary=await runScheduledHealth(env,controller.cron);await recordHealthIncident(env,summary);await runBrainCycle(env);await runEvolutionCycle(env);await scanForImprovements(env);})());},
   async email(message,env){if(isBuildOnlyPreview(env)){message.setReject('Build-only Preview does not accept email.');return;}await handleInboundEmail(message,env);}
 };

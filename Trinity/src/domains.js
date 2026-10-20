@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { HttpError } from './security.js';
+import {cloudflareRequest,cloudflareAccount} from './infrastructure.js';
 
 export const DOMAIN_STATUSES = ['active', 'parked', 'leased', 'for_sale', 'sold', 'pending', 'expired'];
 export const LISTING_TYPES = ['none', 'sale', 'lease', 'both'];
@@ -41,7 +42,10 @@ export const domainRegistrationSchema = z.object({
   zone_id: z.string().trim().max(100).optional().nullable(),
   nameservers: z.array(z.string().trim().min(3).max(253)).max(10).optional().default([]),
   notes: z.string().max(1000).optional().nullable(),
-  live_register: z.boolean().default(false)
+  live_register: z.boolean().default(false),
+  purchase_confirmed: z.boolean().default(false),
+  max_price: z.number().positive().max(100000).optional(),
+  currency: z.string().regex(/^[A-Z]{3}$/).default('USD')
 }).strict();
 
 export const domainSaleListingSchema = z.object({
@@ -181,6 +185,7 @@ export async function checkDomainAvailability(env, rawDomain) {
   try {
     const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/registrar/domain-check`, {
       method: 'POST',
+      signal: AbortSignal.timeout(20000),
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -195,7 +200,7 @@ export async function checkDomainAvailability(env, rawDomain) {
         domain_name: domain,
         configured: true,
         success: false,
-        registrable: false,
+        registrable: null,
         error: err
       };
     }
@@ -215,7 +220,7 @@ export async function checkDomainAvailability(env, rawDomain) {
       domain_name: domain,
       configured: true,
       success: false,
-      registrable: false,
+      registrable: null,
       error: err.message
     };
   }
@@ -313,73 +318,25 @@ export async function registerDomain(env, input) {
     throw new HttpError(409, `Doména '${data.domain_name}' už existuje v správe Trinity.`);
   }
 
-  const now = new Date();
-  let expiresAt = new Date(now.getTime() + data.years * 365.25 * 24 * 3600 * 1000).toISOString();
-  const id = crypto.randomUUID();
-  const txId = crypto.randomUUID();
-  const nsJson = JSON.stringify(data.nameservers && data.nameservers.length > 0 ? data.nameservers : ['ns1.cloudflare.com', 'ns2.cloudflare.com']);
-
-  let registrarReceipt = {
-    registrar: data.registrar,
-    recorded_at: now.toISOString(),
-    expires_at: expiresAt,
-    auto_renew: data.auto_renew,
-    status: 'recorded',
-    live_registration: false,
-    note: 'Evidencia v Trinity. Skutočnú registráciu domény ani zmenu DNS Trinity u registrátora nevykonala.'
-  };
-
+  const now = new Date(), id = crypto.randomUUID(), txId = crypto.randomUUID();
+  let expiresAt = null, transactionAmount = 0, transactionCurrency = data.currency;
   let cfRegistrationResult = null;
-  let transactionAmount = 0;
-  let transactionCurrency = 'EUR';
-
-  if (data.live_register) {
-    const token = getCloudflareToken(env);
-    const accountId = getCloudflareAccountId(env);
-    if (!token) {
-      throw new HttpError(400, 'Reálna registrácia cez Cloudflare zlyhala: CF_API_TOKEN nie je nastavený vo Workeri.');
-    }
-
-    try {
-      const cfRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/registrar/registrations`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          domain_name: data.domain_name,
-          auto_renew: data.auto_renew
-        })
-      });
-
-      const cfData = await cfRes.json().catch(() => ({}));
-      if (!cfRes.ok || !cfData.success) {
-        const errMsg = (cfData.errors && cfData.errors[0]?.message) || `HTTP ${cfRes.status}`;
-        throw new HttpError(400, `Cloudflare Registrar zamietol registráciu domény: ${errMsg}`);
-      }
-
-      cfRegistrationResult = cfData.result;
-      const regContext = cfRegistrationResult?.context?.registration || {};
-      if (regContext.expires_at) {
-        expiresAt = regContext.expires_at;
-      }
-
-      registrarReceipt = {
-        registrar: 'cloudflare',
-        registered_at: now.toISOString(),
-        expires_at: expiresAt,
-        auto_renew: data.auto_renew,
-        status: cfRegistrationResult.state || 'active',
-        live_registration: true,
-        cloudflare_workflow_id: cfRegistrationResult.id || null,
-        note: 'Reálna doména úspešne zaregistrovaná cez Cloudflare Registrar API.'
-      };
-    } catch (err) {
-      if (err instanceof HttpError) throw err;
-      throw new HttpError(502, `Komunikácia s Cloudflare Registrar zlyhala: ${err.message}`);
-    }
+  let registrarReceipt = {registrar:data.registrar,status:'recorded',recorded_at:now.toISOString(),live_registration:false,completed:false,note:'Iba evidencia v Trinity; doména nebola kúpená.'};
+  if(data.live_register){
+    if(!data.purchase_confirmed||!data.max_price)throw new HttpError(400,'Nákup vyžaduje potvrdenú konkrétnu doménu a max_price.');
+    if(data.years!==1)throw new HttpError(400,'Cloudflare Registrar API podporuje v tomto postupe registráciu na 1 rok.');
+    const quote=await checkDomainAvailability(env,data.domain_name);
+    const price=Number(quote.pricing?.registration_cost);
+    if(quote.success!==true||quote.registrable!==true)throw new HttpError(409,'Doménu nie je možné teraz registrovať; over dostupnosť a konfiguráciu registrátora.');
+    if(!Number.isFinite(price)||price<=0||quote.pricing?.currency!==data.currency||price>data.max_price)throw new HttpError(409,'Cena alebo mena nezodpovedá potvrdenému limitu.');
+    const response=await cloudflareRequest(env,`/accounts/${cloudflareAccount(env)}/registrar/registrations`,'POST',{domain_name:data.domain_name,auto_renew:data.auto_renew});
+    cfRegistrationResult=response.result;
+    const completed=cfRegistrationResult?.state==='succeeded'&&cfRegistrationResult?.completed===true;
+    expiresAt=completed?(cfRegistrationResult.context?.registration?.expires_at||null):null;
+    transactionAmount=price;
+    registrarReceipt={registrar:'cloudflare',recorded_at:now.toISOString(),expires_at:expiresAt,status:cfRegistrationResult?.state||'in_progress',completed,live_registration:true,cloudflare_workflow_id:cfRegistrationResult?.id||null,quoted_price:price,currency:data.currency,note:completed?'Registrátor potvrdil dokončenú registráciu.':'Registrácia bola prijatá; dokončenie treba overiť cez stav registrácie.'};
   }
+  const nsJson=JSON.stringify(data.nameservers||[]);
 
   await env.DB.batch([
     env.DB.prepare(`
@@ -395,11 +352,11 @@ export async function registerDomain(env, input) {
       data.domain_name,
       data.zone_id || null,
       data.live_register ? 'cloudflare' : data.registrar,
-      'active',
+      registrarReceipt.completed ? 'active' : 'pending',
       data.auto_renew ? 1 : 0,
       expiresAt,
       nsJson,
-      data.notes || (data.live_register ? 'Kúpená a registrovaná cez Cloudflare Registrar API' : `Zaregistrovaná na ${data.years} rok(ov) cez ${data.registrar}`),
+      data.notes || registrarReceipt.note,
       'none'
     ),
     env.DB.prepare(`
@@ -698,12 +655,13 @@ export async function addDnsRecord(env, domainIdOrName, input) {
         })
       });
       const cfJson = await cfRes.json();
+      if (!cfRes.ok || !cfJson.success || !cfJson.result?.id) throw new HttpError(502,'Cloudflare odmietol DNS záznam.');
       if (cfJson.success && cfJson.result?.id) {
         externalRecordId = cfJson.result.id;
         syncState = 'synced_with_cloudflare';
       }
     } catch {
-      syncState = 'cloudflare_api_unreachable';
+      throw new HttpError(502,'DNS záznam nebol vytvorený v Cloudflare.');
     }
   }
 
@@ -750,9 +708,10 @@ export async function deleteDnsRecord(env, domainIdOrName, recordId) {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const cfJson = await cfRes.json();
-      if (cfJson.success) syncState = 'deleted_from_cloudflare';
+      if (!cfRes.ok || !cfJson.success) throw new HttpError(502,'DNS odstránenie zlyhalo.');
+      syncState = 'deleted_from_cloudflare';
     } catch {
-      syncState = 'cloudflare_api_error';
+      throw new HttpError(502,'DNS záznam sa nepodarilo odstrániť v Cloudflare; lokálny záznam bol zachovaný.');
     }
   }
 
@@ -765,4 +724,40 @@ export async function deleteDnsRecord(env, domainIdOrName, recordId) {
   ]);
 
   return { ok: true, deleted_record_id: recordId, sync_status: syncState };
+}
+
+export async function searchDomainNames(env,query){
+  const q=z.string().trim().min(2).max(150).parse(query);
+  const response=await cloudflareRequest(env,`/accounts/${cloudflareAccount(env)}/registrar/domain-search?q=${encodeURIComponent(q)}&limit=5`);
+  return {domains:response.result?.domains||[],availability:'cached; check immediately before purchase'};
+}
+export async function refreshDomainRegistration(env,rawDomain){
+  const name=domainNameSchema.parse(rawDomain),domain=await getDomain(env,name);
+  if(!domain)throw new HttpError(404,'Doména nie je evidovaná.');
+  const response=await cloudflareRequest(env,`/accounts/${cloudflareAccount(env)}/registrar/registrations/${encodeURIComponent(name)}/registration-status`);
+  const registration=response.result,completed=registration.state==='succeeded'&&registration.completed===true;
+  if(completed){await updateDomain(env,name,{status:'active',expires_at:registration.context?.registration?.expires_at||null});}
+  await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('domain_registration_checked',?)").bind(JSON.stringify({domain_name:name,state:registration.state,completed})).run();
+  return {domain_name:name,state:registration.state,completed,error:registration.error||null};
+}
+export async function syncCloudflareDomains(env){
+  let synced=0;
+  for(let page=1;page<=20;page++){
+    const response=await cloudflareRequest(env,`/zones?account.id=${cloudflareAccount(env)}&per_page=50&page=${page}`);
+    for(const zone of response.result||[]){
+      const existing=await getDomain(env,zone.name);
+      if(existing)await updateDomain(env,existing.id,{zone_id:zone.id,nameservers:zone.name_servers||[]});
+      else await createDomain(env,{domain_name:zone.name,zone_id:zone.id,nameservers:zone.name_servers||[],status:zone.status==='active'?'active':'pending',notes:'Import DNS zóny Cloudflare; nepotvrdzuje vlastníctvo registrácie.'});
+      synced++;
+    }
+    if(page>=(response.result_info?.total_pages||1))return {synced,complete:true,scope:'Cloudflare DNS zones'};
+  }
+  return {synced,complete:false,scope:'Cloudflare DNS zones'};
+}
+export async function createSubdomain(env,input){
+  const data=z.object({domain:domainNameSchema,label:z.string().regex(/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/),target:domainNameSchema}).strict().parse(input);
+  const parent=await getDomain(env,data.domain);
+  if(!parent?.zone_id)throw new HttpError(409,'Pre vytvorenie subdomény najprv synchronizuj Cloudflare DNS zónu.');
+  if(!getCloudflareToken(env))throw new HttpError(503,'Chýba Cloudflare API token pre reálne vytvorenie subdomény.');
+  return addDnsRecord(env,parent.id,{type:'CNAME',name:data.label+'.'+parent.domain_name,content:data.target,proxied:true});
 }
