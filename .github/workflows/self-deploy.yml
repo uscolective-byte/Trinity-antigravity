@@ -62,7 +62,8 @@ jobs:
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "CF_API_TOKEN is not configured; deployment steps will be skipped."
+            echo "::error::CF_API_TOKEN is not configured; no deployment can be performed."
+            exit 1
           fi
       - name: Apply development migrations
         if: ${{ steps.credentials.outputs.available == 'true' }}
@@ -74,20 +75,14 @@ jobs:
         id: deploy
         if: ${{ steps.credentials.outputs.available == 'true' }}
         run: |
-          npx wrangler deploy --env development
+          npm run deploy:development -- --tag "$GITHUB_SHA"
           echo "deployed=true" >> "$GITHUB_OUTPUT"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
       - name: Verify development readiness
         if: ${{ steps.deploy.outputs.deployed == 'true' }}
-        run: |
-          for attempt in 1 2 3 4 5 6; do
-            if curl --fail --silent --show-error https://auru.dev/ready; then exit 0; fi
-            sleep 10
-          done
-          echo "Development Worker did not become ready; production deploy blocked."
-          exit 1
+        run: node scripts/verify-deployment.mjs https://auru.dev "$GITHUB_SHA"
 
   deploy-production:
     needs: [verify, deploy-development]
@@ -111,15 +106,9 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
       - name: Deploy production Worker
-        run: npx wrangler deploy
+        run: npm run deploy -- --tag "$GITHUB_SHA"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
       - name: Verify production readiness
-        run: |
-          for attempt in 1 2 3 4 5 6; do
-            if curl --fail --silent --show-error https://auru.space/ready; then exit 0; fi
-            sleep 10
-          done
-          echo "Production health check failed. Roll back to the previous known-good deployment."
-          exit 1
+        run: node scripts/verify-deployment.mjs https://auru.space "$GITHUB_SHA"
