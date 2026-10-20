@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readdirSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {Miniflare,convertV4MiniflareOptions} from 'miniflare';
+import {syncSharedNotes} from '../src/shared-notes.js';
 
 let mf,db;
 const key='test-only-ecosystem-secret-key-12345';
@@ -183,6 +184,20 @@ test('POST /api/copilot/chat executes reasoning and skill execution through Trin
   assert.ok(data.type);
   assert.ok(data.request_id);
   assert.ok(typeof data.duration_ms==='number');
+});
+
+test('shared cloud notes use revision checks, mirror recall and preserve tombstones',async()=>{
+ const id=crypto.randomUUID();
+ const first=await syncSharedNotes({DB:db},{changes:[{id,text:'shared local note',base_revision:0}]});
+ assert.equal(first.accepted[0].revision,1);
+ assert.equal((await db.prepare('SELECT value FROM ops_memory WHERE key=?').bind('shared/'+id).first()).value,'shared local note');
+ const conflict=await syncSharedNotes({DB:db},{changes:[{id,text:'overwrite without revision',base_revision:0}]});
+ assert.equal(conflict.conflicts[0].current.text,'shared local note');
+ const update=await syncSharedNotes({DB:db},{changes:[{id,text:'updated',base_revision:1}]});
+ assert.equal(update.accepted[0].revision,2);
+ const removed=await syncSharedNotes({DB:db},{changes:[{id,text:'updated',deleted:true,base_revision:2}]});
+ assert.equal(removed.accepted[0].deleted,true);
+ assert.equal(await db.prepare('SELECT value FROM ops_memory WHERE key=?').bind('shared/'+id).first(),null);
 });
 
 test('public Copilot options cannot select executable skills or override identity',async()=>{

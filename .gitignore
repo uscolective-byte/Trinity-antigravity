@@ -10,6 +10,9 @@ Prototypy/
 *.dpapi
 .env
 .env.*
+Local-Desktop/Data/
+Local-Desktop/runtime/
+Local-Desktop/Workspace/
 .dev.vars
 
 **/dist-integrations/

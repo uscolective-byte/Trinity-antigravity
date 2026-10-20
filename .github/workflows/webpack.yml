@@ -8,6 +8,7 @@ on:
       - 'Audit-Worker/**'
       - 'PC-Bridge-Worker/**'
       - 'Local-Gateway/**'
+      - 'Local-Desktop/**'
       - 'src/**'
       - 'tests/**'
       - 'package.json'
@@ -19,6 +20,7 @@ on:
       - 'Audit-Worker/**'
       - 'PC-Bridge-Worker/**'
       - 'Local-Gateway/**'
+      - 'Local-Desktop/**'
       - 'src/**'
       - 'tests/**'
       - 'package.json'
@@ -70,6 +72,9 @@ jobs:
 
       - name: Validate legacy root entry points against canonical sources
         run: node --test tests/*.test.mjs
+
+      - name: Validate unified local desktop and provider adapters
+        run: node --test Local-Desktop/tests/*.test.mjs
 
       - name: Validate PC Bridge Worker
         run: |
