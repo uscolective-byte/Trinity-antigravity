@@ -11,6 +11,7 @@ import {planTask} from './planner.js';
 import {memorySearchTerms,selectMemoryRecords,sanitizeMemoryRecords} from './memory-context.js';
 import {skillRegistry} from './skillRegistry.js';
 import {TrinityCopilotAgent} from './copilot-agent.js';
+import {assertCopilotSkillEnabled} from './copilot-plugins.js';
 import {synthesizeSkill, synthesizePlugin, synthesizeApp, searchCatalog} from './universal-ecosystem.js';
 import {QuantumBrain} from './brain.js';
 import {processTeleologicalPrompt} from './quantum_pipeline.js';
@@ -54,7 +55,7 @@ export const TOOL_SCHEMAS={
   ,extract_entities:z.object({text:z.string().max(50000)}).strict()
   ,format_text:z.object({text:z.string().max(20000),mode:z.enum(['lower','upper','title','slug','snake','kebab'])}).strict()
   ,execute_skill:z.object({skill:z.string().min(1).max(80),params:z.record(z.string(),z.unknown()).default({})}).strict()
-  ,copilot_chat:z.object({query:z.string().min(1).max(12000),session_id:z.string().max(100).optional(),provider:z.string().max(50).optional()}).strict()
+  ,copilot_chat:z.object({query:z.string().min(1).max(12000),session_id:z.string().max(100).optional(),provider:z.enum(['workers-ai','gemini','openai','ollama']).optional()}).strict()
   ,ecosystem_synthesize:z.object({type:z.enum(['skill','plugin','app']),name:z.string().min(1).max(100),domain:z.string().min(1).max(50),description:z.string().min(3).max(500),details:z.record(z.string(),z.unknown()).default({})}).strict()
   ,ecosystem_search:z.object({query:z.string().max(200).default(''),domain:z.string().max(50).optional()}).strict()
   ,domain_list:z.object({
@@ -133,6 +134,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(!agent.tools.includes(name)||(!TOOL_SCHEMAS[name]&&!PC_TOOLS.has(name))) throw new Error('Tool not allowed');
   if(OWNER_BUSINESS_TOOLS.has(name)&&executionContext.adminAuthorized!==true)throw new Error('Obchodné a vývojové schopnosti Trinity sú dostupné iba overenému ownerovi.');
   if(PC_TOOLS.has(name)&&executionContext.adminAuthorized!==true)throw new Error('PC nástroje sú dostupné iba v serverom overenom admin režime.');
+  if(['execute_skill','ecosystem_synthesize'].includes(name)&&executionContext.adminAuthorized!==true)throw new Error('Spúšťanie skillov a registrácia rozšírení vyžaduje serverom overeného administrátora.');
   if(!INTERNAL_TOOLS.has(name)&&name!=='install_plugin')await ensureToolEnabled(env,name);
   if(name==='request_system_action'&&input&&typeof input==='object')input={action:input.action,payload:input.payload||(typeof input.resource==='string'?{path:input.resource}:{}),rationale:input.rationale||input.reason};
   const args=PC_TOOLS.has(name)?null:TOOL_SCHEMAS[name].parse(input);
@@ -267,13 +269,15 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     return {...result,_evidence:{effect:'read',receipt_id:`portfolio:${id}`}};
   }
   if(name==='execute_skill'){
+    assertCopilotSkillEnabled(args.skill);
     const fn=skillRegistry.get(args.skill);
     if(!fn)throw new Error(`Skill '${args.skill}' nebol nájdený v registry.`);
     const result=await fn(args.params,env);
     return {skill:args.skill,ok:true,result};
   }
   if(name==='copilot_chat'){
-    return await TrinityCopilotAgent(args.query,env,{sessionId:args.session_id,provider:args.provider});
+    // Tool calls have no authenticated user identity; do not share chat history or cache.
+    return await TrinityCopilotAgent(args.query,env,{aiProvider:args.provider,noCache:true});
   }
   if(name==='ecosystem_synthesize'){
     if(args.type==='skill')return synthesizeSkill(args.name,args.domain,args.description,args.details);

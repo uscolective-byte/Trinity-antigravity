@@ -28,6 +28,8 @@ import {getWallet,transactWallet} from './wallet.js';
 import {handleInboundEmail} from './email.js';
 import {TRINITY2_CAPABILITIES,rolePermissions,requireCapability,updateRolePermission,analyzeImage,transcribeAudio,synthesizeSpeech,listVisualWorkflows,saveVisualWorkflow,listIncidents,resolveIncident,recordHealthIncident,exportAudit} from './trinity2.js';
 import {TrinityCopilotAgent} from './copilot-agent.js';
+import {copilotChatOptionsSchema} from './copilot-options.js';
+import {assertCopilotSkillEnabled} from './copilot-plugins.js';
 import {skillRegistry} from './skillRegistry.js';
 import {copilotPluginRegistry} from './copilot-plugins.js';
 import {universalEcosystem,UNIVERSAL_DOMAINS,APPLICATION_TEMPLATES} from './universal-ecosystem.js';
@@ -494,8 +496,8 @@ async function route(request,env,ctx){
   }
   if(path==='/api/copilot/chat'&&request.method==='POST'){
     await rateLimit(env,`copilot:${user.id}`,30,60);
-    const d=z.object({message:z.string().min(1).max(12000),session_id:z.string().uuid().optional(),agent:z.string().optional(),options:z.record(z.string(),z.unknown()).optional()}).strict().parse(await readJSON(request));
-    const response=await TrinityCopilotAgent(d.message,env,{userId:user.id,sessionId:d.session_id,agentName:d.agent,...d.options});
+    const d=z.object({message:z.string().min(1).max(12000),session_id:z.string().uuid().optional(),agent:z.string().max(100).optional(),options:copilotChatOptionsSchema.optional()}).strict().parse(await readJSON(request));
+    const response=await TrinityCopilotAgent(d.message,env,{...d.options,userId:user.email||user.id,sessionId:d.session_id,agentName:d.agent});
     return json(response);
   }
   if(path==='/api/copilot/plugins'&&request.method==='GET')return json({plugins:copilotPluginRegistry.list()});
@@ -513,6 +515,7 @@ async function route(request,env,ctx){
     requireAdmin(user);
     await rateLimit(env,`skill-exec:${user.id}`,20,60);
     const body=await readJSON(request);
+    assertCopilotSkillEnabled(copilotSkillExec[1]);
     const result=await skillRegistry.execute(copilotSkillExec[1],body?.input??body,env,body?.options||{});
     return json({result});
   }

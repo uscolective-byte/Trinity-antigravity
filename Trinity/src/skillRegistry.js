@@ -7,6 +7,8 @@
  */
 
 import { runPracticalTool } from './practical-skills.js';
+import {integrationReadiness} from './integration-readiness.js';
+import {assertCopilotSkillEnabled} from './copilot-plugins.js';
 import { QuantumCoreEngine } from './quantum_core.js';
 import { processTeleologicalPrompt } from './quantum_pipeline.js';
 import { NeuralBrain, BRAIN_MODES } from './neural_brain.js';
@@ -1630,6 +1632,7 @@ export const domainSkills = {
 };
 
 export const skills = {
+  integrationReadiness,
   ...coreSkills,
   ...integrationSkills,
   ...dataverseSkills,
@@ -1689,6 +1692,7 @@ class SkillRegistry {
   }
 
   async execute(name, ...args) {
+    assertCopilotSkillEnabled(name);
     const fn = this.get(name);
     if (!fn) throw new Error(`Skill '${name}' nebol nájdený v registry.`);
     return await fn(...args);

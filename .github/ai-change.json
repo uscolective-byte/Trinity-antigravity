@@ -2,7 +2,7 @@
   "generated_by": "openai-assistant",
   "reviewed": false,
   "risk": "high",
-  "component": "Audit-Worker",
-  "description": "Adds audited, allowlisted CI ingestion and repository governance infrastructure. Pending human CODEOWNER review and staging validation.",
+  "component": "Trinity/copilot",
+  "description": "Isolates Copilot chat cache and sessions, validates public options, prevents skill replay and enforces plugin execution boundaries. Adds built-in configuration diagnostics. No production deployment or credential changes.",
   "source_pr": null
 }
