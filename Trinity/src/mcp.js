@@ -14,12 +14,14 @@ import {TrinityCopilotAgent} from './copilot-agent.js';
 import {universalEcosystem} from './universal-ecosystem.js';
 import {runBrainCycle} from './brain.js';
 import {runEvolutionCycle} from './evolution.js';
+import {sharedNotesInput,syncSharedNotes} from './shared-notes.js';
 
 const result=data=>({content:[{type:'text',text:JSON.stringify(data,null,2)}]});
 
 export function handleMcp(request,env,ctx,access={}){
   return createMcpHandler(()=>{
   const server=new McpServer({name:'trinity',version:TRINITY_VERSION});
+    server.registerTool('sync_shared_notes',{description:'Synchronizuje spoločné lokálne a cloudové poznámky s revíziami; konflikt neprepíše novšiu verziu.',inputSchema:sharedNotesInput.shape},async args=>result(await syncSharedNotes(env,args)));
     const projectControlAllowed=()=>access.projectControl?Promise.resolve(true):geminiProjectControlEnabled(env,env.TRINITY_OWNER_EMAIL||'');
 
     server.registerTool('trinity_status',{description:'Overí aktuálnu pripravenosť jadra a stav registra pluginov. Netvrdí prístup k PC ani ROOT_ADMIN.',inputSchema:{}},

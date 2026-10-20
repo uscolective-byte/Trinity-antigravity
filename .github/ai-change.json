@@ -2,7 +2,7 @@
   "generated_by": "openai-assistant",
   "reviewed": false,
   "risk": "high",
-  "component": "Trinity/copilot",
-  "description": "Isolates Copilot chat cache and sessions, validates public options, prevents skill replay and enforces plugin execution boundaries. Adds built-in configuration diagnostics. No production deployment or credential changes.",
+  "component": "Trinity/hybrid",
+  "description": "Adds canonical local desktop, Gemini and Copilot adapters, local MCP, durable cloud task outbox, and revision-based shared notes. Adds D1 migration 0041 and optional Desktop Gateway executor. No live credentials or production deployment claimed.",
   "source_pr": null
 }
