@@ -185,6 +185,26 @@ test('POST /api/copilot/chat executes reasoning and skill execution through Trin
   assert.ok(typeof data.duration_ms==='number');
 });
 
+test('public Copilot options cannot select executable skills or override identity',async()=>{
+  for(const options of [{skill:'pcRunScript'},{userId:'another-owner'},{maxTokens:999999}]){
+    const response=await req('/api/copilot/chat',{message:'test public boundary',options});
+    assert.equal(response.status,400);
+  }
+});
+
+test('installed diagnostics plugin is executable and disabling it blocks the skill endpoint',async()=>{
+  const path='/api/copilot/skills/integrationReadiness/execute';
+  let response=await req(path,{input:{}});
+  assert.equal(response.status,200);
+  const data=await response.json();
+  assert.equal(data.result.live_verified,false);
+  assert.ok(data.result.items.some(item=>item.id==='gemini'));
+  const toggle='/api/copilot/plugins/integration-diagnostics/toggle';
+  assert.equal((await req(toggle,{enabled:false})).status,200);
+  try{assert.equal((await req(path,{input:{}})).status,500);}
+  finally{await req(toggle,{enabled:true});}
+});
+
 test('MCP exposes ecosystem and copilot tools for remote clients',async()=>{
   const headers={Accept:'application/json, text/event-stream'};
   
