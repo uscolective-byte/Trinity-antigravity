@@ -3,11 +3,13 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "sync": "powershell -ExecutionPolicy Bypass -File ./SYNC-BUILD.ps1 -Full -Test",
-    "build": "powershell -ExecutionPolicy Bypass -File ./SYNC-BUILD.ps1 -Full -Test",
-    "deploy": "powershell -ExecutionPolicy Bypass -File ./SYNC-BUILD.ps1 -Full -Test -Deploy",
-    "test": "npm --prefix Trinity test",
+    "sync": "node scripts/project-pipeline.mjs sync",
+    "build": "node scripts/project-pipeline.mjs build",
+    "deploy": "node scripts/project-pipeline.mjs deploy",
+    "test": "node scripts/project-pipeline.mjs test",
     "gemini:chat": "node scripts/gemini-dev-chat.mjs",
-    "inventory": "node scripts/project-inventory.mjs"
+    "inventory": "node scripts/project-inventory.mjs",
+    "setup": "node scripts/project-pipeline.mjs setup",
+    "check": "node scripts/project-pipeline.mjs check"
   }
 }

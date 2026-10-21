@@ -2,7 +2,7 @@
   "generated_by": "openai-codex",
   "reviewed": false,
   "risk": "medium",
-  "component": "Trinity/revolut-pro",
-  "description": "Owner-managed catalog of real Revolut Pro hosted payment links, public product listing and constrained checkout redirects. No sandbox, Merchant API key or D1 migration. No bank account access or automatic payment confirmation is claimed. Catalog remains empty until an actual Pro link and approved service/price are supplied.",
+  "component": "Trinity/release-sync",
+  "description": "Synchronizes the validated release: real Pro hosted-link support with an empty catalog, portable project build/check entrypoints, safe synchronization, corrected deployment verification and source/live status reporting. Local module checks passed; external credentials and live Pro payments are not claimed.",
   "source_pr": 47
 }

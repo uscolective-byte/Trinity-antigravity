@@ -1,12 +1,14 @@
 # Aktuálny stav Morhfeus / Trinity
 
-Aktualizované: 20. októbra 2026
+Aktualizované: 21. októbra 2026
+
+Aktuálne overenie zdrojov, modulov a nasadenia je v [kontrole z 21. októbra](ANALYZA-SYNCHRONIZACIA-2026-10-21.md). Nižšie uvedené staršie vydania sú historické; nenahrádzajú nové overenie v pripojenom reporte.
 
 ## Nové zdrojové vydanie 10.3.0
 
 Vylepšenia a podmienky aktivácie sú v [EVOLUTION-10.3](EVOLUTION-10.3.md).
 Počas tejto kontroly produkčný `/health` hlásil 10.2.0, deployment ID `b07fd772-142a-497c-ae76-bd71093ec971`, bez commit tagu.
-10.3.0 je pripravený zdroj, nie potvrdený produkčný deploy. Priamy deploy nemá Cloudflare token; GitHub CI pred zmenou zlyhával bez spusteného runnera.
+Historická kontrola z 20. októbra vtedy nepotvrdila nasadenie 10.3.0. Následná kontrola z 21. októbra potvrdila produkčnú 10.3.0; presné ID uvádza nový report. Priamy deploy nemá Cloudflare token; GitHub CI pred zmenou zlyhával bez spusteného runnera.
 
 Nasledujúca časť zachováva **historický stav z 18. októbra**; jej identifikátory a počty testov nie sú aktuálnou kontrolou.
 

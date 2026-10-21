@@ -9,7 +9,7 @@ export const proPaymentUrl=z.string().max(2048).url().refine(value=>{
   const u=new URL(value);
   return u.protocol==='https:'&&!u.username&&!u.password&&!u.port&&!u.hash&&u.pathname!=='/'&&['checkout.revolut.com','pay.revolut.com','revolut.me'].includes(u.hostname);
  }catch{return false;}
-},'Použi platobný HTTPS odkaz vytvorený v Revolut Pro.');
+},'Použi platobný HTTPS odkaz vytvorený v Revolut Pro.').transform(value=>new URL(value).href);
 export const proProductSchema=z.object({
  id:productId,
  name:z.string().trim().min(1).max(120),
