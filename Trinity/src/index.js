@@ -64,7 +64,7 @@ async function handleScopedMcp(request,env,ctx){
   const scope=body.method==='tools/call'&&!MCP_READ_TOOLS.has(body.params?.name)?'mcp:write':'mcp:read';
   const client=await authenticateApiKey(request,env,scope);
   if(!await pluginEnabled(env,'mcp'))throw new HttpError(503,'MCP rozšírenie je vypnuté.');
-  if(body.method==='tools/call'&&body.params?.name==='dispatch_task')await rateLimit(env,`job:api:${client.id}`,12);
+  if(body.method==='tools/call'&&['dispatch_task','create_daily_plan'].includes(body.params?.name))await rateLimit(env,`job:api:${client.id}`,12);
   const forwarded=new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify(body)});
   return handleMcp(forwarded,env,ctx,{projectControl:true});
 }
@@ -677,7 +677,7 @@ async function route(request,env,ctx){
     await rateLimit(env,`mcp:${user.id}`,60);
     if(request.method==='POST'){
       const body=await readJSON(request);
-      if(body.method==='tools/call'&&body.params?.name==='dispatch_task')await rateLimit(env,`job:${user.id}`,12);
+      if(body.method==='tools/call'&&['dispatch_task','create_daily_plan'].includes(body.params?.name))await rateLimit(env,`job:${user.id}`,12);
       request=new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify(body)});
     }
     return handleMcp(request,env,ctx,{projectControl:['admin','owner'].includes(user.role)});
