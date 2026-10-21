@@ -167,3 +167,31 @@ test('infrastructure APIs require auth and reject unconfirmed purchases',async()
  const purchase=await req('/api/assistant/domains/register',{domain_name:'unconfirmed.test',live_register:true});assert.equal(purchase.status,400);assert.match(await purchase.text(),/max_price/);
  const inventory=await req('/api/assistant/hosting');assert.equal(inventory.status,200);assert.deepEqual((await inventory.json()).items,[]);
 });
+
+
+test('daily planner MCP workflow authenticates, deduplicates, finishes and stores its artifact',async()=>{
+  const headers={Accept:'application/json, text/event-stream'};
+  const args={date:'2026-10-22',tasks:[{title:'Rozpočet',minutes:60,priority:'high'},{title:'Nákup',minutes:30}],available_minutes:75,idempotency_key:crypto.randomUUID()};
+  const body={jsonrpc:'2.0',id:11,method:'tools/call',params:{name:'create_daily_plan',arguments:args}};
+  assert.equal((await req('/mcp',body,false,headers)).status,401);
+  async function rpc(message){
+    const response=await req('/mcp',message,true,headers);const text=await response.text();
+    assert.equal(response.status,200,text);
+    const payload=response.headers.get('content-type')?.includes('text/event-stream')?JSON.parse(text.split('\n').find(line=>line.startsWith('data:')).slice(5)):JSON.parse(text);
+    assert.equal(payload.error,undefined,JSON.stringify(payload));
+    assert.ok(!payload.result.isError,JSON.stringify(payload));
+    return JSON.parse(payload.result.content[0].text);
+  }
+  const job=await rpc(body);assert.equal(job.status,'queued');
+  const duplicate=await rpc({...body,id:12});assert.equal(duplicate.id,job.id);assert.equal(duplicate.reused,true);
+  let done;
+  for(let i=0;i<100;i++){
+    done=await rpc({jsonrpc:'2.0',id:13,method:'tools/call',params:{name:'get_task',arguments:{id:job.id}}});
+    if(['completed','failed'].includes(done.status))break;
+    await new Promise(resolve=>setTimeout(resolve,200));
+  }
+  assert.equal(done.status,'completed',JSON.stringify(done));assert.equal(done.provider,'workers-ai');
+  assert.deepEqual(done.team,['planner']);assert.equal(done.result,'TEST_MODEL_RESULT');
+  const artifact=await req('/api/ops/jobs/'+job.id+'/artifact');assert.equal(artifact.status,200);
+  assert.match(await artifact.text(),/TEST_MODEL_RESULT/);
+});

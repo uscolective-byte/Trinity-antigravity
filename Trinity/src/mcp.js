@@ -6,6 +6,7 @@ import {createSelfImprovementProposal,approveSelfImprovementProposal,applySelfIm
 import {capabilityStatus} from './capability-status.js';
 import {McpServer} from '@modelcontextprotocol/server';
 import {TRINITY_VERSION,releaseMetadata} from './version.js';
+import {dailyPlanShape,createDailyPlan} from './daily-planner.js';
 import {createMcpHandler} from 'agents/mcp/server';
 import {z} from 'zod';
 import {AGENTS} from './registry.js';
@@ -46,6 +47,9 @@ export function handleMcp(request,env,ctx,access={}){
       });
 
     server.registerTool('get_capability_status',{description:'Rozlisuje konfiguraciu, spojenie s PC a skutocne doklady vykonania za poslednych 15 minut.',inputSchema:{}},async()=>result(await capabilityStatus(env)));
+
+    server.registerTool('create_daily_plan',{description:'Pripraví slovenský denný plán z dodaných úloh, bez zmien kalendára. Vyžaduje UUID idempotency_key; vrátené ID je zaradenie. Výsledok načítaj cez get_task.',inputSchema:dailyPlanShape},
+      async args=>result(await createDailyPlan(env,args)));
 
     // ── Pôvodné nástroje ──
     server.registerTool('list_agents',{description:`Zoznam ${AGENTS.length} špecialistov Trinity.`,inputSchema:{}},

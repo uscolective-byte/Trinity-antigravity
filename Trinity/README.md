@@ -120,3 +120,7 @@ npm run deploy
 Lokálna verzia 8.0.0 pridáva viacjazyčný chat s automatickým výberom jazyka, model `@cf/openai/gpt-oss-120b`, rozšírené vedecké a technické inštrukcie, väčší kontext rozhovoru, štyri bezpečné nástrojové kroky, rozšírenú matematiku a skutočné generovanie obrázkov cez Workers AI + R2. Video a hudba zostávajú pravdivo označené ako nepripojené, kým nebude nakonfigurovaný a živým testom overený vhodný generátor. Táto verzia nie je produkčná, kým neprejde nasadením a živým overením.
 
 Aktuálny Cloudflare Version ID: `e1999413-7972-46fd-ab30-4dce85a3a9d2`.
+
+## Denný plánovač a Microsoft Copilot
+
+Lokálny MCP nástroj `create_daily_plan` pripravuje plán z úloh a časového rozpočtu cez existujúci workflow. [Inštrukcie, Copilot Studio a úplný testovací postup](DAILY-PLANNER.md) rozlišujú lokálne testy od živých integrácií. Táto zmena zatiaľ nie je nasadená.
