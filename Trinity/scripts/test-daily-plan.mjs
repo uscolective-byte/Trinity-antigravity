@@ -11,7 +11,7 @@ const key=input.idempotency_key||crypto.randomUUID();
 console.log('Idempotency key:',key);
 let sequence=0;
 async function rpc(method,params){
-  const response=await fetch(endpoint,{method:'POST',redirect:'error',signal:AbortSignal.timeout(30000),headers:{'Content-Type':'application/json',Accept:'application/json, text/event-stream','X-Trinity-Token':token},body:JSON.stringify({jsonrpc:'2.0',id:++sequence,method,params})});
+  const response=await fetch(endpoint,{method:'POST',redirect:'error',signal:AbortSignal.timeout(30000),headers:{'Content-Type':'application/json',Accept:'application/json, text/event-stream','X-Trinity-API-Key':token},body:JSON.stringify({jsonrpc:'2.0',id:++sequence,method,params})});
   if(!response.ok)throw new Error(`MCP HTTP ${response.status}`);
   const text=await response.text();
   const messages=response.headers.get('content-type')?.includes('text/event-stream')

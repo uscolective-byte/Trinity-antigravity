@@ -41,12 +41,12 @@ Microsoft dokumentuje [pripojenie existujúceho MCP servera](https://learn.micro
 Použi Tools → Add a tool → New tool → Model Context Protocol. Zadaj názov
 Trinity Daily Planner a po nasadení URL `https://auru.dev/mcp` (alebo staging).
 Transport musí byť Streamable HTTP. Pre API key autentifikáciu vyber Header
-s názvom `X-Trinity-Token`; hodnotu vlož iba do zabezpečeného pripojenia.
+s názvom `X-Trinity-API-Key`; hodnotu vlož iba do zabezpečeného pripojenia.
 
-Toto je **Trinity prístupový token**, nie OpenAI/Gemini kľúč. Aktuálny server
-prijíma legacy owner token len mimo Google-only režimu. Generované invoke API
-kľúče Trinity pre `/api/public/...` neoprávňujú prístup k `/mcp`. Pri Google-only
-režime nemožno tento postup dokončiť bez samostatnej podporovanej autentifikácie.
+Toto je **Trinity MCP API kľúč**, nie OpenAI/Gemini kľúč. V aktuálnej Trinity
+10.3 vytvor súkromný kľúč s rozsahmi mcp:read a mcp:write. Prvý umožní discovery
+a get_task, druhý create_daily_plan. Kľúč iba s api:invoke nestačí.
+Kľúč poskytuje aj ďalšie MCP oprávnenia; nie je obmedzený iba na plánovač.
 
 Server sprístupňuje aj existujúce administrátorské nástroje a zdieľané údaje.
 Použi iba súkromného agenta vlastníka v dôveryhodnom prostredí. V Copilot Studio
@@ -94,7 +94,7 @@ npm ci
 npm test
 ```
 
-87 testov prešlo vrátane nového testu celého MCP workflow. Miniflare používa
+285 testov prešlo po synchronizácii s Trinity 10.3 vrátane nového testu celého MCP workflow. Miniflare používa
 skutočné lokálne D1/R2/Workflow, ale **simulovaný model**. Test kontroluje aj
 401 bez autorizácie, deduplikáciu, načítanie dokončeného výsledku a obsah
 artefaktu. Jednotkové testy kontrolujú hranice vstupov a výber Gemini.
