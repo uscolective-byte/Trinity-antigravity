@@ -1,106 +1,87 @@
-# Revolut: príjem platieb za služby Trinity
+# Trinity a skutočné platby cez Revolut Pro
 
-Toto je prvý backendový krok pre jednorazové platby. Nie je to mechanizmus na
-zaručený zárobok. Predaj potrebuje konkrétny produkt/službu, cenu a zákazníkov.
-Aktuálna implementácia nevytvára verejný obchod, neodosiela zákazníkom správy,
-neprideľuje automaticky prístup a neposkytuje nástroje na prevody ani výbery.
+Táto integrácia je určená pre potvrdený Revolut Pro účet. Používa skutočné
+platobné odkazy vytvorené vlastníkom v aplikácii Revolut Pro. Nemá sandbox,
+virtuálny zostatok ani Merchant API kľúč. Peniaze spracúva Revolut na vlastnej
+platobnej stránke, nie Trinity.
 
-Revolut účet zatiaľ nie je pripojený. Typ účtu, predávaný produkt ani živé ceny
-neboli potvrdené. Všetky vykonané testy používajú simulované Revolut odpovede.
+[Revolut Pro podporuje Payment Links](https://help.revolut.com/en-PL/help/more/revolut-pro/accepting-customer-payments/accepting-payments-with-pro/).
+Odkaz vytvor v sekcii Pro pre konkrétnu službu a dohodnutú sumu. Skontroluj,
+či je jednorazový alebo opakovateľný, jeho platnosť a príjemcu. Nepoužívaj
+odkaz na prihlásenie ani prihlasovacie údaje.
 
-## Podporovaná cesta
+## Čo už robí kód
 
-Automatizované prijímanie platieb využíva Revolut Business s Merchant účtom:
-[Revolut Merchant – Get started](https://developer.revolut.com/docs/guides/merchant/get-started).
-Revolut Pro má vybrané produkty na prijímanie platieb v aplikácii; jeho možnosti
-nemožno automaticky považovať za totožné s Merchant API. Osobný účet sa touto
-implementáciou nepripája. Pre Pro treba najprv potvrdiť dostupné možnosti účtu.
+- Vlastník nastaví názov, popis, EUR cenu a verejný Pro platobný odkaz.
+- Zákazník dostane stabilný odkaz `/pay/revolut-pro/ID` na doméne Trinity.
+- Server presmeruje iba na uloženú HTTPS adresu s presne povoleným Revolut hostom.
+- Neaktívne, expirované alebo neexistujúce ponuky vracajú 404.
+- Klient nemôže zmeniť príjemcu, cieľ odkazu ani uloženú cenu požiadavkou.
+- Bežný používateľ nemôže meniť konfiguráciu. Prístup k účtu sa mu neudeľuje.
 
-Server vytvorí objednávku a vráti platobný odkaz, na ktorom zákazník zaplatí
-priamo Revolutu. Stav overuje serverovým GET objednávky, nie návratom z prehliadača:
-[Hosted Checkout API](https://developer.revolut.com/docs/guides/merchant/accept-payments/online-payments/hosted-checkout-page/api).
-API kontrakt je pripnutý na `2026-08-17` podľa [Merchant API](https://developer.revolut.com/docs/api/merchant).
+Syntaktická kontrola adresy nedokazuje príjemcu, režim Pro, cenu na stránke
+Revolutu ani jej aktuálnu platnosť. Vlastník to musí overiť v aplikácii.
+Trinity neprepisuje sumu ani referenciu v Revolut odkaze; zobrazená cena musí
+zodpovedať skutočne nastavenému odkazu. Opakovateľnosť jedného odkazu môže
+obmedziť iba Revolut a vlastník; otvorenie odkazu ho v Trinity nespotrebuje.
 
 ## Konfigurácia
 
-Predvolene `REVOLUT_MODE=sandbox`. Testovací produkt `sandbox-test` má 100 centov
-EUR a výslovne označuje test bez skutočného predaja. Živé príjmy z neho nevznikajú.
-Serverové tajomstvá sa nevracajú v odpovediach a nevkladajú sa do promptov.
+Predvolený katalóg `config/revolut-pro-products.json` je prázdny, pretože zatiaľ
+nebol dodaný skutočný odkaz ani schválená služba/cena. To nie je testovací režim:
+bez cieľa platby sa jednoducho žiadne presmerovanie nezapne.
 
-| Nastavenie | Význam |
+Poradie konfigurácie:
+
+1. Uložený katalóg v existujúcom KV Mastermind.
+2. Premenná REVOLUT_PRO_PRODUCTS_JSON.
+3. Verziovaný verejný katalóg config/revolut-pro-products.json.
+
+Katalóg obsahuje objekt products s najviac 20 produktmi. Každý produkt má
+id, name, description, amount_cents, currency=EUR, payment_url, active a voliteľný
+expires_at. Cena je v celých centoch, od 100 do 1 000 000. Žiadne tajné údaje
+ani bankové prihlasovanie do katalógu nepatria. Sú to verejné predajné ponuky.
+
+| Rozhranie | Oprávnenie a účel |
 | --- | --- |
-| REVOLUT_SANDBOX_SECRET_KEY | Merchant Secret key zo samostatného sandbox účtu |
-| REVOLUT_MODE | sandbox alebo production |
-| REVOLUT_MERCHANT_SECRET_KEY | Produkčný Merchant Secret key |
-| REVOLUT_LIVE_PAYMENTS_ENABLED | Presne true je potrebné pri production |
-| REVOLUT_PRODUCTS_JSON | Serverový cenník: pole produktov s id, name, amount_cents, currency |
+| GET /api/assistant/revolut/status | Iba owner; konfigurácia a uložené odkazy |
+| POST /api/assistant/revolut/pro/products | Iba owner; nahradí celý katalóg v KV |
+| GET /api/payments/revolut-pro | Verejný zoznam aktívnych ponúk a ich checkout_path |
+| GET /pay/revolut-pro/:id | Verejné presmerovanie zákazníka na uložený Pro odkaz |
 
-Príklad formátu cenníka (ukážka, nie schválená živá cena):
+Príklad dátového formátu, bez vymysleného platobného cieľa:
 
 ```json
-[{"id":"sample-service","name":"Ukážková služba","amount_cents":1000,"currency":"EUR"}]
+{"products":[]}
 ```
 
-Produkčný cenník nemá predvolené produkty. Podporované sú jednorazové EUR
-objednávky v rozmedzí 100–1 000 000 centov. Klient nemôže prepísať cenu ani menu.
-Sandbox kľúč sa nikdy nepoužíva pre produkčné API a naopak. Prítomnosť kľúča
-v konfigurácii ešte nedokazuje jeho platnosť ani schválenie Merchant účtu.
+POST vlastníka vyžaduje existujúcu reláciu owner. Bežná relácia, samotná admin
+rola a MCP invoke kľúč nové finančné oprávnenie nedostávajú. KV aktualizácia
+ukladá owner_id a čas do interných metadát. Verejné rozhranie ich nevracia.
+KV môže mať oneskorenú propagáciu; presmerovania sa preto neukladajú do HTTP cache.
 
-## API dostupné iba vlastníkovi
+## Príjmy a potvrdenie platby
 
-Všetky cesty vyžadujú existujúcu autentifikovanú owner reláciu Trinity. Bežní
-používatelia, samotní administrátori bez owner roly a MCP invoke kľúče nedostávajú
-nové platobné oprávnenia. Nepridávajú sa finančné nástroje do verejného chatu/MCP.
+Otvorenie odkazu ani návrat z Revolutu neznamenajú prijatie platby. Táto cesta
+nemá doložené automatické overenie Pro transakcií. Stav je preto vždy
+payment_status=not_checked a automatic_payment_verification=false. Ani
+configured=true neznamená pripojený bankový účet alebo prijatú platbu.
 
-| Cesta | Význam |
-| --- | --- |
-| GET /api/assistant/revolut/status | Režim, dostupnosť konfigurácie a cenník; nie živý test účtu |
-| POST /api/assistant/revolut/checkouts | Vytvorenie objednávky z product_id a idempotency_key UUID |
-| GET /api/assistant/revolut/payments/:id | Posledný lokálny stav |
-| POST /api/assistant/revolut/payments/:id/refresh | Načítanie a kontrola stavu z Revolutu |
-
-Objednávka sa zapíše do samostatnej tabuľky ops_revolut_payments. Existujúca
-sandbox peňaženka sa nemení a nikdy sa nepovažuje za bankový zostatok.
-`real_money` znamená režim produkčného procesora, nie potvrdenie platby.
-`payment_confirmed` znamená iba overený stav completed s outstanding_amount=0.
-Nie je to potvrdenie vyplatenia na bankový účet, čistý zisk ani ochrana proti
-neskoršiemu refundu/chargebacku. Refundovaná suma sa uvádza samostatne.
-
-## Duplicity, výpadky a overenie
-
-Použi rovnaké idempotency_key pri opakovaní tej istej objednávky. Jedinečnosť
-owner+mode+key a INSERT pred externou požiadavkou bránia duplicitnému vytvoreniu
-aj pri súbežných požiadavkách. Zmena produktu pod rovnakým kľúčom vráti konflikt.
-Revolut create-order sa automaticky neopakuje a nespolieha sa na nepodloženú
-podporu Idempotency-Key hlavičky na tomto endpointe.
-
-Po strate odpovede je stav create_unknown. Po prerušení procesu môže zostať
-creating. V oboch prípadoch sa požiadavka znovu neodosiela; vlastník musí dohľadať
-objednávku v Revolute podľa metadata.trinity_payment_id. Ak sa ID stihlo uložiť,
-refresh overí jej stav. Bez vzdialeného ID je potrebná ručná rekonciliácia.
-Nedávaj tomu istému neistému nákupu nové UUID.
-
-Overuje sa ID objednávky, typ payment, suma, mena a refundovaná suma. Zamietnutý
-alebo chybný response nezaloží potvrdenie úhrady. Povolené checkout hosty sú
-obmedzené; HTTP presmerovania API sú zakázané. Odmietnutý checkout odkaz sa nevráti,
-ale vzdialené ID zostáva uložené na kontrolu. Webhooky a automatické plnenie nie
-sú súčasťou tejto etapy; stav môže byť zastaraný, pokiaľ sa nespustí refresh.
+Vlastník overuje príjem v Revolut Pro. Automatické sprístupnenie platenej služby,
+predplatné, refundy, prevody, výbery a automatická účtovná evidencia nie sú
+súčasťou tejto etapy. Existujúca simulovaná peňaženka Trinity sa nemení a
+nepovažuje sa za evidenciu skutočných príjmov. Samotná platobná integrácia
+nezabezpečuje zákazníkov ani zisk.
 
 ## Overenie a nasadenie
 
-```bash
-npm test
-```
+`npm test` kontroluje validačné pravidlá, neaktívne a expirované produkty,
+presmerovanie len na uloženú adresu, zachovanie stavu not_checked a zákaz zmien
+bežným používateľom. Adresy v testoch sú iba syntetické fixture údaje; produkčný
+katalóg žiadnu takú adresu neobsahuje.
 
-Testy používajú lokálne D1 a simulovaný Revolut. Pokrývajú aj súbeh, stratu
-odpovede, cudzí owner záznam, nesprávnu sumu/menu/typ, nesprávny checkout host,
-produkčný režim bez aktivácie a zamietnutie bežného používateľa na API.
-
-Pred nasadením treba aplikovať migráciu 0042_revolut_payments.sql do príslušnej
-D1 po zálohe. Samotný Cloudflare Workers Build D1 migrácie automaticky neaplikuje.
-Odporúčaný postup je izolovaný sandbox účet → sandbox kľúč → test checkoutu
-s testovacou kartou → refresh a kontrola sumy → až potom živá konfigurácia so
-schváleným produktom a cenou. Živé platby zatiaľ nie sú zapnuté.
-
-Rollback kódu môže ponechať tabuľku na audit. Nemaž existujúce platobné záznamy
-ani neopakuj neurčité objednávky počas návratu verzie.
+Pôvodný návrh Merchant API a jeho nová D1 migrácia boli odstránené. Pro cesta
+používa existujúce KV a nevyžaduje novú migráciu ani bankový API kľúč. Pred živým
+použitím treba dostať skutočný Pro odkaz a názov služby s cenou, uložiť ich do
+katalógu a overiť zhodu údajov na stránke Revolutu. Pri zastavení predaja nastav
+active=false alebo odstráň produkt; tým sa nevykonáva refund už prijatých platieb.

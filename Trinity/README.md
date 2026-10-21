@@ -125,6 +125,6 @@ Aktuálny Cloudflare Version ID: `e1999413-7972-46fd-ab30-4dce85a3a9d2`.
 
 Lokálny MCP nástroj `create_daily_plan` pripravuje plán z úloh a časového rozpočtu cez existujúci workflow. [Inštrukcie, Copilot Studio a úplný testovací postup](DAILY-PLANNER.md) rozlišujú lokálne testy od živých integrácií. Táto zmena zatiaľ nie je nasadená.
 
-## Revolut – príprava prijímania platieb
+## Revolut Pro – platobné odkazy
 
-[Revolut backend a testovací postup](REVOLUT.md) pridáva owner-only checkout a overenie objednávok v samostatnej evidencii. Predvolene sandbox, bez pripojeného účtu a bez živých platieb. Vyžaduje novú D1 migráciu; táto etapa ešte nie je nasadená.
+[Integrácia skutočných Revolut Pro platobných odkazov](REVOLUT.md) používa owner-only katalóg a verejné presmerovanie zákazníka na uložený odkaz. Bez Merchant API kľúča a bez novej D1 migrácie. Katalóg čaká na skutočný Pro odkaz, službu a cenu; automatické potvrdenie úhrad nie je pripojené.

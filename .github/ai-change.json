@@ -1,8 +1,8 @@
 {
   "generated_by": "openai-codex",
   "reviewed": false,
-  "risk": "high",
-  "component": "Trinity/revolut",
-  "description": "Owner-only Revolut Merchant checkout and payment verification backend. Defaults to sandbox; production requires separate key, explicit activation and server-side products. Adds isolated D1 payment records and tests for duplicates, unknown outcomes and access control. No live credentials, payments or revenue are claimed.",
-  "source_pr": null
+  "risk": "medium",
+  "component": "Trinity/revolut-pro",
+  "description": "Owner-managed catalog of real Revolut Pro hosted payment links, public product listing and constrained checkout redirects. No sandbox, Merchant API key or D1 migration. No bank account access or automatic payment confirmation is claimed. Catalog remains empty until an actual Pro link and approved service/price are supplied.",
+  "source_pr": 47
 }
