@@ -1,3 +1,4 @@
+import {revolutStatus,createRevolutCheckout,getRevolutPayment} from './revolut.js';
 import {scanForImprovements} from './maintenance-scan.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
 import {searchDomainNames,refreshDomainRegistration,createSubdomain,syncCloudflareDomains} from './domains.js';
@@ -436,6 +437,19 @@ async function route(request,env,ctx){
   if(path==='/api/assistant/ai-providers'&&request.method==='GET'){requireAdmin(user);return json(await listAIProviders(env,ownerId));}
   const aiProviderRoute=path.match(/^\/api\/assistant\/ai-providers\/(gemini)$/);
   if(aiProviderRoute&&request.method==='POST'){requireAdmin(user);return json({item:await configureAIProvider(env,ownerId,aiProviderRoute[1],await readJSON(request,8000))});}
+  if(path==='/api/assistant/revolut/status'&&request.method==='GET'){requireOwner(user);return json(revolutStatus(env));}
+  if(path==='/api/assistant/revolut/checkouts'&&request.method==='POST'){
+    requireOwner(user);await rateLimit(env,`revolut-create:${user.id}`,10,300);
+    return json(await createRevolutCheckout(env,ownerId,await readJSON(request,4000)),201);
+  }
+  const revolutPayment=path.match(/^\/api\/assistant\/revolut\/payments\/([0-9a-f-]+)(\/refresh)?$/i);
+  if(revolutPayment){
+    requireOwner(user);
+    if(request.method===(revolutPayment[2]?'POST':'GET')){
+      await rateLimit(env,`revolut-read:${user.id}`,30,300);
+      return json(await getRevolutPayment(env,ownerId,uuid.parse(revolutPayment[1]),!!revolutPayment[2]));
+    }
+  }
   if(path==='/api/assistant/wallet'){
     requireAdmin(user);
     if(request.method==='GET')return json(await getWallet(env,ownerId));

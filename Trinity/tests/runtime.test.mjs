@@ -1,3 +1,4 @@
+import {issueSession} from '../src/security.js';
 import {PLUGINS} from '../src/plugins.js';
 import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
@@ -194,4 +195,17 @@ test('daily planner MCP workflow authenticates, deduplicates, finishes and store
   assert.deepEqual(done.team,['planner']);assert.equal(done.result,'TEST_MODEL_RESULT');
   const artifact=await req('/api/ops/jobs/'+job.id+'/artifact');assert.equal(artifact.status,200);
   assert.match(await artifact.text(),/TEST_MODEL_RESULT/);
+});
+
+
+test('Revolut routes require the owner and stay unconfigured without Merchant credentials',async()=>{
+  assert.equal((await req('/api/assistant/revolut/status',undefined,false)).status,401);
+  const session=await issueSession({DB:db},Date.now()+60000,'ordinary-user@example.test');
+  const cookie=session.headers.get('set-cookie').split(';')[0];
+  assert.equal((await req('/api/assistant/revolut/status',undefined,false,{Cookie:cookie})).status,403);
+  assert.equal((await req('/api/assistant/revolut/checkouts',{product_id:'sandbox-test',idempotency_key:crypto.randomUUID()},false,{Cookie:cookie})).status,403);
+  const status=await req('/api/assistant/revolut/status');assert.equal(status.status,200);
+  const data=await status.json();assert.equal(data.mode,'sandbox');assert.equal(data.configured,false);assert.equal(data.live_enabled,false);
+  assert.equal((await req('/api/assistant/revolut/checkouts',{product_id:'sandbox-test',idempotency_key:crypto.randomUUID()})).status,503);
+  assert.equal((await req('/api/assistant/revolut/checkouts',{product_id:'sandbox-test',amount_cents:1,idempotency_key:crypto.randomUUID()})).status,400);
 });
