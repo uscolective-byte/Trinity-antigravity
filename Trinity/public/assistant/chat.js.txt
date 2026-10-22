@@ -1212,9 +1212,19 @@ async function loadCommodityChart(symbol = currentChartSymbol, timeframe = curre
     cachedChartData = data;
 
     const titleEl = $('chart-active-title');
-    if (titleEl) titleEl.textContent = `${data.symbol} · ${data.name}`;
+    if (titleEl) titleEl.textContent = `${data.symbol} · ${data.name}${data.available === false ? ' (Bez overeného zdroja)' : ''}`;
 
     const fmt = v => new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' }).format(Number(v || 0));
+
+    if (data.available === false) {
+      if ($('term-price')) $('term-price').textContent = '—';
+      if ($('term-change')) {
+        $('term-change').textContent = data.reason || 'Bez overeného zdroja';
+        $('term-change').className = '';
+      }
+      renderOrderBook(null, 0);
+      return;
+    }
 
     if ($('term-price')) $('term-price').textContent = fmt(data.current_price);
     if ($('term-change')) {
@@ -1224,13 +1234,13 @@ async function loadCommodityChart(symbol = currentChartSymbol, timeframe = curre
     }
     if ($('term-high')) $('term-high').textContent = fmt(data.high_24h);
     if ($('term-low')) $('term-low').textContent = fmt(data.low_24h);
-    if ($('term-rsi')) $('term-rsi').textContent = String(data.rsi_14 || 50);
+    if ($('term-rsi')) $('term-rsi').textContent = String(data.technical_indicators?.rsi_14 ?? data.rsi_14 ?? '—');
     if ($('term-macd')) {
-      const macd = (data.macd_signal || 'neutral').toUpperCase();
+      const macd = (data.technical_indicators?.macd || data.macd_signal || 'NEUTRAL').toUpperCase();
       $('term-macd').textContent = macd;
       $('term-macd').className = macd.includes('BULL') ? 'up' : macd.includes('BEAR') ? 'down' : '';
     }
-    if ($('term-spread')) $('term-spread').textContent = `${data.spread_pct || 0.08}%`;
+    if ($('term-spread')) $('term-spread').textContent = data.source ? 'Overené (Yahoo/ECB)' : 'Reálne burzové dáta';
 
     const buyBtn = $('term-buy-btn');
     if (buyBtn) buyBtn.textContent = `🟢 Kúpiť / Long (${(data.symbol || '').split('-')[0]})`;
@@ -1413,10 +1423,17 @@ function renderOrderBook(ob, currentPrice) {
   const fmt = v => new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' }).format(Number(v || 0));
 
   if ($('ob-mid-val')) $('ob-mid-val').textContent = fmt(currentPrice);
-  if ($('ob-spread-badge')) $('ob-spread-badge').textContent = `Spread: ${ob?.spread_pct ? ob.spread_pct + '%' : '0.08%'}`;
+  if ($('ob-spread-badge')) $('ob-spread-badge').textContent = ob?.spread_pct ? `Spread: ${ob.spread_pct}%` : 'Reálne burzové dáta';
 
   const asks = (ob?.asks || []).slice(0, 5);
   const bids = (ob?.bids || []).slice(0, 5);
+
+  if (!asks.length && !bids.length) {
+    asksEl.replaceChildren();
+    bidsEl.replaceChildren(node('div', 'Hĺbka trhu vyžaduje Level-2 burzové API; Trinity nezobrazuje vymyslené objednávky.', 'subtext'));
+    return;
+  }
+
   const maxTotal = Math.max(...asks.map(a => a.total || 0), ...bids.map(b => b.total || 0), 1);
 
   asksEl.replaceChildren();
@@ -1427,7 +1444,7 @@ function renderOrderBook(ob, currentPrice) {
     bar.style.background = 'rgba(239,68,68,0.18)';
     const pSpan = node('span', fmt(a.price));
     pSpan.style.color = '#ef4444';
-    const aSpan = node('span', String(a.amount));
+    const aSpan = node('span', String(a.qty || a.amount || ''));
     row.append(bar, pSpan, aSpan);
     asksEl.append(row);
   });
@@ -1440,7 +1457,7 @@ function renderOrderBook(ob, currentPrice) {
     bar.style.background = 'rgba(16,185,129,0.18)';
     const pSpan = node('span', fmt(b.price));
     pSpan.style.color = '#10b981';
-    const aSpan = node('span', String(b.amount));
+    const aSpan = node('span', String(b.qty || b.amount || ''));
     row.append(bar, pSpan, aSpan);
     bidsEl.append(row);
   });

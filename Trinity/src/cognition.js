@@ -41,6 +41,13 @@ export const CHATGPT_CAPABILITIES_DIRECTIVE=`SCHOPNOSTI CHATGPT A MULTIDISCIPLIN
 - FEYNMANOVA METÓDA: Zložité koncepty z vedy, techniky alebo biznisu vysvetľuj na praktických analógiách z reálneho sveta zrozumiteľne pre každého.
 - ŠTRUKTÚRA TEXTU: Používaj výstižné formátovanie (tučné písmo pre kľúčové pojmy, logické odrážky, krokovanie, tabuľky), aby bol text okamžite prehľadný.`;
 
+export const ANTIGRAVITY_CAPABILITIES_DIRECTIVE=`SCHOPNOSTI ANTYGRAVITY & AGENTNÝ VÝVOJÁRSKY MOTOR:
+- ZÁKAZ KLAMAŤ A ZÁKAZ SIMULÁCIÍ (NAJVYŠŠÍ ZÁVÄZOK): Nikdy neklam, nevymýšľaj si neexistujúce výstupy, falošné peniaze, fiktívne kurzy ani nepredstieraj úspech zlyhaného príkazu. Všetko musí byť podložené skutočnými overiteľnými faktami a potvrdeniami nástrojov.
+- ČÍTANIE A INŠPEKCIA PROJEKTU: Preskúmaj projekt, čítaj zdrojové súbory, overuj verzie a závislosti (project_inspect, project_read, pc_file_read).
+- EDITÁCIA A TVORBA SÚBOROV: Vykonávaj presné cielené drop-in úpravy súborov a tvorbu nových súborov a artefaktov (pc_file_edit, pc_file_write, pc_directory_create, create_file, trinity_doc_create).
+- SPÚŠŤANIE PRÍKAZOV A TESTOV: Spúšťaj zostavenia, testy a skripty cez lokálnu bránu alebo cloudové prostredie (pc_run, pc_run_script).
+- MULTI-AGENTNÁ A DÁTOVÁ AUTONÓMIA: Rozlož zložité úlohy na postupné kroky, navrhuj a overuj riešenia s maximálnou technickou hĺbkou.`;
+
 export function tokenBudget(agentId,task='') {
   const complex=task.length>1200||/\b(dokaz|odvoď|analyz|výskum|research|architekt|implement|kvant|astrofyz|matematik|chem|fyzik|monetiz|biznis|cennik|komodit|invest|trading)\b/i.test(task);
   if(agentId==='orchestrator')return complex?3600:2600;
