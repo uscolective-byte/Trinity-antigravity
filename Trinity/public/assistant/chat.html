@@ -304,6 +304,9 @@
         <button type="button" class="subnav-btn active" data-comm-tab="market">📊 Trh & Pozície (22 komodít)</button>
         <button type="button" class="subnav-btn" data-comm-tab="banks">🏦 Napojenie na Banky & Brokerov <span id="comm-bank-count-pill" class="subnav-pill">0</span></button>
         <button type="button" class="subnav-btn" data-comm-tab="autopilot">🤖 Autopilot & Obchodný príkaz</button>
+        <button type="button" class="subnav-btn" data-comm-tab="alerts">🔔 Smart Alerty</button>
+        <button type="button" class="subnav-btn" data-comm-tab="invoices">🧾 SEPA Faktúry & QR</button>
+        <button type="button" class="subnav-btn" data-comm-tab="networth">📈 Čistý Majetok (Net Worth)</button>
         <div class="subnav-actions">
           <button type="button" id="commodity-sync-live-btn" class="primary">↻ Synchronizovať živé trhové ceny (ECB / Spot)</button>
           <button type="button" id="commodity-save-report-btn">📚 Uložiť analýzu do Dokumentov</button>
@@ -502,6 +505,95 @@
               <button type="button" id="commodity-refresh-btn">↻ Obnoviť dáta</button>
             </div>
           </form>
+        </section>
+      </div>
+
+      <!-- PILLAR 3: SMART ALERTS, SEPA INVOICE QR & NET WORTH DASHBOARD -->
+      <div id="comm-pane-alerts" class="comm-tab-pane" hidden>
+        <section class="panel domain-env-panel">
+          <div class="panel-head">
+            <div><span class="eyebrow">TECHNICKÁ ANALÝZA & CENOVÉ HLADINY</span><h2>Smart Alerty na Zlato, Ropu, Bitcoin a Komodity</h2></div>
+            <span id="comm-alerts-badge" class="detail-chip">ALERTY AKTÍVNE</span>
+          </div>
+          <p class="settings-help">Nastav si automatické upozornenia cez Telegram alebo Chat, keď komodity ako zlato (XAU), ropa (Brent) alebo Bitcoin (BTC) pretnú kľúčové hladiny podpory (Support) alebo rezistencie (Resistance).</p>
+          
+          <form id="commodity-alert-form" class="secret-form commerce-form">
+            <strong>1. Nastaviť Cenový Smart Alert</strong>
+            <div class="commerce-form-grid">
+              <label><span>Komodita / Aktívum</span><select id="comm-alert-symbol" required><option value="XAU-EUR">Zlato · XAU-EUR</option><option value="BRENT-USD">Ropa Brent · BRENT-USD</option><option value="BTC-EUR">Bitcoin · BTC-EUR</option><option value="XAG-EUR">Striebro · XAG-EUR</option><option value="COPPER-USD">Meď · COPPER-USD</option><option value="URAN-USD">Urán · URAN-USD</option><option value="WHEAT-EUR">Pšenica · WHEAT-EUR</option></select></label>
+              <label><span>Podmienka pre výstrahu</span><select id="comm-alert-condition"><option value="above">Cena vystúpi NAD cieľovú hodnotu</option><option value="below">Cena klesne POD cieľovú hodnotu</option><option value="cross_support">Preťatie úrovne podpory (Support)</option><option value="cross_resistance">Prerazenie rezistencie (Resistance)</option></select></label>
+              <label><span>Cieľová cena v EUR</span><input id="comm-alert-price" type="number" step="0.01" min="0.01" value="2650" required></label>
+              <label><span>Kanál notifikácie</span><select id="comm-alert-channel"><option value="telegram">Telegram Bot Alert</option><option value="chat">Trinity Chat</option><option value="all">Všetky kanály</option></select></label>
+            </div>
+            <div style="margin:8px 0;font-size:12px;color:var(--text-muted,#94a3b8)">
+              Vypočítané technické hladiny pre vybrané aktívum: Podpora: <b id="comm-calc-support" style="color:#4ade80">—</b> · Rezistencia: <b id="comm-calc-resistance" style="color:#f87171">—</b>
+            </div>
+            <div class="commerce-form-actions">
+              <button class="primary" type="submit">🔔 Uložiť Cenový Smart Alert</button>
+              <button type="button" id="comm-alerts-check-now-btn">⌕ Preveriť hladiny & Odoslať Telegram</button>
+            </div>
+          </form>
+
+          <div class="commerce-catalog-head" style="margin-top:16px">
+            <strong>Aktívne Cenové Alerty</strong>
+          </div>
+          <div id="commodity-alerts-list" class="api-key-list"></div>
+        </section>
+      </div>
+
+      <div id="comm-pane-invoices" class="comm-tab-pane" hidden>
+        <section class="panel domain-env-panel">
+          <div class="panel-head">
+            <div><span class="eyebrow">INSTANT INVOICING & SEPA PAYMENTS</span><h2>Automatizovaný SEPA EPC QR Generátor Faktúr</h2></div>
+            <span class="detail-chip">EPC QR STANDARD</span>
+          </div>
+          <p class="settings-help">Priamo z prostredia vygeneruj faktúru s funkčným európskym SEPA EPC QR kódom (Pay by square / EPC). Klient v akejkoľvek slovenskej alebo EÚ bankovej aplikácii iba naskenuje QR kód a okamžite zaplatí so správnym variabilným symbolom.</p>
+
+          <form id="invoice-generator-form" class="secret-form commerce-form">
+            <strong>1. Vystaviť Novú SEPA Faktúru</strong>
+            <div class="commerce-form-grid">
+              <label><span>Meno / Názov odberateľa</span><input id="inv-client-name" required placeholder="napr. Peter Novák / Tech Solutions s.r.o."></label>
+              <label><span>E-mail odberateľa (voliteľné)</span><input id="inv-client-email" type="email" placeholder="klient@firma.sk"></label>
+              <label><span>Suma v EUR</span><input id="inv-amount" type="number" min="0.01" step="0.01" value="490" required></label>
+              <label><span>Popis dodanej služby / domény</span><input id="inv-desc" required placeholder="napr. Nákup domény a nastavenie hostingu" value="Tvorba webstránky na kľúč"></label>
+              <label class="full-span"><span>IBAN účtu pre úhradu</span><input id="inv-iban" placeholder="napr. SK3111000000002949000000" value="SK3111000000002949000000"></label>
+            </div>
+            <div class="commerce-form-actions">
+              <button class="primary" type="submit" id="inv-submit-btn">🧾 Vygenerovať Faktúru & SEPA EPC QR Kód</button>
+            </div>
+          </form>
+
+          <div id="invoice-preview-stage" class="domain-detail-card" style="margin-top:16px" hidden>
+            <div class="dialog-head"><strong id="invoice-preview-title">Náhľad vygenerovanej faktúry</strong><button type="button" id="invoice-preview-close">✕</button></div>
+            <div id="invoice-preview-body"></div>
+          </div>
+
+          <div class="commerce-catalog-head" style="margin-top:16px">
+            <strong>História Vystavených Faktúr</strong>
+          </div>
+          <div id="invoices-history-list" class="api-key-list"></div>
+        </section>
+      </div>
+
+      <div id="comm-pane-networth" class="comm-tab-pane" hidden>
+        <section class="panel domain-env-panel">
+          <div class="panel-head">
+            <div><span class="eyebrow">PORTFOLIO INTELLIGENCE & AGGREGATION</span><h2>Agregovaný Finančný Dashboard · Čistý Majetok (Net Worth)</h2></div>
+            <button id="networth-refresh-btn" type="button" class="primary">↻ Prepočítať Net Worth</button>
+          </div>
+          <p class="settings-help">Kompletný prehľad tvojho finančného ekosystému v čase: kombinuje likviditu na bankových účtoch (Revolut, Fio, Peňaženka), hodnotu otvorených pozícií (Zlato, Ropa, Krypto) a trhovú hodnotu vlastnených domén.</p>
+
+          <div class="metric-grid domain-metrics tabular-metrics" style="margin:16px 0">
+            <article class="metric purple"><span>CELKOVÝ ČISTÝ MAJETOK</span><strong id="nw-total">— €</strong><small>kombinované aktíva</small></article>
+            <article class="metric teal"><span>BANKOVÁ LIKVIDITA</span><strong id="nw-cash">— €</strong><small>Revolut / Fio / Peňaženka</small></article>
+            <article class="metric gold"><span>TRADING & KOMODITY</span><strong id="nw-trading">— €</strong><small id="nw-positions-detail">0 pozícií</small></article>
+            <article class="metric blue"><span>DOMÉNOVÉ PORTFÓLIO</span><strong id="nw-domains">— €</strong><small id="nw-domains-detail">0 domén</small></article>
+          </div>
+
+          <div class="panel graph-canvas-card" style="padding:20px;border-radius:12px;background:rgba(0,0,0,0.25);margin-top:16px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:#38bdf8">Vývoj Čistého Majetku v Čase (Net Worth Trend)</div>
+            <svg id="nw-chart-svg" style="width:100%;height:160px;display:block"></svg>
+          </div>
         </section>
       </div>
     </section>

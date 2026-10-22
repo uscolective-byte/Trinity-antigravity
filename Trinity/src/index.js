@@ -39,6 +39,7 @@ import {getGraphVisualization,syncGraphFromEcosystem,queryGraphContext} from './
 import {auditHtmlQuality,recordStudioReview,reviewRequestSchema} from './studio-review.js';
 import {handleVoiceDialogue} from './voice-agent.js';
 import {generateEscrowLandingHtml,createEscrowDeal,settleEscrowDeal,getTelegramConfig,saveTelegramConfig,checkDomainsAndSslHealth,listDomainAlerts,cloneDomainEnvironment} from './domain-desk-advanced.js';
+import {createPriceAlert,listPriceAlerts,checkPriceAlerts,generateInvoiceWithSepaQr,listGeneratedInvoices,getAggregatedNetWorth} from './banking-commodity-advanced.js';
 import {createPortfolio,listPortfolios,getPortfolio,recordTrade,setQuote} from './trading.js';
 import {getWallet,transactWallet} from './wallet.js';
 import {getWalletTerminalOverview,saveWalletTerminalConfig,createPaymentTerminalCharge,executeWalletPayout,createCryptoWallet,cancelWalletPayout} from './wallet-terminals.js';
@@ -950,6 +951,29 @@ async function route(request,env,ctx){
   }
   if(path==='/api/assistant/commodities/chart'&&request.method==='GET'){
     return json(await getCommodityChart(env,url.searchParams.get('symbol')||'XAU-EUR',url.searchParams.get('timeframe')||'1D'));
+  }
+  if(path==='/api/assistant/commodities/alerts'&&request.method==='GET'){
+    return json(await listPriceAlerts(env));
+  }
+  if(path==='/api/assistant/commodities/alerts'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,10000);
+    return json(await createPriceAlert(env,user.email||user.id,body),201);
+  }
+  if(path==='/api/assistant/commodities/alerts/check'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await checkPriceAlerts(env,{notify:true}));
+  }
+  if(path==='/api/assistant/wallet/invoices'&&request.method==='GET'){
+    return json(await listGeneratedInvoices(env));
+  }
+  if(path==='/api/assistant/wallet/invoices'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,10000);
+    return json(await generateInvoiceWithSepaQr(env,user.email||user.id,body),201);
+  }
+  if(path==='/api/assistant/wallet/net-worth'&&request.method==='GET'){
+    return json(await getAggregatedNetWorth(env,user.email||user.id));
   }
   if(path==='/api/assistant/integrations/status'&&request.method==='GET'){
     return json({items:await listAllIntegrations(env)});

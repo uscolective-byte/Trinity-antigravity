@@ -928,10 +928,13 @@ let commoditySectorFilter='all',cachedCommodityDesk=null;
 
 function switchCommodityTab(tabId){
   document.querySelectorAll('[data-comm-tab]').forEach(b=>b.classList.toggle('active',b.dataset.commTab===tabId));
-  ['market','banks','autopilot'].forEach(id=>{
+  ['market','banks','autopilot','alerts','invoices','networth'].forEach(id=>{
     const pane=$('comm-pane-'+id);
     if(pane)pane.hidden=id!==tabId;
   });
+  if(tabId==='alerts')loadPriceAlerts();
+  if(tabId==='invoices')loadInvoicesList();
+  if(tabId==='networth')loadNetWorth();
 }
 document.querySelectorAll('[data-comm-tab]').forEach(btn=>btn.addEventListener('click',()=>switchCommodityTab(btn.dataset.commTab)));
 
@@ -2806,6 +2809,240 @@ $('domain-clone-form')?.addEventListener('submit', safe(async (e) => {
     btn.disabled = false;
     btn.textContent = '🧬 Naklonovať prostredie & Vytvoriť A/B Test';
   }
+}));
+
+// ==========================================
+// PILLAR 3: SMART PRICE ALERTS, SEPA INVOICES & NET WORTH
+// ==========================================
+
+async function loadPriceAlerts() {
+  const list = $('commodity-alerts-list');
+  if (!list) return;
+  try {
+    const data = await api('/commodities/alerts');
+    const alerts = data.alerts || [];
+    list.replaceChildren();
+    if (!alerts.length) {
+      list.append(node('p', 'Zatiaľ nie sú nastavené žiadne cenové alerty. Nastav prvý alert vyššie.', 'skeleton'));
+      return;
+    }
+    for (const a of alerts) {
+      const card = node('article', undefined, 'api-key-item');
+      const info = node('div');
+      info.append(
+        node('b', `${a.symbol} · ${a.condition.toUpperCase()} ${a.target_price} EUR`),
+        node('small', `Stav: ${a.status} · Aktuálna cena: ${a.current_price || '—'} € · Podpora: ${a.support_level || '—'} € · Rezistencia: ${a.resistance_level || '—'} € · Kanál: ${a.notify_channel}`)
+      );
+      card.append(info);
+      list.append(card);
+    }
+    updateCalcSupportResistance();
+  } catch (err) {
+    list.replaceChildren(node('p', 'Chyba načítania alertov: ' + err.message, 'skeleton'));
+  }
+}
+
+function updateCalcSupportResistance() {
+  const sym = $('comm-alert-symbol')?.value || 'XAU-EUR';
+  const baselinePrices = {
+    'XAU-EUR': 2645,
+    'BRENT-USD': 74.2,
+    'BTC-EUR': 64250,
+    'XAG-EUR': 31.8,
+    'COPPER-USD': 8920,
+    'URAN-USD': 81.5,
+    'WHEAT-EUR': 218
+  };
+  const price = baselinePrices[sym] || 100;
+  const s = Math.round(price * 0.96 * 100) / 100;
+  const r = Math.round(price * 1.04 * 100) / 100;
+  if ($('comm-calc-support')) $('comm-calc-support').textContent = `${s} EUR`;
+  if ($('comm-calc-resistance')) $('comm-calc-resistance').textContent = `${r} EUR`;
+}
+
+$('comm-alert-symbol')?.addEventListener('change', updateCalcSupportResistance);
+
+$('commodity-alert-form')?.addEventListener('submit', safe(async (e) => {
+  e.preventDefault();
+  const symbol = $('comm-alert-symbol').value;
+  const condition = $('comm-alert-condition').value;
+  const targetPrice = parseFloat($('comm-alert-price').value);
+  const notifyChannel = $('comm-alert-channel').value;
+
+  notice('Ukladám cenový smart alert…');
+  await api('/commodities/alerts', {
+    symbol,
+    condition,
+    target_price: targetPrice,
+    notify_channel: notifyChannel
+  });
+  notice(`Cenový alert pre ${symbol} (${condition} ${targetPrice} €) bol aktivovaný.`);
+  await loadPriceAlerts();
+}));
+
+$('comm-alerts-check-now-btn')?.addEventListener('click', safe(async () => {
+  notice('Preverujem spotové ceny voči hladinám podpory a rezistencie…');
+  const res = await api('/commodities/alerts/check', {});
+  notice(`Kontrola dokončená: overených ${res.total_active} alertov, aktivovaných ${res.triggered_count} hladín.`);
+  await loadPriceAlerts();
+}));
+
+async function loadInvoicesList() {
+  const list = $('invoices-history-list');
+  if (!list) return;
+  try {
+    const data = await api('/wallet/invoices');
+    const invoices = data.invoices || [];
+    list.replaceChildren();
+    if (!invoices.length) {
+      list.append(node('p', 'Zatiaľ neboli vystavené žiadne faktúry. Vyplň formulár vyššie pre vygenerovanie prvej.', 'skeleton'));
+      return;
+    }
+    for (const inv of invoices) {
+      const card = node('article', undefined, 'api-key-item');
+      const info = node('div');
+      info.append(
+        node('b', `Faktúra ${inv.invoice_number} · ${inv.amount_eur} EUR · ${inv.client_name}`),
+        node('small', `VS: ${inv.variable_symbol} · IBAN: ${inv.iban} · Položka: ${inv.item_description} · Stav: ${inv.status}`)
+      );
+      card.append(info);
+      list.append(card);
+    }
+  } catch (err) {
+    list.replaceChildren(node('p', 'Chyba načítania faktúr: ' + err.message, 'skeleton'));
+  }
+}
+
+$('invoice-generator-form')?.addEventListener('submit', safe(async (e) => {
+  e.preventDefault();
+  const clientName = $('inv-client-name').value.trim();
+  const clientEmail = $('inv-client-email').value.trim();
+  const amountEur = parseFloat($('inv-amount').value);
+  const itemDesc = $('inv-desc').value.trim();
+  const iban = $('inv-iban').value.trim();
+
+  notice('Generujem SEPA EPC QR faktúru…');
+  const res = await api('/wallet/invoices', {
+    client_name: clientName,
+    client_email: clientEmail || undefined,
+    amount_eur: amountEur,
+    item_description: itemDesc,
+    iban: iban || undefined
+  });
+
+  const stage = $('invoice-preview-stage');
+  const body = $('invoice-preview-body');
+  if (stage && body) {
+    stage.hidden = false;
+    body.innerHTML = `
+      <div style="background:rgba(255,255,255,0.03);padding:16px;border-radius:12px;display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+        <div style="background:#fff;padding:8px;border-radius:8px">${res.qr_svg}</div>
+        <div style="flex:1;min-width:240px;font-size:13px;line-height:1.7">
+          <b style="font-size:16px;color:#38bdf8">Faktúra ${res.invoice_number} vystavená</b><br>
+          Odberateľ: <b>${clientName}</b><br>
+          Suma: <b>${res.amount_eur.toFixed(2)} EUR</b><br>
+          Variabilný symbol: <b>${res.variable_symbol}</b><br>
+          IBAN: <b>${res.iban}</b> (SWIFT: ${res.bic})<br>
+          <div style="margin-top:10px">
+            <button type="button" class="primary" onclick="openInvoicePrint('${res.invoice_id}')">🖨️ Zobraziť a tlačiť celú faktúru</button>
+          </div>
+        </div>
+      </div>
+    `;
+    window._lastInvoiceHtml = res.html_invoice;
+  }
+  notice(`Faktúra ${res.invoice_number} so SEPA EPC QR bola úspešne vystavená.`);
+  await loadInvoicesList();
+}));
+
+function openInvoicePrint(invId) {
+  if (window._lastInvoiceHtml) {
+    const blob = new Blob([window._lastInvoiceHtml], { type: 'text/html; charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  }
+}
+
+$('invoice-preview-close')?.addEventListener('click', () => {
+  if ($('invoice-preview-stage')) $('invoice-preview-stage').hidden = true;
+});
+
+async function loadNetWorth() {
+  try {
+    const data = await api('/wallet/net-worth');
+    if ($('nw-total')) $('nw-total').textContent = `${data.total_net_worth_eur.toLocaleString('sk-SK')} €`;
+    if ($('nw-cash')) $('nw-cash').textContent = `${data.breakdown.liquid_cash_eur.toLocaleString('sk-SK')} €`;
+    if ($('nw-trading')) $('nw-trading').textContent = `${data.breakdown.trading_equity_eur.toLocaleString('sk-SK')} €`;
+    if ($('nw-positions-detail')) $('nw-positions-detail').textContent = `${data.counts.open_positions_count} otvorených pozícií (${data.breakdown.open_positions_eur.toLocaleString('sk-SK')} €)`;
+    if ($('nw-domains')) $('nw-domains').textContent = `${data.breakdown.domain_portfolio_eur.toLocaleString('sk-SK')} €`;
+    if ($('nw-domains-detail')) $('nw-domains-detail').textContent = `${data.counts.domains_count} evidovaných domén`;
+
+    renderNetWorthChart(data.history || []);
+  } catch (err) {
+    notice('Chyba načítania čistého majetku: ' + err.message);
+  }
+}
+
+function renderNetWorthChart(history) {
+  const svg = $('nw-chart-svg');
+  if (!svg || !history.length) return;
+  svg.innerHTML = '';
+
+  const width = svg.clientWidth || 700;
+  const height = svg.clientHeight || 160;
+  const padding = 28;
+
+  const values = history.map(h => h.net_worth);
+  const min = Math.min(...values) * 0.95;
+  const max = Math.max(...values) * 1.05;
+
+  const points = history.map((h, i) => {
+    const x = padding + (i / Math.max(1, history.length - 1)) * (width - 2 * padding);
+    const y = height - padding - ((h.net_worth - min) / Math.max(1, max - min)) * (height - 2 * padding);
+    return { x, y, val: h.net_worth, label: h.date };
+  });
+
+  const pathD = points.map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`)).join(' ');
+
+  // Draw area
+  const areaD = `${pathD} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
+  const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  area.setAttribute('d', areaD);
+  area.setAttribute('fill', 'rgba(56, 189, 248, 0.12)');
+  svg.appendChild(area);
+
+  // Draw line
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  line.setAttribute('d', pathD);
+  line.setAttribute('fill', 'none');
+  line.setAttribute('stroke', '#38bdf8');
+  line.setAttribute('stroke-width', '2.5');
+  svg.appendChild(line);
+
+  // Draw dots and labels
+  points.forEach(p => {
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', p.x);
+    circle.setAttribute('cy', p.y);
+    circle.setAttribute('r', '4');
+    circle.setAttribute('fill', '#38bdf8');
+    svg.appendChild(circle);
+
+    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txt.setAttribute('x', p.x);
+    txt.setAttribute('y', height - 6);
+    txt.setAttribute('fill', '#94a3b8');
+    txt.setAttribute('font-size', '10');
+    txt.setAttribute('text-anchor', 'middle');
+    txt.textContent = p.label;
+    svg.appendChild(txt);
+  });
+}
+
+$('networth-refresh-btn')?.addEventListener('click', safe(async () => {
+  notice('Prepočítavam agregovaný čistý majetok…');
+  await loadNetWorth();
+  notice('Čistý majetok bol úspešne prepočítaný.');
 }));
 
 
