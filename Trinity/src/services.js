@@ -264,13 +264,19 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||0,output:data.usage?.completion_tokens||0}};
   }
 
-  if(provider!=='workers-ai') throw new Error('Unknown provider');
-  const model=customModel || env.AI_MODEL || '@cf/openai/gpt-oss-120b';
-  let timer,result;
-  try {result=await Promise.race([env.AI.run(model,{messages,max_tokens:maxTokens,temperature:0.25}),
-    new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),65000);})]);}
-  finally {clearTimeout(timer);}
-  const text=extractModelText(result);
-  if(!text.trim()) throw new Error('Workers AI vrátilo prázdnu odpoveď.');
-  return {text,model,provider,usage:result.usage||null};
+  if(['deepseek-r1','llama','qwen','workers-ai'].includes(provider)){
+    const defaultModel=provider==='deepseek-r1'?'@cf/deepseek-ai/deepseek-r1-distill-qwen-32b'
+      :provider==='llama'?'@cf/meta/llama-3.3-70b-instruct'
+      :provider==='qwen'?'@cf/qwen/qwen2.5-72b-instruct'
+      :(env.AI_MODEL || '@cf/openai/gpt-oss-120b');
+    const model=customModel || defaultModel;
+    let timer,result;
+    try {result=await Promise.race([env.AI.run(model,{messages,max_tokens:maxTokens,temperature:0.25}),
+      new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),65000);})]);}
+    finally {clearTimeout(timer);}
+    const text=extractModelText(result);
+    if(!text.trim()) throw new Error('Workers AI vrátilo prázdnu odpoveď.');
+    return {text,model,provider:'workers-ai',usage:result.usage||null};
+  }
+  throw new Error('Unknown provider');
 }
