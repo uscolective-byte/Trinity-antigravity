@@ -8,6 +8,7 @@
     <button data-view="projects"><span>▦</span><b data-i18n="projects">Projekty</b></button>
     <button data-view="domains"><span>◈</span><b>Domény a hosting</b></button>
     <button data-view="commodities"><span>📈</span><b>Komodity & Banky</b></button>
+    <button data-view="wallet"><span>💳</span><b>Peňaženka & Terminály</b></button>
     <button data-view="documents"><span>📚</span><b>Dokumentácia & Help</b></button>
     <button id="memory-nav"><span>◇</span><b data-i18n="memoryPlain">Pamäť</b></button>
     <button data-view="settings"><span>⚙</span><b data-i18n="settings">Nastavenia</b></button>
@@ -397,6 +398,143 @@
               <button type="button" id="commodity-refresh-btn">↻ Obnoviť dáta</button>
             </div>
           </form>
+        </section>
+      </div>
+    </section>
+
+    <section id="wallet-view" class="view wallet-view" hidden>
+      <div class="section-intro">
+        <span class="eyebrow">FINANČNÉ CENTRUM TRINITY · PLATOBNÉ TERMINÁLY & PEŇAŽENKA</span>
+        <h1>Peňaženka, POS Terminály & Výbery Peňazí</h1>
+        <p>Skutočná správa zostatkov, platobné terminály na prijímanie platieb (SEPA Instant EPC QR, Revolut Pay, PayPal, Web3 krypto) a okamžité výbery peňazí na váš osobný bankový účet.</p>
+      </div>
+
+      <div class="metric-grid domain-metrics tabular-metrics">
+        <article class="metric blue">
+          <span>CELKOVÝ ZOSTATOK</span>
+          <strong id="wstat-balance">0,00 €</strong>
+          <small>peňaženka Trinity</small>
+        </article>
+        <article class="metric teal">
+          <span>DOSTUPNÉ NA VÝBER</span>
+          <strong id="wstat-available">0,00 €</strong>
+          <small id="wstat-status">pripravené na výber (payout)</small>
+        </article>
+        <article class="metric gold">
+          <span>PRIJATÉ PLATBY</span>
+          <strong id="wstat-received">0,00 €</strong>
+          <small>cez terminály & SEPA</small>
+        </article>
+        <article class="metric purple">
+          <span>CELKOVÉ VÝBERY</span>
+          <strong id="wstat-withdrawn">0,00 €</strong>
+          <small>vyplatené na banku / PayPal</small>
+        </article>
+        <article class="metric coral">
+          <span>AKTÍVNE TERMINÁLY</span>
+          <strong id="wstat-terminals-count">4</strong>
+          <small>SEPA, Revolut, PayPal, Web3</small>
+        </article>
+      </div>
+
+      <nav class="trinity-subnav" id="wallet-subnav" aria-label="Sekcie peňaženky">
+        <button type="button" class="subnav-btn active" data-wallet-tab="terminal">📥 Prijať platbu (POS Terminál)</button>
+        <button type="button" class="subnav-btn" data-wallet-tab="payout">📤 Vybrať peniaze (Payout na banku / PayPal)</button>
+        <button type="button" class="subnav-btn" data-wallet-tab="config">⚙ Nastavenie terminálov & Krypto peňaženka</button>
+        <button type="button" class="subnav-btn" data-wallet-tab="history">📜 Pohyby a výpisy</button>
+        <div class="subnav-actions">
+          <button type="button" id="wallet-refresh-btn" class="primary">↻ Obnoviť peňaženku</button>
+        </div>
+      </nav>
+
+      <!-- PANE 1: POS PLATOBNÝ TERMINÁL NA PRÍJEM PLATIEB -->
+      <div id="wallet-pane-terminal" class="wallet-tab-pane">
+        <div class="terminal-body-grid">
+          <section class="panel domain-env-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">POS TERMINÁL PRE ZÁKAZNÍKA</span><h2>Vytvoriť platobnú požiadavku (Príjem peňazí)</h2></div>
+            </div>
+            <form id="wallet-charge-form" class="secret-form commerce-form">
+              <div class="commerce-form-grid">
+                <label><span>Suma (EUR) *</span><input id="charge-amount" type="number" min="0.50" max="100000" step="0.50" value="50" required></label>
+                <label><span>Účel / Popis platby *</span><input id="charge-purpose" required minlength="2" maxlength="160" placeholder="napr. Tvorba webu na kľúč alebo nájom domény" value="Tvorba moderného webu"></label>
+                <label><span>Preferovaný terminál</span><select id="charge-terminal-type"><option value="all">Všetky (Zákazník si vyberie)</option><option value="sepa">🏦 SEPA Instant EPC QR kód</option><option value="revolut">⚡ Revolut Pay</option><option value="paypal">🅿 PayPal & Platobná karta</option><option value="crypto">🪙 Web3 Krypto (USDC/USDT)</option></select></label>
+                <label><span>Variabilný symbol (voliteľné)</span><input id="charge-vs" maxlength="10" placeholder="napr. 20261001"></label>
+                <label><span>Meno platiteľa (voliteľné)</span><input id="charge-payer-name" maxlength="80" placeholder="napr. Martin Kováč"></label>
+              </div>
+              <div class="commerce-form-actions">
+                <button class="primary" type="submit" id="charge-submit-btn">💳 Aktivovať terminál a vygenerovať QR kód</button>
+              </div>
+            </form>
+          </section>
+
+          <!-- ŽIVÝ NÁHĽAD TERMINÁLU -->
+          <section class="panel domain-env-panel" id="terminal-display-box">
+            <div class="panel-head">
+              <div><span class="eyebrow">DISPLEJ TERMINÁLU</span><h2 id="tdisp-title">Pripravený na platbu</h2></div>
+              <span id="tdisp-amount-badge" class="detail-chip" style="font-size:14px;font-weight:700">0,00 €</span>
+            </div>
+            <div id="tdisp-body" style="text-align:center;padding:14px">
+              <p style="color:var(--muted);font-size:12px">Zadajte sumu a kliknite na „Aktivovať terminál“. Okamžite sa zobrazí interaktívny QR kód a platobné tlačidlá pre klienta.</p>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- PANE 2: VÝBER PEŇAZÍ / PAYOUT -->
+      <div id="wallet-pane-payout" class="wallet-tab-pane" hidden>
+        <section class="panel domain-env-panel">
+          <div class="panel-head">
+            <div><span class="eyebrow">VÝBER PROSTRIEDKOV</span><h2>Vybrať peniaze na vlastný bankový účet alebo PayPal</h2></div>
+            <span class="detail-chip">OKAMŽITÝ SEPA PREVOD</span>
+          </div>
+          <p class="settings-help">Tu môžeš kedykoľvek zadať príkaz na výber peňazí z peňaženky Trinity na tvoj osobný bankový účet (IBAN), PayPal alebo Revolut. Každý výber sa overí a zapíše do auditného <b>Trinity Dokumentu</b>.</p>
+          <form id="wallet-payout-form" class="secret-form commerce-form">
+            <div class="commerce-form-grid">
+              <label><span>Suma na výber (EUR) *</span><input id="payout-amount" type="number" min="1" max="100000" step="1" value="100" required></label>
+              <label><span>Cieľová brána výberu *</span><select id="payout-dest-type"><option value="bank_iban">🏦 Bankový účet (SEPA príkaz na IBAN)</option><option value="paypal">🅿 PayPal účet (payout na email)</option><option value="revolut">⚡ Revolut účet (@revtag)</option><option value="crypto">🪙 Krypto peňaženka (USDC)</option></select></label>
+              <label><span>Cieľ (IBAN / PayPal email / Revtag) *</span><input id="payout-target" required minlength="4" maxlength="100" placeholder="napr. SK890200000000..."></label>
+              <label><span>Poznámka / Referencia</span><input id="payout-note" maxlength="140" placeholder="napr. Osobný výber zisku"></label>
+            </div>
+            <div class="commerce-form-actions">
+              <button class="primary" type="submit" id="payout-submit-btn">📤 Odoslať príkaz na výber peňazí</button>
+            </div>
+          </form>
+          <div id="payout-result-box" class="domain-form-card" style="margin-top:14px" hidden></div>
+        </section>
+      </div>
+
+      <!-- PANE 3: NASTAVENIE TERMINÁLOV & KRYPTO PEŇAŽENKA -->
+      <div id="wallet-pane-config" class="wallet-tab-pane" hidden>
+        <section class="panel domain-env-panel">
+          <div class="panel-head">
+            <div><span class="eyebrow">NAPOJENIE TERMINÁLOV</span><h2>Nastavenie vlastného IBANu, Revolutu, PayPalu a Krypto peňaženky</h2></div>
+            <button type="button" id="wallet-create-crypto-btn" class="primary">✨ Vygenerovať novú Web3 peňaženku</button>
+          </div>
+          <form id="wallet-config-form" class="secret-form commerce-form">
+            <div class="commerce-form-grid">
+              <label><span>Môj bankový IBAN (pre príjem SEPA)</span><input id="wcfg-iban" maxlength="34" placeholder="napr. SK8902000000001234567890"></label>
+              <label><span>BIC / SWIFT kód banky</span><input id="wcfg-bic" maxlength="11" placeholder="napr. SUBASKBX alebo GIBASKBX"></label>
+              <label><span>Meno príjemcu / Názov účtu</span><input id="wcfg-name" maxlength="70" placeholder="napr. Ivan Sabo"></label>
+              <label><span>Revolut Handle / Odkaz</span><input id="wcfg-revolut" maxlength="100" placeholder="napr. https://revolut.me/saboivan alebo @saboivan"></label>
+              <label><span>PayPal Email / Odkaz</span><input id="wcfg-paypal" maxlength="100" placeholder="napr. saboivan2008@gmail.com alebo paypal.me/..."></label>
+              <label><span>Web3 EVM Krypto Adresa</span><input id="wcfg-crypto" maxlength="60" placeholder="0x..."></label>
+              <label><span>Krypto Sieť</span><select id="wcfg-crypto-net"><option value="polygon">Polygon PoS (veľmi nízke poplatky, rýchle USDC)</option><option value="base">Base (Coinbase L2)</option><option value="arbitrum">Arbitrum One</option><option value="ethereum">Ethereum Mainnet</option></select></label>
+            </div>
+            <div class="commerce-form-actions">
+              <button class="primary" type="submit">💾 Uložiť nastavenia terminálov</button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <!-- PANE 4: POHYBY A VÝPISY -->
+      <div id="wallet-pane-history" class="wallet-tab-pane" hidden>
+        <section class="panel">
+          <div class="panel-head">
+            <div><span class="eyebrow">TRANSAKČNÁ KNIHA</span><h2>História platieb a výberov</h2></div>
+          </div>
+          <div id="wallet-history-list" class="api-key-list"></div>
         </section>
       </div>
     </section>

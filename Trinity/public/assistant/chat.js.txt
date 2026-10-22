@@ -95,9 +95,9 @@ function renderReply(target,text){
 }
 function bottom(){const area=$('chat-area');area.scrollTop=area.scrollHeight;}
 async function sessions(){const rows=await api('/sessions');$('sessions').replaceChildren();for(const row of rows){const button=node('button',row.title.slice(0,45));button.onclick=safe(async()=>{session=row.session;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');});$('sessions').append(button);}}
-const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],commodities:['TRINITY COMMODITY DESK','Komodity & Trading','Analýza všetkých 22 svetových komodít, autonómne investovanie, nákup a predaj v portfóliu.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.']};
+const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],commodities:['TRINITY COMMODITY DESK','Komodity & Trading','Analýza všetkých 22 svetových komodít, autonómne investovanie, nákup a predaj v portfóliu.'],wallet:['FINANČNÉ CENTRUM TRINITY','Peňaženka & Platobné Terminály','Skutočná správa zostatkov, platobné terminály na príjem a okamžité výbery peňazí.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.']};
 function updateHeading(){const meta=viewMeta[currentView]||viewMeta.dashboard;$('page-kicker').textContent=meta[0];$('page-title').textContent=meta[1].includes(' ')?meta[1]:t(meta[1]);$('subtitle').textContent=t(meta[2]);}
-async function setView(name,updateHash=true){if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='commodities')await loadCommodityDesk();if(name==='documents')await loadTrinityDocuments();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
+async function setView(name,updateHash=true){if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='commodities')await loadCommodityDesk();if(name==='wallet')await loadWalletView();if(name==='documents')await loadTrinityDocuments();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
 function renderDashboardActivity(listId,items){const list=$(listId);list.replaceChildren();for(const item of items){const row=node('div',undefined,'activity-item'),icon=node('div',item.status==='completed'?'✓':item.status==='failed'?'!':'·','activity-dot'),text=node('span');text.append(node('b',item.task),node('small',`${t(item.status)||item.status} · ${item.updated_at}`));row.append(icon,text);row.onclick=async()=>{session=item.session_id;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');};list.append(row);}if(!items.length)list.append(node('p',t('noChanges'),'skeleton'));}
 async function loadDashboard(){const data=await api('/dashboard'),admin=data.dashboard_mode==='admin';$('user-dashboard').hidden=admin;$('admin-dashboard').hidden=!admin;if(admin){const metrics=data.admin||{};$('admin-active-jobs').textContent=metrics.active_jobs??0;$('admin-failed-jobs').textContent=metrics.failed_today??0;$('admin-pending-users').textContent=metrics.pending_users??0;$('admin-services').textContent=data.available_services+'/'+data.total_services;$('admin-gateway-state').textContent=data.pc_bridge?.connected?'Cloud + PC brána pripojená':'Cloud aktívny · PC brána nepripojená';$('admin-system-state').textContent=metrics.emergency_stop?'NÚDZOVÉ ZASTAVENIE':'Systém beží';$('admin-system-state').className='admin-state '+(metrics.emergency_stop?'stopped':'running');renderDashboardActivity('admin-dashboard-activity',data.recent_jobs);return;}$('metric-tasks').textContent=data.today_completed;$('metric-memory').textContent=data.memory_count;$('metric-projects').textContent=data.project_count;$('metric-health').textContent=data.available_services+'/'+data.total_services+(data.pc_bridge?.connected?' · PC ✓':'');renderDashboardActivity('dashboard-activity',data.recent_jobs);}
 async function loadStudio(){const data=await api('/studio/projects'),list=$('studio-project-list');list.replaceChildren();for(const item of data.items){const button=node('button',undefined,'studio-project');button.dataset.projectId=item.id;button.append(node('b',item.name),node('small','v'+item.version+' · '+item.updated_at));button.onclick=safe(()=>openStudioProject(item.id));list.append(button);}if(!data.items.length)list.append(node('p',t('emptyProjects'),'skeleton'));if(currentStudio)document.querySelector(`[data-project-id="${currentStudio.id}"]`)?.classList.add('active');}
@@ -1792,3 +1792,323 @@ window.openTrinityViewer = function (url, title = 'Náhľad') {
   const w = window.open(url, '_blank');
   if (!w) notice('Prehliadač zablokoval vyskakovacie okno. Povoľte ho prosím.');
 };
+
+// ==========================================
+// TRINITY UNIVERSAL WALLET & TERMINALS HUB
+// ==========================================
+let cachedWalletData = null;
+
+function switchWalletTab(tabId) {
+  document.querySelectorAll('#wallet-subnav [data-wallet-tab]').forEach(b => {
+    b.classList.toggle('active', b.dataset.walletTab === tabId);
+  });
+  ['terminal', 'payout', 'config', 'history'].forEach(id => {
+    const pane = $('wallet-pane-' + id);
+    if (pane) pane.hidden = id !== tabId;
+  });
+}
+document.querySelectorAll('#wallet-subnav [data-wallet-tab]').forEach(btn => {
+  btn.addEventListener('click', () => switchWalletTab(btn.dataset.walletTab));
+});
+
+async function loadWalletView() {
+  try {
+    const data = await api('/wallet/terminal/config', undefined, 'GET');
+    cachedWalletData = data;
+    renderWalletView(data);
+  } catch (e) {
+    console.error('loadWalletView error:', e);
+  }
+}
+
+function renderWalletView(data) {
+  if (!data) return;
+  const fmt = v => new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' }).format(Number(v || 0));
+
+  const w = data.wallet || {};
+  const t = data.terminals || {};
+
+  if ($('wstat-balance')) $('wstat-balance').textContent = fmt(w.balance_eur);
+  if ($('wstat-available')) $('wstat-available').textContent = fmt(w.available_payout_eur);
+  if ($('wstat-received')) $('wstat-received').textContent = fmt(w.total_received_eur);
+  if ($('wstat-withdrawn')) $('wstat-withdrawn').textContent = fmt(w.total_withdrawn_eur);
+
+  // Pre-fill config form
+  if ($('wcfg-iban')) $('wcfg-iban').value = t.sepa?.iban || '';
+  if ($('wcfg-bic')) $('wcfg-bic').value = t.sepa?.bic || '';
+  if ($('wcfg-name')) $('wcfg-name').value = t.sepa?.account_name || '';
+  if ($('wcfg-revolut')) $('wcfg-revolut').value = t.revolut?.handle || '';
+  if ($('wcfg-paypal')) $('wcfg-paypal').value = t.paypal?.email || '';
+  if ($('wcfg-crypto')) $('wcfg-crypto').value = t.crypto?.address || '';
+  if ($('wcfg-crypto-net')) $('wcfg-crypto-net').value = t.crypto?.network || 'polygon';
+
+  // Pre-fill payout target based on default
+  const payoutType = $('payout-dest-type')?.value || 'bank_iban';
+  updatePayoutTargetDefault(payoutType, t);
+
+  // Render history list
+  const hist = $('wallet-history-list');
+  if (hist) {
+    hist.replaceChildren();
+    const txs = data.recent_transactions || [];
+    const payouts = data.recent_payouts || [];
+    const charges = data.recent_charges || [];
+
+    if (!txs.length && !payouts.length && !charges.length) {
+      hist.append(node('p', 'Zatiaľ žiadne zaznamenané transakcie ani výbery v peňaženke.', 'skeleton'));
+    } else {
+      payouts.forEach(po => {
+        const row = node('article', undefined, 'api-key-item');
+        const info = node('div', undefined, 'commerce-offer-info');
+        const top = node('div', undefined, 'commerce-offer-top');
+        top.append(
+          node('b', `Výber: ${fmt(po.amount_eur)} na ${po.destination_type.toUpperCase()}`),
+          node('span', 'VÝBER (PAYOUT)', 'domain-badge expired'),
+          node('span', po.reference || 'SEPA', 'detail-chip')
+        );
+        info.append(top, node('small', `Cieľ: ${po.target}${po.note ? ' · ' + po.note : ''} · ${new Date(po.created_at).toLocaleString('sk-SK')}`));
+        row.append(info);
+        hist.append(row);
+      });
+
+      charges.forEach(ch => {
+        const row = node('article', undefined, 'api-key-item');
+        const info = node('div', undefined, 'commerce-offer-info');
+        const top = node('div', undefined, 'commerce-offer-top');
+        top.append(
+          node('b', `Príkaz na príjem: ${fmt(ch.amount_eur)} — ${ch.purpose}`),
+          node('span', 'PLATOBNÝ PRÍKAZ', 'domain-badge active'),
+          node('span', ch.variable_symbol ? `VS: ${ch.variable_symbol}` : 'TERMINÁL', 'detail-chip')
+        );
+        info.append(top, node('small', `Terminál: ${ch.terminal_type.toUpperCase()} · Stav: ${ch.status} · ${new Date(ch.created_at).toLocaleString('sk-SK')}`));
+        row.append(info);
+        hist.append(row);
+      });
+
+      txs.forEach(t => {
+        const row = node('article', undefined, 'api-key-item');
+        const info = node('div', undefined, 'commerce-offer-info');
+        const top = node('div', undefined, 'commerce-offer-top');
+        const isDep = t.type === 'deposit';
+        top.append(
+          node('b', `${isDep ? 'Vklad / Príjem' : 'Platba'}: ${fmt(t.amount_eur)}`),
+          node('span', t.type.toUpperCase(), isDep ? 'domain-badge active' : 'domain-badge for_sale'),
+          node('span', `Zostatok: ${fmt(t.balance_after_eur)}`, 'detail-chip')
+        );
+        info.append(top, node('small', `${t.recipient ? 'Príjemca: ' + t.recipient + ' · ' : ''}${t.note || ''} · ${new Date(t.created_at).toLocaleString('sk-SK')}`));
+        row.append(info);
+        hist.append(row);
+      });
+    }
+  }
+}
+
+function updatePayoutTargetDefault(type, terms) {
+  const targetInput = $('payout-target');
+  if (!targetInput) return;
+  if (type === 'bank_iban') {
+    targetInput.placeholder = 'napr. SK890200000000...';
+    targetInput.value = terms?.sepa?.iban || '';
+  } else if (type === 'paypal') {
+    targetInput.placeholder = 'napr. mojemail@paypal.com';
+    targetInput.value = terms?.paypal?.email || '';
+  } else if (type === 'revolut') {
+    targetInput.placeholder = 'napr. @mojtag alebo telefón';
+    targetInput.value = terms?.revolut?.handle ? terms.revolut.handle.replace(/.*revolut\.me\//, '@') : '';
+  } else if (type === 'crypto') {
+    targetInput.placeholder = '0x... (Polygon / EVM adresa)';
+    targetInput.value = terms?.crypto?.address || '';
+  }
+}
+
+$('payout-dest-type')?.addEventListener('change', e => {
+  if (cachedWalletData) updatePayoutTargetDefault(e.target.value, cachedWalletData.terminals);
+});
+
+// POS CHARGE FORM (Príjem peňazí)
+$('wallet-charge-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  const btn = $('charge-submit-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await api('/wallet/terminal/charge', {
+      amount_eur: Number($('charge-amount').value) || 50,
+      purpose: $('charge-purpose').value.trim(),
+      terminal_type: $('charge-terminal-type').value,
+      variable_symbol: $('charge-vs').value.trim() || undefined,
+      payer_name: $('charge-payer-name').value.trim() || undefined
+    });
+
+    const box = $('terminal-display-box');
+    const bTitle = $('tdisp-title');
+    const bAmt = $('tdisp-amount-badge');
+    const bBody = $('tdisp-body');
+
+    if (bTitle) bTitle.textContent = `Aktivované: ${res.purpose}`;
+    if (bAmt) bAmt.textContent = `${res.amount_eur.toFixed(2)} €`;
+
+    if (bBody) {
+      bBody.replaceChildren();
+
+      const tabs = node('div', undefined, 'chart-quick-symbols');
+      const tabsDef = [
+        { id: 'sepa', label: '🏦 SEPA EPC QR' },
+        { id: 'revolut', label: '⚡ Revolut Pay' },
+        { id: 'paypal', label: '🅿 PayPal & Karta' },
+        { id: 'crypto', label: '🪙 Krypto USDC' }
+      ];
+
+      const renderActiveMethod = (mId) => {
+        const card = node('div', undefined, 'mm-scene-card');
+        card.style.marginTop = '12px';
+        card.style.textAlign = 'center';
+
+        if (mId === 'sepa') {
+          card.innerHTML = `
+            <b style="font-size:14px;color:#10b981">🏦 Okamžitá SEPA Platba (EPC QR Kód)</b>
+            <p>Naskenujte v akejkoľvek mobilnej banke (SLSP George, Tatra banka, VÚB, ČSOB, Revolut):</p>
+            <div style="margin:12px auto;display:inline-block">${res.terminals.sepa.qr_svg}</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:6px;font-family:monospace">
+              IBAN: ${res.terminals.sepa.iban}<br>
+              BIC: ${res.terminals.sepa.bic} · VS: ${res.variable_symbol}<br>
+              Suma: <b>${res.amount_eur.toFixed(2)} EUR</b>
+            </div>
+          `;
+          const copyBtn = node('button', '📋 Kopírovať SEPA EPC reťazec pre banku', 'primary');
+          copyBtn.style.marginTop = '8px';
+          copyBtn.onclick = async () => {
+            await navigator.clipboard?.writeText(res.terminals.sepa.epc_payload);
+            notice('SEPA EPC QR payload skopírovaný do schránky.');
+          };
+          card.append(copyBtn);
+        } else if (mId === 'revolut') {
+          card.innerHTML = `
+            <b style="font-size:14px;color:#38bdf8">⚡ Revolut Pay & Revolut.me</b>
+            <p>Priama platba cez Revolut aplikáciu alebo platobnú kartu:</p>
+            <div style="margin:12px auto;display:inline-block">${res.terminals.revolut.qr_svg}</div>
+          `;
+          const act = node('div', undefined, 'commerce-offer-actions');
+          const revLink = node('a', '🚀 Otvoriť Revolut Pay platbu', 'primary');
+          revLink.href = res.terminals.revolut.url;
+          revLink.target = '_blank';
+          act.append(revLink);
+          card.append(act);
+        } else if (mId === 'paypal') {
+          card.innerHTML = `
+            <b style="font-size:14px;color:#f59e0b">🅿 PayPal & Platobné Karty</b>
+            <p>Bezpečná platba kartou Visa / Mastercard alebo zostatkom PayPal:</p>
+            <div style="margin:12px auto;display:inline-block">${res.terminals.paypal.qr_svg}</div>
+          `;
+          const act = node('div', undefined, 'commerce-offer-actions');
+          const ppLink = node('a', '💳 Otvoriť PayPal Checkout', 'primary');
+          ppLink.href = res.terminals.paypal.url;
+          ppLink.target = '_blank';
+          act.append(ppLink);
+          card.append(act);
+        } else if (mId === 'crypto') {
+          card.innerHTML = `
+            <b style="font-size:14px;color:#a855f7">🪙 Web3 Krypto Platba (Polygon USDC / USDT)</b>
+            <p>Okamžitý prevod stablecoinov na sieti Polygon (nízke poplatky):</p>
+            <div style="margin:12px auto;display:inline-block">${res.terminals.crypto.qr_svg}</div>
+            <div style="font-size:11px;color:#94a3b8;font-family:monospace;word-break:break-all">
+              Adresa: <b>${res.terminals.crypto.address}</b><br>
+              Sieť: Polygon PoS · Token: USDC / USDT
+            </div>
+          `;
+          const copyBtn = node('button', '📋 Kopírovať krypto adresu', 'primary');
+          copyBtn.style.marginTop = '8px';
+          copyBtn.onclick = async () => {
+            await navigator.clipboard?.writeText(res.terminals.crypto.address);
+            notice('Krypto adresa skopírovaná do schránky.');
+          };
+          card.append(copyBtn);
+        }
+
+        const existingCard = bBody.querySelector('.mm-scene-card');
+        if (existingCard) existingCard.remove();
+        bBody.append(card);
+      };
+
+      tabsDef.forEach((td, idx) => {
+        const btn = node('button', td.label, 'chart-sym-pill' + (idx === 0 ? ' active' : ''));
+        btn.type = 'button';
+        btn.onclick = () => {
+          tabs.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+          renderActiveMethod(td.id);
+        };
+        tabs.append(btn);
+      });
+
+      bBody.append(tabs);
+      renderActiveMethod('sepa');
+    }
+
+    notice(`Platobný terminál aktivovaný: vygenerovaný SEPA QR, Revolut, PayPal a krypto link pre sumu ${res.amount_eur.toFixed(2)} EUR (+ zapísaný Trinity Dokument).`);
+    await loadWalletView();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+// PAYOUT FORM (Výber peňazí)
+$('wallet-payout-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  const btn = $('payout-submit-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await api('/wallet/terminal/payout', {
+      amount_eur: Number($('payout-amount').value) || 100,
+      destination_type: $('payout-dest-type').value,
+      target: $('payout-target').value.trim(),
+      note: $('payout-note').value.trim() || undefined
+    });
+
+    const resBox = $('payout-result-box');
+    if (resBox) {
+      resBox.innerHTML = `
+        <div class="dialog-head"><strong>✅ Príkaz na výber peňazí úspešne spracovaný</strong></div>
+        <p style="font-size:12px;margin:8px 0">Suma <b>${res.amount_eur.toFixed(2)} EUR</b> bola zadaná na prevod do <b>${res.destination_type.toUpperCase()}</b> (${res.target}).</p>
+        <small style="color:var(--muted)">Referencia: ${res.reference} · ID Výberu: ${res.payout_id} · Vytvorený Trinity Dokument.</small>
+      `;
+      resBox.hidden = false;
+    }
+
+    notice(`Výber peňazí (${res.amount_eur.toFixed(2)} EUR) bol zaevidovaný a zapísaný do Trinity Dokumentov.`);
+    await loadWalletView();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+// CONFIG FORM (Uloženie terminálov)
+$('wallet-config-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  await api('/wallet/terminal/config', {
+    iban: $('wcfg-iban').value.trim() || undefined,
+    bic: $('wcfg-bic').value.trim() || undefined,
+    account_name: $('wcfg-name').value.trim() || undefined,
+    revolut_handle: $('wcfg-revolut').value.trim() || undefined,
+    paypal_email: $('wcfg-paypal').value.trim() || undefined,
+    crypto_address: $('wcfg-crypto').value.trim() || undefined,
+    crypto_network: $('wcfg-crypto-net').value || 'polygon'
+  });
+  notice('Nastavenia bankových a platobných terminálov boli uložené (+ zapísaný Trinity Dokument).');
+  await loadWalletView();
+}));
+
+// CREATE CRYPTO WALLET BTN
+$('wallet-create-crypto-btn')?.addEventListener('click', safe(async () => {
+  const btn = $('wallet-create-crypto-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await api('/wallet/terminal/create-crypto', {});
+    if ($('wcfg-crypto')) $('wcfg-crypto').value = res.address;
+    notice(`Nová Web3 EVM kryptopeňaženka vytvorená: ${res.address} (Polygon PoS).`);
+    await loadWalletView();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+$('wallet-refresh-btn')?.addEventListener('click', safe(loadWalletView));
+

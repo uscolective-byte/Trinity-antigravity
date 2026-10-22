@@ -53,6 +53,13 @@ function isGithubRequest(task) {
   const norm = String(task || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   return /\bgithub\b.*\b(spravuj|skontroluj|status|zoznam|commits?|issues?|repo)\b/.test(norm);
 }
+function isWalletTerminalRequest(task) {
+  const norm = String(task || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  return (
+    (norm.includes('penazen') || norm.includes('penazenku') || norm.includes('wallet')) &&
+    (norm.includes('vytvor') || norm.includes('stav') || norm.includes('terminal') || norm.includes('zostatok') || norm.includes('vyber') || norm.includes('prijem') || norm.includes('posli') || norm.includes('platb') || norm.includes('payout'))
+  ) || norm.includes('platobny terminal') || norm.includes('vyber peniaze') || norm.includes('prijat platbu') || norm.includes('payout');
+}
 function isOpenAppRequest(task, context = '') {
   const norm = (context.slice(-600) + ' ' + task).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const directApp = /\b(otvor|spust|spusti|zapni|launch|open)\b.*\b(kalkulack|calc|calculator|notepad|poznamkov|paint|skicar|kreslen|chrome|prehliadac|explorer|priecinok)\b/i.test(norm);
@@ -198,6 +205,23 @@ export async function runAgent(env, id, task, context='', provider='workers-ai',
     const receipt={tool:'github_manage',status:'completed',effect:'read',receipt_id:`gh:${Date.now()}`,verified_at:new Date().toISOString()};
     const text=`🐙 **GitHub Integrácia (\`${outcome.repo}\`):**\n\n- Repozitár: [${outcome.repo}](https://github.com/${outcome.repo})\n- Predvolená vetva: \`${outcome.details?.default_branch||'main'}\`\n- Otvorené issues: \`${outcome.details?.open_issues||0}\`\n- Autentifikovaný prístup: \`${outcome.authenticated?'Áno (Token v trezore)':'Verejné čítanie (Bezpečný režim)'}\`\n\nTrinity dokáže kontrolovať commity, issues, prispôsobovať vetvy a spúšťať GitHub Actions.`;
     return {text,model:'trinity-github-ops',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
+  }
+  if(activeTools.includes('wallet_terminals_status')&&isWalletTerminalRequest(task)){
+    const started=Date.now();
+    const outcome=await runTool(env,agent,'wallet_terminals_status',{});
+    const receipt={tool:'wallet_terminals_status',status:'completed',effect:'read',receipt_id:outcome._evidence?.receipt_id||`wallet:${Date.now()}`,verified_at:new Date().toISOString()};
+    const w=outcome.wallet||{};
+    const t=outcome.terminals||{};
+    const text=`💳 **Peňaženka Trinity & Platobné Terminály (Overené fakty bez simulácií)**\n\n`+
+      `- **Celkový zostatok**: **${w.balance_eur?.toFixed(2)||'0.00'} EUR** (Dostupné na výber: ${w.available_payout_eur?.toFixed(2)||'0.00'} EUR)\n`+
+      `- **Celkovo prijaté**: ${w.total_received_eur?.toFixed(2)||'0.00'} EUR · **Celkové výbery**: ${w.total_withdrawn_eur?.toFixed(2)||'0.00'} EUR\n\n`+
+      `### ⚡ Pripojené platobné terminály na príjem a výber:\n`+
+      `1. **🏦 SEPA Instant & EPC QR**: IBAN \`${t.sepa?.iban||'Nenastavený'}\` (${t.sepa?.bic||'—'}) · Štandard EPC069-08 pre okamžité mobilné platby zo slovenských a európskych bánk.\n`+
+      `2. **⚡ Revolut Pay**: \`${t.revolut?.handle||'Revolut.me pripravený'}\` · Okamžitý príjem a prevod cez Revolut.\n`+
+      `3. **🅿 PayPal Commerce**: \`${t.paypal?.email||'PayPal pripravený'}\` · Platba kartou a cez PayPal účet.\n`+
+      `4. **🪙 Web3 Krypto Peňaženka**: Adresa \`${t.crypto?.address||'0x...'}\` (Sieť: ${t.crypto?.network||'Polygon'}) · Okamžitý príjem USDC a USDT stablecoinov.\n\n`+
+      `*Môžeš vygenerovať platobnú požiadavku cez \`terminal_charge\`, zadať výber cez \`terminal_payout\` alebo otvoriť interaktívny POS Terminál v záložke **Peňaženka & Terminály**.*`;
+    return {text,model:'trinity-wallet-engine',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
   }
   const authorizationDirective=executionPolicy.directAdmin
       ?'ADMIN REŽIM: Táto požiadavka pochádza zo serverom overenej relácie admina alebo vlastníka. Konkrétne príkazy v tejto požiadavke môžeš cez povolené nástroje priamo autorizovať a vykonať bez druhého textu SCHVÁĽ. Pri oprave najprv sama zisti stav čítaním alebo diagnostikou, potom urob najmenšiu vratnú opravu a spusti primeraný test. Nežiadaj od používateľa presný shell príkaz, ak ho vieš bezpečne odvodiť z dostupných dôkazov. Ak nepovinný krok zlyhá, zaznamenaj chybu, skús odlišný bezpečný postup alebo ho preskoč a pokračuj. Zastav sa iba pri nejasnom cieli, chýbajúcom tajomstve, účtovanom nákupe alebo nezvratnej či deštruktívnej operácii mimo výslovne zadaného rozsahu. Zostaň presne v rozsahu požiadavky, používaj iba povolené schopnosti a výsledok označ ako vykonaný až po prijatí systémového potvrdenia.'

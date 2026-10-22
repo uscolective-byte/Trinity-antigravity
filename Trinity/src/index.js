@@ -36,6 +36,7 @@ import {listSecrets,storeSecret,verifySecret,revokeSecret,promoteCustomSecretToG
 import {listAIProviders,configureAIProvider,recordAIProviderCheck} from './ai-providers.js';
 import {createPortfolio,listPortfolios,getPortfolio,recordTrade,setQuote} from './trading.js';
 import {getWallet,transactWallet} from './wallet.js';
+import {getWalletTerminalOverview,saveWalletTerminalConfig,createPaymentTerminalCharge,executeWalletPayout,createCryptoWallet} from './wallet-terminals.js';
 import {handleInboundEmail} from './email.js';
 import {TRINITY2_CAPABILITIES,rolePermissions,requireCapability,updateRolePermission,analyzeImage,transcribeAudio,synthesizeSpeech,listVisualWorkflows,saveVisualWorkflow,listIncidents,resolveIncident,recordHealthIncident,exportAudit} from './trinity2.js';
 import {TrinityCopilotAgent} from './copilot-agent.js';
@@ -517,6 +518,23 @@ async function route(request,env,ctx){
     requireAdmin(user);
     if(request.method==='GET')return json(await getWallet(env,ownerId));
     if(request.method==='POST'){await rateLimit(env,`wallet-sandbox:${user.id}`,30,300);return json(await transactWallet(env,ownerId,await readJSON(request,8000)));}
+  }
+  if(path==='/api/assistant/wallet/terminal/config'){
+    requireAdmin(user);
+    if(request.method==='GET')return json(await getWalletTerminalOverview(env,ownerId));
+    if(request.method==='POST')return json(await saveWalletTerminalConfig(env,ownerId,await readJSON(request,16000)));
+  }
+  if(path==='/api/assistant/wallet/terminal/charge'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await createPaymentTerminalCharge(env,ownerId,await readJSON(request,16000)));
+  }
+  if(path==='/api/assistant/wallet/terminal/payout'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await executeWalletPayout(env,ownerId,await readJSON(request,16000)));
+  }
+  if(path==='/api/assistant/wallet/terminal/create-crypto'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await createCryptoWallet(env,ownerId));
   }
   if(path==='/api/assistant/dashboard'&&request.method==='GET'){
     const isAdmin=['admin','owner'].includes(user.role);
