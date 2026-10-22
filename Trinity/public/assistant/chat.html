@@ -22,7 +22,17 @@
 <main>
   <header><div class="page-heading"><span id="page-kicker">TRINITY 10.3</span><strong id="page-title">Prehľad</strong><small id="subtitle" data-i18n="dashboardHere">Tvoj priestor pre tvorbu, prácu a nápady.</small></div><div class="header-actions"><span id="environment-badge" class="environment-badge" title="Aktívne prostredie">TRINITY 10.3</span><span id="pc-bridge-badge" class="pc-bridge-badge" title="Stav lokálneho PC Bridge"><span class="pc-dot"></span> <b id="pc-bridge-text">PC: Kontrola…</b></span><div id="account-state" class="account-state" role="status" aria-live="polite" hidden><span class="account-dot" aria-hidden="true"></span><span><b id="account-label">Prihlásený</b><small id="account-detail">—</small></span></div><button id="theme" type="button" aria-label="Prepnúť farebný režim">◐ Vzhľad</button><button id="memory-button" data-i18n="memory" style="display:none">◇ Pamäť</button><button id="tools-button" data-i18n="tools" style="display:none">✦ Schopnosti</button><select id="language" aria-label="Language"><option value="auto">AUTO</option><option value="sk">SK</option><option value="en">EN</option><option value="cs">CS</option><option value="de">DE</option><option value="fr">FR</option><option value="es">ES</option><option value="it">IT</option><option value="pl">PL</option><option value="uk">UK</option><option value="ja">JA</option><option value="ko">KO</option><option value="zh">ZH</option></select><button id="logout" type="button" hidden>Odhlásiť</button></div></header>
   <div id="notice" role="status" hidden></div>
-  <section id="login" hidden><h2 data-i18n="loginTitle">Vitaj v Trinity</h2><p data-i18n="loginHint">Prihlás sa svojím schváleným Google účtom.</p><button id="google-login" class="primary" type="button" hidden>Pokračovať cez Google</button><p id="google-login-note" role="status"></p><form id="login-form"><input id="key" type="password" autocomplete="current-password" aria-label="Access key" placeholder="Prístupový kľúč"><button class="primary" data-i18n="login">Prihlásiť</button></form></section>
+  <section id="login" hidden>
+    <h2 data-i18n="loginTitle">Vitaj v Trinity</h2>
+    <p data-i18n="loginHint">Prihlás sa svojím schváleným Google účtom alebo biometrickým Passkey.</p>
+    <button id="google-login" class="primary" type="button" hidden>Pokračovať cez Google</button>
+    <div style="margin: 10px 0;">
+      <button id="passkey-login-btn" class="secondary" type="button" style="display:inline-flex; align-items:center; gap:8px;">🔑 Prihlásiť sa cez Passkey (TouchID / Windows Hello)</button>
+    </div>
+    <p id="passkey-login-status" class="muted" style="font-size:13px; margin:4px 0;" role="status"></p>
+    <p id="google-login-note" role="status"></p>
+    <form id="login-form"><input id="key" type="password" autocomplete="current-password" aria-label="Access key" placeholder="Prístupový kľúč"><button class="primary" data-i18n="login">Prihlásiť</button></form>
+  </section>
   <div id="app-views">
     <section id="dashboard-view" class="view dashboard-view">
       <div id="user-dashboard" class="role-dashboard">
@@ -1325,7 +1335,51 @@
         </section>
         <section id="settings-wallet-panel" class="panel admin-panel" data-settings-section="admin" data-settings-keywords="wallet financie penazenka terminaly platby sepa paypal revolut krypto"><div class="panel-head"><div><span class="eyebrow">TRINITY WALLET & TERMINÁLY</span><h2>Peňaženka & Platobné Terminály</h2></div><span class="detail-chip">OVERENÉ FAKTY · BEZ SIMULÁCIÍ</span></div><div class="wallet-balance"><small>Overený zostatok peňaženky</small><strong id="wallet-balance">0,00 €</strong></div><p class="settings-help">Skutočné platobné terminály: SEPA Instant EPC QR, Revolut Pay, PayPal Commerce a Web3 EVM krypto. Všetky transakcie sa overujú na blockchaine alebo bankovým výpisom.</p><div style="margin-bottom:12px"><button type="button" class="primary" data-view="wallet">💳 Otvoriť Hlavný POS Terminál & Peňaženku</button></div><form id="wallet-form" class="secret-form" style="display:none"><input id="wallet-amount" type="number" min="0.01" max="1000000" step="0.01" placeholder="Suma v EUR"><input id="wallet-recipient" maxlength="120" placeholder="Príjemca"><input id="wallet-note" maxlength="500" placeholder="Poznámka"><div class="wallet-actions"><button type="button" class="primary" data-wallet-action="deposit">Vložiť €</button><button type="button" data-wallet-action="withdrawal">Vybrať</button><button type="button" data-wallet-action="send">Odoslať</button></div></form><div id="wallet-transactions" class="api-key-list"></div></section>
         <section id="settings-rbac-panel" class="panel admin-panel" data-settings-section="admin" data-settings-keywords="rbac oprávnenia roly schopnosti"><div class="panel-head"><div><span class="eyebrow">GRANULAR RBAC</span><h2>Oprávnenia podľa schopností</h2></div><span class="detail-chip">OWNER</span></div><p class="settings-help">Nastav presné schopnosti pre roly admin a user. Owner zostáva neobmedzený.</p><div id="settings-rbac" class="rbac-grid"></div></section>
-        <section id="settings-monitor-panel" class="panel admin-panel" data-settings-section="admin" data-settings-keywords="monitoring incidenty alerty audit export"><div class="panel-head"><div><span class="eyebrow">REALTIME OPERATIONS</span><h2>Incidenty a audit</h2></div><div><a class="button-link" href="/api/assistant/audit/export?format=json">Audit JSON</a><a class="button-link" href="/api/assistant/audit/export?format=csv">Audit CSV</a></div></div><p class="settings-help">Plánované kontroly vytvoria incident pri výpadku. Voliteľný webhook sa nastavuje ako Worker Secret.</p><div id="settings-incidents" class="incident-list"></div></section>        <section id="settings-users-panel" class="panel admin-panel" data-settings-section="admin" data-settings-keywords="používatelia roly owner admin prístup"><div class="panel-head"><div><span class="eyebrow">ACCESS CONTROL</span><h2>Používatelia a roly</h2></div><span class="detail-chip">OWNER</span></div><p class="settings-help">Owner má všetko. Admin spravuje integrácie. User nemá prístup k PC, tajomstvám ani administrácii.</p><div id="settings-users" class="api-key-list"></div></section>
+        <section id="settings-passkey-panel" class="panel admin-panel" data-settings-section="admin" data-settings-keywords="passkey webauthn biometrika login touchid windows hello yubikey">
+          <div class="panel-head">
+            <div><span class="eyebrow">BIOMETRICKÁ BEZPEČNOSŤ</span><h2>Passkeys & WebAuthn</h2></div>
+            <span class="detail-chip">HARDVÉROVÉ KĽÚČE</span>
+          </div>
+          <p class="settings-help">Prihlasuj sa bezpečne biometricky pomocou TouchID, Windows Hello, FaceID alebo YubiKey bez nutnosti preklikávať Google účet.</p>
+          <div style="display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap;">
+            <input id="new-passkey-name" type="text" maxlength="80" placeholder="Názov zariadenia (napr. Môj ThinkPad / iPhone)" style="max-width:280px; padding:8px 12px; border-radius:6px; border:1px solid var(--border, #333); background:var(--bg-input, #111); color:inherit;">
+            <button id="register-passkey-btn" type="button" class="primary" style="display:inline-flex; align-items:center; gap:8px;">🔑 Zaregistrovať toto zariadenie (Passkey)</button>
+            <span id="passkey-reg-status" class="muted" style="font-size:13px;"></span>
+          </div>
+          <div id="passkey-list" class="api-key-list"></div>
+        </section>
+        <section id="settings-monitor-panel" class="panel admin-panel" data-settings-section="admin" data-settings-keywords="monitoring incidenty alerty audit export timeline logy operacie">
+          <div class="panel-head">
+            <div><span class="eyebrow">AUDITNÝ LOG OPERÁCIÍ</span><h2>História zmien a audit systému</h2></div>
+            <div style="display:flex; gap:8px;">
+              <a class="button-link" id="audit-export-json-btn" href="/api/assistant/audit/export?format=json">JSON Export ↗</a>
+              <a class="button-link" id="audit-export-csv-btn" href="/api/assistant/audit/export?format=csv">CSV Export ↗</a>
+              <button type="button" id="audit-refresh-btn" style="padding:4px 10px; font-size:12px;">🔄 Obnoviť</button>
+            </div>
+          </div>
+          <p class="settings-help">Detailná história všetkých zmien: úpravy DNS, escrow platby, vygenerované SEPA faktúry, smart cenové alerty, passkey prihlásenia a príkazy Trinity s auditnou stopou.</p>
+          <div class="audit-filters" style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center;">
+            <input id="audit-search-input" type="text" placeholder="⌕ Hľadať v audite (názov domény, faktúra, e-mail...)" style="flex:1; min-width:200px; padding:6px 12px; border-radius:6px; border:1px solid var(--border,#333); background:var(--bg-input,#111); color:inherit;">
+            <select id="audit-category-select" style="padding:6px 10px; border-radius:6px; border:1px solid var(--border,#333); background:var(--bg-input,#111); color:inherit;">
+              <option value="">Všetky kategórie</option>
+              <option value="domains">🌐 Domény & DNS</option>
+              <option value="banking">💳 Bankovníctvo & Faktúry</option>
+              <option value="security">🛡️ Bezpečnosť & Passkeys</option>
+              <option value="ai_studio">🤖 AI Studio & Modely</option>
+              <option value="system">⚙️ Systém & Agenti</option>
+            </select>
+            <select id="audit-severity-select" style="padding:6px 10px; border-radius:6px; border:1px solid var(--border,#333); background:var(--bg-input,#111); color:inherit;">
+              <option value="">Všetky závažnosti</option>
+              <option value="info">ℹ️ Info</option>
+              <option value="warning">⚠️ Varovania</option>
+              <option value="critical">🚨 Kritické</option>
+            </select>
+          </div>
+          <div id="audit-events-list" class="incident-list" style="max-height:450px; overflow-y:auto;">
+            <p class="skeleton">Načítavam auditnú stopu…</p>
+          </div>
+          <div id="settings-incidents" class="incident-list" style="margin-top:14px;"></div>
+        </section>        <section id="settings-users-panel" class="panel admin-panel" data-settings-section="admin" data-settings-keywords="používatelia roly owner admin prístup"><div class="panel-head"><div><span class="eyebrow">ACCESS CONTROL</span><h2>Používatelia a roly</h2></div><span class="detail-chip">OWNER</span></div><p class="settings-help">Owner má všetko. Admin spravuje integrácie. User nemá prístup k PC, tajomstvám ani administrácii.</p><div id="settings-users" class="api-key-list"></div></section>
       </div>
     </section>
   </div>

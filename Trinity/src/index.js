@@ -40,6 +40,8 @@ import {auditHtmlQuality,recordStudioReview,reviewRequestSchema} from './studio-
 import {handleVoiceDialogue} from './voice-agent.js';
 import {generateEscrowLandingHtml,createEscrowDeal,settleEscrowDeal,getTelegramConfig,saveTelegramConfig,checkDomainsAndSslHealth,listDomainAlerts,cloneDomainEnvironment} from './domain-desk-advanced.js';
 import {createPriceAlert,listPriceAlerts,checkPriceAlerts,generateInvoiceWithSepaQr,listGeneratedInvoices,getAggregatedNetWorth} from './banking-commodity-advanced.js';
+import {generateRegistrationOptions,verifyRegistrationResponse,generateAuthenticationOptions,verifyAuthenticationResponse,listUserPasskeys,deleteUserPasskey} from './webauthn.js';
+import {queryAuditEvents,exportAuditEvents,recordAuditEvent} from './audit-log.js';
 import {createPortfolio,listPortfolios,getPortfolio,recordTrade,setQuote} from './trading.js';
 import {getWallet,transactWallet} from './wallet.js';
 import {getWalletTerminalOverview,saveWalletTerminalConfig,createPaymentTerminalCharge,executeWalletPayout,createCryptoWallet,cancelWalletPayout} from './wallet-terminals.js';
@@ -122,6 +124,14 @@ async function route(request,env,ctx){
   if(path==='/api/auth/config'&&request.method==='GET')return json({google_enabled:googleAuthRequired(env)&&googleOAuthConfigured(env),google_required:googleAuthRequired(env)});
   const generatedApi=path.match(/^\/api\/v1\/generated\/([a-z0-9]+(?:-[a-z0-9]+)*)$/);
   if(generatedApi&&(request.method==='GET'||request.method==='POST')){const client=await authenticateApiKey(request,env);return json(await invokeApiBySlug(env,client.owner_id,generatedApi[1],request.method));}
+  if(path==='/api/auth/passkey/auth-options'&&request.method==='POST'){
+    const body=await readJSON(request,4000).catch(()=>({}));
+    return json(await generateAuthenticationOptions(request,env,body.email||null));
+  }
+  if(path==='/api/auth/passkey/auth-verify'&&request.method==='POST'){
+    const body=await readJSON(request,32000);
+    return verifyAuthenticationResponse(request,env,body);
+  }
   if(path==='/api/auth/google/start'&&request.method==='GET'){
     if(!googleAuthRequired(env))throw new HttpError(404,'Google prihlasovanie zatiaľ nie je aktivované.');
     await rateLimit(env,`google-start:${(await hash(request.headers.get('CF-Connecting-IP')||'unknown')).slice(0,24)}`,10,300);
@@ -241,6 +251,41 @@ async function route(request,env,ctx){
   if(path==='/api/assistant/audit/export'&&request.method==='GET'){
     await requireCapability(env,user,'view_audit');const format=url.searchParams.get('format')==='csv'?'csv':'json',file=await exportAudit(env,format);
     return new Response(file.content,{headers:{'Content-Type':file.contentType,'Content-Disposition':`attachment; filename="${file.filename}"`,'Cache-Control':'no-store'}});
+  }
+  if(path==='/api/assistant/audit/events'&&request.method==='GET'){
+    await requireCapability(env,user,'view_audit');
+    return json(await queryAuditEvents(env,{
+      limit:url.searchParams.get('limit'),
+      action:url.searchParams.get('action'),
+      category:url.searchParams.get('category'),
+      severity:url.searchParams.get('severity'),
+      search:url.searchParams.get('search'),
+      since:url.searchParams.get('since')
+    }));
+  }
+  if(path==='/api/assistant/audit/log'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,8000);
+    await recordAuditEvent(env,{action:body.action,details:{...body.details,actor:user.email||user.id}});
+    return json({ok:true});
+  }
+  if(path==='/api/auth/passkey/register-options'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,4000).catch(()=>({}));
+    return json(await generateRegistrationOptions(request,env,body.email||user.email));
+  }
+  if(path==='/api/auth/passkey/register-verify'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,32000);
+    return json(await verifyRegistrationResponse(request,env,body,user.email));
+  }
+  if(path==='/api/auth/passkey/list'&&request.method==='GET'){
+    return json({passkeys:await listUserPasskeys(env,user.email)});
+  }
+  const deletePasskeyRoute=path.match(/^\/api\/auth\/passkey\/([0-9a-f-]+)$/i);
+  if(deletePasskeyRoute&&request.method==='DELETE'){
+    requireAdmin(user);
+    return json(await deleteUserPasskey(env,user.email,deletePasskeyRoute[1]));
   }
   if(path==='/api/ops/control'){
     requireAdmin(user);
