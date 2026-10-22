@@ -95,9 +95,9 @@ function renderReply(target,text){
 }
 function bottom(){const area=$('chat-area');area.scrollTop=area.scrollHeight;}
 async function sessions(){const rows=await api('/sessions');$('sessions').replaceChildren();for(const row of rows){const button=node('button',row.title.slice(0,45));button.onclick=safe(async()=>{session=row.session;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');});$('sessions').append(button);}}
-const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],commodities:['TRINITY COMMODITY DESK','Komodity & Trading','Analýza všetkých 22 svetových komodít, autonómne investovanie, nákup a predaj v portfóliu.'],wallet:['FINANČNÉ CENTRUM TRINITY','Peňaženka & Platobné Terminály','Skutočná správa zostatkov, platobné terminály na príjem a okamžité výbery peňazí.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.']};
+const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],commodities:['TRINITY COMMODITY DESK','Komodity & Trading','Analýza všetkých 22 svetových komodít, autonómne investovanie, nákup a predaj v portfóliu.'],wallet:['FINANČNÉ CENTRUM TRINITY','Peňaženka & Platobné Terminály','Skutočná správa zostatkov, platobné terminály na príjem a okamžité výbery peňazí.'],modules:['TRINITY OPEN-DATA','Open-Data Moduly','100% bezplatné živé API: počasie, Wikipédia, DoH DNSSEC, spot krypto, HN tech správy a Svetová banka.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.']};
 function updateHeading(){const meta=viewMeta[currentView]||viewMeta.dashboard;$('page-kicker').textContent=meta[0];$('page-title').textContent=meta[1].includes(' ')?meta[1]:t(meta[1]);$('subtitle').textContent=t(meta[2]);}
-async function setView(name,updateHash=true){if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='commodities')await loadCommodityDesk();if(name==='wallet')await loadWalletView();if(name==='documents')await loadTrinityDocuments();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
+async function setView(name,updateHash=true){if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='commodities')await loadCommodityDesk();if(name==='wallet')await loadWalletView();if(name==='modules')await loadModulesView();if(name==='documents')await loadTrinityDocuments();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
 function renderDashboardActivity(listId,items){const list=$(listId);list.replaceChildren();for(const item of items){const row=node('div',undefined,'activity-item'),icon=node('div',item.status==='completed'?'✓':item.status==='failed'?'!':'·','activity-dot'),text=node('span');text.append(node('b',item.task),node('small',`${t(item.status)||item.status} · ${item.updated_at}`));row.append(icon,text);row.onclick=async()=>{session=item.session_id;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');};list.append(row);}if(!items.length)list.append(node('p',t('noChanges'),'skeleton'));}
 async function loadDashboard(){const data=await api('/dashboard'),admin=data.dashboard_mode==='admin';$('user-dashboard').hidden=admin;$('admin-dashboard').hidden=!admin;if(admin){const metrics=data.admin||{};$('admin-active-jobs').textContent=metrics.active_jobs??0;$('admin-failed-jobs').textContent=metrics.failed_today??0;$('admin-pending-users').textContent=metrics.pending_users??0;$('admin-services').textContent=data.available_services+'/'+data.total_services;$('admin-gateway-state').textContent=data.pc_bridge?.connected?'Cloud + PC brána pripojená':'Cloud aktívny · PC brána nepripojená';$('admin-system-state').textContent=metrics.emergency_stop?'NÚDZOVÉ ZASTAVENIE':'Systém beží';$('admin-system-state').className='admin-state '+(metrics.emergency_stop?'stopped':'running');renderDashboardActivity('admin-dashboard-activity',data.recent_jobs);return;}$('metric-tasks').textContent=data.today_completed;$('metric-memory').textContent=data.memory_count;$('metric-projects').textContent=data.project_count;$('metric-health').textContent=data.available_services+'/'+data.total_services+(data.pc_bridge?.connected?' · PC ✓':'');renderDashboardActivity('dashboard-activity',data.recent_jobs);}
 async function loadStudio(){const data=await api('/studio/projects'),list=$('studio-project-list');list.replaceChildren();for(const item of data.items){const button=node('button',undefined,'studio-project');button.dataset.projectId=item.id;button.append(node('b',item.name),node('small','v'+item.version+' · '+item.updated_at));button.onclick=safe(()=>openStudioProject(item.id));list.append(button);}if(!data.items.length)list.append(node('p',t('emptyProjects'),'skeleton'));if(currentStudio)document.querySelector(`[data-project-id="${currentStudio.id}"]`)?.classList.add('active');}
@@ -894,12 +894,16 @@ document.querySelectorAll('[data-comm-tab]').forEach(btn=>btn.addEventListener('
 
 function switchDocTab(tabId){
   document.querySelectorAll('[data-doc-tab]').forEach(b=>b.classList.toggle('active',b.dataset.docTab===tabId));
-  ['guide','architecture','banking','licenses','archive'].forEach(id=>{
+  ['guide','oath','architecture','banking','licenses','archive'].forEach(id=>{
     const pane=$('doc-pane-'+id);
     if(pane)pane.hidden=id!==tabId;
   });
 }
 document.querySelectorAll('[data-doc-tab]').forEach(btn=>btn.addEventListener('click',()=>switchDocTab(btn.dataset.docTab)));
+document.querySelectorAll('[data-open-doc-tab]').forEach(btn=>btn.addEventListener('click',async()=>{
+  await setView('documents');
+  switchDocTab(btn.dataset.openDocTab);
+}));
 $('docs-open-banks-btn')?.addEventListener('click',safe(async()=>{
   await setView('commodities');
   switchCommodityTab('banks');
@@ -2141,5 +2145,123 @@ document.querySelectorAll('.chip-btn[data-set-amount]').forEach(btn => {
     if ($('charge-amount')) $('charge-amount').value = val;
   });
 });
+
+// OPEN-DATA LIVE MODULES VIEW LOADER
+async function loadModulesView(){
+  const wBtn=$('module-weather-btn');
+  if(wBtn&&!wBtn._bound){
+    wBtn._bound=true;
+    wBtn.onclick=async()=>{
+      const q=($('module-weather-input').value||'Bratislava').trim();
+      const resEl=$('module-weather-result');
+      resEl.textContent='Zisťujem aktuálne počasie…';
+      try{
+        const r=await fetch(`/api/modules/weather?q=${encodeURIComponent(q)}`);
+        const d=await r.json();
+        if(!r.ok||!d.available)throw new Error(d.reason||'Počasie sa nepodarilo načítať.');
+        const cur=d.current||{};
+        resEl.innerHTML=`<b>${d.location.name}, ${d.location.country}</b> (${d.location.latitude?.toFixed(2)}, ${d.location.longitude?.toFixed(2)})<br>`+
+          `🌡 Teplota: <b>${cur.temperature_c}°C</b> · Pocitová: <b>${cur.apparent_temperature_c}°C</b><br>`+
+          `💧 Vlhkosť: <b>${cur.relative_humidity_pct}%</b> · 💨 Vietor: <b>${cur.wind_speed_kmh} km/h</b> · 🌧 Zrážky: <b>${cur.precipitation_mm} mm</b><br>`+
+          `<small style="color:var(--text-muted, #94a3b8)">Zdroj: ${d.source} · Čas: ${new Date(d.fetched_at).toLocaleTimeString()}</small>`;
+      }catch(err){resEl.textContent='Chyba: '+err.message;}
+    };
+  }
+
+  const wikiBtn=$('module-wiki-btn');
+  if(wikiBtn&&!wikiBtn._bound){
+    wikiBtn._bound=true;
+    wikiBtn.onclick=async()=>{
+      const q=($('module-wiki-input').value||'Slovensko').trim();
+      const resEl=$('module-wiki-result');
+      resEl.textContent='Hľadám na Wikipédii…';
+      try{
+        const r=await fetch(`/api/modules/wikipedia?q=${encodeURIComponent(q)}&lang=sk`);
+        const d=await r.json();
+        if(!r.ok||!d.available)throw new Error(d.reason||'Článok nebol nájdený.');
+        resEl.innerHTML=`<b>${d.title}</b><br>`+
+          `<p style="margin:4px 0">${d.extract||d.description||'Bez popisu.'}</p>`+
+          (d.url?`<a href="${d.url}" target="_blank" rel="noopener" style="color:var(--accent,#38bdf8)">Otvoriť článok na Wikipédii →</a><br>`:'')+
+          `<small style="color:var(--text-muted, #94a3b8)">Zdroj: ${d.source} · Jazyk: ${d.lang}</small>`;
+      }catch(err){resEl.textContent='Chyba: '+err.message;}
+    };
+  }
+
+  const dnsBtn=$('module-dns-btn');
+  if(dnsBtn&&!dnsBtn._bound){
+    dnsBtn._bound=true;
+    dnsBtn.onclick=async()=>{
+      const domain=($('module-dns-input').value||'auru.space').trim();
+      const type=($('module-dns-type').value||'A').trim();
+      const resEl=$('module-dns-result');
+      resEl.textContent='Overujem cez Cloudflare DoH…';
+      try{
+        const r=await fetch(`/api/modules/dns?domain=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`);
+        const d=await r.json();
+        if(!r.ok||!d.available)throw new Error(d.reason||'DNS sa nepodarilo overiť.');
+        const recs=(d.records||[]).map(rec=>`• <code>${rec.data}</code> (TTL ${rec.TTL}s)`).join('<br>')||'Žiadne záznamy.';
+        resEl.innerHTML=`<b>${d.domain} [${d.type}]</b> · DNSSEC overené: <b>${d.dnssec_validated?'Áno ✓':'Nie'}</b><br>`+
+          `${recs}<br>`+
+          `<small style="color:var(--text-muted, #94a3b8)">Riešiteľ: ${d.resolver} · Čas: ${new Date(d.fetched_at).toLocaleTimeString()}</small>`;
+      }catch(err){resEl.textContent='Chyba: '+err.message;}
+    };
+  }
+
+  const cryptoBtn=$('module-crypto-btn');
+  if(cryptoBtn&&!cryptoBtn._bound){
+    cryptoBtn._bound=true;
+    cryptoBtn.onclick=async()=>{
+      const resEl=$('module-crypto-result');
+      resEl.textContent='Načítavam spotové kurzy z DefiLlama…';
+      try{
+        const r=await fetch('/api/modules/crypto?coins=bitcoin,ethereum,solana');
+        const d=await r.json();
+        if(!r.ok||!d.available)throw new Error(d.reason||'Kurzy sa nepodarilo načítať.');
+        const coins=d.coins||[];
+        const list=coins.map(c=>`• <b>${c.symbol}</b> (${c.name}): <b>$${Number(c.price_usd).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} USD</b> (${(c.price_eur?('~'+Number(c.price_eur).toFixed(2)+' €'):'')} · 24h zmena: <b>${c.change_24h_pct!==null?(c.change_24h_pct>0?'+':'')+Number(c.change_24h_pct).toFixed(2)+'%':'-'}</b>)`).join('<br>');
+        resEl.innerHTML=`<b>Spotové ceny krypto aktív:</b><br>${list}<br>`+
+          `<small style="color:var(--text-muted, #94a3b8)">Zdroj: ${d.source} · Čas: ${new Date(d.fetched_at).toLocaleTimeString()}</small>`;
+      }catch(err){resEl.textContent='Chyba: '+err.message;}
+    };
+  }
+
+  const newsBtn=$('module-news-btn');
+  if(newsBtn&&!newsBtn._bound){
+    newsBtn._bound=true;
+    newsBtn.onclick=async()=>{
+      const resEl=$('module-news-result');
+      resEl.textContent='Načítavam top tech správy z Hacker News…';
+      try{
+        const r=await fetch('/api/modules/tech-news?limit=5');
+        const d=await r.json();
+        if(!r.ok||!d.available)throw new Error(d.reason||'Správy sa nepodarilo načítať.');
+        const stories=d.stories||[];
+        const list=stories.map(s=>`• <a href="${s.url}" target="_blank" rel="noopener" style="color:var(--accent,#38bdf8)"><b>${s.title}</b></a> <small>(${s.score} bodov · ${s.by})</small>`).join('<br>');
+        resEl.innerHTML=`<b>Top technologické články:</b><br>${list}<br>`+
+          `<small style="color:var(--text-muted, #94a3b8)">Zdroj: ${d.source} · Čas: ${new Date(d.fetched_at).toLocaleTimeString()}</small>`;
+      }catch(err){resEl.textContent='Chyba: '+err.message;}
+    };
+  }
+
+  const macroBtn=$('module-macro-btn');
+  if(macroBtn&&!macroBtn._bound){
+    macroBtn._bound=true;
+    macroBtn.onclick=async()=>{
+      const country=($('module-macro-country').value||'SVK').trim();
+      const indicator=($('module-macro-indicator').value||'gdp').trim();
+      const resEl=$('module-macro-result');
+      resEl.textContent='Načítavam oficiálne dáta zo Svetovej Banky…';
+      try{
+        const r=await fetch(`/api/modules/macro?country=${encodeURIComponent(country)}&indicator=${encodeURIComponent(indicator)}`);
+        const d=await r.json();
+        if(!r.ok||!d.available)throw new Error(d.reason||'Dáta sa nepodarilo získať.');
+        resEl.innerHTML=`<b>${d.country_name} (${d.country_code})</b> — ${d.indicator_name}:<br>`+
+          `Hodnota: <b>${typeof d.value==='number'?d.value.toLocaleString('sk-SK'):d.value}</b> (Rok: <b>${d.year}</b>)<br>`+
+          `<small style="color:var(--text-muted, #94a3b8)">Zdroj: ${d.source} · Oficiálna databáza Svetovej Banky</small>`;
+      }catch(err){resEl.textContent='Chyba: '+err.message;}
+    };
+  }
+}
+
 
 

@@ -11,6 +11,7 @@ import {searchDomainNames,refreshDomainRegistration,createSubdomain,syncCloudfla
 import {infrastructureStatus,hostStudioProject,listHostedSites} from './infrastructure.js';
 import {capabilityStatus} from './capability-status.js';
 import {handleKnowledge} from '../services/knowledge-api.js';
+import {FREE_MODULES_CATALOG,fetchWeather,fetchWikipedia,resolveDns,fetchCryptoMarkets,fetchTechNews,fetchWorldBankIndicator} from './free-modules.js';
 import {z} from 'zod';
 import {TRINITY_VERSION,releaseMetadata} from './version.js';
 import {buildOnlyPreviewResponse,isBuildOnlyPreview} from './preview-mode.js';
@@ -875,6 +876,37 @@ async function route(request,env,ctx){
     requireAdmin(user);
     const body=await readJSON(request,50000);
     return json(await manageFirebase(env,user.email||user.id,body.action||'status',body));
+  }
+  if(path==='/api/modules/catalog'&&request.method==='GET'){
+    return json({modules:FREE_MODULES_CATALOG});
+  }
+  if(path==='/api/modules/weather'&&request.method==='GET'){
+    const q=url.searchParams.get('q')||url.searchParams.get('location')||'Bratislava';
+    return json(await fetchWeather(q));
+  }
+  if(path==='/api/modules/wikipedia'&&request.method==='GET'){
+    const q=url.searchParams.get('q')||'Trinity';
+    const lang=url.searchParams.get('lang')||'sk';
+    return json(await fetchWikipedia(q,{lang}));
+  }
+  if(path==='/api/modules/dns'&&request.method==='GET'){
+    const domain=url.searchParams.get('domain')||'auru.space';
+    const type=url.searchParams.get('type')||'A';
+    return json(await resolveDns(domain,type));
+  }
+  if(path==='/api/modules/crypto'&&request.method==='GET'){
+    const coinsParam=url.searchParams.get('coins');
+    const coins=coinsParam?coinsParam.split(','):['bitcoin','ethereum','solana'];
+    return json(await fetchCryptoMarkets(coins));
+  }
+  if(path==='/api/modules/tech-news'&&request.method==='GET'){
+    const limit=parseInt(url.searchParams.get('limit')||'10',10);
+    return json(await fetchTechNews(limit));
+  }
+  if(path==='/api/modules/macro'&&request.method==='GET'){
+    const country=url.searchParams.get('country')||'SVK';
+    const indicator=url.searchParams.get('indicator')||'NY.GDP.MKTP.CD';
+    return json(await fetchWorldBankIndicator(country,indicator));
   }
   if(path==='/api/ops/login-ticket'&&request.method==='POST'){
     await rateLimit(env,`ticket:${user.id}`,6);
