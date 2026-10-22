@@ -43,8 +43,14 @@ odkaz vyžaduje vytvorenie nového odkazu cez spúšťač.
 V Google-only režime (`TRINITY_AUTH_MODE=google`) sú legacy kľúče a jednorazové
 odkazy vypnuté. Google OAuth musí mať klienta a súhlas vlastníka. Povolené návraty:
 
-- produkcia: `https://auru.space/api/auth/google/callback`;
-- vývoj: `https://auru.dev/api/auth/google/callback`.
+- produkcia: `https://auru.space/auth/google/callback`;
+- vývoj: `https://auru.dev/auth/google/callback`.
+
+Podporované sú aj aliasy `/api/auth/google/callback`. V OAuth klientovi povoľ
+presné URL použité prihlasovacím vstupom; `/api/auth/google/start` používa
+`/api/auth/google/callback` a vstupy `/auth/google/...` používajú
+`/auth/google/callback`. `GOOGLE_ENABLED=true` nenahrádza klientsky secret
+ani overenie prihlásenia.
 
 `GOOGLE_CLIENT_ID` a `GOOGLE_CLIENT_SECRET` nastav osobitne pre každý Worker;
 napríklad `npx.cmd wrangler secret put GOOGLE_CLIENT_SECRET --env development`

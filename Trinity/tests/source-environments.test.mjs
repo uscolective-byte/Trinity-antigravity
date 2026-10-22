@@ -12,7 +12,10 @@ test('one repository and main serve two domains with separate writable storage',
   assert.equal(environment.vars.TRINITY_ENV,mode);
   assert.equal(environment.vars.TRINITY_GITHUB_REPO,TRINITY_SOURCE.repository);
   assert.equal(environment.vars.TRINITY_GITHUB_BRANCH,TRINITY_SOURCE.branch);
-  assert.equal(environment.vars.GOOGLE_REDIRECT_URI,`https://${domain}/api/auth/google/callback`);
+  const callback=new URL(environment.vars.GOOGLE_REDIRECT_URI);
+  assert.equal(callback.origin,`https://${domain}`);
+  assert.ok(['/api/auth/google/callback','/auth/google/callback'].includes(callback.pathname));
+  assert.equal(callback.search,'');assert.equal(callback.hash,'');
  }
  for(const [property,key] of [['d1_databases','database_id'],['kv_namespaces','id'],['r2_buckets','bucket_name'],['workflows','name']]){
   const productionResources=new Set(config[property].map(resource=>resource[key]));

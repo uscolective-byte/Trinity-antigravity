@@ -24,9 +24,7 @@ export function resolveGoogleRedirectUri(request, env) {
 }
 
 export function googleOAuthConfigured(env){
-  if(!env.GOOGLE_CLIENT_ID||adminEmails(env).size===0)return false;
-  if(env.GOOGLE_ENABLED==='true'&&(env.GOOGLE_CLIENT_SECRET||env.GOOGLE_CLIENT_ID))return true;
-  if(!env.GOOGLE_CLIENT_SECRET||!env.GOOGLE_REDIRECT_URI)return false;
+  if(!env.GOOGLE_CLIENT_ID||!env.GOOGLE_CLIENT_SECRET||!env.GOOGLE_REDIRECT_URI||adminEmails(env).size===0)return false;
   try{const url=new URL(env.GOOGLE_REDIRECT_URI);return url.protocol==='https:'||url.hostname==='localhost'||url.hostname==='127.0.0.1';}catch{return false;}
 }
 export const googleAuthRequired=env=>env.TRINITY_AUTH_MODE==='google'||env.GOOGLE_REQUIRED==='true';
