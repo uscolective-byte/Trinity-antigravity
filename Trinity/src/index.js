@@ -38,6 +38,7 @@ import {listAIProviders,configureAIProvider,recordAIProviderCheck} from './ai-pr
 import {getGraphVisualization,syncGraphFromEcosystem,queryGraphContext} from './graph-memory.js';
 import {auditHtmlQuality,recordStudioReview,reviewRequestSchema} from './studio-review.js';
 import {handleVoiceDialogue} from './voice-agent.js';
+import {generateEscrowLandingHtml,createEscrowDeal,settleEscrowDeal,getTelegramConfig,saveTelegramConfig,checkDomainsAndSslHealth,listDomainAlerts,cloneDomainEnvironment} from './domain-desk-advanced.js';
 import {createPortfolio,listPortfolios,getPortfolio,recordTrade,setQuote} from './trading.js';
 import {getWallet,transactWallet} from './wallet.js';
 import {getWalletTerminalOverview,saveWalletTerminalConfig,createPaymentTerminalCharge,executeWalletPayout,createCryptoWallet,cancelWalletPayout} from './wallet-terminals.js';
@@ -88,6 +89,15 @@ async function route(request,env,ctx){
   const url=new URL(request.url),path=url.pathname;
   const proPayment=await handleCommercePublic(request,env);if(proPayment)return proPayment;
   const publicSite=await handlePublicSiteRoute(request,env);if(publicSite)return publicSite;
+  const brokerMatch=path.match(/^\/broker\/([a-z0-9.-]+\.[a-z]{2,})$/i);
+  if(brokerMatch&&request.method==='GET'){
+    const domain=await getDomain(env,brokerMatch[1]);
+    if(domain)return new Response(generateEscrowLandingHtml({domain}),{headers:{'Content-Type':'text/html; charset=utf-8'}});
+  }
+  if(path==='/api/domains/escrow/inquire'&&request.method==='POST'){
+    const body=await readJSON(request,10000);
+    return json(await createEscrowDeal(env,body),201);
+  }
   if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
     'Cache-Control':'no-cache, no-store, must-revalidate',
     'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
@@ -375,6 +385,31 @@ async function route(request,env,ctx){
     requireAdmin(user);
     await rateLimit(env,`domain-env-deploy:${user.id}`,30,300);
     return json(await deployDomainEnvironment(env,user.email||user.id,await readJSON(request,60000)));
+  }
+  if(path==='/api/assistant/domains/environments/clone'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`domain-env-clone:${user.id}`,20,300);
+    return json(await cloneDomainEnvironment(env,user.email||user.id,await readJSON(request,10000)),201);
+  }
+  if(path==='/api/assistant/domains/escrow/settle'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await settleEscrowDeal(env,user.email||user.id,await readJSON(request,10000)));
+  }
+  if(path==='/api/assistant/domains/monitoring/alerts'&&request.method==='GET'){
+    requireAdmin(user);
+    return json(await listDomainAlerts(env));
+  }
+  if(path==='/api/assistant/domains/monitoring/check'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await checkDomainsAndSslHealth(env,{notifyTelegram:true}));
+  }
+  if(path==='/api/assistant/domains/monitoring/telegram'&&request.method==='GET'){
+    requireAdmin(user);
+    return json(await getTelegramConfig(env));
+  }
+  if(path==='/api/assistant/domains/monitoring/telegram'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await saveTelegramConfig(env,await readJSON(request,10000)));
   }
   const domainDetailRoute=path.match(/^\/api\/assistant\/domains\/([0-9a-f-]+|[a-z0-9.-]+\.[a-z]{2,})$/i);
   if(domainDetailRoute){

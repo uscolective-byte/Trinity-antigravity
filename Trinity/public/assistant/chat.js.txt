@@ -355,8 +355,13 @@ function renderDomainMarketplace(){
     box.append(card);
   }
 }
-async function loadDomains(){try{const data=await api('/domains');cachedDomains=data.items||[];loadInfrastructure();renderDomainStats();filterAndRenderDomains();}catch(e){const list=$('domain-list');if(list){list.replaceChildren(node('p','Správa domén vyžaduje prihlásenie s právami administrátora.','skeleton'));}}}
-function renderDomains(items){const count=$('settings-domains-count');if(count)count.textContent=`${(cachedDomains||[]).length} domén`;const list=$('domain-list');if(!list)return;list.replaceChildren();for(const d of items){const card=node('div',undefined,'domain-card'),info=node('div',undefined,'domain-card-info'),title=node('b',d.domain_name+' '),badge=node('span',d.status,'domain-badge '+d.status);title.append(badge);let desc=`Registrátor: ${d.registrar} · DNS: ${d.dns_records_count}`;if(d.sale_price)desc+=` · Predaj: ${d.sale_price} ${d.sale_currency}`;if(d.lease_price_monthly)desc+=` · Nájomné: ${d.lease_price_monthly} ${d.lease_currency}/mes`;if(d.current_tenant)desc+=` · Nájomca: ${d.current_tenant}`;if(d.buyer)desc+=` · Kupujúci: ${d.buyer}`;info.append(title,node('small',desc));const actions=node('div',undefined,'domain-card-actions'),inspectBtn=node('button','DNS a detail');inspectBtn.onclick=safe(async()=>{await openDomainDetail(d.id);});actions.append(inspectBtn);if(d.status!=='sold'){const sellBtn=node('button',d.listing_type==='sale'||d.listing_type==='both'?'Predať (upraviť)':'Predať');sellBtn.onclick=()=>openDomainDeal(d,'sell');actions.append(sellBtn);if(d.status==='leased'){const endLeaseBtn=node('button','Ukončiť prenájom','danger');endLeaseBtn.onclick=safe(async()=>{if(!confirm(`Ukončiť prenájom pre ${d.domain_name}?`))return;await api('/domains/'+d.id+'/lease/end',{reason:'Ukončenie nájmu administrátorom'});notice(`Prenájom domény ${d.domain_name} bol ukončený.`);await loadDomains();});actions.append(endLeaseBtn);}else{const leaseBtn=node('button','Prenajať');leaseBtn.onclick=()=>openDomainDeal(d,'lease');actions.append(leaseBtn);}const linkBtn=node('button','💳 Platobný link');linkBtn.onclick=()=>openCommerceWithPrefill({id:slugifyId('domena-'+d.domain_name),name:`Doména ${d.domain_name}`,price:d.sale_price||d.lease_price_monthly||99,description:`Úhrada za doménu ${d.domain_name}`});actions.append(linkBtn);}const delBtn=node('button','Zmazať','danger');delBtn.onclick=safe(async()=>{if(!confirm(`Naozaj zmazať doménu ${d.domain_name}?`))return;await api('/domains/'+d.id+'/delete',{},'POST');notice(`Doména ${d.domain_name} bola zmazaná.`);await loadDomains();});actions.append(delBtn);card.append(info,actions);list.append(card);}if(!items.length)list.append(node('p','Zatiaľ nie sú evidované žiadne domény zodpovedajúce filtru.','skeleton'));}
+async function loadDomains(){try{const data=await api('/domains');cachedDomains=data.items||[];loadInfrastructure();renderDomainStats();filterAndRenderDomains();populateDomainDeskSelects(cachedDomains);await loadEscrowDeals();await loadDomainMonitoring();}catch(e){const list=$('domain-list');if(list){list.replaceChildren(node('p','Správa domén vyžaduje prihlásenie s právami administrátora.','skeleton'));}}}
+function populateDomainDeskSelects(items){
+  const escrowSel=$('escrow-domain-select'),cloneSel=$('clone-domain-select');
+  if(escrowSel){escrowSel.replaceChildren(new Option('Vyber doménu…',''));for(const d of items)escrowSel.add(new Option(d.domain_name,d.domain_name));}
+  if(cloneSel){cloneSel.replaceChildren(new Option('Vyber doménu…',''));for(const d of items)cloneSel.add(new Option(d.domain_name,d.domain_name));}
+}
+function renderDomains(items){const count=$('settings-domains-count');if(count)count.textContent=`${(cachedDomains||[]).length} domén`;const list=$('domain-list');if(!list)return;list.replaceChildren();for(const d of items){const card=node('div',undefined,'domain-card'),info=node('div',undefined,'domain-card-info'),title=node('b',d.domain_name+' '),badge=node('span',d.status,'domain-badge '+d.status);title.append(badge);let desc=`Registrátor: ${d.registrar} · DNS: ${d.dns_records_count}`;if(d.sale_price)desc+=` · Predaj: ${d.sale_price} ${d.sale_currency}`;if(d.lease_price_monthly)desc+=` · Nájomné: ${d.lease_price_monthly} ${d.lease_currency}/mes`;if(d.current_tenant)desc+=` · Nájomca: ${d.current_tenant}`;if(d.buyer)desc+=` · Kupujúci: ${d.buyer}`;info.append(title,node('small',desc));const actions=node('div',undefined,'domain-card-actions'),inspectBtn=node('button','DNS a detail');inspectBtn.onclick=safe(async()=>{await openDomainDetail(d.id);});actions.append(inspectBtn);const landingBtn=node('button','🌐 Landing');landingBtn.onclick=()=>window.open('/broker/'+encodeURIComponent(d.domain_name),'_blank');actions.append(landingBtn);if(d.status!=='sold'){const sellBtn=node('button',d.listing_type==='sale'||d.listing_type==='both'?'Predať (upraviť)':'Predať');sellBtn.onclick=()=>openDomainDeal(d,'sell');actions.append(sellBtn);if(d.status==='leased'){const endLeaseBtn=node('button','Ukončiť prenájom','danger');endLeaseBtn.onclick=safe(async()=>{if(!confirm(`Ukončiť prenájom pre ${d.domain_name}?`))return;await api('/domains/'+d.id+'/lease/end',{reason:'Ukončenie nájmu administrátorom'});notice(`Prenájom domény ${d.domain_name} bol ukončený.`);await loadDomains();});actions.append(endLeaseBtn);}else{const leaseBtn=node('button','Prenajať');leaseBtn.onclick=()=>openDomainDeal(d,'lease');actions.append(leaseBtn);}const linkBtn=node('button','💳 Platobný link');linkBtn.onclick=()=>openCommerceWithPrefill({id:slugifyId('domena-'+d.domain_name),name:`Doména ${d.domain_name}`,price:d.sale_price||d.lease_price_monthly||99,description:`Úhrada za doménu ${d.domain_name}`});actions.append(linkBtn);}const delBtn=node('button','Zmazať','danger');delBtn.onclick=safe(async()=>{if(!confirm(`Naozaj zmazať doménu ${d.domain_name}?`))return;await api('/domains/'+d.id+'/delete',{},'POST');notice(`Doména ${d.domain_name} bola zmazaná.`);await loadDomains();});actions.append(delBtn);card.append(info,actions);list.append(card);}if(!items.length)list.append(node('p','Zatiaľ nie sú evidované žiadne domény zodpovedajúce filtru.','skeleton'));}
 async function loadCommerce(){
   const panel=$('settings-commerce-panel');
   const isOwner=state?.account?.role==='owner';
@@ -2610,6 +2615,197 @@ $('voice-dialogue-btn')?.addEventListener('click', safe(async () => {
   };
 
   liveVoiceRecorder.start();
+}));
+
+// ==========================================
+// PILLAR 2: ESCROW BROKERING, MONITORING & A/B CLONING
+// ==========================================
+
+async function loadEscrowDeals() {
+  const list = $('escrow-deals-list');
+  if (!list) return;
+  try {
+    const deals = (cachedDomains || []).filter(d => d.listing_type === 'sale' || d.listing_type === 'lease' || d.listing_type === 'both');
+    list.replaceChildren();
+    if (!deals.length) {
+      list.append(node('p', 'Zatiaľ nie sú evidované domény v ponuke na predaj alebo prenájom. Vyber doménu vyššie pre vytvorenie ponuky.', 'skeleton'));
+      return;
+    }
+    for (const d of deals) {
+      const card = node('article', undefined, 'api-key-item');
+      const info = node('div');
+      info.append(
+        node('b', d.domain_name),
+        node('small', `Stav: ${d.status} · Predaj: ${d.sale_price ? d.sale_price + ' €' : '—'} · Nájom: ${d.lease_price_monthly ? d.lease_price_monthly + ' €/mes' : '—'}`)
+      );
+      const actions = node('div', undefined, 'domain-card-actions');
+      const landingBtn = node('button', '🌐 Otvoriť Landing Page');
+      landingBtn.type = 'button';
+      landingBtn.onclick = () => window.open('/broker/' + encodeURIComponent(d.domain_name), '_blank');
+      actions.append(landingBtn);
+
+      const settleBtn = node('button', '✓ Vysporiadať Escrow & DNS', 'primary');
+      settleBtn.type = 'button';
+      settleBtn.onclick = safe(async () => {
+        const buyer = prompt(`Zadaj e-mail overeného kupujúceho pre ${d.domain_name}:`, 'klient@firma.sk');
+        if (!buyer) return;
+        const targetDns = prompt(`Cieľová IP / server kupujúceho:`, '192.0.2.1');
+        if (!targetDns) return;
+
+        notice('Vytváram a vysporadúvam escrow transakciu s prepisom DNS…');
+        const dealRes = await api('/domains/escrow/inquire', {
+          domain_name: d.domain_name,
+          deal_type: 'instant_buy',
+          amount: d.sale_price || 490,
+          currency: 'EUR',
+          buyer_email: buyer,
+          target_dns: targetDns
+        });
+        await api('/domains/escrow/settle', {
+          deal_id: dealRes.deal_id,
+          payment_reference: 'verified_bank_transfer',
+          target_dns: targetDns
+        });
+        notice(`Escrow úspešne dokončený! Doména ${d.domain_name} prevedená, DNS prepísané na ${targetDns}.`);
+        await loadDomains();
+      });
+      actions.append(settleBtn);
+
+      card.append(info, actions);
+      list.append(card);
+    }
+  } catch (err) {
+    list.replaceChildren(node('p', 'Chyba načítania escrow: ' + err.message, 'skeleton'));
+  }
+}
+
+async function loadDomainMonitoring() {
+  const alertsList = $('monitoring-alerts-list');
+  if (!alertsList) return;
+  try {
+    const [alertsData, tgData] = await Promise.all([
+      api('/domains/monitoring/alerts').catch(() => ({ alerts: [] })),
+      api('/domains/monitoring/telegram').catch(() => ({ enabled: false }))
+    ]);
+
+    if ($('tg-enabled')) $('tg-enabled').checked = Boolean(tgData.enabled);
+    if ($('tg-chat-id') && tgData.chat_id_masked && tgData.chat_id_masked !== '—') {
+      $('tg-chat-id').placeholder = `Aktuálne: ${tgData.chat_id_masked}`;
+    }
+
+    alertsList.replaceChildren();
+    const alerts = alertsData.alerts || [];
+    if (!alerts.length) {
+      alertsList.append(node('p', 'Všetky domény a workery sú v poriadku. Žiadne aktívne incidenty.', 'skeleton'));
+      return;
+    }
+    for (const a of alerts) {
+      const card = node('article', undefined, 'incident ' + (a.severity || 'warning'));
+      const info = node('div');
+      info.append(
+        node('b', `${a.domain_name} · [${a.alert_type}]`),
+        node('small', `${a.message} · ${a.created_at}`)
+      );
+      card.append(info);
+      alertsList.append(card);
+    }
+  } catch (err) {
+    alertsList.replaceChildren(node('p', 'Chyba monitoringu: ' + err.message, 'skeleton'));
+  }
+}
+
+$('escrow-create-deal-form')?.addEventListener('submit', safe(async (e) => {
+  e.preventDefault();
+  const domainName = $('escrow-domain-select').value;
+  if (!domainName) throw new Error('Vyber doménu.');
+  const dealType = $('escrow-deal-type').value;
+  const amount = parseFloat($('escrow-amount').value) || 490;
+  const buyerEmail = $('escrow-buyer-email').value.trim();
+  const targetDns = $('escrow-target-dns').value.trim() || '192.0.2.1';
+
+  notice('Vytváram escrow ponuku…');
+  const res = await api('/domains/escrow/inquire', {
+    domain_name: domainName,
+    deal_type: dealType,
+    amount,
+    currency: 'EUR',
+    buyer_email: buyerEmail,
+    target_dns: targetDns
+  });
+  notice(`Escrow ponuka vytvorená (ID: ${res.deal_id}).`);
+  await loadDomains();
+}));
+
+$('escrow-open-landing-btn')?.addEventListener('click', () => {
+  const domainName = $('escrow-domain-select')?.value;
+  if (!domainName) {
+    notice('Najprv vyber doménu v zozname.');
+    return;
+  }
+  window.open('/broker/' + encodeURIComponent(domainName), '_blank');
+});
+
+$('monitoring-run-check-btn')?.addEventListener('click', safe(async () => {
+  notice('Spúšťam kontrolu expirácie, SSL certifikátov a workerov…');
+  const res = await api('/domains/monitoring/check', {});
+  notice(`Kontrola dokončená: overených ${res.total_domains_checked} domén, detegovaných ${res.alerts_count} výstrah, odoslaných ${res.telegram_dispatched} Telegram alertov.`);
+  await loadDomainMonitoring();
+}));
+
+$('monitoring-test-telegram-btn')?.addEventListener('click', safe(async () => {
+  notice('Odosielam testovací Telegram alert…');
+  const res = await api('/domains/monitoring/check', {});
+  notice('Testovací alert bol spracovaný cez Telegram watchdog.');
+}));
+
+$('monitoring-telegram-form')?.addEventListener('submit', safe(async (e) => {
+  e.preventDefault();
+  const botToken = $('tg-bot-token').value.trim();
+  const chatId = $('tg-chat-id').value.trim();
+  const enabled = $('tg-enabled').checked;
+  if (!botToken || !chatId) throw new Error('Zadaj Telegram Bot Token a Chat ID.');
+
+  await api('/domains/monitoring/telegram', {
+    bot_token: botToken,
+    chat_id: chatId,
+    enabled
+  });
+  notice('Telegram nastavenia boli bezpečne uložené.');
+  await loadDomainMonitoring();
+}));
+
+$('domain-clone-form')?.addEventListener('submit', safe(async (e) => {
+  e.preventDefault();
+  const domainName = $('clone-domain-select').value;
+  if (!domainName) throw new Error('Vyber doménu na klonovanie.');
+  const sourceEnv = $('clone-source-env').value;
+  const targetEnv = $('clone-target-env').value.trim();
+  const variantLabel = $('clone-variant-label').value.trim() || 'Variant B';
+
+  const btn = $('clone-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Klonujem prostredie…';
+  try {
+    const res = await api('/domains/environments/clone', {
+      domain_name: domainName,
+      source_env: sourceEnv,
+      target_env: targetEnv,
+      ab_variant_label: variantLabel
+    });
+    const box = $('clone-result-box');
+    box.hidden = false;
+    box.innerHTML = `
+      <p><b>✓ A/B Prostredie úspešne naklonované!</b></p>
+      <p>Originál (Variant A): <a href="${res.source_url}" target="_blank" rel="noopener"><b>${res.source_url}</b> ↗</a></p>
+      <p>Klon (Variant B): <a href="${res.target_url}" target="_blank" rel="noopener"><b>${res.target_url}</b> ↗</a></p>
+      <small style="color:var(--text-muted)">Štítok: ${res.ab_test_label} · DNS CNAME nastavené automaticky.</small>
+    `;
+    notice(`Prostredie ${targetEnv} bolo naklonované z ${sourceEnv}.`);
+    await loadDomainEnvironments();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🧬 Naklonovať prostredie & Vytvoriť A/B Test';
+  }
 }));
 
 

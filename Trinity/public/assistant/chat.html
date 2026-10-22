@@ -212,6 +212,83 @@
         <section class="panel"><div class="panel-head"><div><span class="eyebrow">RÝCHLE DNS</span><h2>Vytvor subdoménu</h2></div></div><p class="settings-help">Vytvorí CNAME subdoménu pod tvojou synchronizovanou Cloudflare DNS zónou.</p><form id="subdomain-form" class="secret-form"><input id="subdomain-parent" required placeholder="Spravovaná doména, napr. auru.space"><input id="subdomain-label" required maxlength="63" placeholder="Názov, napr. mojweb"><input id="subdomain-target" required placeholder="Cieľový hostname"><button type="submit" class="primary">Vytvoriť CNAME</button></form></section>
         <section class="panel"><div class="panel-head"><div><span class="eyebrow">WEB HOSTING</span><h2>Hosting Studio projektov</h2></div></div><p class="settings-help">Súkromný web vyžaduje oddelený prístupový kľúč. Verejné publikovanie zvoľ výslovne.</p><form id="hosting-form" class="secret-form"><select id="hosting-project" required aria-label="Studio projekt"><option value="">Načítavam projekty…</option></select><label><input id="hosting-public" type="checkbox"> Publikovať verejne</label><button type="submit" class="primary">Nasadiť web</button></form><div id="hosting-list" aria-live="polite"></div></section>
       </div>
+
+      <!-- PILLAR 2: ADVANCED ESCROW BROKERING, MONITORING & A/B CLONING -->
+      <section id="domain-escrow-panel" class="panel domain-env-panel" style="margin-top:18px">
+        <div class="panel-head">
+          <div><span class="eyebrow">AUTONÓMNY DOMAIN BROKERING & ESCROW</span><h2>Escrow Landing Pages & Okamžitý Prepis DNS po Úhrade</h2></div>
+          <span id="escrow-deals-badge" class="detail-chip">ESCROW READY</span>
+        </div>
+        <p class="settings-help">Trinity dokáže pre každú tvoju doménu vygenerovať konverznú predajnú landing page na ceste <code>/broker/:domena</code> s možnosťou jednorazového nákupu, prenájmu alebo ponuky na splátky. Po overení úhrady automaticky prepíše DNS záznamy na cieľový server kupujúceho.</p>
+        <form id="escrow-create-deal-form" class="secret-form commerce-form">
+          <strong>1. Vytvoriť Escrow Ponuku / Zobraziť Landing Page</strong>
+          <div class="commerce-form-grid">
+            <label><span>Doména</span><select id="escrow-domain-select" required><option value="">Vyber doménu…</option></select></label>
+            <label><span>Typ obchodu</span><select id="escrow-deal-type"><option value="instant_buy">Jednorazový nákup (Buy Now)</option><option value="lease_to_own">Mesačný prenájom s odkupom</option><option value="make_offer">Dohoda / Ponuka na mieru</option></select></label>
+            <label><span>Dohodnutá suma v EUR</span><input id="escrow-amount" type="number" min="1" step="0.01" value="490" required></label>
+            <label><span>E-mail kupujúceho</span><input id="escrow-buyer-email" type="email" placeholder="napr. klient@firma.sk" required></label>
+            <label class="full-span"><span>Cieľový DNS server kupujúceho (IP alebo CNAME)</span><input id="escrow-target-dns" placeholder="napr. 192.0.2.1 alebo klient.hosting.sk" value="192.0.2.1"></label>
+          </div>
+          <div class="commerce-form-actions">
+            <button class="primary" type="submit" id="escrow-submit-deal">🛡️ Vytvoriť Escrow Obchod</button>
+            <button type="button" id="escrow-open-landing-btn">🌐 Otvoriť Landing Page domény ↗</button>
+          </div>
+        </form>
+        <div class="commerce-catalog-head" style="margin-top:16px">
+          <strong>Evidencia Escrow Obchodov (Čakajúce na úhradu a vysporiadanie)</strong>
+        </div>
+        <div id="escrow-deals-list" class="api-key-list"></div>
+      </section>
+
+      <section id="domain-monitoring-panel" class="panel domain-env-panel" style="margin-top:18px">
+        <div class="panel-head">
+          <div><span class="eyebrow">REALTIME MONITORING & SSL WATCHDOG</span><h2>Sledovanie Expirácie, SSL Certifikátov a Telegram Bot Notifikácie</h2></div>
+          <span id="monitoring-status-badge" class="detail-chip">MONITORING AKTÍVNY</span>
+        </div>
+        <p class="settings-help">Automatická kontrola termínov expirácie všetkých domén (< 30 dní a < 7 dní), validity SSL certifikátov a zdravia Cloudflare workerov s okamžitým odoslaním notifikácie na tvoj osobný Telegram.</p>
+        
+        <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+          <button id="monitoring-run-check-btn" type="button" class="primary">⌕ Spustiť okamžitú kontrolu expirácie & SSL</button>
+          <button id="monitoring-test-telegram-btn" type="button">📢 Odoslať testovací Telegram Alert</button>
+        </div>
+
+        <form id="monitoring-telegram-form" class="secret-form commerce-form">
+          <strong>Nastavenie Telegram Bota pre výstrahy</strong>
+          <div class="commerce-form-grid">
+            <label><span>Telegram Bot Token</span><input id="tg-bot-token" type="password" placeholder="napr. 7123456789:AAH..."></label>
+            <label><span>Telegram Chat ID</span><input id="tg-chat-id" placeholder="napr. 123456789"></label>
+            <label class="domain-live-check full-span"><input type="checkbox" id="tg-enabled" checked> <b>Zapnúť okamžité odosielanie výstrah na Telegram pri blížiacej sa expirácii a výpadkoch</b></label>
+          </div>
+          <div class="commerce-form-actions">
+            <button class="primary" type="submit">💾 Uložiť nastavenia Telegram Bota</button>
+          </div>
+        </form>
+
+        <div class="commerce-catalog-head" style="margin-top:16px">
+          <strong>Aktívne výstrahy a incidenty monitoringu</strong>
+        </div>
+        <div id="monitoring-alerts-list" class="api-key-list"></div>
+      </section>
+
+      <section id="domain-clone-panel" class="panel domain-env-panel" style="margin-top:18px">
+        <div class="panel-head">
+          <div><span class="eyebrow">1-KLIKOVÉ KLONOVANIE PROSTREDÍ</span><h2>Okamžité Vytvorenie A/B Testovacej Verzie Webu</h2></div>
+          <span class="detail-chip">A/B TESTING</span>
+        </div>
+        <p class="settings-help">Jedným kliknutím naklonuj produkčné alebo staging prostredie webu do nového A/B variantu (napr. <code>staging</code>, <code>preview</code>, <code>variant-b</code>) s identickou konfiguráciou a okamžitou možnosťou porovnania oboch verzií naživo.</p>
+        <form id="domain-clone-form" class="secret-form commerce-form">
+          <div class="commerce-form-grid">
+            <label><span>Cieľová doména</span><select id="clone-domain-select" required><option value="">Vyber doménu…</option></select></label>
+            <label><span>Zdrojové prostredie (Originál)</span><select id="clone-source-env"><option value="production">Production (Hlavný web)</option><option value="staging">Staging</option><option value="development">Development</option></select></label>
+            <label><span>Nové klonované prostredie (Kópia)</span><input id="clone-target-env" required placeholder="napr. variant-b alebo preview" value="variant-b"></label>
+            <label><span>Názov A/B variantu</span><input id="clone-variant-label" placeholder="napr. Zvýraznený Call-to-Action hero" value="Variant B (A/B Test)"></label>
+          </div>
+          <div class="commerce-form-actions">
+            <button class="primary" type="submit" id="clone-submit-btn">🧬 Naklonovať prostredie & Vytvoriť A/B Test</button>
+          </div>
+        </form>
+        <div id="clone-result-box" class="domain-check-result" style="margin-top:12px" hidden></div>
+      </section>
       <div id="domain-deal-card" class="domain-form-card" hidden><form id="domain-deal-form" class="secret-form"><strong id="domain-deal-title">Obchod</strong><input id="domain-deal-price" type="number" min="1" step="0.01" required placeholder="Cena v EUR"><input id="domain-deal-party" maxlength="120" placeholder="Kupujúci / nájomca (nechaj prázdne = iba ponuka)"><input id="domain-deal-months" type="number" min="1" max="120" value="12" placeholder="Mesiace prenájmu"><button class="primary" type="submit" id="domain-deal-submit">Potvrdiť</button><button type="button" id="domain-deal-cancel">Zrušiť</button></form></div>
     </section>
     <section id="commodities-view" class="view commodities-view" hidden>
