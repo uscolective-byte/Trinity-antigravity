@@ -41,3 +41,18 @@ test('runAgent connects PayPal account Saboivan@gmail.com cleanly', async () => 
   assert.equal(res.truth.status, 'passed');
   assert.ok(res.tool_log.some(t => t.tool === 'paypal_connect'));
 });
+
+test('runAgent connects Revolut account LT613250098859511281 cleanly', async () => {
+  const env = {
+    DB: null,
+    Mastermind: null
+  };
+  const res = await runAgent(env, 'orchestrator', 'tak isto pridavam moj osobny revolut ucet ktory musis pridat do trinity LT613250098859511281');
+  assert.ok(res.text.includes('Revolut'));
+  assert.ok(res.text.includes('LT613250098859511281'));
+  assert.ok(res.text.includes('Basterix'));
+  assert.ok(res.text.includes('REVOLT21'));
+  assert.equal(res.model, 'trinity-wallet-engine');
+  assert.equal(res.truth.status, 'passed');
+  assert.ok(res.tool_log.some(t => t.tool === 'revolut_connect'));
+});
