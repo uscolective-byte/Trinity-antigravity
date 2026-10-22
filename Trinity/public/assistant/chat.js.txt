@@ -1845,17 +1845,22 @@ function renderWalletView(data) {
   const w = data.wallet || {};
   const t = data.terminals || {};
 
-  if ($('wstat-balance')) $('wstat-balance').textContent = fmt(w.balance_eur);
-  if ($('wstat-available')) $('wstat-available').textContent = fmt(w.available_payout_eur);
-  if ($('wstat-received')) $('wstat-received').textContent = fmt(w.total_received_eur);
-  if ($('wstat-withdrawn')) $('wstat-withdrawn').textContent = fmt(w.total_withdrawn_eur);
+  const balance = w.evidenced_balance_eur != null ? w.evidenced_balance_eur : (w.balance_eur || 0);
+  const available = w.evidenced_balance_eur != null ? w.evidenced_balance_eur : (w.available_payout_eur || 0);
+  const received = w.evidenced_received_eur != null ? w.evidenced_received_eur : (w.total_received_eur || 0);
+  const withdrawn = w.evidenced_paid_out_eur != null ? w.evidenced_paid_out_eur : (w.total_withdrawn_eur || 0);
+
+  if ($('wstat-balance')) $('wstat-balance').textContent = fmt(balance);
+  if ($('wstat-available')) $('wstat-available').textContent = fmt(available);
+  if ($('wstat-received')) $('wstat-received').textContent = fmt(received);
+  if ($('wstat-withdrawn')) $('wstat-withdrawn').textContent = fmt(withdrawn);
 
   // Pre-fill config form
   if ($('wcfg-iban')) $('wcfg-iban').value = t.sepa?.iban || '';
   if ($('wcfg-bic')) $('wcfg-bic').value = t.sepa?.bic || '';
   if ($('wcfg-name')) $('wcfg-name').value = t.sepa?.account_name || '';
   if ($('wcfg-revolut')) $('wcfg-revolut').value = t.revolut?.handle || '';
-  if ($('wcfg-paypal')) $('wcfg-paypal').value = t.paypal?.email || '';
+  if ($('wcfg-paypal')) $('wcfg-paypal').value = t.paypal?.account || t.paypal?.email || '';
   if ($('wcfg-crypto')) $('wcfg-crypto').value = t.crypto?.address || '';
   if ($('wcfg-crypto-net')) $('wcfg-crypto-net').value = t.crypto?.network || 'polygon';
 
@@ -2128,4 +2133,13 @@ $('wallet-create-crypto-btn')?.addEventListener('click', safe(async () => {
 }));
 
 $('wallet-refresh-btn')?.addEventListener('click', safe(loadWalletView));
+
+// Quick amount chips handler in POS Terminal
+document.querySelectorAll('.chip-btn[data-set-amount]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val = btn.dataset.setAmount;
+    if ($('charge-amount')) $('charge-amount').value = val;
+  });
+});
+
 
