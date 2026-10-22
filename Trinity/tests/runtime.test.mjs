@@ -247,6 +247,27 @@ test('Unified Commerce & PayPal owner routes configure accounts, offers, and pub
   const ppRedirect=await mf.dispatchFetch(url+'/pay/paypal/web-balicek',{redirect:'manual'});
   assert.equal(ppRedirect.status,302);
   assert.equal(ppRedirect.headers.get('location'),'https://www.paypal.com/paypalme/trinitysk/490');
+
+  const personalSaved=await req('/api/assistant/commerce/accounts',{
+    business_name:'Ivan Sabo',
+    account_type:'personal',
+    paypal_identifier:'saboivan2008@gmail.com',
+    paypal_url:'saboivan2008@gmail.com',
+    revolut_url:'',
+    default_currency:'EUR',
+    note:'Osobný PayPal účet (fyzická osoba)',
+    auto_generate_offers:true
+  });
+  assert.equal(personalSaved.status,200,await personalSaved.clone().text());
+  const personalBody=await personalSaved.json();
+  assert.ok(personalBody.products.some(p=>p.id==='web-na-kluc'&&p.provider==='paypal'));
+
+  const checkoutPage=await req('/pay/checkout/web-na-kluc',undefined,false);
+  assert.equal(checkoutPage.status,200);
+  const checkoutHtml=await checkoutPage.text();
+  assert.match(checkoutHtml,/Zaplatiť 490\.00 € cez PayPal/);
+  assert.match(checkoutHtml,/Osobný účet/);
+
   const html=await(await req('/',undefined,false)).text();
   assert.match(html,/id="settings-commerce-panel"/);
   assert.match(html,/id="domain-marketplace-panel"/);

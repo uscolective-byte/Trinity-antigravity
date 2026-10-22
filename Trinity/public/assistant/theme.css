@@ -231,6 +231,10 @@
   display:grid;
   gap:8px;
 }
+.commerce-provider-card.paypal-featured{
+  border-color:rgba(0,121,193,0.55);
+  background:linear-gradient(180deg,rgba(0,112,186,0.12),var(--paper));
+}
 .commerce-provider-card.ready{
   border-color:rgba(16,185,129,0.45);
   box-shadow:0 0 0 1px rgba(16,185,129,0.15);

@@ -30,7 +30,7 @@
       <div id="admin-dashboard" class="role-dashboard admin-dashboard" hidden>
         <div class="hero-card admin-hero"><div class="hero-copy"><span id="control-eyebrow" class="eyebrow">TRINITY CONTROL</span><h1 id="control-title">Riadiace <em>centrum</em></h1><p id="control-copy">Oddelený prehľad prevádzky, používateľov, agentov a cloudových integrácií.</p><div class="hero-actions"><button class="primary" data-view="settings">Otvoriť administráciu</button><button type="button" class="button-link" data-view="settings">Správa systému</button></div></div><div class="admin-shield" aria-label="Riadiaci prístup"><span>◆</span><b id="control-role">ADMIN</b><small id="control-role-detail">správa systému</small></div></div>
         <div class="metric-grid admin-metrics"><article class="metric coral"><span>AKTÍVNA PRÁCA</span><strong id="admin-active-jobs">—</strong><small>spustené alebo čakajúce úlohy</small></article><article class="metric blue"><span>CHYBY DNES</span><strong id="admin-failed-jobs">—</strong><small>úlohy vyžadujúce kontrolu</small></article><article class="metric teal"><span>ČAKAJÚCI POUŽÍVATELIA</span><strong id="admin-pending-users">—</strong><small>žiadosti o prístup</small></article><article class="metric gold"><span>INFRAŠTRUKTÚRA</span><strong id="admin-services">—</strong><small id="admin-gateway-state">cloudové služby</small></article></div>
-        <section id="owner-growth-panel" class="panel admin-command-panel" hidden><div class="panel-head"><div><span class="eyebrow">OWNER · OBCHOD A RAST</span><h2>Obchodné centrum, Revolut Pro & PayPal</h2></div><span class="detail-chip">IBA VLASTNÍK</span></div><p>Vyhľadá verejné príležitosti, zoradí firmy podľa dôkazov, pripraví personalizovanú ponuku, vygeneruje platobný odkaz (Revolut Pro / PayPal) a vypočíta ekonomiku služby. Kontaktovanie ľudí a kontrola prijatých platieb zostávajú pod tvojou kontrolou.</p><div class="admin-action-grid"><button data-owner-prompt="prospects"><i>⌕</i><span><b>Nájsť zákazníkov</b><small>Verejný web, LinkedIn a firemné katalógy</small></span></button><button data-owner-prompt="score"><i>◎</i><span><b>Vyhodnotiť príležitosti</b><small>Zoradiť firmy podľa potrieb a dôkazov</small></span></button><button data-owner-prompt="offer"><i>✎</i><span><b>Pripraviť ponuku</b><small>Personalizovaný návrh bez odoslania</small></span></button><button data-owner-prompt="revenue"><i>€</i><span><b>Model zárobku</b><small>Tržby, náklady, zisk a bod zvratu</small></span></button><button data-owner-prompt="blueprint"><i>✦</i><span><b>Plán monetizácie</b><small>Balíky webov, domén a AI automatizácií</small></span></button><button type="button" data-open-commerce="settings"><i>💳</i><span><b>Revolut & PayPal účty</b><small>Prepojiť platobné odkazy a cenník</small></span></button></div></section>
+        <section id="owner-growth-panel" class="panel admin-command-panel" hidden><div class="panel-head"><div><span class="eyebrow">OWNER · OBCHOD A RAST</span><h2>Obchodné centrum & Osobný PayPal Checkout (bez nutnosti firmy)</h2></div><span class="detail-chip">FYZICKÁ OSOBA / OWNER</span></div><p>Nepotrebuješ mať založenú firmu ani Pro účet. Prepoj svoj osobný <b>PayPal (PayPal.me alebo PayPal e-mail)</b> a Trinity automaticky vytvorí platobné brány s presnou sumou v EUR pre predaj webov, domén a AI služieb.</p><div class="admin-action-grid"><button type="button" data-open-commerce="settings" class="primary"><i>💙</i><span><b>Prepojiť osobný PayPal</b><small>PayPal e-mail alebo PayPal.me na 1 klik</small></span></button><button data-owner-prompt="prospects"><i>⌕</i><span><b>Nájsť zákazníkov</b><small>Verejný web, LinkedIn a katalógy</small></span></button><button data-owner-prompt="score"><i>◎</i><span><b>Vyhodnotiť príležitosti</b><small>Zoradiť dopyty podľa dôkazov</small></span></button><button data-owner-prompt="offer"><i>✎</i><span><b>Pripraviť ponuku</b><small>Personalizovaný návrh s PayPal linkom</small></span></button><button data-owner-prompt="revenue"><i>€</i><span><b>Model zárobku</b><small>Tržby, náklady a čistý výnos</small></span></button><button data-owner-prompt="blueprint"><i>✦</i><span><b>Plán monetizácie</b><small>Balíky webov, domén a AI služieb</small></span></button></div></section>
         <div class="dashboard-grid admin-grid"><section class="panel admin-command-panel"><div class="panel-head"><div><span class="eyebrow">ADMIN AKCIE</span><h2>Riadenie Trinity</h2></div><span id="admin-system-state" class="admin-state">Načítavam…</span></div><div class="admin-action-grid"><button data-view="settings"><i>⚙</i><span><b>Modely a integrácie</b><small>API kľúče, poskytovatelia, moduly a roly</small></span></button><button data-view="projects"><i>▦</i><span><b>Projekty a úlohy</b><small>Kontrola práce agentov a výstupov</small></span></button><button data-view="studio"><i>✦</i><span><b>AI Studio</b><small>Tvorba a verzovanie webových výstupov</small></span></button><button type="button" data-view="documents"><i>📚</i><span><b>Trinity Dokumenty</b><small>Automatické záznamy každého kroku (MD / PDF)</small></span></button></div></section><section class="panel activity-panel"><div class="panel-head"><div><span class="eyebrow">SYSTÉMOVÁ AKTIVITA</span><h2>Najnovšie úlohy</h2></div><button data-view="chat">Otvoriť chat</button></div><div id="admin-dashboard-activity" class="activity-list"><p class="skeleton">Načítavam…</p></div></section></div>
       </div>
       <div id="ui-custom-widgets-slot" class="ui-custom-widgets-grid" hidden></div>
@@ -77,8 +77,8 @@
         <div id="domain-environments-list" class="domain-marketplace-grid"></div>
       </section>
       <section id="domain-marketplace-panel" class="panel domain-marketplace-panel">
-        <div class="panel-head"><div><span class="eyebrow">TRHOVISKO & PLATOBNÉ ODKAZY</span><h2>Domény v ponuke a okamžitá platba (Revolut / PayPal)</h2></div><div class="domain-market-actions"><button type="button" data-open-commerce="settings" class="primary">💳 Nastaviť Revolut & PayPal</button><button type="button" id="domain-ask-monetize">✦ Navrhnúť stratégiu predaja v chate</button></div></div>
-        <p class="settings-help">Domény označené „Na predaj“ alebo „Na prenájom“ sa zobrazia tu. Pri každej môžeš jedným klikom vytvoriť verejný platobný odkaz cez Revolut Pro alebo PayPal.</p>
+        <div class="panel-head"><div><span class="eyebrow">TRHOVISKO DOMÉN · OSOBNÝ PAYPAL CHECKOUT</span><h2>Domény v ponuke a okamžitá platba cez PayPal (bez nutnosti firmy)</h2></div><div class="domain-market-actions"><button type="button" data-open-commerce="settings" class="primary">💙 Nastaviť osobný PayPal</button><button type="button" id="domain-ask-monetize">✦ Navrhnúť stratégiu predaja v chate</button></div></div>
+        <p class="settings-help">Domény označené „Na predaj“ alebo „Na prenájom“ sa zobrazia tu. Pri každej môžeš jedným klikom vytvoriť PayPal platobnú bránu s presnou cenou v EUR priamo na svoj osobný PayPal účet.</p>
         <div id="domain-marketplace-list" class="domain-marketplace-grid"></div>
       </section>
       <section id="settings-domains-panel" class="panel admin-panel"><div class="panel-head"><div><span class="eyebrow">MOJE DOMÉNY</span><h2>Zoznam domén a DNS správa</h2></div><span id="settings-domains-count" class="detail-chip">0 domén</span></div><p class="settings-help">Tu vidíš všetky evidované domény. Pri každej môžeš upraviť DNS, zaradiť ju na predaj/prenájom alebo vytvoriť platobný odkaz.</p><div class="domain-action-bar"><button type="button" id="domain-open-check" class="primary">⌕ Overiť dostupnosť a cenu</button><button type="button" id="domain-open-create">＋ Pridať existujúcu doménu</button><button type="button" id="domain-open-register">⚡ Registrovať doménu</button><button type="button" id="domain-sync">⇄ Synchronizovať Cloudflare</button><button type="button" id="domain-refresh">↻ Obnoviť</button></div><div class="domain-filters" id="domain-status-filters"><button type="button" class="domain-filter-btn active" data-domain-filter="all">Všetky</button><button type="button" class="domain-filter-btn" data-domain-filter="active">Aktívne</button><button type="button" class="domain-filter-btn" data-domain-filter="for_sale">Na predaj</button><button type="button" class="domain-filter-btn" data-domain-filter="leased">Prenajaté</button><button type="button" class="domain-filter-btn" data-domain-filter="parked">Zaparkované</button><button type="button" class="domain-filter-btn" data-domain-filter="sold">Predané</button><input type="search" id="domain-quick-search" class="domain-search-box" placeholder="Hľadať doménu, registrátora alebo poznámku..."></div><div id="domain-check-wrap" class="domain-form-card" hidden><form id="domain-check-form" class="secret-form"><input id="domain-check-input" required minlength="3" maxlength="253" placeholder="Zadaj doménu na overenie (napr. mojanovadomena.com)"><button class="primary" type="submit" id="domain-check-btn">⌕ Zistiť cenu a dostupnosť</button><button type="button" id="domain-check-cancel">Zavrieť</button></form><div id="domain-check-result" class="domain-check-result" hidden></div></div><div id="domain-form-wrap" class="domain-form-card" hidden><form id="domain-create-form" class="secret-form"><input id="domain-name-input" required minlength="3" maxlength="253" placeholder="napr. moja-domena.sk"><select id="domain-status-input"><option value="active">Aktívna (active)</option><option value="parked">Zaparkovaná (parked)</option><option value="for_sale">Na predaj (for_sale)</option><option value="leased">Prenajatá (leased)</option></select><input id="domain-registrar-input" value="cloudflare" placeholder="Registrátor"><button class="primary" type="submit">Uložiť doménu</button><button type="button" id="domain-form-cancel">Zrušiť</button></form></div><div id="domain-register-wrap" class="domain-form-card" hidden><form id="domain-register-form" class="secret-form"><input id="domain-reg-name-input" required minlength="3" maxlength="253" placeholder="napr. nova-domena.com"><input id="domain-reg-max-price" type="number" min="0.01" step="0.01" placeholder="Maximálna cena nákupu"><select id="domain-reg-currency"><option>USD</option><option>EUR</option></select><select id="domain-reg-years"><option value="1">1 rok</option><option value="2">2 roky</option><option value="3">3 roky</option><option value="5">5 rokov</option></select><input id="domain-reg-notes" maxlength="500" placeholder="Účel / poznámka"><label class="domain-live-check"><input type="checkbox" id="domain-reg-live"> <b>Kúpiť a zaregistrovať reálne cez Cloudflare Registrar</b> (platobná karta)</label><button class="primary" type="submit">Registrovať</button><button type="button" id="domain-reg-cancel">Zrušiť</button></form></div><div id="domain-list" class="api-key-list"></div><div id="domain-detail-modal" class="domain-detail-card" hidden><div class="dialog-head"><strong id="domain-detail-title">—</strong><button type="button" id="domain-detail-close">✕</button></div><div id="domain-detail-content"></div></div></section>
@@ -135,35 +135,35 @@
       <div id="comm-pane-banks" class="comm-tab-pane" hidden>
         <section id="commodity-banks-panel" class="panel domain-env-panel">
           <div class="panel-head">
-            <div><span class="eyebrow">REÁLNE BANKOVÉ & BROKERSKÉ NAPOJENIE · PSD2 / SEPA EPC QR / REST API</span><h2>Pripojenie slovenských a EÚ bánk, Revolut Business, Fio API a brokerov</h2></div>
-            <span class="detail-chip">AES-GCM VAULT + SEPA</span>
+            <div><span class="eyebrow">OSOBNÉ BANKOVÉ & PAYPAL NAPOJENIE (FYZICKÁ OSOBA · BEZ NUTNOSTI FIRMY)</span><h2>Pripojenie osobného PayPal účtu, slovenských bánk (SEPA QR) a brokerov</h2></div>
+            <span class="detail-chip">PAYPAL + SEPA + VAULT</span>
           </div>
-          <p class="settings-help">Pripoj svoj skutočný bankový účet (<b>IBAN + BIC/SWIFT</b> pre okamžité generovanie európskych platobných príkazov <b>SEPA EPC QR</b> do mobilných aplikácií <b>George SLSP, Tatra banka, VÚB, ČSOB, Fio, Revolut</b>) alebo vlož živý <b>API Token & Endpoint</b> (Fio banka API, Revolut Business API, Alpaca Markets, Binance, IBKR) pre priame odosielanie príkazov. API token sa ukladá šifrovane v 256-bit AES-GCM trezore.</p>
+          <p class="settings-help">Nepotrebuješ mať založenú firmu ani Pro účet. Pripoj svoj <b>osobný PayPal účet</b> alebo bežný <b>osobný bankový IBAN</b> (<b>Slovenská sporiteľňa George, Tatra banka, VÚB, ČSOB, Fio, osobný Revolut</b>) pre okamžité generovanie platobných príkazov <b>SEPA EPC QR</b> a vyrovnanie komoditných obchodov.</p>
           <form id="commodity-bank-form" class="secret-form commerce-form">
-            <strong>1. Pridať alebo aktualizovať reálne bankové / brokerské spojenie</strong>
+            <strong>1. Pridať alebo aktualizovať osobný PayPal / bankový účet / brokera</strong>
             <div class="commerce-form-grid">
-              <label><span>Banka / Inštitúcia / Broker</span><select id="bank-provider">
-                <option value="revolut_business">Revolut Business / Revolut Pro API (REVOLT21)</option>
-                <option value="fio_banka">Fio banka SK/CZ · REST API & SEPA (FIOZSKBA)</option>
-                <option value="slsp_george">Slovenská sporiteľňa (George PSD2 / SEPA · GIBASKBX)</option>
-                <option value="tatra_banka">Tatra banka · Open Banking / SEPA (TATRSKBX)</option>
-                <option value="vub_banka">VÚB banka · PSD2 / SEPA Instant (SUBASKBX)</option>
-                <option value="csob_banka">ČSOB Slovensko · PSD2 / SEPA (CEKOSKBX)</option>
-                <option value="paypal_commerce">PayPal Commerce / Live REST API</option>
-                <option value="alpaca_markets">Alpaca Markets · Live & Commodities Broker API</option>
-                <option value="binance_spot">Binance Spot / PAXG Gold / BTC-EUR API</option>
-                <option value="ibkr_bridge">Interactive Brokers (IBKR Webhook / Client Portal)</option>
+              <label><span>Platobná služba / Banka / Broker</span><select id="bank-provider">
+                <option value="paypal_commerce">💙 PayPal Osobný účet / PayPal.me (Bez nutnosti firmy)</option>
+                <option value="slsp_george">Slovenská sporiteľňa · Osobný účet George (SEPA QR · GIBASKBX)</option>
+                <option value="tatra_banka">Tatra banka · Osobný účet (SEPA · TATRSKBX)</option>
+                <option value="vub_banka">VÚB banka · Osobný účet (SEPA Instant · SUBASKBX)</option>
+                <option value="csob_banka">ČSOB Slovensko · Osobný účet (SEPA · CEKOSKBX)</option>
+                <option value="fio_banka">Fio banka SK/CZ · Osobný účet & REST API (FIOZSKBA)</option>
+                <option value="revolut_business">Revolut Osobný IBAN / Revolut.me (REVOLT21)</option>
+                <option value="alpaca_markets">Alpaca Markets · Osobný Trading účet (API)</option>
+                <option value="binance_spot">Binance Spot / PAXG Zlato / BTC-EUR (Osobný účet)</option>
+                <option value="ibkr_bridge">Interactive Brokers (IBKR Osobný účet)</option>
               </select></label>
-              <label><span>Názov účtu / Majiteľ (pre SEPA príkaz)</span><input id="bank-account-name" required minlength="2" maxlength="120" placeholder="napr. Trinity Capital s.r.o. alebo Hlavný EUR účet"></label>
-              <label><span>IBAN účtu (pre SEPA prevody a vyrovnanie)</span><input id="bank-iban" maxlength="42" placeholder="napr. SK89 7500 0000 0000 1234 5671 alebo LT..."></label>
-              <label><span>BIC / SWIFT kód banky</span><input id="bank-bic" maxlength="16" placeholder="napr. GIBASKBX, TATRSKBX, FIOZSKBA, REVOLT21"></label>
-              <label><span>Živý API Endpoint / Webhook URL (voliteľné pre priame exekúcie)</span><input id="bank-api-endpoint" type="url" maxlength="1024" placeholder="https://b2b.revolut.com/api/1.0/orders alebo https://api.alpaca.markets/v2/orders"></label>
-              <label><span>API Token / Kľúč (uloží sa do AES-GCM Trezoru)</span><input id="bank-api-token" type="password" maxlength="2048" autocomplete="new-password" placeholder="Vlož Live API kľúč (nikdy sa nezobrazí späť)"></label>
+              <label><span>Tvoje meno (Fyzická osoba — bez firmy)</span><input id="bank-account-name" required minlength="2" maxlength="120" placeholder="napr. Ivan Sabo (Osobný účet)"></label>
+              <label><span>Osobný IBAN alebo PayPal e-mail / PayPal.me</span><input id="bank-iban" maxlength="42" placeholder="napr. SK89 7500... alebo tvoj@email.com"></label>
+              <label><span>BIC / SWIFT kód (voliteľné)</span><input id="bank-bic" maxlength="16" placeholder="napr. GIBASKBX, TATRSKBX, FIOZSKBA, REVOLT21"></label>
+              <label><span>API Endpoint / PayPal.me odkaz (voliteľné)</span><input id="bank-api-endpoint" type="text" maxlength="1024" placeholder="napr. https://paypal.me/tvojemeno alebo API URL"></label>
+              <label><span>API Token / Kľúč (voliteľné · AES-GCM Trezor)</span><input id="bank-api-token" type="password" maxlength="2048" autocomplete="new-password" placeholder="Voliteľné pre automatické API príkazy"></label>
             </div>
             <div class="commerce-form-actions">
-              <label class="domain-live-check"><input type="checkbox" id="bank-is-default" checked> <b>Nastaviť ako predvolený účet pre komoditné vyrovnanie</b></label>
-              <label class="domain-live-check"><input type="checkbox" id="bank-auto-execute"> <b>Odosielať živé obchodné príkazy priamo na API Endpoint</b></label>
-              <button class="primary" type="submit">🏦 Uložiť a aktivovať bankové spojenie</button>
+              <label class="domain-live-check"><input type="checkbox" id="bank-is-default" checked> <b>Nastaviť ako predvolený osobný účet pre vyrovnanie</b></label>
+              <label class="domain-live-check"><input type="checkbox" id="bank-auto-execute"> <b>Odosielať živé príkazy priamo na API Endpoint (ak je zadaný token)</b></label>
+              <button class="primary" type="submit">💙 Uložiť a aktivovať osobný účet</button>
             </div>
           </form>
           <div id="commodity-sepa-qr-box" class="domain-form-card" hidden>
@@ -537,57 +537,58 @@
           </form>
           <div id="self-improvement-list" class="api-key-list"></div>
         </section>
-        <section id="settings-commerce-panel" class="panel admin-panel commerce-panel" data-settings-section="commerce" data-settings-keywords="revolut paypal platby obchod cennik ponuky peniaze zarobok checkout faktura">
-          <div class="panel-head"><div><span class="eyebrow">OBCHOD · REVOLUT PRO & PAYPAL</span><h2>Platobné účty, cenník a zarábanie</h2></div><span id="commerce-status-badge" class="detail-chip">ŽIVÉ PLATOBNÉ ODKAZY</span></div>
-          <p class="settings-help">Prepoj svoj <b>Revolut Pro</b> (<code>pay.revolut.com</code>, <code>checkout.revolut.com</code>, <code>revolut.me</code>) a <b>PayPal</b> (<code>paypal.me</code>, <code>paypal.com</code>) cez overené HTTPS platobné odkazy. Trinity vytvorí čisté firemné odkazy <code>/pay/revolut-pro/:id</code> a <code>/pay/paypal/:id</code>. Trinity sa nepripája priamo k tvojmu bankovému účtu a nikdy nepredstiera prijatú platbu — úhradu si vždy skontroluj v aplikácii Revolut alebo PayPal.</p>
+        <section id="settings-commerce-panel" class="panel admin-panel commerce-panel" data-settings-section="commerce" data-settings-keywords="paypal revolut platby obchod cennik ponuky peniaze zarobok checkout fyzicka osoba bez firmy">
+          <div class="panel-head"><div><span class="eyebrow">OSOBNÝ PAYPAL CHECKOUT & OBCHOD (BEZ NUTNOSTI FIRMY)</span><h2>Napojenie osobného PayPal účtu, cenník a platobné brány</h2></div><span id="commerce-status-badge" class="detail-chip">PAYPAL PRIPRAVENÝ</span></div>
+          <p class="settings-help"><b>Nepotrebuješ mať založenú firmu ani Pro účet!</b> Stačí nižšie zadať tvoj <b>osobný PayPal e-mail</b> (napr. <code>saboivan2008@gmail.com</code>) alebo tvoje <b>PayPal.me meno</b> (napr. <code>@tvojemeno</code> alebo <code>https://paypal.me/tvojemeno</code>). Trinity automaticky vytvorí profesionálne PayPal platobné brány (<code>/pay/checkout/:id</code> a <code>/pay/paypal/:id</code>) s presnou sumou v EUR pre každú tvoju službu alebo predávanú doménu.</p>
           <div class="commerce-account-cards">
-            <article class="commerce-provider-card" id="commerce-card-revolut">
-              <div class="commerce-provider-head"><span class="provider-pill revolut">R</span><div><b>Revolut Pro / Revolut.me</b><small id="commerce-revolut-state">Nenastavené</small></div></div>
-              <p>Okamžité EUR platby kartou, Apple Pay, Google Pay alebo prevodom cez Revolut Pro.</p>
+            <article class="commerce-provider-card paypal-featured" id="commerce-card-paypal">
+              <div class="commerce-provider-head"><span class="provider-pill paypal">P</span><div><b>PayPal Osobný účet (PayPal.me / PayPal E-mail)</b><small id="commerce-paypal-state">Pripravené na okamžité prepojenie bez firmy</small></div></div>
+              <p>Hlavná platobná brána pre fyzické osoby: klient zaplatí kartou alebo cez PayPal v EUR priamo na tvoj osobný PayPal e-mail alebo PayPal.me profil.</p>
             </article>
-            <article class="commerce-provider-card" id="commerce-card-paypal">
-              <div class="commerce-provider-head"><span class="provider-pill paypal">P</span><div><b>PayPal / PayPal.me</b><small id="commerce-paypal-state">Nenastavené</small></div></div>
-              <p>Medzinárodné platby pre klientov, ktorí uprednostňujú PayPal peňaženku alebo kartu.</p>
+            <article class="commerce-provider-card" id="commerce-card-revolut">
+              <div class="commerce-provider-head"><span class="provider-pill revolut">R</span><div><b>Osobný Revolut.me (Voliteľný doplnok bez Pro účtu)</b><small id="commerce-revolut-state">Voliteľné (nevyžaduje sa)</small></div></div>
+              <p>Ak máš bežný osobný Revolut, môžeš voliteľne pridať aj svoj osobný <code>revolut.me/@tag</code> odkaz. Ak používaš iba PayPal, nechaj prázdne.</p>
             </article>
           </div>
           <form id="commerce-accounts-form" class="secret-form commerce-form">
-            <strong>1. Tvoj obchodný profil a predvolené odkazy (Revolut & PayPal)</strong>
+            <strong>1. Napojenie tvojho osobného PayPal účtu (stačí e-mail alebo @meno)</strong>
             <div class="commerce-form-grid">
-              <label><span>Názov štúdia / značky</span><input id="commerce-business-name" maxlength="120" placeholder="napr. Trinity Digital Studio"></label>
-              <label><span>Predvolený Revolut HTTPS odkaz</span><input id="commerce-revolut-url" type="url" maxlength="2048" placeholder="https://revolut.me/tvojprofil alebo https://pay.revolut.com/..."></label>
-              <label><span>Predvolený PayPal HTTPS odkaz</span><input id="commerce-paypal-url" type="url" maxlength="2048" placeholder="https://paypal.me/tvojprofil alebo https://www.paypal.com/ncp/payment/..."></label>
-              <label><span>Poznámka k platbám</span><input id="commerce-note" maxlength="500" placeholder="napr. Faktúra na vyžiadanie · dodanie do 5 pracovných dní"></label>
+              <label><span>Tvoje meno alebo značka (Fyzická osoba)</span><input id="commerce-business-name" maxlength="120" placeholder="napr. Ivan Sabo · Auru Digital"></label>
+              <label><span>💙 Tvoj PayPal E-mail, @meno alebo PayPal.me odkaz</span><input id="commerce-paypal-url" type="text" maxlength="2048" placeholder="napr. saboivan2008@gmail.com alebo @tvojemeno alebo https://paypal.me/tvojemeno"></label>
+              <label><span>Osobný Revolut.me odkaz alebo @tag (voliteľné, nechaj prázdne ak nemáš)</span><input id="commerce-revolut-url" type="text" maxlength="2048" placeholder="Voliteľné: napr. @tvojemeno alebo https://revolut.me/tvojemeno"></label>
+              <label><span>Poznámka na platobnej bráne pre klienta</span><input id="commerce-note" maxlength="500" placeholder="napr. Bezpečná platba cez PayPal · okamžité dodanie po úhrade"></label>
             </div>
             <div class="commerce-form-actions">
-              <button class="primary" type="submit">Uložiť Revolut & PayPal profil</button>
-              <button type="button" id="commerce-ask-trinity">✦ Poradiť sa s Trinity o zarábaní</button>
+              <label class="domain-live-check"><input type="checkbox" id="commerce-auto-packages" checked> <b>Automaticky vytvoriť 4 predajné PayPal balíky s presnou sumou v EUR (Web 490 €, Doména 49 €, AI 790 €, Audit 190 €)</b></label>
+              <button class="primary" type="submit">💙 Uložiť môj osobný PayPal & vygenerovať platobné brány</button>
+              <button type="button" id="commerce-ask-trinity">✦ Poradiť sa s Trinity o zarábaní cez PayPal</button>
             </div>
           </form>
           <div class="commerce-templates-box">
-            <strong>2. Rýchle šablóny predajných balíkov (1 klik predvyplní ponuku nižšie)</strong>
+            <strong>2. Rýchle šablóny predajných balíkov (1 klik predvyplní PayPal ponuku nižšie)</strong>
             <div class="commerce-template-buttons">
               <button type="button" data-commerce-template="web">✦ Web na kľúč z AI Studia · 490 €</button>
-              <button type="button" data-commerce-template="domain">◈ Prenájom / rezervácia domény · 49 €</button>
-              <button type="button" data-commerce-template="automation">⚡ AI automatizácia pre firmu · 790 €</button>
+              <button type="button" data-commerce-template="domain">◈ Prenájom / predaj domény · 49 €</button>
+              <button type="button" data-commerce-template="automation">⚡ AI automatizácia na mieru · 790 €</button>
               <button type="button" data-commerce-template="audit">⌕ Rýchlostný & SEO audit webu · 190 €</button>
             </div>
           </div>
           <form id="commerce-product-form" class="secret-form commerce-form">
-            <strong>3. Pridať alebo upraviť platobnú ponuku</strong>
+            <strong>3. Pridať alebo upraviť PayPal platobnú ponuku (suma sa do PayPal linku vloží automaticky)</strong>
             <div class="commerce-form-grid">
-              <label><span>Platobná brána</span><select id="commerce-product-provider"><option value="revolut-pro">Revolut Pro (checkout.revolut.com / pay.revolut.com / revolut.me)</option><option value="paypal">PayPal (paypal.me / paypal.com)</option></select></label>
+              <label><span>Platobná brána</span><select id="commerce-product-provider"><option value="paypal" selected>💙 PayPal Osobný účet (PayPal.me / PayPal E-mail)</option><option value="revolut-pro">Osobný Revolut.me / Revolut link (voliteľné)</option></select></label>
               <label><span>ID ponuky (do URL adresy)</span><input id="commerce-product-id" required pattern="^[a-z0-9][a-z0-9_-]{0,79}$" maxlength="80" placeholder="napr. web-na-kluc"></label>
               <label><span>Názov služby alebo domény</span><input id="commerce-product-name" required maxlength="120" placeholder="napr. Tvorba moderného webu na kľúč"></label>
-              <label><span>Cena v EUR</span><input id="commerce-product-price" type="number" required min="1" max="10000" step="0.01" placeholder="490"></label>
-              <label class="full-span"><span>Cieľový platobný HTTPS odkaz (Revolut alebo PayPal)</span><input id="commerce-product-url" type="url" required maxlength="2048" placeholder="https://pay.revolut.com/... alebo https://paypal.me/tvojprofil/490"></label>
-              <label class="full-span"><span>Popis ponuky pre klienta</span><input id="commerce-product-desc" maxlength="1000" placeholder="Kompletný responzívny web, nasadenie na Cloudflare a základné SEO"></label>
+              <label><span>Cena v EUR (automaticky sa pošle do PayPal)</span><input id="commerce-product-price" type="number" required min="1" max="10000" step="0.01" placeholder="490"></label>
+              <label class="full-span"><span>PayPal E-mail, @meno alebo odkaz (ak necháš prázdne, použije sa tvoj uložený PayPal z bodu 1)</span><input id="commerce-product-url" type="text" maxlength="2048" placeholder="Nechaj prázdne pre automatické doplnenie alebo zadaj saboivan2008@gmail.com / https://paypal.me/tvojemeno"></label>
+              <label class="full-span"><span>Popis ponuky na platobnej karte</span><input id="commerce-product-desc" maxlength="1000" placeholder="Kompletný responzívny web, nasadenie na Cloudflare a základné SEO"></label>
             </div>
             <div class="commerce-form-actions">
-              <button class="primary" type="submit">＋ Uložiť platobnú ponuku</button>
+              <button class="primary" type="submit">💙 Uložiť PayPal ponuku & vytvoriť platobnú kartu</button>
             </div>
           </form>
           <div class="commerce-catalog-head">
-            <strong>4. Aktívne platobné odkazy v katalógu (<span id="commerce-product-count">0</span>)</strong>
+            <strong>4. Tvoje aktívne PayPal platobné brány a odkazy (<span id="commerce-product-count">0</span>)</strong>
             <a href="/api/payments/catalog" target="_blank" rel="noopener noreferrer" class="button-link">Verejný JSON katalóg ↗</a>
           </div>
           <div id="commerce-product-list" class="api-key-list"></div>

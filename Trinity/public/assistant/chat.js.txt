@@ -238,13 +238,14 @@ async function openCommerceWithPrefill(prefill){
   document.querySelectorAll('[data-settings-filter]').forEach(btn=>btn.classList.toggle('active',btn.dataset.settingsFilter==='commerce'));
   applySettingsFilter();
   if(prefill){
+    if($('commerce-product-provider'))$('commerce-product-provider').value='paypal';
     if($('commerce-product-id'))$('commerce-product-id').value=prefill.id||'';
     if($('commerce-product-name'))$('commerce-product-name').value=prefill.name||'';
     if($('commerce-product-price'))$('commerce-product-price').value=String(prefill.price||'');
     if($('commerce-product-desc'))$('commerce-product-desc').value=prefill.description||'';
     if($('commerce-product-url')&&!$('commerce-product-url').value){
-      const prov=$('commerce-product-provider')?.value||'revolut-pro';
-      const defUrl=prov==='paypal'?cachedCommerce?.accounts?.paypal_url:cachedCommerce?.accounts?.revolut_url;
+      const prov=$('commerce-product-provider')?.value||'paypal';
+      const defUrl=prov==='paypal'?(cachedCommerce?.accounts?.paypal_identifier||cachedCommerce?.accounts?.paypal_url):cachedCommerce?.accounts?.revolut_url;
       if(defUrl)$('commerce-product-url').value=defUrl;
     }
     $('commerce-product-form')?.scrollIntoView({behavior:'smooth',block:'center'});
@@ -312,17 +313,17 @@ function renderCommerce(data){
   const totalEur=data.summary?.total_catalog_eur||0;
   const providers=data.summary?.providers_ready||[];
   if($('settings-commerce-summary'))$('settings-commerce-summary').textContent=data.configured?`${activeCount} ponúk · ${totalEur} €`:'Nenastavené';
-  if($('settings-commerce-detail'))$('settings-commerce-detail').textContent=providers.length?`Aktívne: ${providers.join(' + ')}`:'Pridaj Revolut Pro alebo PayPal odkaz';
-  if($('commerce-status-badge'))$('commerce-status-badge').textContent=data.configured?`AKTÍVNE (${activeCount} PONÚK)`:'ČAKÁ NA ODKAZY';
+  if($('settings-commerce-detail'))$('settings-commerce-detail').textContent=providers.length?`Aktívne: ${providers.join(' + ')}`:'Zadaj svoj osobný PayPal e-mail alebo @meno';
+  if($('commerce-status-badge'))$('commerce-status-badge').textContent=data.configured?`AKTÍVNE (${activeCount} PONÚK)`:'PRIPOJ PAYPAL';
   const revReady=Boolean(data.revolut?.configured||data.accounts?.revolut_url);
-  const ppReady=Boolean(data.paypal?.configured||data.accounts?.paypal_url);
-  if($('commerce-revolut-state'))$('commerce-revolut-state').textContent=revReady?`Pripravené · ${(data.revolut?.products||[]).length} ponúk`:'Nenastavené — vlož Revolut.me alebo Revolut Pro odkaz';
-  if($('commerce-paypal-state'))$('commerce-paypal-state').textContent=ppReady?`Pripravené · ${(data.paypal?.products||[]).length} ponúk`:'Nenastavené — vlož PayPal.me alebo PayPal odkaz';
+  const ppReady=Boolean(data.paypal?.configured||data.accounts?.paypal_url||data.accounts?.paypal_identifier);
+  if($('commerce-revolut-state'))$('commerce-revolut-state').textContent=revReady?`Pripravené · ${(data.revolut?.products||[]).length} ponúk`:'Voliteľné — osobný Revolut.me tag';
+  if($('commerce-paypal-state'))$('commerce-paypal-state').textContent=ppReady?`💙 Aktívne · ${(data.paypal?.products||[]).length} PayPal brán pripravených`:'Zadaj nižšie svoj PayPal e-mail alebo @meno (bez nutnosti firmy)';
   $('commerce-card-revolut')?.classList.toggle('ready',revReady);
   $('commerce-card-paypal')?.classList.toggle('ready',ppReady);
   if($('commerce-business-name'))$('commerce-business-name').value=data.accounts?.business_name||'';
   if($('commerce-revolut-url'))$('commerce-revolut-url').value=data.accounts?.revolut_url||'';
-  if($('commerce-paypal-url'))$('commerce-paypal-url').value=data.accounts?.paypal_url||'';
+  if($('commerce-paypal-url'))$('commerce-paypal-url').value=data.accounts?.paypal_identifier||data.accounts?.paypal_url||'';
   if($('commerce-note'))$('commerce-note').value=data.accounts?.note||'';
   if($('commerce-product-count'))$('commerce-product-count').textContent=String((data.products||[]).length);
   const list=$('commerce-product-list');if(!list)return;
@@ -331,17 +332,23 @@ function renderCommerce(data){
     const card=node('article',undefined,'api-key-item commerce-offer-item');
     const info=node('div',undefined,'commerce-offer-info');
     const eur=(Number(item.amount_cents||0)/100).toFixed(2);
-    const provLabel=item.provider==='paypal'?'PayPal':'Revolut Pro';
+    const provLabel=item.provider==='paypal'?'💙 PayPal Checkout':'Revolut';
     const top=node('div',undefined,'commerce-offer-top');
     top.append(node('b',`${item.name} — ${eur} €`),node('span',provLabel,'commerce-provider-badge '+item.provider));
     info.append(top);
     if(item.description)info.append(node('p',item.description));
-    const publicUrl=location.origin+item.checkout_path;
-    info.append(node('code',publicUrl));
+    const hostedPath=item.hosted_checkout_path||('/pay/checkout/'+item.id);
+    const hostedUrl=location.origin+hostedPath;
+    const directUrl=location.origin+item.checkout_path;
+    info.append(node('code',`${hostedUrl}  ·  Priamy redirect: ${directUrl}`));
     const actions=node('div',undefined,'commerce-offer-actions');
-    const copyBtn=node('button','Kopírovať platobný link','primary');
-    copyBtn.type='button';
-    copyBtn.onclick=async()=>{await navigator.clipboard.writeText(publicUrl);copyBtn.textContent='✓ Skopírované';setTimeout(()=>copyBtn.textContent='Kopírovať platobný link',1600);};
+    const copyCardBtn=node('button','💙 Kopírovať PayPal bránu','primary');
+    copyCardBtn.type='button';
+    copyCardBtn.onclick=async()=>{await navigator.clipboard.writeText(hostedUrl);copyCardBtn.textContent='✓ Skopírované';setTimeout(()=>copyCardBtn.textContent='💙 Kopírovať PayPal bránu',1600);};
+    const openHosted=node('a','✨ Platobná karta ↗','button-link');
+    openHosted.href=hostedPath;openHosted.target='_blank';openHosted.rel='noopener noreferrer';
+    const openDirect=node('a','⚡ Priamy PayPal ↗','button-link');
+    openDirect.href=item.checkout_path;openDirect.target='_blank';openDirect.rel='noopener noreferrer';
     const editBtn=node('button','Upraviť');
     editBtn.type='button';
     editBtn.onclick=()=>{
@@ -353,8 +360,6 @@ function renderCommerce(data){
       $('commerce-product-desc').value=item.description||'';
       $('commerce-product-form')?.scrollIntoView({behavior:'smooth',block:'center'});
     };
-    const openLink=node('a','Otvoriť ↗','button-link');
-    openLink.href=item.checkout_path;openLink.target='_blank';openLink.rel='noopener noreferrer';
     const delBtn=node('button','Zmazať','danger');
     delBtn.type='button';
     delBtn.onclick=safe(async()=>{
@@ -363,12 +368,12 @@ function renderCommerce(data){
       cachedCommerce=updated;renderCommerce(updated);
       notice('Platobná ponuka bola odstránená.');
     });
-    actions.append(copyBtn,editBtn,openLink,delBtn);
+    actions.append(copyCardBtn,openHosted,openDirect,editBtn,delBtn);
     card.append(info,actions);
     list.append(card);
   }
   if(!(data.products||[]).length){
-    list.append(node('p','Zatiaľ nemáš uloženú žiadnu platobnú ponuku. Klikni vyššie na niektorú šablónu (napr. Web na kľúč · 490 €) a ulož svoj Revolut alebo PayPal odkaz.','skeleton'));
+    list.append(node('p','Zatiaľ nemáš uloženú žiadnu PayPal ponuku. Zadaj svoj PayPal e-mail alebo @meno v bode 1 vyššie a klikni na „💙 Uložiť môj osobný PayPal & vygenerovať platobné brány“.','skeleton'));
   }
 }
 async function openDomainDetail(idOrName){const modal=$('domain-detail-modal');if(!modal)return;const data=await api('/domains/'+idOrName);$('domain-detail-title').textContent=`${data.item.domain_name} · DNS a história`;const content=$('domain-detail-content');content.replaceChildren();const addDnsForm=node('form',undefined,'secret-form');const typeSelect=node('select');for(const t of ['A','AAAA','CNAME','TXT','MX','CAA','NS','SRV']){const opt=node('option',t);opt.value=t;typeSelect.append(opt);}const nameInput=node('input');nameInput.placeholder='Názov (napr. @ alebo sub)';nameInput.required=true;const contentInput=node('input');contentInput.placeholder='Hodnota (IP, host, cieľ)';contentInput.required=true;const addBtn=node('button','＋ Pridať DNS','primary');addBtn.type='submit';addDnsForm.append(typeSelect,nameInput,contentInput,addBtn);addDnsForm.onsubmit=safe(async(e)=>{e.preventDefault();await api('/domains/'+data.item.id+'/dns',{type:typeSelect.value,name:nameInput.value.trim(),content:contentInput.value.trim(),proxied:true});notice('DNS záznam bol pridaný.');await openDomainDetail(data.item.id);});content.append(addDnsForm);const table=node('table',undefined,'domain-dns-table');table.innerHTML='<thead><tr><th>Typ</th><th>Názov</th><th>Hodnota</th><th>Proxy</th><th>Akcia</th></tr></thead>';const tbody=node('tbody');for(const r of (data.dns_records||[])){const tr=node('tr');tr.append(node('td',r.type),node('td',r.name),node('td',r.content),node('td',r.proxied?'Cloudflare Proxy':'DNS Only'));const delTd=node('td'),delBtn=node('button','Zmazať','danger');delBtn.onclick=safe(async()=>{await api('/domains/'+data.item.id+'/dns/'+r.id+'/delete',{},'POST');notice('DNS záznam bol odstránený.');await openDomainDetail(data.item.id);});delTd.append(delBtn);tr.append(delTd);tbody.append(tr);}table.append(tbody);content.append(table);if((data.transactions||[]).length){content.append(node('h3','História transakcií'));const txList=node('div',undefined,'activity-list');for(const tx of data.transactions){const txRow=node('div',undefined,'activity-item'),dot=node('div','§','activity-dot'),txInfo=node('span');txInfo.append(node('b',`${tx.type.toUpperCase()} · ${tx.party||'Trinity'}`),node('small',`${tx.amount?tx.amount+' '+tx.currency+' · ':''}${tx.created_at}`));txRow.append(dot,txInfo);txList.append(txRow);}content.append(txList);}modal.hidden=false;}
@@ -432,18 +437,22 @@ $('commerce-ask-trinity')?.addEventListener('click',safe(async()=>{
 }));
 $('commerce-accounts-form')?.addEventListener('submit',safe(async(e)=>{
   e.preventDefault();
+  const ppVal=$('commerce-paypal-url').value.trim();
   const payload={
     business_name:$('commerce-business-name').value.trim(),
+    account_type:'personal',
+    paypal_identifier:ppVal,
     revolut_url:$('commerce-revolut-url').value.trim(),
-    paypal_url:$('commerce-paypal-url').value.trim(),
+    paypal_url:ppVal,
     default_currency:'EUR',
-    note:$('commerce-note').value.trim()
+    note:$('commerce-note').value.trim(),
+    auto_generate_offers:Boolean($('commerce-auto-packages')?.checked)
   };
   const updated=await api('/commerce/accounts',payload);
   cachedCommerce=updated;
   renderCommerce(updated);
   await loadSettings();
-  notice('Obchodný profil a Revolut / PayPal odkazy boli uložené.');
+  notice('Osobný PayPal účet bol prepojený a platobné brány v EUR boli automaticky vytvorené.');
 }));
 const commerceTemplates={
   web:{id:'web-na-kluc',name:'Tvorba moderného webu na kľúč (AI Studio + Cloudflare)',price:490,description:'Kompletný responzívny web na mieru, nasadenie na Cloudflare a základné SEO.'},
