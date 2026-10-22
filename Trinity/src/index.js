@@ -135,12 +135,12 @@ async function route(request,env,ctx){
     return verifyAuthenticationResponse(request,env,body);
   }
   if((path==='/api/auth/google/start'||path==='/auth/google/start'||path==='/auth/google/login'||path==='/api/auth/google/login')&&request.method==='GET'){
-    if(!googleAuthRequired(env))throw new HttpError(404,'Google prihlasovanie zatiaľ nie je aktivované.');
+    if(!googleAuthRequired(env)&&env.GOOGLE_ENABLED!=='true')throw new HttpError(404,'Google prihlasovanie zatiaľ nie je aktivované.');
     await rateLimit(env,`google-start:${(await hash(request.headers.get('CF-Connecting-IP')||'unknown')).slice(0,24)}`,10,300);
     return beginGoogleLogin(env,request);
   }
   if((path==='/api/auth/google/callback'||path==='/auth/google/callback')&&request.method==='GET'){
-    if(!googleAuthRequired(env))throw new HttpError(404,'Google prihlasovanie zatiaľ nie je aktivované.');
+    if(!googleAuthRequired(env)&&env.GOOGLE_ENABLED!=='true')throw new HttpError(404,'Google prihlasovanie zatiaľ nie je aktivované.');
     await rateLimit(env,`google-callback:${(await hash(request.headers.get('CF-Connecting-IP')||'unknown')).slice(0,24)}`,10,300);
     return finishGoogleLogin(request,env);
   }
