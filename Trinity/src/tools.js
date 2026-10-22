@@ -30,6 +30,8 @@ import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnviro
 import {createTrinityDocument,listTrinityDocuments,createDocumentSchema,DOCUMENT_CATEGORIES,recordStepDocument} from './trinity-documents.js';
 import {ownerLearnBehaviorRule,listActiveBehaviorRules} from './self-improvement.js';
 import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk,commodityAnalyzeSchema,commodityTradeSchema,commodityAutoInvestSchema} from './commodities-engine.js';
+import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,generateCreativePack,generateMusicSchema,generateVideoSchema,generatePresentationSchema,generateCreativePackSchema} from './multimedia-studio.js';
+import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,listAllIntegrations} from './external-integrations.js';
 
 export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
@@ -167,6 +169,38 @@ export const TOOL_SCHEMAS={
   }).strict()
   ,commodity_trade:commodityTradeSchema
   ,commodity_auto_invest:commodityAutoInvestSchema
+  ,generate_music:generateMusicSchema
+  ,generate_video:generateVideoSchema
+  ,generate_presentation:generatePresentationSchema
+  ,generate_creative_pack:generateCreativePackSchema
+  ,cloudflare_manage:z.object({
+    action:z.enum(['status','list_dns_zones','purge_cache','list_workers']).default('status'),
+    zoneId:z.string().optional(),
+    accountId:z.string().optional()
+  }).strict()
+  ,github_manage:z.object({
+    action:z.enum(['status','repo_info','list_commits','list_issues','create_issue','dispatch_workflow']).default('status'),
+    repo:z.string().optional(),
+    limit:z.number().int().min(1).max(50).optional(),
+    title:z.string().optional(),
+    body:z.string().optional(),
+    workflowId:z.string().optional(),
+    ref:z.string().optional(),
+    inputs:z.record(z.string(),z.unknown()).optional()
+  }).strict()
+  ,firecrawl_scrape:z.object({
+    url:z.string().url(),
+    mode:z.enum(['scrape','crawl','map']).default('scrape'),
+    onlyMainContent:z.boolean().default(true)
+  }).strict()
+  ,firebase_manage:z.object({
+    action:z.enum(['status','get_document','set_document']).default('status'),
+    projectId:z.string().optional(),
+    collection:z.string().optional(),
+    documentId:z.string().optional(),
+    data:z.record(z.string(),z.unknown()).optional()
+  }).strict()
+  ,integration_status:z.object({}).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -629,6 +663,44 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const res=await runAutonomousCommodityDesk(env,actor,args);
     return {...res,_evidence:{effect:'mutation',actions:['commodity_auto_invest'],receipt_id:`commodity:autoinvest:${crypto.randomUUID()}`}};
   }
+  if(name==='generate_music'){
+    const res=await generateMusicTrack(env,`agent:${agent.id||'trinity'}`,args);
+    return {...res,_evidence:{effect:'mutation',action:'create_file',actions:['create_file'],receipt_id:`music:${res.id}`}};
+  }
+  if(name==='generate_video'){
+    const res=await generateVideoCreation(env,`agent:${agent.id||'trinity'}`,args);
+    return {...res,_evidence:{effect:'mutation',action:'create_file',actions:['create_file'],receipt_id:`video:${res.id}`}};
+  }
+  if(name==='generate_presentation'){
+    const res=await generatePresentationDeck(env,`agent:${agent.id||'trinity'}`,args);
+    return {...res,_evidence:{effect:'mutation',action:'create_file',actions:['create_file'],receipt_id:`presentation:${res.id}`}};
+  }
+  if(name==='generate_creative_pack'){
+    const res=await generateCreativePack(env,`agent:${agent.id||'trinity'}`,args);
+    return {...res,_evidence:{effect:'mutation',action:'create_file',actions:['create_file'],receipt_id:`creative:${res.id}`}};
+  }
+  if(name==='cloudflare_manage'){
+    const res=await manageCloudflare(env,`agent:${agent.id||'trinity'}`,args.action,args);
+    return {...res,_evidence:{effect:args.action==='purge_cache'?'mutation':'read',actions:args.action==='purge_cache'?['change']:undefined,receipt_id:`cloudflare:${args.action}:${crypto.randomUUID()}`}};
+  }
+  if(name==='github_manage'){
+    const res=await manageGitHub(env,`agent:${agent.id||'trinity'}`,args.action,args);
+    const isMut=Boolean(args.action==='create_issue'||args.action==='dispatch_workflow');
+    return {...res,_evidence:{effect:isMut?'mutation':'read',actions:isMut?['change','publish']:undefined,receipt_id:`github:${args.action}:${crypto.randomUUID()}`}};
+  }
+  if(name==='firecrawl_scrape'){
+    const res=await scrapeWithFirecrawl(env,`agent:${agent.id||'trinity'}`,args);
+    return {...res,_evidence:{effect:'read',receipt_id:`firecrawl:${crypto.randomUUID()}`}};
+  }
+  if(name==='firebase_manage'){
+    const res=await manageFirebase(env,`agent:${agent.id||'trinity'}`,args.action,args);
+    const isMut=Boolean(args.action==='set_document');
+    return {...res,_evidence:{effect:isMut?'mutation':'read',actions:isMut?['change']:undefined,receipt_id:`firebase:${args.action}:${crypto.randomUUID()}`}};
+  }
+  if(name==='integration_status'){
+    const integrations=await listAllIntegrations(env);
+    return {integrations,total:integrations.length,_evidence:{effect:'read',receipt_id:`integrations:list:${crypto.randomUUID()}`}};
+  }
   if(name==='brain_mode'){
     const brain=new NeuralBrain();
     if(args.mode) brain.setMode(args.mode);
@@ -885,5 +957,14 @@ export const TOOL_HELP={
   commodity_analyze:'Kompletná technická a fundamentálna analýza všetkých 22 svetových komodít v 5 sektoroch (vzácne kovy, energie, priemyselné kovy, agro, strategické/uhlík) s RSI, MACD, Support/Resistance, Stop-Loss, Take-Profit a signálom STRONG_BUY/BUY/HOLD/SELL: {symbol?:string, sector?:all|precious_metals|energy|industrial_metals|agriculture|strategic_digital, strategy?:conservative|balanced|growth|aggressive, record_document?:boolean}',
   commodity_desk:'Prehľad autonómneho komoditného portfólia Trinity, otvorených komoditných pozícií, hotovosti, PnL a najlepších príležitostí na trhu: {strategy?:conservative|balanced|growth|aggressive}',
   commodity_trade:'Samostatne nakúpi (buy) alebo predá (sell) komoditu v portfóliu Trinity a zapíše Trinity Document: {symbol:string, side:buy|sell, quantity?:number, amount_eur?:number, sell_all?:boolean, price?:number, thesis?:string}',
-  commodity_auto_invest:'Spustí autonómny investičný a obchodný cyklus Trinity — zanalyzuje všetky komodity, predá prekúpené pozície so ziskom (Take-Profit) a zainvestuje do najlepších komoditných príležitostí s automatickým Trinity Documentom: {strategy?:conservative|balanced|growth|aggressive, budget_eur?:number, sector?:string, auto_take_profit?:boolean, max_trades?:number}'
+  commodity_auto_invest:'Spustí autonómny investičný a obchodný cyklus Trinity — zanalyzuje všetky komodity, predá prekúpené pozície so ziskom (Take-Profit) a zainvestuje do najlepších komoditných príležitostí s automatickým Trinity Documentom: {strategy?:conservative|balanced|growth|aggressive, budget_eur?:number, sector?:string, auto_take_profit?:boolean, max_trades?:number}',
+  generate_music:'Vytvorí a skomponuje skutočnú prehrávateľnú hudobnú skladbu (.wav 16-bit PCM s akordmi, basou, melódiou a bicími) v R2 archíve: {prompt:string, title?:string, genre?:synthwave|ambient|cinematic|lofi|techno|orchestral, bpm?:60..160, duration_sec?:4..24}',
+  generate_video:'Vytvorí interaktívne 16:9 animované 60fps HTML5/Canvas video so zvukovou stopou, titulkami scén a možnosťou WebM exportu v R2 archíve: {prompt:string, title?:string, style?:cyberpunk|cinematic|business|space|nature|abstract, duration_sec?:8..60, scenes_count?:3..8}',
+  generate_presentation:'Vytvorí profesionálnu 16:9 interaktívnu prezentáciu (HTML5 Slide Deck s ovládaním šípkami) + tlačový PDF dokument v R2 archíve: {topic:string, title?:string, subtitle?:string, audience?:string, theme?:midnight-tech|cyber-gold|emerald-growth|clean-light|royal-violet, slides_count?:4..10, key_points?:string[]}',
+  generate_creative_pack:'Vytvorí kreatívny vizuálny balík (infografiku, kampaň pre sociálne siete, storyboard alebo brand kit) v R2 archíve: {prompt:string, title?:string, pack_type?:infographic|social_pack|storyboard|brand_kit, theme?:midnight-tech|cyber-gold|emerald-growth|clean-light|royal-violet}',
+  cloudflare_manage:'Spravuje a diagnostikuje Cloudflare Edge infraštruktúru (Workers, D1, KV, R2, DNS zóny, premazanie cache): {action:status|list_dns_zones|purge_cache|list_workers, zoneId?:string, accountId?:string}',
+  github_manage:'Prepojenie a správa GitHub repozitára (uscolective-byte/trinity-morhfeus), commits, issues, PR a spúšťanie GitHub Actions: {action:status|repo_info|list_commits|list_issues|create_issue|dispatch_workflow, repo?:string, limit?:number, title?:string, body?:string, workflowId?:string, ref?:string}',
+  firecrawl_scrape:'Hĺbkový web scraping, crawling a extrakcia obsahu z ľubovoľnej URL do čistého Markdownu: {url:string, mode?:scrape|crawl|map, onlyMainContent?:boolean}',
+  firebase_manage:'Integrácia s Google Firebase (trinity-morhfeus-20261001), kontrola hostingu, čítanie a ukladanie Firestore dokumentov: {action:status|get_document|set_document, projectId?:string, collection?:string, documentId?:string, data?:object}',
+  integration_status:'Prehľad všetkých pripojených externých modulov a platforiem (Cloudflare, GitHub, Firecrawl, Firebase, Supabase): {}'
 };

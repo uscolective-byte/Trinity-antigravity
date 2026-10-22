@@ -1,8 +1,10 @@
 import {revolutProStatus,configureRevolutPro,handleRevolutProPublic,paypalStatus,configurePaypal,commerceStatus,configureCommerceAccounts,upsertCommerceProduct,deleteCommerceProduct,handleCommercePublic} from './revolut.js';
 import {getUiEvolutionState,applyUiEvolution,handleUiChangeAction,renderDynamicThemeCss} from './ui-evolution.js';
-import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnvironments,handlePublicSiteRoute} from './domain-environments.js';
+import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnvironments,handlePublicSiteRoute,seedTwentyCloudflareDomains} from './domain-environments.js';
+import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,generatePhotoCreation,generateCreativePack,listMultimediaCreations} from './multimedia-studio.js';
 import {createTrinityDocument,listTrinityDocuments,getTrinityDocument,deleteTrinityDocument,exportTrinityDocument} from './trinity-documents.js';
-import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk,listBankConnections,configureBankConnection,deleteBankConnection,syncLiveMarketFeeds} from './commodities-engine.js';
+import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk,listBankConnections,configureBankConnection,deleteBankConnection,syncLiveMarketFeeds,getCommodityChart} from './commodities-engine.js';
+import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,listAllIntegrations} from './external-integrations.js';
 import {scanForImprovements} from './maintenance-scan.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
 import {searchDomainNames,refreshDomainRegistration,createSubdomain,syncCloudflareDomains} from './domains.js';
@@ -253,6 +255,29 @@ async function route(request,env,ctx){
     if(request.method==='POST'&&studioRoute[2]==='revise'){await rateLimit(env,`studio-revise:${user.id}`,8,300);return json({project:await reviseStudioProject(env,'primary',id,await readJSON(request,20000))});}
     if(request.method==='GET'&&studioRoute[2]==='export'){const project=await getStudioProject(env,'primary',id);return new Response(project.html,{headers:{'Content-Type':'text/html; charset=utf-8','Content-Disposition':`attachment; filename="${project.name.replace(/[^a-z0-9_-]+/gi,'-').slice(0,50)||'trinity-web'}.html"`}});}
   }
+  if(path==='/api/assistant/multimedia'&&request.method==='GET'){
+    return json(await listMultimediaCreations(env,{kind:url.searchParams.get('kind')||'',limit:Number(url.searchParams.get('limit')||40)}));
+  }
+  if(path==='/api/assistant/multimedia/music'&&request.method==='POST'){
+    await rateLimit(env,`mm-music:${user.id}`,20,300);
+    return json(await generateMusicTrack(env,user,await readJSON(request,15000)),201);
+  }
+  if(path==='/api/assistant/multimedia/video'&&request.method==='POST'){
+    await rateLimit(env,`mm-video:${user.id}`,20,300);
+    return json(await generateVideoCreation(env,user,await readJSON(request,20000)),201);
+  }
+  if(path==='/api/assistant/multimedia/presentation'&&request.method==='POST'){
+    await rateLimit(env,`mm-pres:${user.id}`,20,300);
+    return json(await generatePresentationDeck(env,user,await readJSON(request,20000)),201);
+  }
+  if(path==='/api/assistant/multimedia/photo'&&request.method==='POST'){
+    await rateLimit(env,`mm-photo:${user.id}`,20,300);
+    return json(await generatePhotoCreation(env,user,await readJSON(request,15000)),201);
+  }
+  if(path==='/api/assistant/multimedia/creative-pack'&&request.method==='POST'){
+    await rateLimit(env,`mm-pack:${user.id}`,20,300);
+    return json(await generateCreativePack(env,user,await readJSON(request,20000)),201);
+  }
   if(path==='/api/assistant/infrastructure'&&request.method==='GET'){requireAdmin(user);return json(infrastructureStatus(env));}
   if(path==='/api/assistant/hosting'){
     requireOwner(user);
@@ -267,6 +292,10 @@ async function route(request,env,ctx){
   if(path==='/api/assistant/domains/subdomain'&&request.method==='POST'){requireAdmin(user);return json(await createSubdomain(env,await readJSON(request)));}
   if(path==='/api/assistant/domains'){
     if(request.method==='GET'){
+      if(url.searchParams.get('auto_seed')==='1'){
+        const existing=await listDomains(env,{});
+        if(existing.length<20)await seedTwentyCloudflareDomains(env,user.email||user.id);
+      }
       const filter={
         status:url.searchParams.get('status')||undefined,
         listing_type:url.searchParams.get('listing_type')||undefined,
@@ -275,6 +304,10 @@ async function route(request,env,ctx){
       return json({items:await listDomains(env,filter)});
     }
     if(request.method==='POST'){requireAdmin(user);return json({item:await createDomain(env,await readJSON(request,10000))},201);}
+  }
+  if(path==='/api/assistant/domains/seed-20'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await seedTwentyCloudflareDomains(env,user.email||user.id),201);
   }
   if(path==='/api/assistant/domains/check'){
     if(request.method==='GET'){
@@ -298,7 +331,7 @@ async function route(request,env,ctx){
     return json(await getDomainMarketplace(env));
   }
   if(path==='/api/assistant/domains/environments'&&request.method==='GET'){
-    return json(await listDomainEnvironments(env,url.searchParams.get('domain')||''));
+    return json(await listDomainEnvironments(env,url.searchParams.get('domain')||'',{autoSeedIfEmpty:url.searchParams.get('auto_seed')==='1'}));
   }
   if(path==='/api/assistant/domains/environments/provision'&&request.method==='POST'){
     requireAdmin(user);
@@ -798,6 +831,32 @@ async function route(request,env,ctx){
     requireAdmin(user);
     await rateLimit(env,`commodity-autoinvest:${user.id}`,15);
     return json(await runAutonomousCommodityDesk(env,user,await readJSON(request)));
+  }
+  if(path==='/api/assistant/commodities/chart'&&request.method==='GET'){
+    return json(await getCommodityChart(env,url.searchParams.get('symbol')||'XAU-EUR',url.searchParams.get('timeframe')||'1D'));
+  }
+  if(path==='/api/assistant/integrations/status'&&request.method==='GET'){
+    return json({items:await listAllIntegrations(env)});
+  }
+  if(path==='/api/assistant/integrations/cloudflare'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,10000);
+    return json(await manageCloudflare(env,user.email||user.id,body.action||'status',body));
+  }
+  if(path==='/api/assistant/integrations/github'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,25000);
+    return json(await manageGitHub(env,user.email||user.id,body.action||'status',body));
+  }
+  if(path==='/api/assistant/integrations/firecrawl'&&request.method==='POST'){
+    await rateLimit(env,`firecrawl:${user.id}`,20,300);
+    const body=await readJSON(request,10000);
+    return json(await scrapeWithFirecrawl(env,user.email||user.id,body));
+  }
+  if(path==='/api/assistant/integrations/firebase'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,50000);
+    return json(await manageFirebase(env,user.email||user.id,body.action||'status',body));
   }
   if(path==='/api/ops/login-ticket'&&request.method==='POST'){
     await rateLimit(env,`ticket:${user.id}`,6);

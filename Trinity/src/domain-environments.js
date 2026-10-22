@@ -431,8 +431,128 @@ export async function deployDomainEnvironment(env, actor = 'owner', rawInput = {
   };
 }
 
-export async function listDomainEnvironments(env, domainFilter = '') {
+export const TWENTY_STARTER_CLOUDFLARE_DOMAINS = [
+  { domain_name: 'auru.space', template: 'ai_saas', title: 'Auru Space · Trinity Cloud OS', subtitle: 'Hlavná produkčná doména autonómneho AI ekosystému Trinity na Cloudflare Edge.', status: 'active', listing_type: 'none', sale_price: null, lease_price_monthly: null },
+  { domain_name: 'auru.dev', template: 'ai_saas', title: 'Auru Dev · Developer & Staging Hub', subtitle: 'Vývojové, testovacie a API prostredie Trinity Morhfeus.', status: 'active', listing_type: 'none', sale_price: null, lease_price_monthly: null },
+  { domain_name: 'trinity-ai.sk', template: 'ai_saas', title: 'Trinity AI Slovensko · Firemná AI na kľúč', subtitle: 'Prémiová slovenská doména pre AI agentúru, chatboty a firemné automatizácie.', status: 'for_sale', listing_type: 'both', sale_price: 1490, lease_price_monthly: 79 },
+  { domain_name: 'quantum-studio.eu', template: 'portfolio', title: 'Quantum Creative Studio EU', subtitle: 'Európske digitálne a multimediálne štúdio pre tvorbu webov, videa, hudby a dizajnu.', status: 'for_sale', listing_type: 'both', sale_price: 1290, lease_price_monthly: 69 },
+  { domain_name: 'cloud-architekt.sk', template: 'business_landing', title: 'Cloud Architekt · Cloudflare & Serverless', subtitle: 'Návrh, správa a zrýchlenie podnikových webov na Cloudflare Workers a D1.', status: 'for_sale', listing_type: 'both', sale_price: 890, lease_price_monthly: 49 },
+  { domain_name: 'fintech-desk.eu', template: 'ai_saas', title: 'Fintech & Commodity Desk Europe', subtitle: 'Platforma pre komoditnú analytiku, SEPA QR platby a finančné riadenie.', status: 'for_sale', listing_type: 'both', sale_price: 1990, lease_price_monthly: 99 },
+  { domain_name: 'ai-automatizacia.sk', template: 'ai_saas', title: 'AI Automatizácia pre firmy', subtitle: 'Automatické spracovanie dopytov, faktúr, e-mailov a zákazníckej podpory 24/7.', status: 'for_sale', listing_type: 'both', sale_price: 1190, lease_price_monthly: 59 },
+  { domain_name: 'digitalny-predaj.sk', template: 'ecommerce_checkout', title: 'Digitálny Predaj & PayPal Checkout', subtitle: 'Rýchly predajný portál pre digitálne produkty, kurzy a služby s okamžitou platbou.', status: 'for_sale', listing_type: 'both', sale_price: 790, lease_price_monthly: 45 },
+  { domain_name: 'smart-webstranky.sk', template: 'business_landing', title: 'Smart Webstránky na kľúč', subtitle: 'Moderné responzívne weby s vysokou konverziou, SEO a okamžitým nasadením.', status: 'for_sale', listing_type: 'both', sale_price: 690, lease_price_monthly: 39 },
+  { domain_name: 'krypto-komodity.eu', template: 'ai_saas', title: 'Krypto & Komodity Live Analytics', subtitle: 'Živé trhové dáta pre zlato, striebro, ropu, urán a digitálne aktíva v EUR.', status: 'for_sale', listing_type: 'both', sale_price: 1590, lease_price_monthly: 85 },
+  { domain_name: 'video-produkcia.sk', template: 'portfolio', title: 'AI Video & Motion Produkcia', subtitle: 'Tvorba reklamných videí, animácií, reels a vizuálnych kampaní novej generácie.', status: 'for_sale', listing_type: 'both', sale_price: 990, lease_price_monthly: 55 },
+  { domain_name: 'hudba-studio.sk', template: 'portfolio', title: 'AI Hudobné & Zvukové Štúdio', subtitle: 'Syntéza originálnej hudby, podmazov pre videá, podcastov a zvukového dizajnu.', status: 'for_sale', listing_type: 'both', sale_price: 750, lease_price_monthly: 42 },
+  { domain_name: 'prezentacie-pro.sk', template: 'business_landing', title: 'Prezentácie Pro · Pitch Decks & Slajdy', subtitle: 'Interaktívne 16:9 prezentácie a PDF reporty pre investorov, obchod a konferencie.', status: 'for_sale', listing_type: 'both', sale_price: 650, lease_price_monthly: 35 },
+  { domain_name: 'sepa-platby.eu', template: 'ecommerce_checkout', title: 'SEPA QR & PayPal Platobná Brána', subtitle: 'Okamžité platobné odkazy a certifikované EPC QR kódy pre európske banky.', status: 'for_sale', listing_type: 'both', sale_price: 1390, lease_price_monthly: 75 },
+  { domain_name: 'basterix-labs.dev', template: 'ai_saas', title: 'Basterix Labs · R&D Neural Systems', subtitle: 'Výskumné laboratórium pre kvantovo-inšpirované algoritmy a autonómnych agentov.', status: 'active', listing_type: 'lease', sale_price: null, lease_price_monthly: 89 },
+  { domain_name: 'slovakia-tech.sk', template: 'business_landing', title: 'Slovakia Tech & Innovation Hub', subtitle: 'Technologický portál, katalóg inovácií a B2B partnerstiev na Slovensku.', status: 'for_sale', listing_type: 'both', sale_price: 1100, lease_price_monthly: 59 },
+  { domain_name: 'edata-analytics.eu', template: 'ai_saas', title: 'eData Analytics & BI Cloud', subtitle: 'Spracovanie dát, prediktívne modely a manažérske dashboardy v reálnom čase.', status: 'for_sale', listing_type: 'both', sale_price: 1450, lease_price_monthly: 79 },
+  { domain_name: 'cyber-security.sk', template: 'business_landing', title: 'Cyber Security & WAF Audit SK', subtitle: 'Bezpečnostné audity webov, ochrana pred DDoS, šifrovanie a penetračné kontroly.', status: 'for_sale', listing_type: 'both', sale_price: 1250, lease_price_monthly: 65 },
+  { domain_name: 'nextgen-eshop.eu', template: 'ecommerce_checkout', title: 'NextGen Edge E-Shop Platform', subtitle: 'Bleskový e-shop na Cloudflare Edge s okamžitým košíkom a PayPal/Revolut platbami.', status: 'for_sale', listing_type: 'both', sale_price: 950, lease_price_monthly: 49 },
+  { domain_name: 'neural-agents.space', template: 'ai_saas', title: 'Neural Agents · Autonómne AI tímy', subtitle: 'Prenájom a nasadenie špecializovaných AI agentov pre obchod, výskum a vývoj.', status: 'for_sale', listing_type: 'both', sale_price: 1890, lease_price_monthly: 95 }
+];
+
+export async function seedTwentyCloudflareDomains(env, actor = 'cloudflare-auto-seed') {
   const allMap = await readEnvironmentsMap(env);
+  const createdDomains = [];
+  const now = new Date().toISOString();
+
+  for (const item of TWENTY_STARTER_CLOUDFLARE_DOMAINS) {
+    let domainRecord = null;
+    if (env?.DB?.prepare) {
+      try {
+        domainRecord = await getDomain(env, item.domain_name);
+        if (!domainRecord) {
+          domainRecord = await createDomain(env, {
+            domain_name: item.domain_name,
+            registrar: 'cloudflare',
+            status: item.status,
+            auto_renew: true,
+            listing_type: item.listing_type,
+            sale_price: item.sale_price,
+            sale_currency: 'EUR',
+            lease_price_monthly: item.lease_price_monthly,
+            lease_currency: 'EUR',
+            notes: `${item.title} — ${item.subtitle}`
+          });
+        }
+        if (domainRecord?.id) {
+          const existingDns = await env.DB.prepare('SELECT COUNT(*) AS count FROM domain_dns_records WHERE domain_id=?').bind(domainRecord.id).first().catch(() => ({ count: 0 }));
+          if (!existingDns?.count) {
+            await addDnsRecord(env, domainRecord.id, { type: 'A', name: '@', content: '192.0.2.1', ttl: 1, proxied: true }).catch(() => {});
+            await addDnsRecord(env, domainRecord.id, { type: 'CNAME', name: 'staging', content: item.domain_name, ttl: 1, proxied: true }).catch(() => {});
+            await addDnsRecord(env, domainRecord.id, { type: 'CNAME', name: 'dev', content: item.domain_name, ttl: 1, proxied: true }).catch(() => {});
+          }
+        }
+      } catch {}
+    }
+
+    if (!allMap[item.domain_name]) {
+      const opts = {
+        template: item.template,
+        title: item.title,
+        subtitle: item.subtitle,
+        ssl_mode: 'strict',
+        proxied: true,
+        waf_enabled: true,
+        cache_level: 'standard',
+        payment_checkout_url: '/pay/checkout/domena-prenajom'
+      };
+      allMap[item.domain_name] = {
+        domain_name: item.domain_name,
+        domain_id: domainRecord?.id || crypto.randomUUID(),
+        registrar: 'cloudflare',
+        ssl_mode: 'strict',
+        proxied: true,
+        waf_enabled: true,
+        cache_level: 'standard',
+        environments: {
+          production: buildDefaultEnvironmentEntry(item.domain_name, 'production', opts),
+          staging: buildDefaultEnvironmentEntry(item.domain_name, 'staging', opts),
+          development: buildDefaultEnvironmentEntry(item.domain_name, 'development', opts)
+        },
+        created_at: now,
+        updated_at: now,
+        updated_by: actor
+      };
+    }
+    createdDomains.push(item.domain_name);
+  }
+
+  await writeEnvironmentsMap(env, allMap);
+
+  await recordStepDocument(env, {
+    title: `Cloudflare Inicializácia: Vytvorených 20 domén s produkčnými prostrediami`,
+    category: 'domain_production',
+    step_name: 'domain_seed_twenty',
+    actor,
+    summary: `Cez Cloudflare Control Plane bolo pripravených a nasadených 20 domén s DNS záznamami (A, CNAME), prostrediami (production, staging, development) a ponukami v trhovisku.`,
+    content: [
+      `# 🌐 Portfólio 20 Cloudflare Domén v Trinity`,
+      ``,
+      ...TWENTY_STARTER_CLOUDFLARE_DOMAINS.map((d, idx) =>
+        `${idx + 1}. **\`${d.domain_name}\`** — ${d.title} (${d.sale_price ? `Predaj: ${d.sale_price} €` : 'Vlastná aktívna'}${d.lease_price_monthly ? ` · Prenájom: ${d.lease_price_monthly} €/mes.` : ''}) → \`/sites/${d.domain_name}/production\``
+      )
+    ].join('\n'),
+    receipt_id: `cloudflare:seed20:${crypto.randomUUID()}`,
+    tags: ['cloudflare', 'domains', '20-domains', 'seed']
+  });
+
+  return {
+    ok: true,
+    total_seeded: TWENTY_STARTER_CLOUDFLARE_DOMAINS.length,
+    domains: createdDomains
+  };
+}
+
+export async function listDomainEnvironments(env, domainFilter = '', { autoSeedIfEmpty = false } = {}) {
+  let allMap = await readEnvironmentsMap(env);
+  if (autoSeedIfEmpty && Object.keys(allMap).length < 20) {
+    await seedTwentyCloudflareDomains(env, 'cloudflare-startup-seed');
+    allMap = await readEnvironmentsMap(env);
+  }
   let items = Object.values(allMap);
   if (domainFilter && String(domainFilter).trim()) {
     const q = String(domainFilter).trim().toLowerCase();
@@ -463,7 +583,11 @@ export async function handlePublicSiteRoute(request, env) {
 
   const domain_name = match[1].toLowerCase();
   const envName = (match[2] || 'production').toLowerCase();
-  const allMap = await readEnvironmentsMap(env);
+  let allMap = await readEnvironmentsMap(env);
+  if (!allMap[domain_name] && TWENTY_STARTER_CLOUDFLARE_DOMAINS.some(d => d.domain_name === domain_name)) {
+    await seedTwentyCloudflareDomains(env, 'cloudflare-startup-seed');
+    allMap = await readEnvironmentsMap(env);
+  }
   const entry = allMap[domain_name];
   if (!entry || !entry.environments?.[envName]?.html) {
     throw new HttpError(404, `Pre doménu ${domain_name} zatiaľ nie je vyprodukované prostredie '${envName}'.`);

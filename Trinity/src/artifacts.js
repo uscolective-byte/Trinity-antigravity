@@ -26,6 +26,10 @@ export const MIME_TYPES = {
   gif: 'image/gif',
   svg: 'image/svg+xml; charset=utf-8',
   mp3: 'audio/mpeg',
+  wav: 'audio/wav',
+  ogg: 'audio/ogg',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
   zip: 'application/zip'
 };
 

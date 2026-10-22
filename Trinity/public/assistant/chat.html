@@ -35,9 +35,105 @@
       </div>
       <div id="ui-custom-widgets-slot" class="ui-custom-widgets-grid" hidden></div>
     </section>
-    <section id="chat-view" class="view chat-view" hidden><div id="chat-area"><section id="welcome"><div class="avatar large">✦</div><span class="eyebrow" data-i18n="welcomeLabel">TRINITY 10.3 · TVOJ PRIESTOR</span><h1 data-i18n="greeting">Ahoj. Som Trinity.</h1><p data-i18n="intro">Môžeme sa porozprávať, niečo vymyslieť alebo sa pustiť do práce.</p><div class="suggestions"><button data-suggestion="commodities">📈 Komodity, živé ceny & banky</button><button data-suggestion="domain_prod">🚀 Vytvor doménu + produkciu</button><button data-suggestion="monetize">💶 Revolut, PayPal & zárobok</button><button data-suggestion="ui_evolve">🎨 Uprav a vylepši UI</button><button data-suggestion="trinity_docs">📚 Dokumentácia, Architektúra & Help</button><button data-suggestion="plan" data-i18n="suggestPlan">✦ Pomôž mi s plánom</button></div></section><section id="messages" aria-live="polite" aria-label="Conversation"></section></div><section class="composer-wrap"><div id="activity" role="status"></div><form id="chat-form"><label class="sr-only" for="message" data-i18n="message">Správa pre Trinity</label><textarea id="message" rows="2" maxlength="12000" required data-placeholder="placeholder" placeholder="Napíš mi, čo máš na mysli…"></textarea><div id="media-preview" class="media-preview" hidden></div><div class="compose-bottom"><div class="compose-settings"><select id="engine" aria-label="AI engine"><option value="cloud">Cloudflare Workers AI (GPT-OSS-120B)</option><option value="local">Môj počítač · PC Bridge (Qwen 4B / Lokálne akcie)</option><option value="openai">OpenAI / ChatGPT (GPT-4o)</option><option value="gemini">Google Gemini</option></select><button id="attach-image" type="button" title="Analyzovať obrázok">▧ Obrázok</button><button id="record-voice" type="button" title="Nahrať hlas">● Hlas</button><button id="read-answer" type="button" title="Prečítať poslednú odpoveď">◖ Prečítať</button><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><input id="audio-input" type="file" accept="audio/*" hidden><label><input type="checkbox" id="remember"><span data-i18n="remember">Zapamätať si</span></label><label id="allow-files-setting"><input type="checkbox" id="allow-files"><span data-i18n="allowFiles">Povoliť tvorbu súborov</span></label></div><button id="stop" type="button" hidden data-i18n="stop">Zastaviť</button><button id="send" class="primary" data-i18n="send">Odoslať ↑</button></div></form><audio id="speech-player" controls hidden></audio><small class="footnote" data-i18n="footnote">TRINITY 10.3 · Pamäť je trvalá. Pracovné úlohy vykonávam v odolnom procese na Cloudflare s podporou lokálneho PC Bridge.</small></section></section>
+    <section id="chat-view" class="view chat-view" hidden><div id="chat-area"><section id="welcome"><div class="avatar large">✦</div><span class="eyebrow" data-i18n="welcomeLabel">TRINITY 10.3 · TVOJ PRIESTOR</span><h1 data-i18n="greeting">Ahoj. Som Trinity.</h1><p data-i18n="intro">Môžeme sa porozprávať, niečo vymyslieť alebo sa pustiť do práce.</p><div class="suggestions"><button data-suggestion="multimedia_studio">🎬 Video, Hudba, Fotky & Prezentácie</button><button data-suggestion="seed_20_domains">🌐 Vytvor 20 Cloudflare domén</button><button data-suggestion="commodities">📈 Komodity, živé ceny & banky</button><button data-suggestion="domain_prod">🚀 Vytvor doménu + produkciu</button><button data-suggestion="monetize">💙 Osobný PayPal & zárobok</button><button data-suggestion="ui_evolve">🎨 Uprav a vylepši UI</button><button data-suggestion="trinity_docs">📚 Dokumentácia, Architektúra & Help</button></div></section><section id="messages" aria-live="polite" aria-label="Conversation"></section></div><section class="composer-wrap"><div id="activity" role="status"></div><form id="chat-form"><label class="sr-only" for="message" data-i18n="message">Správa pre Trinity</label><textarea id="message" rows="2" maxlength="12000" required data-placeholder="placeholder" placeholder="Napíš mi, čo máš na mysli…"></textarea><div id="media-preview" class="media-preview" hidden></div><div class="compose-bottom"><div class="compose-settings"><select id="engine" aria-label="AI engine"><option value="cloud">Cloudflare Workers AI (GPT-OSS-120B)</option><option value="local">Môj počítač · PC Bridge (Qwen 4B / Lokálne akcie)</option><option value="openai">OpenAI / ChatGPT (GPT-4o)</option><option value="gemini">Google Gemini</option></select><button id="attach-image" type="button" title="Analyzovať obrázok">▧ Obrázok</button><button id="record-voice" type="button" title="Nahrať hlas">● Hlas</button><button id="read-answer" type="button" title="Prečítať poslednú odpoveď">◖ Prečítať</button><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><input id="audio-input" type="file" accept="audio/*" hidden><label><input type="checkbox" id="remember"><span data-i18n="remember">Zapamätať si</span></label><label id="allow-files-setting"><input type="checkbox" id="allow-files"><span data-i18n="allowFiles">Povoliť tvorbu súborov</span></label></div><button id="stop" type="button" hidden data-i18n="stop">Zastaviť</button><button id="send" class="primary" data-i18n="send">Odoslať ↑</button></div></form><audio id="speech-player" controls hidden></audio><small class="footnote" data-i18n="footnote">TRINITY 10.3 · Pamäť je trvalá. Pracovné úlohy vykonávam v odolnom procese na Cloudflare s podporou lokálneho PC Bridge.</small></section></section>
     <section id="studio-view" class="view studio-view" hidden>
-      <div class="studio-top"><div><span class="eyebrow">TRINITY AI STUDIO</span><h1 data-i18n="builderTitle">Vytváraj priamo s Trinity</h1><p data-i18n="builderIntro">Prompt, živý náhľad, zdrojový kód a kontrola kvality v jednej pracovnej ploche.</p></div><button id="studio-new" class="primary" data-i18n="newStudioProject">＋ Nový projekt</button></div>
+      <div class="studio-top"><div><span class="eyebrow">TRINITY AI & MULTIMEDIÁLNE ŠTÚDIO</span><h1 data-i18n="builderTitle">Tvorba Videí, Hudby, Fotiek, Prezentácií a Webov</h1><p data-i18n="builderIntro">Generuj 16:9 animované videá so zvukom a WebM exportom, polyfonickú WAV hudbu, AI fotky, interaktívne prezentácie (HTML5 + PDF), kreatívne balíky aj živé weby.</p></div><button id="studio-new" class="primary" data-i18n="newStudioProject">＋ Nový webový projekt</button></div>
+      <section id="multimedia-studio-panel" class="panel domain-env-panel" style="margin-bottom:18px">
+        <div class="panel-head">
+          <div><span class="eyebrow">MULTIMEDIÁLNE PRODUKČNÉ CENTRUM TRINITY</span><h2>Generátor videa, hudby (.WAV), fotiek, prezentácií (Slide Deck + PDF) a kreatívnych balíkov</h2></div>
+          <span id="mm-total-badge" class="detail-chip">MULTIMÉDIÁ PRIPRAVENÉ</span>
+        </div>
+        <nav class="trinity-subnav" id="mm-subnav" aria-label="Typ multimédií">
+          <button type="button" class="subnav-btn active" data-mm-tab="video">🎬 Video & Animácie (16:9 + WebM)</button>
+          <button type="button" class="subnav-btn" data-mm-tab="music">🎵 Hudba & Audio (.WAV Synth)</button>
+          <button type="button" class="subnav-btn" data-mm-tab="photo">📸 Fotky & Ilustrácie (AI Flux)</button>
+          <button type="button" class="subnav-btn" data-mm-tab="presentation">📊 Prezentácie (HTML5 + PDF)</button>
+          <button type="button" class="subnav-btn" data-mm-tab="pack">✨ Kreatívne balíky (Infografika / Social / Brand)</button>
+        </nav>
+
+        <div id="mm-pane-video" class="mm-tab-pane">
+          <form id="mm-video-form" class="secret-form commerce-form">
+            <strong>🎬 Vytvoriť 16:9 animované video so zvukovou stopou a exportom do .WEBM</strong>
+            <div class="commerce-form-grid">
+              <label><span>Téma / scenár videa</span><input id="mm-video-prompt" required minlength="2" maxlength="2000" placeholder="napr. Promo video pre Trinity AI Cloud, autonómne domény a investície"></label>
+              <label><span>Názov videa (voliteľné)</span><input id="mm-video-title" maxlength="160" placeholder="napr. Trinity AI Showreel 2026"></label>
+              <label><span>Vizuálny štýl</span><select id="mm-video-style"><option value="cinematic">Filmový (Cinematic 16:9)</option><option value="cyberpunk">Kybernetický & Neón (Cyberpunk)</option><option value="business">Biznis & Korporátny (Business)</option><option value="space">Vesmír & Hlboký kozmos (Space)</option><option value="nature">Príroda & Harmónia (Nature)</option><option value="abstract">Abstraktné umenie (Abstract)</option></select></label>
+              <label><span>Počet scén / Dĺžka</span><select id="mm-video-scenes"><option value="4">4 scény · 16 sekúnd</option><option value="5">5 scén · 20 sekúnd</option><option value="6">6 scén · 28 sekúnd</option></select></label>
+            </div>
+            <div class="commerce-form-actions">
+              <button class="primary" type="submit" id="mm-video-submit">🎬 Vygenerovať 16:9 Video + Prehrávač</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="mm-pane-music" class="mm-tab-pane" hidden>
+          <form id="mm-music-form" class="secret-form commerce-form">
+            <strong>🎵 Skomponovať a syntetizovať skutočnú hudobnú skladbu (.WAV 16-bit PCM)</strong>
+            <div class="commerce-form-grid">
+              <label><span>Popis skladby / nálada</span><input id="mm-music-prompt" required minlength="2" maxlength="1500" placeholder="napr. Epický elektronický soundtrack s basovou linkou a arpeggiom"></label>
+              <label><span>Názov skladby (voliteľné)</span><input id="mm-music-title" maxlength="140" placeholder="napr. Auru Horizon"></label>
+              <label><span>Hudobný žáner</span><select id="mm-music-genre"><option value="synthwave">Synthwave (118 BPM · A minor)</option><option value="cinematic">Filmová / Cinematic (96 BPM · D minor)</option><option value="ambient">Ambient & Relax (76 BPM · C major)</option><option value="lofi">Lo-Fi Chill Beats (84 BPM · F major)</option><option value="techno">Techno / Club (128 BPM · E minor)</option><option value="orchestral">Orchestrálna symfónia (104 BPM · G minor)</option></select></label>
+              <label><span>Dĺžka skladby (sekundy)</span><input id="mm-music-duration" type="number" min="4" max="30" value="10"></label>
+            </div>
+            <div class="commerce-form-actions">
+              <button class="primary" type="submit" id="mm-music-submit">🎵 Vygenerovať .WAV hudbu + Prehrať</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="mm-pane-photo" class="mm-tab-pane" hidden>
+          <form id="mm-photo-form" class="secret-form commerce-form">
+            <strong>📸 Vygenerovať fotku, portrét alebo digitálnu ilustráciu (Workers AI Flux + 4K Grafik)</strong>
+            <div class="commerce-form-grid">
+              <label><span>Popis fotky / obrazu</span><input id="mm-photo-prompt" required minlength="3" maxlength="1800" placeholder="napr. Futuristické mesto pri západe slnka s hologramami Trinity AI"></label>
+              <label><span>Názov diela (voliteľné)</span><input id="mm-photo-title" maxlength="140" placeholder="napr. Vízie Budúcnosti"></label>
+              <label><span>Umelecký štýl</span><select id="mm-photo-style"><option value="photorealistic">Fotorealistická snímka (85mm f/1.4)</option><option value="cyberpunk">Kybernetický neón & Sci-Fi</option><option value="editorial">Magazínová / Produktová fotografia</option><option value="3d-render">3D Octane / Unreal Engine Render</option><option value="minimalist">Minimalistický prémiový dizajn</option><option value="illustration">Digitálna umelecká ilustrácia</option></select></label>
+            </div>
+            <div class="commerce-form-actions">
+              <button class="primary" type="submit" id="mm-photo-submit">📸 Vygenerovať Fotku / Obraz</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="mm-pane-presentation" class="mm-tab-pane" hidden>
+          <form id="mm-pres-form" class="secret-form commerce-form">
+            <strong>📊 Vytvoriť 16:9 interaktívnu prezentáciu (HTML5 Slide Deck + PDF dokument)</strong>
+            <div class="commerce-form-grid">
+              <label><span>Téma prezentácie / projektu</span><input id="mm-pres-topic" required minlength="2" maxlength="2000" placeholder="napr. Investičný Pitch Deck pre Auru Cloud & AI riešenia"></label>
+              <label><span>Názov prezentácie (voliteľné)</span><input id="mm-pres-title" maxlength="160" placeholder="napr. Auru AI Pitch Deck 2026"></label>
+              <label><span>Dizajnová téma</span><select id="mm-pres-theme"><option value="midnight-tech">Polnočná technologická (Midnight Tech)</option><option value="cyber-gold">Kybernetická zlatá (Cyber Gold)</option><option value="emerald-growth">Smaragdový rast (Emerald Growth)</option><option value="royal-violet">Kráľovská fialová (Royal Violet)</option><option value="clean-light">Čistá korporátna svetlá (Clean Light)</option></select></label>
+              <label><span>Počet slajdov</span><select id="mm-pres-slides"><option value="6">6 slajdov (Štandardný Pitch Deck)</option><option value="8">8 slajdov (Podrobná stratégia)</option><option value="10">10 slajdov (Kompletná biznis prezentácia)</option></select></label>
+            </div>
+            <div class="commerce-form-actions">
+              <button class="primary" type="submit" id="mm-pres-submit">📊 Vygenerovať Prezentáciu (HTML5 + PDF)</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="mm-pane-pack" class="mm-tab-pane" hidden>
+          <form id="mm-pack-form" class="secret-form commerce-form">
+            <strong>✨ Vytvoriť kreatívny balík (Infografika, Social Media kampaň, Storyboard, Brand Kit)</strong>
+            <div class="commerce-form-grid">
+              <label><span>Téma / značka / kampaň</span><input id="mm-pack-topic" required minlength="2" maxlength="2000" placeholder="napr. Uvedenie novej AI služby na slovenský a európsky trh"></label>
+              <label><span>Názov balíka (voliteľné)</span><input id="mm-pack-title" maxlength="160" placeholder="napr. Kampaň Q4 2026"></label>
+              <label><span>Typ kreatívneho výstupu</span><select id="mm-pack-kind"><option value="infographic">📈 Interaktívna Infografika & KPI Prehľad</option><option value="social_pack">📱 Social Media Pack (Instagram, LinkedIn, X/TikTok)</option><option value="storyboard">🎬 Filmový & Reklamný Storyboard</option><option value="brand_kit">🎨 Brand Identita (Farby, Typografia, Slogany)</option></select></label>
+            </div>
+            <div class="commerce-form-actions">
+              <button class="primary" type="submit" id="mm-pack-submit">✨ Vygenerovať Kreatívny balík</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="mm-live-stage" class="domain-form-card" style="margin-top:14px" hidden>
+          <div class="dialog-head"><strong id="mm-stage-title">Živý prehrávač a náhľad výstupu</strong><button type="button" id="mm-stage-close">✕</button></div>
+          <div id="mm-stage-body"></div>
+        </div>
+
+        <div class="commerce-catalog-head" style="margin-top:16px">
+          <strong>Archív vygenerovaných multimédií (Videá, Hudba, Fotky, Prezentácie, Kreatíva)</strong>
+        </div>
+        <div id="mm-gallery-list" class="domain-marketplace-grid"></div>
+      </section>
       <div class="studio-template-row" aria-label="Rýchle šablóny"><button type="button" data-studio-template="Vytvor profesionálnu landing page pre modernú technologickú službu s výrazným hero blokom, benefitmi, referenciami a CTA.">Landing page</button><button type="button" data-studio-template="Vytvor prehľadný analytický dashboard s bočnou navigáciou, KPI kartami, grafmi a tabuľkou aktivít.">Dashboard</button><button type="button" data-studio-template="Vytvor elegantné osobné portfólio s projektmi, profilom, zručnosťami a kontaktnou sekciou.">Portfólio</button><button type="button" data-studio-template="Vytvor moderný e-shop s produktovou mriežkou, filtrami, detailom produktu a košíkom bez odosielania dát.">E-shop</button><button type="button" data-studio-template="Vytvor čistú dokumentačnú stránku s navigáciou, vyhľadávaním, ukážkami kódu a responzívnym obsahom.">Dokumentácia</button></div>
       <section class="workflow-builder"><div class="panel-head"><div><span class="eyebrow">VISUAL WORKFLOW</span><h2>Drag-and-drop automatizácia</h2></div><div class="workflow-save-row"><input id="workflow-name" maxlength="100" value="Nový workflow" aria-label="Názov workflow"><button id="workflow-save" type="button" class="primary">Uložiť workflow</button></div></div><div class="workflow-tools" aria-label="Workflow bloky"><button type="button" draggable="true" data-workflow-type="input">Vstup</button><button type="button" draggable="true" data-workflow-type="ai">AI krok</button><button type="button" draggable="true" data-workflow-type="tool">Nástroj</button><button type="button" draggable="true" data-workflow-type="approval">Schválenie</button><button type="button" draggable="true" data-workflow-type="output">Výstup</button><button id="workflow-clear" type="button">Vyčistiť</button></div><div id="workflow-canvas" class="workflow-canvas" aria-label="Workflow plocha"><p>Potiahni bloky sem. Poradie blokov vytvorí bezpečný tok.</p></div><div id="workflow-list" class="workflow-list"></div></section>      <div class="builder-shell"><aside class="builder-files"><div class="builder-label" data-i18n="studioProjects">PROJEKTY</div><div id="studio-project-list"></div><div class="builder-label" data-i18n="files">SÚBORY</div><div id="studio-file-list"><button class="file active">◇ index.html</button></div></aside><section class="preview-panel"><div class="preview-toolbar"><div class="preview-title"><b id="studio-project-name" data-i18n="untitled">Nový projekt</b><small id="studio-project-version">v0</small></div><div class="studio-view-tabs" role="tablist"><button type="button" id="studio-tab-preview" class="active" data-studio-tab="preview">Náhľad</button><button type="button" id="studio-tab-code" data-studio-tab="code">Kód</button><button type="button" id="studio-tab-quality" data-studio-tab="quality">Kvalita <span id="studio-quality-score">—</span></button></div><div class="preview-actions"><button type="button" id="preview-refresh" title="Obnoviť náhľad">↻</button><button type="button" id="preview-desktop" class="active" aria-label="Desktop">▭</button><button type="button" id="preview-tablet" aria-label="Tablet">▯</button><button type="button" id="preview-mobile" aria-label="Mobil">▯</button><button type="button" id="studio-open-preview" title="Otvoriť náhľad" disabled>↗</button><a id="studio-export" href="#" hidden data-i18n="download">Stiahnuť HTML</a></div></div><div id="studio-workspace"><div id="studio-empty"><div class="empty-mark">✦</div><h2 data-i18n="emptyStudioTitle">Čo chceš vytvoriť?</h2><p data-i18n="emptyStudioText">Vyber šablónu alebo opíš vlastný nápad. Trinity vytvorí bezpečný samostatný HTML výstup.</p></div><iframe id="studio-preview" title="Website preview" sandbox="allow-scripts" hidden></iframe><section id="studio-code-panel" class="studio-inspector" hidden><div class="inspector-head"><div><b>index.html</b><small>Zdroj aktuálnej verzie</small></div><button type="button" id="studio-copy-code">Kopírovať kód</button></div><textarea id="studio-code" readonly spellcheck="false" aria-label="HTML source"></textarea></section><section id="studio-quality-panel" class="studio-inspector quality-panel" hidden><div class="quality-hero"><strong id="studio-quality-value">—</strong><div><b>Kontrola kvality</b><small>Lokálna kontrola štruktúry, prístupnosti a responzivity.</small></div></div><div id="studio-quality-list" class="quality-list"></div></section></div></section><aside class="builder-history"><div class="builder-label" data-i18n="versions">VERZIE</div><p class="history-help">Každá úprava vytvorí novú verziu.</p><div id="studio-versions"></div></aside></div>
       <form id="studio-form" class="studio-composer"><div class="studio-prompt-tools"><label>Model<select id="studio-provider"><option value="auto">Automaticky + záloha</option><option value="workers-ai">Cloudflare Workers AI</option><option value="ollama">Ollama</option><option value="gemini">Google Gemini</option><option value="openai">OpenAI</option></select></label><label>Kvalita<select id="studio-quality-mode"><option value="fast">Rýchla</option><option value="balanced">Vyvážená</option><option value="high">Vysoká</option></select></label><label>Štýl<select id="studio-style"><option value="">Automaticky</option><option value="minimalistický a prémiový">Minimalistický</option><option value="výrazný editorial">Editorial</option><option value="technologický dark mode">Tech dark</option><option value="hravý a farebný">Hravý</option></select></label><label><input id="studio-accessible" type="checkbox" checked> Prístupnosť</label><label><input id="studio-responsive" type="checkbox" checked> Responzívny dizajn</label></div><div class="studio-prompt-main"><textarea id="studio-prompt" rows="2" maxlength="8000" required data-placeholder="studioPlaceholder" placeholder="Trinity, vytvor mi web…"></textarea><button id="studio-generate" class="primary" data-i18n="generate">Vytvoriť</button></div><small class="studio-shortcut">Ctrl/⌘ + Enter na vytvorenie · ďalší pokyn vytvorí novú verziu · nastavenia sa ukladajú v tomto prehliadači</small></form><div id="studio-status" role="status" aria-live="polite"></div>
@@ -71,6 +167,7 @@
           <div class="commerce-form-actions">
             <label class="domain-live-check"><input type="checkbox" id="domain-env-auto-deploy" checked> <b>Okamžite vyprodukovať živý web do Production a Staging</b></label>
             <button class="primary" type="submit">🚀 Vytvoriť doménu, prostredia & spustiť produkciu</button>
+            <button type="button" id="domain-seed-20-btn">🌐 Vytvoriť / Obnoviť 20 Cloudflare domén</button>
             <button type="button" id="domain-env-ask-chat">✦ Povedať Trinity v chate nech vyprodukuje doménu</button>
           </div>
         </form>
@@ -81,7 +178,7 @@
         <p class="settings-help">Domény označené „Na predaj“ alebo „Na prenájom“ sa zobrazia tu. Pri každej môžeš jedným klikom vytvoriť PayPal platobnú bránu s presnou cenou v EUR priamo na svoj osobný PayPal účet.</p>
         <div id="domain-marketplace-list" class="domain-marketplace-grid"></div>
       </section>
-      <section id="settings-domains-panel" class="panel admin-panel"><div class="panel-head"><div><span class="eyebrow">MOJE DOMÉNY</span><h2>Zoznam domén a DNS správa</h2></div><span id="settings-domains-count" class="detail-chip">0 domén</span></div><p class="settings-help">Tu vidíš všetky evidované domény. Pri každej môžeš upraviť DNS, zaradiť ju na predaj/prenájom alebo vytvoriť platobný odkaz.</p><div class="domain-action-bar"><button type="button" id="domain-open-check" class="primary">⌕ Overiť dostupnosť a cenu</button><button type="button" id="domain-open-create">＋ Pridať existujúcu doménu</button><button type="button" id="domain-open-register">⚡ Registrovať doménu</button><button type="button" id="domain-sync">⇄ Synchronizovať Cloudflare</button><button type="button" id="domain-refresh">↻ Obnoviť</button></div><div class="domain-filters" id="domain-status-filters"><button type="button" class="domain-filter-btn active" data-domain-filter="all">Všetky</button><button type="button" class="domain-filter-btn" data-domain-filter="active">Aktívne</button><button type="button" class="domain-filter-btn" data-domain-filter="for_sale">Na predaj</button><button type="button" class="domain-filter-btn" data-domain-filter="leased">Prenajaté</button><button type="button" class="domain-filter-btn" data-domain-filter="parked">Zaparkované</button><button type="button" class="domain-filter-btn" data-domain-filter="sold">Predané</button><input type="search" id="domain-quick-search" class="domain-search-box" placeholder="Hľadať doménu, registrátora alebo poznámku..."></div><div id="domain-check-wrap" class="domain-form-card" hidden><form id="domain-check-form" class="secret-form"><input id="domain-check-input" required minlength="3" maxlength="253" placeholder="Zadaj doménu na overenie (napr. mojanovadomena.com)"><button class="primary" type="submit" id="domain-check-btn">⌕ Zistiť cenu a dostupnosť</button><button type="button" id="domain-check-cancel">Zavrieť</button></form><div id="domain-check-result" class="domain-check-result" hidden></div></div><div id="domain-form-wrap" class="domain-form-card" hidden><form id="domain-create-form" class="secret-form"><input id="domain-name-input" required minlength="3" maxlength="253" placeholder="napr. moja-domena.sk"><select id="domain-status-input"><option value="active">Aktívna (active)</option><option value="parked">Zaparkovaná (parked)</option><option value="for_sale">Na predaj (for_sale)</option><option value="leased">Prenajatá (leased)</option></select><input id="domain-registrar-input" value="cloudflare" placeholder="Registrátor"><button class="primary" type="submit">Uložiť doménu</button><button type="button" id="domain-form-cancel">Zrušiť</button></form></div><div id="domain-register-wrap" class="domain-form-card" hidden><form id="domain-register-form" class="secret-form"><input id="domain-reg-name-input" required minlength="3" maxlength="253" placeholder="napr. nova-domena.com"><input id="domain-reg-max-price" type="number" min="0.01" step="0.01" placeholder="Maximálna cena nákupu"><select id="domain-reg-currency"><option>USD</option><option>EUR</option></select><select id="domain-reg-years"><option value="1">1 rok</option><option value="2">2 roky</option><option value="3">3 roky</option><option value="5">5 rokov</option></select><input id="domain-reg-notes" maxlength="500" placeholder="Účel / poznámka"><label class="domain-live-check"><input type="checkbox" id="domain-reg-live"> <b>Kúpiť a zaregistrovať reálne cez Cloudflare Registrar</b> (platobná karta)</label><button class="primary" type="submit">Registrovať</button><button type="button" id="domain-reg-cancel">Zrušiť</button></form></div><div id="domain-list" class="api-key-list"></div><div id="domain-detail-modal" class="domain-detail-card" hidden><div class="dialog-head"><strong id="domain-detail-title">—</strong><button type="button" id="domain-detail-close">✕</button></div><div id="domain-detail-content"></div></div></section>
+      <section id="settings-domains-panel" class="panel admin-panel"><div class="panel-head"><div><span class="eyebrow">MOJE DOMÉNY</span><h2>Zoznam domén a DNS správa</h2></div><span id="settings-domains-count" class="detail-chip">0 domén</span></div><p class="settings-help">Tu vidíš všetky evidované domény. Pri každej môžeš upraviť DNS, zaradiť ju na predaj/prenájom alebo vytvoriť platobný odkaz.</p><div class="domain-action-bar"><button type="button" id="domain-open-check" class="primary">⌕ Overiť dostupnosť a cenu</button><button type="button" id="domain-seed-20-bar-btn">🌐 20 Cloudflare domén</button><button type="button" id="domain-open-create">＋ Pridať existujúcu doménu</button><button type="button" id="domain-open-register">⚡ Registrovať doménu</button><button type="button" id="domain-sync">⇄ Synchronizovať Cloudflare</button><button type="button" id="domain-refresh">↻ Obnoviť</button></div><div class="domain-filters" id="domain-status-filters"><button type="button" class="domain-filter-btn active" data-domain-filter="all">Všetky</button><button type="button" class="domain-filter-btn" data-domain-filter="active">Aktívne</button><button type="button" class="domain-filter-btn" data-domain-filter="for_sale">Na predaj</button><button type="button" class="domain-filter-btn" data-domain-filter="leased">Prenajaté</button><button type="button" class="domain-filter-btn" data-domain-filter="parked">Zaparkované</button><button type="button" class="domain-filter-btn" data-domain-filter="sold">Predané</button><input type="search" id="domain-quick-search" class="domain-search-box" placeholder="Hľadať doménu, registrátora alebo poznámku..."></div><div id="domain-check-wrap" class="domain-form-card" hidden><form id="domain-check-form" class="secret-form"><input id="domain-check-input" required minlength="3" maxlength="253" placeholder="Zadaj doménu na overenie (napr. mojanovadomena.com)"><button class="primary" type="submit" id="domain-check-btn">⌕ Zistiť cenu a dostupnosť</button><button type="button" id="domain-check-cancel">Zavrieť</button></form><div id="domain-check-result" class="domain-check-result" hidden></div></div><div id="domain-form-wrap" class="domain-form-card" hidden><form id="domain-create-form" class="secret-form"><input id="domain-name-input" required minlength="3" maxlength="253" placeholder="napr. moja-domena.sk"><select id="domain-status-input"><option value="active">Aktívna (active)</option><option value="parked">Zaparkovaná (parked)</option><option value="for_sale">Na predaj (for_sale)</option><option value="leased">Prenajatá (leased)</option></select><input id="domain-registrar-input" value="cloudflare" placeholder="Registrátor"><button class="primary" type="submit">Uložiť doménu</button><button type="button" id="domain-form-cancel">Zrušiť</button></form></div><div id="domain-register-wrap" class="domain-form-card" hidden><form id="domain-register-form" class="secret-form"><input id="domain-reg-name-input" required minlength="3" maxlength="253" placeholder="napr. nova-domena.com"><input id="domain-reg-max-price" type="number" min="0.01" step="0.01" placeholder="Maximálna cena nákupu"><select id="domain-reg-currency"><option>USD</option><option>EUR</option></select><select id="domain-reg-years"><option value="1">1 rok</option><option value="2">2 roky</option><option value="3">3 roky</option><option value="5">5 rokov</option></select><input id="domain-reg-notes" maxlength="500" placeholder="Účel / poznámka"><label class="domain-live-check"><input type="checkbox" id="domain-reg-live"> <b>Kúpiť a zaregistrovať reálne cez Cloudflare Registrar</b> (platobná karta)</label><button class="primary" type="submit">Registrovať</button><button type="button" id="domain-reg-cancel">Zrušiť</button></form></div><div id="domain-list" class="api-key-list"></div><div id="domain-detail-modal" class="domain-detail-card" hidden><div class="dialog-head"><strong id="domain-detail-title">—</strong><button type="button" id="domain-detail-close">✕</button></div><div id="domain-detail-content"></div></div></section>
       <div class="domain-tools-grid">
         <section class="panel"><div class="panel-head"><div><span class="eyebrow">VYHĽADÁVANIE</span><h2>Nájdi názov domény</h2></div></div><p class="settings-help">Zadaj kľúčové slovo alebo značku a Trinity overí kandidátov na voľné domény.</p><form id="domain-search-form" class="secret-form"><input id="domain-search-query" minlength="2" maxlength="150" required placeholder="Názov projektu alebo značky"><button type="submit" class="primary">Nájsť domény</button></form><div id="domain-search-results" aria-live="polite"></div></section>
         <section class="panel"><div class="panel-head"><div><span class="eyebrow">RÝCHLE DNS</span><h2>Vytvor subdoménu</h2></div></div><p class="settings-help">Vytvorí CNAME subdoménu pod tvojou synchronizovanou Cloudflare DNS zónou.</p><form id="subdomain-form" class="secret-form"><input id="subdomain-parent" required placeholder="Spravovaná doména, napr. auru.space"><input id="subdomain-label" required maxlength="63" placeholder="Názov, napr. mojweb"><input id="subdomain-target" required placeholder="Cieľový hostname"><button type="submit" class="primary">Vytvoriť CNAME</button></form></section>
@@ -108,7 +205,96 @@
         </div>
       </nav>
 
+      <div id="comm-live-ticker" class="commodity-ticker-bar" aria-label="Živé ceny komodít">
+        <div class="ticker-item"><span class="ticker-sym">XAU/EUR</span><span class="ticker-val" id="tick-xau">2 645,00 €</span><span class="ticker-chg up">+0.85%</span></div>
+        <div class="ticker-item"><span class="ticker-sym">XAG/EUR</span><span class="ticker-val" id="tick-xag">31,80 €</span><span class="ticker-chg up">+1.45%</span></div>
+        <div class="ticker-item"><span class="ticker-sym">BRENT</span><span class="ticker-val" id="tick-brent">74,20 €</span><span class="ticker-chg down">-0.40%</span></div>
+        <div class="ticker-item"><span class="ticker-sym">BTC/EUR</span><span class="ticker-val" id="tick-btc">64 250,00 €</span><span class="ticker-chg up">+2.10%</span></div>
+        <div class="ticker-item"><span class="ticker-sym">COPPER</span><span class="ticker-val" id="tick-copper">8 920,00 €</span><span class="ticker-chg up">+0.65%</span></div>
+        <div class="ticker-item"><span class="ticker-sym">URAN</span><span class="ticker-val" id="tick-uran">81,50 €</span><span class="ticker-chg up">+1.80%</span></div>
+        <div class="ticker-item"><span class="ticker-sym">COFFEE</span><span class="ticker-val" id="tick-coffee">2,58 €</span><span class="ticker-chg up">+1.35%</span></div>
+      </div>
+
       <div id="comm-pane-market" class="comm-tab-pane">
+        <section id="comm-terminal-panel" class="panel domain-env-panel" style="margin-bottom:18px">
+          <div class="panel-head">
+            <div><span class="eyebrow">TRADING TERMINAL · LIVE CHARTS & ORDER BOOK</span><h2 id="chart-active-title">XAU-EUR · Zlato (Gold Spot)</h2></div>
+            <div class="chart-timeframe-row">
+              <button type="button" class="chart-tf-btn active" data-chart-tf="1D">1D</button>
+              <button type="button" class="chart-tf-btn" data-chart-tf="1W">1W</button>
+              <button type="button" class="chart-tf-btn" data-chart-tf="1M">1M</button>
+              <button type="button" class="chart-tf-btn" data-chart-tf="1Y">1Y</button>
+              <button type="button" id="chart-mode-toggle" class="chart-tf-btn">📊 Sviece / Čiara</button>
+            </div>
+          </div>
+
+          <div class="chart-quick-symbols">
+            <button type="button" class="chart-sym-pill active" data-chart-symbol="XAU-EUR">🪙 Zlato (XAU)</button>
+            <button type="button" class="chart-sym-pill" data-chart-symbol="XAG-EUR">🥈 Striebro (XAG)</button>
+            <button type="button" class="chart-sym-pill" data-chart-symbol="BRENT-EUR">⚡ Ropa Brent</button>
+            <button type="button" class="chart-sym-pill" data-chart-symbol="BTC-EUR">₿ Bitcoin</button>
+            <button type="button" class="chart-sym-pill" data-chart-symbol="COPPER-EUR">🔩 Meď</button>
+            <button type="button" class="chart-sym-pill" data-chart-symbol="URAN-EUR">☢ Urán U3O8</button>
+            <button type="button" class="chart-sym-pill" data-chart-symbol="COFFEE-EUR">☕ Káva</button>
+          </div>
+
+          <div class="terminal-stats-strip">
+            <div class="stat-col"><small>CENA</small><b id="term-price">2 645,00 €</b></div>
+            <div class="stat-col"><small>24H ZMENA</small><b id="term-change" class="up">+0.85%</b></div>
+            <div class="stat-col"><small>24H MAX</small><b id="term-high">2 662,10 €</b></div>
+            <div class="stat-col"><small>24H MIN</small><b id="term-low">2 632,50 €</b></div>
+            <div class="stat-col"><small>RSI (14)</small><b id="term-rsi">61.4</b></div>
+            <div class="stat-col"><small>MACD / TREND</small><b id="term-macd" class="up">BULLISH</b></div>
+            <div class="stat-col"><small>SPREAD</small><b id="term-spread">0.08%</b></div>
+          </div>
+
+          <div class="terminal-body-grid">
+            <div class="terminal-chart-box">
+              <svg id="comm-chart-svg" viewBox="0 0 800 360" preserveAspectRatio="none" style="width:100%;height:320px;display:block;background:rgba(5,10,24,0.7);border-radius:10px;border:1px solid rgba(56,189,248,0.18)">
+                <defs>
+                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.0"/>
+                  </linearGradient>
+                </defs>
+                <g id="chart-grid-layer"></g>
+                <path id="chart-area-path" d="" fill="url(#chartGrad)"/>
+                <path id="chart-line-path" d="" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
+                <g id="chart-candles-layer"></g>
+                <g id="chart-vol-layer"></g>
+                <g id="chart-labels-layer"></g>
+              </svg>
+            </div>
+
+            <div class="terminal-orderbook-box">
+              <div class="orderbook-header"><span>Kniha objednávok (Depth)</span><small id="ob-spread-badge">Spread: 0.08%</small></div>
+              <div class="orderbook-table">
+                <div class="ob-col asks-col">
+                  <div class="ob-col-head"><span>Predaj (Asks)</span><span>Objem</span></div>
+                  <div id="ob-asks-list" class="ob-rows"></div>
+                </div>
+                <div class="ob-mid-price"><span id="ob-mid-val">2 645,00 €</span><small>Live Spot</small></div>
+                <div class="ob-col bids-col">
+                  <div class="ob-col-head"><span>Nákup (Bids)</span><span>Objem</span></div>
+                  <div id="ob-bids-list" class="ob-rows"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="terminal-quick-trade">
+            <div class="quick-trade-inputs">
+              <label><span>Investícia (EUR)</span><input id="term-trade-amount" type="number" min="10" max="100000" step="50" value="500"></label>
+              <label><span>Stop-Loss (%)</span><input id="term-trade-sl" type="range" min="1" max="15" value="5"><span id="term-sl-val">-5%</span></label>
+              <label><span>Take-Profit (%)</span><input id="term-trade-tp" type="range" min="2" max="30" value="10"><span id="term-tp-val">+10%</span></label>
+            </div>
+            <div class="quick-trade-btns">
+              <button type="button" id="term-buy-btn" class="primary" style="background:#10b981;border-color:#059669">🟢 Kúpiť / Long (XAU)</button>
+              <button type="button" id="term-sell-btn" class="primary" style="background:#ef4444;border-color:#dc2626">🔴 Predať pozíciu</button>
+            </div>
+          </div>
+        </section>
+
         <section class="panel">
           <div class="panel-head">
             <div><span class="eyebrow">OTVORENÉ POZÍCIE & BANKOVÉ VYROVNANIE</span><h2>Držané komodity a okamžitý predaj</h2></div>

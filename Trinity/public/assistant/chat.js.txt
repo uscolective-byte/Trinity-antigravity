@@ -1,7 +1,7 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const words={
-sk:{personal:'Tvoja osobná asistentka',newChat:'＋ Nový rozhovor',recent:'NAŠE ROZHOVORY',boundary:'Konám v rámci tvojho zadania. Citlivé zmeny len s tvojím súhlasom.',advanced:'Technické centrum ↗',here:'Som tu. Čo potrebuješ?',memory:'◇ Pamäť',tools:'✦ Schopnosti',loginTitle:'Vitaj v Trinity',loginHint:'Na povolenom vývojovom pripojení sa prihlásiš automaticky. Inde použi jednorazový odkaz zo spúšťača.',login:'Prihlásiť',welcomeLabel:'TRINITY 10.3 · TVOJ PRIESTOR',greeting:'Ahoj. Som Trinity.',intro:'Môžeme sa porozprávať, niečo vymyslieť, programovať alebo spustiť akcie na tvojom PC cez PC Bridge.',suggestPlan:'Pomôž mi s plánom',suggestTalk:'Poďme sa porozprávať',suggestCreate:'Chcem niečo vytvoriť',suggestChatGpt:'Schopnosti ChatGPT',chatGptPrompt:'Aktivuj schopnosti ChatGPT: precízne štruktúrované odpovede, programovanie, hlboké uvažovanie a analýzu dát. S čím môžem začať?',suggestCalc:'Kalkulačka na PC',calcPrompt:'Spusti na mojom počítači kalkulačku (calc.exe) cez PC Bridge.',suggestNotepad:'Poznámkový blok',notepadPrompt:'Otvor na mojom počítači poznámkový blok (notepad.exe) cez PC Bridge.',suggestChrome:'Spustiť Chrome',chromePrompt:'Spusti na mojom počítači prehliadač Chrome cez PC Bridge.',monetizePrompt:'Zostav mi praktický plán zarábania cez Trinity: skontroluj stav mojich Revolut Pro a PayPal platobných odkazov, moje domény a navrhni konkrétne predajné balíky (weby z AI Studia, prenájom domén, AI automatizácie) s cenami v EUR.',domainsPrompt:'Skontroluj moje portfólio domén v Trinity, zhodnoť ich potenciál na predaj alebo prenájom a navrhni ku každej odporúčanú cenu a využitie.',ui_evolvePrompt:'Uprav a vylepši naše používateľské rozhranie (UI) pomocou nástroja ui_evolve: prepni tému na cyber-gold alebo aurora-emerald, pridaj na Prehľad užitočný widget a vytvor k tomu Trinity Dokument.',domain_prodPrompt:'Vytvor novú doménu s Cloudflare prostrediami (production, staging, development) pomocou domain_env_provision, vyprodukuj na ňu živý web a vytvor Trinity Dokument.',trinity_docsPrompt:'Zobraz prehľad posledných Trinity Dokumentov pomocou trinity_doc_list a vytvor nový súhrnný Trinity Dokument o aktuálnom stave systému.',message:'Správa pre Trinity',placeholder:'Napíš mi, čo máš na mysli…',localModel:'Na mojom počítači',cloudModel:'Cloudflare',remember:'Zapamätať si',allowFiles:'Povoliť tvorbu súborov',stop:'Zastaviť',send:'Odoslať ↑',footnote:'TRINITY 10.3 · Pamäť je trvalá. Pracovné úlohy vykonávam v odolnom procese na Cloudflare s podporou lokálneho PC Bridge.',memoryLabel:'ČO SI O TEBE PAMÄTÁM',memoryTitle:'Pamäť Trinity',memoryName:'Názov poznámky',memoryValue:'Čo si mám zapamätať?',saveMemory:'Uložiť do pamäte',memorySafety:'Nevkladaj heslá ani API kľúče. Pamäť je kontext pre odpovede, nie trénovanie nového modelu.',toolsTitle:'Moje schopnosti',changesTitle:'Zmeny vzhľadu a história UI',changesHint:'Trinity dokáže naživo upravovať vzhľad UI. Každú zmenu tu môžeš schváliť alebo kedykoľvek vrátiť späť (Rollback).',you:'Ty',working:'Pripravujem odpoveď…',context:'Pracovný priebeh',saved:'Uložené do pamäte.',copy:'Kopírovať',copied:'Skopírované',noMemory:'Zatiaľ tu nie sú žiadne poznámky.',noChanges:'Žiadne návrhy zmien. Nič sa nemení samo.',approve:'Schváliť a použiť',rollback:'Vrátiť zmenu',confirm:'Chceš použiť túto zmenu vzhľadu? Predchádzajúcu verziu môžeš obnoviť.',local:'Beží na tvojom PC',cloud:'Beží na Cloudflare',offline:'Model ešte nie je pripravený',stopDone:'Odpovedanie zastavené.',steps:'interné kroky',done:'hotové',search_memory:'Pamäť',project_snapshot:'Projekty',calculate:'Výpočty',analyze_text:'Analýza textu',web_search:'Webový výskum',service_status:'Kontrola služieb',read_memory:'Čítanie pamäte',list_workspace:'Pracovné súbory',read_file:'Čítanie súborov',write_file:'Tvorba súborov na príkaz',propose_theme:'Návrhy vzhľadu',ui_evolve:'Živá úprava UI',self_evolve:'Samorozvoj Trinity',domain_env_provision:'Tvorba domény a prostredí',domain_env_deploy:'Produkcia na doméne',domain_env_list:'Prehľad prostredí domén',trinity_doc_create:'Tvorba Trinity Dokumentu',trinity_doc_list:'Zoznam Trinity Dokumentov',plan:'Pomôž mi zostaviť praktický plán. Najprv sa ma opýtaj, čo chcem dosiahnuť.',talk:'Ahoj Trinity, poďme sa porozprávať.',create:'Chcem niečo vytvoriť. Pomôž mi spresniť nápad.'},
+sk:{personal:'Tvoja osobná asistentka',newChat:'＋ Nový rozhovor',recent:'NAŠE ROZHOVORY',boundary:'Konám v rámci tvojho zadania. Citlivé zmeny len s tvojím súhlasom.',advanced:'Technické centrum ↗',here:'Som tu. Čo potrebuješ?',memory:'◇ Pamäť',tools:'✦ Schopnosti',loginTitle:'Vitaj v Trinity',loginHint:'Na povolenom vývojovom pripojení sa prihlásiš automaticky. Inde použi jednorazový odkaz zo spúšťača.',login:'Prihlásiť',welcomeLabel:'TRINITY 10.3 · TVOJ PRIESTOR',greeting:'Ahoj. Som Trinity.',intro:'Môžeme sa porozprávať, niečo vymyslieť, programovať alebo spustiť akcie na tvojom PC cez PC Bridge.',suggestPlan:'Pomôž mi s plánom',suggestTalk:'Poďme sa porozprávať',suggestCreate:'Chcem niečo vytvoriť',suggestChatGpt:'Schopnosti ChatGPT',chatGptPrompt:'Aktivuj schopnosti ChatGPT: precízne štruktúrované odpovede, programovanie, hlboké uvažovanie a analýzu dát. S čím môžem začať?',suggestCalc:'Kalkulačka na PC',calcPrompt:'Spusti na mojom počítači kalkulačku (calc.exe) cez PC Bridge.',suggestNotepad:'Poznámkový blok',notepadPrompt:'Otvor na mojom počítači poznámkový blok (notepad.exe) cez PC Bridge.',suggestChrome:'Spustiť Chrome',chromePrompt:'Spusti na mojom počítači prehliadač Chrome cez PC Bridge.',multimedia_studioPrompt:'Vytvor mi ukážkové animované 16:9 video, hudobnú skladbu (.WAV) a 6-slajdovú prezentáciu o projekte Trinity AI Cloud.',seed_20_domainsPrompt:'Vytvor a nasaď 20 štartovacích Cloudflare domén s DNS záznamami, SSL a živými prostrediami.',monetizePrompt:'Zostav mi praktický plán zarábania cez Trinity: skontroluj stav mojich Revolut Pro a PayPal platobných odkazov, moje domény a navrhni konkrétne predajné balíky (weby z AI Studia, prenájom domén, AI automatizácie) s cenami v EUR.',domainsPrompt:'Skontroluj moje portfólio domén v Trinity, zhodnoť ich potenciál na predaj alebo prenájom a navrhni ku každej odporúčanú cenu a využitie.',ui_evolvePrompt:'Uprav a vylepši naše používateľské rozhranie (UI) pomocou nástroja ui_evolve: prepni tému na cyber-gold alebo aurora-emerald, pridaj na Prehľad užitočný widget a vytvor k tomu Trinity Dokument.',domain_prodPrompt:'Vytvor novú doménu s Cloudflare prostrediami (production, staging, development) pomocou domain_env_provision, vyprodukuj na ňu živý web a vytvor Trinity Dokument.',trinity_docsPrompt:'Zobraz prehľad posledných Trinity Dokumentov pomocou trinity_doc_list a vytvor nový súhrnný Trinity Dokument o aktuálnom stave systému.',message:'Správa pre Trinity',placeholder:'Napíš mi, čo máš na mysli…',localModel:'Na mojom počítači',cloudModel:'Cloudflare',remember:'Zapamätať si',allowFiles:'Povoliť tvorbu súborov',stop:'Zastaviť',send:'Odoslať ↑',footnote:'TRINITY 10.3 · Pamäť je trvalá. Pracovné úlohy vykonávam v odolnom procese na Cloudflare s podporou lokálneho PC Bridge.',memoryLabel:'ČO SI O TEBE PAMÄTÁM',memoryTitle:'Pamäť Trinity',memoryName:'Názov poznámky',memoryValue:'Čo si mám zapamätať?',saveMemory:'Uložiť do pamäte',memorySafety:'Nevkladaj heslá ani API kľúče. Pamäť je kontext pre odpovede, nie trénovanie nového modelu.',toolsTitle:'Moje schopnosti',changesTitle:'Zmeny vzhľadu a história UI',changesHint:'Trinity dokáže naživo upravovať vzhľad UI. Každú zmenu tu môžeš schváliť alebo kedykoľvek vrátiť späť (Rollback).',you:'Ty',working:'Pripravujem odpoveď…',context:'Pracovný priebeh',saved:'Uložené do pamäte.',copy:'Kopírovať',copied:'Skopírované',noMemory:'Zatiaľ tu nie sú žiadne poznámky.',noChanges:'Žiadne návrhy zmien. Nič sa nemení samo.',approve:'Schváliť a použiť',rollback:'Vrátiť zmenu',confirm:'Chceš použiť túto zmenu vzhľadu? Predchádzajúcu verziu môžeš obnoviť.',local:'Beží na tvojom PC',cloud:'Beží na Cloudflare',offline:'Model ešte nie je pripravený',stopDone:'Odpovedanie zastavené.',steps:'interné kroky',done:'hotové',search_memory:'Pamäť',project_snapshot:'Projekty',calculate:'Výpočty',analyze_text:'Analýza textu',web_search:'Webový výskum',service_status:'Kontrola služieb',read_memory:'Čítanie pamäte',list_workspace:'Pracovné súbory',read_file:'Čítanie súborov',write_file:'Tvorba súborov na príkaz',propose_theme:'Návrhy vzhľadu',ui_evolve:'Živá úprava UI',self_evolve:'Samorozvoj Trinity',domain_env_provision:'Tvorba domény a prostredí',domain_env_deploy:'Produkcia na doméne',domain_env_list:'Prehľad prostredí domén',trinity_doc_create:'Tvorba Trinity Dokumentu',trinity_doc_list:'Zoznam Trinity Dokumentov',generate_music:'Syntetizátor hudby (.WAV)',generate_video:'Tvorba 16:9 videa',generate_presentation:'Tvorba prezentácií (HTML5 + PDF)',generate_creative_pack:'Kreatívne balíky & Infografiky',plan:'Pomôž mi zostaviť praktický plán. Najprv sa ma opýtaj, čo chcem dosiahnuť.',talk:'Ahoj Trinity, poďme sa porozprávať.',create:'Chcem niečo vytvoriť. Pomôž mi spresniť nápad.'},
 en:{personal:'Your personal assistant',newChat:'＋ New conversation',recent:'OUR CONVERSATIONS',boundary:'I work within your request. Sensitive changes require your approval.',advanced:'Technical center ↗',here:'I’m here. What do you need?',memory:'◇ Memory',tools:'✦ Capabilities',loginTitle:'Welcome to Trinity',loginHint:'Your approved development connection signs in automatically. Otherwise use the launcher’s one-time link.',login:'Sign in',welcomeLabel:'TRINITY 10.3 · YOUR SPACE',greeting:'Hi. I’m Trinity.',intro:'We can talk, create ideas, write code, or execute local actions on your PC via PC Bridge.',suggestPlan:'Help me make a plan',suggestTalk:'Let’s have a chat',suggestCreate:'I want to create something',suggestChatGpt:'ChatGPT capabilities',chatGptPrompt:'Activate ChatGPT capabilities: precisely structured answers, coding, deep reasoning, and data analysis. What can we start with?',suggestCalc:'PC Calculator',calcPrompt:'Launch calculator (calc.exe) on my computer via PC Bridge.',suggestNotepad:'PC Notepad',notepadPrompt:'Open Notepad (notepad.exe) on my computer via PC Bridge.',suggestChrome:'Open Chrome',chromePrompt:'Launch Chrome on my computer via PC Bridge.',monetizePrompt:'Create a practical monetization plan with Trinity: check my Revolut Pro and PayPal payment links, my domain portfolio, and propose concrete service packages in EUR.',domainsPrompt:'Inspect my domain portfolio in Trinity, evaluate sale or lease potential, and suggest pricing for each domain.',message:'Message Trinity',placeholder:'Tell me what’s on your mind…',localModel:'On my computer',cloudModel:'Cloudflare',remember:'Remember this',allowFiles:'Allow file creation',stop:'Stop',send:'Send ↑',footnote:'TRINITY 10.3 · Memory persists. Work requests run in a durable Cloudflare process with local PC Bridge support.',memoryLabel:'WHAT I REMEMBER ABOUT YOU',memoryTitle:'Trinity’s memory',memoryName:'Note name',memoryValue:'What should I remember?',saveMemory:'Save to memory',memorySafety:'Do not store passwords or API keys. Memory provides context; it does not train a new model.',toolsTitle:'What I can do',changesTitle:'Appearance changes for approval',changesHint:'The Cloudflare version does not change its appearance automatically. I can prepare a code proposal, but deployment happens only after your explicit approval.',you:'You',working:'Preparing my answer…',context:'Work progress',saved:'Saved to memory.',copy:'Copy',copied:'Copied',noMemory:'No saved notes yet.',noChanges:'No proposed changes. Nothing changes on its own.',approve:'Approve and apply',rollback:'Roll back',confirm:'Apply this appearance change? You can restore the previous version.',local:'Running on your PC',cloud:'Running on Cloudflare',offline:'The model is not ready yet',stopDone:'Stopped answering.',steps:'internal steps',done:'done',search_memory:'Memory',project_snapshot:'Projects',calculate:'Calculations',analyze_text:'Text analysis',web_search:'Web research',service_status:'Service checks',read_memory:'Read persistent memory',list_workspace:'Workspace files',read_file:'Read workspace files',write_file:'Create files on command',propose_theme:'Appearance proposals',plan:'Help me make a practical plan. First ask what I want to achieve.',talk:'Hi Trinity, let’s have a chat.',create:'I want to create something. Help me refine the idea.'}
 };
 Object.assign(words.sk,{overview:'Prehľad',chat:'Chat',projects:'Projekty',memoryPlain:'Pamäť',newChatPlain:'Nový rozhovor',dashboardHere:'Tvoj priestor pre tvorbu, prácu a nápady.',hello:'Ahoj.',ready:'Čo dnes vytvoríme?',dashboardIntro:'Trinity spája rozhovor, pamäť, projekty a nástroje do jedného pokojného pracovného priestoru.',startChat:'Začať rozhovor',openStudio:'Otvoriť AI Studio',today:'Dnes',tasksDone:'dokončených úloh',memories:'uložených záznamov',activeProjects:'aktívnych priestorov',system:'Systém',cloudServices:'cloudové služby',quickStart:'RÝCHLY ŠTART',whatNeed:'S čím ti dnes pomôžem?',planWork:'Naplánovať prácu',planWorkHint:'Rozdelím cieľ na jasné kroky',createSomething:'Niečo vytvoriť',createHint:'Text, nápad, kód alebo projekt',research:'Preskúmať tému',researchHint:'Aktuálne zdroje a zhrnutie',organize:'Usporiadať projekt',organizeHint:'Priority, úlohy a ďalší krok',latest:'NAJNOVŠIE',recentActivity:'Posledná aktivita',allChats:'Všetky chaty',studioTitle:'Jedna Trinity. Celé tvorivé centrum.',studioIntro:'Modely, špecializácie a nástroje pracujú v pozadí ako schopnosti jednej asistentky.',online:'ONLINE',coreText:'Rozhoduje, plánuje, používa nástroje a kontroluje dôkazy pred odpoveďou.',specializations:'Špecializácie',specializationsText:'Vývoj, výskum, dizajn, bezpečnosť, dáta a prevádzka. Stále jedna identita.',seeWork:'Pozrieť prácu',persistentMemory:'Trvalá pamäť',persistentMemoryText:'D1 uchováva iba to, čo jej zveríš. Heslá ani tajné kľúče sem nepatria.',openMemory:'Otvoriť pamäť',truthGuard:'Strážca pravdy',truthGuardText:'Akcia je hotová až vtedy, keď existuje overiteľné potvrdenie.',installedModules:'NAINŠTALOVANÉ MODULY',visibleSkills:'Schopnosti Trinity',workspace:'PRACOVNÝ PRIESTOR',projectsTitle:'Projekty a rozpracované úlohy',projectsIntro:'Prehľad uložený v spoločnej pamäti Trinity.',recentTasks:'Posledné úlohy',researchPrompt:'Preskúmaj túto tému podľa aktuálnych a dôveryhodných zdrojov: ',organizePrompt:'Pomôž mi usporiadať projekt. Začni cieľom, prioritami a najbližším krokom.',emptyProjects:'Zatiaľ tu nie je žiadny projekt.',emptyTasks:'Zatiaľ tu nie sú žiadne úlohy.',running:'prebieha',completed:'dokončené',failed:'zlyhalo'});
@@ -60,11 +60,36 @@ function renderReply(target,text){
       else if(ext==='json')icon='📦';
       else if(['js','ts','mjs'].includes(ext))icon='⚡';
       else if(['jpg','png','webp','gif','svg'].includes(ext))icon='🖼️';
+      else if(['wav','mp3','ogg'].includes(ext))icon='🎵';
+      else if(ext==='html'&&/video/i.test(fname))icon='🎬';
+      else if(ext==='html'&&/prezentacia|slide/i.test(fname))icon='📊';
       else if(ext==='csv')icon='📊';
       const fileCard=document.createElement('div');
       fileCard.className='generated-file-card';
       fileCard.innerHTML=`<span class="file-icon">${icon}</span><div class="file-info"><b>${fname}</b><small>Vytvorený súbor v R2 archíve</small></div><a href="${url}?download=1" download="${fname}" class="file-download-btn">⬇ Stiahnuť</a><a href="${url}" target="_blank" rel="noopener" class="file-view-btn">Otvoriť ↗</a>`;
       target.append(fileCard);
+      if(['wav','mp3','ogg'].includes(ext)){
+        const audio=document.createElement('audio');
+        audio.controls=true;
+        audio.preload='metadata';
+        audio.src=url;
+        audio.style.cssText='width:100%;margin-top:8px;border-radius:10px';
+        target.append(audio);
+      }else if(['jpg','png','webp','gif','svg'].includes(ext)){
+        const img=document.createElement('img');
+        img.className='generated-media';
+        img.src=url;
+        img.alt=fname;
+        img.loading='lazy';
+        target.append(img);
+      }else if(ext==='html'){
+        const frame=document.createElement('iframe');
+        frame.src=url;
+        frame.title=fname;
+        frame.setAttribute('sandbox','allow-scripts');
+        frame.style.cssText='width:100%;aspect-ratio:16/9;min-height:320px;border:1px solid rgba(56,189,248,0.3);border-radius:12px;margin-top:10px;background:#050811';
+        target.append(frame);
+      }
     }
   }
 }
@@ -72,7 +97,7 @@ function bottom(){const area=$('chat-area');area.scrollTop=area.scrollHeight;}
 async function sessions(){const rows=await api('/sessions');$('sessions').replaceChildren();for(const row of rows){const button=node('button',row.title.slice(0,45));button.onclick=safe(async()=>{session=row.session;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');});$('sessions').append(button);}}
 const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],commodities:['TRINITY COMMODITY DESK','Komodity & Trading','Analýza všetkých 22 svetových komodít, autonómne investovanie, nákup a predaj v portfóliu.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.']};
 function updateHeading(){const meta=viewMeta[currentView]||viewMeta.dashboard;$('page-kicker').textContent=meta[0];$('page-title').textContent=meta[1].includes(' ')?meta[1]:t(meta[1]);$('subtitle').textContent=t(meta[2]);}
-async function setView(name,updateHash=true){if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='commodities')await loadCommodityDesk();if(name==='documents')await loadTrinityDocuments();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
+async function setView(name,updateHash=true){if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='commodities')await loadCommodityDesk();if(name==='documents')await loadTrinityDocuments();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
 function renderDashboardActivity(listId,items){const list=$(listId);list.replaceChildren();for(const item of items){const row=node('div',undefined,'activity-item'),icon=node('div',item.status==='completed'?'✓':item.status==='failed'?'!':'·','activity-dot'),text=node('span');text.append(node('b',item.task),node('small',`${t(item.status)||item.status} · ${item.updated_at}`));row.append(icon,text);row.onclick=async()=>{session=item.session_id;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');};list.append(row);}if(!items.length)list.append(node('p',t('noChanges'),'skeleton'));}
 async function loadDashboard(){const data=await api('/dashboard'),admin=data.dashboard_mode==='admin';$('user-dashboard').hidden=admin;$('admin-dashboard').hidden=!admin;if(admin){const metrics=data.admin||{};$('admin-active-jobs').textContent=metrics.active_jobs??0;$('admin-failed-jobs').textContent=metrics.failed_today??0;$('admin-pending-users').textContent=metrics.pending_users??0;$('admin-services').textContent=data.available_services+'/'+data.total_services;$('admin-gateway-state').textContent=data.pc_bridge?.connected?'Cloud + PC brána pripojená':'Cloud aktívny · PC brána nepripojená';$('admin-system-state').textContent=metrics.emergency_stop?'NÚDZOVÉ ZASTAVENIE':'Systém beží';$('admin-system-state').className='admin-state '+(metrics.emergency_stop?'stopped':'running');renderDashboardActivity('admin-dashboard-activity',data.recent_jobs);return;}$('metric-tasks').textContent=data.today_completed;$('metric-memory').textContent=data.memory_count;$('metric-projects').textContent=data.project_count;$('metric-health').textContent=data.available_services+'/'+data.total_services+(data.pc_bridge?.connected?' · PC ✓':'');renderDashboardActivity('dashboard-activity',data.recent_jobs);}
 async function loadStudio(){const data=await api('/studio/projects'),list=$('studio-project-list');list.replaceChildren();for(const item of data.items){const button=node('button',undefined,'studio-project');button.dataset.projectId=item.id;button.append(node('b',item.name),node('small','v'+item.version+' · '+item.updated_at));button.onclick=safe(()=>openStudioProject(item.id));list.append(button);}if(!data.items.length)list.append(node('p',t('emptyProjects'),'skeleton'));if(currentStudio)document.querySelector(`[data-project-id="${currentStudio.id}"]`)?.classList.add('active');}
@@ -907,6 +932,7 @@ async function loadCommodityDesk(){
     const strategy=$('commodity-auto-strategy')?.value||'balanced';
     cachedCommodityDesk=await api('/commodities/overview?strategy='+encodeURIComponent(strategy));
     renderCommodityDesk(cachedCommodityDesk);
+    await loadCommodityChart(currentChartSymbol, currentChartTimeframe);
   }catch(e){
     grid.replaceChildren(node('p','Načítanie komoditného desku vyžaduje prihlásenie: '+e.message,'skeleton'));
   }
@@ -918,6 +944,19 @@ function renderCommodityDesk(data){
   const market=data.market||{};
   const banks=data.bank_connections||[];
   const totalPnl=Number((Number(summary.realized_pnl||0)+Number(summary.unrealized_pnl||0)).toFixed(2));
+  const comms=market.commodities||[];
+  const updateTick=(id,sym)=>{
+    const c=comms.find(item=>item.symbol.startsWith(sym));
+    const el=$(id);
+    if(c&&el)el.textContent=`${c.price_eur.toLocaleString('sk-SK',{minimumFractionDigits:2,maximumFractionDigits:2})} €`;
+  };
+  updateTick('tick-xau','XAU');
+  updateTick('tick-xag','XAG');
+  updateTick('tick-brent','BRENT');
+  updateTick('tick-btc','BTC');
+  updateTick('tick-copper','COPPER');
+  updateTick('tick-uran','URAN');
+  updateTick('tick-coffee','COFFEE');
   if($('cstat-equity'))$('cstat-equity').textContent=fmt(summary.equity);
   if($('cstat-cash'))$('cstat-cash').textContent=fmt(summary.cash);
   if($('cstat-positions-val'))$('cstat-positions-val').textContent=fmt(summary.market_value);
@@ -1038,6 +1077,12 @@ function renderCommodityDesk(data){
     const tech=node('p',`RSI(14): ${item.rsi_14} · MACD: ${item.macd_signal.toUpperCase()} · Support: ${item.support_eur} € · Resistance: ${item.resistance_eur} € · Stop-Loss: ${item.stop_loss_eur} € · Take-Profit: ${item.take_profit_eur} € (R:R ${item.reward_risk_ratio}x)`,'domain-market-notes');
     const drivers=node('small',item.fundamental_drivers);
     const actions=node('div',undefined,'domain-market-actions');
+    const openChart=node('button','📈 Graf');
+    openChart.type='button';
+    openChart.onclick=()=>{
+      loadCommodityChart(item.symbol, currentChartTimeframe);
+      $('comm-terminal-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+    };
     const buyQuick=node('button','🟢 Kúpiť 1 000 €','primary');
     buyQuick.type='button';
     buyQuick.onclick=safe(async()=>{
@@ -1056,7 +1101,7 @@ function renderCommodityDesk(data){
       $('message').value=`Sprav hĺbkovú technickú a fundamentálnu analýzu komodity ${item.name} (${item.symbol}) pomocou nástroja commodity_analyze a navrhni presnú obchodnú stratégiu (nákup/predaj, Stop-Loss, Take-Profit).`;
       $('message').focus();
     });
-    actions.append(buyQuick,askAi);
+    actions.append(openChart,buyQuick,askAi);
     card.append(head,prices,tech,drivers,actions);
     grid.append(card);
   }
@@ -1150,3 +1195,600 @@ $('commodity-ask-chat-btn')?.addEventListener('click',safe(async()=>{
   $('message').value='Zanalyzuj všetkých 22 svetových komodít pomocou commodity_analyze, skontroluj naše portfólio cez commodity_desk, spusti autonómny investičný cyklus cez commodity_auto_invest a zhrň mi vykonané nákupy, predaje a výhľad trhu.';
   $('message').focus();
 }));
+
+// ==========================================
+// TRADING TERMINAL · LIVE CHARTS & ORDER BOOK
+// ==========================================
+let currentChartSymbol = 'XAU-EUR';
+let currentChartTimeframe = '1D';
+let currentChartMode = 'area'; // 'area' or 'candles'
+let cachedChartData = null;
+
+async function loadCommodityChart(symbol = currentChartSymbol, timeframe = currentChartTimeframe) {
+  currentChartSymbol = symbol;
+  currentChartTimeframe = timeframe;
+  try {
+    const data = await api(`/commodities/chart?symbol=${encodeURIComponent(symbol)}&timeframe=${encodeURIComponent(timeframe)}`);
+    cachedChartData = data;
+
+    const titleEl = $('chart-active-title');
+    if (titleEl) titleEl.textContent = `${data.symbol} · ${data.name}`;
+
+    const fmt = v => new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' }).format(Number(v || 0));
+
+    if ($('term-price')) $('term-price').textContent = fmt(data.current_price);
+    if ($('term-change')) {
+      const chg = Number(data.change_24h_pct || 0);
+      $('term-change').textContent = `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%`;
+      $('term-change').className = chg >= 0 ? 'up' : 'down';
+    }
+    if ($('term-high')) $('term-high').textContent = fmt(data.high_24h);
+    if ($('term-low')) $('term-low').textContent = fmt(data.low_24h);
+    if ($('term-rsi')) $('term-rsi').textContent = String(data.rsi_14 || 50);
+    if ($('term-macd')) {
+      const macd = (data.macd_signal || 'neutral').toUpperCase();
+      $('term-macd').textContent = macd;
+      $('term-macd').className = macd.includes('BULL') ? 'up' : macd.includes('BEAR') ? 'down' : '';
+    }
+    if ($('term-spread')) $('term-spread').textContent = `${data.spread_pct || 0.08}%`;
+
+    const buyBtn = $('term-buy-btn');
+    if (buyBtn) buyBtn.textContent = `🟢 Kúpiť / Long (${(data.symbol || '').split('-')[0]})`;
+
+    const tradeSym = $('commodity-trade-symbol');
+    if (tradeSym) tradeSym.value = data.symbol;
+
+    document.querySelectorAll('.chart-tf-btn[data-chart-tf]').forEach(b => {
+      b.classList.toggle('active', b.dataset.chartTf === timeframe);
+    });
+    document.querySelectorAll('.chart-sym-pill[data-chart-symbol]').forEach(p => {
+      p.classList.toggle('active', p.dataset.chartSymbol === symbol);
+    });
+
+    renderCommodityChart(data);
+    renderOrderBook(data.order_book, data.current_price);
+  } catch (e) {
+    console.error('loadCommodityChart error:', e);
+  }
+}
+
+function renderCommodityChart(data) {
+  if (!data) return;
+  const svg = $('comm-chart-svg');
+  if (!svg) return;
+
+  const width = 800;
+  const height = 360;
+  const padLeft = 24;
+  const padRight = 72;
+  const padTop = 20;
+  const padBottom = 40;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const candles = (data.candles || []).length ? data.candles : (data.sparkline || []).map((p, i) => ({
+    time: new Date(Date.now() - (data.sparkline.length - i) * 3600000).toISOString(),
+    open: p, high: p * 1.002, low: p * 0.998, close: p, vol: 50
+  }));
+
+  if (!candles.length) return;
+
+  let minP = Math.min(...candles.map(c => c.low || c.close));
+  let maxP = Math.max(...candles.map(c => c.high || c.close));
+  if (minP === maxP) { minP *= 0.99; maxP *= 1.01; }
+  const rangeP = maxP - minP;
+  minP -= rangeP * 0.03;
+  maxP += rangeP * 0.03;
+
+  const getY = p => (padTop + plotH) - ((p - minP) / (maxP - minP)) * plotH;
+  const getX = i => padLeft + (i / Math.max(1, candles.length - 1)) * plotW;
+
+  const gridLayer = $('chart-grid-layer');
+  if (gridLayer) {
+    gridLayer.replaceChildren();
+    for (let t = 0; t <= 4; t++) {
+      const frac = t / 4;
+      const priceTick = minP + frac * (maxP - minP);
+      const y = getY(priceTick);
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', String(padLeft));
+      line.setAttribute('y1', String(y));
+      line.setAttribute('x2', String(width - padRight));
+      line.setAttribute('y2', String(y));
+      line.setAttribute('stroke', 'rgba(255,255,255,0.07)');
+      line.setAttribute('stroke-dasharray', '3,3');
+      gridLayer.append(line);
+
+      const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      txt.setAttribute('x', String(width - padRight + 8));
+      txt.setAttribute('y', String(y + 3.5));
+      txt.setAttribute('fill', '#94a3b8');
+      txt.setAttribute('font-size', '10');
+      txt.setAttribute('font-family', 'ui-monospace,monospace');
+      txt.textContent = priceTick >= 100 ? priceTick.toFixed(1) : priceTick.toFixed(2);
+      gridLayer.append(txt);
+    }
+  }
+
+  const volLayer = $('chart-vol-layer');
+  if (volLayer) {
+    volLayer.replaceChildren();
+    const maxV = Math.max(...candles.map(c => c.vol || 1), 1);
+    const colW = Math.max(2, (plotW / candles.length) * 0.6);
+    candles.forEach((c, i) => {
+      const x = getX(i);
+      const vH = ((c.vol || 1) / maxV) * 38;
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', String(x - colW / 2));
+      rect.setAttribute('y', String(padTop + plotH - vH));
+      rect.setAttribute('width', String(colW));
+      rect.setAttribute('height', String(vH));
+      rect.setAttribute('fill', (c.close >= c.open) ? 'rgba(16,185,129,0.22)' : 'rgba(239,68,68,0.22)');
+      rect.setAttribute('rx', '1');
+      volLayer.append(rect);
+    });
+  }
+
+  const areaPath = $('chart-area-path');
+  const linePath = $('chart-line-path');
+  const candleLayer = $('chart-candles-layer');
+
+  if (currentChartMode === 'candles') {
+    if (areaPath) areaPath.setAttribute('d', '');
+    if (linePath) linePath.setAttribute('d', '');
+    if (candleLayer) {
+      candleLayer.replaceChildren();
+      const candleW = Math.max(3, (plotW / candles.length) * 0.68);
+      candles.forEach((c, i) => {
+        const x = getX(i);
+        const yHigh = getY(c.high);
+        const yLow = getY(c.low);
+        const yOpen = getY(c.open);
+        const yClose = getY(c.close);
+        const isUp = c.close >= c.open;
+        const color = isUp ? '#10b981' : '#ef4444';
+
+        const wick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        wick.setAttribute('x1', String(x));
+        wick.setAttribute('y1', String(yHigh));
+        wick.setAttribute('x2', String(x));
+        wick.setAttribute('y2', String(yLow));
+        wick.setAttribute('stroke', color);
+        wick.setAttribute('stroke-width', '1.2');
+        candleLayer.append(wick);
+
+        const bodyY = Math.min(yOpen, yClose);
+        const bodyH = Math.max(2, Math.abs(yClose - yOpen));
+        const body = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        body.setAttribute('x', String(x - candleW / 2));
+        body.setAttribute('y', String(bodyY));
+        body.setAttribute('width', String(candleW));
+        body.setAttribute('height', String(bodyH));
+        body.setAttribute('fill', color);
+        body.setAttribute('rx', '1.5');
+        candleLayer.append(body);
+      });
+    }
+  } else {
+    if (candleLayer) candleLayer.replaceChildren();
+    const pts = candles.map((c, i) => ({ x: getX(i), y: getY(c.close) }));
+    if (pts.length) {
+      const lineD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+      const areaD = `${lineD} L ${pts[pts.length - 1].x.toFixed(1)} ${(padTop + plotH).toFixed(1)} L ${pts[0].x.toFixed(1)} ${(padTop + plotH).toFixed(1)} Z`;
+      if (linePath) linePath.setAttribute('d', lineD);
+      if (areaPath) areaPath.setAttribute('d', areaD);
+    }
+  }
+
+  const labelLayer = $('chart-labels-layer');
+  if (labelLayer) {
+    labelLayer.replaceChildren();
+    const step = Math.max(1, Math.floor(candles.length / 5));
+    for (let i = 0; i < candles.length; i += step) {
+      const c = candles[i];
+      const d = new Date(c.time);
+      const timeStr = currentChartTimeframe === '1D'
+        ? d.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })
+        : d.toLocaleDateString('sk-SK', { day: '2-digit', month: '2-digit' });
+
+      const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      txt.setAttribute('x', String(getX(i)));
+      txt.setAttribute('y', String(height - 12));
+      txt.setAttribute('fill', '#64748b');
+      txt.setAttribute('font-size', '10');
+      txt.setAttribute('text-anchor', 'middle');
+      txt.setAttribute('font-family', 'ui-monospace,monospace');
+      txt.textContent = timeStr;
+      labelLayer.append(txt);
+    }
+  }
+}
+
+function renderOrderBook(ob, currentPrice) {
+  const asksEl = $('ob-asks-list');
+  const bidsEl = $('ob-bids-list');
+  if (!asksEl || !bidsEl) return;
+
+  const fmt = v => new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' }).format(Number(v || 0));
+
+  if ($('ob-mid-val')) $('ob-mid-val').textContent = fmt(currentPrice);
+  if ($('ob-spread-badge')) $('ob-spread-badge').textContent = `Spread: ${ob?.spread_pct ? ob.spread_pct + '%' : '0.08%'}`;
+
+  const asks = (ob?.asks || []).slice(0, 5);
+  const bids = (ob?.bids || []).slice(0, 5);
+  const maxTotal = Math.max(...asks.map(a => a.total || 0), ...bids.map(b => b.total || 0), 1);
+
+  asksEl.replaceChildren();
+  asks.forEach(a => {
+    const row = node('div', undefined, 'ob-row');
+    const bar = node('div', undefined, 'ob-depth-bar');
+    bar.style.width = `${Math.min(100, Math.round((a.total / maxTotal) * 100))}%`;
+    bar.style.background = 'rgba(239,68,68,0.18)';
+    const pSpan = node('span', fmt(a.price));
+    pSpan.style.color = '#ef4444';
+    const aSpan = node('span', String(a.amount));
+    row.append(bar, pSpan, aSpan);
+    asksEl.append(row);
+  });
+
+  bidsEl.replaceChildren();
+  bids.forEach(b => {
+    const row = node('div', undefined, 'ob-row');
+    const bar = node('div', undefined, 'ob-depth-bar');
+    bar.style.width = `${Math.min(100, Math.round((b.total / maxTotal) * 100))}%`;
+    bar.style.background = 'rgba(16,185,129,0.18)';
+    const pSpan = node('span', fmt(b.price));
+    pSpan.style.color = '#10b981';
+    const aSpan = node('span', String(b.amount));
+    row.append(bar, pSpan, aSpan);
+    bidsEl.append(row);
+  });
+}
+
+// Chart timeframe buttons
+document.querySelectorAll('.chart-tf-btn[data-chart-tf]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tf = btn.dataset.chartTf;
+    if (tf) loadCommodityChart(currentChartSymbol, tf);
+  });
+});
+
+// Mode toggle: candles vs area
+$('chart-mode-toggle')?.addEventListener('click', () => {
+  currentChartMode = currentChartMode === 'area' ? 'candles' : 'area';
+  $('chart-mode-toggle').textContent = currentChartMode === 'area' ? '📊 Režim: Čiara' : '📊 Režim: Sviece';
+  if (cachedChartData) renderCommodityChart(cachedChartData);
+});
+
+// Quick symbol pills
+document.querySelectorAll('.chart-sym-pill[data-chart-symbol]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const sym = btn.dataset.chartSymbol;
+    if (sym) loadCommodityChart(sym, currentChartTimeframe);
+  });
+});
+
+// Terminal sliders
+$('term-trade-sl')?.addEventListener('input', e => {
+  if ($('term-sl-val')) $('term-sl-val').textContent = `-${e.target.value}%`;
+});
+$('term-trade-tp')?.addEventListener('input', e => {
+  if ($('term-tp-val')) $('term-tp-val').textContent = `+${e.target.value}%`;
+});
+
+// Terminal trade execution
+$('term-buy-btn')?.addEventListener('click', safe(async () => {
+  const amount = Number($('term-trade-amount')?.value) || 500;
+  const sl = $('term-trade-sl')?.value;
+  const tp = $('term-trade-tp')?.value;
+  const res = await api('/commodities/trade', {
+    symbol: currentChartSymbol,
+    side: 'buy',
+    amount_eur: amount,
+    thesis: `Terminal BUY so Stop-Loss ${sl}% a Take-Profit ${tp}%`
+  });
+  await loadCommodityDesk();
+  if (res.bank_settlement) {
+    switchCommodityTab('banks');
+    showSepaSettlementBox(res.bank_settlement, `BUY ${res.trade?.name || currentChartSymbol} (${amount} €)`);
+  }
+  notice(`Terminal nákup: ${res.trade?.name || currentChartSymbol} za ${amount} EUR bol zaradený (${res.execution_mode}).`);
+}));
+
+$('term-sell-btn')?.addEventListener('click', safe(async () => {
+  const res = await api('/commodities/trade', {
+    symbol: currentChartSymbol,
+    side: 'sell',
+    sell_all: true,
+    thesis: 'Terminal uzavretie pozície'
+  });
+  await loadCommodityDesk();
+  notice(`Terminal predaj: pozícia ${res.trade?.name || currentChartSymbol} bola predaná (${res.execution_mode}).`);
+}));
+
+// ==========================================
+// MULTIMEDIA STUDIO · PRODUKČNÉ CENTRUM
+// ==========================================
+function switchMultimediaTab(tabId) {
+  document.querySelectorAll('#mm-subnav [data-mm-tab]').forEach(b => {
+    b.classList.toggle('active', b.dataset.mmTab === tabId);
+  });
+  ['video', 'music', 'photo', 'presentation', 'pack'].forEach(id => {
+    const pane = $('mm-pane-' + id);
+    if (pane) pane.hidden = id !== tabId;
+  });
+}
+document.querySelectorAll('#mm-subnav [data-mm-tab]').forEach(btn => {
+  btn.addEventListener('click', () => switchMultimediaTab(btn.dataset.mmTab));
+});
+$('mm-stage-close')?.addEventListener('click', () => {
+  const stage = $('mm-live-stage');
+  if (stage) stage.hidden = true;
+});
+
+function displayMultimediaStage(creation, type) {
+  const stage = $('mm-live-stage');
+  const body = $('mm-stage-body');
+  const title = $('mm-stage-title');
+  if (!stage || !body) return;
+
+  const icons = { video: '🎬', music: '🎵', photo: '📸', presentation: '📊', creative_pack: '✨' };
+  if (title) title.textContent = `${icons[type] || '✦'} ${creation.title || creation.topic || 'Vygenerované dielo'} (${type.toUpperCase()})`;
+  body.replaceChildren();
+
+  const wrap = node('div', undefined, 'mm-media-player-box');
+
+  if (type === 'music') {
+    const audio = document.createElement('audio');
+    audio.controls = true;
+    audio.autoplay = true;
+    audio.src = creation.audio_data_uri || creation.data_uri || '';
+    audio.style.width = '100%';
+    audio.style.borderRadius = '10px';
+
+    const info = node('div', undefined, 'mm-scene-card');
+    info.innerHTML = `<b>🎵 Skladba: ${creation.title}</b><p>${creation.prompt}</p><small>Žáner: ${creation.genre || 'synthwave'} · BPM: ${creation.bpm || 118} · Tónina: ${creation.key_scale || 'A minor'} · Dĺžka: ${creation.duration_sec || 10}s · Formát: 16-bit PCM .WAV</small>`;
+
+    const dl = node('a', '⬇ Stiahnuť .WAV skladbu', 'primary');
+    dl.href = creation.audio_data_uri || creation.data_uri || '#';
+    dl.download = `${(creation.title || 'trinity-track').replace(/[^a-z0-9_-]/gi, '_')}.wav`;
+
+    wrap.append(audio, info, dl);
+  } else if (type === 'video') {
+    const playerBox = node('div', undefined, 'mm-scene-card');
+    playerBox.innerHTML = `<b>🎬 Video animácia 16:9: ${creation.title}</b><p>${creation.prompt}</p><small>Štýl: ${creation.style || 'cinematic'} · Počet scén: ${(creation.scenes || []).length} · Rozlíšenie: 1280x720 (16:9) HD</small>`;
+
+    const scenesGrid = node('div', undefined, 'mm-scene-grid');
+    (creation.scenes || []).forEach(sc => {
+      const card = node('article', undefined, 'mm-scene-card');
+      card.innerHTML = `<b>Scéna ${sc.scene_index}: ${sc.caption || ''} (${sc.duration_sec || 4}s)</b><p>${sc.visual_prompt || ''}</p><small>Zvuková kulisa: ${sc.audio_mood || ''}</small>`;
+      scenesGrid.append(card);
+    });
+
+    const actRow = node('div', undefined, 'commerce-offer-actions');
+    if (creation.data_uri) {
+      const dl = node('a', '⬇ Stiahnuť .WEBM video', 'primary');
+      dl.href = creation.data_uri;
+      dl.download = `${(creation.title || 'trinity-video').replace(/[^a-z0-9_-]/gi, '_')}.webm`;
+      actRow.append(dl);
+    }
+    wrap.append(playerBox, scenesGrid, actRow);
+  } else if (type === 'photo') {
+    const img = document.createElement('img');
+    img.src = creation.data_uri || creation.url || '';
+    img.alt = creation.title || 'Foto';
+    img.style.maxWidth = '100%';
+    img.style.borderRadius = '12px';
+    img.style.boxShadow = '0 8px 30px rgba(0,0,0,0.5)';
+
+    const info = node('div', undefined, 'mm-scene-card');
+    info.innerHTML = `<b>📸 ${creation.title}</b><p>${creation.prompt}</p><small>Štýl: ${creation.style} · Model: Workers AI Flux / FLUX-1-Schnell · Rozlíšenie: 1024x1024</small>`;
+
+    const actRow = node('div', undefined, 'commerce-offer-actions');
+    const dl = node('a', '⬇ Stiahnuť originál', 'primary');
+    dl.href = creation.data_uri || creation.url || '#';
+    dl.download = `${(creation.title || 'trinity-photo').replace(/[^a-z0-9_-]/gi, '_')}.png`;
+    const openBtn = node('button', '🔍 Otvoriť v plnom rozlíšení');
+    openBtn.onclick = () => window.open(creation.data_uri || creation.url, '_blank');
+    actRow.append(dl, openBtn);
+
+    wrap.append(img, info, actRow);
+  } else if (type === 'presentation') {
+    const frame = document.createElement('iframe');
+    frame.srcdoc = creation.html_deck || '';
+    frame.style.width = '100%';
+    frame.style.height = '460px';
+    frame.style.borderRadius = '10px';
+    frame.style.border = '1px solid rgba(255,255,255,0.12)';
+
+    const actRow = node('div', undefined, 'commerce-offer-actions');
+    const openBtn = node('button', '⛶ Otvoriť na celú obrazovku', 'primary');
+    openBtn.onclick = () => {
+      const w = window.open('', '_blank');
+      if (w) w.document.write(creation.html_deck || '');
+    };
+    actRow.append(openBtn);
+
+    wrap.append(frame, actRow);
+  } else {
+    const content = node('div', undefined, 'trinity-doc-markdown');
+    content.innerHTML = formatMarkdown(creation.content || creation.summary || JSON.stringify(creation, null, 2));
+    wrap.append(content);
+  }
+
+  body.append(wrap);
+  stage.hidden = false;
+  stage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function loadMultimediaStudio() {
+  const gallery = $('mm-gallery-list');
+  if (!gallery) return;
+  try {
+    const res = await api('/multimedia', undefined, 'GET');
+    const items = res.items || [];
+    if ($('mm-total-badge')) $('mm-total-badge').textContent = `${items.length} DIEL V ARCHÍVE`;
+    gallery.replaceChildren();
+
+    if (!items.length) {
+      gallery.append(node('p', 'Zatiaľ nemáš vygenerované žiadne multimédiá. Použi formuláre vyššie na vytvorenie videa, hudby, fotky alebo prezentácie.', 'skeleton'));
+      return;
+    }
+
+    const typeIcons = { video: '🎬', music: '🎵', photo: '📸', presentation: '📊', creative_pack: '✨' };
+
+    items.forEach(item => {
+      const card = node('article', undefined, 'domain-market-card');
+      const head = node('div', undefined, 'domain-market-head');
+      head.append(
+        node('strong', `${typeIcons[item.kind] || '✦'} ${item.title || item.topic}`),
+        node('span', item.kind.toUpperCase(), 'domain-badge active')
+      );
+      const desc = node('p', item.prompt || item.topic || item.summary || '', 'domain-market-notes');
+      const meta = node('small', `Vytvorené: ${new Date(item.created_at).toLocaleString('sk-SK')}`);
+      const actions = node('div', undefined, 'domain-market-actions');
+
+      const playBtn = node('button', '👁 Otvoriť a zobraziť', 'primary');
+      playBtn.type = 'button';
+      playBtn.onclick = () => displayMultimediaStage(item, item.kind);
+
+      actions.append(playBtn);
+      if (item.data_uri || item.audio_data_uri) {
+        const dl = node('a', '⬇ Stiahnuť', 'button-link');
+        dl.href = item.data_uri || item.audio_data_uri;
+        dl.download = `${(item.title || 'trinity-media').replace(/[^a-z0-9_-]/gi, '_')}`;
+        actions.append(dl);
+      }
+      card.append(head, desc, meta, actions);
+      gallery.append(card);
+    });
+  } catch (e) {
+    console.error('loadMultimediaStudio error:', e);
+  }
+}
+
+// Multimedia form submit listeners
+$('mm-video-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  const btn = $('mm-video-submit');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await api('/multimedia/video', {
+      prompt: $('mm-video-prompt').value.trim(),
+      title: $('mm-video-title').value.trim() || undefined,
+      style: $('mm-video-style').value,
+      scenes_count: Number($('mm-video-scenes').value) || 4
+    });
+    notice(`16:9 Video „${res.creation.title}“ bolo vygenerované so scenárom a zvukom.`);
+    displayMultimediaStage(res.creation, 'video');
+    await loadMultimediaStudio();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+$('mm-music-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  const btn = $('mm-music-submit');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await api('/multimedia/music', {
+      prompt: $('mm-music-prompt').value.trim(),
+      title: $('mm-music-title').value.trim() || undefined,
+      genre: $('mm-music-genre').value,
+      duration_sec: Number($('mm-music-duration').value) || 10
+    });
+    notice(`Hudobná skladba „${res.creation.title}“ (.WAV) bola skomponovaná a syntetizovaná.`);
+    displayMultimediaStage(res.creation, 'music');
+    await loadMultimediaStudio();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+$('mm-photo-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  const btn = $('mm-photo-submit');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await api('/multimedia/photo', {
+      prompt: $('mm-photo-prompt').value.trim(),
+      title: $('mm-photo-title').value.trim() || undefined,
+      style: $('mm-photo-style').value
+    });
+    notice(`Fotografia / ilustrácia „${res.creation.title}“ bola vygenerovaná.`);
+    displayMultimediaStage(res.creation, 'photo');
+    await loadMultimediaStudio();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+$('mm-pres-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  const btn = $('mm-pres-submit');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await api('/multimedia/presentation', {
+      topic: $('mm-pres-topic').value.trim(),
+      title: $('mm-pres-title').value.trim() || undefined,
+      theme: $('mm-pres-theme').value,
+      slides_count: Number($('mm-pres-slides').value) || 6
+    });
+    notice(`Prezentácia „${res.creation.title}“ (${res.creation.slides_count} slajdov) bola vytvorená.`);
+    displayMultimediaStage(res.creation, 'presentation');
+    await loadMultimediaStudio();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+$('mm-pack-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  const btn = $('mm-pack-submit');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await api('/multimedia/creative-pack', {
+      topic: $('mm-pack-topic').value.trim(),
+      title: $('mm-pack-title').value.trim() || undefined,
+      kind: $('mm-pack-kind').value
+    });
+    notice(`Kreatívny balík „${res.creation.title}“ bol vygenerovaný a archivovaný.`);
+    displayMultimediaStage(res.creation, 'creative_pack');
+    await loadMultimediaStudio();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+// ==========================================
+// 20 CLOUDFLARE DOMÉNY (SEED & OVERENIE)
+// ==========================================
+const handleSeed20Domains = safe(async () => {
+  if (!confirm('Vytvoriť a obnoviť všetkých 20 Cloudflare štartovacích domén (vrátane DNS záznamov, SSL, produkčných prostredí a zápisu do Trinity Dokumentov)?')) return;
+  const btn1 = $('domain-seed-20-btn');
+  const btn2 = $('domain-seed-20-bar-btn');
+  if (btn1) btn1.disabled = true;
+  if (btn2) btn2.disabled = true;
+  try {
+    const res = await api('/domains/seed-20', {});
+    notice(`Cloudflare: Úspešne vytvorených a obnovených ${res.count || 20} domén s DNS a prostrediami (+ zapísaný Trinity Dokument).`);
+    await loadDomains();
+    await loadDomainEnvironments();
+  } finally {
+    if (btn1) btn1.disabled = false;
+    if (btn2) btn2.disabled = false;
+  }
+});
+$('domain-seed-20-btn')?.addEventListener('click', handleSeed20Domains);
+$('domain-seed-20-bar-btn')?.addEventListener('click', handleSeed20Domains);
+
+// ==========================================
+// UNIVERZÁLNY OTVÁRAČ A PREHLIADAČ VÝSTUPOV
+// ==========================================
+window.openTrinityViewer = function (url, title = 'Náhľad') {
+  if (!url) return;
+  const w = window.open(url, '_blank');
+  if (!w) notice('Prehliadač zablokoval vyskakovacie okno. Povoľte ho prosím.');
+};

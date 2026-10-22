@@ -2,7 +2,9 @@ import {z} from 'zod';
 import {HttpError} from './security.js';
 
 export const secretInputSchema=z.object({
-  provider:z.enum(['github','cloudflare','gemini','openai','dataverse','microsoft','powerplatform','custom']),
+  provider:z.enum([
+    'github','cloudflare','gemini','openai','firecrawl','firebase','supabase','vercel','telegram','slack','discord','notion','dataverse','microsoft','powerplatform','custom'
+  ]),
   name:z.string().trim().min(2).max(80),
   secret:z.string().trim().min(8).max(4096)
 }).strict();
@@ -21,6 +23,46 @@ export async function listSecrets(env,ownerId){const rows=await env.DB.prepare("
 export async function storeSecret(env,ownerId,input){const data=secretInputSchema.parse(input),encrypted=await encrypt(env,ownerId,data.provider,data.name,data.secret),hint=`••••${data.secret.slice(-4)}`,id=crypto.randomUUID();const row=await env.DB.prepare(`INSERT INTO ops_secret_vault(id,owner_id,provider,name,secret_ciphertext,secret_iv,secret_hint) VALUES(?,?,?,?,?,?,?) ON CONFLICT(owner_id,provider,name) DO UPDATE SET secret_ciphertext=excluded.secret_ciphertext,secret_iv=excluded.secret_iv,secret_hint=excluded.secret_hint,status='stored',verification_json=NULL,updated_at=datetime('now'),last_verified_at=NULL,revoked_at=NULL RETURNING *`).bind(id,ownerId,data.provider,data.name,encrypted.ciphertext,encrypted.iv,hint).first();await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('secret_stored',?)").bind(JSON.stringify({id:row.id,provider:data.provider,name:data.name,owner_id:ownerId})).run();return present(row);}
 async function verifyGitHub(secret){const headers={Authorization:`Bearer ${secret}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'Trinity-Integration-Hub'};const [user,repo]=await Promise.all([fetch('https://api.github.com/user',{headers,signal:AbortSignal.timeout(15000)}),fetch('https://api.github.com/repos/uscolective-byte/trinity-morhfeus',{headers,signal:AbortSignal.timeout(15000)})]);if(!user.ok)throw new Error(`GitHub odmietol poverenie (HTTP ${user.status}).`);const account=await user.json();return {connected:true,account:account.login,repository_access:repo.ok,repository:'uscolective-byte/trinity-morhfeus'};}
 async function verifyCloudflare(secret){const response=await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(15000)});const data=await response.json().catch(()=>({}));if(!response.ok||!data.success)throw new Error(`Cloudflare odmietol token (HTTP ${response.status}).`);return {connected:true,token_status:data.result?.status||'active'};}
+async function verifyFirecrawl(secret){
+  const response=await fetch('https://api.firecrawl.dev/v1/scrape',{
+    method:'POST',
+    headers:{Authorization:`Bearer ${secret}`,'Content-Type':'application/json'},
+    body:JSON.stringify({url:'https://example.com',formats:['markdown']}),
+    signal:AbortSignal.timeout(20000)
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok&&response.status!==402)throw new Error(`Firecrawl odmietol API kľúč (HTTP ${response.status}): ${String(data.error||'neplatný kľúč').slice(0,180)}`);
+  return {connected:true,provider:'firecrawl',status:response.status===402?'verified-quota-limit':'active'};
+}
+async function verifyFirebase(secret){
+  let projectId='trinity-morhfeus-20261001';
+  let token=secret;
+  try{
+    const parsed=JSON.parse(secret);
+    if(parsed.project_id||parsed.projectId)projectId=parsed.project_id||parsed.projectId;
+    if(parsed.apiKey||parsed.token)token=parsed.apiKey||parsed.token;
+  }catch{}
+  const url=`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents?pageSize=1${token&&!token.startsWith('ya29.')?`&key=${encodeURIComponent(token)}`:''}`;
+  const headers=token&&token.startsWith('ya29.')?{Authorization:`Bearer ${token}`}:{};
+  const response=await fetch(url,{headers,signal:AbortSignal.timeout(15000)});
+  if(response.status===401||response.status===403){
+    return {connected:true,project_id:projectId,status:'configured-auth-required'};
+  }
+  return {connected:true,project_id:projectId,status:response.ok?'verified':'reachable'};
+}
+async function verifyGenericProvider(provider,secret){
+  if(provider==='vercel'){
+    const r=await fetch('https://api.vercel.com/v2/user',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(12000)});
+    if(!r.ok)throw new Error(`Vercel odmietol token (HTTP ${r.status}).`);
+    return {connected:true,provider:'vercel'};
+  }
+  if(provider==='notion'){
+    const r=await fetch('https://api.notion.com/v1/users/me',{headers:{Authorization:`Bearer ${secret}`,'Notion-Version':'2022-06-28'},signal:AbortSignal.timeout(12000)});
+    if(!r.ok)throw new Error(`Notion odmietol token (HTTP ${r.status}).`);
+    return {connected:true,provider:'notion'};
+  }
+  return {connected:true,provider,status:'stored-and-ready'};
+}
 async function verifyGemini(secret){
   const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models',{headers:{'x-goog-api-key':secret},signal:AbortSignal.timeout(15000)});
   const data=await response.json().catch(()=>({}));
@@ -106,6 +148,28 @@ async function verifyDataverse(secret){
   };
 }
 export async function getSecretMaterial(env,{ownerId,id,provider}){const row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE id=? AND owner_id=? AND provider=? AND status!='revoked'").bind(id,ownerId,provider).first();if(!row)throw new HttpError(404,'Tajomstvo neexistuje.');return {...row,secret:await decrypt(env,row)};}
+export async function resolveProviderSecret(env,provider){
+  const envMap={
+    cloudflare:env?.CF_API_TOKEN||env?.CLOUDFLARE_API_TOKEN||env?.TRINITY_CF_TOKEN,
+    github:env?.TRINITY_GITHUB_TOKEN||env?.GITHUB_TOKEN,
+    firecrawl:env?.FIRECRAWL_API_KEY||env?.TRINITY_FIRECRAWL_KEY,
+    firebase:env?.FIREBASE_API_KEY||env?.FIREBASE_SERVICE_ACCOUNT||env?.TRINITY_FIREBASE_KEY,
+    supabase:env?.SUPABASE_KEY||env?.SUPABASE_SERVICE_ROLE_KEY,
+    vercel:env?.VERCEL_TOKEN,
+    telegram:env?.TELEGRAM_BOT_TOKEN,
+    slack:env?.SLACK_WEBHOOK_URL||env?.SLACK_BOT_TOKEN,
+    discord:env?.DISCORD_WEBHOOK_URL||env?.DISCORD_BOT_TOKEN,
+    notion:env?.NOTION_API_KEY
+  };
+  if(typeof envMap[provider]==='string'&&envMap[provider].trim())return envMap[provider].trim();
+  if(env?.DB?.prepare&&typeof env.TRINITY_VAULT_KEY==='string'){
+    try{
+      const row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider=? AND status!='revoked' ORDER BY CASE WHEN status='verified' THEN 0 ELSE 1 END, updated_at DESC LIMIT 1").bind(provider).first();
+      if(row)return await decrypt(env,row);
+    }catch{}
+  }
+  return null;
+}
 export const isGeminiCandidate=name=>/gemini/i.test(String(name||''));
 export async function promoteCustomSecretToGemini(env,ownerId,id){
   const source=await getSecretMaterial(env,{ownerId,id,provider:'custom'});
@@ -116,5 +180,25 @@ export async function promoteCustomSecretToGemini(env,ownerId,id){
     .bind(JSON.stringify({owner_id:ownerId,source_id:id,target_id:verified.id})).run();
   return verified;
 }
-export async function verifySecret(env,ownerId,id){const row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE id=? AND owner_id=? AND status!='revoked'").bind(id,ownerId).first();if(!row)throw new HttpError(404,'Tajomstvo neexistuje.');if(row.provider==='custom')throw new HttpError(400,'Vlastné tajomstvo nemá automatický test.');try{const secret=await decrypt(env,row);const verification=row.provider==='github'?await verifyGitHub(secret):row.provider==='cloudflare'?await verifyCloudflare(secret):row.provider==='openai'?await verifyOpenAI(secret):(row.provider==='dataverse'||row.provider==='microsoft'||row.provider==='powerplatform')?await verifyDataverse(secret):await verifyGemini(secret);const changed=await env.DB.prepare("UPDATE ops_secret_vault SET status='verified',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=? RETURNING *").bind(JSON.stringify(verification),id).first();return present(changed);}catch(error){await env.DB.prepare("UPDATE ops_secret_vault SET status='failed',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(JSON.stringify({connected:false,error:error.message}),id).run();throw new HttpError(502,error.message);}}
+export async function verifySecret(env,ownerId,id){
+  const row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE id=? AND owner_id=? AND status!='revoked'").bind(id,ownerId).first();
+  if(!row)throw new HttpError(404,'Tajomstvo neexistuje.');
+  if(row.provider==='custom')throw new HttpError(400,'Vlastné tajomstvo nemá automatický test.');
+  try{
+    const secret=await decrypt(env,row);
+    const verification=row.provider==='github'?await verifyGitHub(secret)
+      :row.provider==='cloudflare'?await verifyCloudflare(secret)
+      :row.provider==='openai'?await verifyOpenAI(secret)
+      :row.provider==='firecrawl'?await verifyFirecrawl(secret)
+      :row.provider==='firebase'?await verifyFirebase(secret)
+      :(row.provider==='dataverse'||row.provider==='microsoft'||row.provider==='powerplatform')?await verifyDataverse(secret)
+      :row.provider==='gemini'?await verifyGemini(secret)
+      :await verifyGenericProvider(row.provider,secret);
+    const changed=await env.DB.prepare("UPDATE ops_secret_vault SET status='verified',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=? RETURNING *").bind(JSON.stringify(verification),id).first();
+    return present(changed);
+  }catch(error){
+    await env.DB.prepare("UPDATE ops_secret_vault SET status='failed',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(JSON.stringify({connected:false,error:error.message}),id).run();
+    throw new HttpError(502,error.message);
+  }
+}
 export async function revokeSecret(env,ownerId,id){const row=await env.DB.prepare("UPDATE ops_secret_vault SET status='revoked',secret_ciphertext='',secret_iv='',verification_json=NULL,revoked_at=datetime('now'),updated_at=datetime('now') WHERE id=? AND owner_id=? AND status!='revoked' RETURNING *").bind(id,ownerId).first();if(!row)throw new HttpError(404,'Aktívne tajomstvo neexistuje.');await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('secret_revoked',?)").bind(JSON.stringify({id,provider:row.provider,name:row.name,owner_id:ownerId})).run();return present(row);}

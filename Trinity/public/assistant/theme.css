@@ -516,3 +516,315 @@
   white-space:pre-wrap;
   margin-top:8px;
 }
+
+/* Trading Terminal, Live Ticker & Order Book */
+.commodity-ticker-bar{
+  display:flex;
+  gap:12px;
+  padding:10px 16px;
+  background:rgba(15,23,42,0.85);
+  border:1px solid var(--line);
+  border-radius:14px;
+  margin-bottom:16px;
+  overflow-x:auto;
+  white-space:nowrap;
+  align-items:center;
+}
+.ticker-item{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:4px 10px;
+  background:rgba(255,255,255,0.03);
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.05);
+  font-size:12px;
+}
+.ticker-sym{
+  font-weight:700;
+  color:#94a3b8;
+  letter-spacing:0.5px;
+}
+.ticker-val{
+  font-weight:600;
+  color:#f8fafc;
+  font-family:ui-monospace,monospace;
+}
+.ticker-chg.up{
+  color:#10b981;
+  font-weight:700;
+  font-size:11px;
+}
+.ticker-chg.down{
+  color:#ef4444;
+  font-weight:700;
+  font-size:11px;
+}
+
+.chart-timeframe-row{
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+.chart-tf-btn{
+  padding:6px 12px;
+  font-size:11px;
+  font-weight:600;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.04);
+  color:#94a3b8;
+  transition:all 0.15s ease;
+}
+.chart-tf-btn:hover{
+  background:rgba(255,255,255,0.08);
+  color:#fff;
+}
+.chart-tf-btn.active{
+  background:#38bdf8;
+  border-color:#38bdf8;
+  color:#0f172a;
+}
+
+.chart-quick-symbols{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:4px 0 12px;
+  margin-bottom:12px;
+}
+.chart-sym-pill{
+  padding:6px 12px;
+  font-size:11px;
+  font-weight:600;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.03);
+  color:#cbd5e1;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:all 0.15s ease;
+}
+.chart-sym-pill:hover{
+  background:rgba(56,189,248,0.12);
+  border-color:rgba(56,189,248,0.3);
+  color:#38bdf8;
+}
+.chart-sym-pill.active{
+  background:rgba(56,189,248,0.2);
+  border-color:#38bdf8;
+  color:#38bdf8;
+  box-shadow:0 0 12px rgba(56,189,248,0.25);
+}
+
+.terminal-stats-strip{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(110px,1fr));
+  gap:10px;
+  padding:12px 16px;
+  background:rgba(5,10,24,0.6);
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.06);
+  margin-bottom:14px;
+}
+.stat-col{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.stat-col small{
+  font-size:9px;
+  letter-spacing:0.8px;
+  color:#64748b;
+  font-weight:700;
+}
+.stat-col b{
+  font-size:14px;
+  font-family:ui-monospace,monospace;
+  color:#f1f5f9;
+}
+.stat-col b.up{
+  color:#10b981;
+}
+.stat-col b.down{
+  color:#ef4444;
+}
+
+.terminal-body-grid{
+  display:grid;
+  grid-template-columns:2.5fr 1fr;
+  gap:14px;
+  margin-bottom:14px;
+}
+@media(max-width:980px){
+  .terminal-body-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+.terminal-orderbook-box{
+  background:rgba(5,10,24,0.7);
+  border-radius:10px;
+  border:1px solid rgba(56,189,248,0.18);
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+}
+.orderbook-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:11px;
+  font-weight:700;
+  color:#94a3b8;
+  padding-bottom:8px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  margin-bottom:8px;
+}
+.orderbook-header small{
+  color:#38bdf8;
+  font-weight:600;
+}
+.orderbook-table{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  flex:1;
+}
+.ob-col-head{
+  display:flex;
+  justify-content:space-between;
+  font-size:9px;
+  color:#64748b;
+  font-weight:700;
+  padding:2px 4px;
+  text-transform:uppercase;
+}
+.ob-rows{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.ob-row{
+  display:flex;
+  justify-content:space-between;
+  position:relative;
+  padding:2px 6px;
+  font-size:11px;
+  font-family:ui-monospace,monospace;
+  border-radius:3px;
+}
+.ob-depth-bar{
+  position:absolute;
+  top:0;
+  bottom:0;
+  right:0;
+  pointer-events:none;
+  border-radius:3px;
+}
+.ob-mid-price{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 8px;
+  background:rgba(255,255,255,0.03);
+  border-radius:6px;
+  margin:4px 0;
+  border-top:1px dashed rgba(255,255,255,0.08);
+  border-bottom:1px dashed rgba(255,255,255,0.08);
+}
+.ob-mid-price span{
+  font-size:13px;
+  font-weight:700;
+  color:#38bdf8;
+  font-family:ui-monospace,monospace;
+}
+.ob-mid-price small{
+  font-size:10px;
+  color:#94a3b8;
+}
+
+.terminal-quick-trade{
+  display:flex;
+  gap:16px;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 18px;
+  background:rgba(15,23,42,0.9);
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.08);
+  flex-wrap:wrap;
+}
+.quick-trade-inputs{
+  display:flex;
+  gap:16px;
+  align-items:center;
+  flex-wrap:wrap;
+  flex:1;
+}
+.quick-trade-inputs label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color:#cbd5e1;
+}
+.quick-trade-inputs input[type="number"]{
+  width:90px;
+  padding:6px 10px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(0,0,0,0.3);
+  color:#fff;
+  font-family:ui-monospace,monospace;
+  font-size:12px;
+}
+.quick-trade-inputs input[type="range"]{
+  width:80px;
+  cursor:pointer;
+}
+.quick-trade-btns{
+  display:flex;
+  gap:10px;
+}
+.quick-trade-btns button{
+  padding:8px 16px;
+  font-size:12px;
+  font-weight:700;
+  border-radius:10px;
+}
+
+/* Multimedia Studio Preview & Player */
+.mm-tab-pane{
+  margin-top:12px;
+}
+#mm-live-stage{
+  border:1px solid rgba(139,92,246,0.35);
+  background:rgba(15,22,36,0.92);
+  box-shadow:0 12px 30px rgba(0,0,0,0.4);
+}
+.mm-media-player-box{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:10px;
+}
+.mm-scene-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:10px;
+  margin-top:12px;
+}
+.mm-scene-card{
+  padding:10px 12px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:8px;
+  font-size:12px;
+}
+.mm-scene-card b{
+  display:block;
+  color:#c084fc;
+  font-size:11px;
+  margin-bottom:4px;
+}
