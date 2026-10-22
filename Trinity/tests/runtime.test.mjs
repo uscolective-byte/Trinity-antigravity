@@ -1,4 +1,4 @@
-import {issueSession} from '../src/security.js';
+import {issueSession,hash} from '../src/security.js';
 import {PLUGINS} from '../src/plugins.js';
 import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
@@ -52,6 +52,45 @@ test('CI audit migrations preserve a pre-existing legacy audit table',async()=>{
 });
 test('public UI, liveness and readiness; private APIs',async()=>{assert.equal((await req('/',undefined,false)).status,200);const health=await(await req('/health',undefined,false)).json();assert.equal(health.agents,45);assert.equal(health.version,'10.3.0');assert.equal(health.deployment.id,'test-deployment');assert.equal(health.deployment.tag,'test-commit');const ready=await req('/ready',undefined,false);assert.equal(ready.status,200,await ready.clone().text());assert.equal((await ready.json()).checks.schema,true);assert.equal((await req('/api/ops/agents',undefined,false)).status,401);assert.equal((await req('/mcp',{},false)).status,401);});
 test('login sets protected cookie and logout revokes it',async()=>{const r=await req('/api/ops/login',{key},false);assert.equal(r.status,200);const c=r.headers.get('set-cookie');assert.match(c,/HttpOnly/);assert.match(c,/Secure/);assert.match(c,/SameSite=Strict/);assert.equal((await req('/api/ops/status',undefined,false,{Cookie:c.split(';')[0]})).status,200);await req('/api/ops/logout',{},false,{Cookie:c.split(';')[0]});assert.equal((await req('/api/ops/status',undefined,false,{Cookie:c.split(';')[0]})).status,401);});
+
+test('redeem preserves the authenticated ticket issuer and rejects reuse and expiry',async()=>{
+ const email='ticket-owner@example.test';
+ const session=await issueSession({DB:db},undefined,email,new Request(url));
+ const created=await req('/api/ops/login-ticket',{email:'untrusted@example.test'},false,{Cookie:session.headers.get('set-cookie').split(';')[0]});
+ assert.equal(created.status,200);const {ticket}=await created.json();
+ const redeemed=await req('/api/ops/redeem',{ticket},false);
+ assert.equal(redeemed.status,200);
+ const cookie=redeemed.headers.get('set-cookie');assert.match(cookie,/HttpOnly/);assert.match(cookie,/SameSite=Strict/);
+ const token=cookie.match(/trinity_session=([^;]+)/)[1];
+ const stored=await db.prepare('SELECT email FROM ops_sessions WHERE token_hash=?').bind(await hash(token)).first();
+ assert.equal(stored.email,email);
+ assert.equal((await req('/api/ops/redeem',{ticket},false)).status,401);
+ const expired='b'.repeat(64);
+ await db.prepare('INSERT INTO ops_login_tickets(token_hash,expires_at,email) VALUES(?,?,?)').bind(await hash(expired),Date.now()-1000,email).run();
+ assert.equal((await req('/api/ops/redeem',{ticket:expired},false)).status,401);
+ assert.equal((await req('/api/ops/redeem',{ticket:'invalid'},false)).status,400);
+ assert.equal((await req('/api/ops/login-ticket',{},false)).status,401);
+});
+
+test('legacy identity-free tickets do not acquire owner identity',async()=>{
+ const ticket='c'.repeat(64);
+ await db.prepare('INSERT INTO ops_login_tickets(token_hash,expires_at) VALUES(?,?)').bind(await hash(ticket),Date.now()+60000).run();
+ const response=await req('/api/ops/redeem',{ticket},false);assert.equal(response.status,200);
+ const token=response.headers.get('set-cookie').match(/trinity_session=([^;]+)/)[1];
+ const stored=await db.prepare('SELECT email FROM ops_sessions WHERE token_hash=?').bind(await hash(token)).first();
+ assert.equal(stored.email,null);
+});
+
+test('both public interfaces load the same checked authentication bootstrap first',async()=>{
+ const helper=await req('/auth-bootstrap.js',undefined,false);
+ assert.equal(helper.status,200);assert.match(helper.headers.get('content-type'),/javascript/);
+ assert.match(await helper.text(),/TrinityAuth/);
+ for(const [path,script] of [['/','/chat.js'],['/ops','/app.js']]){
+  const response=await req(path,undefined,false);assert.equal(response.status,200);
+  const html=await response.text();const authIndex=html.indexOf('src="/auth-bootstrap.js"');
+  assert.ok(authIndex>=0&&authIndex<html.indexOf(`src="${script}`));
+ }
+});
 test('Google auth stays dormant and the authenticated owner is recognized',async()=>{const config=await(await req('/api/auth/config',undefined,false)).json();assert.deepEqual(config,{google_enabled:false,google_required:false});assert.equal((await req('/api/auth/google/start',undefined,false)).status,404);const pending=await req('/api/ops/users/pending');assert.equal(pending.status,200);assert.equal((await req('/api/ops/users/example%40gmail.com/approve',{})).status,404);});
 test('owner emergency stop pauses work and can resume it',async()=>{const before=await(await req('/api/ops/control')).json();assert.equal(before.emergency_stop,false);const stopped=await(await req('/api/ops/control',{emergency_stop:true,reason:'runtime test'})).json();assert.equal(stopped.emergency_stop,true);assert.equal((await req('/api/ops/jobs',{task:'blocked while stopped'})).status,503);const status=await(await req('/api/ops/status')).json();assert.equal(status.control.emergency_stop,true);const resumed=await(await req('/api/ops/control',{emergency_stop:false,reason:'runtime test complete'})).json();assert.equal(resumed.emergency_stop,false);});
 test('origin validation and unknown agent',async()=>{assert.equal((await req('/api/ops/jobs',{task:'hi'},true,{Origin:'https://evil.test'})).status,403);assert.equal((await req('/api/ops/jobs',{task:'hi',agent:'not-real'})).status,400);});

@@ -45,6 +45,9 @@ jobs:
           cache: npm
           cache-dependency-path: Trinity/package-lock.json
       - run: npm ci
+      - name: Check synchronized release documentation
+        working-directory: .
+        run: npm run docs:check
       - run: npm test
 
   deploy-development:

@@ -57,6 +57,8 @@ export async function readiness(env) {
       const result=await env.DB.prepare("PRAGMA table_info('conversations')").all();
       schema=Array.isArray(result.results)&&result.results.some(column=>column.name==='message_count');
     } else schema=names.has('ops_jobs');
+    const tickets=await env.DB.prepare("PRAGMA table_info('ops_login_tickets')").all();
+    schema=schema&&Array.isArray(tickets.results)&&tickets.results.some(column=>column.name==='email');
   } catch {}
   if(!schema)missing.push('DB.schema');
   return {ready:missing.length===0,status:missing.length===0?'ready':'degraded',checks:{bindings:criticalBindings.every(binding=>!!env[binding]),schema,cache:!!env.Mastermind},missing};

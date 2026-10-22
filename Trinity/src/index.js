@@ -66,6 +66,7 @@ import assistantHTML from '../public/assistant/chat.html';
 import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
+import authBootstrapJS from '../public/auth-bootstrap.js.txt';
 import themeCSS from '../public/assistant/theme.css';
 export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
 const json=(data,status=200)=>Response.json(data,{status});
@@ -107,6 +108,7 @@ async function route(request,env,ctx){
   if(request.method==='GET'&&path==='/app.js')return new Response(appJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/style.css')return new Response(css+'\n'+refreshCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/chat.js')return new Response(assistantJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
+  if(request.method==='GET'&&path==='/auth-bootstrap.js')return new Response(authBootstrapJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/chat.css')return new Response(assistantCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/builder.css')return new Response(builderCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/theme.css')return new Response(await renderDynamicThemeCss(env,themeCSS),{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
@@ -160,9 +162,9 @@ async function route(request,env,ctx){
     if(googleAuthRequired(env))throw new HttpError(403,'Jednorazové kľúče sú vypnuté. Použi Google.');
     await rateLimit(env,'redeem:'+(await hash(request.headers.get('CF-Connecting-IP')||'local')).slice(0,24),10,300);
     const {ticket}=z.object({ticket:z.string().regex(/^[a-f0-9]{64}$/)}).parse(await readJSON(request));
-    const used=await env.DB.prepare('DELETE FROM ops_login_tickets WHERE token_hash=? RETURNING expires_at').bind(await hash(ticket)).first();
+    const used=await env.DB.prepare('DELETE FROM ops_login_tickets WHERE token_hash=? RETURNING expires_at,email').bind(await hash(ticket)).first();
     if(!used||used.expires_at<Date.now())throw new HttpError(401,'Odkaz vypršal alebo už bol použitý. Otvor znovu OTVORIT-TRINITY.cmd.');
-    return issueSession(env,undefined,null,request);
+    return issueSession(env,undefined,used.email||null,request);
   }
   if(path==='/api/ops/logout'&&request.method==='POST'){
     const session=request.headers.get('Cookie')?.match(/(?:^|;\s*)trinity_session=([a-f0-9]{64})(?:;|$)/)?.[1];
@@ -1077,7 +1079,7 @@ async function route(request,env,ctx){
   if(path==='/api/ops/login-ticket'&&request.method==='POST'){
     await rateLimit(env,`ticket:${user.id}`,6);
     const ticket=Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('hex');
-    await env.DB.prepare('INSERT INTO ops_login_tickets(token_hash,expires_at) VALUES(?,?)').bind(await hash(ticket),Date.now()+120000).run();
+    await env.DB.prepare('INSERT INTO ops_login_tickets(token_hash,expires_at,email) VALUES(?,?,?)').bind(await hash(ticket),Date.now()+120000,user.email||null).run();
     await env.DB.prepare('DELETE FROM ops_login_tickets WHERE expires_at<?').bind(Date.now()).run();
     return json({ticket,expires_in:120});
   }
