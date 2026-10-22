@@ -327,3 +327,47 @@ test('Cloudflare-style Domain Environments provision domains, deploy live sites,
   assert.equal(pdfExport.status,200);
   assert.equal(pdfExport.headers.get('content-type'),'application/pdf');
 });
+
+test('Autonomous Commodity Desk analyzes all 22 commodities, executes buy/sell trades, runs autonomous investment cycles, and records Trinity Documents',async()=>{
+  const overviewRes=await req('/api/assistant/commodities/overview');
+  assert.equal(overviewRes.status,200,await overviewRes.clone().text());
+  const overview=await overviewRes.json();
+  assert.equal(overview.ok,true);
+  assert.equal(overview.market.total_commodities,22);
+  assert.ok(overview.market.top_buys.length>=1);
+
+  const buyRes=await req('/api/assistant/commodities/trade',{
+    symbol:'XAU-EUR',
+    side:'buy',
+    amount_eur:2000,
+    thesis:'Nákup zlata na zaistenie portfólia'
+  });
+  assert.equal(buyRes.status,201,await buyRes.clone().text());
+  const buyBody=await buyRes.json();
+  assert.equal(buyBody.ok,true);
+  assert.equal(buyBody.trade.symbol,'XAU-EUR');
+  assert.ok(buyBody.document_id);
+
+  const sellRes=await req('/api/assistant/commodities/trade',{
+    symbol:'XAU-EUR',
+    side:'sell',
+    sell_all:true,
+    price:2710,
+    thesis:'Realizácia zisku na zlate'
+  });
+  assert.equal(sellRes.status,201,await sellRes.clone().text());
+  const sellBody=await sellRes.json();
+  assert.equal(sellBody.ok,true);
+  assert.ok(sellBody.portfolio_summary.realized_pnl>0);
+
+  const autoRes=await req('/api/assistant/commodities/auto-invest',{
+    strategy:'growth',
+    budget_eur:2500,
+    max_trades:3
+  });
+  assert.equal(autoRes.status,200,await autoRes.clone().text());
+  const autoBody=await autoRes.json();
+  assert.equal(autoBody.ok,true);
+  assert.ok(autoBody.trades_executed.length>=1);
+  assert.ok(autoBody.document_id);
+});

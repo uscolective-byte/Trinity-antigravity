@@ -2,6 +2,7 @@ import {revolutProStatus,configureRevolutPro,handleRevolutProPublic,paypalStatus
 import {getUiEvolutionState,applyUiEvolution,handleUiChangeAction,renderDynamicThemeCss} from './ui-evolution.js';
 import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnvironments,handlePublicSiteRoute} from './domain-environments.js';
 import {createTrinityDocument,listTrinityDocuments,getTrinityDocument,deleteTrinityDocument,exportTrinityDocument} from './trinity-documents.js';
+import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk} from './commodities-engine.js';
 import {scanForImprovements} from './maintenance-scan.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
 import {searchDomainNames,refreshDomainRegistration,createSubdomain,syncCloudflareDomains} from './domains.js';
@@ -753,6 +754,32 @@ async function route(request,env,ctx){
   if(uiChangeRoute&&request.method==='POST'){
     requireAdmin(user);
     return json(await handleUiChangeAction(env,user.email||user.id,uiChangeRoute[1],uiChangeRoute[2]));
+  }
+  if(path==='/api/assistant/commodities/overview'&&request.method==='GET'){
+    return json(await getCommodityDeskOverview(env,user,{strategy:url.searchParams.get('strategy')||'balanced'}));
+  }
+  if(path==='/api/assistant/commodities/analyze'){
+    if(request.method==='GET'){
+      return json(await analyzeCommodities(env,user,{
+        symbol:url.searchParams.get('symbol')||'',
+        sector:url.searchParams.get('sector')||'all',
+        strategy:url.searchParams.get('strategy')||'balanced',
+        record_document:url.searchParams.get('record')==='1'
+      }));
+    }
+    if(request.method==='POST'){
+      return json(await analyzeCommodities(env,user,await readJSON(request)));
+    }
+  }
+  if(path==='/api/assistant/commodities/trade'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`commodity-trade:${user.id}`,30);
+    return json(await executeCommodityTrade(env,user,await readJSON(request)),201);
+  }
+  if(path==='/api/assistant/commodities/auto-invest'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`commodity-autoinvest:${user.id}`,15);
+    return json(await runAutonomousCommodityDesk(env,user,await readJSON(request)));
   }
   if(path==='/api/ops/login-ticket'&&request.method==='POST'){
     await rateLimit(env,`ticket:${user.id}`,6);

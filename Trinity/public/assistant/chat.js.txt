@@ -70,9 +70,9 @@ function renderReply(target,text){
 }
 function bottom(){const area=$('chat-area');area.scrollTop=area.scrollHeight;}
 async function sessions(){const rows=await api('/sessions');$('sessions').replaceChildren();for(const row of rows){const button=node('button',row.title.slice(0,45));button.onclick=safe(async()=>{session=row.session;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');});$('sessions').append(button);}}
-const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.']};
+const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],commodities:['TRINITY COMMODITY DESK','Komodity & Trading','Analýza všetkých 22 svetových komodít, autonómne investovanie, nákup a predaj v portfóliu.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.']};
 function updateHeading(){const meta=viewMeta[currentView]||viewMeta.dashboard;$('page-kicker').textContent=meta[0];$('page-title').textContent=meta[1].includes(' ')?meta[1]:t(meta[1]);$('subtitle').textContent=t(meta[2]);}
-async function setView(name,updateHash=true){if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='documents')await loadTrinityDocuments();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
+async function setView(name,updateHash=true){if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='commodities')await loadCommodityDesk();if(name==='documents')await loadTrinityDocuments();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
 function renderDashboardActivity(listId,items){const list=$(listId);list.replaceChildren();for(const item of items){const row=node('div',undefined,'activity-item'),icon=node('div',item.status==='completed'?'✓':item.status==='failed'?'!':'·','activity-dot'),text=node('span');text.append(node('b',item.task),node('small',`${t(item.status)||item.status} · ${item.updated_at}`));row.append(icon,text);row.onclick=async()=>{session=item.session_id;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');};list.append(row);}if(!items.length)list.append(node('p',t('noChanges'),'skeleton'));}
 async function loadDashboard(){const data=await api('/dashboard'),admin=data.dashboard_mode==='admin';$('user-dashboard').hidden=admin;$('admin-dashboard').hidden=!admin;if(admin){const metrics=data.admin||{};$('admin-active-jobs').textContent=metrics.active_jobs??0;$('admin-failed-jobs').textContent=metrics.failed_today??0;$('admin-pending-users').textContent=metrics.pending_users??0;$('admin-services').textContent=data.available_services+'/'+data.total_services;$('admin-gateway-state').textContent=data.pc_bridge?.connected?'Cloud + PC brána pripojená':'Cloud aktívny · PC brána nepripojená';$('admin-system-state').textContent=metrics.emergency_stop?'NÚDZOVÉ ZASTAVENIE':'Systém beží';$('admin-system-state').className='admin-state '+(metrics.emergency_stop?'stopped':'running');renderDashboardActivity('admin-dashboard-activity',data.recent_jobs);return;}$('metric-tasks').textContent=data.today_completed;$('metric-memory').textContent=data.memory_count;$('metric-projects').textContent=data.project_count;$('metric-health').textContent=data.available_services+'/'+data.total_services+(data.pc_bridge?.connected?' · PC ✓':'');renderDashboardActivity('dashboard-activity',data.recent_jobs);}
 async function loadStudio(){const data=await api('/studio/projects'),list=$('studio-project-list');list.replaceChildren();for(const item of data.items){const button=node('button',undefined,'studio-project');button.dataset.projectId=item.id;button.append(node('b',item.name),node('small','v'+item.version+' · '+item.updated_at));button.onclick=safe(()=>openStudioProject(item.id));list.append(button);}if(!data.items.length)list.append(node('p',t('emptyProjects'),'skeleton'));if(currentStudio)document.querySelector(`[data-project-id="${currentStudio.id}"]`)?.classList.add('active');}
@@ -837,4 +837,174 @@ $('trinity-doc-create-form')?.addEventListener('submit',safe(async(e)=>{
   $('trinity-doc-form-wrap').hidden=true;
   await loadTrinityDocuments();
   notice('Nový Trinity Dokument bol vytvorený a archivovaný.');
+}));
+
+Object.assign(words.sk,{
+  commoditiesPrompt:'Zanalyzuj všetky komodity pomocou commodity_analyze, skontroluj naše komoditné portfólio cez commodity_desk a spusti autonómne investovanie a obchodovanie cez commodity_auto_invest so zápisom do Trinity Dokumentov.',
+  commodity_analyze:'Analýza komodít',
+  commodity_desk:'Komoditné portfólio',
+  commodity_trade:'Komoditný obchod',
+  commodity_auto_invest:'Autonómne investovanie do komodít'
+});
+
+let commoditySectorFilter='all',cachedCommodityDesk=null;
+async function loadCommodityDesk(){
+  const grid=$('commodity-market-grid');if(!grid)return;
+  try{
+    const strategy=$('commodity-auto-strategy')?.value||'balanced';
+    cachedCommodityDesk=await api('/commodities/overview?strategy='+encodeURIComponent(strategy));
+    renderCommodityDesk(cachedCommodityDesk);
+  }catch(e){
+    grid.replaceChildren(node('p','Načítanie komoditného desku vyžaduje prihlásenie: '+e.message,'skeleton'));
+  }
+}
+function renderCommodityDesk(data){
+  if(!data)return;
+  const fmt=v=>new Intl.NumberFormat('sk-SK',{style:'currency',currency:'EUR'}).format(Number(v||0));
+  const summary=data.summary||{};
+  const market=data.market||{};
+  const totalPnl=Number((Number(summary.realized_pnl||0)+Number(summary.unrealized_pnl||0)).toFixed(2));
+  if($('cstat-equity'))$('cstat-equity').textContent=fmt(summary.equity);
+  if($('cstat-cash'))$('cstat-cash').textContent=fmt(summary.cash);
+  if($('cstat-positions-val'))$('cstat-positions-val').textContent=fmt(summary.market_value);
+  if($('cstat-positions-count'))$('cstat-positions-count').textContent=`${(summary.positions||[]).length} otvorených komodít`;
+  if($('cstat-pnl'))$('cstat-pnl').textContent=(totalPnl>=0?'+':'')+fmt(totalPnl);
+  if($('cstat-pnl-detail'))$('cstat-pnl-detail').textContent=`Realizovaný: ${fmt(summary.realized_pnl)} · Nerealizovaný: ${fmt(summary.unrealized_pnl)}`;
+  if($('cstat-score'))$('cstat-score').textContent=`${market.average_market_score||50}/100`;
+  if($('cstat-regime'))$('cstat-regime').textContent=market.market_regime||'Komoditný trh aktívny';
+  if($('commodity-desk-badge'))$('commodity-desk-badge').textContent=`CYKLY: ${data.desk_state?.cycles_run||0} · ${(data.desk_state?.strategy||'balanced').toUpperCase()}`;
+  if($('commodity-desk-summary')&&data.desk_state?.last_cycle_summary)$('commodity-desk-summary').textContent=data.desk_state.last_cycle_summary;
+
+  const posBox=$('commodity-positions-list');
+  if(posBox){
+    posBox.replaceChildren();
+    const positions=summary.positions||[];
+    if(!positions.length){
+      posBox.append(node('p','Zatiaľ žiadne otvorené komoditné pozície. Klikni na „🤖 Spustiť autonómne obchodovanie & investovanie Trinity“ alebo kúp komoditu nižšie.','skeleton'));
+    }else{
+      for(const pos of positions){
+        const row=node('article',undefined,'api-key-item');
+        const info=node('div',undefined,'commerce-offer-info');
+        const top=node('div',undefined,'commerce-offer-top');
+        top.append(
+          node('b',`${pos.name} (${pos.symbol})`),
+          node('span',`${pos.quantity} ${pos.unit||'ks'} · Hodnota: ${fmt(pos.market_value)}`,'price-tag sale'),
+          node('span',`PnL: ${pos.unrealized_pnl>=0?'+':''}${fmt(pos.unrealized_pnl)} (${pos.pnl_pct>=0?'+':''}${pos.pnl_pct}%)`,pos.unrealized_pnl>=0?'domain-badge active':'domain-badge expired'),
+          node('span',`AI Signál: ${pos.signal_label||pos.signal}`,'detail-chip')
+        );
+        info.append(top,node('small',`Priemerná nákupná cena: ${fmt(pos.average_cost)} · Aktuálna cena: ${fmt(pos.last_price)} · Stop-Loss: ${fmt(pos.stop_loss_eur)} · Take-Profit: ${fmt(pos.take_profit_eur)}`));
+        const actions=node('div',undefined,'commerce-offer-actions');
+        const addBtn=node('button','＋ Dokúpiť 500 €','primary');
+        addBtn.type='button';
+        addBtn.onclick=safe(async()=>{
+          await api('/commodities/trade',{symbol:pos.symbol,side:'buy',amount_eur:500});
+          await loadCommodityDesk();
+          notice(`Dokúpená komodita ${pos.name} (${pos.symbol}) za 500 EUR.`);
+        });
+        const sellBtn=node('button','🔴 Predať celú pozíciu','danger');
+        sellBtn.type='button';
+        sellBtn.onclick=safe(async()=>{
+          await api('/commodities/trade',{symbol:pos.symbol,side:'sell',sell_all:true});
+          await loadCommodityDesk();
+          notice(`Pozícia ${pos.name} (${pos.symbol}) bola predaná a zapísaná do Trinity Dokumentov.`);
+        });
+        actions.append(addBtn,sellBtn);
+        row.append(info,actions);
+        posBox.append(row);
+      }
+    }
+  }
+
+  const grid=$('commodity-market-grid');
+  if(!grid)return;
+  grid.replaceChildren();
+  const items=(market.commodities||[]).filter(c=>commoditySectorFilter==='all'||c.sector===commoditySectorFilter);
+  for(const item of items){
+    const card=node('article',undefined,'domain-market-card');
+    const head=node('div',undefined,'domain-market-head');
+    const isBuy=item.signal==='STRONG_BUY'||item.signal==='BUY';
+    const isSell=item.signal==='STRONG_SELL'||item.signal==='SELL';
+    head.append(
+      node('strong',`${item.name} (${item.symbol})`),
+      node('span',`${item.signal} · ${item.score}/100`,'domain-badge '+(isBuy?'active':isSell?'expired':'for_sale'))
+    );
+    const prices=node('div',undefined,'domain-market-prices');
+    prices.append(
+      node('span',`${item.price_eur} € / ${item.unit}`,'price-tag sale'),
+      node('span',`7d: ${item.change_7d_pct>=0?'+':''}${item.change_7d_pct}% · 30d: ${item.change_30d_pct>=0?'+':''}${item.change_30d_pct}%`,'price-tag lease')
+    );
+    const tech=node('p',`RSI(14): ${item.rsi_14} · MACD: ${item.macd_signal.toUpperCase()} · Support: ${item.support_eur} € · Resistance: ${item.resistance_eur} € · Stop-Loss: ${item.stop_loss_eur} € · Take-Profit: ${item.take_profit_eur} € (R:R ${item.reward_risk_ratio}x)`,'domain-market-notes');
+    const drivers=node('small',item.fundamental_drivers);
+    const actions=node('div',undefined,'domain-market-actions');
+    const buyQuick=node('button','🟢 Kúpiť 1 000 €','primary');
+    buyQuick.type='button';
+    buyQuick.onclick=safe(async()=>{
+      await api('/commodities/trade',{symbol:item.symbol,side:'buy',amount_eur:1000});
+      await loadCommodityDesk();
+      notice(`Nakúpená komodita ${item.name} (${item.symbol}) za 1 000 EUR (+ vytvorený Trinity Dokument).`);
+    });
+    const askAi=node('button','✦ AI Analýza v chate');
+    askAi.type='button';
+    askAi.onclick=safe(async()=>{
+      await setView('chat');
+      $('message').value=`Sprav hĺbkovú technickú a fundamentálnu analýzu komodity ${item.name} (${item.symbol}) pomocou nástroja commodity_analyze a navrhni presnú obchodnú stratégiu (nákup/predaj, Stop-Loss, Take-Profit).`;
+      $('message').focus();
+    });
+    actions.append(buyQuick,askAi);
+    card.append(head,prices,tech,drivers,actions);
+    grid.append(card);
+  }
+}
+
+document.querySelectorAll('[data-commodity-sector]').forEach(btn=>btn.addEventListener('click',()=>{
+  commoditySectorFilter=btn.dataset.commoditySector||'all';
+  document.querySelectorAll('[data-commodity-sector]').forEach(b=>b.classList.toggle('active',b===btn));
+  if(cachedCommodityDesk)renderCommodityDesk(cachedCommodityDesk);
+}));
+$('commodity-auto-strategy')?.addEventListener('change',()=>loadCommodityDesk());
+$('commodity-refresh-btn')?.addEventListener('click',()=>loadCommodityDesk());
+$('commodity-auto-form')?.addEventListener('submit',safe(async(e)=>{
+  e.preventDefault();
+  const btn=$('commodity-auto-run-btn');
+  if(btn)btn.disabled=true;
+  try{
+    const res=await api('/commodities/auto-invest',{
+      strategy:$('commodity-auto-strategy').value,
+      budget_eur:Number($('commodity-auto-budget').value)||3000,
+      sector:$('commodity-auto-sector').value,
+      max_trades:Number($('commodity-auto-max-trades').value)||4,
+      auto_take_profit:$('commodity-auto-tp').checked
+    });
+    await loadCommodityDesk();
+    notice(`Autonómny investičný cyklus Trinity dokončený: vykonaných ${res.trades_executed?.length||0} komoditných obchodov (+ zapísaný Trinity Dokument).`);
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+}));
+$('commodity-trade-form')?.addEventListener('submit',safe(async(e)=>{
+  e.preventDefault();
+  const symbol=$('commodity-trade-symbol').value;
+  const side=$('commodity-trade-side').value;
+  const amount_eur=Number($('commodity-trade-amount').value)||1000;
+  const thesis=$('commodity-trade-thesis').value.trim();
+  const res=await api('/commodities/trade',{
+    symbol,
+    side,
+    amount_eur:side==='buy'?amount_eur:undefined,
+    sell_all:side==='sell'?true:undefined,
+    thesis:thesis||undefined
+  });
+  $('commodity-trade-thesis').value='';
+  await loadCommodityDesk();
+  notice(`Komoditný obchod (${side.toUpperCase()} ${res.trade?.name||symbol}) bol vykonaný a zapísaný do Trinity Dokumentov.`);
+}));
+$('commodity-save-report-btn')?.addEventListener('click',safe(async()=>{
+  const strategy=$('commodity-auto-strategy')?.value||'balanced';
+  await api('/commodities/analyze',{sector:commoditySectorFilter,strategy,record_document:true});
+  notice('Kompletná analýza komoditného trhu bola uložená do Trinity Dokumentov.');
+}));
+$('commodity-ask-chat-btn')?.addEventListener('click',safe(async()=>{
+  await setView('chat');
+  $('message').value='Zanalyzuj všetkých 22 svetových komodít pomocou commodity_analyze, skontroluj naše portfólio cez commodity_desk, spusti autonómny investičný cyklus cez commodity_auto_invest a zhrň mi vykonané nákupy, predaje a výhľad trhu.';
+  $('message').focus();
 }));

@@ -29,11 +29,12 @@ import {getUiEvolutionState,applyUiEvolution,uiEvolutionInputSchema} from './ui-
 import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnvironments,provisionDomainEnvSchema,deployDomainEnvSchema} from './domain-environments.js';
 import {createTrinityDocument,listTrinityDocuments,createDocumentSchema,DOCUMENT_CATEGORIES,recordStepDocument} from './trinity-documents.js';
 import {ownerLearnBehaviorRule,listActiveBehaviorRules} from './self-improvement.js';
+import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk,commodityAnalyzeSchema,commodityTradeSchema,commodityAutoInvestSchema} from './commodities-engine.js';
 
 export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']);
-export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy']);
+export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest']);
 export const TOOL_SCHEMAS={
   web_fetch:z.object({url:z.string().url()}).strict(),
   project_inspect:z.object({query:z.string().max(2000).default('')}).strict(),
@@ -160,6 +161,12 @@ export const TOOL_SCHEMAS={
     search:z.string().trim().max(120).optional().default(''),
     limit:z.number().int().min(1).max(100).optional().default(30)
   }).strict()
+  ,commodity_analyze:commodityAnalyzeSchema
+  ,commodity_desk:z.object({
+    strategy:z.enum(['conservative','balanced','growth','aggressive']).optional().default('balanced')
+  }).strict()
+  ,commodity_trade:commodityTradeSchema
+  ,commodity_auto_invest:commodityAutoInvestSchema
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -602,6 +609,26 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const list=await listTrinityDocuments(env,args);
     return {...list,_evidence:{effect:'read',receipt_id:`doc:list:${crypto.randomUUID()}`}};
   }
+  if(name==='commodity_analyze'){
+    const actor={email:env.TRINITY_OWNER_EMAIL||`agent:${agent.id||'trinity'}`};
+    const res=await analyzeCommodities(env,actor,args);
+    return {...res,_evidence:{effect:'read',receipt_id:`commodity:analyze:${crypto.randomUUID()}`}};
+  }
+  if(name==='commodity_desk'){
+    const actor={email:env.TRINITY_OWNER_EMAIL||`agent:${agent.id||'trinity'}`};
+    const res=await getCommodityDeskOverview(env,actor,args);
+    return {...res,_evidence:{effect:'read',receipt_id:`commodity:desk:${crypto.randomUUID()}`}};
+  }
+  if(name==='commodity_trade'){
+    const actor={email:env.TRINITY_OWNER_EMAIL||`agent:${agent.id||'trinity'}`};
+    const res=await executeCommodityTrade(env,actor,args);
+    return {...res,_evidence:{effect:'mutation',actions:['commodity_trade'],receipt_id:`commodity:trade:${crypto.randomUUID()}`}};
+  }
+  if(name==='commodity_auto_invest'){
+    const actor={email:env.TRINITY_OWNER_EMAIL||`agent:${agent.id||'trinity'}`};
+    const res=await runAutonomousCommodityDesk(env,actor,args);
+    return {...res,_evidence:{effect:'mutation',actions:['commodity_auto_invest'],receipt_id:`commodity:autoinvest:${crypto.randomUUID()}`}};
+  }
   if(name==='brain_mode'){
     const brain=new NeuralBrain();
     if(args.mode) brain.setMode(args.mode);
@@ -854,5 +881,9 @@ export const TOOL_HELP={
   domain_env_deploy:'Vyprodukuje a nasadí web alebo AI Studio projekt do konkrétneho prostredia domény (production, staging, preview, development) so živou adresou /sites/:domain/:env: {domain_name, environment?:production|staging|preview|development, template?:ai_saas|business_landing|domain_for_sale|ecommerce_checkout|portfolio|studio_project|custom_html, title?, subtitle?, cta_text?, cta_url?, studio_project_id?, custom_html?, ssl_mode?, proxied?, waf_enabled?, env_vars?:object}',
   domain_env_list:'Vypíše všetky domény a ich Cloudflare prostredia (production, staging, development), verzie nasadenia a živé adresy: {domain?:string}',
   trinity_doc_create:'Vytvorí štruktúrovaný záznam v Trinity Documents s možnosťou exportu do Markdown a PDF: {title, category?:workflow_step|ui_evolution|domain_production|commerce|self_improvement|architecture|manual_doc, step_name?, summary?, content, tags?:string[]}',
-  trinity_doc_list:'Vypíše a vyhľadá automaticky aj manuálne vytvorené Trinity Documents zo všetkých krokov: {category?:string, search?:string, limit?:number}'
+  trinity_doc_list:'Vypíše a vyhľadá automaticky aj manuálne vytvorené Trinity Documents zo všetkých krokov: {category?:string, search?:string, limit?:number}',
+  commodity_analyze:'Kompletná technická a fundamentálna analýza všetkých 22 svetových komodít v 5 sektoroch (vzácne kovy, energie, priemyselné kovy, agro, strategické/uhlík) s RSI, MACD, Support/Resistance, Stop-Loss, Take-Profit a signálom STRONG_BUY/BUY/HOLD/SELL: {symbol?:string, sector?:all|precious_metals|energy|industrial_metals|agriculture|strategic_digital, strategy?:conservative|balanced|growth|aggressive, record_document?:boolean}',
+  commodity_desk:'Prehľad autonómneho komoditného portfólia Trinity, otvorených komoditných pozícií, hotovosti, PnL a najlepších príležitostí na trhu: {strategy?:conservative|balanced|growth|aggressive}',
+  commodity_trade:'Samostatne nakúpi (buy) alebo predá (sell) komoditu v portfóliu Trinity a zapíše Trinity Document: {symbol:string, side:buy|sell, quantity?:number, amount_eur?:number, sell_all?:boolean, price?:number, thesis?:string}',
+  commodity_auto_invest:'Spustí autonómny investičný a obchodný cyklus Trinity — zanalyzuje všetky komodity, predá prekúpené pozície so ziskom (Take-Profit) a zainvestuje do najlepších komoditných príležitostí s automatickým Trinity Documentom: {strategy?:conservative|balanced|growth|aggressive, budget_eur?:number, sector?:string, auto_take_profit?:boolean, max_trades?:number}'
 };
