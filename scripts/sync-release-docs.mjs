@@ -8,6 +8,7 @@ const pkg=JSON.parse(readFileSync(resolve(root,'Trinity/package.json'),'utf8'));
 const config=JSON.parse(readFileSync(resolve(root,'Trinity/wrangler.jsonc'),'utf8'));
 if(pkg.version!==TRINITY_VERSION)throw new Error('Package and runtime versions differ.');
 const rows=[[config,'production'],[config.env.development,'development']].map(([env,mode])=>{
+ if(Object.hasOwn(env.vars,'GOOGLE_CLIENT_SECRET'))throw new Error('GOOGLE_CLIENT_SECRET must be stored in Cloudflare Secrets, never in tracked vars.');
  if(env.vars.TRINITY_GITHUB_REPO!==TRINITY_SOURCE.repository||env.vars.TRINITY_GITHUB_BRANCH!==TRINITY_SOURCE.branch||env.vars.TRINITY_ENV!==mode)throw new Error('Source or environment configuration differs.');
  return `| ${env.routes[0].pattern} | ${mode} | \`${env.name}\` |`;
 });

@@ -12,6 +12,7 @@ test('one repository and main serve two domains with separate writable storage',
   assert.equal(environment.vars.TRINITY_ENV,mode);
   assert.equal(environment.vars.TRINITY_GITHUB_REPO,TRINITY_SOURCE.repository);
   assert.equal(environment.vars.TRINITY_GITHUB_BRANCH,TRINITY_SOURCE.branch);
+  assert.equal(Object.hasOwn(environment.vars,'GOOGLE_CLIENT_SECRET'),false,'OAuth secrets must not be committed in Wrangler vars');
   const callback=new URL(environment.vars.GOOGLE_REDIRECT_URI);
   assert.equal(callback.origin,`https://${domain}`);
   assert.ok(['/api/auth/google/callback','/auth/google/callback'].includes(callback.pathname));
