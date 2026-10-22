@@ -1,3 +1,4 @@
+import { sendTelegramAlert } from './domain-desk-advanced.js';
 // src/audit-log.js: Operational Audit Trail & Comprehensive Event Timeline
 
 export function categorizeAction(action) {
@@ -192,4 +193,27 @@ export async function recordAuditEvent(env, { action, details, jobId = null }) {
   await env.DB.prepare('INSERT INTO ops_events(job_id, action, details) VALUES(?, ?, ?)')
     .bind(jobId, action, detailsStr)
     .run();
+
+  try {
+    let parsedDetails = {};
+    try {
+      parsedDetails = typeof details === 'string' ? JSON.parse(details || '{}') : (details || {});
+    } catch {
+      parsedDetails = { raw: details };
+    }
+    const severity = determineSeverity(action, parsedDetails);
+    const isNotifyWorthy = severity === 'critical' || severity === 'warning' ||
+      action.startsWith('escrow_') || action.startsWith('payment_') || action.startsWith('invoice_') ||
+      action.includes('checkout') || action.includes('order') || action.includes('trade') ||
+      action.includes('domain_expiry') || action.includes('worker_outage') || action === 'google_login';
+
+    if (isNotifyWorthy) {
+      const summary = generateEventSummary(action, parsedDetails);
+      const alertMsg = `📱 <b>Trinity Event Alert</b> (+421949009722)\n` +
+        `<b>Udalosť:</b> <code>${action}</code> [${severity.toUpperCase()}]\n` +
+        `<b>Podrobnosti:</b> ${summary}\n` +
+        `<i>Čas: ${new Date().toISOString()}</i>`;
+      sendTelegramAlert(env, alertMsg).catch(() => {});
+    }
+  } catch {}
 }

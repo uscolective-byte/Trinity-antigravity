@@ -241,6 +241,10 @@ export async function generateInvoiceWithSepaQr(env, actor = 'admin', input) {
       </div>
     </div>
 
+    <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=saboivan2008%40gmail.com&currency_code=EUR&amount=${parsed.amount_eur.toFixed(2)}&item_name=${encodeURIComponent(parsed.item_description)}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;border-radius:999px;background:#ffc439;color:#003087;font-weight:700;font-size:13px;text-decoration:none">💙 Zaplatiť ${parsed.amount_eur.toFixed(2)} € cez PayPal</a>
+      <a href="https://revolut.me/isabo91" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;border-radius:999px;background:#38bdf8;color:#0f172a;font-weight:700;font-size:13px;text-decoration:none">⚡ Zaplatiť cez Revolut (@isabo91)</a>
+    </div>
     <div style="text-align:center">
       <button class="print-btn" onclick="window.print()">🖨️ Tlačiť faktúru / Uložiť ako PDF</button>
     </div>
@@ -286,6 +290,8 @@ export async function generateInvoiceWithSepaQr(env, actor = 'admin', input) {
     bic,
     qr_svg: qrSvg,
     epc_payload: epcPayload,
+    paypal_url: `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=saboivan2008%40gmail.com&currency_code=EUR&amount=${parsed.amount_eur.toFixed(2)}&item_name=${encodeURIComponent(parsed.item_description)}`,
+    revolut_url: 'https://revolut.me/isabo91',
     html_invoice: htmlInvoice
   };
 }

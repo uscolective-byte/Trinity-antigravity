@@ -519,8 +519,11 @@ export async function sendTelegramAlert(env, messageText) {
     }
   }
 
+  const header = '📱 <b>Trinity Notification · Majiteľ: Ivan Sabo (+421949009722)</b>\n';
+  const fullText = messageText.includes('+421949009722') ? messageText : (header + messageText);
+
   if (!botToken || !chatId) {
-    return { sent: false, reason: 'Telegram nie je nakonfigurovaný (chýba bot_token alebo chat_id).' };
+    return { sent: false, phone: '+421949009722', reason: 'Telegram nie je nakonfigurovaný (chýba bot_token alebo chat_id).' };
   }
 
   try {
@@ -529,14 +532,14 @@ export async function sendTelegramAlert(env, messageText) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: chatId,
-        text: messageText,
+        text: fullText,
         parse_mode: 'HTML'
       })
     });
     const result = await resp.json();
-    return { sent: result.ok, result };
+    return { sent: result.ok, phone: '+421949009722', result };
   } catch (err) {
-    return { sent: false, error: err.message };
+    return { sent: false, phone: '+421949009722', error: err.message };
   }
 }
 

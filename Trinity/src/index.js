@@ -123,7 +123,7 @@ async function route(request,env,ctx){
   }
   if(path==='/api/ecosystem/stats'&&request.method==='GET')return json(universalEcosystem.getStats());
   if(path==='/api/ecosystem/domains'&&request.method==='GET')return json({domains:UNIVERSAL_DOMAINS,templates:APPLICATION_TEMPLATES});
-  if(path==='/api/auth/config'&&request.method==='GET')return json({google_enabled:googleAuthRequired(env)&&googleOAuthConfigured(env),google_required:googleAuthRequired(env)});
+  if(path==='/api/auth/config'&&request.method==='GET')return json({google_enabled:(googleAuthRequired(env)||env.GOOGLE_ENABLED==='true')&&googleOAuthConfigured(env),google_required:googleAuthRequired(env)});
   const generatedApi=path.match(/^\/api\/v1\/generated\/([a-z0-9]+(?:-[a-z0-9]+)*)$/);
   if(generatedApi&&(request.method==='GET'||request.method==='POST')){const client=await authenticateApiKey(request,env);return json(await invokeApiBySlug(env,client.owner_id,generatedApi[1],request.method));}
   if(path==='/api/auth/passkey/auth-options'&&request.method==='POST'){
@@ -134,12 +134,12 @@ async function route(request,env,ctx){
     const body=await readJSON(request,32000);
     return verifyAuthenticationResponse(request,env,body);
   }
-  if(path==='/api/auth/google/start'&&request.method==='GET'){
+  if((path==='/api/auth/google/start'||path==='/auth/google/start'||path==='/auth/google/login'||path==='/api/auth/google/login')&&request.method==='GET'){
     if(!googleAuthRequired(env))throw new HttpError(404,'Google prihlasovanie zatiaľ nie je aktivované.');
     await rateLimit(env,`google-start:${(await hash(request.headers.get('CF-Connecting-IP')||'unknown')).slice(0,24)}`,10,300);
-    return beginGoogleLogin(env);
+    return beginGoogleLogin(env,request);
   }
-  if(path==='/api/auth/google/callback'&&request.method==='GET'){
+  if((path==='/api/auth/google/callback'||path==='/auth/google/callback')&&request.method==='GET'){
     if(!googleAuthRequired(env))throw new HttpError(404,'Google prihlasovanie zatiaľ nie je aktivované.');
     await rateLimit(env,`google-callback:${(await hash(request.headers.get('CF-Connecting-IP')||'unknown')).slice(0,24)}`,10,300);
     return finishGoogleLogin(request,env);
