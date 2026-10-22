@@ -93,7 +93,7 @@ export function extractGeminiInteractionText(result){
   const blocks=(result?.steps||[]).flatMap(step=>Array.isArray(step?.content)?step.content:Array.isArray(step?.output)?step.output:[]);
   return blocks.filter(block=>block?.type==='text'||typeof block?.text==='string').map(block=>block.text||'').join('\n').trim();
 }
-export async function callModel(env, provider, messages, maxTokens = 1200) {
+export async function callModel(env, provider, messages, maxTokens = 1200, customModel = null) {
   if(provider==='local'){
     if(!env.TRINITY_GATEWAY_KEY)throw new Error('Lokálna brána nie je nakonfigurovaná.');
     const recent=messages.filter(message=>message.role!=='system').slice(-6).map(message=>({role:message.role,content:message.content.slice(0,5000)}));
@@ -176,8 +176,96 @@ export async function callModel(env, provider, messages, maxTokens = 1200) {
     if(!text.trim())throw new Error('OpenAI vrátilo prázdnu odpoveď.');
     return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||data.usage?.input_tokens||0,output:data.usage?.completion_tokens||data.usage?.output_tokens||0}};
   }
+
+  if(provider==='groq'){
+    let {apiKey,model}=await getConfiguredAIProvider(env,'groq').catch(()=>({}));
+    if(!apiKey)apiKey=env.GROQ_API_KEY;
+    if(!apiKey)throw new Error('Groq API nie je nakonfigurované.');
+    if(!model)model=env.GROQ_MODEL||'llama-3.3-70b-versatile';
+    const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
+    const response=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,4096),temperature:0.3}),
+      signal:AbortSignal.timeout(65000),redirect:'manual'
+    });
+    const data=JSON.parse(await boundedText(response,250000));
+    if(!response.ok)throw new Error(`Groq HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
+    const text=extractModelText(data);
+    if(!text.trim())throw new Error('Groq vrátil prázdnu odpoveď.');
+    return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||0,output:data.usage?.completion_tokens||0}};
+  }
+  if(provider==='deepseek'){
+    let {apiKey,model}=await getConfiguredAIProvider(env,'deepseek').catch(()=>({}));
+    if(!apiKey)apiKey=env.DEEPSEEK_API_KEY;
+    if(!apiKey)throw new Error('DeepSeek API nie je nakonfigurované.');
+    if(!model)model=env.DEEPSEEK_MODEL||'deepseek-chat';
+    const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
+    const response=await fetch('https://api.deepseek.com/chat/completions',{
+      method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,4096),temperature:0.3}),
+      signal:AbortSignal.timeout(65000),redirect:'manual'
+    });
+    const data=JSON.parse(await boundedText(response,250000));
+    if(!response.ok)throw new Error(`DeepSeek HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
+    const text=extractModelText(data);
+    if(!text.trim())throw new Error('DeepSeek vrátil prázdnu odpoveď.');
+    return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||0,output:data.usage?.completion_tokens||0}};
+  }
+  if(provider==='anthropic'){
+    let {apiKey,model}=await getConfiguredAIProvider(env,'anthropic').catch(()=>({}));
+    if(!apiKey)apiKey=env.ANTHROPIC_API_KEY;
+    if(!apiKey)throw new Error('Anthropic Claude API nie je nakonfigurované.');
+    if(!model)model=env.ANTHROPIC_MODEL||'claude-3-5-sonnet-20241022';
+    const system=messages.filter(m=>m.role==='system').map(m=>m.content).join('\n\n').slice(0,40000);
+    const chatMessages=messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'assistant':'user',content:String(m.content).slice(0,40000)}));
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01','Content-Type':'application/json'},
+      body:JSON.stringify({model,messages:chatMessages,system:system||undefined,max_tokens:Math.min(maxTokens,4096),temperature:0.3}),
+      signal:AbortSignal.timeout(65000),redirect:'manual'
+    });
+    const data=JSON.parse(await boundedText(response,250000));
+    if(!response.ok)throw new Error(`Anthropic HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
+    const text=data.content?.[0]?.text||'';
+    if(!text.trim())throw new Error('Anthropic Claude vrátil prázdnu odpoveď.');
+    return {text,model:data.model||model,provider,usage:{input:data.usage?.input_tokens||0,output:data.usage?.output_tokens||0}};
+  }
+  if(provider==='mistral'){
+    let {apiKey,model}=await getConfiguredAIProvider(env,'mistral').catch(()=>({}));
+    if(!apiKey)apiKey=env.MISTRAL_API_KEY;
+    if(!apiKey)throw new Error('Mistral AI API nie je nakonfigurované.');
+    if(!model)model=env.MISTRAL_MODEL||'mistral-large-latest';
+    const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
+    const response=await fetch('https://api.mistral.ai/v1/chat/completions',{
+      method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,4096),temperature:0.3}),
+      signal:AbortSignal.timeout(65000),redirect:'manual'
+    });
+    const data=JSON.parse(await boundedText(response,250000));
+    if(!response.ok)throw new Error(`Mistral HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
+    const text=extractModelText(data);
+    if(!text.trim())throw new Error('Mistral AI vrátil prázdnu odpoveď.');
+    return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||0,output:data.usage?.completion_tokens||0}};
+  }
+  if(provider==='openrouter'){
+    let {apiKey,model}=await getConfiguredAIProvider(env,'openrouter').catch(()=>({}));
+    if(!apiKey)apiKey=env.OPENROUTER_API_KEY;
+    if(!apiKey)throw new Error('OpenRouter API nie je nakonfigurované.');
+    if(!model)model=env.OPENROUTER_MODEL||'deepseek/deepseek-r1:free';
+    const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
+    const response=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+      method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'HTTP-Referer':'https://auru.space','X-Title':'Trinity AI','Content-Type':'application/json'},
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,4096),temperature:0.3}),
+      signal:AbortSignal.timeout(65000),redirect:'manual'
+    });
+    const data=JSON.parse(await boundedText(response,250000));
+    if(!response.ok)throw new Error(`OpenRouter HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
+    const text=extractModelText(data);
+    if(!text.trim())throw new Error('OpenRouter vrátil prázdnu odpoveď.');
+    return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||0,output:data.usage?.completion_tokens||0}};
+  }
+
   if(provider!=='workers-ai') throw new Error('Unknown provider');
-  const model=env.AI_MODEL || '@cf/openai/gpt-oss-120b';
+  const model=customModel || env.AI_MODEL || '@cf/openai/gpt-oss-120b';
   let timer,result;
   try {result=await Promise.race([env.AI.run(model,{messages,max_tokens:maxTokens,temperature:0.25}),
     new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),65000);})]);}

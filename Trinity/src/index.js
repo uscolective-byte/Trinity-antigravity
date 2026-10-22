@@ -603,11 +603,20 @@ async function route(request,env,ctx){
   }
   if(path==='/api/assistant/chat'&&request.method==='POST'){
     await rateLimit(env,`job:${user.id}`,12);
-    const d=z.object({message:z.string().min(1).max(12000),session:z.string().uuid(),language:z.string().max(35).default('auto').transform(normalizeLanguage),engine:z.enum(['cloud','openai','gemini','ollama','local']).default('cloud'),remember:z.boolean().optional(),allow_files:z.boolean().optional()}).strict().parse(await readJSON(request));
+    const d=z.object({message:z.string().min(1).max(12000),session:z.string().uuid(),language:z.string().max(35).default('auto').transform(normalizeLanguage),engine:z.enum(['cloud','openai','gemini','ollama','local','deepseek-r1','llama','qwen','groq','deepseek','anthropic','mistral','openrouter']).default('cloud'),remember:z.boolean().optional(),allow_files:z.boolean().optional()}).strict().parse(await readJSON(request));
     if(d.engine==='local')requireAdmin(user);
     const wantsMemory=/^(zapamätaj si|zapamataj si|remember)\s*[:,-]?\s+/i.test(d.message);
     const delegated=shouldDelegate(d.message);
-    const provider=d.engine==='local'?'local':d.engine==='ollama'?'ollama':d.engine==='gemini'?'gemini':d.engine==='openai'?'openai':'workers-ai';
+    let provider='workers-ai';
+    if(d.engine==='local')provider='local';
+    else if(d.engine==='ollama')provider='ollama';
+    else if(d.engine==='gemini')provider='gemini';
+    else if(d.engine==='openai')provider='openai';
+    else if(d.engine==='groq')provider='groq';
+    else if(d.engine==='deepseek')provider='deepseek';
+    else if(d.engine==='anthropic')provider='anthropic';
+    else if(d.engine==='mistral')provider='mistral';
+    else if(d.engine==='openrouter')provider='openrouter';
     const ownerMode=user.role==='owner';
     return json(await createJob(env,{task:d.message,session_id:d.session,agent:delegated?'auto':'orchestrator',mode:delegated?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,idempotency_key:crypto.randomUUID()}),202);
   }
@@ -984,7 +993,7 @@ async function route(request,env,ctx){
   if(path==='/api/ops/services'&&request.method==='GET')return json(await serviceStatus(env));
   if(path==='/api/ops/providers/test'&&request.method==='POST'){
     await rateLimit(env,`provider:${user.id}`,4);
-    const {provider}=z.object({provider:z.enum(['workers-ai','openai','gemini','ollama','local'])}).parse(await readJSON(request));
+    const {provider}=z.object({provider:z.enum(['workers-ai','openai','gemini','ollama','local','groq','deepseek','anthropic','mistral','openrouter'])}).parse(await readJSON(request));
     const started=Date.now();
     try{const response=await callModel(env,provider,[{role:'user',content:'Odpovedz iba: TRINITY_OK'}],256);const check=await recordAIProviderCheck(env,ownerId,{status:'verified',provider,model:response.model,latency_ms:Date.now()-started});return json({...check,response:response.text});}
     catch(e){const check=await recordAIProviderCheck(env,ownerId,{status:'failed',provider,error:e.message,latency_ms:Date.now()-started});return json(check,502);}
