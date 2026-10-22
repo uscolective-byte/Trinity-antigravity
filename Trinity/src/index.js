@@ -1,3 +1,4 @@
+import {revolutProStatus,configureRevolutPro,handleRevolutProPublic} from './revolut.js';
 import {scanForImprovements} from './maintenance-scan.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
 import {searchDomainNames,refreshDomainRegistration,createSubdomain,syncCloudflareDomains} from './domains.js';
@@ -74,6 +75,7 @@ async function route(request,env,ctx){
   const knowledgeResponse=await handleKnowledge(request,env);
   if(knowledgeResponse)return knowledgeResponse;
   const url=new URL(request.url),path=url.pathname;
+  const proPayment=await handleRevolutProPublic(request,env);if(proPayment)return proPayment;
   if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
     'Cache-Control':'no-cache, no-store, must-revalidate',
     'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
@@ -436,6 +438,11 @@ async function route(request,env,ctx){
   if(path==='/api/assistant/ai-providers'&&request.method==='GET'){requireAdmin(user);return json(await listAIProviders(env,ownerId));}
   const aiProviderRoute=path.match(/^\/api\/assistant\/ai-providers\/(gemini)$/);
   if(aiProviderRoute&&request.method==='POST'){requireAdmin(user);return json({item:await configureAIProvider(env,ownerId,aiProviderRoute[1],await readJSON(request,8000))});}
+  if(path==='/api/assistant/revolut/status'&&request.method==='GET'){requireOwner(user);return json(await revolutProStatus(env));}
+  if(path==='/api/assistant/revolut/pro/products'&&request.method==='POST'){
+    requireOwner(user);await rateLimit(env,`revolut-pro-config:${user.id}`,10,300);
+    return json(await configureRevolutPro(env,ownerId,await readJSON(request,20000)));
+  }
   if(path==='/api/assistant/wallet'){
     requireAdmin(user);
     if(request.method==='GET')return json(await getWallet(env,ownerId));

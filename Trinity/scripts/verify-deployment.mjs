@@ -1,16 +1,39 @@
 import {readFile} from 'node:fs/promises';
-const [origin,expectedTag]=process.argv.slice(2);
-if(!/^https:\/\/(?:auru\.dev|auru\.space)$/.test(origin)||!expectedTag)throw new Error('Usage: node scripts/verify-deployment.mjs https://auru.dev|https://auru.space COMMIT_SHA');
-const {version}=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
-let last='No response';
-for(let attempt=0;attempt<6;attempt++){
- try{
-  const health=await fetch(origin+'/health',{signal:AbortSignal.timeout(10000),redirect:'error'});
-  const data=await health.json();
-  const ready=await fetch(origin+'/ready',{signal:AbortSignal.timeout(10000),redirect:'error'});
-  if(health.ok&&ready.ok&&data.version===version&&data.deployment?.tag===expectedTag){console.log(JSON.stringify({verified:true,origin,version,commit:expectedTag,deployment:data.deployment}));process.exit(0);}
-  last=`Expected ${version}/${expectedTag}; got ${data.version}/${data.deployment?.tag}; ready HTTP ${ready.status}`;
- }catch(error){last=error.message;}
- if(attempt<5)await new Promise(resolve=>setTimeout(resolve,10000));
+import {resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+export function verificationTarget(args){
+ const [origin,selector,value,...extra]=args;
+ if(!/^https:\/\/(?:auru\.dev|auru\.space)$/.test(origin||'')||extra.length)throw new Error('Usage: verify-deployment.mjs ORIGIN COMMIT_SHA | ORIGIN --version-id VERSION_ID');
+ if(selector==='--version-id'){
+  if(!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(value||''))throw new Error('A Cloudflare version UUID is required.');
+  return {origin,expectedVersionId:value};
+ }
+ if(value||!/^[0-9a-f]{40}$/i.test(selector||''))throw new Error('A full commit SHA is required.');
+ return {origin,expectedTag:selector};
 }
-throw new Error('Deployment verification failed: '+last);
+export async function verifyDeployment({origin,expectedTag,expectedVersionId,version,attempts=6,delayMs=10000,fetcher=fetch}){
+ let last='No response';
+ const headers={Accept:'application/json','User-Agent':'Mozilla/5.0'};
+ for(let attempt=0;attempt<attempts;attempt++){
+  try{
+   const health=await fetcher(origin+'/health',{headers,signal:AbortSignal.timeout(10000),redirect:'error'});
+   const data=await health.json();
+   const ready=await fetcher(origin+'/ready',{headers,signal:AbortSignal.timeout(10000),redirect:'error'});
+   const readiness=await ready.json();
+   const expectedEnvironment=origin==='https://auru.dev'?'development':'production';
+   const matched=expectedVersionId?data.deployment?.id===expectedVersionId:data.deployment?.tag===expectedTag;
+   if(health.ok&&ready.ok&&matched&&data.version===version&&readiness.version===version&&data.environment===expectedEnvironment&&readiness.environment===expectedEnvironment&&readiness.ready===true){
+    return {verified:true,origin,version,environment:expectedEnvironment,...(expectedTag?{commit:expectedTag}:{}),deployment:data.deployment};
+   }
+   last=`Expected ${version}/${expectedVersionId||expectedTag}; got ${data.version}/${data.deployment?.id}/${data.deployment?.tag}; ready HTTP ${ready.status}, ready=${readiness.ready}`;
+  }catch(error){last=error.message;}
+  if(attempt<attempts-1)await new Promise(resolve=>setTimeout(resolve,delayMs));
+ }
+ throw new Error('Deployment verification failed: '+last);
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+ const target=verificationTarget(process.argv.slice(2));
+ const {version}=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
+ console.log(JSON.stringify(await verifyDeployment({...target,version})));
+}

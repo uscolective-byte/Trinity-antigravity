@@ -1,3 +1,4 @@
+import {issueSession} from '../src/security.js';
 import {PLUGINS} from '../src/plugins.js';
 import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
@@ -20,7 +21,7 @@ test('capability status requires authentication and does not mistake configured 
 before(async()=>{
   const modules=readdirSync('dist').filter(x=>!x.endsWith('.map')&&!x.endsWith('.md')).map(name=>({type:name==='index.js'?'ESModule':'Text',path:resolve('dist',name)}));
   modules.sort((a,b)=>a.type==='ESModule'?-1:b.type==='ESModule'?1:0);
-  mf=new Miniflare(convertV4MiniflareOptions({workers:[{name:'trinity',modules,compatibilityDate:'2026-10-01',compatibilityFlags:['nodejs_compat'],bindings:{CF_VERSION_METADATA:{id:'test-deployment',tag:'test-commit',timestamp:'2026-10-17T00:00:00.000Z'},TRINITY_OPS_KEY:key,TRINITY_GATEWAY_KEY:gatewayKey,TRINITY_VAULT_KEY:Buffer.alloc(32,7).toString('base64url'),OLLAMA_API_KEY:'test-only-ollama-key',OLLAMA_MODEL:'gemma4:31b'},d1Databases:{DB:'test-db'},r2Buckets:{ARTIFACTS:'test-r2'},
+  mf=new Miniflare(convertV4MiniflareOptions({workers:[{name:'trinity',modules,compatibilityDate:'2026-10-01',compatibilityFlags:['nodejs_compat'],bindings:{CF_VERSION_METADATA:{id:'test-deployment',tag:'test-commit',timestamp:'2026-10-17T00:00:00.000Z'},TRINITY_OPS_KEY:key,TRINITY_GATEWAY_KEY:gatewayKey,TRINITY_VAULT_KEY:Buffer.alloc(32,7).toString('base64url'),OLLAMA_API_KEY:'test-only-ollama-key',OLLAMA_MODEL:'gemma4:31b'},kvNamespaces:{Mastermind:'test-kv'},d1Databases:{DB:'test-db'},r2Buckets:{ARTIFACTS:'test-r2'},
     serviceBindings:{AI:{name:'mock',entrypoint:'MockAI'}},workflows:{OPS_WORKFLOW:{name:'test-workflow',className:'TrinityOperations'}}},
     {name:'mock',modules:true,compatibilityDate:'2026-10-01',script:`import {WorkerEntrypoint} from 'cloudflare:workers'; export class MockAI extends WorkerEntrypoint{async run(model,args){if(model.includes('flux'))return {image:btoa('mock-jpeg')};if(model.includes('whisper'))return {text:'test voice transcript'};if(model.includes('melotts'))return new Uint8Array([73,68,51]);const prompt=args.messages.at(-1).content;if(prompt==='FAIL_TEST'||(prompt==='FAIL_PLANNER'&&args.messages[0].content.includes('Rozlož zadanie na vykonateľné kroky')))throw new Error('Simulated failure');if(prompt.includes('STUDIO_TEST')){const revised=prompt.includes('STUDIO_TEST_REVISION');return {response:'<!doctype html><html><head><title>Studio test</title></head><body><main><h1>'+(revised?'Revised':'Created')+'</h1></main></body></html>'};}return {response:'TEST_MODEL_RESULT'};}} export default {fetch(){return new Response('mock')}};`} ]}));
   db=await mf.getD1Database('DB','trinity');
@@ -194,4 +195,22 @@ test('daily planner MCP workflow authenticates, deduplicates, finishes and store
   assert.deepEqual(done.team,['planner']);assert.equal(done.result,'TEST_MODEL_RESULT');
   const artifact=await req('/api/ops/jobs/'+job.id+'/artifact');assert.equal(artifact.status,200);
   assert.match(await artifact.text(),/TEST_MODEL_RESULT/);
+});
+
+
+
+
+test('Revolut Pro owner config publishes a live-link route without giving ordinary users privileges',async()=>{
+  const config={products:[{id:'service',name:'Service',amount_cents:2500,currency:'EUR',payment_url:'https://pay.revolut.com/example'}]};
+  assert.equal((await req('/api/assistant/revolut/status',undefined,false)).status,401);
+  const session=await issueSession({DB:db},Date.now()+60000,'ordinary-user@example.test');
+  const cookie=session.headers.get('set-cookie').split(';')[0];
+  assert.equal((await req('/api/assistant/revolut/pro/products',config,false,{Cookie:cookie})).status,403);
+  assert.equal((await req('/api/assistant/revolut/status',undefined,false,{Cookie:cookie})).status,403);
+  const saved=await req('/api/assistant/revolut/pro/products',config);assert.equal(saved.status,200,await saved.clone().text());
+  assert.equal((await saved.json()).configured,true);
+  const list=await req('/api/payments/revolut-pro',undefined,false);assert.equal(list.status,200);
+  const result=await list.json();assert.equal(result.products[0].amount_cents,2500);assert.equal(result.payment_status,'not_checked');
+  const redirect=await mf.dispatchFetch(url+'/pay/revolut-pro/service',{redirect:'manual'});assert.equal(redirect.status,302);assert.equal(redirect.headers.get('location'),config.products[0].payment_url);
+  const status=await(await req('/api/assistant/revolut/status')).json();assert.equal(status.mode,'live-payment-links');assert.equal(status.bank_account_connected,false);assert.equal(status.automatic_payment_verification,false);
 });

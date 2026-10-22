@@ -374,7 +374,6 @@ ForEach-Object {
     $packageJson = Get-Content -Path $pkgPath -Raw | ConvertFrom-Json
     $scriptNames = @($packageJson.scripts.PSObject.Properties.Name)
     $buildCmd = if ($scriptNames -contains 'build') { 'build' }
-    elseif ($scriptNames -contains 'start' -and $($_.Name -notmatch 'Local-Gateway|Gateway|gateway')) { 'start' }
     else { $null }
 
     [pscustomobject]@{
@@ -447,7 +446,7 @@ Log "Log stored: $LogFile" "INFO"
 Log "==================================================" "HEADER"
 
 if ($successCount -eq $totalCount) {
-    Log "All modules built successfully." "SUCCESS"
+    Log "All requested steps completed successfully." "SUCCESS"
     exit 0
 }
 
