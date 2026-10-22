@@ -571,6 +571,12 @@ export async function executeWalletPayout(env, ownerId = 'admin', input = {}) {
 }
 export const prepareWalletPayout = executeWalletPayout;
 
+export async function cancelWalletPayout(env, ownerId, payoutId) {
+  if (!env.DB) throw new HttpError(503, 'Databáza nie je pripojená.');
+  await env.DB.prepare('DELETE FROM ops_terminal_payouts_v2 WHERE (id=? OR reference=?) AND owner_id=?').bind(payoutId, payoutId, ownerId).run();
+  return { id: payoutId, deleted: true, message: 'Návrh výberu bol zmazaný.' };
+}
+
 // ── Skutočná krypto peňaženka ───────────────────────────────────────────────
 /**
  * Vygeneruje skutočný EVM kľúčový pár (secp256k1, náhodnosť z crypto.getRandomValues).

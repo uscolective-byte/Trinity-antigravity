@@ -37,7 +37,7 @@ import {listSecrets,storeSecret,verifySecret,revokeSecret,promoteCustomSecretToG
 import {listAIProviders,configureAIProvider,recordAIProviderCheck} from './ai-providers.js';
 import {createPortfolio,listPortfolios,getPortfolio,recordTrade,setQuote} from './trading.js';
 import {getWallet,transactWallet} from './wallet.js';
-import {getWalletTerminalOverview,saveWalletTerminalConfig,createPaymentTerminalCharge,executeWalletPayout,createCryptoWallet} from './wallet-terminals.js';
+import {getWalletTerminalOverview,saveWalletTerminalConfig,createPaymentTerminalCharge,executeWalletPayout,createCryptoWallet,cancelWalletPayout} from './wallet-terminals.js';
 import {handleInboundEmail} from './email.js';
 import {TRINITY2_CAPABILITIES,rolePermissions,requireCapability,updateRolePermission,analyzeImage,transcribeAudio,synthesizeSpeech,listVisualWorkflows,saveVisualWorkflow,listIncidents,resolveIncident,recordHealthIncident,exportAudit} from './trinity2.js';
 import {TrinityCopilotAgent} from './copilot-agent.js';
@@ -532,6 +532,11 @@ async function route(request,env,ctx){
   if(path==='/api/assistant/wallet/terminal/payout'&&request.method==='POST'){
     requireAdmin(user);
     return json(await executeWalletPayout(env,ownerId,await readJSON(request,16000)));
+  }
+  const payoutCancelMatch=path.match(/^\/api\/assistant\/wallet\/payout\/([A-Za-z0-9_-]+)\/cancel$/);
+  if(payoutCancelMatch&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await cancelWalletPayout(env,ownerId,payoutCancelMatch[1]));
   }
   if(path==='/api/assistant/wallet/terminal/create-crypto'&&request.method==='POST'){
     requireAdmin(user);

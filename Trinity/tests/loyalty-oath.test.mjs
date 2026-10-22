@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { TRINITY_LOYALTY_OATH } from '../src/cognition.js';
 import { runAgent } from '../src/engine.js';
+import { cancelWalletPayout } from '../src/wallet-terminals.js';
 
 test('TRINITY_LOYALTY_OATH has explicit binding to Basterix, truth and loyalty', () => {
   assert.ok(TRINITY_LOYALTY_OATH.includes('Basterix'));
@@ -55,4 +56,28 @@ test('runAgent connects Revolut account LT613250098859511281 cleanly', async () 
   assert.equal(res.model, 'trinity-wallet-engine');
   assert.equal(res.truth.status, 'passed');
   assert.ok(res.tool_log.some(t => t.tool === 'revolut_connect'));
+});
+
+test('cancelWalletPayout executes delete statement on database', async () => {
+  let executedSql = '';
+  let boundParams = [];
+  const fakeDb = {
+    prepare(sql) {
+      executedSql = sql;
+      return {
+        bind(...params) {
+          boundParams = params;
+          return {
+            async run() {
+              return { success: true };
+            }
+          };
+        }
+      };
+    }
+  };
+  const res = await cancelWalletPayout({ DB: fakeDb }, 'admin', 'PAYOUT-804CA2AF');
+  assert.equal(res.deleted, true);
+  assert.ok(executedSql.includes('DELETE FROM ops_terminal_payouts_v2'));
+  assert.deepEqual(boundParams, ['PAYOUT-804CA2AF', 'PAYOUT-804CA2AF', 'admin']);
 });

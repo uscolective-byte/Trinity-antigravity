@@ -1887,12 +1887,22 @@ function renderWalletView(data) {
         const row = node('article', undefined, 'api-key-item');
         const info = node('div', undefined, 'commerce-offer-info');
         const top = node('div', undefined, 'commerce-offer-top');
+        const isExecuted = po.status === 'reported_sent';
         top.append(
-          node('b', `Výber: ${fmt(po.amount_eur)} na ${po.destination_type.toUpperCase()}`),
-          node('span', 'VÝBER (PAYOUT)', 'domain-badge expired'),
-          node('span', po.reference || 'SEPA', 'detail-chip')
+          node('b', isExecuted ? `Overený výber: ${fmt(po.amount_eur)} na ${po.destination_type.toUpperCase()}` : `Príprava výberu (NEODOSLANÉ): ${fmt(po.amount_eur)} na ${po.destination_type.toUpperCase()}`),
+          node('span', isExecuted ? 'ODOSLANÉ (POTVRDENÉ)' : 'NEODOSLANÉ (DRAFT)', isExecuted ? 'domain-badge active' : 'domain-badge expired'),
+          node('span', po.reference || 'DRAFT', 'detail-chip')
         );
-        info.append(top, node('small', `Cieľ: ${po.target}${po.note ? ' · ' + po.note : ''} · ${new Date(po.created_at).toLocaleString('sk-SK')}`));
+        const delBtn = node('button', '🗑 Zmazať záznam', 'button-link');
+        delBtn.style.color = '#ef4444';
+        delBtn.style.marginLeft = 'auto';
+        delBtn.onclick = safe(async () => {
+          await api(`/wallet/payout/${po.id}/cancel`, {});
+          notice(`Záznam výberu ${po.id} bol trvalo vymazaný.`);
+          await loadWalletView();
+        });
+        top.append(delBtn);
+        info.append(top, node('small', `Cieľ: ${po.target}${po.note ? ' · ' + po.note : ''} · Stav: ${isExecuted ? 'Odoslané a overené bankovým výpisom' : 'Iba pripravená inštrukcia (Trinity peniaze neodoslala)'} · ${new Date(po.created_at).toLocaleString('sk-SK')}`));
         row.append(info);
         hist.append(row);
       });
