@@ -11,6 +11,11 @@ Hlavný pracovný priečinok autonómneho ekosystému **Trinity 10.3**. Trinity 
 
 ## 🌐 Prostredia a evidencia nasadenia
 
+**Spoločný zdroj pre obe domény:** `uscolective-byte/trinity-morhfeus`, vetva
+`main`, aplikácia `Trinity/`. `auru.space` je produkcia a `auru.dev` je vývojové
+prostredie s oddelenými dátami. Postup a overenie vydania:
+[Jeden repozitár](Trinity/docs/SINGLE_REPOSITORY.md).
+
 Zdrojové vydanie: **10.3.0**. Produkčný `/health` počas prípravy stále vracal **10.2.0**; nasadenie 10.3 sa musí potvrdiť verziou a commit tagom. Podrobnosti zmien a aktivácie: [EVOLUTION-10.3](Dokumentacia/EVOLUTION-10.3.md).
 
 Tabuľka nižšie je historická evidencia, nie nová kontrola pripravenosti všetkých služieb.
