@@ -29,6 +29,7 @@ jobs:
         working-directory: Trinity
     steps:
       - name: Require the canonical repository and main branch
+        working-directory: .
         env:
           SOURCE_REPOSITORY: ${{ github.repository }}
           SOURCE_REF: ${{ github.ref }}
