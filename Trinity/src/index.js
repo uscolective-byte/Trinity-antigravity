@@ -1,4 +1,4 @@
-import {revolutProStatus,configureRevolutPro,handleRevolutProPublic} from './revolut.js';
+import {revolutProStatus,configureRevolutPro,handleRevolutProPublic,paypalStatus,configurePaypal,commerceStatus,configureCommerceAccounts,upsertCommerceProduct,deleteCommerceProduct,handleCommercePublic} from './revolut.js';
 import {scanForImprovements} from './maintenance-scan.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
 import {searchDomainNames,refreshDomainRegistration,createSubdomain,syncCloudflareDomains} from './domains.js';
@@ -75,7 +75,7 @@ async function route(request,env,ctx){
   const knowledgeResponse=await handleKnowledge(request,env);
   if(knowledgeResponse)return knowledgeResponse;
   const url=new URL(request.url),path=url.pathname;
-  const proPayment=await handleRevolutProPublic(request,env);if(proPayment)return proPayment;
+  const proPayment=await handleCommercePublic(request,env);if(proPayment)return proPayment;
   if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
     'Cache-Control':'no-cache, no-store, must-revalidate',
     'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
@@ -404,14 +404,14 @@ async function route(request,env,ctx){
     return json({tasks,jobs,total:tasks.length+jobs.length});
   }
   if(path==='/api/assistant/settings'&&request.method==='GET'){
-    const [plugins,memory,apis,keys,portfolios,pcBridge,secrets]=await Promise.all([
+    const [plugins,memory,apis,keys,portfolios,pcBridge,secrets,commerce]=await Promise.all([
       listPlugins(env),env.DB.prepare('SELECT (SELECT COUNT(*) FROM ops_memory)+(SELECT COUNT(*) FROM memory_long) AS count').first(),
       env.DB.prepare('SELECT COUNT(*) AS count FROM ops_api_definitions WHERE owner_id=?').bind(ownerId).first(),
       env.DB.prepare("SELECT COUNT(*) AS count FROM ops_api_access_keys WHERE owner_id=? AND status='active'").bind(ownerId).first(),
-      env.DB.prepare('SELECT COUNT(*) AS count FROM trading_portfolios WHERE owner_id=?').bind(ownerId).first(),getPCBridgeStatus(env),listSecrets(env,ownerId)
+      env.DB.prepare('SELECT COUNT(*) AS count FROM trading_portfolios WHERE owner_id=?').bind(ownerId).first(),getPCBridgeStatus(env),listSecrets(env,ownerId),commerceStatus(env).catch(()=>({revolut:{configured:false},paypal:{configured:false},accounts:{}}))
     ]);
     const secretStatus=provider=>secrets.find(item=>item.provider===provider)?.status||'not-configured';
-    return json({plugins,truth_policy_version:TRUTH_POLICY_VERSION,version:TRINITY_VERSION,model:env.AI_MODEL||'@cf/openai/gpt-oss-120b',image_model:env.IMAGE_MODEL||'@cf/black-forest-labs/flux-1-schnell',permissions:{manage_api_keys:['admin','owner'].includes(user.role),manage_secrets:['admin','owner'].includes(user.role),manage_users:user.role==='owner',manage_trading:['admin','owner'].includes(user.role),use_local_ai:['admin','owner'].includes(user.role),manage_domains:['admin','owner'].includes(user.role)},storage:{database:'Cloudflare D1',cache:'Workers KV · Mastermind',artifacts:'Cloudflare R2 · trinity-artifacts',strategy:'indexed-relational + cache + object archive',scalable:true,memory_records:memory.count||0},counts:{api_projects:apis.count||0,active_api_keys:keys.count||0,paper_portfolios:portfolios.count||0},internet:{web_search:plugins.some(p=>p.id==='web'&&p.enabled),mode:'outbound-only',always_on_gateway:pcBridge.connected===true},pc_bridge:pcBridge,integrations:[{id:'mcp',name:'MCP most',status:plugins.some(p=>p.id==='mcp'&&p.enabled)?'ready':'disabled'},{id:'api',name:'Trinity API',status:'ready'},{id:'web',name:'Webový výskum',status:plugins.some(p=>p.id==='web'&&p.enabled)?'ready':'disabled'},{id:'cloudflare',name:'Cloudflare',status:secretStatus('cloudflare')==='verified'?'verified':'platform-connected'},{id:'openai',name:'OpenAI / ChatGPT API',status:env.OPENAI_API_KEY?'configured':'not-configured'},{id:'ollama',name:'Ollama Cloud',status:env.OLLAMA_SECRET||env.OLLAMA_API_KEY?'configured':'not-configured'},{id:'gemini',name:'Google Gemini',status:env.GEMINI_API_KEY?'configured':secretStatus('gemini')},{id:'google',name:'Google OAuth',status:googleOAuthConfigured(env)?'configured':'not-configured'},{id:'github',name:'GitHub',status:secretStatus('github')}]});
+    return json({plugins,truth_policy_version:TRUTH_POLICY_VERSION,version:TRINITY_VERSION,model:env.AI_MODEL||'@cf/openai/gpt-oss-120b',image_model:env.IMAGE_MODEL||'@cf/black-forest-labs/flux-1-schnell',permissions:{manage_api_keys:['admin','owner'].includes(user.role),manage_secrets:['admin','owner'].includes(user.role),manage_users:user.role==='owner',manage_trading:['admin','owner'].includes(user.role),use_local_ai:['admin','owner'].includes(user.role),manage_domains:['admin','owner'].includes(user.role)},storage:{database:'Cloudflare D1',cache:'Workers KV · Mastermind',artifacts:'Cloudflare R2 · trinity-artifacts',strategy:'indexed-relational + cache + object archive',scalable:true,memory_records:memory.count||0},counts:{api_projects:apis.count||0,active_api_keys:keys.count||0,paper_portfolios:portfolios.count||0},internet:{web_search:plugins.some(p=>p.id==='web'&&p.enabled),mode:'outbound-only',always_on_gateway:pcBridge.connected===true},pc_bridge:pcBridge,integrations:[{id:'mcp',name:'MCP most',status:plugins.some(p=>p.id==='mcp'&&p.enabled)?'ready':'disabled'},{id:'api',name:'Trinity API',status:'ready'},{id:'web',name:'Webový výskum',status:plugins.some(p=>p.id==='web'&&p.enabled)?'ready':'disabled'},{id:'cloudflare',name:'Cloudflare',status:secretStatus('cloudflare')==='verified'?'verified':'platform-connected'},{id:'openai',name:'OpenAI / ChatGPT API',status:env.OPENAI_API_KEY?'configured':'not-configured'},{id:'ollama',name:'Ollama Cloud',status:env.OLLAMA_SECRET||env.OLLAMA_API_KEY?'configured':'not-configured'},{id:'gemini',name:'Google Gemini',status:env.GEMINI_API_KEY?'configured':secretStatus('gemini')},{id:'google',name:'Google OAuth',status:googleOAuthConfigured(env)?'configured':'not-configured'},{id:'github',name:'GitHub',status:secretStatus('github')},{id:'revolut-pro',name:'Revolut Pro platby',status:commerce.revolut?.configured||commerce.accounts?.revolut_url?'configured':'not-configured'},{id:'paypal',name:'PayPal platby',status:commerce.paypal?.configured||commerce.accounts?.paypal_url?'configured':'not-configured'}]});
   }
   const settingPlugin=path.match(/^\/api\/assistant\/settings\/plugins\/([a-z0-9-]+)$/);
   if(settingPlugin&&request.method==='POST'){
@@ -442,6 +442,25 @@ async function route(request,env,ctx){
   if(path==='/api/assistant/revolut/pro/products'&&request.method==='POST'){
     requireOwner(user);await rateLimit(env,`revolut-pro-config:${user.id}`,10,300);
     return json(await configureRevolutPro(env,ownerId,await readJSON(request,20000)));
+  }
+  if(path==='/api/assistant/paypal/status'&&request.method==='GET'){requireOwner(user);return json(await paypalStatus(env));}
+  if(path==='/api/assistant/paypal/products'&&request.method==='POST'){
+    requireOwner(user);await rateLimit(env,`paypal-config:${user.id}`,10,300);
+    return json(await configurePaypal(env,ownerId,await readJSON(request,20000)));
+  }
+  if(path==='/api/assistant/commerce/status'&&request.method==='GET'){requireOwner(user);return json(await commerceStatus(env));}
+  if(path==='/api/assistant/commerce/accounts'&&request.method==='POST'){
+    requireOwner(user);await rateLimit(env,`commerce-accounts:${user.id}`,15,300);
+    return json(await configureCommerceAccounts(env,ownerId,await readJSON(request,10000)));
+  }
+  if(path==='/api/assistant/commerce/products'&&request.method==='POST'){
+    requireOwner(user);await rateLimit(env,`commerce-products:${user.id}`,20,300);
+    return json(await upsertCommerceProduct(env,ownerId,await readJSON(request,15000)));
+  }
+  const commerceDeleteRoute=path.match(/^\/api\/assistant\/commerce\/products\/(revolut-pro|paypal)\/([a-z0-9][a-z0-9_-]{0,79})\/delete$/);
+  if(commerceDeleteRoute&&request.method==='POST'){
+    requireOwner(user);await rateLimit(env,`commerce-delete:${user.id}`,20,300);
+    return json(await deleteCommerceProduct(env,ownerId,commerceDeleteRoute[1],commerceDeleteRoute[2]));
   }
   if(path==='/api/assistant/wallet'){
     requireAdmin(user);

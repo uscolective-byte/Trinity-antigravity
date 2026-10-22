@@ -214,3 +214,40 @@ test('Revolut Pro owner config publishes a live-link route without giving ordina
   const redirect=await mf.dispatchFetch(url+'/pay/revolut-pro/service',{redirect:'manual'});assert.equal(redirect.status,302);assert.equal(redirect.headers.get('location'),config.products[0].payment_url);
   const status=await(await req('/api/assistant/revolut/status')).json();assert.equal(status.mode,'live-payment-links');assert.equal(status.bank_account_connected,false);assert.equal(status.automatic_payment_verification,false);
 });
+
+test('Unified Commerce & PayPal owner routes configure accounts, offers, and public catalog safely',async()=>{
+  assert.equal((await req('/api/assistant/commerce/status',undefined,false)).status,401);
+  const accSaved=await req('/api/assistant/commerce/accounts',{
+    business_name:'Trinity Studio SK',
+    revolut_url:'https://revolut.me/trinitysk',
+    paypal_url:'https://paypal.me/trinitysk',
+    default_currency:'EUR',
+    note:'Platba na základe dohody'
+  });
+  assert.equal(accSaved.status,200,await accSaved.clone().text());
+  const prodSaved=await req('/api/assistant/commerce/products',{
+    provider:'paypal',
+    product:{
+      id:'web-balicek',
+      name:'Tvorba webu na kľúč',
+      description:'Kompletný web z AI Studia',
+      amount_cents:49000,
+      currency:'EUR',
+      payment_url:'https://www.paypal.com/paypalme/trinitysk/490',
+      active:true,
+      expires_at:null
+    }
+  });
+  assert.equal(prodSaved.status,200,await prodSaved.clone().text());
+  const catalog=await(await req('/api/payments/catalog',undefined,false)).json();
+  assert.equal(catalog.business_name,'Trinity Studio SK');
+  assert.equal(catalog.bank_account_connected,false);
+  assert.equal(catalog.automatic_payment_verification,false);
+  assert.ok(catalog.products.some(p=>p.id==='web-balicek'&&p.provider==='paypal'));
+  const ppRedirect=await mf.dispatchFetch(url+'/pay/paypal/web-balicek',{redirect:'manual'});
+  assert.equal(ppRedirect.status,302);
+  assert.equal(ppRedirect.headers.get('location'),'https://www.paypal.com/paypalme/trinitysk/490');
+  const html=await(await req('/',undefined,false)).text();
+  assert.match(html,/id="settings-commerce-panel"/);
+  assert.match(html,/id="domain-marketplace-panel"/);
+});
