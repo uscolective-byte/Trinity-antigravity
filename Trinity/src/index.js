@@ -2,7 +2,7 @@ import {revolutProStatus,configureRevolutPro,handleRevolutProPublic,paypalStatus
 import {getUiEvolutionState,applyUiEvolution,handleUiChangeAction,renderDynamicThemeCss} from './ui-evolution.js';
 import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnvironments,handlePublicSiteRoute} from './domain-environments.js';
 import {createTrinityDocument,listTrinityDocuments,getTrinityDocument,deleteTrinityDocument,exportTrinityDocument} from './trinity-documents.js';
-import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk} from './commodities-engine.js';
+import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk,listBankConnections,configureBankConnection,deleteBankConnection,syncLiveMarketFeeds} from './commodities-engine.js';
 import {scanForImprovements} from './maintenance-scan.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
 import {searchDomainNames,refreshDomainRegistration,createSubdomain,syncCloudflareDomains} from './domains.js';
@@ -757,6 +757,24 @@ async function route(request,env,ctx){
   }
   if(path==='/api/assistant/commodities/overview'&&request.method==='GET'){
     return json(await getCommodityDeskOverview(env,user,{strategy:url.searchParams.get('strategy')||'balanced'}));
+  }
+  if(path==='/api/assistant/commodities/banks'){
+    if(request.method==='GET')return json(await listBankConnections(env,user));
+    if(request.method==='POST'){
+      requireAdmin(user);
+      await rateLimit(env,`commodity-banks:${user.id}`,20);
+      return json(await configureBankConnection(env,user,await readJSON(request)),201);
+    }
+  }
+  const bankDeleteRoute=path.match(/^\/api\/assistant\/commodities\/banks\/([a-zA-Z0-9_-]+)\/delete$/);
+  if(bankDeleteRoute&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await deleteBankConnection(env,user,bankDeleteRoute[1]));
+  }
+  if(path==='/api/assistant/commodities/sync-live'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`commodity-sync:${user.id}`,20);
+    return json(await syncLiveMarketFeeds(env,user));
   }
   if(path==='/api/assistant/commodities/analyze'){
     if(request.method==='GET'){

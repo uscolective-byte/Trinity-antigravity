@@ -848,6 +848,50 @@ Object.assign(words.sk,{
 });
 
 let commoditySectorFilter='all',cachedCommodityDesk=null;
+
+function switchCommodityTab(tabId){
+  document.querySelectorAll('[data-comm-tab]').forEach(b=>b.classList.toggle('active',b.dataset.commTab===tabId));
+  ['market','banks','autopilot'].forEach(id=>{
+    const pane=$('comm-pane-'+id);
+    if(pane)pane.hidden=id!==tabId;
+  });
+}
+document.querySelectorAll('[data-comm-tab]').forEach(btn=>btn.addEventListener('click',()=>switchCommodityTab(btn.dataset.commTab)));
+
+function switchDocTab(tabId){
+  document.querySelectorAll('[data-doc-tab]').forEach(b=>b.classList.toggle('active',b.dataset.docTab===tabId));
+  ['guide','architecture','banking','licenses','archive'].forEach(id=>{
+    const pane=$('doc-pane-'+id);
+    if(pane)pane.hidden=id!==tabId;
+  });
+}
+document.querySelectorAll('[data-doc-tab]').forEach(btn=>btn.addEventListener('click',()=>switchDocTab(btn.dataset.docTab)));
+$('docs-open-banks-btn')?.addEventListener('click',safe(async()=>{
+  await setView('commodities');
+  switchCommodityTab('banks');
+}));
+
+function showSepaSettlementBox(settlement,tradeTitle){
+  const box=$('commodity-sepa-qr-box'),body=$('commodity-sepa-body'),title=$('commodity-sepa-title');
+  if(!box||!body||!settlement)return;
+  title.textContent=`🏦 Bankové vyrovnanie & SEPA EPC QR: ${tradeTitle||settlement.reference||'Obchod'}`;
+  body.replaceChildren();
+  const info=node('p',`Banka / Broker: ${settlement.provider_name||settlement.provider} · IBAN: ${settlement.iban||'API'} · BIC: ${settlement.bic||'—'} · Variabilný symbol / Referencia: ${settlement.reference} · Stav: ${settlement.status}`,'settings-help');
+  body.append(info);
+  if(settlement.sepa_epc_qr_payload){
+    const qrPre=node('pre',settlement.sepa_epc_qr_payload,'sepa-qr-payload');
+    const copyBtn=node('button','📋 Kopírovať SEPA EPC QR payload pre mobilnú banku','primary');
+    copyBtn.type='button';
+    copyBtn.onclick=async()=>{
+      await navigator.clipboard?.writeText(settlement.sepa_epc_qr_payload);
+      notice('SEPA EPC QR payload skopírovaný do schránky.');
+    };
+    body.append(qrPre,copyBtn);
+  }
+  box.hidden=false;
+}
+$('commodity-sepa-close')?.addEventListener('click',()=>{if($('commodity-sepa-qr-box'))$('commodity-sepa-qr-box').hidden=true;});
+
 async function loadCommodityDesk(){
   const grid=$('commodity-market-grid');if(!grid)return;
   try{
@@ -863,6 +907,7 @@ function renderCommodityDesk(data){
   const fmt=v=>new Intl.NumberFormat('sk-SK',{style:'currency',currency:'EUR'}).format(Number(v||0));
   const summary=data.summary||{};
   const market=data.market||{};
+  const banks=data.bank_connections||[];
   const totalPnl=Number((Number(summary.realized_pnl||0)+Number(summary.unrealized_pnl||0)).toFixed(2));
   if($('cstat-equity'))$('cstat-equity').textContent=fmt(summary.equity);
   if($('cstat-cash'))$('cstat-cash').textContent=fmt(summary.cash);
@@ -871,16 +916,61 @@ function renderCommodityDesk(data){
   if($('cstat-pnl'))$('cstat-pnl').textContent=(totalPnl>=0?'+':'')+fmt(totalPnl);
   if($('cstat-pnl-detail'))$('cstat-pnl-detail').textContent=`Realizovaný: ${fmt(summary.realized_pnl)} · Nerealizovaný: ${fmt(summary.unrealized_pnl)}`;
   if($('cstat-score'))$('cstat-score').textContent=`${market.average_market_score||50}/100`;
-  if($('cstat-regime'))$('cstat-regime').textContent=market.market_regime||'Komoditný trh aktívny';
+  if($('cstat-regime'))$('cstat-regime').textContent=banks.length?`🏦 ${banks[0].provider_name} (${banks[0].iban||'API'})`:(market.market_regime||'Komoditný trh aktívny');
+  if($('comm-bank-count-pill'))$('comm-bank-count-pill').textContent=String(banks.length);
+  if($('commodity-exec-mode-badge')){
+    $('commodity-exec-mode-badge').textContent=banks.length?`🏦 NAPOJENÉ: ${banks[0].provider_name.toUpperCase()}`:'PRIPOJ BANKU PRE SEPA / API EXEKÚCIU';
+  }
   if($('commodity-desk-badge'))$('commodity-desk-badge').textContent=`CYKLY: ${data.desk_state?.cycles_run||0} · ${(data.desk_state?.strategy||'balanced').toUpperCase()}`;
   if($('commodity-desk-summary')&&data.desk_state?.last_cycle_summary)$('commodity-desk-summary').textContent=data.desk_state.last_cycle_summary;
+
+  const bankList=$('commodity-banks-list');
+  if(bankList){
+    bankList.replaceChildren();
+    if(!banks.length){
+      bankList.append(node('p','Zatiaľ nemáš pripojený žiadny bankový IBAN ani brokerské API. Vyplň formulár vyššie (SLSP George, Tatra banka, VÚB, ČSOB, Fio API, Revolut Business, Alpaca alebo Binance).','skeleton'));
+    }else{
+      for(const b of banks){
+        const row=node('article',undefined,'api-key-item');
+        const info=node('div',undefined,'commerce-offer-info');
+        const top=node('div',undefined,'commerce-offer-top');
+        top.append(
+          node('b',`${b.provider_name} — ${b.account_name}`),
+          node('span',b.iban||'LIVE REST API','price-tag sale'),
+          node('span',b.is_default?'PREDVOLENÝ ÚČET':'AKTÍVNY',b.is_default?'domain-badge active':'detail-chip'),
+          node('span',b.has_api_token?'AES-GCM API TOKEN':'SEPA EPC QR','detail-chip')
+        );
+        info.append(top,node('small',`BIC/SWIFT: ${b.bic||'—'} · Protokol: ${b.protocol||'SEPA'} · Auto-API Exekúcia: ${b.auto_execute?'ZAPNUTÁ':'iba SEPA príkaz'}${b.api_endpoint?' · Endpoint: '+b.api_endpoint:''}`));
+        const actions=node('div',undefined,'commerce-offer-actions');
+        if(b.iban){
+          const qrBtn=node('button','📲 Ukázať SEPA EPC QR','primary');
+          qrBtn.type='button';
+          qrBtn.onclick=()=>{
+            const payload=['BCD','002','1','SCT',b.bic||'',b.account_name,b.iban,'EUR1000.00','','TRINITY-DEPOSIT','Komoditny vklad Trinity'].join('\n');
+            showSepaSettlementBox({provider_name:b.provider_name,iban:b.iban,bic:b.bic,reference:'TRINITY-DEPOSIT',status:'sepa_qr_ready',sepa_epc_qr_payload:payload},`Vklad / Vyrovnanie (${b.account_name})`);
+          };
+          actions.append(qrBtn);
+        }
+        const delBtn=node('button','Odpojiť','danger');
+        delBtn.type='button';
+        delBtn.onclick=safe(async()=>{
+          await api(`/commodities/banks/${b.id}/delete`,{});
+          await loadCommodityDesk();
+          notice(`Bankové spojenie ${b.account_name} bolo odpojené.`);
+        });
+        actions.append(delBtn);
+        row.append(info,actions);
+        bankList.append(row);
+      }
+    }
+  }
 
   const posBox=$('commodity-positions-list');
   if(posBox){
     posBox.replaceChildren();
     const positions=summary.positions||[];
     if(!positions.length){
-      posBox.append(node('p','Zatiaľ žiadne otvorené komoditné pozície. Klikni na „🤖 Spustiť autonómne obchodovanie & investovanie Trinity“ alebo kúp komoditu nižšie.','skeleton'));
+      posBox.append(node('p','Zatiaľ žiadne otvorené komoditné pozície. Kúp komoditu v matici nižšie alebo spusti Autopilota.','skeleton'));
     }else{
       for(const pos of positions){
         const row=node('article',undefined,'api-key-item');
@@ -892,21 +982,24 @@ function renderCommodityDesk(data){
           node('span',`PnL: ${pos.unrealized_pnl>=0?'+':''}${fmt(pos.unrealized_pnl)} (${pos.pnl_pct>=0?'+':''}${pos.pnl_pct}%)`,pos.unrealized_pnl>=0?'domain-badge active':'domain-badge expired'),
           node('span',`AI Signál: ${pos.signal_label||pos.signal}`,'detail-chip')
         );
-        info.append(top,node('small',`Priemerná nákupná cena: ${fmt(pos.average_cost)} · Aktuálna cena: ${fmt(pos.last_price)} · Stop-Loss: ${fmt(pos.stop_loss_eur)} · Take-Profit: ${fmt(pos.take_profit_eur)}`));
+        info.append(top,node('small',`Nákupný priemer: ${fmt(pos.average_cost)} · Spotová cena: ${fmt(pos.last_price)} · Stop-Loss: ${fmt(pos.stop_loss_eur)} · Take-Profit: ${fmt(pos.take_profit_eur)}`));
         const actions=node('div',undefined,'commerce-offer-actions');
         const addBtn=node('button','＋ Dokúpiť 500 €','primary');
         addBtn.type='button';
         addBtn.onclick=safe(async()=>{
-          await api('/commodities/trade',{symbol:pos.symbol,side:'buy',amount_eur:500});
+          const res=await api('/commodities/trade',{symbol:pos.symbol,side:'buy',amount_eur:500});
           await loadCommodityDesk();
-          notice(`Dokúpená komodita ${pos.name} (${pos.symbol}) za 500 EUR.`);
+          if(res.bank_settlement){
+            showSepaSettlementBox(res.bank_settlement,`BUY ${pos.name} (500 €)`);
+          }
+          notice(`Dokúpená komodita ${pos.name} (${pos.symbol}) za 500 EUR (${res.execution_mode}).`);
         });
         const sellBtn=node('button','🔴 Predať celú pozíciu','danger');
         sellBtn.type='button';
         sellBtn.onclick=safe(async()=>{
-          await api('/commodities/trade',{symbol:pos.symbol,side:'sell',sell_all:true});
+          const res=await api('/commodities/trade',{symbol:pos.symbol,side:'sell',sell_all:true});
           await loadCommodityDesk();
-          notice(`Pozícia ${pos.name} (${pos.symbol}) bola predaná a zapísaná do Trinity Dokumentov.`);
+          notice(`Pozícia ${pos.name} (${pos.symbol}) bola predaná (${res.execution_mode}) a zapísaná do Trinity Dokumentov.`);
         });
         actions.append(addBtn,sellBtn);
         row.append(info,actions);
@@ -939,11 +1032,15 @@ function renderCommodityDesk(data){
     const buyQuick=node('button','🟢 Kúpiť 1 000 €','primary');
     buyQuick.type='button';
     buyQuick.onclick=safe(async()=>{
-      await api('/commodities/trade',{symbol:item.symbol,side:'buy',amount_eur:1000});
+      const res=await api('/commodities/trade',{symbol:item.symbol,side:'buy',amount_eur:1000});
       await loadCommodityDesk();
-      notice(`Nakúpená komodita ${item.name} (${item.symbol}) za 1 000 EUR (+ vytvorený Trinity Dokument).`);
+      if(res.bank_settlement){
+        switchCommodityTab('banks');
+        showSepaSettlementBox(res.bank_settlement,`BUY ${item.name} (1 000 €)`);
+      }
+      notice(`Nakúpená komodita ${item.name} (${item.symbol}) za 1 000 EUR (${res.execution_mode}).`);
     });
-    const askAi=node('button','✦ AI Analýza v chate');
+    const askAi=node('button','✦ AI Analýza');
     askAi.type='button';
     askAi.onclick=safe(async()=>{
       await setView('chat');
@@ -955,6 +1052,35 @@ function renderCommodityDesk(data){
     grid.append(card);
   }
 }
+
+$('commodity-bank-form')?.addEventListener('submit',safe(async(e)=>{
+  e.preventDefault();
+  const res=await api('/commodities/banks',{
+    provider:$('bank-provider').value,
+    account_name:$('bank-account-name').value.trim(),
+    iban:$('bank-iban').value.trim(),
+    bic:$('bank-bic').value.trim(),
+    api_endpoint:$('bank-api-endpoint').value.trim(),
+    api_token:$('bank-api-token').value.trim(),
+    is_default:$('bank-is-default').checked,
+    auto_execute:$('bank-auto-execute').checked
+  });
+  $('bank-api-token').value='';
+  await loadCommodityDesk();
+  notice(`Bankové / brokerské spojenie (${res.connection?.provider_name}) bolo uložené a aktivované.`);
+}));
+
+$('commodity-sync-live-btn')?.addEventListener('click',safe(async()=>{
+  const btn=$('commodity-sync-live-btn');
+  if(btn)btn.disabled=true;
+  try{
+    const res=await api('/commodities/sync-live',{});
+    await loadCommodityDesk();
+    notice(`Živé trhové ceny synchronizované (EUR/USD ECB: ${res.eur_usd_rate||'OK'}, aktualizovaných ${res.updated_count||0} spotových kotácií).`);
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+}));
 
 document.querySelectorAll('[data-commodity-sector]').forEach(btn=>btn.addEventListener('click',()=>{
   commoditySectorFilter=btn.dataset.commoditySector||'all';
@@ -976,6 +1102,7 @@ $('commodity-auto-form')?.addEventListener('submit',safe(async(e)=>{
       auto_take_profit:$('commodity-auto-tp').checked
     });
     await loadCommodityDesk();
+    switchCommodityTab('market');
     notice(`Autonómny investičný cyklus Trinity dokončený: vykonaných ${res.trades_executed?.length||0} komoditných obchodov (+ zapísaný Trinity Dokument).`);
   }finally{
     if(btn)btn.disabled=false;
@@ -996,7 +1123,13 @@ $('commodity-trade-form')?.addEventListener('submit',safe(async(e)=>{
   });
   $('commodity-trade-thesis').value='';
   await loadCommodityDesk();
-  notice(`Komoditný obchod (${side.toUpperCase()} ${res.trade?.name||symbol}) bol vykonaný a zapísaný do Trinity Dokumentov.`);
+  if(res.bank_settlement){
+    switchCommodityTab('banks');
+    showSepaSettlementBox(res.bank_settlement,`${side.toUpperCase()} ${res.trade?.name||symbol}`);
+  }else{
+    switchCommodityTab('market');
+  }
+  notice(`Komoditný obchod (${side.toUpperCase()} ${res.trade?.name||symbol}) bol vykonaný (${res.execution_mode}) a zapísaný do Trinity Dokumentov.`);
 }));
 $('commodity-save-report-btn')?.addEventListener('click',safe(async()=>{
   const strategy=$('commodity-auto-strategy')?.value||'balanced';

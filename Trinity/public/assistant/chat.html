@@ -7,8 +7,8 @@
     <button data-view="studio"><span>✦</span><b>AI Studio</b></button>
     <button data-view="projects"><span>▦</span><b data-i18n="projects">Projekty</b></button>
     <button data-view="domains"><span>◈</span><b>Domény a hosting</b></button>
-    <button data-view="commodities"><span>📈</span><b>Komodity & Trading</b></button>
-    <button data-view="documents"><span>📚</span><b>Dokumenty</b></button>
+    <button data-view="commodities"><span>📈</span><b>Komodity & Banky</b></button>
+    <button data-view="documents"><span>📚</span><b>Dokumentácia & Help</b></button>
     <button id="memory-nav"><span>◇</span><b data-i18n="memoryPlain">Pamäť</b></button>
     <button data-view="settings"><span>⚙</span><b data-i18n="settings">Nastavenia</b></button>
   </nav>
@@ -35,7 +35,7 @@
       </div>
       <div id="ui-custom-widgets-slot" class="ui-custom-widgets-grid" hidden></div>
     </section>
-    <section id="chat-view" class="view chat-view" hidden><div id="chat-area"><section id="welcome"><div class="avatar large">✦</div><span class="eyebrow" data-i18n="welcomeLabel">TRINITY 10.3 · TVOJ PRIESTOR</span><h1 data-i18n="greeting">Ahoj. Som Trinity.</h1><p data-i18n="intro">Môžeme sa porozprávať, niečo vymyslieť alebo sa pustiť do práce.</p><div class="suggestions"><button data-suggestion="commodities">📈 Komodity, analýza & trading</button><button data-suggestion="ui_evolve">🎨 Uprav a vylepši mi UI</button><button data-suggestion="domain_prod">🚀 Vytvor doménu + produkciu</button><button data-suggestion="trinity_docs">📚 Trinity Dokumenty</button><button data-suggestion="monetize">💶 Plán zárobku & Revolut/PayPal</button><button data-suggestion="domains">🌐 Portfólio domén a predaj</button><button data-suggestion="chatgpt" data-i18n="suggestChatGpt">Schopnosti ChatGPT</button><button data-suggestion="plan" data-i18n="suggestPlan">Pomôž mi s plánom</button><button data-suggestion="create" data-i18n="suggestCreate">Chcem niečo vytvoriť</button><button data-suggestion="calc">🖩 Kalkulačka na PC</button><button data-suggestion="notepad">📝 Poznámkový blok</button><button data-suggestion="chrome">🌐 Spustiť Chrome</button></div></section><section id="messages" aria-live="polite" aria-label="Conversation"></section></div><section class="composer-wrap"><div id="activity" role="status"></div><form id="chat-form"><label class="sr-only" for="message" data-i18n="message">Správa pre Trinity</label><textarea id="message" rows="2" maxlength="12000" required data-placeholder="placeholder" placeholder="Napíš mi, čo máš na mysli…"></textarea><div id="media-preview" class="media-preview" hidden></div><div class="compose-bottom"><div class="compose-settings"><select id="engine" aria-label="AI engine"><option value="cloud">Cloudflare Workers AI (GPT-OSS-120B)</option><option value="local">Môj počítač · PC Bridge (Qwen 4B / Lokálne akcie)</option><option value="openai">OpenAI / ChatGPT (GPT-4o)</option><option value="gemini">Google Gemini</option></select><button id="attach-image" type="button" title="Analyzovať obrázok">▧ Obrázok</button><button id="record-voice" type="button" title="Nahrať hlas">● Hlas</button><button id="read-answer" type="button" title="Prečítať poslednú odpoveď">◖ Prečítať</button><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><input id="audio-input" type="file" accept="audio/*" hidden><label><input type="checkbox" id="remember"><span data-i18n="remember">Zapamätať si</span></label><label id="allow-files-setting"><input type="checkbox" id="allow-files"><span data-i18n="allowFiles">Povoliť tvorbu súborov</span></label></div><button id="stop" type="button" hidden data-i18n="stop">Zastaviť</button><button id="send" class="primary" data-i18n="send">Odoslať ↑</button></div></form><audio id="speech-player" controls hidden></audio><small class="footnote" data-i18n="footnote">TRINITY 10.3 · Pamäť je trvalá. Pracovné úlohy vykonávam v odolnom procese na Cloudflare s podporou lokálneho PC Bridge.</small></section></section>
+    <section id="chat-view" class="view chat-view" hidden><div id="chat-area"><section id="welcome"><div class="avatar large">✦</div><span class="eyebrow" data-i18n="welcomeLabel">TRINITY 10.3 · TVOJ PRIESTOR</span><h1 data-i18n="greeting">Ahoj. Som Trinity.</h1><p data-i18n="intro">Môžeme sa porozprávať, niečo vymyslieť alebo sa pustiť do práce.</p><div class="suggestions"><button data-suggestion="commodities">📈 Komodity, živé ceny & banky</button><button data-suggestion="domain_prod">🚀 Vytvor doménu + produkciu</button><button data-suggestion="monetize">💶 Revolut, PayPal & zárobok</button><button data-suggestion="ui_evolve">🎨 Uprav a vylepši UI</button><button data-suggestion="trinity_docs">📚 Dokumentácia, Architektúra & Help</button><button data-suggestion="plan" data-i18n="suggestPlan">✦ Pomôž mi s plánom</button></div></section><section id="messages" aria-live="polite" aria-label="Conversation"></section></div><section class="composer-wrap"><div id="activity" role="status"></div><form id="chat-form"><label class="sr-only" for="message" data-i18n="message">Správa pre Trinity</label><textarea id="message" rows="2" maxlength="12000" required data-placeholder="placeholder" placeholder="Napíš mi, čo máš na mysli…"></textarea><div id="media-preview" class="media-preview" hidden></div><div class="compose-bottom"><div class="compose-settings"><select id="engine" aria-label="AI engine"><option value="cloud">Cloudflare Workers AI (GPT-OSS-120B)</option><option value="local">Môj počítač · PC Bridge (Qwen 4B / Lokálne akcie)</option><option value="openai">OpenAI / ChatGPT (GPT-4o)</option><option value="gemini">Google Gemini</option></select><button id="attach-image" type="button" title="Analyzovať obrázok">▧ Obrázok</button><button id="record-voice" type="button" title="Nahrať hlas">● Hlas</button><button id="read-answer" type="button" title="Prečítať poslednú odpoveď">◖ Prečítať</button><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><input id="audio-input" type="file" accept="audio/*" hidden><label><input type="checkbox" id="remember"><span data-i18n="remember">Zapamätať si</span></label><label id="allow-files-setting"><input type="checkbox" id="allow-files"><span data-i18n="allowFiles">Povoliť tvorbu súborov</span></label></div><button id="stop" type="button" hidden data-i18n="stop">Zastaviť</button><button id="send" class="primary" data-i18n="send">Odoslať ↑</button></div></form><audio id="speech-player" controls hidden></audio><small class="footnote" data-i18n="footnote">TRINITY 10.3 · Pamäť je trvalá. Pracovné úlohy vykonávam v odolnom procese na Cloudflare s podporou lokálneho PC Bridge.</small></section></section>
     <section id="studio-view" class="view studio-view" hidden>
       <div class="studio-top"><div><span class="eyebrow">TRINITY AI STUDIO</span><h1 data-i18n="builderTitle">Vytváraj priamo s Trinity</h1><p data-i18n="builderIntro">Prompt, živý náhľad, zdrojový kód a kontrola kvality v jednej pracovnej ploche.</p></div><button id="studio-new" class="primary" data-i18n="newStudioProject">＋ Nový projekt</button></div>
       <div class="studio-template-row" aria-label="Rýchle šablóny"><button type="button" data-studio-template="Vytvor profesionálnu landing page pre modernú technologickú službu s výrazným hero blokom, benefitmi, referenciami a CTA.">Landing page</button><button type="button" data-studio-template="Vytvor prehľadný analytický dashboard s bočnou navigáciou, KPI kartami, grafmi a tabuľkou aktivít.">Dashboard</button><button type="button" data-studio-template="Vytvor elegantné osobné portfólio s projektmi, profilom, zručnosťami a kontaktnou sekciou.">Portfólio</button><button type="button" data-studio-template="Vytvor moderný e-shop s produktovou mriežkou, filtrami, detailom produktu a košíkom bez odosielania dát.">E-shop</button><button type="button" data-studio-template="Vytvor čistú dokumentačnú stránku s navigáciou, vyhľadávaním, ukážkami kódu a responzívnym obsahom.">Dokumentácia</button></div>
@@ -90,111 +90,376 @@
       <div id="domain-deal-card" class="domain-form-card" hidden><form id="domain-deal-form" class="secret-form"><strong id="domain-deal-title">Obchod</strong><input id="domain-deal-price" type="number" min="1" step="0.01" required placeholder="Cena v EUR"><input id="domain-deal-party" maxlength="120" placeholder="Kupujúci / nájomca (nechaj prázdne = iba ponuka)"><input id="domain-deal-months" type="number" min="1" max="120" value="12" placeholder="Mesiace prenájmu"><button class="primary" type="submit" id="domain-deal-submit">Potvrdiť</button><button type="button" id="domain-deal-cancel">Zrušiť</button></form></div>
     </section>
     <section id="commodities-view" class="view commodities-view" hidden>
-      <div class="section-intro"><span class="eyebrow">TRINITY COMMODITY DESK · AUTONOMOUS ANALYTICS & TRADING</span><h1>Komoditný Trading, Investovanie a Analýza Všetkých Komodít</h1><p>Trinity analyzuje 22 svetových komodít v 5 sektoroch (vzácne kovy, energie, priemyselné kovy, agro a strategické komodity), počíta RSI, MACD, Support/Resistance, Stop-Loss a Take-Profit a dokáže samostatne nakupovať, predávať a investovať v komoditnom portfóliu so zápisom do <b>Trinity Dokumentov</b>.</p></div>
-      <div class="metric-grid domain-metrics">
+      <div class="section-intro"><span class="eyebrow">TRINITY COMMODITY & BANKING DESK · LIVE MARKET & SEPA / PSD2 / BROKER EXECUTION</span><h1>Komoditný Trading, Živé Trhové Ceny & Napojenie na Banky</h1><p>Živé ceny z európskych trhov (ECB / Spot), technická analýza 22 svetových komodít (RSI, MACD, Support/Resistance) a priame napojenie na slovenské a EÚ banky (<b>Revolut Business/Pro</b>, <b>Fio API</b>, <b>SLSP George</b>, <b>Tatra banka</b>, <b>VÚB</b>, <b>ČSOB</b>, <b>PayPal</b>) a brokerov (<b>Alpaca</b>, <b>Binance</b>, <b>IBKR</b>) so SEPA EPC QR vyrovnaním.</p></div>
+      <div class="metric-grid domain-metrics tabular-metrics">
         <article class="metric gold"><span>HODNOTA PORTFÓLIA</span><strong id="cstat-equity">25 000 €</strong><small>celkový kapitál (Equity)</small></article>
-        <article class="metric teal"><span>VOĽNÁ HOTOVOSŤ</span><strong id="cstat-cash">25 000 €</strong><small>pripravená na investície</small></article>
+        <article class="metric teal"><span>VOĽNÁLIKVIDITA</span><strong id="cstat-cash">25 000 €</strong><small>disponibilný zostatok</small></article>
         <article class="metric blue"><span>OTVORENÉ POZÍCIE</span><strong id="cstat-positions-val">0 €</strong><small id="cstat-positions-count">0 komodít v portfóliu</small></article>
         <article class="metric coral"><span>ZISK / STRATA (PnL)</span><strong id="cstat-pnl">0 €</strong><small id="cstat-pnl-detail">realizovaný + nerealizovaný</small></article>
-        <article class="metric purple"><span>TRHOVÝ REŽIM</span><strong id="cstat-score">—/100</strong><small id="cstat-regime">Načítavam analýzu…</small></article>
+        <article class="metric purple"><span>REŽIM & BANKA</span><strong id="cstat-score">—/100</strong><small id="cstat-regime">Načítavam analýzu…</small></article>
       </div>
-      <section id="commodity-auto-panel" class="panel domain-env-panel">
-        <div class="panel-head">
-          <div><span class="eyebrow">AUTONÓMNY KOMODITNÝ OBCHODNÍK TRINITY</span><h2>Samostatné investovanie, nákup, predaj a rebalansovanie komodít</h2></div>
-          <span id="commodity-desk-badge" class="detail-chip">AUTOPILOT PRIPRAVENÝ</span>
+      <nav class="trinity-subnav" id="commodities-subnav" aria-label="Sekcie komoditného desku">
+        <button type="button" class="subnav-btn active" data-comm-tab="market">📊 Trh & Pozície (22 komodít)</button>
+        <button type="button" class="subnav-btn" data-comm-tab="banks">🏦 Napojenie na Banky & Brokerov <span id="comm-bank-count-pill" class="subnav-pill">0</span></button>
+        <button type="button" class="subnav-btn" data-comm-tab="autopilot">🤖 Autopilot & Obchodný príkaz</button>
+        <div class="subnav-actions">
+          <button type="button" id="commodity-sync-live-btn" class="primary">↻ Synchronizovať živé trhové ceny (ECB / Spot)</button>
+          <button type="button" id="commodity-save-report-btn">📚 Uložiť analýzu do Dokumentov</button>
         </div>
-        <p id="commodity-desk-summary" class="settings-help">Trinity sama zanalyzuje všetkých 22 komodít, vyhodnotí otvorené pozície na predaj so ziskom (Take-Profit) a rozdelí investičný rozpočet do najlepších komoditných príležitostí so signálom <code>STRONG_BUY</code> a <code>BUY</code>.</p>
-        <form id="commodity-auto-form" class="secret-form commerce-form">
-          <strong>1. Spustiť autonómny investičný & obchodný cyklus Trinity</strong>
-          <div class="commerce-form-grid">
-            <label><span>Investičná stratégia</span><select id="commodity-auto-strategy"><option value="balanced">Vyvážená (Balanced · Kovy + Energie + Agro)</option><option value="conservative">Konzervatívna (Zlato, Striebro, Nízka volatilita)</option><option value="growth">Rastová (Strategické kovy, Meď, Urán, Energie)</option><option value="aggressive">Agresívna (Momentum & Vysoký R:R potenciál)</option></select></label>
-            <label><span>Rozpočet na investičný cyklus (EUR)</span><input id="commodity-auto-budget" type="number" min="50" max="500000" step="50" value="3000"></label>
-            <label><span>Zameranie sektora</span><select id="commodity-auto-sector"><option value="all">Všetkých 5 komoditných sektorov (22 komodít)</option><option value="precious_metals">Vzácne a drahé kovy (Zlato, Striebro, Platina, Paládium)</option><option value="energy">Energetické komodity (Ropa Brent/WTI, Plyn, Urán)</option><option value="industrial_metals">Priemyselné a batériové kovy (Meď, Lítium, Hliník, Nikel)</option><option value="agriculture">Poľnohospodárske komodity (Pšenica, Káva, Kakao, Kukurica)</option><option value="strategic_digital">Strategické a uhlíkové komodity (CO₂ EUA, Bitcoin)</option></select></label>
-            <label><span>Maximálny počet obchodov v cykle</span><select id="commodity-auto-max-trades"><option value="4">4 najlepšie komodity</option><option value="2">2 najlepšie komodity</option><option value="6">6 najlepších komodít</option></select></label>
+      </nav>
+
+      <div id="comm-pane-market" class="comm-tab-pane">
+        <section class="panel">
+          <div class="panel-head">
+            <div><span class="eyebrow">OTVORENÉ POZÍCIE & BANKOVÉ VYROVNANIE</span><h2>Držané komodity a okamžitý predaj</h2></div>
+            <span id="commodity-exec-mode-badge" class="detail-chip">KONTROLA NAPOJENIA…</span>
           </div>
-          <div class="commerce-form-actions">
-            <label class="domain-live-check"><input type="checkbox" id="commodity-auto-tp" checked> <b>Automaticky predať prekúpené pozície a vybrať zisk (Auto Take-Profit)</b></label>
-            <button class="primary" type="submit" id="commodity-auto-run-btn">🤖 Spustiť autonómne obchodovanie & investovanie Trinity</button>
-            <button type="button" id="commodity-ask-chat-btn">✦ Požiadať Trinity v chate o hĺbkovú komoditnú stratégiu</button>
+          <div id="commodity-positions-list" class="api-key-list"><p class="empty-state">Zatiaľ žiadne otvorené komoditné pozície. Kúp komoditu nižšie alebo spusti Autopilota v záložke „Autopilot & Obchodný príkaz“.</p></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <div><span class="eyebrow">ŽIVÁ MATICA 22 SVETOVÝCH KOMODÍT</span><h2>Komoditný prehľad: Spotové ceny, RSI, MACD, S/R a okamžitý obchod</h2></div>
           </div>
-        </form>
-        <form id="commodity-trade-form" class="secret-form commerce-form" style="margin-top:14px">
-          <strong>2. Priamy nákup (Investícia) alebo predaj konkrétnej komodity</strong>
-          <div class="commerce-form-grid">
-            <label><span>Komodita</span><select id="commodity-trade-symbol"><option value="XAU-EUR">XAU-EUR · Zlato (Gold Spot)</option><option value="XAG-EUR">XAG-EUR · Striebro (Silver Spot)</option><option value="XPT-EUR">XPT-EUR · Platina</option><option value="XPD-EUR">XPD-EUR · Paládium</option><option value="BRENT-EUR">BRENT-EUR · Ropa Brent</option><option value="WTI-EUR">WTI-EUR · Ropa WTI</option><option value="NGAS-EUR">NGAS-EUR · Zemný plyn Henry Hub</option><option value="TTF-EUR">TTF-EUR · Európsky plyn TTF</option><option value="URAN-EUR">URAN-EUR · Urán U3O8</option><option value="COPPER-EUR">COPPER-EUR · Meď (Copper)</option><option value="ALUM-EUR">ALUM-EUR · Hliník (Aluminum)</option><option value="LITH-EUR">LITH-EUR · Lítium (Lithium)</option><option value="NICKEL-EUR">NICKEL-EUR · Nikel (Nickel)</option><option value="ZINC-EUR">ZINC-EUR · Zinok (Zinc)</option><option value="WHEAT-EUR">WHEAT-EUR · Pšenica (Wheat)</option><option value="CORN-EUR">CORN-EUR · Kukurica (Corn)</option><option value="SOY-EUR">SOY-EUR · Sója (Soybeans)</option><option value="COFFEE-EUR">COFFEE-EUR · Káva Arabica</option><option value="COCOA-EUR">COCOA-EUR · Kakao (Cocoa)</option><option value="SUGAR-EUR">SUGAR-EUR · Cukor (Sugar #11)</option><option value="EUA-EUR">EUA-EUR · Emisné povolenky CO₂</option><option value="BTC-EUR">BTC-EUR · Bitcoin (Digitálna komodita)</option></select></label>
-            <label><span>Typ príkazu</span><select id="commodity-trade-side"><option value="buy">🟢 KÚPIŤ / INVESTOVAŤ (BUY)</option><option value="sell">🔴 PREDAŤ POZÍCIU (SELL)</option></select></label>
-            <label><span>Suma obchodu v EUR (automaticky prepočíta jednotky)</span><input id="commodity-trade-amount" type="number" min="10" max="1000000" step="10" value="1000" placeholder="napr. 1000 EUR"></label>
-            <label><span>Investičná poznámka / téza</span><input id="commodity-trade-thesis" maxlength="400" placeholder="napr. Dlhodobé zaistenie proti inflácii a rast dopytu"></label>
+          <div class="domain-filters" id="commodity-sector-filters">
+            <button type="button" class="domain-filter-btn active" data-commodity-sector="all">Všetkých 22 komodít</button>
+            <button type="button" class="domain-filter-btn" data-commodity-sector="precious_metals">🪙 Vzácne kovy</button>
+            <button type="button" class="domain-filter-btn" data-commodity-sector="energy">⚡ Energie & Urán</button>
+            <button type="button" class="domain-filter-btn" data-commodity-sector="industrial_metals">🔩 Priemyselné & Batériové</button>
+            <button type="button" class="domain-filter-btn" data-commodity-sector="agriculture">🌾 Agro & Potraviny</button>
+            <button type="button" class="domain-filter-btn" data-commodity-sector="strategic_digital">🌍 Strategické & CO₂</button>
           </div>
-          <div class="commerce-form-actions">
-            <button class="primary" type="submit">⚡ Vykonať komoditný obchod & zapísať Trinity Dokument</button>
-            <button type="button" id="commodity-refresh-btn">↻ Obnoviť ceny a analýzy</button>
+          <div id="commodity-market-grid" class="domain-marketplace-grid"></div>
+        </section>
+      </div>
+
+      <div id="comm-pane-banks" class="comm-tab-pane" hidden>
+        <section id="commodity-banks-panel" class="panel domain-env-panel">
+          <div class="panel-head">
+            <div><span class="eyebrow">REÁLNE BANKOVÉ & BROKERSKÉ NAPOJENIE · PSD2 / SEPA EPC QR / REST API</span><h2>Pripojenie slovenských a EÚ bánk, Revolut Business, Fio API a brokerov</h2></div>
+            <span class="detail-chip">AES-GCM VAULT + SEPA</span>
           </div>
-        </form>
-      </section>
-      <section class="panel">
-        <div class="panel-head">
-          <div><span class="eyebrow">OTVORENÉ POZÍCIE V PORTFÓLIU</span><h2>Držané komodity a okamžitý predaj</h2></div>
-        </div>
-        <div id="commodity-positions-list" class="api-key-list"><p class="empty-state">Zatiaľ žiadne otvorené komoditné pozície. Spusti autonómny investičný cyklus vyššie alebo kúp vybranú komoditu.</p></div>
-      </section>
-      <section class="panel">
-        <div class="panel-head">
-          <div><span class="eyebrow">ŽIVÁ ANALÝZA VŠETKÝCH 22 SVETOVÝCH KOMODÍT</span><h2>Komoditná matica: Ceny, RSI, MACD, Support/Resistance a AI Signály</h2></div>
-          <button type="button" id="commodity-save-report-btn" class="primary">📚 Uložiť kompletnú analýzu do Trinity Dokumentov</button>
-        </div>
-        <div class="domain-filters" id="commodity-sector-filters">
-          <button type="button" class="domain-filter-btn active" data-commodity-sector="all">Všetkých 22 komodít</button>
-          <button type="button" class="domain-filter-btn" data-commodity-sector="precious_metals">🪙 Vzácne kovy</button>
-          <button type="button" class="domain-filter-btn" data-commodity-sector="energy">⚡ Energie & Urán</button>
-          <button type="button" class="domain-filter-btn" data-commodity-sector="industrial_metals">🔩 Priemyselné & Batériové kovy</button>
-          <button type="button" class="domain-filter-btn" data-commodity-sector="agriculture">🌾 Poľnohospodárstvo & Potraviny</button>
-          <button type="button" class="domain-filter-btn" data-commodity-sector="strategic_digital">🌍 Strategické & CO₂</button>
-        </div>
-        <div id="commodity-market-grid" class="domain-marketplace-grid"></div>
-      </section>
-    </section>
-    <section id="documents-view" class="view documents-view" hidden>
-      <div class="section-intro"><span class="eyebrow">TRINITY DOCUMENTS · CONTINUOUS STEP DOCUMENTATION</span><h1>Trinity Dokumenty (automatický záznam každého kroku)</h1><p>Súčasne s každým krokom rozhovoru, zmenou UI, samorozvojom alebo nasadením domény Trinity automaticky vytvára štruktúrovaný dokument s dôkazmi a exportom do Markdown (<code>.md</code>) a PDF (<code>.pdf</code>).</p></div>
-      <div class="metric-grid domain-metrics"><article class="metric blue"><span>SPOLU DOKUMENTOV</span><strong id="docstat-total">—</strong><small>v archíve Trinity</small></article><article class="metric teal"><span>KROKY ÚLOH</span><strong id="docstat-steps">—</strong><small>automatické záznamy</small></article><article class="metric gold"><span>UI & SAMOROZVOJ</span><strong id="docstat-ui">—</strong><small>zmeny vzhľadu a pravidiel</small></article><article class="metric purple"><span>DOMÉNY & PRODUKCIA</span><strong id="docstat-domains">—</strong><small>prostredia a nasadenia</small></article></div>
-      <section class="panel">
-        <div class="panel-head">
-          <div><span class="eyebrow">ARCHÍV KROKOV A ZMIEN</span><h2>Zoznam Trinity Dokumentov</h2></div>
-          <div class="domain-action-bar">
-            <button type="button" id="trinity-doc-open-create" class="primary">＋ Vytvoriť dokument</button>
-            <button type="button" id="trinity-doc-refresh">↻ Obnoviť</button>
-          </div>
-        </div>
-        <div class="domain-filters" id="trinity-doc-filters">
-          <button type="button" class="domain-filter-btn active" data-doc-filter="">Všetky</button>
-          <button type="button" class="domain-filter-btn" data-doc-filter="workflow_step">⚡ Kroky úloh</button>
-          <button type="button" class="domain-filter-btn" data-doc-filter="ui_evolution">🎨 Zmeny UI</button>
-          <button type="button" class="domain-filter-btn" data-doc-filter="domain_production">🚀 Domény & Produkcia</button>
-          <button type="button" class="domain-filter-btn" data-doc-filter="self_improvement">🧠 Samorozvoj</button>
-          <button type="button" class="domain-filter-btn" data-doc-filter="manual_doc">📝 Vlastné</button>
-          <input type="search" id="trinity-doc-search" class="domain-search-box" placeholder="Hľadať v Trinity Dokumentoch...">
-        </div>
-        <div id="trinity-doc-form-wrap" class="domain-form-card" hidden>
-          <form id="trinity-doc-create-form" class="secret-form commerce-form">
-            <strong>Vytvoriť nový Trinity Dokument</strong>
+          <p class="settings-help">Pripoj svoj skutočný bankový účet (<b>IBAN + BIC/SWIFT</b> pre okamžité generovanie európskych platobných príkazov <b>SEPA EPC QR</b> do mobilných aplikácií <b>George SLSP, Tatra banka, VÚB, ČSOB, Fio, Revolut</b>) alebo vlož živý <b>API Token & Endpoint</b> (Fio banka API, Revolut Business API, Alpaca Markets, Binance, IBKR) pre priame odosielanie príkazov. API token sa ukladá šifrovane v 256-bit AES-GCM trezore.</p>
+          <form id="commodity-bank-form" class="secret-form commerce-form">
+            <strong>1. Pridať alebo aktualizovať reálne bankové / brokerské spojenie</strong>
             <div class="commerce-form-grid">
-              <label><span>Názov dokumentu</span><input id="trinity-doc-title" required minlength="2" maxlength="180" placeholder="napr. Architektúra nového projektu"></label>
-              <label><span>Kategória</span><select id="trinity-doc-category"><option value="manual_doc">Vlastný dokument (manual_doc)</option><option value="architecture">Architektúra (architecture)</option><option value="domain_production">Domény & Produkcia</option><option value="ui_evolution">UI & Vzhľad</option><option value="commerce">Obchod & Platby</option></select></label>
-              <label class="full-span"><span>Stručné zhrnutie</span><input id="trinity-doc-summary" maxlength="500" placeholder="Hlavný účel a výstup dokumentu"></label>
-              <label class="full-span"><span>Obsah dokumentu (Markdown)</span><textarea id="trinity-doc-content" rows="5" required maxlength="30000" placeholder="# Nadpis&#10;Opíš kroky, rozhodnutia alebo špecifikáciu..."></textarea></label>
+              <label><span>Banka / Inštitúcia / Broker</span><select id="bank-provider">
+                <option value="revolut_business">Revolut Business / Revolut Pro API (REVOLT21)</option>
+                <option value="fio_banka">Fio banka SK/CZ · REST API & SEPA (FIOZSKBA)</option>
+                <option value="slsp_george">Slovenská sporiteľňa (George PSD2 / SEPA · GIBASKBX)</option>
+                <option value="tatra_banka">Tatra banka · Open Banking / SEPA (TATRSKBX)</option>
+                <option value="vub_banka">VÚB banka · PSD2 / SEPA Instant (SUBASKBX)</option>
+                <option value="csob_banka">ČSOB Slovensko · PSD2 / SEPA (CEKOSKBX)</option>
+                <option value="paypal_commerce">PayPal Commerce / Live REST API</option>
+                <option value="alpaca_markets">Alpaca Markets · Live & Commodities Broker API</option>
+                <option value="binance_spot">Binance Spot / PAXG Gold / BTC-EUR API</option>
+                <option value="ibkr_bridge">Interactive Brokers (IBKR Webhook / Client Portal)</option>
+              </select></label>
+              <label><span>Názov účtu / Majiteľ (pre SEPA príkaz)</span><input id="bank-account-name" required minlength="2" maxlength="120" placeholder="napr. Trinity Capital s.r.o. alebo Hlavný EUR účet"></label>
+              <label><span>IBAN účtu (pre SEPA prevody a vyrovnanie)</span><input id="bank-iban" maxlength="42" placeholder="napr. SK89 7500 0000 0000 1234 5671 alebo LT..."></label>
+              <label><span>BIC / SWIFT kód banky</span><input id="bank-bic" maxlength="16" placeholder="napr. GIBASKBX, TATRSKBX, FIOZSKBA, REVOLT21"></label>
+              <label><span>Živý API Endpoint / Webhook URL (voliteľné pre priame exekúcie)</span><input id="bank-api-endpoint" type="url" maxlength="1024" placeholder="https://b2b.revolut.com/api/1.0/orders alebo https://api.alpaca.markets/v2/orders"></label>
+              <label><span>API Token / Kľúč (uloží sa do AES-GCM Trezoru)</span><input id="bank-api-token" type="password" maxlength="2048" autocomplete="new-password" placeholder="Vlož Live API kľúč (nikdy sa nezobrazí späť)"></label>
             </div>
             <div class="commerce-form-actions">
-              <button class="primary" type="submit">📚 Uložiť Trinity Dokument</button>
-              <button type="button" id="trinity-doc-cancel">Zrušiť</button>
+              <label class="domain-live-check"><input type="checkbox" id="bank-is-default" checked> <b>Nastaviť ako predvolený účet pre komoditné vyrovnanie</b></label>
+              <label class="domain-live-check"><input type="checkbox" id="bank-auto-execute"> <b>Odosielať živé obchodné príkazy priamo na API Endpoint</b></label>
+              <button class="primary" type="submit">🏦 Uložiť a aktivovať bankové spojenie</button>
             </div>
           </form>
+          <div id="commodity-sepa-qr-box" class="domain-form-card" hidden>
+            <div class="dialog-head"><strong id="commodity-sepa-title">SEPA EPC QR Platobný príkaz pre banku</strong><button type="button" id="commodity-sepa-close">✕</button></div>
+            <div id="commodity-sepa-body"></div>
+          </div>
+          <div class="commerce-catalog-head" style="margin-top:16px">
+            <strong>2. Aktívne pripojené banky a brokerské účty</strong>
+          </div>
+          <div id="commodity-banks-list" class="api-key-list"></div>
+        </section>
+      </div>
+
+      <div id="comm-pane-autopilot" class="comm-tab-pane" hidden>
+        <section id="commodity-auto-panel" class="panel domain-env-panel">
+          <div class="panel-head">
+            <div><span class="eyebrow">AUTONÓMNY KOMODITNÝ OBCHODNÍK TRINITY</span><h2>Samostatné investovanie, nákup, predaj a rebalansovanie komodít</h2></div>
+            <span id="commodity-desk-badge" class="detail-chip">AUTOPILOT PRIPRAVENÝ</span>
+          </div>
+          <p id="commodity-desk-summary" class="settings-help">Trinity zanalyzuje všetkých 22 komodít, vyhodnotí otvorené pozície na predaj so ziskom (Take-Profit), rozdelí investičný rozpočet do najlepších príležitostí (<code>STRONG_BUY</code> / <code>BUY</code>) a vytvorí bankové SEPA / API vyrovnanie aj <b>Trinity Dokument</b>.</p>
+          <form id="commodity-auto-form" class="secret-form commerce-form">
+            <strong>1. Spustiť autonómny investičný & obchodný cyklus Trinity</strong>
+            <div class="commerce-form-grid">
+              <label><span>Investičná stratégia</span><select id="commodity-auto-strategy"><option value="balanced">Vyvážená (Balanced · Kovy + Energie + Agro)</option><option value="conservative">Konzervatívna (Zlato, Striebro, Nízka volatilita)</option><option value="growth">Rastová (Strategické kovy, Meď, Urán, Energie)</option><option value="aggressive">Agresívna (Momentum & Vysoký R:R potenciál)</option></select></label>
+              <label><span>Rozpočet na investičný cyklus (EUR)</span><input id="commodity-auto-budget" type="number" min="50" max="500000" step="50" value="3000"></label>
+              <label><span>Zameranie sektora</span><select id="commodity-auto-sector"><option value="all">Všetkých 5 komoditných sektorov (22 komodít)</option><option value="precious_metals">Vzácne a drahé kovy (Zlato, Striebro, Platina, Paládium)</option><option value="energy">Energetické komodity (Ropa Brent/WTI, Plyn, Urán)</option><option value="industrial_metals">Priemyselné a batériové kovy (Meď, Lítium, Hliník, Nikel)</option><option value="agriculture">Poľnohospodárske komodity (Pšenica, Káva, Kakao, Kukurica)</option><option value="strategic_digital">Strategické a uhlíkové komodity (CO₂ EUA, Bitcoin)</option></select></label>
+              <label><span>Maximálny počet obchodov v cykle</span><select id="commodity-auto-max-trades"><option value="4">4 najlepšie komodity</option><option value="2">2 najlepšie komodity</option><option value="6">6 najlepších komodít</option></select></label>
+            </div>
+            <div class="commerce-form-actions">
+              <label class="domain-live-check"><input type="checkbox" id="commodity-auto-tp" checked> <b>Automaticky predať prekúpené pozície a vybrať zisk (Auto Take-Profit)</b></label>
+              <button class="primary" type="submit" id="commodity-auto-run-btn">🤖 Spustiť autonómne obchodovanie & investovanie</button>
+              <button type="button" id="commodity-ask-chat-btn">✦ Požiadať Trinity v chate o stratégiu</button>
+            </div>
+          </form>
+          <form id="commodity-trade-form" class="secret-form commerce-form" style="margin-top:14px">
+            <strong>2. Priamy nákup (Investícia) alebo predaj konkrétnej komodity s bankovým vyrovnaním</strong>
+            <div class="commerce-form-grid">
+              <label><span>Komodita</span><select id="commodity-trade-symbol"><option value="XAU-EUR">XAU-EUR · Zlato (Gold Spot)</option><option value="XAG-EUR">XAG-EUR · Striebro (Silver Spot)</option><option value="XPT-EUR">XPT-EUR · Platina</option><option value="XPD-EUR">XPD-EUR · Paládium</option><option value="BRENT-EUR">BRENT-EUR · Ropa Brent</option><option value="WTI-EUR">WTI-EUR · Ropa WTI</option><option value="NGAS-EUR">NGAS-EUR · Zemný plyn Henry Hub</option><option value="TTF-EUR">TTF-EUR · Európsky plyn TTF</option><option value="URAN-EUR">URAN-EUR · Urán U3O8</option><option value="COPPER-EUR">COPPER-EUR · Meď (Copper)</option><option value="ALUM-EUR">ALUM-EUR · Hliník (Aluminum)</option><option value="LITH-EUR">LITH-EUR · Lítium (Lithium)</option><option value="NICKEL-EUR">NICKEL-EUR · Nikel (Nickel)</option><option value="ZINC-EUR">ZINC-EUR · Zinok (Zinc)</option><option value="WHEAT-EUR">WHEAT-EUR · Pšenica (Wheat)</option><option value="CORN-EUR">CORN-EUR · Kukurica (Corn)</option><option value="SOY-EUR">SOY-EUR · Sója (Soybeans)</option><option value="COFFEE-EUR">COFFEE-EUR · Káva Arabica</option><option value="COCOA-EUR">COCOA-EUR · Kakao (Cocoa)</option><option value="SUGAR-EUR">SUGAR-EUR · Cukor (Sugar #11)</option><option value="EUA-EUR">EUA-EUR · Emisné povolenky CO₂</option><option value="BTC-EUR">BTC-EUR · Bitcoin (Digitálna komodita)</option></select></label>
+              <label><span>Typ príkazu</span><select id="commodity-trade-side"><option value="buy">🟢 KÚPIŤ / INVESTOVAŤ (BUY)</option><option value="sell">🔴 PREDAŤ POZÍCIU (SELL)</option></select></label>
+              <label><span>Suma obchodu v EUR</span><input id="commodity-trade-amount" type="number" min="10" max="1000000" step="10" value="1000" placeholder="napr. 1000 EUR"></label>
+              <label><span>Investičná poznámka / téza</span><input id="commodity-trade-thesis" maxlength="400" placeholder="napr. Zaistenie proti inflácii + SEPA vyrovnanie"></label>
+            </div>
+            <div class="commerce-form-actions">
+              <button class="primary" type="submit">⚡ Vykonať obchod & vygenerovať SEPA / API príkaz</button>
+              <button type="button" id="commodity-refresh-btn">↻ Obnoviť dáta</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <section id="documents-view" class="view documents-view" hidden>
+      <div class="section-intro"><span class="eyebrow">TRINITY 10.3 KNOWLEDGE CENTER · PRÍRUČKA, ARCHITEKTÚRA, LICENCIE & DOKUMENTY</span><h1>Dokumentácia, Kompletná Architektúra, Licencie & Help</h1><p>Oficiálna príručka ako správne používať Trinity 10.3, technická architektúra systému (Cloudflare Edge + 45 agentov + Quantum Brain), návod na pripojenie bánk a platobných brán, licenčné podmienky a archív vygenerovaných dokumentov (<code>.md</code> / <code>.pdf</code>).</p></div>
+      <div class="metric-grid domain-metrics tabular-metrics">
+        <article class="metric blue"><span>VERZIA JADRA</span><strong>Trinity 10.3</strong><small>45 agentov · 150 pluginov · 152 skillov</small></article>
+        <article class="metric teal"><span>DOKUMENTY V ARCHÍVE</span><strong id="docstat-total">—</strong><small>uložené v D1 (<span id="docstat-steps">0</span> krokov)</small></article>
+        <article class="metric gold"><span>UI & SAMOROZVOJ</span><strong id="docstat-ui">—</strong><small>aplikované zmeny a pravidlá</small></article>
+        <article class="metric purple"><span>DOMÉNY & OBCHOD</span><strong id="docstat-domains">—</strong><small>produkčné prostredia a obchody</small></article>
+      </div>
+
+      <nav class="trinity-subnav" id="docs-subnav" aria-label="Kapitoly dokumentácie">
+        <button type="button" class="subnav-btn active" data-doc-tab="guide">📖 Ako používať Trinity (Help)</button>
+        <button type="button" class="subnav-btn" data-doc-tab="architecture">🏗️ Kompletná Architektúra</button>
+        <button type="button" class="subnav-btn" data-doc-tab="banking">🏦 Banky, SEPA & Komodity</button>
+        <button type="button" class="subnav-btn" data-doc-tab="licenses">⚖️ Licencie & Bezpečnosť</button>
+        <button type="button" class="subnav-btn" data-doc-tab="archive">📁 Archív záznamov (MD / PDF)</button>
+      </nav>
+
+      <div id="doc-pane-guide" class="doc-tab-pane">
+        <div class="docs-portal-grid">
+          <article class="docs-card">
+            <span class="docs-badge">KAPITOLA 1 · RÝCHLY ŠTART</span>
+            <h3>1. Ako správne komunikovať a zadávať úlohy v Chate</h3>
+            <p>Trinity nie je obyčajný chatbot — je to autonómny operačný systém napojený na 25 výkonných nástrojov, databázu D1, Cloudflare DNS, tvoje bankové odkazy a komoditný desk.</p>
+            <ul class="docs-list">
+              <li><b>Výber AI motora (dole v Chate):</b>
+                <ul>
+                  <li><code>Cloudflare Workers AI (GPT-OSS-120B)</code> — predvolený rýchly motor bežiaci priamo na Cloudflare Edge bez externých poplatkov.</li>
+                  <li><code>OpenAI / ChatGPT (GPT-4o)</code> alebo <code>Google Gemini</code> — pre komplexné kódovanie, hĺbkové analýzy a multimodálnu prácu.</li>
+                  <li><code>Môj počítač · PC Bridge</code> — keď chceš, aby Trinity vykonala schválenú akciu na tvojom Windows PC (spustenie aplikácie, lokálny súbor).</li>
+                </ul>
+              </li>
+              <li><b>Priame príkazy v prirodzenej slovenčine:</b> Môžeš napísať napr.:
+                <ul>
+                  <li><i>„Trinity, zmeň svoje UI na kybernetickú zlatú tému a pridaj widget s mojimi cieľmi.“</i></li>
+                  <li><i>„Vytvor doménu moja-znacka.sk so staging a production prostredím a vyprodukuj na ňu AI SaaS web.“</i></li>
+                  <li><i>„Zanalyzuj všetky komodity, synchronizuj živé ceny a investuj 2 000 € do najlepších kovov.“</i></li>
+                </ul>
+              </li>
+              <li><b>Trvalá pamäť a hlas:</b> Zaškrtni <code>Zapamätať si</code> pre uloženie faktov do dlhodobej pamäte alebo použi <code>● Hlas</code> / <code>▧ Obrázok</code> pre multimodálny vstup.</li>
+            </ul>
+            <div class="docs-card-actions"><button type="button" class="primary" data-view="chat">Otvoriť Chat s Trinity →</button></div>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge">KAPITOLA 2 · DOMÉNY & PRODUKCIA</span>
+            <h3>2. Ako vytvoriť doménu, prostredia (Prod/Staging/Dev) a zarábať</h3>
+            <p>V sekcii <b>Domény a hosting</b> spravuješ celé portfólio domén rovnako ako v Cloudflare Pages & Workers:</p>
+            <ul class="docs-list">
+              <li><b>Krok 1 — Tvorba domény a prostredí:</b> Vyplň názov domény (napr. <code>ai-studio.sk</code>), vyber šablónu (Business, AI SaaS, E-shop, Marketplace, Portfólio) alebo projekt z <b>AI Studia</b> a klikni na <b>🚀 Vytvoriť doménu, prostredia & spustiť produkciu</b>.</li>
+              <li><b>Krok 2 — Okamžité živé URL adresy:</b> Trinity okamžite vytvorí 3 izolované prostredia:
+                <ul>
+                  <li>Produkcia: <code>/sites/&lt;domena&gt;/production</code> (alebo <code>/sites/&lt;domena&gt;</code>)</li>
+                  <li>Staging (testovanie): <code>/sites/&lt;domena&gt;/staging</code></li>
+                  <li>Development (vývoj): <code>/sites/&lt;domena&gt;/development</code></li>
+                </ul>
+              </li>
+              <li><b>Krok 3 — Predaj a prenájom domén:</b> Pri ľubovoľnej doméne klikni na <code>Na predaj</code> alebo <code>Prenajať</code> a potom na <code>＋ Revolut odkaz</code> alebo <code>＋ PayPal odkaz</code>. Klient zaplatí priamo na tvoj účet.</li>
+            </ul>
+            <div class="docs-card-actions"><button type="button" data-view="domains">Prejsť na Domény a hosting →</button></div>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge">KAPITOLA 3 · VLASTNÝ DIZAJN & SAMOROZVOJ</span>
+            <h3>3. Ako upravovať vzhľad (Live UI) a učiť Trinity nové pravidlá</h3>
+            <p>Trinity dokáže meniť vlastné používateľské rozhranie za behu bez reštartu servera:</p>
+            <ul class="docs-list">
+              <li><b>7 profesionálnych tém na 1 klik:</b> V <b>Nastavenia → 🎨 Živý vzhľad & UI</b> môžeš jedným klikom prepnúť medzi <i>Pôvodnou polnočnou modrou</i>, <i>Kybernetickou zlatou</i>, <i>Polárnou smaragdovou</i>, <i>Kráľovskou fialovou</i>, <i>Taktickou karmínovou</i>, <i>Oceánskym sklom</i> a <i>Arktickou svetlou</i>.</li>
+              <li><b>Vlastné CSS a Widgety:</b> Môžeš zadať vlastné HEX farby, zmeniť nadpisy, pripnúť vlastný informačný box na Prehľad alebo vložiť bezpečné CSS pravidlá (filtrované cez XSS/import sanitizer).</li>
+              <li><b>Bezpečný Rollback:</b> Každá zmena UI je zapísaná v histórii zmien — jedným kliknutím na <code>↺ Vrátiť pred túto zmenu</code> vrátiš predchádzajúci stav.</li>
+            </ul>
+            <div class="docs-card-actions"><button type="button" data-view="settings">Otvoriť Nastavenia & Živý vzhľad →</button></div>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge">KAPITOLA 4 · RIEŠENIE PROBLÉMOV (FAQ & HELP)</span>
+            <h3>4. Často kladené otázky a riešenie problémov</h3>
+            <ul class="docs-list">
+              <li><b>Prečo sa mi pri štarte ukazuje overenie prístupu?</b> Trinity chráni tvoje financie, domény a API kľúče pomocou <code>HttpOnly</code> relácie alebo Google OAuth. Na schválenom vývojovom spojení prebehne prihlásenie automaticky.</li>
+              <li><b>Ako otestujem, či funguje OpenAI alebo Gemini kľúč?</b> Prejdi do <b>Nastavenia → Pripojenia → Modely a poskytovatelia</b>, vlož kľúč do <b>Trezoru API kľúčov</b> a klikni na <code>Živý test Gemini / OpenAI</code>.</li>
+              <li><b>Kde nájdem vygenerované PDF a Markdown reporty?</b> Prepni sa vyššie na záložku <b>📁 Archív záznamov (MD / PDF)</b>, kde má každý krok tlačidlá <code>⬇ Stiahnuť .MD</code> a <code>⬇ Stiahnuť .PDF</code>.</li>
+            </ul>
+          </article>
         </div>
-        <div id="trinity-doc-reader" class="domain-detail-card" hidden>
-          <div class="dialog-head"><strong id="trinity-doc-reader-title">Dokument</strong><button type="button" id="trinity-doc-reader-close">✕</button></div>
-          <div id="trinity-doc-reader-body"></div>
+      </div>
+
+      <div id="doc-pane-architecture" class="doc-tab-pane" hidden>
+        <div class="docs-portal-grid">
+          <article class="docs-card full-span-card">
+            <span class="docs-badge">SYSTÉMOVÁ ARCHITEKTÚRA · TRINITY 10.3 CLOUDFLARE EDGE</span>
+            <h3>Kompletná viacvrstvová architektúra Trinity 10.3</h3>
+            <p>Trinity 10.3 beží ako distribuovaný serverless systém na globálnej sieti <b>Cloudflare Edge</b> (`auru.space` produkcia / `auru.dev` vývoj) s odolným stavovým spracovaním a kryptografickou ochranou dát.</p>
+            <pre class="docs-arch-diagram">┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                        POUŽÍVATEĽSKÉ ROZHRANIE (PWA / SPA UI)                           │
+│  Prehľad · Chat · AI Studio · Projekty · Domény &amp; Hosting · Komodity &amp; Banky · Help     │
+└───────────────────────────────────────────┬─────────────────────────────────────────────┘
+                                            │ HTTPS + Strict CSP + Session Cookie
+                                            ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                     CLOUDFLARE WORKER EDGE ROUTER (src/index.js)                        │
+│  Autentifikácia · Rate-Limiting · RBAC (owner/admin/user) · MCP Server (/mcp, /api/mcp) │
+├─────────────────────────┬───────────────────────────────────┬───────────────────────────┤
+│   DURABLE OBJECTS       │     CLOUDFLARE WORKFLOWS          │   DOMÉNY, BANKY &amp; DESK    │
+│ • TrinityAgent (Stav)   │ • TrinityOperations (src/workflow)│ • Live ECB &amp; Spot Feeds   │
+│ • ChatAgent (Relácie)   │   Odolné viac-krokové úlohy       │ • SEPA EPC QR &amp; Bank API  │
+│ • GuardianAgent (Audit) │ • Quantum Brain (8-bit QCA)       │ • Revolut Pro &amp; PayPal    │
+│ • TrinityCopilotAgent   │ • Evolution &amp; Maintenance Scan    │ • Multi-Env (/sites/...)  │
+└─────────────┬───────────┴─────────────────┬─────────────────┴─────────────┬─────────────┘
+              ▼                             ▼                               ▼
+┌─────────────────────────┐   ┌───────────────────────────┐   ┌───────────────────────────┐
+│   CLOUDFLARE D1 (SQL)   │   │  CLOUDFLARE KV Mastermind │   │  CLOUDFLARE R2 ARTIFACTS  │
+│ 30+ relačných tabuliek  │   │  Rýchla konfigurácia UI,  │   │  Archív binárnych súborov │
+│ + AES-GCM Secret Vault  │   │  cenník platieb a cache   │   │  výstupov a PDF reportov  │
+└─────────────────────────┘   └───────────────────────────┘   └───────────────────────────┘</pre>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge">ORCHESTRÁCIA & INTELIGENCIA</span>
+            <h3>45 AI Agentov, 150 Pluginov, 152 Skillov & Quantum Brain</h3>
+            <ul class="docs-list">
+              <li><b>45 špecializovaných agentov v 9 tímoch (`src/registry.js`):</b> Rozdelených do tímov <code>core</code> (jadro), <code>strategy</code> (plánovanie), <code>research</code> (výskum a fakty), <code>build</code> (vývoj a kód), <code>creative</code> (dizajn a texty), <code>ops</code> (infraštruktúra), <code>memory</code> (kontext), <code>finance</code> (komodity a obchod) a <code>evolution</code> (samorozvoj).</li>
+              <li><b>25 praktických exekučných nástrojov (`src/tools.js`):</b> Zahŕňa <code>evolve_trinity_ui</code>, <code>provision_domain_environment</code>, <code>deploy_domain_environment</code>, <code>analyze_commodities</code>, <code>execute_commodity_trade</code>, <code>auto_invest_commodities</code>, <code>create_trinity_document</code>, <code>create_payment_offer</code>, <code>domain_portfolio</code>, <code>web_search</code> a ďalšie.</li>
+              <li><b>Quantum Brain (`src/brain.js`) & Evolution (`src/evolution.js`):</b> Kvantovo-inšpirovaný celulárny automat (8-bit QCA) pri každom cron cykle vyhodnocuje entropiu a stabilitu systému.</li>
+              <li><b>Truth Policy (`src/truth.js` · `evidence-required`):</b> Trinity má zakázané vymýšľať si výsledky externých akcií — každé tvrdenie musí byť podložené reálnym výstupom nástroja v databáze.</li>
+            </ul>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge">DATABÁZOVÁ SCHÉMA & PROTOKOLY</span>
+            <h3>D1 SQLite Tabuľky, MCP Protokol & PC Bridge 2.0</h3>
+            <ul class="docs-list">
+              <li><b>Kľúčové D1 tabuľky:</b> <code>ops_jobs</code>, <code>ops_steps</code>, <code>ops_memory</code>, <code>ops_plugins</code>, <code>domains</code>, <code>domain_dns_records</code>, <code>domain_environments</code>, <code>domain_deployments</code>, <code>trading_portfolios</code>, <code>trading_positions</code>, <code>trading_orders</code>, <code>trading_quotes</code>, <code>bank_connections</code>, <code>trinity_documents</code>, <code>secret_vault</code>, <code>self_improvement_proposals</code>.</li>
+              <li><b>Model Context Protocol (`MCP 2025-03-26`):</b> Trinity vystavuje plnohodnotný JSON-RPC 2.0 MCP server na <code>/mcp</code> a <code>/api/mcp</code>, takže k nej môžeš pripojiť externé IDE alebo AI klientov cez Trinity API kľúč.</li>
+              <li><b>PC Bridge 2.0 (`src/system-actions.js`):</b> Bezpečný lokálny most, kde tvoj počítač sám odchádzajúcim HTTPS spojením preberá iba tebou schválené úlohy (žiadne otvorené porty smerom z internetu).</li>
+            </ul>
+          </article>
         </div>
-        <div id="trinity-doc-list" class="api-key-list"></div>
-      </section>
+      </div>
+
+      <div id="doc-pane-banking" class="doc-tab-pane" hidden>
+        <div class="docs-portal-grid">
+          <article class="docs-card">
+            <span class="docs-badge">SLOVENSKÉ & EÚ BANKY · SEPA & PSD2</span>
+            <h3>1. Napojenie na banky (SLSP, Tatra banka, VÚB, ČSOB, Fio, Revolut)</h3>
+            <p>Trinity podporuje tri úrovne reálneho finančného prepojenia podľa toho, či prijímaš platby od klientov alebo vyrovnávaš komoditné obchody:</p>
+            <ul class="docs-list">
+              <li><b>A) Štandard SEPA EPC QR (`BCD\n002...`) pre všetky slovenské a EÚ banky:</b>
+                V záložke <b>Komodity & Banky → 🏦 Napojenie na Banky</b> zadaj svoj <code>IBAN</code> (napr. <code>SK89...</code> alebo <code>LT...</code>) a vyber banku (<b>Slovenská sporiteľňa George</b>, <b>Tatra banka</b>, <b>VÚB</b>, <b>ČSOB</b>, <b>Fio</b>, <b>Revolut</b>). Pri každom komoditnom nákupe ti Trinity vygeneruje certifikovaný <b>SEPA EPC QR payload</b> a presný platobný predpis s variabilným referenčným kódom <code>TRINITY-...</code>, ktorý načítaš v mobilnom bankovníctve.</li>
+              <li><b>B) Priame bankové & brokerské REST API (Fio API, Revolut Business, Alpaca, Binance, IBKR):</b>
+                Ak zadáš živý <b>API Endpoint</b> a <b>API Token</b> a zapneš <i>Odosielať živé obchodné príkazy priamo na API Endpoint</i>, Trinity pri každom obchode odošle autentifikovaný <code>POST</code> príkaz s <code>Bearer</code> tokenom z AES-GCM trezoru priamo do tvojej inštitúcie a zaznamená HTTP status odpovede.</li>
+              <li><b>C) Klientske platobné brány Revolut Pro & PayPal (`Nastavenia → Obchod a platby`):</b>
+                Pre inkasovanie peňazí od zákazníkov za weby, domény a AI služby vytvára Trinity verejné odkazy <code>/pay/revolut-pro/:id</code> a <code>/pay/paypal/:id</code> s okamžitým presmerovaním na tvoj Revolut Checkout alebo PayPal.</li>
+            </ul>
+            <div class="docs-card-actions"><button type="button" data-view="commodities" id="docs-open-banks-btn" class="primary">🏦 Otvoriť Napojenie na Banky & Brokerov →</button></div>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge">ŽIVÉ TRHOVÉ DÁTA & 22 KOMODÍT</span>
+            <h3>2. Ako funguje živá synchronizácia cien a komoditný Autopilot</h3>
+            <ul class="docs-list">
+              <li><b>Živé trhové zdroje (`Synchronizovať živé trhové ceny`):</b> Tlačidlo v komoditnom desku sťahuje aktuálny devízový kurz <code>EUR/USD</code> priamo z <b>Európskej centrálnej banky (ECB / Frankfurter API)</b> a živé spotové ceny pre Zlato (<code>XAU-EUR</code> cez PAXG spot), Striebro (<code>XAG-EUR</code> cez KAG spot) a Bitcoin (<code>BTC-EUR</code>) v reálnom čase.</li>
+              <li><b>Technická analýza 22 komodít:</b> Pre každú komoditu v 5 sektoroch (Vzácne kovy, Energie & Urán, Priemyselné/Batériové kovy, Poľnohospodárstvo, Strategické/CO₂) počíta Trinity:
+                <ul>
+                  <li><code>RSI (14)</code> — identifikácia prekúpeného (&gt;68) a prepredaného (&lt;35) trhu,</li>
+                  <li><code>MACD Histogram & Momentum</code> — smer a sila trendu,</li>
+                  <li><code>Support / Resistance, Stop-Loss & Take-Profit</code> — ochrana kapitálu a cieľová cena,</li>
+                  <li><code>Kompozitné AI Skóre (0–100)</code> — výsledný verdikt <code>STRONG_BUY</code>, <code>BUY</code>, <code>HOLD</code> alebo <code>SELL / TAKE_PROFIT</code>.</li>
+                </ul>
+              </li>
+            </ul>
+          </article>
+        </div>
+      </div>
+
+      <div id="doc-pane-licenses" class="doc-tab-pane" hidden>
+        <div class="docs-portal-grid">
+          <article class="docs-card">
+            <span class="docs-badge">SYSTÉMOVÉ & OPEN-SOURCE LICENCIE</span>
+            <h3>1. Licenčné podmienky Trinity 10.3 a použitých komponentov</h3>
+            <ul class="docs-list">
+              <li><b>Jadro Trinity Morhfeus 10.3 (Proprietary Owner License):</b>
+                <code>Copyright © 2026 Trinity Morhfeus / Auru Digital Studio. Všetky práva vyhradené.</code> Architektúra viac-agentového jadra, UI Evolution Engine, Commodity &amp; Banking Desk a biznis šablóny sú výhradným vlastníctvom prevádzkovateľa systému.</li>
+              <li><b>Open-Source knižnice a behové prostredie (MIT / Apache-2.0):</b>
+                <ul>
+                  <li><b>Cloudflare Workers Runtime &amp; workerd</b> — Licencia <code>Apache License 2.0</code> (Cloudflare, Inc.)</li>
+                  <li><b>Zod (`zod ^3.23.8`)</b> — Licencia <code>MIT License</code> (Colin McDonnell — typová validácia API schém)</li>
+                  <li><b>Vitest (`vitest ^2.0.5`)</b> — Licencia <code>MIT License</code> (Anthony Fu &amp; prispievatelia — jednotkové a runtime testy)</li>
+                  <li><b>Web Crypto API &amp; Standard EPC QR (`EPC069-12`)</b> — Štandardy W3C a European Payments Council</li>
+                </ul>
+              </li>
+            </ul>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge">BEZPEČNOSŤ, PSD2 & RISK DISCLOSURE</span>
+            <h3>2. Kryptografická bezpečnosť, PSD2/GDPR a investičné vyhlásenie</h3>
+            <ul class="docs-list">
+              <li><b>AES-GCM 256-bit Šifrovaný Trezor (`src/secret-vault.js`):</b> Všetky API kľúče (Gemini, Cloudflare, GitHub, Bankové a Brokerské API tokeny) sú pred zápisom do D1 databázy zašifrované algoritmom <code>AES-GCM (256-bit)</code> s unikátnym IV vektorom. Kľúče sa nikdy nevracajú späť do prehliadača v otvorenom tvare.</li>
+              <li><b>PSD2 &amp; Banková bezpečnosť:</b> Trinity nikdy nevyžaduje ani neukladá tvoje prihlasovacie meno či heslo do internetbankingu. Prepojenie prebieha výhradne cez štandardizované <b>SEPA EPC QR platobné príkazy</b> (ktoré schvaľuješ vo svojom telefóne) alebo cez revokovateľné <b>API tokeny</b> v šifrovanom trezore.</li>
+              <li><b>Investičné vyhlásenie (Risk Disclosure):</b> Komoditné analýzy (RSI, MACD, AI skóre) slúžia ako analytický a exekučný nástroj vlastníka systému. Obchodovanie s komoditami zahŕňa trhové riziko; pred zapnutím automatického odosielania príkazov na živý brokerský API endpoint si vždy skontroluj nastavený rozpočet a Stop-Loss limity.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+
+      <div id="doc-pane-archive" class="doc-tab-pane" hidden>
+        <section class="panel">
+          <div class="panel-head">
+            <div><span class="eyebrow">ARCHÍV KROKOV A ZMIEN · MARKDOWN & PDF EXPORT</span><h2>Zoznam vygenerovaných Trinity Dokumentov</h2></div>
+            <div class="domain-action-bar">
+              <button type="button" id="trinity-doc-open-create" class="primary">＋ Vytvoriť vlastný dokument</button>
+              <button type="button" id="trinity-doc-refresh">↻ Obnoviť archív</button>
+            </div>
+          </div>
+          <div class="domain-filters" id="trinity-doc-filters">
+            <button type="button" class="domain-filter-btn active" data-doc-filter="">Všetky</button>
+            <button type="button" class="domain-filter-btn" data-doc-filter="workflow_step">⚡ Kroky úloh</button>
+            <button type="button" class="domain-filter-btn" data-doc-filter="ui_evolution">🎨 Zmeny UI</button>
+            <button type="button" class="domain-filter-btn" data-doc-filter="domain_production">🚀 Domény & Produkcia</button>
+            <button type="button" class="domain-filter-btn" data-doc-filter="commerce">📈 Komodity & Banky</button>
+            <button type="button" class="domain-filter-btn" data-doc-filter="self_improvement">🧠 Samorozvoj</button>
+            <button type="button" class="domain-filter-btn" data-doc-filter="manual_doc">📝 Vlastné</button>
+            <input type="search" id="trinity-doc-search" class="domain-search-box" placeholder="Hľadať v archíve dokumentov...">
+          </div>
+          <div id="trinity-doc-form-wrap" class="domain-form-card" hidden>
+            <form id="trinity-doc-create-form" class="secret-form commerce-form">
+              <strong>Vytvoriť nový Trinity Dokument</strong>
+              <div class="commerce-form-grid">
+                <label><span>Názov dokumentu</span><input id="trinity-doc-title" required minlength="2" maxlength="180" placeholder="napr. Architektúra nového projektu"></label>
+                <label><span>Kategória</span><select id="trinity-doc-category"><option value="manual_doc">Vlastný dokument (manual_doc)</option><option value="architecture">Architektúra (architecture)</option><option value="domain_production">Domény & Produkcia</option><option value="ui_evolution">UI & Vzhľad</option><option value="commerce">Obchod, Banky & Komodity</option></select></label>
+                <label class="full-span"><span>Stručné zhrnutie</span><input id="trinity-doc-summary" maxlength="500" placeholder="Hlavný účel a výstup dokumentu"></label>
+                <label class="full-span"><span>Obsah dokumentu (Markdown)</span><textarea id="trinity-doc-content" rows="5" required maxlength="30000" placeholder="# Nadpis&#10;Opíš kroky, rozhodnutia alebo špecifikáciu..."></textarea></label>
+              </div>
+              <div class="commerce-form-actions">
+                <button class="primary" type="submit">📚 Uložiť Trinity Dokument</button>
+                <button type="button" id="trinity-doc-cancel">Zrušiť</button>
+              </div>
+            </form>
+          </div>
+          <div id="trinity-doc-reader" class="domain-detail-card" hidden>
+            <div class="dialog-head"><strong id="trinity-doc-reader-title">Dokument</strong><button type="button" id="trinity-doc-reader-close">✕</button></div>
+            <div id="trinity-doc-reader-body"></div>
+          </div>
+          <div id="trinity-doc-list" class="api-key-list"></div>
+        </section>
+      </div>
     </section>
     <section id="settings-view" class="view settings-view" hidden>
       <div class="section-intro"><span class="eyebrow" data-i18n="settingsLabel">TRINITY CONTROL CENTER</span><h1 data-i18n="settingsTitle">Nastavenia, dáta a integrácie</h1><p data-i18n="settingsIntro">Spravuj modely, internet, úložiská, moduly a bezpečný prístup pre ďalšie aplikácie.</p></div>

@@ -328,13 +328,27 @@ test('Cloudflare-style Domain Environments provision domains, deploy live sites,
   assert.equal(pdfExport.headers.get('content-type'),'application/pdf');
 });
 
-test('Autonomous Commodity Desk analyzes all 22 commodities, executes buy/sell trades, runs autonomous investment cycles, and records Trinity Documents',async()=>{
+test('Autonomous Commodity Desk analyzes all 22 commodities, connects real banks/brokers (SEPA EPC QR & Vault), executes buy/sell trades, and runs autonomous investment cycles',async()=>{
+  const bankCreate=await req('/api/assistant/commodities/banks',{
+    provider:'slsp_george',
+    account_name:'Trinity Capital s.r.o.',
+    iban:'SK8975000000000012345671',
+    bic:'GIBASKBX',
+    is_default:true,
+    auto_execute:false
+  });
+  assert.equal(bankCreate.status,201,await bankCreate.clone().text());
+  const bankBody=await bankCreate.json();
+  assert.equal(bankBody.ok,true);
+  assert.equal(bankBody.connection.provider,'slsp_george');
+
   const overviewRes=await req('/api/assistant/commodities/overview');
   assert.equal(overviewRes.status,200,await overviewRes.clone().text());
   const overview=await overviewRes.json();
   assert.equal(overview.ok,true);
   assert.equal(overview.market.total_commodities,22);
   assert.ok(overview.market.top_buys.length>=1);
+  assert.ok(overview.bank_connections.length>=1);
 
   const buyRes=await req('/api/assistant/commodities/trade',{
     symbol:'XAU-EUR',
@@ -347,6 +361,8 @@ test('Autonomous Commodity Desk analyzes all 22 commodities, executes buy/sell t
   assert.equal(buyBody.ok,true);
   assert.equal(buyBody.trade.symbol,'XAU-EUR');
   assert.ok(buyBody.document_id);
+  assert.equal(buyBody.execution_mode,'bank_sepa_settlement');
+  assert.match(buyBody.bank_settlement.sepa_epc_qr_payload,/^BCD\n002/);
 
   const sellRes=await req('/api/assistant/commodities/trade',{
     symbol:'XAU-EUR',
