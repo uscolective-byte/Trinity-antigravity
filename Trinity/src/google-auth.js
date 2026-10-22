@@ -61,12 +61,12 @@ export async function finishGoogleLogin(request,env){
   const tokenResponse=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:form,signal:AbortSignal.timeout(15000)});
   if(!tokenResponse.ok)throw new HttpError(401,'Google prihlasovací kód sa nepodarilo overiť.');
   const tokens=await tokenResponse.json();const identity=await verifyGoogleIdToken(tokens.id_token,{clientId:env.GOOGLE_CLIENT_ID,nonce:transaction.nonce});
-  const isOwner=isOwnerEmail(env,identity.email),isAdmin=isOwner||isGoogleAdminEmail(env,identity.email),role=isOwner?'owner':isAdmin?'admin':'user',now=Date.now();
+  const isOwner=isOwnerEmail(env,identity.email),isAdmin=isOwner||isGoogleAdminEmail(env,identity.email),dbRole=isAdmin?'admin':'user',now=Date.now();
   await env.DB.prepare(`INSERT INTO ops_users(email,google_sub,display_name,role,status) VALUES(?,?,?,?,?)
     ON CONFLICT(email) DO UPDATE SET google_sub=excluded.google_sub,display_name=excluded.display_name,
     role=excluded.role,
     status=CASE WHEN excluded.role IN ('owner','admin') THEN 'active' ELSE ops_users.status END,updated_at=datetime('now')`)
-    .bind(identity.email,identity.sub,identity.name,role,isAdmin?'active':'pending').run();
+    .bind(identity.email,identity.sub,identity.name,dbRole,isAdmin?'active':'pending').run();
   const user=await env.DB.prepare('SELECT role,status FROM ops_users WHERE email=?').bind(identity.email).first();
   if(!user||user.status!=='active')return redirect(user?.status==='pending'?'/?auth=pending':'/?auth=denied',[clearStateCookie]);
   const session=await issueSession(env,undefined,identity.email,request),sessionCookie=session.headers.get('Set-Cookie');

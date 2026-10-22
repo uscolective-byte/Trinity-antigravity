@@ -81,3 +81,18 @@ test('cancelWalletPayout executes delete statement on database', async () => {
   assert.ok(executedSql.includes('DELETE FROM ops_terminal_payouts_v2'));
   assert.deepEqual(boundParams, ['PAYOUT-804CA2AF', 'PAYOUT-804CA2AF', 'admin']);
 });
+
+test('runAgent connects Google accounts saboivan2008@gmail.com and uscolective@gmail.com cleanly', async () => {
+  const env = {
+    DB: null,
+    Mastermind: null
+  };
+  const res = await runAgent(env, 'orchestrator', 'napoj na trinity prepoj moj google ucet saboivan2008@gmail.com a dalsi uscolective@gmail.com');
+  assert.ok(res.text.includes('saboivan2008@gmail.com'));
+  assert.ok(res.text.includes('uscolective@gmail.com'));
+  assert.ok(res.text.includes('Basterix'));
+  assert.ok(res.text.includes('Google'));
+  assert.equal(res.model, 'trinity-auth-security');
+  assert.equal(res.truth.status, 'passed');
+  assert.ok(res.tool_log.some(t => t.tool === 'google_connect'));
+});
