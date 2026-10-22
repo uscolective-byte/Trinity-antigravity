@@ -3,6 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "command-center": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/trinity-command-center.ps1",
+    "install:all": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-all.ps1",
+    "desktop": "node Local-Desktop/server.mjs",
+    "gateway": "node Local-Gateway/src/server.mjs",
     "sync": "node scripts/project-pipeline.mjs sync",
     "build": "node scripts/project-pipeline.mjs build",
     "deploy": "node scripts/project-pipeline.mjs deploy",
