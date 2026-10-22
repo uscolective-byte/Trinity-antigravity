@@ -35,6 +35,9 @@ import {listApis,createApi,invokeApi,invokeApiBySlug} from './api-builder.js';
 import {listApiKeys,createApiKey,revokeApiKey,authenticateApiKey} from './api-keys.js';
 import {listSecrets,storeSecret,verifySecret,revokeSecret,promoteCustomSecretToGemini} from './secret-vault.js';
 import {listAIProviders,configureAIProvider,recordAIProviderCheck} from './ai-providers.js';
+import {getGraphVisualization,syncGraphFromEcosystem,queryGraphContext} from './graph-memory.js';
+import {auditHtmlQuality,recordStudioReview,reviewRequestSchema} from './studio-review.js';
+import {handleVoiceDialogue} from './voice-agent.js';
 import {createPortfolio,listPortfolios,getPortfolio,recordTrade,setQuote} from './trading.js';
 import {getWallet,transactWallet} from './wallet.js';
 import {getWalletTerminalOverview,saveWalletTerminalConfig,createPaymentTerminalCharge,executeWalletPayout,createCryptoWallet,cancelWalletPayout} from './wallet-terminals.js';
@@ -181,6 +184,28 @@ async function route(request,env,ctx){
     await requireCapability(env,user,'text_to_speech');await rateLimit(env,`tts:${user.id}`,20,300);
     return json(await synthesizeSpeech(env,await readJSON(request,8000)));
   }
+  if(path==='/api/assistant/voice/dialogue'&&request.method==='POST'){
+    await rateLimit(env,`voice:${user.id}`,30,300);
+    let audioBytes=null, audioMime='audio/webm', textPrompt='';
+    const contentType=request.headers.get('content-type')||'';
+    if(contentType.includes('multipart/form-data')){
+      const form=await request.formData();
+      const file=form.get('audio');
+      if(file&&typeof file.arrayBuffer==='function'){
+        audioBytes=new Uint8Array(await file.arrayBuffer());
+        audioMime=file.type||audioMime;
+      }
+      textPrompt=form.get('prompt')||'';
+    }else{
+      const body=await readJSON(request,2_000_000).catch(()=>({}));
+      textPrompt=body.prompt||body.text||'';
+      if(body.audio_base64){
+        const base64Data=body.audio_base64.replace(/^data:[^;]+;base64,/,'');
+        audioBytes=Uint8Array.from(atob(base64Data),c=>c.charCodeAt(0));
+      }
+    }
+    return json(await handleVoiceDialogue(env,user,{audioBytes,audioMime,textPrompt}));
+  }
   const audioRoute=path.match(/^\/api\/assistant\/media\/audio\/([0-9a-f-]+)$/i);
   if(audioRoute&&request.method==='GET'){
     const id=uuid.parse(audioRoute[1]),object=await env.ARTIFACTS.get(`media/audio/${id}.mp3`);if(!object)throw new HttpError(404,'Zvuk neexistuje.');
@@ -256,6 +281,12 @@ async function route(request,env,ctx){
     if(request.method==='GET'&&!studioRoute[2])return json({project:await getStudioProject(env,'primary',id)});
     if(request.method==='POST'&&studioRoute[2]==='revise'){await rateLimit(env,`studio-revise:${user.id}`,8,300);return json({project:await reviseStudioProject(env,'primary',id,await readJSON(request,20000))});}
     if(request.method==='GET'&&studioRoute[2]==='export'){const project=await getStudioProject(env,'primary',id);return new Response(project.html,{headers:{'Content-Type':'text/html; charset=utf-8','Content-Disposition':`attachment; filename="${project.name.replace(/[^a-z0-9_-]+/gi,'-').slice(0,50)||'trinity-web'}.html"`}});}
+  }
+  if(path==='/api/assistant/studio/audit'&&request.method==='POST'){
+    const data=reviewRequestSchema.parse(await readJSON(request,500_000));
+    const result=auditHtmlQuality(data.html);
+    if(data.project_id)await recordStudioReview(env,data.project_id,data.version,result).catch(()=>{});
+    return json(result);
   }
   if(path==='/api/assistant/multimedia'&&request.method==='GET'){
     return json(await listMultimediaCreations(env,{kind:url.searchParams.get('kind')||'',limit:Number(url.searchParams.get('limit')||40)}));
@@ -824,6 +855,13 @@ async function route(request,env,ctx){
   if(path==='/api/assistant/memory'){
     if(request.method==='GET')return json((await searchMemory(env,url.searchParams.get('q')||'')).records);
     if(request.method==='POST'){const d=z.object({key:z.string().min(1).max(120),value:z.string().min(1).max(10000)}).strict().parse(await readJSON(request));await env.DB.prepare("INSERT INTO ops_memory(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=datetime('now')").bind(d.key,d.value).run();return json({stored:true});}
+  }
+  if(path==='/api/assistant/memory/graph'&&request.method==='GET'){
+    return json(await getGraphVisualization(env));
+  }
+  if(path==='/api/assistant/memory/graph/sync'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await syncGraphFromEcosystem(env));
   }
   if(path==='/api/assistant/changes'&&request.method==='GET')return json((await getUiEvolutionState(env)).changes);
   const uiChangeRoute=path.match(/^\/api\/assistant\/changes\/([a-zA-Z0-9_-]+)\/(approve|rollback)$/);

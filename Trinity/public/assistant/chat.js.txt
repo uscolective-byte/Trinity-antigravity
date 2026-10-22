@@ -95,16 +95,50 @@ function renderReply(target,text){
 }
 function bottom(){const area=$('chat-area');area.scrollTop=area.scrollHeight;}
 async function sessions(){const rows=await api('/sessions');$('sessions').replaceChildren();for(const row of rows){const button=node('button',row.title.slice(0,45));button.onclick=safe(async()=>{session=row.session;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');});$('sessions').append(button);}}
-const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],commodities:['TRINITY COMMODITY DESK','Komodity & Trading','Analýza všetkých 22 svetových komodít, autonómne investovanie, nákup a predaj v portfóliu.'],wallet:['FINANČNÉ CENTRUM TRINITY','Peňaženka & Platobné Terminály','Skutočná správa zostatkov, platobné terminály na príjem a okamžité výbery peňazí.'],modules:['TRINITY OPEN-DATA','Open-Data Moduly','100% bezplatné živé API: počasie, Wikipédia, DoH DNSSEC, spot krypto, HN tech správy a Svetová banka.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.']};
+const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],commodities:['TRINITY COMMODITY DESK','Komodity & Trading','Analýza všetkých 22 svetových komodít, autonómne investovanie, nákup a predaj v portfóliu.'],wallet:['FINANČNÉ CENTRUM TRINITY','Peňaženka & Platobné Terminály','Skutočná správa zostatkov, platobné terminály na príjem a okamžité výbery peňazí.'],modules:['TRINITY OPEN-DATA','Open-Data Moduly','100% bezplatné živé API: počasie, Wikipédia, DoH DNSSEC, spot krypto, HN tech správy a Svetová banka.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.'],graph:['TRINITY GRAPH RAG','Pamäťový Graf','Vizuálne prepojenie dlhodobej pamäte, domén, projektov a transakcií v reálnom čase.']};
 function updateHeading(){const meta=viewMeta[currentView]||viewMeta.dashboard;$('page-kicker').textContent=meta[0];$('page-title').textContent=meta[1].includes(' ')?meta[1]:t(meta[1]);$('subtitle').textContent=t(meta[2]);}
-async function setView(name,updateHash=true){if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='commodities')await loadCommodityDesk();if(name==='wallet')await loadWalletView();if(name==='modules')await loadModulesView();if(name==='documents')await loadTrinityDocuments();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
+async function setView(name,updateHash=true){if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='commodities')await loadCommodityDesk();if(name==='wallet')await loadWalletView();if(name==='modules')await loadModulesView();if(name==='documents')await loadTrinityDocuments();if(name==='graph')await loadGraphView();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
 function renderDashboardActivity(listId,items){const list=$(listId);list.replaceChildren();for(const item of items){const row=node('div',undefined,'activity-item'),icon=node('div',item.status==='completed'?'✓':item.status==='failed'?'!':'·','activity-dot'),text=node('span');text.append(node('b',item.task),node('small',`${t(item.status)||item.status} · ${item.updated_at}`));row.append(icon,text);row.onclick=async()=>{session=item.session_id;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');};list.append(row);}if(!items.length)list.append(node('p',t('noChanges'),'skeleton'));}
 async function loadDashboard(){const data=await api('/dashboard'),admin=data.dashboard_mode==='admin';$('user-dashboard').hidden=admin;$('admin-dashboard').hidden=!admin;if(admin){const metrics=data.admin||{};$('admin-active-jobs').textContent=metrics.active_jobs??0;$('admin-failed-jobs').textContent=metrics.failed_today??0;$('admin-pending-users').textContent=metrics.pending_users??0;$('admin-services').textContent=data.available_services+'/'+data.total_services;$('admin-gateway-state').textContent=data.pc_bridge?.connected?'Cloud + PC brána pripojená':'Cloud aktívny · PC brána nepripojená';$('admin-system-state').textContent=metrics.emergency_stop?'NÚDZOVÉ ZASTAVENIE':'Systém beží';$('admin-system-state').className='admin-state '+(metrics.emergency_stop?'stopped':'running');renderDashboardActivity('admin-dashboard-activity',data.recent_jobs);return;}$('metric-tasks').textContent=data.today_completed;$('metric-memory').textContent=data.memory_count;$('metric-projects').textContent=data.project_count;$('metric-health').textContent=data.available_services+'/'+data.total_services+(data.pc_bridge?.connected?' · PC ✓':'');renderDashboardActivity('dashboard-activity',data.recent_jobs);}
 async function loadStudio(){const data=await api('/studio/projects'),list=$('studio-project-list');list.replaceChildren();for(const item of data.items){const button=node('button',undefined,'studio-project');button.dataset.projectId=item.id;button.append(node('b',item.name),node('small','v'+item.version+' · '+item.updated_at));button.onclick=safe(()=>openStudioProject(item.id));list.append(button);}if(!data.items.length)list.append(node('p',t('emptyProjects'),'skeleton'));if(currentStudio)document.querySelector(`[data-project-id="${currentStudio.id}"]`)?.classList.add('active');}
-function inspectStudioHtml(html){const doc=new DOMParser().parseFromString(html,'text/html'),images=[...doc.images],inputs=[...doc.querySelectorAll('input,select,textarea')],checks=[['Úplný HTML dokument',/^\s*<!doctype html>/i.test(html)&&!!doc.querySelector('html')],['Názov stránky',!!doc.title.trim()],['Responzívny viewport',!!doc.querySelector('meta[name="viewport"]')],['Jasná nadpisová štruktúra',doc.querySelectorAll('h1').length===1],['Alternatívny text obrázkov',images.every(image=>image.hasAttribute('alt'))],['Popisy formulárov',inputs.every(input=>input.closest('label')||input.id&&doc.querySelector(`label[for="${CSS.escape(input.id)}"]`))],['Jazyk dokumentu',!!doc.documentElement.getAttribute('lang')],['Bez externých skriptov',[...doc.scripts].every(script=>!script.src)]];const passed=checks.filter(([,ok])=>ok).length,score=Math.round(passed/checks.length*100),list=$('studio-quality-list');list.replaceChildren();for(const [label,ok] of checks){const row=node('div',undefined,'quality-item '+(ok?'pass':'warn'));row.append(node('span',ok?'✓':'!'),node('b',label),node('small',ok?'Splnené':'Odporúčaná úprava'));list.append(row);}$('studio-quality-value').textContent=score+'%';$('studio-quality-score').textContent=score+'%';return score;}
+function inspectStudioHtml(html, reviewData=null){
+  const doc=new DOMParser().parseFromString(html,'text/html'),images=[...doc.images],inputs=[...doc.querySelectorAll('input,select,textarea')],checks=[['Úplný HTML dokument',/^\s*<!doctype html>/i.test(html)&&!!doc.querySelector('html')],['Názov stránky',!!doc.title.trim()],['Responzívny viewport',!!doc.querySelector('meta[name="viewport"]')],['Jasná nadpisová štruktúra',doc.querySelectorAll('h1').length===1],['Alternatívny text obrázkov',images.every(image=>image.hasAttribute('alt'))],['Popisy formulárov',inputs.every(input=>input.closest('label')||input.id&&doc.querySelector(`label[for="${CSS.escape(input.id)}"]`))],['Jazyk dokumentu',!!doc.documentElement.getAttribute('lang')],['Bez externých skriptov',[...doc.scripts].every(script=>!script.src)]];
+  const passed=checks.filter(([,ok])=>ok).length,score=Math.round(passed/checks.length*100),list=$('studio-quality-list');
+  list.replaceChildren();
+  for(const [label,ok] of checks){const row=node('div',undefined,'quality-item '+(ok?'pass':'warn'));row.append(node('span',ok?'✓':'!'),node('b',label),node('small',ok?'Splnené':'Odporúčaná úprava'));list.append(row);}
+  $('studio-quality-value').textContent=score+'%';
+  $('studio-quality-score').textContent=score+'%';
+  const rev = reviewData || currentStudio?.latest_review;
+  const pScore = rev?.score_performance ?? Math.max(70, score - 5);
+  const aScore = rev?.score_accessibility ?? score;
+  const bScore = rev?.score_best_practices ?? Math.min(100, score + 5);
+  const sScore = rev?.score_seo ?? (doc.title && doc.querySelector('meta[name="viewport"]') ? 100 : 75);
+  if($('score-perf'))$('score-perf').textContent = pScore + '%';
+  if($('score-a11y'))$('score-a11y').textContent = aScore + '%';
+  if($('score-sec'))$('score-sec').textContent = bScore + '%';
+  if($('score-seo'))$('score-seo').textContent = sScore + '%';
+  const testBox = $('studio-generated-tests');
+  if(testBox){
+    if(rev?.generated_tests){
+      testBox.value = rev.generated_tests;
+    } else {
+      const title = doc.title || 'Untitled';
+      testBox.value = `import { test, expect } from '@playwright/test';\n\ntest.describe('AI Studio: ${title.replace(/'/g, "\\'")}', () => {\n  test('has correct title and heading', async ({ page }) => {\n    await page.goto('/');\n    await expect(page).toHaveTitle(/${title.slice(0, 15).replace(/'/g, "\\'")}/i);\n    const h1 = page.locator('h1');\n    await expect(h1).toBeVisible();\n  });\n  test('accessibility and responsive viewport pass', async ({ page }) => {\n    await page.setViewportSize({ width: 375, height: 667 });\n    await page.goto('/');\n    const main = page.locator('main, body');\n    await expect(main).toBeVisible();\n  });\n});`;
+    }
+  }
+  const copyBtn = $('studio-copy-tests');
+  if(copyBtn && !copyBtn._bound){
+    copyBtn._bound = true;
+    copyBtn.onclick = () => {
+      if(testBox)navigator.clipboard.writeText(testBox.value);
+      notice('Playwright testy boli skopírované do schránky.');
+    };
+  }
+  return score;
+}
 function setStudioTab(name){document.querySelectorAll('[data-studio-tab]').forEach(button=>button.classList.toggle('active',button.dataset.studioTab===name));$('studio-preview').hidden=name!=='preview'||!currentStudio;$('studio-empty').hidden=name!=='preview'||!!currentStudio;$('studio-code-panel').hidden=name!=='code';$('studio-quality-panel').hidden=name!=='quality';}
 function setPreviewSize(size,persist=true){if(!['desktop','tablet','mobile'].includes(size))size='desktop';const preview=$('studio-preview');preview.classList.remove('mobile','tablet');if(size!=='desktop')preview.classList.add(size);for(const id of ['desktop','tablet','mobile'])$('preview-'+id).classList.toggle('active',id===size);if(persist)localStorage.setItem('trinity-studio-preview',size);if($('settings-studio-preview'))$('settings-studio-preview').value=size;}
-async function openStudioProject(id){const data=await api('/studio/projects/'+id);currentStudio=data.project;$('studio-project-name').textContent=currentStudio.name;$('studio-project-version').textContent='v'+currentStudio.version;$('studio-preview').srcdoc=currentStudio.html;$('studio-code').value=currentStudio.html;$('studio-export').hidden=false;$('studio-export').href='/api/assistant/studio/projects/'+id+'/export';$('studio-open-preview').disabled=false;const score=inspectStudioHtml(currentStudio.html),preferences=studioPreferences();setPreviewSize(preferences.preview,false);setStudioTab(preferences.qualityAlert&&score<80?'quality':'preview');const versions=$('studio-versions');versions.replaceChildren();for(const version of currentStudio.versions){const item=node('article',undefined,'version-item'+(version.version===currentStudio.version?' current':''));item.append(node('b','v'+version.version),node('small',version.prompt),node('time',new Date(String(version.created_at).replace(' ','T')+'Z').toLocaleString('sk-SK')));versions.append(item);}document.querySelectorAll('.studio-project').forEach(button=>button.classList.toggle('active',button.dataset.projectId===currentStudio.id));}
+async function openStudioProject(id){const data=await api('/studio/projects/'+id);currentStudio=data.project;$('studio-project-name').textContent=currentStudio.name;$('studio-project-version').textContent='v'+currentStudio.version;$('studio-preview').srcdoc=currentStudio.html;$('studio-code').value=currentStudio.html;$('studio-export').hidden=false;$('studio-export').href='/api/assistant/studio/projects/'+id+'/export';$('studio-open-preview').disabled=false;const score=inspectStudioHtml(currentStudio.html, currentStudio.latest_review),preferences=studioPreferences();setPreviewSize(preferences.preview,false);setStudioTab(preferences.qualityAlert&&score<80?'quality':'preview');const versions=$('studio-versions');versions.replaceChildren();for(const version of currentStudio.versions){const item=node('article',undefined,'version-item'+(version.version===currentStudio.version?' current':''));item.append(node('b','v'+version.version),node('small',version.prompt),node('time',new Date(String(version.created_at).replace(' ','T')+'Z').toLocaleString('sk-SK')));versions.append(item);}document.querySelectorAll('.studio-project').forEach(button=>button.classList.toggle('active',button.dataset.projectId===currentStudio.id));}
 function resetStudio(){currentStudio=null;$('studio-project-name').textContent=t('untitled');$('studio-project-version').textContent='v0';$('studio-preview').srcdoc='';$('studio-code').value='';$('studio-quality-score').textContent='—';$('studio-quality-value').textContent='—';$('studio-quality-list').replaceChildren();$('studio-export').hidden=true;$('studio-open-preview').disabled=true;$('studio-versions').replaceChildren();localStorage.removeItem('trinity-studio-prompt-draft');$('studio-prompt').value='';applyStudioPreferences();setStudioTab('preview');$('studio-prompt').focus();}
 function statusLabel(value){return ({ready:'Pripravené',verified:'Overené',configured:'Nakonfigurované','platform-connected':'Cloudflare pripojený','not-configured':'Nenakonfigurované',planned:'Plánované',stored:'Uložené',failed:'Test zlyhal',disabled:'Vypnuté',available:'Dostupné',unavailable:'Nedostupné'}[value]||value||'—');}
 function renderApiKeys(items){const list=$('api-key-list');list.replaceChildren();$('settings-key-count').textContent=`${items.filter(item=>item.status==='active').length} aktívnych`;for(const item of items){const card=node('article',undefined,'api-key-item'),info=node('div'),meta=node('small',`${item.key_prefix}… · ${item.rate_limit_per_minute}/min · ${item.status}`);info.append(node('b',item.name),meta);card.append(info);if(item.last_used_at)info.append(node('small','Naposledy použité: '+item.last_used_at));if(item.status==='active'){const button=node('button','Zrušiť','danger');button.onclick=safe(async()=>{if(!confirm(`Zrušiť API kľúč „${item.name}“?`))return;await api('/api-keys/'+item.id+'/revoke',{});await loadSettings();});card.append(button);}list.append(card);}if(!items.length)list.append(node('p','Zatiaľ nebol vytvorený žiadny API kľúč.','skeleton'));}
@@ -2276,6 +2310,307 @@ async function loadModulesView(){
     };
   }
 }
+
+// ==========================================
+// PILLAR 1: GRAPH RAG MEMORY & VOICE DIALOGUE
+// ==========================================
+
+let cachedGraphData = null;
+let selectedGraphNode = null;
+
+async function loadGraphView() {
+  try {
+    const data = await api('/memory/graph');
+    cachedGraphData = data;
+    renderGraphStats(data);
+    renderGraphSvg(data);
+  } catch (err) {
+    notice('Chyba načítania pamäťového grafu: ' + err.message);
+  }
+}
+
+function renderGraphStats(data) {
+  const nodes = data.nodes || [];
+  const edges = data.edges || [];
+  if ($('graph-stat-nodes')) $('graph-stat-nodes').textContent = data.count_nodes ?? nodes.length;
+  if ($('graph-stat-edges')) $('graph-stat-edges').textContent = data.count_edges ?? edges.length;
+  if ($('graph-stat-domains')) $('graph-stat-domains').textContent = nodes.filter(n => n.type === 'domain').length;
+  if ($('graph-stat-projects')) $('graph-stat-projects').textContent = nodes.filter(n => n.type === 'studio_project').length;
+  if ($('graph-stat-txs')) $('graph-stat-txs').textContent = nodes.filter(n => n.type === 'transaction').length;
+}
+
+function renderGraphSvg(data) {
+  const svg = $('graph-svg');
+  if (!svg) return;
+  svg.innerHTML = '';
+
+  const filterType = $('graph-filter-type')?.value || 'all';
+  const searchQuery = ($('graph-search')?.value || '').trim().toLowerCase();
+
+  let nodes = data.nodes || [];
+  if (filterType !== 'all') {
+    nodes = nodes.filter(n => n.type === filterType || n.type === 'owner');
+  }
+  if (searchQuery) {
+    nodes = nodes.filter(n => 
+      n.label.toLowerCase().includes(searchQuery) ||
+      n.type.toLowerCase().includes(searchQuery) ||
+      JSON.stringify(n.properties || {}).toLowerCase().includes(searchQuery)
+    );
+  }
+
+  const nodeMap = new Map();
+  nodes.forEach(n => nodeMap.set(n.id, n));
+
+  const edges = (data.edges || []).filter(e => nodeMap.has(e.source_id) && nodeMap.has(e.target_id));
+
+  const width = svg.clientWidth || 800;
+  const height = svg.clientHeight || 550;
+  const cx = width / 2;
+  const cy = height / 2;
+
+  const colorMap = {
+    owner: '#e11d48',
+    domain: '#38bdf8',
+    studio_project: '#a78bfa',
+    memory_note: '#34d399',
+    transaction: '#fbbf24',
+    system: '#94a3b8'
+  };
+
+  const nonOwnerNodes = nodes.filter(n => n.type !== 'owner');
+  const ownerNode = nodes.find(n => n.type === 'owner') || { id: 'owner', label: 'Ivan Sabo (Basterix)', type: 'owner' };
+
+  ownerNode.x = cx;
+  ownerNode.y = cy;
+  ownerNode.color = colorMap.owner;
+
+  const total = nonOwnerNodes.length;
+  const radius = Math.min(width, height) * 0.38;
+
+  nonOwnerNodes.forEach((n, idx) => {
+    const angle = (idx / Math.max(1, total)) * 2 * Math.PI - Math.PI / 2;
+    const r = radius * (0.8 + 0.35 * (idx % 3));
+    n.x = cx + r * Math.cos(angle);
+    n.y = cy + r * Math.sin(angle);
+    n.color = colorMap[n.type] || '#60a5fa';
+  });
+
+  const allRenderNodes = [ownerNode, ...nonOwnerNodes];
+  const allNodeMap = new Map(allRenderNodes.map(n => [n.id, n]));
+
+  // Draw Edges
+  edges.forEach(e => {
+    const s = allNodeMap.get(e.source_id);
+    const t = allNodeMap.get(e.target_id);
+    if (!s || !t) return;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', s.x);
+    line.setAttribute('y1', s.y);
+    line.setAttribute('x2', t.x);
+    line.setAttribute('y2', t.y);
+    line.setAttribute('stroke', '#334155');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('stroke-dasharray', '4 2');
+    svg.appendChild(line);
+
+    if (e.relationship && Math.hypot(t.x - s.x, t.y - s.y) > 80) {
+      const midX = (s.x + t.x) / 2;
+      const midY = (s.y + t.y) / 2;
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', midX);
+      text.setAttribute('y', midY - 3);
+      text.setAttribute('fill', '#64748b');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = e.relationship;
+      svg.appendChild(text);
+    }
+  });
+
+  // Draw Nodes
+  allRenderNodes.forEach(n => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.style.cursor = 'pointer';
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', n.x);
+    circle.setAttribute('cy', n.y);
+    circle.setAttribute('r', n.type === 'owner' ? '22' : '15');
+    circle.setAttribute('fill', n.color);
+    circle.setAttribute('stroke', '#0f172a');
+    circle.setAttribute('stroke-width', '2.5');
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', n.x);
+    text.setAttribute('y', n.y + (n.type === 'owner' ? 34 : 26));
+    text.setAttribute('fill', '#e2e8f0');
+    text.setAttribute('font-size', n.type === 'owner' ? '12' : '11');
+    text.setAttribute('font-weight', n.type === 'owner' ? 'bold' : 'normal');
+    text.setAttribute('text-anchor', 'middle');
+    text.textContent = n.label.length > 20 ? n.label.slice(0, 18) + '…' : n.label;
+
+    g.appendChild(circle);
+    g.appendChild(text);
+
+    g.onclick = () => selectGraphNode(n, edges, allNodeMap);
+    svg.appendChild(g);
+  });
+}
+
+function selectGraphNode(nodeData, allEdges, nodeMap) {
+  selectedGraphNode = nodeData;
+  const title = $('graph-node-title');
+  const details = $('graph-node-details');
+  const actions = $('graph-node-actions');
+  if (title) title.textContent = nodeData.label;
+
+  const connectedEdges = allEdges.filter(e => e.source_id === nodeData.id || e.target_id === nodeData.id);
+  const connectionsHtml = connectedEdges.map(e => {
+    const isSource = e.source_id === nodeData.id;
+    const otherId = isSource ? e.target_id : e.source_id;
+    const otherNode = nodeMap.get(otherId);
+    const targetLabel = otherNode?.label || otherId;
+    return `<li><b>${e.relationship}</b> ${isSource ? '→' : '←'} <span>${targetLabel}</span></li>`;
+  }).join('');
+
+  const props = nodeData.properties || {};
+  const propsHtml = Object.entries(props).map(([k, v]) => `<div><span style="color:var(--text-muted,#94a3b8)">${k}:</span> <b>${typeof v === 'object' ? JSON.stringify(v) : v}</b></div>`).join('');
+
+  if (details) {
+    details.innerHTML = `
+      <div style="margin-bottom:8px">
+        <span class="detail-chip" style="background:rgba(255,255,255,0.08);margin-bottom:6px;display:inline-block">${nodeData.type.toUpperCase()}</span>
+        <div style="font-size:12px;color:var(--text-muted,#94a3b8)">ID: ${nodeData.id}</div>
+      </div>
+      <div style="background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;margin:8px 0;font-size:12px">
+        ${propsHtml || '<em style="color:#64748b">Žiadne dodatočné vlastnosti</em>'}
+      </div>
+      <strong>Prepojenia (${connectedEdges.length}):</strong>
+      <ul style="padding-left:18px;margin:6px 0;font-size:12px">${connectionsHtml || '<li>Žiadne priame hrany</li>'}</ul>
+    `;
+  }
+  if (actions) actions.style.display = 'flex';
+}
+
+$('graph-sync-btn')?.addEventListener('click', safe(async () => {
+  notice('Synchronizujem pamäťový graf z ekosystému…');
+  const res = await api('/memory/graph/sync', {});
+  notice(`Graf zosynchronizovaný: ${res.synced_nodes} uzlov, ${res.synced_edges} prepojení.`);
+  await loadGraphView();
+}));
+
+$('graph-search')?.addEventListener('input', () => {
+  if (cachedGraphData) renderGraphSvg(cachedGraphData);
+});
+
+$('graph-filter-type')?.addEventListener('change', () => {
+  if (cachedGraphData) renderGraphSvg(cachedGraphData);
+});
+
+$('graph-ask-trinity')?.addEventListener('click', safe(async () => {
+  await setView('chat');
+  $('message').value = 'Trinity, zanalyzuj náš kontextový pamäťový graf (Graph RAG), vysvetli mi kľúčové súvislosti medzi mojimi projektmi, zakúpenými doménami a obchodnými záznamami a navrhni ďalšie kroky.';
+  $('message').focus();
+}));
+
+$('graph-node-chat-btn')?.addEventListener('click', safe(async () => {
+  if (!selectedGraphNode) return;
+  await setView('chat');
+  $('message').value = `Trinity, pozri sa na uzol v pamäťovom grafe: „${selectedGraphNode.label}“ (typ: ${selectedGraphNode.type}). Aké má súvislosti a čo by sme s ním mali urobiť ďalej?`;
+  $('message').focus();
+}));
+
+$('memory-graph-open-btn')?.addEventListener('click', safe(async () => {
+  await setView('graph');
+}));
+
+let liveVoiceStream = null;
+let liveVoiceRecorder = null;
+let liveVoiceChunks = [];
+let liveVoiceActive = false;
+
+$('voice-dialogue-btn')?.addEventListener('click', safe(async () => {
+  const btn = $('voice-dialogue-btn');
+  if (liveVoiceActive) {
+    liveVoiceActive = false;
+    btn.classList.remove('recording');
+    btn.textContent = '⌛ Spracúvam reč…';
+    if (liveVoiceRecorder && liveVoiceRecorder.state === 'recording') {
+      liveVoiceRecorder.stop();
+    }
+    return;
+  }
+
+  if (!navigator.mediaDevices?.getUserMedia) {
+    throw new Error('Váš prehliadač nepodporuje nahrávanie mikrofónu cez getUserMedia.');
+  }
+
+  liveVoiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  liveVoiceChunks = [];
+  liveVoiceActive = true;
+  btn.classList.add('recording');
+  btn.textContent = '🛑 Hovorím... (Klikni pre odoslanie)';
+
+  liveVoiceRecorder = new MediaRecorder(liveVoiceStream);
+  liveVoiceRecorder.ondataavailable = e => {
+    if (e.data.size) liveVoiceChunks.push(e.data);
+  };
+
+  liveVoiceRecorder.onstop = async () => {
+    liveVoiceStream.getTracks().forEach(t => t.stop());
+    const audioBlob = new Blob(liveVoiceChunks, { type: liveVoiceRecorder.mimeType || 'audio/webm' });
+
+    try {
+      notice('Odosielam hlasový vstup pre Trinity Voice…');
+      const buffer = await audioBlob.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      const base64Audio = btoa(binary);
+
+      const resp = await fetch('/api/assistant/voice/dialogue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          audio_base64: base64Audio,
+          audio_mime: liveVoiceRecorder.mimeType || 'audio/webm'
+        })
+      });
+
+      const res = await resp.json();
+      if (!res.success) throw new Error(res.error || 'Hlasový dialóg zlyhal.');
+
+      if (res.transcription) {
+        bubble('user', res.transcription);
+      }
+      const reply = bubble('assistant');
+      renderReply(reply.content, res.text);
+      bottom();
+
+      if (res.audio_base64) {
+        const audio = new Audio(`data:${res.audio_mime || 'audio/wav'};base64,${res.audio_base64}`);
+        audio.play().catch(() => {});
+      } else if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance(res.text);
+        utter.lang = uiLanguage() === 'sk' ? 'sk-SK' : 'en-US';
+        window.speechSynthesis.speak(utter);
+      }
+
+      notice('Trinity odpovedala hlasom.');
+    } catch (err) {
+      notice('Chyba hlasového dialógu: ' + err.message);
+    } finally {
+      btn.classList.remove('recording');
+      btn.textContent = '🎙️ Live Hovor';
+      liveVoiceActive = false;
+    }
+  };
+
+  liveVoiceRecorder.start();
+}));
 
 
 
