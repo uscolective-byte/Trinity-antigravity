@@ -1,4 +1,7 @@
 import {revolutProStatus,configureRevolutPro,handleRevolutProPublic,paypalStatus,configurePaypal,commerceStatus,configureCommerceAccounts,upsertCommerceProduct,deleteCommerceProduct,handleCommercePublic} from './revolut.js';
+import {getUiEvolutionState,applyUiEvolution,handleUiChangeAction,renderDynamicThemeCss} from './ui-evolution.js';
+import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnvironments,handlePublicSiteRoute} from './domain-environments.js';
+import {createTrinityDocument,listTrinityDocuments,getTrinityDocument,deleteTrinityDocument,exportTrinityDocument} from './trinity-documents.js';
 import {scanForImprovements} from './maintenance-scan.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
 import {searchDomainNames,refreshDomainRegistration,createSubdomain,syncCloudflareDomains} from './domains.js';
@@ -76,6 +79,7 @@ async function route(request,env,ctx){
   if(knowledgeResponse)return knowledgeResponse;
   const url=new URL(request.url),path=url.pathname;
   const proPayment=await handleCommercePublic(request,env);if(proPayment)return proPayment;
+  const publicSite=await handlePublicSiteRoute(request,env);if(publicSite)return publicSite;
   if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
     'Cache-Control':'no-cache, no-store, must-revalidate',
     'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
@@ -84,7 +88,7 @@ async function route(request,env,ctx){
   if(request.method==='GET'&&path==='/chat.js')return new Response(assistantJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/chat.css')return new Response(assistantCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/builder.css')return new Response(builderCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
-  if(request.method==='GET'&&path==='/theme.css')return new Response(themeCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
+  if(request.method==='GET'&&path==='/theme.css')return new Response(await renderDynamicThemeCss(env,themeCSS),{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(path==='/health'||path==='/api/health'){
     const response=json({service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),deployment:releaseMetadata(env),agents:AGENTS.length,status:'serving',truth_mode:'evidence-required'});const origin=request.headers.get('Origin');
     if(['https://trinity-morhfeus-20261001.web.app','https://trinity-morhfeus-20261001.firebaseapp.com'].includes(origin)){response.headers.set('Access-Control-Allow-Origin',origin);response.headers.set('Vary','Origin');}
@@ -291,6 +295,19 @@ async function route(request,env,ctx){
   }
   if(path==='/api/assistant/domains/marketplace'&&request.method==='GET'){
     return json(await getDomainMarketplace(env));
+  }
+  if(path==='/api/assistant/domains/environments'&&request.method==='GET'){
+    return json(await listDomainEnvironments(env,url.searchParams.get('domain')||''));
+  }
+  if(path==='/api/assistant/domains/environments/provision'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`domain-env-prov:${user.id}`,20,300);
+    return json(await provisionDomainWithEnvironments(env,user.email||user.id,await readJSON(request,25000)),201);
+  }
+  if(path==='/api/assistant/domains/environments/deploy'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`domain-env-deploy:${user.id}`,30,300);
+    return json(await deployDomainEnvironment(env,user.email||user.id,await readJSON(request,60000)));
   }
   const domainDetailRoute=path.match(/^\/api\/assistant\/domains\/([0-9a-f-]+|[a-z0-9.-]+\.[a-z]{2,})$/i);
   if(domainDetailRoute){
@@ -593,7 +610,7 @@ async function route(request,env,ctx){
     const d=z.object({name:z.string().min(2).max(100),domain:z.string().default('software-dev'),type:z.string().default('web-app'),prompt:z.string().optional(),features:z.array(z.string()).optional()}).parse(await readJSON(request));
     return json(universalEcosystem.synthesizeApp(d.name,d.domain,d),201);
   }
-  if(path==='/api/ops/self-improvement'&&request.method==='GET'){
+  if((path==='/api/ops/self-improvement'||path==='/api/assistant/self-improvement')&&request.method==='GET'){
     requireAdmin(user);
     return json({
       items: await listSelfImprovementProposals(env),
@@ -604,12 +621,13 @@ async function route(request,env,ctx){
         code_changes: 'GitHub branch + PR + CI; no in-place runtime rewrite',
         github_configured: Boolean(env.TRINITY_GITHUB_TOKEN||env.GITHUB_TOKEN),
         audited_approval: true,
-        self_modifying_runtime: false,
+        self_modifying_runtime: true,
+        live_ui_evolution: true,
         deployment: 'GitHub Actions: test-gated development deployment; production requires an explicit workflow approval or TRINITY_AUTO_DEPLOY_PRODUCTION=true repository variable.'
       }
     });
   }
-  if(path==='/api/ops/self-improvement'&&request.method==='POST'){
+  if((path==='/api/ops/self-improvement'||path==='/api/assistant/self-improvement')&&request.method==='POST'){
     requireAdmin(user);
     await rateLimit(env,`self-improvement:${user.id}`,20,300);
     const input=z.object({
@@ -621,7 +639,7 @@ async function route(request,env,ctx){
     if(input.kind==='plugin_install'&&!PLUGINS.some(p=>p.id===input.plugin_id))throw new HttpError(404,'Modul sa nenašiel v existujúcom katalógu Trinity.');
     return json(await createSelfImprovementProposal(env,input,user.email||user.id),201);
   }
-  const selfImprovementRoute=path.match(/^\/api\/ops\/self-improvement\/([0-9a-f-]+)\/(approve|apply)$/i);
+  const selfImprovementRoute=path.match(/^\/api\/(?:ops|assistant)\/self-improvement\/([0-9a-f-]+)\/(approve|apply)$/i);
   if(selfImprovementRoute&&request.method==='POST'){
     const id=uuid.parse(selfImprovementRoute[1]);
     if(selfImprovementRoute[2]==='approve'){
@@ -636,6 +654,46 @@ async function route(request,env,ctx){
       if(!plugin)throw new HttpError(404,'Modul už nie je dostupný v katalógu Trinity.');
       return await installPlugin(env,plugin.id);
     }));
+  }
+  if(path==='/api/assistant/ui-evolution'){
+    if(request.method==='GET')return json(await getUiEvolutionState(env));
+    if(request.method==='POST'){
+      requireAdmin(user);
+      await rateLimit(env,`ui-evolve:${user.id}`,30,300);
+      return json(await applyUiEvolution(env,user.email||user.id,await readJSON(request,30000)));
+    }
+  }
+  if(path==='/api/assistant/documents'){
+    if(request.method==='GET'){
+      return json(await listTrinityDocuments(env,{
+        category:url.searchParams.get('category')||'',
+        search:url.searchParams.get('search')||'',
+        limit:Number(url.searchParams.get('limit')||60)
+      }));
+    }
+    if(request.method==='POST'){
+      requireAdmin(user);
+      await rateLimit(env,`doc-create:${user.id}`,30,300);
+      return json({item:await createTrinityDocument(env,user.email||user.id,await readJSON(request,50000))},201);
+    }
+  }
+  const docRoute=path.match(/^\/api\/assistant\/documents\/([a-zA-Z0-9_-]+)(?:\/(export|delete))?$/);
+  if(docRoute){
+    const docId=docRoute[1],sub=docRoute[2];
+    if(request.method==='GET'&&!sub){
+      const item=await getTrinityDocument(env,docId);
+      return json({item});
+    }
+    if(request.method==='GET'&&sub==='export'){
+      const format=url.searchParams.get('format')||'md';
+      const item=await getTrinityDocument(env,docId);
+      const file=exportTrinityDocument(item,format);
+      return new Response(file.body,{headers:{'Content-Type':file.contentType,'Content-Disposition':`attachment; filename="${file.filename}"`,'Cache-Control':'no-store'}});
+    }
+    if(request.method==='POST'&&sub==='delete'){
+      requireAdmin(user);
+      return json(await deleteTrinityDocument(env,user.email||user.id,docId));
+    }
   }
   if(path==='/api/assistant/brain/run'&&request.method==='POST'){requireAdmin(user);return json(await runBrainCycle(env));}
   if(path==='/api/assistant/evolution/run'&&request.method==='POST'){requireAdmin(user);return json(await runEvolutionCycle(env));}
@@ -690,7 +748,12 @@ async function route(request,env,ctx){
     if(request.method==='GET')return json((await searchMemory(env,url.searchParams.get('q')||'')).records);
     if(request.method==='POST'){const d=z.object({key:z.string().min(1).max(120),value:z.string().min(1).max(10000)}).strict().parse(await readJSON(request));await env.DB.prepare("INSERT INTO ops_memory(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=datetime('now')").bind(d.key,d.value).run();return json({stored:true});}
   }
-  if(path==='/api/assistant/changes'&&request.method==='GET')return json([]);
+  if(path==='/api/assistant/changes'&&request.method==='GET')return json((await getUiEvolutionState(env)).changes);
+  const uiChangeRoute=path.match(/^\/api\/assistant\/changes\/([a-zA-Z0-9_-]+)\/(approve|rollback)$/);
+  if(uiChangeRoute&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await handleUiChangeAction(env,user.email||user.id,uiChangeRoute[1],uiChangeRoute[2]));
+  }
   if(path==='/api/ops/login-ticket'&&request.method==='POST'){
     await rateLimit(env,`ticket:${user.id}`,6);
     const ticket=Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('hex');

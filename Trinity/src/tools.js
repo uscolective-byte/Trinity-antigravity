@@ -25,11 +25,15 @@ import {QuantumCoreEngine} from './quantum_core.js';
 import {listDomains,getDomain,createDomain,registerDomain,checkDomainAvailability,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord,domainInputSchema,domainRegistrationSchema,domainSaleListingSchema,domainSaleSchema,domainLeaseListingSchema,domainLeaseSchema,domainEndLeaseSchema,dnsRecordInputSchema,DNS_RECORD_TYPES,DOMAIN_STATUSES,LISTING_TYPES} from './domains.js';
 import {createArtifact,createPdfArtifact,listArtifacts,getArtifact} from './artifacts.js';
 import {commerceStatus,upsertCommerceProduct} from './revolut.js';
+import {getUiEvolutionState,applyUiEvolution,uiEvolutionInputSchema} from './ui-evolution.js';
+import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnvironments,provisionDomainEnvSchema,deployDomainEnvSchema} from './domain-environments.js';
+import {createTrinityDocument,listTrinityDocuments,createDocumentSchema,DOCUMENT_CATEGORIES,recordStepDocument} from './trinity-documents.js';
+import {ownerLearnBehaviorRule,listActiveBehaviorRules} from './self-improvement.js';
 
 export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']);
-export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint']);
+export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy']);
 export const TOOL_SCHEMAS={
   web_fetch:z.object({url:z.string().url()}).strict(),
   project_inspect:z.object({query:z.string().max(2000).default('')}).strict(),
@@ -137,6 +141,24 @@ export const TOOL_SCHEMAS={
   }).strict()
   ,read_artifact:z.object({
     id:z.string().trim().min(1).max(300)
+  }).strict()
+  ,ui_evolve:uiEvolutionInputSchema
+  ,self_evolve:z.object({
+    action:z.enum(['status','learn_rule','propose_improvement']).default('status'),
+    rule:z.string().trim().min(5).max(2000).optional(),
+    title:z.string().trim().min(3).max(120).optional(),
+    description:z.string().trim().min(10).max(4000).optional()
+  }).strict()
+  ,domain_env_provision:provisionDomainEnvSchema
+  ,domain_env_deploy:deployDomainEnvSchema
+  ,domain_env_list:z.object({
+    domain:z.string().trim().max(253).optional().default('')
+  }).strict()
+  ,trinity_doc_create:createDocumentSchema
+  ,trinity_doc_list:z.object({
+    category:z.enum(['all',...DOCUMENT_CATEGORIES]).optional().default('all'),
+    search:z.string().trim().max(120).optional().default(''),
+    limit:z.number().int().min(1).max(100).optional().default(30)
   }).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
@@ -509,6 +531,77 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const art=await getArtifact(env,args.id);
     return {...art,_evidence:{effect:'read',receipt_id:`artifact:read:${crypto.randomUUID()}`}};
   }
+  if(name==='ui_evolve'){
+    if(Object.keys(args).length===0||(!args.preset&&!args.primary_color&&!args.secondary_color&&!args.font_scale&&!args.radius_scale&&!args.brand_title&&!args.brand_subtitle&&!args.welcome_heading&&!args.welcome_subtext&&args.custom_css===undefined&&!args.add_widget&&!args.remove_widget_id&&!args.reset_default)){
+      const st=await getUiEvolutionState(env);
+      return {...st,_evidence:{effect:'read',receipt_id:`ui:status:${crypto.randomUUID()}`}};
+    }
+    const res=await applyUiEvolution(env,`agent:${agent.id||'trinity'}`,args);
+    return {...res,_evidence:{effect:'mutation',actions:['change'],receipt_id:`ui:evolve:${res.change.id}`}};
+  }
+  if(name==='self_evolve'){
+    if(args.action==='learn_rule'){
+      if(!args.rule)throw new Error('Pre learn_rule zadaj parameter rule.');
+      const learned=await ownerLearnBehaviorRule(env,args.rule,`agent:${agent.id||'trinity'}`);
+      await recordStepDocument(env,{
+        title:`Samorozvoj Trinity (Nové pravidlo): ${learned.title}`,
+        category:'self_improvement',
+        step_name:'self_evolve:learn_rule',
+        actor:`agent:${agent.id||'trinity'}`,
+        summary:args.rule,
+        content:`Trinity sa naučila a aktivovala nové pravidlo správania:\n\n> ${args.rule}`,
+        receipt_id:`self:rule:${learned.id}`,
+        tags:['self-evolve','behavior-rule']
+      });
+      return {ok:true,action:'learn_rule',rule:learned,_evidence:{effect:'mutation',actions:['change'],receipt_id:`self:rule:${learned.id}`}};
+    }
+    if(args.action==='propose_improvement'){
+      if(!args.title||!args.description)throw new Error('Pre propose_improvement zadaj title a description.');
+      const proposal=await createSelfImprovementProposal(env,{title:args.title,description:args.description,kind:'code_improvement'},`agent:${agent.id||'trinity'}`);
+      await recordStepDocument(env,{
+        title:`Návrh samorozvoja Trinity: ${args.title}`,
+        category:'self_improvement',
+        step_name:'self_evolve:propose_improvement',
+        actor:`agent:${agent.id||'trinity'}`,
+        summary:args.description,
+        content:`Návrh vylepšenia kódu Trinity:\n\n### ${args.title}\n\n${args.description}`,
+        receipt_id:`self:proposal:${proposal.id}`,
+        tags:['self-evolve','proposal']
+      });
+      return {ok:true,action:'propose_improvement',proposal,_evidence:{effect:'proposal',receipt_id:`self:proposal:${proposal.id}`}};
+    }
+    const [rules,uiState]=await Promise.all([
+      listActiveBehaviorRules(env),
+      getUiEvolutionState(env)
+    ]);
+    return {
+      ok:true,
+      active_behavior_rules:rules,
+      ui_state:uiState.state,
+      recent_ui_changes:uiState.changes.slice(0,5),
+      _evidence:{effect:'read',receipt_id:`self:status:${crypto.randomUUID()}`}
+    };
+  }
+  if(name==='domain_env_provision'){
+    const res=await provisionDomainWithEnvironments(env,`agent:${agent.id||'trinity'}`,args);
+    return {...res,_evidence:{effect:'mutation',actions:['change','create_file','publish'],receipt_id:`domain:env:provision:${args.domain_name}`}};
+  }
+  if(name==='domain_env_deploy'){
+    const res=await deployDomainEnvironment(env,`agent:${agent.id||'trinity'}`,args);
+    return {...res,_evidence:{effect:'mutation',actions:['change','deploy','publish'],receipt_id:`domain:env:deploy:${args.domain_name}:${args.environment}`}};
+  }
+  if(name==='domain_env_list'){
+    const res=await listDomainEnvironments(env,args.domain);
+    return {...res,_evidence:{effect:'read',receipt_id:`domain:env:list:${crypto.randomUUID()}`}};
+  }
+  if(name==='trinity_doc_create'){
+    const doc=await createTrinityDocument(env,`agent:${agent.id||'trinity'}`,args);
+    return {ok:true,document:doc,_evidence:{effect:'mutation',actions:['create_file'],receipt_id:doc.receipt_id}};
+  }
+  if(name==='trinity_doc_list'){
+    const list=await listTrinityDocuments(env,args);
+    return {...list,_evidence:{effect:'read',receipt_id:`doc:list:${crypto.randomUUID()}`}};
+  }
   if(name==='brain_mode'){
     const brain=new NeuralBrain();
     if(args.mode) brain.setMode(args.mode);
@@ -754,5 +847,12 @@ export const TOOL_HELP={
   create_file:'Vytvorí a uloží akýkoľvek súbor (txt, py, json, js, html, css, csv, md, sql, svg atď.) do R2 archívu a vráti stiahnuteľný odkaz: {filename:string, content:string, is_base64?:boolean, notes?:string}',
   create_pdf:'Vygeneruje platný formátovaný PDF dokument, uloží ho do R2 archívu a vráti stiahnuteľný odkaz: {filename:string, title:string, content:string, author?:string, notes?:string}',
   list_artifacts:'Vypíše zoznam vytvorených súborov a dokumentov v archíve: {limit?:number, search?:string}',
-  read_artifact:'Prečíta obsah alebo metadáta vytvoreného súboru z archívu: {id:string}'
+  read_artifact:'Prečíta obsah alebo metadáta vytvoreného súboru z archívu: {id:string}',
+  ui_evolve:'Živo upraví vlastné používateľské rozhranie Trinity (téma, farby, veľkosť písma, nadpisy, bezpečné CSS, vlastné widgety na dashboarde) alebo vráti predvolený vzhľad: {title?, preset?:default|cyber-gold|aurora-emerald|royal-violet|crimson-ops|ocean-glass|arctic-light, primary_color?, secondary_color?, font_scale?:compact|normal|large, radius_scale?:sharp|rounded|pill, brand_title?, brand_subtitle?, welcome_heading?, welcome_subtext?, custom_css?, add_widget?:{title,badge?,content,action_label?,action_prompt?,color?}, remove_widget_id?, reset_default?:boolean}',
+  self_evolve:'Samorozvoj Trinity — prečíta stav naučených pravidiel a UI zmien, naučí Trinity nové trvalé pravidlo správania alebo zaeviduje návrh vylepšenia kódu: {action?:status|learn_rule|propose_improvement, rule?:string, title?:string, description?:string}',
+  domain_env_provision:'Vytvorí novú doménu v štýle Cloudflare a automaticky pre ňu pripraví prostredia (production, staging, development), SSL/Proxy/WAF nastavenia, DNS záznamy a živé URL (/sites/:domain/:env): {domain_name, registrar?:string, template?:ai_saas|business_landing|domain_for_sale|ecommerce_checkout|portfolio|studio_project|custom_html, title?, subtitle?, ssl_mode?:flexible|full|strict, proxied?:boolean, waf_enabled?:boolean, sale_price_eur?:number, payment_checkout_url?:string}',
+  domain_env_deploy:'Vyprodukuje a nasadí web alebo AI Studio projekt do konkrétneho prostredia domény (production, staging, preview, development) so živou adresou /sites/:domain/:env: {domain_name, environment?:production|staging|preview|development, template?:ai_saas|business_landing|domain_for_sale|ecommerce_checkout|portfolio|studio_project|custom_html, title?, subtitle?, cta_text?, cta_url?, studio_project_id?, custom_html?, ssl_mode?, proxied?, waf_enabled?, env_vars?:object}',
+  domain_env_list:'Vypíše všetky domény a ich Cloudflare prostredia (production, staging, development), verzie nasadenia a živé adresy: {domain?:string}',
+  trinity_doc_create:'Vytvorí štruktúrovaný záznam v Trinity Documents s možnosťou exportu do Markdown a PDF: {title, category?:workflow_step|ui_evolution|domain_production|commerce|self_improvement|architecture|manual_doc, step_name?, summary?, content, tags?:string[]}',
+  trinity_doc_list:'Vypíše a vyhľadá automaticky aj manuálne vytvorené Trinity Documents zo všetkých krokov: {category?:string, search?:string, limit?:number}'
 };

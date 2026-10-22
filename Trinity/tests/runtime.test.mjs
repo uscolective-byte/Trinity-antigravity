@@ -250,4 +250,80 @@ test('Unified Commerce & PayPal owner routes configure accounts, offers, and pub
   const html=await(await req('/',undefined,false)).text();
   assert.match(html,/id="settings-commerce-panel"/);
   assert.match(html,/id="domain-marketplace-panel"/);
+  assert.match(html,/id="settings-ui-evolution-panel"/);
+  assert.match(html,/id="domain-environments-panel"/);
+  assert.match(html,/id="documents-view"/);
+});
+
+test('Live UI Evolution modifies theme.css dynamically, supports rollback, and creates Trinity Documents',async()=>{
+  const evoRes=await req('/api/assistant/ui-evolution',{
+    preset:'cyber-gold',
+    brand_title:'Trinity 10.3 Gold',
+    welcome_heading:'Vitaj v zlatej edícii Trinity',
+    add_widget:{title:'Denný cieľ',content:'3 nové domény v produkcii',badge:'LIVE'},
+    custom_css:'.hero-card { border-width: 2px; }'
+  });
+  assert.equal(evoRes.status,200,await evoRes.clone().text());
+  const evoBody=await evoRes.json();
+  assert.equal(evoBody.ok,true);
+  assert.equal(evoBody.state.preset,'cyber-gold');
+  assert.ok(evoBody.change?.id);
+
+  const themeRes=await req('/theme.css',undefined,false);
+  assert.equal(themeRes.status,200);
+  const cssText=await themeRes.text();
+  assert.match(cssText,/TRINITY SELF-EVOLVING UI LAYER/);
+  assert.match(cssText,/#f59e0b/);
+
+  const changesRes=await req('/api/assistant/changes');
+  assert.equal(changesRes.status,200);
+  const changes=await changesRes.json();
+  assert.ok(changes.length>=1);
+
+  const rbRes=await req(`/api/assistant/changes/${changes[0].id}/rollback`,{confirm:true});
+  assert.equal(rbRes.status,200,await rbRes.clone().text());
+});
+
+test('Cloudflare-style Domain Environments provision domains, deploy live sites, and generate Trinity Documents',async()=>{
+  const provRes=await req('/api/assistant/domains/environments/provision',{
+    domain_name:'trinity-cloud-demo.sk',
+    template:'ai_saas',
+    title:'Trinity Cloud Demo',
+    subtitle:'Automatizovaná produkcia v štýle Cloudflare',
+    ssl_mode:'strict'
+  });
+  assert.equal(provRes.status,201,await provRes.clone().text());
+  const prov=await provRes.json();
+  assert.equal(prov.ok,true);
+  assert.equal(prov.control_plane.domain_name,'trinity-cloud-demo.sk');
+  assert.equal(prov.control_plane.environments.production.status,'deployed');
+
+  const liveSite=await req('/sites/trinity-cloud-demo.sk/production',undefined,false);
+  assert.equal(liveSite.status,200);
+  const siteHtml=await liveSite.text();
+  assert.match(siteHtml,/Trinity Cloud Demo/);
+  assert.match(siteHtml,/PRODUCTION/);
+
+  const deployStaging=await req('/api/assistant/domains/environments/deploy',{
+    domain_name:'trinity-cloud-demo.sk',
+    environment:'staging',
+    template:'ecommerce_checkout',
+    title:'Trinity Staging Store'
+  });
+  assert.equal(deployStaging.status,200,await deployStaging.clone().text());
+  const stagingSite=await req('/sites/trinity-cloud-demo.sk/staging',undefined,false);
+  assert.equal(stagingSite.status,200);
+  assert.match(await stagingSite.text(),/Trinity Staging Store/);
+
+  const docsRes=await req('/api/assistant/documents');
+  assert.equal(docsRes.status,200);
+  const docs=await docsRes.json();
+  assert.ok(docs.items.length>=2);
+  const firstId=docs.items[0].id;
+  const mdExport=await req(`/api/assistant/documents/${firstId}/export?format=md`);
+  assert.equal(mdExport.status,200);
+  assert.match(await mdExport.text(),/Trinity/);
+  const pdfExport=await req(`/api/assistant/documents/${firstId}/export?format=pdf`);
+  assert.equal(pdfExport.status,200);
+  assert.equal(pdfExport.headers.get('content-type'),'application/pdf');
 });

@@ -6,6 +6,7 @@ import {tokenBudget} from './cognition.js';
 import {readControl,assertRunning} from './control.js';
 import {getPCBridgeStatus} from './system-actions.js';
 import {createFollowupJob} from './followup.js';
+import {recordStepDocument} from './trinity-documents.js';
 export class TrinityOperations extends WorkflowEntrypoint {
   async run(event, step) {
     const id=event.payload.job_id;
@@ -65,6 +66,17 @@ export class TrinityOperations extends WorkflowEntrypoint {
           this.env.DB.prepare("UPDATE ops_jobs SET status='completed',result=?,artifact_key=?,error=NULL,updated_at=datetime('now') WHERE id=?").bind(text,key,id),
           this.env.DB.prepare("INSERT INTO ops_events(job_id,action,details) VALUES(?,'completed',?)").bind(id,JSON.stringify({team,models:outputs.map(o=>o.model),skipped}))
         ]);
+        await recordStepDocument(this.env,{
+          title:`Krok úlohy: ${String(job.task||'Úloha').slice(0,110)}`,
+          category:'workflow_step',
+          step_name:`workflow:${team.join('+')}`,
+          actor:team.join(', '),
+          summary:text.slice(0,240),
+          content:document,
+          tool_log:outputs.flatMap(o=>o.tool_log||[]),
+          receipt_id:`job:${id}`,
+          tags:['workflow',...team]
+        });
         await createFollowupJob(this.env,job,text);
         return {job_id:id,status:'completed',artifact_key:key};
       });

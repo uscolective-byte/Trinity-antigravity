@@ -1,7 +1,7 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const words={
-sk:{personal:'Tvoja osobná asistentka',newChat:'＋ Nový rozhovor',recent:'NAŠE ROZHOVORY',boundary:'Konám v rámci tvojho zadania. Citlivé zmeny len s tvojím súhlasom.',advanced:'Technické centrum ↗',here:'Som tu. Čo potrebuješ?',memory:'◇ Pamäť',tools:'✦ Schopnosti',loginTitle:'Vitaj v Trinity',loginHint:'Na povolenom vývojovom pripojení sa prihlásiš automaticky. Inde použi jednorazový odkaz zo spúšťača.',login:'Prihlásiť',welcomeLabel:'TRINITY 10.3 · TVOJ PRIESTOR',greeting:'Ahoj. Som Trinity.',intro:'Môžeme sa porozprávať, niečo vymyslieť, programovať alebo spustiť akcie na tvojom PC cez PC Bridge.',suggestPlan:'Pomôž mi s plánom',suggestTalk:'Poďme sa porozprávať',suggestCreate:'Chcem niečo vytvoriť',suggestChatGpt:'Schopnosti ChatGPT',chatGptPrompt:'Aktivuj schopnosti ChatGPT: precízne štruktúrované odpovede, programovanie, hlboké uvažovanie a analýzu dát. S čím môžem začať?',suggestCalc:'Kalkulačka na PC',calcPrompt:'Spusti na mojom počítači kalkulačku (calc.exe) cez PC Bridge.',suggestNotepad:'Poznámkový blok',notepadPrompt:'Otvor na mojom počítači poznámkový blok (notepad.exe) cez PC Bridge.',suggestChrome:'Spustiť Chrome',chromePrompt:'Spusti na mojom počítači prehliadač Chrome cez PC Bridge.',monetizePrompt:'Zostav mi praktický plán zarábania cez Trinity: skontroluj stav mojich Revolut Pro a PayPal platobných odkazov, moje domény a navrhni konkrétne predajné balíky (weby z AI Studia, prenájom domén, AI automatizácie) s cenami v EUR.',domainsPrompt:'Skontroluj moje portfólio domén v Trinity, zhodnoť ich potenciál na predaj alebo prenájom a navrhni ku každej odporúčanú cenu a využitie.',message:'Správa pre Trinity',placeholder:'Napíš mi, čo máš na mysli…',localModel:'Na mojom počítači',cloudModel:'Cloudflare',remember:'Zapamätať si',allowFiles:'Povoliť tvorbu súborov',stop:'Zastaviť',send:'Odoslať ↑',footnote:'TRINITY 10.3 · Pamäť je trvalá. Pracovné úlohy vykonávam v odolnom procese na Cloudflare s podporou lokálneho PC Bridge.',memoryLabel:'ČO SI O TEBE PAMÄTÁM',memoryTitle:'Pamäť Trinity',memoryName:'Názov poznámky',memoryValue:'Čo si mám zapamätať?',saveMemory:'Uložiť do pamäte',memorySafety:'Nevkladaj heslá ani API kľúče. Pamäť je kontext pre odpovede, nie trénovanie nového modelu.',toolsTitle:'Moje schopnosti',changesTitle:'Zmeny vzhľadu na schválenie',changesHint:'Na Cloudflare sa vzhľad nemení automaticky. Môžem pripraviť návrh kódu, ale nasadenie sa vykoná až po tvojom výslovnom schválení.',you:'Ty',working:'Pripravujem odpoveď…',context:'Pracovný priebeh',saved:'Uložené do pamäte.',copy:'Kopírovať',copied:'Skopírované',noMemory:'Zatiaľ tu nie sú žiadne poznámky.',noChanges:'Žiadne návrhy zmien. Nič sa nemení samo.',approve:'Schváliť a použiť',rollback:'Vrátiť zmenu',confirm:'Chceš použiť túto zmenu vzhľadu? Predchádzajúcu verziu môžeš obnoviť.',local:'Beží na tvojom PC',cloud:'Beží na Cloudflare',offline:'Model ešte nie je pripravený',stopDone:'Odpovedanie zastavené.',steps:'interné kroky',done:'hotové',search_memory:'Pamäť',project_snapshot:'Projekty',calculate:'Výpočty',analyze_text:'Analýza textu',web_search:'Webový výskum',service_status:'Kontrola služieb',read_memory:'Čítanie pamäte',list_workspace:'Pracovné súbory',read_file:'Čítanie súborov',write_file:'Tvorba súborov na príkaz',propose_theme:'Návrhy vzhľadu',plan:'Pomôž mi zostaviť praktický plán. Najprv sa ma opýtaj, čo chcem dosiahnuť.',talk:'Ahoj Trinity, poďme sa porozprávať.',create:'Chcem niečo vytvoriť. Pomôž mi spresniť nápad.'},
+sk:{personal:'Tvoja osobná asistentka',newChat:'＋ Nový rozhovor',recent:'NAŠE ROZHOVORY',boundary:'Konám v rámci tvojho zadania. Citlivé zmeny len s tvojím súhlasom.',advanced:'Technické centrum ↗',here:'Som tu. Čo potrebuješ?',memory:'◇ Pamäť',tools:'✦ Schopnosti',loginTitle:'Vitaj v Trinity',loginHint:'Na povolenom vývojovom pripojení sa prihlásiš automaticky. Inde použi jednorazový odkaz zo spúšťača.',login:'Prihlásiť',welcomeLabel:'TRINITY 10.3 · TVOJ PRIESTOR',greeting:'Ahoj. Som Trinity.',intro:'Môžeme sa porozprávať, niečo vymyslieť, programovať alebo spustiť akcie na tvojom PC cez PC Bridge.',suggestPlan:'Pomôž mi s plánom',suggestTalk:'Poďme sa porozprávať',suggestCreate:'Chcem niečo vytvoriť',suggestChatGpt:'Schopnosti ChatGPT',chatGptPrompt:'Aktivuj schopnosti ChatGPT: precízne štruktúrované odpovede, programovanie, hlboké uvažovanie a analýzu dát. S čím môžem začať?',suggestCalc:'Kalkulačka na PC',calcPrompt:'Spusti na mojom počítači kalkulačku (calc.exe) cez PC Bridge.',suggestNotepad:'Poznámkový blok',notepadPrompt:'Otvor na mojom počítači poznámkový blok (notepad.exe) cez PC Bridge.',suggestChrome:'Spustiť Chrome',chromePrompt:'Spusti na mojom počítači prehliadač Chrome cez PC Bridge.',monetizePrompt:'Zostav mi praktický plán zarábania cez Trinity: skontroluj stav mojich Revolut Pro a PayPal platobných odkazov, moje domény a navrhni konkrétne predajné balíky (weby z AI Studia, prenájom domén, AI automatizácie) s cenami v EUR.',domainsPrompt:'Skontroluj moje portfólio domén v Trinity, zhodnoť ich potenciál na predaj alebo prenájom a navrhni ku každej odporúčanú cenu a využitie.',ui_evolvePrompt:'Uprav a vylepši naše používateľské rozhranie (UI) pomocou nástroja ui_evolve: prepni tému na cyber-gold alebo aurora-emerald, pridaj na Prehľad užitočný widget a vytvor k tomu Trinity Dokument.',domain_prodPrompt:'Vytvor novú doménu s Cloudflare prostrediami (production, staging, development) pomocou domain_env_provision, vyprodukuj na ňu živý web a vytvor Trinity Dokument.',trinity_docsPrompt:'Zobraz prehľad posledných Trinity Dokumentov pomocou trinity_doc_list a vytvor nový súhrnný Trinity Dokument o aktuálnom stave systému.',message:'Správa pre Trinity',placeholder:'Napíš mi, čo máš na mysli…',localModel:'Na mojom počítači',cloudModel:'Cloudflare',remember:'Zapamätať si',allowFiles:'Povoliť tvorbu súborov',stop:'Zastaviť',send:'Odoslať ↑',footnote:'TRINITY 10.3 · Pamäť je trvalá. Pracovné úlohy vykonávam v odolnom procese na Cloudflare s podporou lokálneho PC Bridge.',memoryLabel:'ČO SI O TEBE PAMÄTÁM',memoryTitle:'Pamäť Trinity',memoryName:'Názov poznámky',memoryValue:'Čo si mám zapamätať?',saveMemory:'Uložiť do pamäte',memorySafety:'Nevkladaj heslá ani API kľúče. Pamäť je kontext pre odpovede, nie trénovanie nového modelu.',toolsTitle:'Moje schopnosti',changesTitle:'Zmeny vzhľadu a história UI',changesHint:'Trinity dokáže naživo upravovať vzhľad UI. Každú zmenu tu môžeš schváliť alebo kedykoľvek vrátiť späť (Rollback).',you:'Ty',working:'Pripravujem odpoveď…',context:'Pracovný priebeh',saved:'Uložené do pamäte.',copy:'Kopírovať',copied:'Skopírované',noMemory:'Zatiaľ tu nie sú žiadne poznámky.',noChanges:'Žiadne návrhy zmien. Nič sa nemení samo.',approve:'Schváliť a použiť',rollback:'Vrátiť zmenu',confirm:'Chceš použiť túto zmenu vzhľadu? Predchádzajúcu verziu môžeš obnoviť.',local:'Beží na tvojom PC',cloud:'Beží na Cloudflare',offline:'Model ešte nie je pripravený',stopDone:'Odpovedanie zastavené.',steps:'interné kroky',done:'hotové',search_memory:'Pamäť',project_snapshot:'Projekty',calculate:'Výpočty',analyze_text:'Analýza textu',web_search:'Webový výskum',service_status:'Kontrola služieb',read_memory:'Čítanie pamäte',list_workspace:'Pracovné súbory',read_file:'Čítanie súborov',write_file:'Tvorba súborov na príkaz',propose_theme:'Návrhy vzhľadu',ui_evolve:'Živá úprava UI',self_evolve:'Samorozvoj Trinity',domain_env_provision:'Tvorba domény a prostredí',domain_env_deploy:'Produkcia na doméne',domain_env_list:'Prehľad prostredí domén',trinity_doc_create:'Tvorba Trinity Dokumentu',trinity_doc_list:'Zoznam Trinity Dokumentov',plan:'Pomôž mi zostaviť praktický plán. Najprv sa ma opýtaj, čo chcem dosiahnuť.',talk:'Ahoj Trinity, poďme sa porozprávať.',create:'Chcem niečo vytvoriť. Pomôž mi spresniť nápad.'},
 en:{personal:'Your personal assistant',newChat:'＋ New conversation',recent:'OUR CONVERSATIONS',boundary:'I work within your request. Sensitive changes require your approval.',advanced:'Technical center ↗',here:'I’m here. What do you need?',memory:'◇ Memory',tools:'✦ Capabilities',loginTitle:'Welcome to Trinity',loginHint:'Your approved development connection signs in automatically. Otherwise use the launcher’s one-time link.',login:'Sign in',welcomeLabel:'TRINITY 10.3 · YOUR SPACE',greeting:'Hi. I’m Trinity.',intro:'We can talk, create ideas, write code, or execute local actions on your PC via PC Bridge.',suggestPlan:'Help me make a plan',suggestTalk:'Let’s have a chat',suggestCreate:'I want to create something',suggestChatGpt:'ChatGPT capabilities',chatGptPrompt:'Activate ChatGPT capabilities: precisely structured answers, coding, deep reasoning, and data analysis. What can we start with?',suggestCalc:'PC Calculator',calcPrompt:'Launch calculator (calc.exe) on my computer via PC Bridge.',suggestNotepad:'PC Notepad',notepadPrompt:'Open Notepad (notepad.exe) on my computer via PC Bridge.',suggestChrome:'Open Chrome',chromePrompt:'Launch Chrome on my computer via PC Bridge.',monetizePrompt:'Create a practical monetization plan with Trinity: check my Revolut Pro and PayPal payment links, my domain portfolio, and propose concrete service packages in EUR.',domainsPrompt:'Inspect my domain portfolio in Trinity, evaluate sale or lease potential, and suggest pricing for each domain.',message:'Message Trinity',placeholder:'Tell me what’s on your mind…',localModel:'On my computer',cloudModel:'Cloudflare',remember:'Remember this',allowFiles:'Allow file creation',stop:'Stop',send:'Send ↑',footnote:'TRINITY 10.3 · Memory persists. Work requests run in a durable Cloudflare process with local PC Bridge support.',memoryLabel:'WHAT I REMEMBER ABOUT YOU',memoryTitle:'Trinity’s memory',memoryName:'Note name',memoryValue:'What should I remember?',saveMemory:'Save to memory',memorySafety:'Do not store passwords or API keys. Memory provides context; it does not train a new model.',toolsTitle:'What I can do',changesTitle:'Appearance changes for approval',changesHint:'The Cloudflare version does not change its appearance automatically. I can prepare a code proposal, but deployment happens only after your explicit approval.',you:'You',working:'Preparing my answer…',context:'Work progress',saved:'Saved to memory.',copy:'Copy',copied:'Copied',noMemory:'No saved notes yet.',noChanges:'No proposed changes. Nothing changes on its own.',approve:'Approve and apply',rollback:'Roll back',confirm:'Apply this appearance change? You can restore the previous version.',local:'Running on your PC',cloud:'Running on Cloudflare',offline:'The model is not ready yet',stopDone:'Stopped answering.',steps:'internal steps',done:'done',search_memory:'Memory',project_snapshot:'Projects',calculate:'Calculations',analyze_text:'Text analysis',web_search:'Web research',service_status:'Service checks',read_memory:'Read persistent memory',list_workspace:'Workspace files',read_file:'Read workspace files',write_file:'Create files on command',propose_theme:'Appearance proposals',plan:'Help me make a practical plan. First ask what I want to achieve.',talk:'Hi Trinity, let’s have a chat.',create:'I want to create something. Help me refine the idea.'}
 };
 Object.assign(words.sk,{overview:'Prehľad',chat:'Chat',projects:'Projekty',memoryPlain:'Pamäť',newChatPlain:'Nový rozhovor',dashboardHere:'Tvoj priestor pre tvorbu, prácu a nápady.',hello:'Ahoj.',ready:'Čo dnes vytvoríme?',dashboardIntro:'Trinity spája rozhovor, pamäť, projekty a nástroje do jedného pokojného pracovného priestoru.',startChat:'Začať rozhovor',openStudio:'Otvoriť AI Studio',today:'Dnes',tasksDone:'dokončených úloh',memories:'uložených záznamov',activeProjects:'aktívnych priestorov',system:'Systém',cloudServices:'cloudové služby',quickStart:'RÝCHLY ŠTART',whatNeed:'S čím ti dnes pomôžem?',planWork:'Naplánovať prácu',planWorkHint:'Rozdelím cieľ na jasné kroky',createSomething:'Niečo vytvoriť',createHint:'Text, nápad, kód alebo projekt',research:'Preskúmať tému',researchHint:'Aktuálne zdroje a zhrnutie',organize:'Usporiadať projekt',organizeHint:'Priority, úlohy a ďalší krok',latest:'NAJNOVŠIE',recentActivity:'Posledná aktivita',allChats:'Všetky chaty',studioTitle:'Jedna Trinity. Celé tvorivé centrum.',studioIntro:'Modely, špecializácie a nástroje pracujú v pozadí ako schopnosti jednej asistentky.',online:'ONLINE',coreText:'Rozhoduje, plánuje, používa nástroje a kontroluje dôkazy pred odpoveďou.',specializations:'Špecializácie',specializationsText:'Vývoj, výskum, dizajn, bezpečnosť, dáta a prevádzka. Stále jedna identita.',seeWork:'Pozrieť prácu',persistentMemory:'Trvalá pamäť',persistentMemoryText:'D1 uchováva iba to, čo jej zveríš. Heslá ani tajné kľúče sem nepatria.',openMemory:'Otvoriť pamäť',truthGuard:'Strážca pravdy',truthGuardText:'Akcia je hotová až vtedy, keď existuje overiteľné potvrdenie.',installedModules:'NAINŠTALOVANÉ MODULY',visibleSkills:'Schopnosti Trinity',workspace:'PRACOVNÝ PRIESTOR',projectsTitle:'Projekty a rozpracované úlohy',projectsIntro:'Prehľad uložený v spoločnej pamäti Trinity.',recentTasks:'Posledné úlohy',researchPrompt:'Preskúmaj túto tému podľa aktuálnych a dôveryhodných zdrojov: ',organizePrompt:'Pomôž mi usporiadať projekt. Začni cieľom, prioritami a najbližším krokom.',emptyProjects:'Zatiaľ tu nie je žiadny projekt.',emptyTasks:'Zatiaľ tu nie sú žiadne úlohy.',running:'prebieha',completed:'dokončené',failed:'zlyhalo'});
@@ -70,9 +70,9 @@ function renderReply(target,text){
 }
 function bottom(){const area=$('chat-area');area.scrollTop=area.scrollHeight;}
 async function sessions(){const rows=await api('/sessions');$('sessions').replaceChildren();for(const row of rows){const button=node('button',row.title.slice(0,45));button.onclick=safe(async()=>{session=row.session;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');});$('sessions').append(button);}}
-const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, DNS, subdomény a nasadenie webov.']};
+const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.']};
 function updateHeading(){const meta=viewMeta[currentView]||viewMeta.dashboard;$('page-kicker').textContent=meta[0];$('page-title').textContent=meta[1].includes(' ')?meta[1]:t(meta[1]);$('subtitle').textContent=t(meta[2]);}
-async function setView(name,updateHash=true){if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard')await loadDashboard();if(name==='studio'){await loadStudio();await loadVisualWorkflows();}if(name==='projects')await loadProjects();if(name==='domains')await loadDomains();if(name==='settings'){await loadSettings();await loadTrinity2Settings();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
+async function setView(name,updateHash=true){if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='documents')await loadTrinityDocuments();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
 function renderDashboardActivity(listId,items){const list=$(listId);list.replaceChildren();for(const item of items){const row=node('div',undefined,'activity-item'),icon=node('div',item.status==='completed'?'✓':item.status==='failed'?'!':'·','activity-dot'),text=node('span');text.append(node('b',item.task),node('small',`${t(item.status)||item.status} · ${item.updated_at}`));row.append(icon,text);row.onclick=async()=>{session=item.session_id;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');};list.append(row);}if(!items.length)list.append(node('p',t('noChanges'),'skeleton'));}
 async function loadDashboard(){const data=await api('/dashboard'),admin=data.dashboard_mode==='admin';$('user-dashboard').hidden=admin;$('admin-dashboard').hidden=!admin;if(admin){const metrics=data.admin||{};$('admin-active-jobs').textContent=metrics.active_jobs??0;$('admin-failed-jobs').textContent=metrics.failed_today??0;$('admin-pending-users').textContent=metrics.pending_users??0;$('admin-services').textContent=data.available_services+'/'+data.total_services;$('admin-gateway-state').textContent=data.pc_bridge?.connected?'Cloud + PC brána pripojená':'Cloud aktívny · PC brána nepripojená';$('admin-system-state').textContent=metrics.emergency_stop?'NÚDZOVÉ ZASTAVENIE':'Systém beží';$('admin-system-state').className='admin-state '+(metrics.emergency_stop?'stopped':'running');renderDashboardActivity('admin-dashboard-activity',data.recent_jobs);return;}$('metric-tasks').textContent=data.today_completed;$('metric-memory').textContent=data.memory_count;$('metric-projects').textContent=data.project_count;$('metric-health').textContent=data.available_services+'/'+data.total_services+(data.pc_bridge?.connected?' · PC ✓':'');renderDashboardActivity('dashboard-activity',data.recent_jobs);}
 async function loadStudio(){const data=await api('/studio/projects'),list=$('studio-project-list');list.replaceChildren();for(const item of data.items){const button=node('button',undefined,'studio-project');button.dataset.projectId=item.id;button.append(node('b',item.name),node('small','v'+item.version+' · '+item.updated_at));button.onclick=safe(()=>openStudioProject(item.id));list.append(button);}if(!data.items.length)list.append(node('p',t('emptyProjects'),'skeleton'));if(currentStudio)document.querySelector(`[data-project-id="${currentStudio.id}"]`)?.classList.add('active');}
@@ -120,7 +120,7 @@ async function loadProjects(){const data=await api('/projects');const projects=$
 async function loadHistory(){$('messages').replaceChildren();const rows=await api('/history?session='+encodeURIComponent(session));$('welcome').hidden=rows.length>0;for(const row of rows){const item=bubble(row.role);renderReply(item.content,row.content);}bottom();}
 function renderEnvironment(){const host=location.hostname,mode=host==='auru.space'?'PRODUKCIA':host==='auru.dev'?'VÝVOJ':'LOKÁL';const badge=$('environment-badge');if(badge){badge.textContent=`TRINITY 10.3 · ${mode}`;badge.dataset.environment=mode.toLowerCase();}}
 function renderPCBridgeStatus(pcBridge){const badge=$('pc-bridge-badge'),text=$('pc-bridge-text');if(!badge||!text)return;const connected=!!pcBridge?.connected;badge.classList.toggle('connected',connected);badge.classList.toggle('disconnected',!connected);text.textContent=connected?'PC: Online':'PC: Offline';badge.title=connected?`PC Bridge pripojený (${pcBridge.last_seen_at||pcBridge.last_seen||'aktívny'})`:'PC Bridge nepripojený';const localOpt=$('engine')?.querySelector('[value=local]');if(localOpt){localOpt.disabled=false;localOpt.textContent=connected?'Môj počítač · PC Bridge (Online)':'Môj počítač · PC Bridge (Lokálne akcie)';}}
-async function init(){renderEnvironment();document.documentElement.dataset.theme=localStorage.getItem('trinity-theme')||'dark';$('theme')?.addEventListener('click',()=>{const theme=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=theme;localStorage.setItem('trinity-theme',theme);});try{state=await api('/status');$('login').hidden=true;$('app-views').hidden=false;renderAccount();renderPCBridgeStatus(state.pc_bridge);const preferred=localStorage.getItem('trinity-engine')||'cloud';$('engine').value=preferred==='local'&&!state.local_available&&!state.pc_bridge?.connected?'cloud':preferred;$('allow-files').disabled=true;$('allow-files-setting').hidden=true;loadLocalPreferences();localize();await sessions();await loadHistory();await setView(location.hash.slice(1)||localStorage.getItem('trinity-start-view')||'dashboard',false);}catch(e){if(e.status===401){$('login').hidden=false;$('app-views').hidden=true;$('account-state').hidden=true;$('logout').hidden=true;}else notice(e.message);}}
+async function init(){renderEnvironment();document.documentElement.dataset.theme=localStorage.getItem('trinity-theme')||'dark';$('theme')?.addEventListener('click',()=>{const theme=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=theme;localStorage.setItem('trinity-theme',theme);});try{state=await api('/status');$('login').hidden=true;$('app-views').hidden=false;renderAccount();renderPCBridgeStatus(state.pc_bridge);const preferred=localStorage.getItem('trinity-engine')||'cloud';$('engine').value=preferred==='local'&&!state.local_available&&!state.pc_bridge?.connected?'cloud':preferred;$('allow-files').disabled=true;$('allow-files-setting').hidden=true;loadLocalPreferences();localize();await refreshUiEvolutionLive();await sessions();await loadHistory();await setView(location.hash.slice(1)||localStorage.getItem('trinity-start-view')||'dashboard',false);}catch(e){if(e.status===401){$('login').hidden=false;$('app-views').hidden=true;$('account-state').hidden=true;$('logout').hidden=true;}else notice(e.message);}}
 async function configureGoogleLogin(){const response=await fetch('/api/auth/config');const config=await response.json();$('google-login').hidden=!config.google_enabled;$('google-login').onclick=()=>location.assign('/api/auth/google/start');$('login-form').hidden=!!config.google_required;const result=new URLSearchParams(location.search).get('auth');$('google-login-note').textContent=result==='pending'?'Tvoj overený profil čaká na schválenie administrátorom.':result==='denied'?'Prístup k Trinity nebol schválený.':config.google_required&&!config.google_enabled?'Google OAuth nie je nakonfigurované; staré heslo je vypnuté.':'';if(result)history.replaceState(null,'',location.pathname);}
 $('language').onchange=()=>{language=$('language').value;localStorage.setItem('trinity-language',language);localize();};
 $('logout').onclick=safe(async()=>{await fetch('/api/ops/logout',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});location.reload();});
@@ -143,7 +143,7 @@ $('chat-form').onsubmit=safe(async()=>{
    const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='';while(true){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});let end;while((end=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,end);buffer=buffer.slice(end+1);if(!line)continue;const event=JSON.parse(line);if(event.type==='delta')reply.content.textContent+=event.text;if(event.type==='context'){session=event.session;context.textContent=`${event.model} · ${t('memory')}: ${event.memories.length} · ${event.history}`;}if(event.type==='tool'){context.append(node('div',`${t(event.name)} · ${event.status}`));$('activity').textContent=t(event.name);}if(event.type==='status')$('activity').textContent=event.text;if(event.type==='error')throw new Error(event.error);}bottom();}
   }
   renderReply(reply.content,reply.content.textContent);
-  const copy=node('button',t('copy'),'copy');copy.onclick=async()=>{await navigator.clipboard.writeText(reply.content.innerText||reply.content.textContent);copy.textContent=t('copied');};reply.wrap.append(copy);localStorage.setItem('trinity-chat-session',session);await sessions();
+  const copy=node('button',t('copy'),'copy');copy.onclick=async()=>{await navigator.clipboard.writeText(reply.content.innerText||reply.content.textContent);copy.textContent=t('copied');};reply.wrap.append(copy);localStorage.setItem('trinity-chat-session',session);await sessions();await refreshUiEvolutionLive();
  }catch(e){if(e.name==='AbortError')$('activity').textContent=t('stopDone');else{reply.content.append(node('span','\n'+e.message,'error'));notice(e.message);}}
  finally{controller=null;$('send').disabled=false;$('stop').hidden=true;$('activity').textContent='';$('remember').checked=false;bottom();}
 });
@@ -491,4 +491,350 @@ $('commerce-product-form')?.addEventListener('submit',safe(async(e)=>{
   renderCommerce(updated);
   await loadSettings();
   notice(`Platobná ponuka „${payload.product.name}“ bola uložená (${provider==='paypal'?'PayPal':'Revolut Pro'}).`);
+}));
+
+let lastUiUpdatedAt=null,cachedUiEvo=null,docCategoryFilter='',docSearchQuery='';
+function applyUiDomCustomizations(st){
+  if(!st)return;
+  const brandLink=document.querySelector('.sidebar .brand > span:last-child');
+  if(brandLink&&st.brand_title){
+    const sub=st.brand_subtitle||'Tvoja osobná asistentka';
+    brandLink.innerHTML='';
+    brandLink.append(document.createTextNode(st.brand_title),node('small',sub));
+  }
+  const wHeading=document.querySelector('#welcome h1');
+  if(wHeading&&st.welcome_heading)wHeading.textContent=st.welcome_heading;
+  const wSub=document.querySelector('#welcome p');
+  if(wSub&&st.welcome_subtext)wSub.textContent=st.welcome_subtext;
+  const slot=$('ui-custom-widgets-slot');
+  if(slot){
+    const widgets=Array.isArray(st.widgets)?st.widgets:(Array.isArray(st.custom_widgets)?st.custom_widgets:[]);
+    slot.replaceChildren();
+    slot.hidden=!widgets.length;
+    for(const w of widgets){
+      const card=node('section',undefined,'panel ui-custom-widget-card');
+      const head=node('div',undefined,'panel-head');
+      const left=node('div');
+      left.append(node('span',w.badge||'TRINITY UI WIDGET','eyebrow'),node('h2',w.title||'Vlastný panel'));
+      head.append(left,node('span','LIVE UI','detail-chip'));
+      card.append(head,node('p',w.content||w.body||''));
+      slot.append(card);
+    }
+  }
+}
+async function refreshUiEvolutionLive(forceReloadCss=false){
+  try{
+    const data=await api('/ui-evolution');
+    cachedUiEvo=data;
+    const st=data.state||{};
+    applyUiDomCustomizations(st);
+    if(forceReloadCss||(st.updated_at&&st.updated_at!==lastUiUpdatedAt)){
+      lastUiUpdatedAt=st.updated_at;
+      const themeLink=document.querySelector('link[href^="/theme.css"]');
+      if(themeLink)themeLink.href='/theme.css?v='+Date.now();
+    }
+    return data;
+  }catch{return null;}
+}
+async function loadUiEvolution(){
+  const panel=$('settings-ui-evolution-panel');
+  const isAdmin=['owner','admin'].includes(state?.account?.role);
+  if(panel)panel.hidden=!isAdmin;
+  const data=await refreshUiEvolutionLive(false);
+  if(data)renderUiEvolution(data);
+}
+function renderUiEvolution(data){
+  if(!data)return;
+  const st=data.state||{};
+  if($('ui-evolution-active-badge'))$('ui-evolution-active-badge').textContent=`AKTÍVNA TÉMA: ${(st.preset||'default').toUpperCase()}`;
+  document.querySelectorAll('[data-ui-preset]').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.uiPreset===(st.preset||'default'));
+  });
+  if($('ui-evo-accent'))$('ui-evo-accent').value=st.primary_color||'';
+  if($('ui-evo-accent2'))$('ui-evo-accent2').value=st.secondary_color||'';
+  if($('ui-evo-font-scale'))$('ui-evo-font-scale').value=st.font_scale||'normal';
+  if($('ui-evo-radius'))$('ui-evo-radius').value=st.radius_scale||'rounded';
+  if($('ui-evo-brand-title'))$('ui-evo-brand-title').value=st.brand_title||'';
+  if($('ui-evo-brand-subtitle'))$('ui-evo-brand-subtitle').value=st.brand_subtitle||'';
+  if($('ui-evo-welcome-heading'))$('ui-evo-welcome-heading').value=st.welcome_heading||'';
+  if($('ui-evo-welcome-subtext'))$('ui-evo-welcome-subtext').value=st.welcome_subtext||'';
+  if($('ui-evo-custom-css'))$('ui-evo-custom-css').value=st.custom_css||'';
+  const changesList=data.changes||[];
+  if($('ui-evo-changes-count'))$('ui-evo-changes-count').textContent=String(changesList.length);
+  const hist=$('ui-evolution-history');
+  if(!hist)return;
+  hist.replaceChildren();
+  if(!changesList.length){
+    hist.append(node('p','Zatiaľ neboli vykonané žiadne zmeny vzhľadu. Klikni na niektorú dizajnovú tému vyššie alebo požiadaj Trinity v chate.','skeleton'));
+    return;
+  }
+  for(const c of changesList.slice(0,12)){
+    const card=node('article',undefined,'api-key-item');
+    const info=node('div');
+    info.append(node('b',`${c.title||c.summary||'Úprava vzhľadu'}`),node('small',`${c.status} · ${c.actor||'trinity'} · ${c.created_at}`));
+    const actions=node('div',undefined,'domain-card-actions');
+    const rbBtn=node('button','↺ Vrátiť pred túto zmenu');
+    rbBtn.type='button';
+    rbBtn.onclick=safe(async()=>{
+      await api(`/changes/${c.id}/rollback`,{confirm:true});
+      await refreshUiEvolutionLive(true);
+      await loadUiEvolution();
+      notice('Vzhľad UI bol vrátený do predchádzajúceho stavu a zaznamenaný v Trinity Dokumentoch.');
+    });
+    actions.append(rbBtn);
+    card.append(info,actions);
+    hist.append(card);
+  }
+}
+document.querySelectorAll('[data-ui-preset]').forEach(btn=>btn.addEventListener('click',safe(async()=>{
+  const preset=btn.dataset.uiPreset;
+  const res=await api('/ui-evolution',{preset,title:`Prepnutie témy UI na ${preset}`});
+  cachedUiEvo={...cachedUiEvo,state:res.state};
+  await refreshUiEvolutionLive(true);
+  await loadUiEvolution();
+  notice(`Vzhľad Trinity bol naživo prepnutý na tému „${preset}“ (vytvorený aj Trinity Dokument).`);
+})));
+$('ui-evolution-form')?.addEventListener('submit',safe(async(e)=>{
+  e.preventDefault();
+  const payload={
+    preset:cachedUiEvo?.state?.preset||'default',
+    primary_color:$('ui-evo-accent').value.trim()||undefined,
+    secondary_color:$('ui-evo-accent2').value.trim()||undefined,
+    font_scale:$('ui-evo-font-scale').value||'normal',
+    radius_scale:$('ui-evo-radius').value||'rounded',
+    brand_title:$('ui-evo-brand-title').value.trim(),
+    brand_subtitle:$('ui-evo-brand-subtitle').value.trim(),
+    welcome_heading:$('ui-evo-welcome-heading').value.trim(),
+    welcome_subtext:$('ui-evo-welcome-subtext').value.trim(),
+    custom_css:$('ui-evo-custom-css').value
+  };
+  const wTitle=$('ui-evo-widget-title').value.trim(),wBody=$('ui-evo-widget-body').value.trim(),wBadge=$('ui-evo-widget-badge').value.trim();
+  if(wTitle&&wBody)payload.add_widget={title:wTitle,content:wBody,badge:wBadge||'TRINITY LIVE'};
+  await api('/ui-evolution',payload);
+  $('ui-evo-widget-title').value='';$('ui-evo-widget-body').value='';$('ui-evo-widget-badge').value='';
+  await refreshUiEvolutionLive(true);
+  await loadUiEvolution();
+  notice('Živá úprava UI bola okamžite aplikovaná a zapísaná do Trinity Dokumentov.');
+}));
+$('ui-evo-reset-btn')?.addEventListener('click',safe(async()=>{
+  await api('/ui-evolution',{reset_default:true});
+  await refreshUiEvolutionLive(true);
+  await loadUiEvolution();
+  notice('Vzhľad Trinity bol obnovený na predvolené nastavenia.');
+}));
+$('ui-evo-ask-chat')?.addEventListener('click',safe(async()=>{
+  await setView('chat');
+  $('message').value='Uprav a vylepši naše používateľské rozhranie pomocou nástroja ui_evolve: vyber prémiovú farebnú tému, uprav uvítací nadpis a pridaj na Prehľad užitočný widget pre naše podnikanie.';
+  $('message').focus();
+}));
+
+async function loadDomainEnvironments(){
+  const box=$('domain-environments-list');if(!box)return;
+  try{
+    const [envData,studioData]=await Promise.all([
+      api('/domains/environments'),
+      api('/studio/projects').catch(()=>({items:[]}))
+    ]);
+    const studioSelect=$('domain-env-studio-project');
+    if(studioSelect){
+      studioSelect.replaceChildren(new Option('— Použiť šablónu vyššie —',''));
+      for(const p of (studioData.items||[])){
+        studioSelect.add(new Option(`AI Studio: ${p.name} (v${p.version})`,p.id));
+      }
+    }
+    renderDomainEnvironments(envData);
+  }catch(e){
+    box.replaceChildren(node('p','Načítanie prostredí vyžaduje prihlásenie.','skeleton'));
+  }
+}
+function renderDomainEnvironments(data){
+  const box=$('domain-environments-list');if(!box)return;
+  const items=data?.items||[];
+  if($('domain-env-count'))$('domain-env-count').textContent=`${items.length} domén s prostrediami`;
+  box.replaceChildren();
+  if(!items.length){
+    const empty=node('div',undefined,'domain-market-empty');
+    empty.append(
+      node('b','Zatiaľ nemáš vytvorené žiadne doménové prostredie (Production / Staging / Dev).'),
+      node('small','Vyplň vyššie názov domény (napr. moj-projekt.sk), vyber šablónu a klikni na „🚀 Vytvoriť doménu, prostredia & spustiť produkciu“.')
+    );
+    box.append(empty);
+    return;
+  }
+  for(const item of items){
+    const card=node('article',undefined,'domain-market-card domain-env-card');
+    const head=node('div',undefined,'domain-market-head');
+    head.append(node('strong',item.domain_name),node('span',`SSL: ${item.ssl_mode||'strict'} · Proxy ON`,'domain-badge active'));
+    const envGrid=node('div',undefined,'domain-env-badges');
+    const envs=item.environments||{};
+    for(const envKey of ['production','staging','development']){
+      const eInfo=envs[envKey];
+      if(!eInfo)continue;
+      const pill=node('div',undefined,'domain-env-row');
+      const isLive=eInfo.status==='deployed'||eInfo.status==='live';
+      const statusText=isLive?`LIVE · v${eInfo.version||1}`:'Pripravené';
+      pill.append(
+        node('b',`${envKey.toUpperCase()}: `),
+        node('span',statusText,'price-tag '+(isLive?'sale':'lease'))
+      );
+      const livePath=eInfo.live_path||eInfo.public_path||`/sites/${item.domain_name}/${envKey}`;
+      if(livePath){
+        const link=node('a',livePath,'button-link');
+        link.href=livePath;link.target='_blank';link.rel='noopener noreferrer';
+        pill.append(link);
+      }
+      const deployBtn=node('button',isLive?'↻ Preprodukovať':'⚡ Nasadiť');
+      deployBtn.type='button';
+      deployBtn.onclick=safe(async()=>{
+        const studioId=$('domain-env-studio-project')?.value;
+        const tpl=studioId?'studio_project':($('domain-env-template')?.value||'business_landing');
+        const res=await api('/domains/environments/deploy',{
+          domain_name:item.domain_name,
+          environment:envKey,
+          template:tpl,
+          title:$('domain-env-title')?.value.trim()||item.domain_name,
+          subtitle:$('domain-env-subtitle')?.value.trim()||undefined,
+          studio_project_id:studioId||undefined
+        });
+        notice(`Prostredie ${envKey} pre ${item.domain_name} bolo vyprodukované na ${res.environment?.live_path||livePath} (v${res.environment?.version||1}).`);
+        await loadDomainEnvironments();
+      });
+      pill.append(deployBtn);
+      envGrid.append(pill);
+    }
+    card.append(head,envGrid);
+    box.append(card);
+  }
+}
+$('domain-env-provision-form')?.addEventListener('submit',safe(async(e)=>{
+  e.preventDefault();
+  const domain_name=$('domain-env-name').value.trim();
+  const studio_project_id=$('domain-env-studio-project').value;
+  const template=studio_project_id?'studio_project':$('domain-env-template').value;
+  const title=$('domain-env-title').value.trim()||domain_name;
+  const subtitle=$('domain-env-subtitle').value.trim();
+  const ssl_mode=$('domain-env-ssl').value;
+  const res=await api('/domains/environments/provision',{
+    domain_name,
+    template:template==='studio_project'?'ai_saas':template,
+    title,
+    subtitle:subtitle||undefined,
+    ssl_mode
+  });
+  if(studio_project_id){
+    await api('/domains/environments/deploy',{
+      domain_name,
+      environment:'production',
+      template:'studio_project',
+      studio_project_id,
+      title
+    });
+  }
+  $('domain-env-name').value='';
+  await loadDomains();
+  await loadDomainEnvironments();
+  notice(`Doména ${domain_name} bola vytvorená s prostrediami Production / Staging / Dev a živým webom na /sites/${domain_name}/production (+ vytvorený Trinity Dokument).`);
+}));
+$('domain-env-ask-chat')?.addEventListener('click',safe(async()=>{
+  await setView('chat');
+  $('message').value='Vytvor novú doménu s prostrediami (production, staging, development) cez nástroj domain_env_provision, vyprodukuj na ňu živý moderný web a ulož k tomu Trinity Dokument.';
+  $('message').focus();
+}));
+
+async function loadTrinityDocuments(){
+  const list=$('trinity-doc-list');if(!list)return;
+  try{
+    const q=new URLSearchParams();
+    if(docCategoryFilter)q.set('category',docCategoryFilter);
+    if(docSearchQuery)q.set('search',docSearchQuery);
+    q.set('limit','60');
+    const data=await api('/documents?'+q.toString());
+    renderTrinityDocuments(data);
+  }catch(e){
+    list.replaceChildren(node('p','Načítavanie Trinity Dokumentov zlyhalo: '+e.message,'skeleton'));
+  }
+}
+function renderTrinityDocuments(data){
+  const items=data?.items||[];
+  const set=(id,v)=>{const el=$(id);if(el)el.textContent=String(v);};
+  set('docstat-total',data?.total??items.length);
+  set('docstat-steps',items.filter(d=>d.category==='workflow_step').length);
+  set('docstat-ui',items.filter(d=>d.category==='ui_evolution'||d.category==='self_improvement').length);
+  set('docstat-domains',items.filter(d=>d.category==='domain_production').length);
+  const list=$('trinity-doc-list');if(!list)return;
+  list.replaceChildren();
+  if(!items.length){
+    list.append(node('p','Zatiaľ nie sú žiadne Trinity Dokumenty pre zvolený filter. Každý krok v chate, úprava UI alebo vytvorenie domény automaticky vytvorí nový dokument.','skeleton'));
+    return;
+  }
+  for(const doc of items){
+    const card=node('article',undefined,'api-key-item trinity-doc-card');
+    const info=node('div',undefined,'commerce-offer-info');
+    const top=node('div',undefined,'commerce-offer-top');
+    top.append(node('b',doc.title),node('span',doc.category,'commerce-provider-badge revolut-pro'));
+    if(doc.step_name)top.append(node('span',doc.step_name,'detail-chip'));
+    info.append(top);
+    if(doc.summary)info.append(node('p',doc.summary));
+    info.append(node('small',`ID: ${doc.id} · Autor: ${doc.actor||doc.author||'trinity'} · ${new Date(doc.created_at).toLocaleString('sk-SK')}`));
+    const actions=node('div',undefined,'commerce-offer-actions');
+    const readBtn=node('button','👁 Čítať detail','primary');
+    readBtn.type='button';
+    readBtn.onclick=safe(()=>openTrinityDocReader(doc.id));
+    const mdLink=node('a','⬇ .MD','button-link');
+    mdLink.href=`/api/assistant/documents/${doc.id}/export?format=md`;
+    const pdfLink=node('a','📕 .PDF','button-link');
+    pdfLink.href=`/api/assistant/documents/${doc.id}/export?format=pdf`;
+    const delBtn=node('button','Zmazať','danger');
+    delBtn.type='button';
+    delBtn.onclick=safe(async()=>{
+      if(!confirm(`Zmazať Trinity Dokument „${doc.title}“?`))return;
+      await api(`/documents/${doc.id}/delete`,{});
+      await loadTrinityDocuments();
+      notice('Trinity Dokument bol odstránený.');
+    });
+    actions.append(readBtn,mdLink,pdfLink,delBtn);
+    card.append(info,actions);
+    list.append(card);
+  }
+}
+async function openTrinityDocReader(docId){
+  const reader=$('trinity-doc-reader'),body=$('trinity-doc-reader-body'),title=$('trinity-doc-reader-title');
+  if(!reader||!body)return;
+  const res=await api('/documents/'+docId);
+  const doc=res.item;
+  title.textContent=`📚 ${doc.title} (${doc.category})`;
+  body.replaceChildren();
+  const meta=node('p',`Vytvorené: ${new Date(doc.created_at).toLocaleString('sk-SK')} · Krok/Akcia: ${doc.step_name||'manual'} · Autor: ${doc.actor||doc.author||'trinity'}`,'settings-help');
+  const contentBox=node('div',undefined,'trinity-doc-markdown');
+  contentBox.innerHTML=formatMarkdown(doc.markdown||doc.content||doc.summary||'');
+  body.append(meta,contentBox);
+  reader.hidden=false;
+  reader.scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('trinity-doc-reader-close')?.addEventListener('click',()=>{if($('trinity-doc-reader'))$('trinity-doc-reader').hidden=true;});
+$('trinity-doc-open-create')?.addEventListener('click',()=>{const w=$('trinity-doc-form-wrap');if(w)w.hidden=!w.hidden;});
+$('trinity-doc-cancel')?.addEventListener('click',()=>{const w=$('trinity-doc-form-wrap');if(w)w.hidden=true;});
+$('trinity-doc-refresh')?.addEventListener('click',loadTrinityDocuments);
+document.querySelectorAll('[data-doc-filter]').forEach(btn=>btn.addEventListener('click',()=>{
+  docCategoryFilter=btn.dataset.docFilter||'';
+  document.querySelectorAll('[data-doc-filter]').forEach(b=>b.classList.toggle('active',b===btn));
+  loadTrinityDocuments();
+}));
+$('trinity-doc-search')?.addEventListener('input',e=>{
+  docSearchQuery=(e.target.value||'').trim();
+  loadTrinityDocuments();
+});
+$('trinity-doc-create-form')?.addEventListener('submit',safe(async(e)=>{
+  e.preventDefault();
+  await api('/documents',{
+    title:$('trinity-doc-title').value.trim(),
+    category:$('trinity-doc-category').value,
+    summary:$('trinity-doc-summary').value.trim(),
+    content:$('trinity-doc-content').value.trim(),
+    step_name:'manual_ui_create'
+  });
+  $('trinity-doc-create-form').reset();
+  $('trinity-doc-form-wrap').hidden=true;
+  await loadTrinityDocuments();
+  notice('Nový Trinity Dokument bol vytvorený a archivovaný.');
 }));

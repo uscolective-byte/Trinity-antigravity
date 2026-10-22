@@ -313,3 +313,54 @@
   .domain-action-bar button{flex:1 1 180px}
   .domain-card,.commerce-offer-item{align-items:flex-start;flex-direction:column}
 }
+
+/* Live UI Evolution, Domain Environments & Trinity Documents */
+.ui-custom-widgets-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:16px;
+  margin-top:16px;
+}
+.ui-custom-widget-card{
+  border:1px solid var(--accent-soft,rgba(56,189,248,0.35));
+}
+[data-ui-preset].active{
+  background:var(--accent,#38bdf8)!important;
+  color:#08101d!important;
+  border-color:transparent!important;
+  font-weight:700;
+}
+.domain-env-badges{
+  display:grid;
+  gap:8px;
+  margin-top:6px;
+}
+.domain-env-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  flex-wrap:wrap;
+  padding:8px 10px;
+  border-radius:10px;
+  background:rgba(15,23,42,0.38);
+  border:1px solid var(--line);
+  font-size:12.5px;
+}
+.trinity-doc-card{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.trinity-doc-markdown{
+  padding:14px 16px;
+  border-radius:12px;
+  background:rgba(15,23,42,0.45);
+  border:1px solid var(--line);
+  font-size:13.5px;
+  line-height:1.65;
+  margin:10px 0;
+}
+#documents-view .panel{margin-top:16px}
