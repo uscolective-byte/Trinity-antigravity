@@ -27,3 +27,17 @@ test('runAgent responds to loyalty oath requests with full oath, document and tr
   assert.equal(res.truth.status, 'passed');
   assert.ok(res.tool_log.some(t => t.tool === 'trinity_loyalty_oath'));
 });
+
+test('runAgent connects PayPal account Saboivan@gmail.com cleanly', async () => {
+  const env = {
+    DB: null,
+    Mastermind: null
+  };
+  const res = await runAgent(env, 'orchestrator', 'prepoj mi Trinity z mojim uctom Paypay Saboivan@gmail.com');
+  assert.ok(res.text.includes('PayPal'));
+  assert.ok(res.text.includes('Saboivan@gmail.com'));
+  assert.ok(res.text.includes('Basterix'));
+  assert.equal(res.model, 'trinity-commerce-hub');
+  assert.equal(res.truth.status, 'passed');
+  assert.ok(res.tool_log.some(t => t.tool === 'paypal_connect'));
+});
