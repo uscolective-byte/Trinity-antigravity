@@ -4,7 +4,7 @@
  * Žiadne simulácie ani fiktívne čísla v súlade s Truth Policy 2.0.
  */
 
-const USER_AGENT = 'TrinityAssistant/10.3 (+https://auru.space; kontakt@auru.space)';
+const USER_AGENT = 'TrinityAssistant/11.0 (+https://auru.space; kontakt@auru.space)';
 
 export const FREE_MODULES_CATALOG = [
   {

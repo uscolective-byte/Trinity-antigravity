@@ -98,7 +98,7 @@
 <option value="mistral">🔴 Mistral AI (Large / Codestral)</option>
 <option value="openrouter">🪐 OpenRouter (100+ Free & Pro Modely)</option>
 <option value="local">💻 Môj počítač · PC Bridge (Lokálne akcie)</option>
-</select><button id="attach-image" type="button" title="Analyzovať obrázok">📎 Obrázok</button><button id="record-voice" type="button" title="Nahrať hlas">🎤 Hlas</button><button id="read-answer" type="button" title="Prečítať poslednú odpoveď">🔊 Čítať</button><button id="voice-dialogue-btn" type="button" title="Obojsmerný handsfree hovor s Trinity" class="voice-live-btn">🎙️ Live Hovor</button><button id="memory-graph-open-btn" type="button" title="Kontextový pamäťový graf">🕸️ Graf</button><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><input id="audio-input" type="file" accept="audio/*" hidden><label><input type="checkbox" id="remember"><span data-i18n="remember">Pamäť</span></label><label id="allow-files-setting"><input type="checkbox" id="allow-files"><span data-i18n="allowFiles">Súbory</span></label></div><button id="stop" type="button" hidden data-i18n="stop">Zastaviť</button><button id="send" class="primary" data-i18n="send">Odoslať ↑</button></div></form><audio id="speech-player" controls hidden></audio><small class="footnote" data-i18n="footnote">Trinity 10.3 · Pokojný priestor pre tvorbu a prácu</small></section></section>
+</select><button id="attach-image" type="button" title="Analyzovať obrázok">📎 Obrázok</button><button id="record-voice" type="button" title="Nahrať hlas">🎤 Hlas</button><button id="read-answer" type="button" title="Prečítať poslednú odpoveď">🔊 Čítať</button><button id="voice-dialogue-btn" type="button" title="Obojsmerný handsfree hovor s Trinity" class="voice-live-btn">🎙️ Live Hovor</button><button id="memory-graph-open-btn" type="button" title="Kontextový pamäťový graf">🕸️ Graf</button><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><input id="audio-input" type="file" accept="audio/*" hidden><label><input type="checkbox" id="remember"><span data-i18n="remember">Pamäť</span></label><label id="allow-files-setting"><input type="checkbox" id="allow-files"><span data-i18n="allowFiles">Súbory</span></label></div><button id="stop" type="button" hidden data-i18n="stop">Zastaviť</button><button id="send" class="primary" data-i18n="send">Odoslať ↑</button></div></form><audio id="speech-player" controls hidden></audio><small class="footnote" data-i18n="footnote">Trinity 11.0 · Pokojný priestor pre tvorbu a prácu</small></section></section>
     <section id="studio-view" class="view studio-view" hidden>
       <div class="studio-top"><div><span class="eyebrow">TRINITY AI & MULTIMEDIÁLNE ŠTÚDIO</span><h1 data-i18n="builderTitle">Tvorba Videí, Hudby, Fotiek, Prezentácií a Webov</h1><p data-i18n="builderIntro">Generuj 16:9 animované videá so zvukom a WebM exportom, polyfonickú WAV hudbu, AI fotky, interaktívne prezentácie (HTML5 + PDF), kreatívne balíky aj živé weby.</p></div><button id="studio-new" class="primary" data-i18n="newStudioProject">＋ Nový webový projekt</button></div>
       <section id="multimedia-studio-panel" class="panel domain-env-panel" style="margin-bottom:18px">
@@ -891,9 +891,9 @@
     </section>
 
     <section id="documents-view" class="view documents-view" hidden>
-      <div class="section-intro"><span class="eyebrow">TRINITY 10.3 KNOWLEDGE CENTER · PRÍRUČKA, ARCHITEKTÚRA, LICENCIE & DOKUMENTY</span><h1>Dokumentácia, Kompletná Architektúra, Licencie & Help</h1><p>Oficiálna príručka ako správne používať Trinity 10.3, technická architektúra systému (Cloudflare Edge + 45 agentov + Quantum Brain), návod na pripojenie bánk a platobných brán, licenčné podmienky a archív vygenerovaných dokumentov (<code>.md</code> / <code>.pdf</code>).</p></div>
+      <div class="section-intro"><span class="eyebrow">TRINITY 11.0 KNOWLEDGE CENTER · PRÍRUČKA, ARCHITEKTÚRA, LICENCIE & DOKUMENTY</span><h1>Dokumentácia, Kompletná Architektúra, Licencie & Help</h1><p>Oficiálna príručka ako správne používať Trinity 11.0, technická architektúra systému (Cloudflare Edge + 45 agentov + Quantum Brain), návod na pripojenie bánk a platobných brán, licenčné podmienky a archív vygenerovaných dokumentov (<code>.md</code> / <code>.pdf</code>).</p></div>
       <div class="metric-grid domain-metrics tabular-metrics">
-        <article class="metric blue"><span>VERZIA JADRA</span><strong>Trinity 10.3</strong><small>45 agentov · 150 pluginov · 152 skillov</small></article>
+        <article class="metric blue"><span>VERZIA JADRA</span><strong>Trinity 11.0</strong><small>45 agentov · 150 pluginov · 152 skillov</small></article>
         <article class="metric teal"><span>DOKUMENTY V ARCHÍVE</span><strong id="docstat-total">—</strong><small>uložené v D1 (<span id="docstat-steps">0</span> krokov)</small></article>
         <article class="metric gold"><span>UI & SAMOROZVOJ</span><strong id="docstat-ui">—</strong><small>aplikované zmeny a pravidlá</small></article>
         <article class="metric purple"><span>DOMÉNY & OBCHOD</span><strong id="docstat-domains">—</strong><small>produkčné prostredia a obchody</small></article>
@@ -1004,9 +1004,9 @@
       <div id="doc-pane-architecture" class="doc-tab-pane" hidden>
         <div class="docs-portal-grid">
           <article class="docs-card full-span-card">
-            <span class="docs-badge">SYSTÉMOVÁ ARCHITEKTÚRA · TRINITY 10.3 CLOUDFLARE EDGE</span>
-            <h3>Kompletná viacvrstvová architektúra Trinity 10.3</h3>
-            <p>Trinity 10.3 beží ako distribuovaný serverless systém na globálnej sieti <b>Cloudflare Edge</b> (`auru.space` produkcia / `auru.dev` vývoj) s odolným stavovým spracovaním a kryptografickou ochranou dát.</p>
+            <span class="docs-badge">SYSTÉMOVÁ ARCHITEKTÚRA · TRINITY 11.0 CLOUDFLARE EDGE</span>
+            <h3>Kompletná viacvrstvová architektúra Trinity 11.0</h3>
+            <p>Trinity 11.0 beží ako distribuovaný serverless systém na globálnej sieti <b>Cloudflare Edge</b> (`auru.space` produkcia / `auru.dev` vývoj) s odolným stavovým spracovaním a kryptografickou ochranou dát.</p>
             <pre class="docs-arch-diagram">┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                        POUŽÍVATEĽSKÉ ROZHRANIE (PWA / SPA UI)                           │
 │  Prehľad · Chat · AI Studio · Projekty · Domény &amp; Hosting · Komodity &amp; Banky · Help     │
@@ -1093,9 +1093,9 @@
         <div class="docs-portal-grid">
           <article class="docs-card">
             <span class="docs-badge">SYSTÉMOVÉ & OPEN-SOURCE LICENCIE</span>
-            <h3>1. Licenčné podmienky Trinity 10.3 a použitých komponentov</h3>
+            <h3>1. Licenčné podmienky Trinity 11.0 a použitých komponentov</h3>
             <ul class="docs-list">
-              <li><b>Jadro Trinity Morhfeus 10.3 (Proprietary Owner License):</b>
+              <li><b>Jadro Trinity Morhfeus 11.0 (Proprietary Owner License):</b>
                 <code>Copyright © 2026 Trinity Morhfeus / Auru Digital Studio. Všetky práva vyhradené.</code> Architektúra viac-agentového jadra, UI Evolution Engine, Commodity &amp; Banking Desk a biznis šablóny sú výhradným vlastníctvom prevádzkovateľa systému.</li>
               <li><b>Open-Source knižnice a behové prostredie (MIT / Apache-2.0):</b>
                 <ul>
@@ -1244,7 +1244,7 @@
               <label><span>Sekundárna farba (HEX)</span><input id="ui-evo-accent2" placeholder="#818cf8"></label>
               <label><span>Veľkosť písma</span><select id="ui-evo-font-scale"><option value="normal">Normálne (normal)</option><option value="compact">Kompaktné (compact)</option><option value="large">Väčšie (large)</option></select></label>
               <label><span>Zaoblenie panelov</span><select id="ui-evo-radius"><option value="rounded">Zaoblené (rounded)</option><option value="sharp">Ostré (sharp)</option><option value="pill">Výrazne oblé (pill)</option></select></label>
-              <label><span>Názov v bočnom paneli</span><input id="ui-evo-brand-title" maxlength="60" placeholder="Trinity 10.3"></label>
+              <label><span>Názov v bočnom paneli</span><input id="ui-evo-brand-title" maxlength="60" placeholder="Trinity 11.0"></label>
               <label><span>Podtitulok značky</span><input id="ui-evo-brand-subtitle" maxlength="100" placeholder="Tvoja osobná asistentka"></label>
               <label><span>Uvítací nadpis v chate</span><input id="ui-evo-welcome-heading" maxlength="140" placeholder="Ahoj. Som Trinity."></label>
               <label><span>Uvítací podtext v chate</span><input id="ui-evo-welcome-subtext" maxlength="260" placeholder="Môžeme sa porozprávať, niečo vymyslieť alebo sa pustiť do práce."></label>
