@@ -4,8 +4,8 @@ import {verificationTarget,verifyDeployment} from '../scripts/verify-deployment.
 import {TRINITY_SOURCE,sourceMetadata} from '../src/version.js';
 const id='863ecc84-3985-4aea-9114-fdc18b723555';
 const commit='a'.repeat(40);
-const config={origin:'https://auru.space',expectedVersionId:id,version:'10.3.0',attempts:1};
-const fake=(health={},ready={})=>async url=>Response.json(url.endsWith('/health')?{version:'10.3.0',environment:'production',source:TRINITY_SOURCE,deployment:{id,tag:null},...health}:{version:'10.3.0',environment:'production',source:TRINITY_SOURCE,ready:true,...ready});
+const config={origin:'https://auru.space',expectedVersionId:id,version:'11.0.0',attempts:1};
+const fake=(health={},ready={})=>async url=>Response.json(url.endsWith('/health')?{version:'11.0.0',environment:'production',source:TRINITY_SOURCE,deployment:{id,tag:null},...health}:{version:'11.0.0',environment:'production',source:TRINITY_SOURCE,ready:true,...ready});
 
 test('both domains require the canonical repository and main branch',async()=>{
  assert.deepEqual(sourceMetadata({}),TRINITY_SOURCE);

@@ -4,6 +4,8 @@
  * a integrovaný self-reflection cyklus pre Durable Object.
  */
 
+import { TRINITY_VERSION } from './version.js';
+
 export const BRAIN_MODES = {
   CREATIVITY: 'creativity',   // Prioritný profil: generovanie nečakaných nápadov, inovatívne riešenia
   REASONING: 'reasoning',     // Hĺbkový multi-krokový rozbor a dedukcia
@@ -301,7 +303,7 @@ export class NeuralBrainAgent {
 
     return Response.json({
       service: "Trinity Neural Brain DO",
-      version: "10.3.0",
+      version: TRINITY_VERSION,
       mode: this.brain.getMode(),
       directive: this.brain.getModeDirective(),
       memory_status: this.brain.memory.getMemorySnapshot()

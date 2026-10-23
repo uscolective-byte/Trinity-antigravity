@@ -4,7 +4,7 @@ Jedna asistentka so spoločným zdrojom, dvoma prostrediami a samostatnou
 konfiguráciou prihlásenia a externých služieb.
 
 <!-- trinity-release:start -->
-Verzia zdroja: **10.3.0**. Repozitár: [uscolective-byte/trinity-morhfeus](https://github.com/uscolective-byte/trinity-morhfeus), vetva **`main`**.
+Verzia zdroja: **11.0.0**. Repozitár: [uscolective-byte/trinity-morhfeus](https://github.com/uscolective-byte/trinity-morhfeus), vetva **`main`**.
 
 | Doména | Prostredie | Worker |
 |---|---|---|

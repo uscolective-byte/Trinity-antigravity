@@ -5,7 +5,7 @@ Hlavná aplikácia a konfigurácia sú v `Trinity/`. Koreňové `src/` a `tests/
 obsahujú kompatibilné vstupy; zdrojové zmeny smerujú do kanonických modulov.
 
 <!-- trinity-release:start -->
-Verzia zdroja: **10.3.0**. Repozitár: [uscolective-byte/trinity-morhfeus](https://github.com/uscolective-byte/trinity-morhfeus), vetva **`main`**.
+Verzia zdroja: **11.0.0**. Repozitár: [uscolective-byte/trinity-morhfeus](https://github.com/uscolective-byte/trinity-morhfeus), vetva **`main`**.
 
 | Doména | Prostredie | Worker |
 |---|---|---|

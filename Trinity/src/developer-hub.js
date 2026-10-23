@@ -21,7 +21,7 @@ export async function getDevHubStatus(env) {
 
   return {
     hub_name: 'Trinity Unified Developer & Cloud CLI Integration Hub',
-    version: '10.3.0',
+    version: '11.0.0',
     timestamp: new Date().toISOString(),
     environments: {
       cloudflare: {
