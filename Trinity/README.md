@@ -1,5 +1,9 @@
 # Trinity na Cloudflare
 
+[![Trinity CI](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/webpack.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/webpack.yml)
+[![CodeQL Security](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/codeql.yml)
+[![Trinity self-deploy](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/self-deploy.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/self-deploy.yml)
+
 Jedna asistentka so spoločným zdrojom, dvoma prostrediami a samostatnou
 konfiguráciou prihlásenia a externých služieb.
 

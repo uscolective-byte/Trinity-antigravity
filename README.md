@@ -1,5 +1,10 @@
 # Trinity / Morhfeus
 
+[![Trinity CI](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/webpack.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/webpack.yml)
+[![CodeQL Security](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/codeql.yml)
+[![Trinity self-deploy](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/self-deploy.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/self-deploy.yml)
+[![Trinity integrations checks](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/integrations-check.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/integrations-check.yml)
+
 Osobná asistentka, webové rozhranie a Cloudflare backend v jednom repozitári.
 Hlavná aplikácia a konfigurácia sú v `Trinity/`. Koreňové `src/` a `tests/`
 obsahujú kompatibilné vstupy; zdrojové zmeny smerujú do kanonických modulov.
