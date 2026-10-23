@@ -34,8 +34,8 @@ jobs:
           SOURCE_REPOSITORY: ${{ github.repository }}
           SOURCE_REF: ${{ github.ref }}
         run: |
-          if [ "$SOURCE_REPOSITORY" != 'uscolective-byte/trinity-morhfeus' ] || [ "$SOURCE_REF" != 'refs/heads/main' ]; then
-            echo '::error::Both domains must be deployed from uscolective-byte/trinity-morhfeus on main.'
+          if [ "$SOURCE_REPOSITORY" != 'uscolective-byte/trinity-morhfeus' ] && [ "$SOURCE_REPOSITORY" != 'uscolective-byte/Trinity-antigravity' ] || [ "$SOURCE_REF" != 'refs/heads/main' ]; then
+            echo '::error::Deployments must run from an authorized canonical repository on main.'
             exit 1
           fi
       - uses: actions/checkout@v4
@@ -53,6 +53,12 @@ jobs:
   deploy-development:
     needs: verify
     runs-on: ubuntu-latest
+    environment:
+      name: development
+      url: https://auru.dev
+    concurrency:
+      group: deployment-development
+      cancel-in-progress: false
     outputs:
       deployed: ${{ steps.deploy.outputs.deployed }}
     defaults:
@@ -101,7 +107,12 @@ jobs:
     needs: [verify, deploy-development]
     if: ${{ needs.deploy-development.outputs.deployed == 'true' && ((github.event_name == 'workflow_dispatch' && inputs.deploy_production == true) || (github.event_name == 'push' && vars.TRINITY_AUTO_DEPLOY_PRODUCTION == 'true')) }}
     runs-on: ubuntu-latest
-    environment: production
+    environment:
+      name: production
+      url: https://auru.space
+    concurrency:
+      group: deployment-production
+      cancel-in-progress: false
     defaults:
       run:
         working-directory: Trinity
