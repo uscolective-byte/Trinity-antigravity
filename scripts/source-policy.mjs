@@ -1,10 +1,15 @@
-import {TRINITY_SOURCE} from '../Trinity/src/version.js';
+import {TRINITY_VERSION, TRINITY_SOURCE} from '../Trinity/src/version.js';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
 
 export function requireCanonicalSource({branch,remote,upstream,dirty}){
- const allowed=[`https://github.com/${TRINITY_SOURCE.repository}`,`https://github.com/${TRINITY_SOURCE.repository}.git`,`git@github.com:${TRINITY_SOURCE.repository}.git`];
+ const repos = Array.from(new Set([TRINITY_SOURCE.repository, 'uscolective-byte/Trinity-antigravity', 'uscolective-byte/trinity-morhfeus']));
+ const allowed = repos.flatMap(repo => [
+   `https://github.com/${repo}`,
+   `https://github.com/${repo}.git`,
+   `git@github.com:${repo}.git`
+ ]);
  if(branch!==TRINITY_SOURCE.branch||!allowed.includes(remote)||upstream!==`origin/${TRINITY_SOURCE.branch}`)throw new Error(`Use ${TRINITY_SOURCE.repository} on ${TRINITY_SOURCE.branch}, tracking origin/main.`);
  if(dirty.trim())throw new Error('Commit or preserve local changes before synchronization or deployment.');
 }
