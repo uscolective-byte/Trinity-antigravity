@@ -1432,3 +1432,239 @@ dialog::backdrop {
     padding: 14px;
   }
 }
+
+/* ==========================================================================
+   ADVANCED ECOSYSTEM & CYBER-FINTECH UI ENHANCEMENTS
+   ========================================================================== */
+
+/* Sidebar Status Card */
+.sidebar-status-card {
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(9, 13, 24, 0.9));
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  display: grid;
+  gap: 6px;
+}
+
+.status-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-card-header span:first-child {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: var(--gold);
+}
+
+.status-pulse-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--teal);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-pulse-badge::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 6px var(--teal);
+}
+
+.status-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.status-card-row small {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.status-card-row b, .status-card-row a {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-card-row a:hover {
+  color: var(--cyan);
+}
+
+.crypto-glow {
+  color: var(--cyan) !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+}
+
+.jericho-glow {
+  color: #a78bfa !important;
+  text-shadow: 0 0 8px rgba(167, 139, 250, 0.4);
+}
+
+/* Fast Model Header Pill */
+.fast-model-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  color: #c4b5fd;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.15);
+}
+
+.fast-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a855f7;
+  box-shadow: 0 0 8px #a855f7;
+  animation: pulse 2s infinite;
+}
+
+/* Welcome Feature Cards */
+.welcome-features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-top: 26px;
+  text-align: left;
+}
+
+.welcome-card {
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(145deg, rgba(17, 25, 43, 0.75), rgba(11, 16, 30, 0.85));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: grid;
+  gap: 6px;
+}
+
+.welcome-card:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(145deg, rgba(22, 33, 58, 0.85), rgba(14, 21, 38, 0.95));
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: var(--shadow-md), 0 0 20px rgba(56, 189, 248, 0.12);
+}
+
+.welcome-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--cyan);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.welcome-card strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.welcome-card p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Enhanced Markdown & Code Blocks */
+.message .content pre {
+  margin: 12px 0;
+  padding: 14px 18px;
+  background: #040711;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #e2e8f0;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.message .content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--cyan);
+}
+
+.message .content pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+.message .content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 13.5px;
+}
+
+.message .content th, .message .content td {
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+}
+
+.message .content th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.message .content tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Voice Dialogue Live Button */
+.voice-live-btn {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(139, 92, 246, 0.15)) !important;
+  border-color: rgba(244, 63, 94, 0.35) !important;
+  color: #fda4af !important;
+  font-weight: 600 !important;
+}
+
+.voice-live-btn:hover {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.25), rgba(139, 92, 246, 0.25)) !important;
+  border-color: rgba(244, 63, 94, 0.55) !important;
+  box-shadow: 0 0 15px rgba(244, 63, 94, 0.25) !important;
+}
+
+@media (max-width: 720px) {
+  .welcome-features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
