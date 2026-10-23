@@ -66,7 +66,7 @@
     "GOOGLE_ENABLED": "false",
     "GOOGLE_CLIENT_ID": "618392104829-trinity-auru-space.apps.googleusercontent.com",    "GOOGLE_REDIRECT_URI": "https://auru.space/auth/google/callback",
     "TRINITY_ENV": "production",
-    "TRINITY_GITHUB_REPO": "uscolective-byte/trinity-morhfeus",
+    "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
     "TRINITY_GITHUB_BRANCH": "main",
     "TRINITY_AUTO_IMPROVE": "true",
     "TRINITY_AUTO_MERGE": "true"
@@ -280,7 +280,7 @@
         "GOOGLE_ENABLED": "false",
         "GOOGLE_CLIENT_ID": "618392104829-trinity-auru-space.apps.googleusercontent.com",        "GOOGLE_REDIRECT_URI": "https://auru.dev/auth/google/callback",
         "TRINITY_ENV": "development",
-        "TRINITY_GITHUB_REPO": "uscolective-byte/trinity-morhfeus",
+        "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
         "TRINITY_GITHUB_BRANCH": "main",
         "TRINITY_AUTO_IMPROVE": "true",
         "TRINITY_AUTO_MERGE": "true"
