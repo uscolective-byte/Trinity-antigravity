@@ -34,8 +34,8 @@ jobs:
           SOURCE_REPOSITORY: ${{ github.repository }}
           SOURCE_REF: ${{ github.ref }}
         run: |
-          if [ "$SOURCE_REPOSITORY" != 'uscolective-byte/trinity-morhfeus' ] || [ "$SOURCE_REF" != 'refs/heads/main' ]; then
-            echo '::error::Both domains must be deployed from uscolective-byte/trinity-morhfeus on main.'
+          if [ "$SOURCE_REPOSITORY" != 'uscolective-byte/Trinity-antigravity' ] || [ "$SOURCE_REF" != 'refs/heads/main' ]; then
+            echo '::error::Both domains must be deployed from uscolective-byte/Trinity-antigravity on main.'
             exit 1
           fi
       - uses: actions/checkout@v4
