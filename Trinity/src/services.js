@@ -272,15 +272,16 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||0,output:data.usage?.completion_tokens||0}};
   }
 
-  if(['deepseek-r1','llama','qwen','workers-ai'].includes(provider)){
+  if(['deepseek-r1','llama','qwen','workers-ai','fast','cloud'].includes(provider)){
     const defaultModel=provider==='deepseek-r1'?'@cf/deepseek-ai/deepseek-r1-distill-qwen-32b'
       :provider==='llama'?'@cf/meta/llama-3.3-70b-instruct'
       :provider==='qwen'?'@cf/qwen/qwen2.5-72b-instruct'
+      :provider==='fast'?(env.AI_FAST_MODEL||'@cf/meta/llama-3.1-8b-instruct')
       :(env.AI_MODEL || '@cf/openai/gpt-oss-120b');
     const model=customModel || defaultModel;
     const invoke = async selectedModel => {
       let timer;
-      try { return await Promise.race([env.AI.run(selectedModel,{messages,max_tokens:maxTokens,temperature:0.25}),
+      try { return await Promise.race([env.AI.run(selectedModel,{messages,max_tokens:Math.min(maxTokens,2048),temperature:0.2}),
         new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),65000);})]); }
       finally {clearTimeout(timer);}
     };
@@ -290,7 +291,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     // A successful HTTP response can still contain a broken generation (e.g. thousands of "!").
     // Retry once on a different bound model; never persist that output as a completed answer.
     const fallbackModel = env.AI_FALLBACK_MODEL || '@cf/meta/llama-3.3-70b-instruct';
-    if (model === fallbackModel) throw new Error('Workers AI nevrátilo použiteľnú odpoveď. Skús iný model.');
+    if (model === fallbackModel) throw new Error('Záložný model nevrátil použiteľnú odpoveď. Skús iný model.');
     const fallback = await invoke(fallbackModel);
     const fallbackText = extractModelText(fallback);
     if (!usableModelText(fallbackText)) throw new Error('Ani záložný model nevrátil použiteľnú odpoveď. Skús požiadavku znova.');

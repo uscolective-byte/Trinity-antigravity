@@ -723,7 +723,7 @@ async function route(request,env,ctx){
   }
   if(path==='/api/assistant/chat'&&request.method==='POST'){
     await rateLimit(env,`job:${user.id}`,12);
-    const d=z.object({message:z.string().min(1).max(12000),session:z.string().uuid(),language:z.string().max(35).default('auto').transform(normalizeLanguage),engine:z.enum(['auto','cloud','openai','gemini','ollama','local','deepseek-r1','llama','qwen','groq','deepseek','anthropic','mistral','openrouter']).default('auto'),remember:z.boolean().optional(),allow_files:z.boolean().optional()}).strict().parse(await readJSON(request));
+    const d=z.object({message:z.string().min(1).max(12000),session:z.string().uuid(),language:z.string().max(35).default('auto').transform(normalizeLanguage),engine:z.enum(['auto','cloud','fast','openai','gemini','ollama','local','deepseek-r1','llama','qwen','groq','deepseek','anthropic','mistral','openrouter']).default('auto'),remember:z.boolean().optional(),allow_files:z.boolean().optional()}).strict().parse(await readJSON(request));
     if(d.engine==='local')requireAdmin(user);
     const wantsMemory=/^(zapamätaj si|zapamataj si|remember)\s*[:,-]?\s+/i.test(d.message);
     const delegated=shouldDelegate(d.message);
@@ -735,7 +735,8 @@ async function route(request,env,ctx){
       else if(/\b(kreatív|báseň|článok|marketing|prezentáci|scenár|píš text|sloh|príbeh)\b/i.test(msg))provider='llama';
       else if(/\b(preklad|čínšt|japon|ázij|viacjazyč|qwen)\b/i.test(msg))provider='qwen';
       else provider='workers-ai';
-    }else if(d.engine==='local')provider='local';
+    }else if(d.engine==='fast')provider='fast';
+    else if(d.engine==='local')provider='local';
     else if(d.engine==='ollama')provider='ollama';
     else if(d.engine==='gemini')provider='gemini';
     else if(d.engine==='openai')provider='openai';

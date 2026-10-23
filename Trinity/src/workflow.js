@@ -20,7 +20,7 @@ export class TrinityOperations extends WorkflowEntrypoint {
       });
       assertRunning(await readControl(this.env));
       const history=await step.do('load-context',async()=>{
-        const rows=await this.env.DB.prepare("SELECT task,substr(result,1,5000) AS result FROM ops_jobs WHERE session_id=? AND id<>? AND status='completed' ORDER BY created_at DESC LIMIT 8").bind(job.session_id,id).all();
+        const rows=await this.env.DB.prepare("SELECT task,substr(result,1,1600) AS result FROM ops_jobs WHERE session_id=? AND id<>? AND status='completed' ORDER BY created_at DESC LIMIT 4").bind(job.session_id,id).all();
         const memory=await recallMemory(this.env,job.task);
         const pcBridge=await getPCBridgeStatus(this.env);
         const conversations=rows.results.filter(row=>usableModelText(row.result||''));
