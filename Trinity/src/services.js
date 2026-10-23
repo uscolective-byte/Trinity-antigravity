@@ -95,6 +95,12 @@ export function extractGeminiInteractionText(result){
   const blocks=(result?.steps||[]).flatMap(step=>Array.isArray(step?.content)?step.content:Array.isArray(step?.output)?step.output:[]);
   return blocks.filter(block=>block?.type==='text'||typeof block?.text==='string').map(block=>block.text||'').join('\n').trim();
 }
+export function usableModelText(text) {
+  const compact = text.replace(/\s/g, '');
+  if (!compact) return false;
+  const repeated = compact.match(/(.)\1{79,}/gu) || [];
+  return repeated.reduce((size, run) => size + run.length, 0) < compact.length * 0.8;
+}
 export async function callModel(env, provider, messages, maxTokens = 1200, customModel = null) {
   if(provider==='local'){
     if(!env.TRINITY_GATEWAY_KEY)throw new Error('Lokálna brána nie je nakonfigurovaná.');
@@ -272,13 +278,24 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
       :provider==='qwen'?'@cf/qwen/qwen2.5-72b-instruct'
       :(env.AI_MODEL || '@cf/openai/gpt-oss-120b');
     const model=customModel || defaultModel;
-    let timer,result;
-    try {result=await Promise.race([env.AI.run(model,{messages,max_tokens:maxTokens,temperature:0.25}),
-      new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),65000);})]);}
-    finally {clearTimeout(timer);}
-    const text=extractModelText(result);
-    if(!text.trim()) throw new Error('Workers AI vrátilo prázdnu odpoveď.');
-    return {text,model,provider:'workers-ai',usage:result.usage||null};
+    const invoke = async selectedModel => {
+      let timer;
+      try { return await Promise.race([env.AI.run(selectedModel,{messages,max_tokens:maxTokens,temperature:0.25}),
+        new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),65000);})]); }
+      finally {clearTimeout(timer);}
+    };
+    const result = await invoke(model);
+    const text = extractModelText(result);
+    if (usableModelText(text)) return {text,model,provider:'workers-ai',usage:result.usage||null};
+    // A successful HTTP response can still contain a broken generation (e.g. thousands of "!").
+    // Retry once on a different bound model; never persist that output as a completed answer.
+    const fallbackModel = env.AI_FALLBACK_MODEL || '@cf/meta/llama-3.3-70b-instruct';
+    if (model === fallbackModel) throw new Error('Workers AI nevrátilo použiteľnú odpoveď. Skús iný model.');
+    const fallback = await invoke(fallbackModel);
+    const fallbackText = extractModelText(fallback);
+    if (!usableModelText(fallbackText)) throw new Error('Ani záložný model nevrátil použiteľnú odpoveď. Skús požiadavku znova.');
+    return {text:fallbackText,model:fallbackModel,provider:'workers-ai',usage:fallback.usage||null,
+      model_fallback:{from:model,to:fallbackModel,reason:'invalid-output'}};
   }
   throw new Error('Unknown provider');
 }

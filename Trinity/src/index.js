@@ -38,7 +38,7 @@ import {listAIProviders,configureAIProvider,recordAIProviderCheck} from './ai-pr
 import {getGraphVisualization,syncGraphFromEcosystem,queryGraphContext} from './graph-memory.js';
 import {auditHtmlQuality,recordStudioReview,reviewRequestSchema} from './studio-review.js';
 import {handleVoiceDialogue} from './voice-agent.js';
-import {generateEscrowLandingHtml,createEscrowDeal,settleEscrowDeal,getTelegramConfig,saveTelegramConfig,checkDomainsAndSslHealth,listDomainAlerts,cloneDomainEnvironment} from './domain-desk-advanced.js';
+import {generateEscrowLandingHtml,createEscrowDeal,settleEscrowDeal,getTelegramConfig,saveTelegramConfig,sendTelegramAlert,checkDomainsAndSslHealth,listDomainAlerts,cloneDomainEnvironment} from './domain-desk-advanced.js';
 import {createPriceAlert,listPriceAlerts,checkPriceAlerts,generateInvoiceWithSepaQr,listGeneratedInvoices,getAggregatedNetWorth} from './banking-commodity-advanced.js';
 import {generateRegistrationOptions,verifyRegistrationResponse,generateAuthenticationOptions,verifyAuthenticationResponse,listUserPasskeys,deleteUserPasskey} from './webauthn.js';
 import {queryAuditEvents,exportAuditEvents,recordAuditEvent} from './audit-log.js';
@@ -450,6 +450,10 @@ async function route(request,env,ctx){
   if(path==='/api/assistant/domains/monitoring/check'&&request.method==='POST'){
     requireAdmin(user);
     return json(await checkDomainsAndSslHealth(env,{notifyTelegram:true}));
+  }
+  if(path==='/api/assistant/domains/monitoring/telegram/test'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await sendTelegramAlert(env,'<b>Test Trinity</b> · Testovacia správa z ovládacieho panela.'));
   }
   if(path==='/api/assistant/domains/monitoring/telegram'&&request.method==='GET'){
     requireAdmin(user);

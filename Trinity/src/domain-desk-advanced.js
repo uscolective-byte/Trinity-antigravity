@@ -27,8 +27,8 @@ export const cloneEnvSchema = z.object({
 }).strict();
 
 export const telegramConfigSchema = z.object({
-  bot_token: z.string().trim().min(10).max(200),
-  chat_id: z.string().trim().min(3).max(80),
+  bot_token: z.string().trim().regex(/^\d{5,20}:[A-Za-z0-9_-]{30,100}$/, 'Neplatný Telegram Bot Token.'),
+  chat_id: z.string().trim().regex(/^-?\d{1,20}$|^@[A-Za-z][A-Za-z0-9_]{4,31}$/, 'Neplatné Telegram Chat ID.'),
   enabled: z.boolean().default(true)
 }).strict();
 
@@ -511,11 +511,12 @@ export async function sendTelegramAlert(env, messageText) {
     if (row?.value) {
       try {
         const cfg = JSON.parse(row.value);
-        if (cfg.enabled && cfg.bot_token && cfg.chat_id) {
+        if (!cfg.enabled) return { sent: false, reason: 'Telegram upozornenia sú vypnuté.' };
+        if (cfg.bot_token && cfg.chat_id) {
           botToken = cfg.bot_token;
           chatId = cfg.chat_id;
         }
-      } catch {}
+      } catch { return { sent: false, reason: 'Telegram konfigurácia je poškodená.' }; }
     }
   }
 
@@ -526,9 +527,14 @@ export async function sendTelegramAlert(env, messageText) {
     return { sent: false, phone: '+421949009722', reason: 'Telegram nie je nakonfigurovaný (chýba bot_token alebo chat_id).' };
   }
 
+  if (!telegramConfigSchema.safeParse({ bot_token: botToken, chat_id: String(chatId), enabled: true }).success) {
+    return { sent: false, reason: 'Telegram konfigurácia nie je platná. Skontroluj Bot Token a Chat ID.' };
+  }
+
   try {
     const resp = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
+      signal: AbortSignal.timeout(10000),
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: chatId,
@@ -537,9 +543,12 @@ export async function sendTelegramAlert(env, messageText) {
       })
     });
     const result = await resp.json();
-    return { sent: result.ok, phone: '+421949009722', result };
+    const sent = resp.ok && result.ok === true;
+    return sent
+      ? { sent: true, message_id: result.result?.message_id }
+      : { sent: false, reason: 'Telegram odmietol správu. Over token, príjemcu a oprávnenia bota.', status: resp.status };
   } catch (err) {
-    return { sent: false, phone: '+421949009722', error: err.message };
+    return { sent: false, reason: 'Telegram neodpovedal. Skontroluj pripojenie a skús odoslanie znova.' };
   }
 }
 

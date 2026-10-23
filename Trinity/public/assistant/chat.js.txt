@@ -299,7 +299,7 @@ function renderDomainStats(){
   set('dstat-total',all.length);
   set('dstat-active',all.filter(d=>d.status==='active').length);
   set('dstat-sale',all.filter(d=>d.status==='for_sale'||d.listing_type==='sale'||d.listing_type==='both').length);
-  set('dstat-lease',all.filter(d=>d.status==='leased'||d.listing_type==='lease'||d.listing_type==='both').length);
+  set('dstat-lease',all.filter(d=>d.status==='leased').length);
   const domainVal=all.reduce((sum,d)=>sum+(Number(d.sale_price)||0)+((Number(d.lease_price_monthly)||0)*12),0);
   set('dstat-value',new Intl.NumberFormat('sk-SK',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(domainVal));
 }
@@ -2696,11 +2696,12 @@ async function loadDomainMonitoring() {
   if (!alertsList) return;
   try {
     const [alertsData, tgData] = await Promise.all([
-      api('/domains/monitoring/alerts').catch(() => ({ alerts: [] })),
-      api('/domains/monitoring/telegram').catch(() => ({ enabled: false }))
+      api('/domains/monitoring/alerts'),
+      api('/domains/monitoring/telegram')
     ]);
 
     if ($('tg-enabled')) $('tg-enabled').checked = Boolean(tgData.enabled);
+    if ($('monitoring-status-badge')) $('monitoring-status-badge').textContent = tgData.enabled && tgData.configured ? 'TELEGRAM ZAPNUTÝ' : 'TELEGRAM NEAKTÍVNY';
     if ($('tg-chat-id') && tgData.chat_id_masked && tgData.chat_id_masked !== '—') {
       $('tg-chat-id').placeholder = `Aktuálne: ${tgData.chat_id_masked}`;
     }
@@ -2708,7 +2709,7 @@ async function loadDomainMonitoring() {
     alertsList.replaceChildren();
     const alerts = alertsData.alerts || [];
     if (!alerts.length) {
-      alertsList.append(node('p', 'Všetky domény a workery sú v poriadku. Žiadne aktívne incidenty.', 'skeleton'));
+      alertsList.append(node('p', 'Žiadne uložené výstrahy. Aktuálny stav overíš spustením kontroly.', 'skeleton'));
       return;
     }
     for (const a of alerts) {
@@ -2722,6 +2723,7 @@ async function loadDomainMonitoring() {
       alertsList.append(card);
     }
   } catch (err) {
+    if ($('monitoring-status-badge')) $('monitoring-status-badge').textContent = 'STAV NEDOSTUPNÝ';
     alertsList.replaceChildren(node('p', 'Chyba monitoringu: ' + err.message, 'skeleton'));
   }
 }
@@ -2766,8 +2768,9 @@ $('monitoring-run-check-btn')?.addEventListener('click', safe(async () => {
 
 $('monitoring-test-telegram-btn')?.addEventListener('click', safe(async () => {
   notice('Odosielam testovací Telegram alert…');
-  const res = await api('/domains/monitoring/check', {});
-  notice('Testovací alert bol spracovaný cez Telegram watchdog.');
+  const res = await api('/domains/monitoring/telegram/test', {});
+  if (!res.sent) throw new Error(res.reason || 'Telegram nepotvrdil odoslanie správy.');
+  notice('Telegram potvrdil odoslanie testovacej správy.');
 }));
 
 $('monitoring-telegram-form')?.addEventListener('submit', safe(async (e) => {
@@ -2782,6 +2785,7 @@ $('monitoring-telegram-form')?.addEventListener('submit', safe(async (e) => {
     chat_id: chatId,
     enabled
   });
+  $('tg-bot-token').value = '';
   notice('Telegram nastavenia boli bezpečne uložené.');
   await loadDomainMonitoring();
 }));

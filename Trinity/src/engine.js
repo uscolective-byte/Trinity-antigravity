@@ -501,6 +501,7 @@ Nástroje: ${activeTools.map(t=>`${t}: ${TOOL_HELP[t]}`).join('; ')}.`},
       result=await callModel(env,'workers-ai',messages,maxTokens);
       toolLog.push({tool:'model_fallback',status:'completed',effect:'read',from:failedProvider,to:'workers-ai',receipt_id:crypto.randomUUID(),verified_at:new Date().toISOString()});
     }
+    if(result.model_fallback)toolLog.push({tool:'model_fallback',status:'completed',effect:'read',...result.model_fallback,receipt_id:crypto.randomUUID(),verified_at:new Date().toISOString()});
     const action=parseAction(result.text);
     if(action.answer){
       const unsupported=findUnsupportedActionClaims(action.answer,toolLog);
