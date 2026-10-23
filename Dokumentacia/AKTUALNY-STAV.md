@@ -12,15 +12,15 @@ Historická kontrola z 20. októbra vtedy nepotvrdila nasadenie 10.3.0. Následn
 
 Nasledujúca časť zachováva **historický stav z 18. októbra**; jej identifikátory a počty testov nie sú aktuálnou kontrolou.
 
-## Produkcia a vývoj
+## Doménová špecializácia a prostredia (Trinity v11.0.0)
 
-- **Produkčná adresa**: <https://auru.space>
-- **Vývojová adresa**: <https://auru.dev>
+- **Verejný Klientsky Portál (Bežní používatelia)**: <https://auru.space>
+- **Admin & Sovereign Owner Lab (Ivan Sabo / Basterix)**: <https://auru.dev>
 - **Worker**: <https://trinity.saboivan2008.workers.dev/>
-- **Verzia**: `10.2.0` (unifikované pre Worker aj používateľské rozhranie)
-- **Produkčné Cloudflare Version ID**: `ef0c9f7e-fe9a-4637-a619-bac847bbb433`
-- **Vývojové Cloudflare Version ID**: `97db3586-a982-42b0-8ff7-10770b667a28`
-- **Git Commit Tag**: `ecad46f84a214baa76c99fab208cd052c7999e9b`
+- **Verzia**: `11.0.0` (unifikované pre Worker aj používateľské rozhranie)
+- **Produkčné Cloudflare Version ID (`auru.space`)**: `f66344f5-f462-44e9-acdc-845258a5c0f7`
+- **Vývojové Cloudflare Version ID (`auru.dev`)**: `9e455135-8cfb-45f4-a38e-c3a58e3fb039`
+- **Git Commit Tag**: `4d9b53289b870d0612e80f965fdcaed2f66ff1ce`
 - **PC Bridge Worker**: `trinity-pc-bridge`
 - **Privátna lokálna brána**: verzia `1.3.0` (počúva na `127.0.0.1:8791`)
 
