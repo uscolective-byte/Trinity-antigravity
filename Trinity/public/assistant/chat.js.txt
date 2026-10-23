@@ -20,15 +20,7 @@ function localize(){document.documentElement.lang=language==='auto'?'sk':languag
 function notice(text){$('notice').textContent=text;$('notice').hidden=!text;}
 async function api(path,body,method){let m=method;let b=body;if(body&&typeof body==='object'&&body.method&&Object.keys(body).length===1){m=body.method;b=undefined;}if(!m)m=b===undefined?'GET':'POST';const r=await fetch('/api/assistant'+path,{method:m,headers:b===undefined?{}:{'Content-Type':'application/json'},body:b===undefined?undefined:JSON.stringify(b)});const d=await r.json();if(!r.ok)throw Object.assign(new Error(d.error||('HTTP '+r.status)),{status:r.status});return d;}
 async function opsApi(path,body){const r=await fetch('/api/ops'+path,{method:body===undefined?'GET':'POST',headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw Object.assign(new Error(d.error||('HTTP '+r.status)),{status:r.status});return d;}
-function safe(fn){return async e=>{
-  e?.preventDefault();
-  const target=e?.currentTarget;
-  const button=target?.tagName==='BUTTON'?target:target?.tagName==='FORM'?e.submitter:null;
-  if(button?.disabled)return;
-  if(button){button.disabled=true;button.setAttribute('aria-busy','true');}
-  try{notice('');await fn(e);}catch(err){notice(err.message);}
-  finally{if(button){button.disabled=false;button.removeAttribute('aria-busy');}}
-};}
+function safe(fn){return async e=>{e?.preventDefault();try{notice('');await fn(e);}catch(err){notice(err.message);}};}
 function bubble(role,text=''){const wrap=node('article',undefined,'message '+(role==='user'?'user':'assistant'));wrap.append(node('div',role==='user'?t('you'):'✦ Trinity','name'));const content=node('div',text,'content');wrap.append(content);$('messages').append(wrap);$('welcome').hidden=true;return {wrap,content};}
 function formatMarkdown(text){
   if(!text)return '';
@@ -942,7 +934,7 @@ function switchCommodityTab(tabId){
   });
   if(tabId==='alerts')loadPriceAlerts();
   if(tabId==='invoices')loadInvoicesList();
-  if(tabId==='networth')safe(loadNetWorth)();
+  if(tabId==='networth')loadNetWorth();
 }
 document.querySelectorAll('[data-comm-tab]').forEach(btn=>btn.addEventListener('click',()=>switchCommodityTab(btn.dataset.commTab)));
 
@@ -1892,8 +1884,7 @@ async function loadWalletView() {
     cachedWalletData = data;
     renderWalletView(data);
   } catch (e) {
-    notice('Peňaženku sa nepodarilo načítať: ' + e.message);
-    throw e;
+    console.error('loadWalletView error:', e);
   }
 }
 
@@ -2957,25 +2948,22 @@ $('invoice-generator-form')?.addEventListener('submit', safe(async (e) => {
           Variabilný symbol: <b>${res.variable_symbol}</b><br>
           IBAN: <b>${res.iban}</b> (SWIFT: ${res.bic})<br>
           <div style="margin-top:10px">
-            <button type="button" class="primary" id="invoice-print-btn">🖨️ Zobraziť a tlačiť celú faktúru</button>
+            <button type="button" class="primary" onclick="openInvoicePrint('${res.invoice_id}')">🖨️ Zobraziť a tlačiť celú faktúru</button>
           </div>
         </div>
       </div>
     `;
     window._lastInvoiceHtml = res.html_invoice;
-    $('invoice-print-btn').addEventListener('click', safe(openInvoicePrint));
   }
   notice(`Faktúra ${res.invoice_number} so SEPA EPC QR bola úspešne vystavená.`);
   await loadInvoicesList();
 }));
 
-function openInvoicePrint() {
+function openInvoicePrint(invId) {
   if (window._lastInvoiceHtml) {
     const blob = new Blob([window._lastInvoiceHtml], { type: 'text/html; charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const opened = window.open(url, '_blank');
-    if (!opened) notice('Prehliadač zablokoval faktúru. Povoľ vyskakovacie okná a skús tlač znova.');
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    window.open(url, '_blank');
   }
 }
 
@@ -2996,7 +2984,6 @@ async function loadNetWorth() {
     renderNetWorthChart(data.history || []);
   } catch (err) {
     notice('Chyba načítania čistého majetku: ' + err.message);
-    throw err;
   }
 }
 
@@ -3055,10 +3042,6 @@ function renderNetWorthChart(history) {
     svg.appendChild(txt);
   });
 }
-
-$('documents-archive-btn')?.addEventListener('click', () => {
-  const opened = window.open('/api/assistant/documents', '_blank', 'noopener');
-});
 
 $('networth-refresh-btn')?.addEventListener('click', safe(async () => {
   notice('Prepočítavam agregovaný čistý majetok…');
