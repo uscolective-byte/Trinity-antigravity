@@ -43,6 +43,8 @@ import {createPriceAlert,listPriceAlerts,checkPriceAlerts,generateInvoiceWithSep
 import {generateRegistrationOptions,verifyRegistrationResponse,generateAuthenticationOptions,verifyAuthenticationResponse,listUserPasskeys,deleteUserPasskey} from './webauthn.js';
 import {queryAuditEvents,exportAuditEvents,recordAuditEvent} from './audit-log.js';
 import {createPortfolio,listPortfolios,getPortfolio,recordTrade,setQuote} from './trading.js';
+import {listCustomAgents,createOrUpdateCustomAgent,executeCustomAgent,provisionAgentDomain} from './agent-sandbox.js';
+import {getDevHubStatus,executeDevHubCommand} from './developer-hub.js';
 import {getWallet,transactWallet} from './wallet.js';
 import {getWalletTerminalOverview,saveWalletTerminalConfig,createPaymentTerminalCharge,executeWalletPayout,createCryptoWallet,cancelWalletPayout} from './wallet-terminals.js';
 import {handleInboundEmail} from './email.js';
@@ -1025,6 +1027,27 @@ async function route(request,env,ctx){
   }
   if(path==='/api/assistant/wallet/net-worth'&&request.method==='GET'){
     return json(await getAggregatedNetWorth(env,user.email||user.id));
+  }
+    if(path==='/api/assistant/sandbox/agents'){
+    requireAdmin(user);
+    if(request.method==='GET')return json(await listCustomAgents(env,ownerId));
+    if(request.method==='POST')return json(await createOrUpdateCustomAgent(env,ownerId,await readJSON(request,32000)));
+  }
+  if(path==='/api/assistant/sandbox/agents/run'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await executeCustomAgent(env,ownerId,await readJSON(request,32000)));
+  }
+  if(path==='/api/assistant/sandbox/domain/provision'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await provisionAgentDomain(env,ownerId,await readJSON(request,16000)));
+  }
+  if(path==='/api/assistant/devhub/status'&&request.method==='GET'){
+    requireAdmin(user);
+    return json(await getDevHubStatus(env));
+  }
+  if(path==='/api/assistant/devhub/execute'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await executeDevHubCommand(env,ownerId,await readJSON(request,16000)));
   }
   if(path==='/api/assistant/integrations/status'&&request.method==='GET'){
     return json({items:await listAllIntegrations(env)});
