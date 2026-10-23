@@ -203,6 +203,24 @@ async function route(request,env,ctx){
   }
   const ownerId=(user.email||user.id).trim().toLowerCase();
   if(path==='/api/assistant/capabilities'&&request.method==='GET')return json(await capabilityStatus(env));
+  if(path==='/api/assistant/morpheus/status'&&request.method==='GET'){
+    return json({
+      agent:'Morpheus',
+      version:'1.0.0',
+      role:'Social Media Autonomous Commander',
+      domain:env.TRINITY_ENV==='production'?'auru.space':'dev.auru.space',
+      service_url:'https://morpheus.auru.space',
+      capabilities:['oauth_pkce','meta_graph','x_twitter_v2','linkedin_share','youtube_data','tiktok_creator','auto_posting','comment_moderation','link_shortening'],
+      endpoints:{
+        dashboard:'/dashboard',
+        auth_status:'/api/v1/auth/status',
+        webhooks_meta:'/api/v1/webhooks/meta',
+        webhooks_x:'/api/v1/webhooks/x',
+        short_link:'/l/:code',
+        landing_page:'/p/:slug'
+      }
+    });
+  }
   const control=await readControl(env);
   if(control.emergency_stop&&!['/api/ops/status','/api/ops/control','/api/ops/logout','/api/assistant/rbac','/api/assistant/audit/export'].includes(path))assertRunning(control);
   if(path==='/api/assistant/media/status'&&request.method==='GET')return json(mediaStatus(env));

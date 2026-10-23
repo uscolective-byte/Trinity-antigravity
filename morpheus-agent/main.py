@@ -1,22 +1,21 @@
 """
 Trinity AI - Morpheus Social Media Autonomous Agent
-Main FastAPI Application Entrypoint.
+Clean Architecture Entrypoint for aura.dev (and auru.dev)
 """
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
-from database.db import init_db
-from autopilot.scheduler import autopilot_engine
-from config.domain_config import domain_settings
+from core.config import domain_settings
+from infrastructure.database import init_db
+from application.scheduler import autopilot_engine
 
-# Import routers
-from auth.oauth_router import router as oauth_router
-from routers.webhooks import router as webhooks_router
-from routers.links import router as links_router
-from routers.admin_dashboard import router as admin_router
+# Interfaces
+from interfaces.oauth import router as oauth_router
+from interfaces.webhooks import router as webhooks_router
+from interfaces.links import router as links_router
+from interfaces.dashboard import router as admin_router
 
 
 @asynccontextmanager
@@ -31,8 +30,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Trinity Morpheus - Social Media AI Agent",
-    description="Autonomous Social Media Commander with OAuth 2.0 Engine & Domain Integration for auru.space",
-    version="1.0.0",
+    description="Autonomous Social Media Commander with OAuth 2.0 Engine & Domain Integration for aura.dev",
+    version="1.1.0",
     lifespan=lifespan
 )
 
@@ -57,7 +56,7 @@ async def health_check():
     return {
         "status": "healthy",
         "agent": "Morpheus",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "domain": domain_settings.full_host,
         "base_url": domain_settings.base_url,
         "autopilot_running": autopilot_engine.is_running

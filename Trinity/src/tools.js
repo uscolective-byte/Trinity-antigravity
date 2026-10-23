@@ -38,7 +38,7 @@ import {FREE_MODULES_CATALOG,fetchWeather,fetchWikipedia,resolveDns,fetchCryptoM
 export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']);
-export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest']);
+export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status']);
 export const TOOL_SCHEMAS={
   web_fetch:z.object({url:z.string().url()}).strict(),
   project_inspect:z.object({query:z.string().max(2000).default('')}).strict(),
@@ -156,6 +156,11 @@ export const TOOL_SCHEMAS={
   }).strict()
   ,domain_env_provision:provisionDomainEnvSchema
   ,domain_env_deploy:deployDomainEnvSchema
+  ,morpheus_status:z.object({
+    action:z.enum(['status','dns_sync','generate_post']).optional().default('status'),
+    platform:z.enum(['meta','x','linkedin','youtube','tiktok','all']).optional().default('all'),
+    topic:z.string().trim().max(1000).optional()
+  }).strict()
   ,domain_env_list:z.object({
     domain:z.string().trim().max(253).optional().default('')
   }).strict()
@@ -637,6 +642,22 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const res=await deployDomainEnvironment(env,`agent:${agent.id||'trinity'}`,args);
     return {...res,_evidence:{effect:'mutation',actions:['change','deploy','publish'],receipt_id:`domain:env:deploy:${args.domain_name}:${args.environment}`}};
   }
+  if(name==='morpheus_status'){
+    return {
+      agent:'Morpheus',
+      version:'1.0.0',
+      role:'Social Media Autonomous Commander',
+      domain:env.TRINITY_ENV==='production'?'auru.space':'dev.auru.space',
+      service_url:'https://morpheus.auru.space',
+      dashboard:'https://morpheus.auru.space/dashboard',
+      action:args.action,
+      platform:args.platform,
+      topic:args.topic||null,
+      status:'operational',
+      capabilities:['oauth_pkce','meta_graph','x_twitter_v2','linkedin_share','youtube_data','tiktok_creator','auto_posting','comment_moderation','link_shortening'],
+      _evidence:{effect:'read',receipt_id:`morpheus:status:${crypto.randomUUID()}`}
+    };
+  }
   if(name==='domain_env_list'){
     const res=await listDomainEnvironments(env,args.domain);
     return {...res,_evidence:{effect:'read',receipt_id:`domain:env:list:${crypto.randomUUID()}`}};
@@ -973,6 +994,7 @@ export const TOOL_HELP={
   self_evolve:'Samorozvoj Trinity — prečíta stav naučených pravidiel a UI zmien, naučí Trinity nové trvalé pravidlo správania alebo zaeviduje návrh vylepšenia kódu: {action?:status|learn_rule|propose_improvement, rule?:string, title?:string, description?:string}',
   domain_env_provision:'Vytvorí novú doménu v štýle Cloudflare a automaticky pre ňu pripraví prostredia (production, staging, development), SSL/Proxy/WAF nastavenia, DNS záznamy a živé URL (/sites/:domain/:env): {domain_name, registrar?:string, template?:ai_saas|business_landing|domain_for_sale|ecommerce_checkout|portfolio|studio_project|custom_html, title?, subtitle?, ssl_mode?:flexible|full|strict, proxied?:boolean, waf_enabled?:boolean, sale_price_eur?:number, payment_checkout_url?:string}',
   domain_env_deploy:'Vyprodukuje a nasadí web alebo AI Studio projekt do konkrétneho prostredia domény (production, staging, preview, development) so živou adresou /sites/:domain/:env: {domain_name, environment?:production|staging|preview|development, template?:ai_saas|business_landing|domain_for_sale|ecommerce_checkout|portfolio|studio_project|custom_html, title?, subtitle?, cta_text?, cta_url?, studio_project_id?, custom_html?, ssl_mode?, proxied?, waf_enabled?, env_vars?:object}',
+  morpheus_status:'Zobrazí stav autonómneho AI agenta Morpheus pre správu sociálnych sietí (auru.space): {action?:status|dns_sync|generate_post, platform?:meta|x|linkedin|youtube|tiktok|all, topic?:string}',
   domain_env_list:'Vypíše všetky domény a ich Cloudflare prostredia (production, staging, development), verzie nasadenia a živé adresy: {domain?:string}',
   trinity_doc_create:'Vytvorí štruktúrovaný záznam v Trinity Documents s možnosťou exportu do Markdown a PDF: {title, category?:workflow_step|ui_evolution|domain_production|commerce|self_improvement|architecture|manual_doc, step_name?, summary?, content, tags?:string[]}',
   trinity_doc_list:'Vypíše a vyhľadá automaticky aj manuálne vytvorené Trinity Documents zo všetkých krokov: {category?:string, search?:string, limit?:number}',

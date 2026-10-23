@@ -3,8 +3,8 @@
     admin off
 }
 
-# Production Morpheus Host
-morpheus.auru.space {
+# Production Morpheus Host for aura.dev and auru.dev
+morpheus.aura.dev, morpheus.auru.dev {
     encode gzip zstd
 
     header {
