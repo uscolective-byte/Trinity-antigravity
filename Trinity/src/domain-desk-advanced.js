@@ -503,7 +503,7 @@ export async function saveTelegramConfig(env, input) {
 }
 
 export async function sendTelegramAlert(env, messageText) {
-  let botToken = env.TELEGRAM_BOT_TOKEN || '8842409933:AAGuFVQhGrfRwhXpd8P-8wnAHhfhP_zJQxI';
+  let botToken = env.TELEGRAM_BOT_TOKEN || null;
   let chatId = env.TELEGRAM_CHAT_ID;
 
   if (env.DB) {
@@ -520,8 +520,8 @@ export async function sendTelegramAlert(env, messageText) {
     }
   }
 
-  const header = '📱 <b>Trinity Notification · Majiteľ: Ivan Sabo (+421949009722)</b>\n';
-  const fullText = messageText.includes('+421949009722') ? messageText : (header + messageText);
+  const header = '<b>Trinity Notification</b>\n';
+  const fullText = header + messageText;
 
   if (!botToken || !chatId) {
     return { sent: false, phone: '+421949009722', reason: 'Telegram nie je nakonfigurovaný (chýba bot_token alebo chat_id).' };
