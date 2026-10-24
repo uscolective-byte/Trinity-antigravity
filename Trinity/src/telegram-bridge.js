@@ -154,7 +154,13 @@ export async function activateTelegramWebhook(request, env) {
       allowed_updates:['message'],drop_pending_updates:false,max_connections:10});
     const registered = await telegramApi(env,'getWebhookInfo');
     if (registered?.url !== webhookUrl) throw new Error('Webhook verification failed');
-    return reply({ok:true,registered:true,url:webhookUrl,pending_updates:registered?.pending_update_count||0});
+    const recipient=[...allowedIds(env.TELEGRAM_ALLOWED_USER_IDS)][0];
+    let delivery_test=false;
+    try {
+      await sendTelegramMessage(env,recipient,'Trinity 11: Telegram AI je pripravená. Pošli /help, /gemini otázka alebo /openai otázka.');
+      delivery_test=true;
+    } catch { console.error('telegram_setup_delivery_failed'); }
+    return reply({ok:true,registered:true,url:webhookUrl,delivery_test,pending_updates:registered?.pending_update_count||0});
   } catch {
     return reply({error:'Webhook registration or verification failed'},502);
   }

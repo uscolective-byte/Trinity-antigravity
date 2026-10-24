@@ -175,7 +175,11 @@ test('Telegram setup registers and verifies webhook only with the temporary secr
     const secret='webhook_secret_Aaaa1234567890123456789012';
     const r=await activateTelegramWebhook(req,{...t.env,TRINITY_ENV:'production',TRINITY_TELEGRAM_SETUP_KEY:setupKey,TELEGRAM_WEBHOOK_SECRET:secret});
     assert.equal(r.status,200);
-    assert.equal((await r.json()).registered,true);
+    const activated=await r.json();
+    assert.equal(activated.registered,true);
+    assert.equal(activated.delivery_test,true);
+    assert.equal(t.sent.length,1);
+    assert.equal(t.sent[0].chat_id,'12345');
     assert.equal(t.requests.filter(item=>item.url.endsWith('/setWebhook')).length,1);
     const options=JSON.parse(t.requests.find(item=>item.url.endsWith('/setWebhook')).body);
     assert.equal(options.url,'https://auru.space/api/telegram/webhook');
