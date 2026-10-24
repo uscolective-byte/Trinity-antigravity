@@ -30,3 +30,7 @@ trinity-local-node-fixed/
 dawn-wildflower-688f/
 
 /Trinity/dist-mcp/
+
+# Local provider credentials must never enter Git.
+/Gemini_api.txt
+/*_api.txt

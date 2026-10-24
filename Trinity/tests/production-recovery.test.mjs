@@ -53,3 +53,13 @@ test('Telegram success requires provider acknowledgement and does not expose tok
   assert.equal(failed.sent,false);
   assert.equal(JSON.stringify(failed).includes(token),false);
 });
+
+
+test('Workers AI inference failures fall back once with an evidence marker',async()=>{
+ const calls=[];const response=await callModel({AI:{run:async model=>{calls.push(model);if(calls.length===1)throw Error('HTTP 500');return {response:'Ahoj'};}}},'fast',[]);
+ assert.equal(calls.length,2);assert.equal(response.text,'Ahoj');assert.equal(response.model_fallback.reason,'provider-error');
+});
+test('auto provider works for voice callers and missing bindings fail clearly',async()=>{
+ assert.equal((await callModel({AI:{run:async()=>({response:'Ahoj'})}},'auto',[])).text,'Ahoj');
+ await assert.rejects(callModel({},'fast',[]),/nie je pripojené/);
+});

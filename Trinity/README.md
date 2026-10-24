@@ -20,7 +20,7 @@ Tieto údaje sa generujú zo zdrojov a konfigurácie. Aktuálne nasadenie over c
 
 ## Lokálny vývoj
 
-Z koreňa repozitára spusti `npm.cmd run setup`. Potom v `Trinity/`:
+Z koreňa repozitára spusti `powershell -ExecutionPolicy Bypass -File ../scripts/install-all.ps1`. Potom v `Trinity/`:
 
 ```powershell
 npm.cmd run dev
@@ -83,3 +83,12 @@ PC Bridge potrebuje bežiaci lokálny gateway, autorizáciu a potvrdenie vykonan
 [Lokálna brána](../Local-Gateway/README.md) a
 [desktop](../Local-Desktop/README.md) obsahujú ich spúšťacie postupy.
 Existencia modulu ani HTTP 200 nie sú potvrdením externej akcie.
+
+
+## Chat a poverenia — aktualizácia 24. 10. 2026
+
+Automatický režim používa rýchly Workers AI model pre bežný rozhovor; úlohy a opravy spracuje cloudový plánovač. Lokálna inferencia sa vyberá výslovne, aby bežný chat nečakal na offline PC. Prijatie správy sa zobrazí hneď; modelová odpoveď vzniká až po dokončení úlohy. Sieťové požiadavky majú časový limit; pri nedokončenej úlohe zostane viditeľné jej ID.
+
+Secrets sa neaktualizujú podľa veku automaticky. `wrangler secret list` vracia iba názvy, nie hodnoty. Produkcia a development majú samostatné secrets. Kľúče pre inference sú `GEMINI_API_KEY`, `OPENAI_API_KEY` a `OLLAMA_API_KEY`; Workers AI používa binding `AI`. Prítomnosť názvu nepotvrdzuje platnosť kľúča, kredit ani úspešné generovanie. Nikdy nekopíruj produkčné oprávnenia do developmentu len na odstránenie chyby.
+
+Rotáciu vykonaj iba s platnou novou hodnotou cez interaktívny `npx.cmd wrangler secret put NAZOV --env development`, over vývoj a potom samostatne nastav produkciu s `--env=""`. Hodnoty nedávaj do README, príkazovej histórie ani Gitu. Nemeň bez migračného postupu `TRINITY_VAULT_KEY` (šifrované údaje) alebo `TRINITY_SESSION_SECRET` (existujúce relácie). Lokálne súbory s API kľúčmi sú ignorované.

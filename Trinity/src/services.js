@@ -295,7 +295,8 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||0,output:data.usage?.completion_tokens||0}};
   }
 
-  if(['deepseek-r1','llama','qwen','workers-ai','fast','cloud'].includes(provider)){
+  if(['auto','deepseek-r1','llama','qwen','workers-ai','fast','cloud'].includes(provider)){
+    if(!env.AI)throw new Error('Cloudflare Workers AI nie je pripojené.');
     const defaultModel=provider==='deepseek-r1'?'@cf/deepseek-ai/deepseek-r1-distill-qwen-32b'
       :provider==='llama'?'@cf/meta/llama-3.3-70b-instruct'
       :provider==='qwen'?'@cf/qwen/qwen2.5-72b-instruct'
@@ -305,10 +306,11 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     const invoke = async selectedModel => {
       let timer;
       try { return await Promise.race([env.AI.run(selectedModel,{messages,max_tokens:Math.min(maxTokens,2048),temperature:0.2}),
-        new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),65000);})]); }
+        new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),provider==='fast'?20000:65000);})]); }
       finally {clearTimeout(timer);}
     };
-    const result = await invoke(model);
+    let result,fallbackReason='invalid-output';
+    try{result=await invoke(model);}catch{result={};fallbackReason='provider-error';}
     const text = extractModelText(result);
     if (usableModelText(text)) return {text,model,provider:'workers-ai',usage:result.usage||null};
     // A successful HTTP response can still contain a broken generation (e.g. thousands of "!").
@@ -319,7 +321,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     const fallbackText = extractModelText(fallback);
     if (!usableModelText(fallbackText)) throw new Error('Ani záložný model nevrátil použiteľnú odpoveď. Skús požiadavku znova.');
     return {text:fallbackText,model:fallbackModel,provider:'workers-ai',usage:fallback.usage||null,
-      model_fallback:{from:model,to:fallbackModel,reason:'invalid-output'}};
+      model_fallback:{from:model,to:fallbackModel,reason:fallbackReason}};
   }
   throw new Error('Unknown provider');
 }

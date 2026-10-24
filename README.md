@@ -26,8 +26,8 @@ Použi Node.js 22 alebo novší a npm. Na Windows používaj `npm.cmd`, ak
 PowerShell blokuje `npm.ps1`.
 
 ```powershell
-npm.cmd run setup
-npm.cmd run docs:check
+powershell -ExecutionPolicy Bypass -File scripts/install-all.ps1
+node scripts/sync-release-docs.mjs --check
 npm.cmd run build
 npm.cmd run check
 ```
@@ -48,8 +48,8 @@ lokálne overenie rozpracovaného stromu a `-Deploy` vyžaduje čistý kanonick�
 NPM chyby z tohto vstupu sa ukladajú do ignorovaného priečinka `logs/`.
 
 Verzia, domény a vetva v oboch README sa generujú z aplikácie a Wrangler
-konfigurácie. Po zmene vydania spusti `npm.cmd run docs:sync`; CI kontroluje
-`npm.cmd run docs:check`.
+konfigurácie. Po zmene vydania spusti `node scripts/sync-release-docs.mjs`; CI kontroluje
+`node scripts/sync-release-docs.mjs --check`.
 
 ## Moduly
 
@@ -75,3 +75,14 @@ OAuth súhlas, platobný checkout alebo pripojenú SMS bránu.
 `/health` potvrdzuje dostupnosť a verziu; `/ready` pripravenosť väzieb a schémy.
 Samy nepotvrdzujú vykonanie platby, registráciu domény ani dostupnosť každého modelu.
 Tajomstvá patria do Worker secrets alebo ignorovaných lokálnych súborov.
+
+
+## Chat a poverenia — aktualizácia 24. 10. 2026
+
+Automatický režim používa rýchly Workers AI model pre bežný rozhovor; úlohy a opravy spracuje cloudový plánovač. Lokálna inferencia sa vyberá výslovne, aby bežný chat nečakal na offline PC. Prijatie správy sa zobrazí hneď; modelová odpoveď vzniká až po dokončení úlohy. Sieťové požiadavky majú časový limit; pri nedokončenej úlohe zostane viditeľné jej ID.
+
+Secrets sa neaktualizujú podľa veku automaticky. `wrangler secret list` vracia iba názvy, nie hodnoty. Produkcia a development majú samostatné secrets. Kľúče pre inference sú `GEMINI_API_KEY`, `OPENAI_API_KEY` a `OLLAMA_API_KEY`; Workers AI používa binding `AI`. Prítomnosť názvu nepotvrdzuje platnosť kľúča, kredit ani úspešné generovanie. Nikdy nekopíruj produkčné oprávnenia do developmentu len na odstránenie chyby.
+
+Rotáciu vykonaj iba s platnou novou hodnotou cez interaktívny `npx.cmd wrangler secret put NAZOV --env development`, over vývoj a potom samostatne nastav produkciu s `--env=""`. Hodnoty nedávaj do README, príkazovej histórie ani Gitu. Nemeň bez migračného postupu `TRINITY_VAULT_KEY` (šifrované údaje) alebo `TRINITY_SESSION_SECRET` (existujúce relácie). Lokálne súbory s API kľúčmi sú ignorované.
+
+Audit názvov secrets bez ich hodnôt: `node scripts/audit-worker-secrets.mjs`. Skript nič nemení a nevypisuje neznáme názvy. Kontrola 24. 10. 2026: produkcia má 24 secrets vrátane Gemini/OpenAI/Ollama; development má 4 secrets a žiadny z týchto externých AI kľúčov. `GOOGLE_CLIENT_SECRET` nie je prítomný ani v jednom prostredí. To nie je overenie platnosti poskytovateľov ani dôvod zapínať neúplný Google login. Používateľ si môže externý model zvoliť výslovne; automatický chat zostáva pri Workers AI.

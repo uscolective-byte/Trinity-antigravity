@@ -73,3 +73,22 @@ test('direct overview navigation returns nonowners to chat without reading dashb
  s.context.fetch=async path=>{assert.notEqual(path,'/api/assistant/dashboard');return Response.json([]);};
  await s.run("setView('dashboard',false)");assert.equal(s.run('currentView'),'chat');
 });
+
+
+test('chat handles a non-JSON gateway failure and retains the unsent draft',async()=>{
+ const s=setup();s.elements.get('message').value='Ahoj';
+ s.context.fetch=async()=>new Response('Bad gateway',{status:502});
+ await s.elements.get('chat-form').onsubmit({preventDefault(){}});
+ assert.equal(s.elements.get('message').value,'Ahoj');
+ assert.match(s.elements.get('notice').textContent,/HTTP 502/);
+ assert.equal(s.elements.get('send').disabled,false);
+});
+test('chat timeout is recoverable and releases the send button',async()=>{
+ const s=setup();s.elements.get('message').value='Test správy';
+ s.context.fetch=async()=>{throw Object.assign(new Error('timeout'),{name:'TimeoutError'});};
+ await s.elements.get('chat-form').onsubmit({preventDefault(){}});
+ assert.equal(s.elements.get('message').value,'Test správy');
+ assert.match(s.elements.get('notice').textContent,/časovom limite/);
+ assert.equal(s.elements.get('send').disabled,false);
+ assert.equal(s.elements.get('stop').hidden,true);
+});
