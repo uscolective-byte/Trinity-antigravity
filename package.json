@@ -17,5 +17,8 @@
     "inventory": "node scripts/project-inventory.mjs",
     "setup": "node scripts/project-pipeline.mjs setup",
     "check": "node scripts/project-pipeline.mjs check"
+  },
+  "dependencies": {
+    "wrangler": "^4.152.0"
   }
 }
