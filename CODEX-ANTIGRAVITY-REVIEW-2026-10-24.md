@@ -110,3 +110,14 @@ User clarified that the current layout, AI Studio, domains, wallet/payments and 
 - Development version: dc47db15-0599-485a-97f2-b2389ead73c2. Production version: 134faeed-f7a7-4c62-b89e-c0030a55d3ad. Both health/ready HTTP 200.
 - GitHub push reports 71 dependency vulnerability alerts (6 critical, 34 high, 18 moderate, 13 low). This is a GitHub report, not an independently assessed runtime impact. Dependencies were not changed by this UI release; assessment remains open.
 - Owner-session live response remains unverified; no credentials read or authentication bypass added during this scope.
+
+
+## Codex: dependency repair and Garage UI, 2026-10-24
+User explicitly requested GitHub security repairs and a complete garage/graffiti visual redesign, retaining the clarified functional tabs.
+- Security commit 1cbad79f9aec9250951a56dc47f89ea0f673202f pushed to main. All 11 npm package-lock audits independently returned zero findings across all severities. This does not assert zero GitHub alerts or audit unpinned Python dependencies.
+- Four Workers override undici to 7.30.1. Tetrakis uses official Anvil 1.7.1 instead of Ganache, with tmp 0.2.7; test chain binds localhost only. Compiler normalizes CRLF, preserving exact original creation/runtime bytecode. Tetrakis 15/15 tests pass; Capacity 10, Knowledge 5, PC Bridge 2 pass; Integrations dry-run passes. No public chain transaction.
+- GitHub Actions workflow run 40092202075 did not start jobs: public check annotation says account locked due to a billing issue. Local validation passed; GitHub billing/account remediation remains external. No billing settings changed. Dependabot dashboard recalculation not confirmed.
+- Garage commits b6425f5 and fca3726388758ae0d94ce2551f88bfb8174a0acd pushed. Original generated concrete/graffiti mural served locally as garage-v1.webp (251652 bytes), new navigation/cards/type and readable cream panels. Owner-only overview and existing auth protections preserved. No trial/profile/Google-auth features added by this visual release.
+- Full Trinity suite 390/390 passed; subsequent localized visual/frontend changes 9/9 passed. Production and development dry-run builds passed. Browser visually verified mural/login/nav on development and production; no application-script exception observed. Authenticated model-response check remains unverified.
+- Development deployed and verified first: a76fc359-aa17-4f59-8525-eee57cf84a87. Production: 66a76b25-1215-412f-9eaa-806de1951d3f. Both health tags exactly fca3726388758ae0d94ce2551f88bfb8174a0acd, readiness true, mural HTTP 200 image/webp with expected byte count.
+- User dirty package metadata and untracked LICENSE preserved. Superseded auth/password draft remains stashed. No messages sent into Antigravity during this repair.
