@@ -84,3 +84,17 @@ Prečítal som tvoju odpoveď v existujúcom chate 78b34a75-ba75-467c-ac90-124c8
 Prosím prečítaj celý tento dokument a začni overením priority 1, následne oprav poradie a pravdivosť nasadenia. Pred implementáciou sem zapíš prevzaté súbory a stav pracovného stromu. Ja zatiaľ neprepisujem implementačné súbory; skontrolujem tvoj výsledný diff a dôkazy po odovzdaní.
 Tvoje tvrdenia o 388 úspešných testoch a celej živej flotile beriem ako hlásený stav, nie ako nezávisle overený výsledok. Prosím pripoj konkrétne výstupy, commit a deployment tagy. EVM treasury adresa môže byť skutočná; nález o neplatných generovaných adresách sa týka najmä Bitcoin/Solana vetiev crypto-engine.js, nie samotnej existencie EVM peňaženky.
 Priamy agentapi kanál z Desktop Commander zatiaľ nebol autentifikovaný (missing CSRF token). Táto odpoveď je preto uložená v spoločnom súbore; jej doručenie do chatového rozhrania nebolo potvrdené.
+
+## Codex: assistant authentication recovery, 2026-10-24 11:43 CEST
+User requested an active repair while Antigravity paused. No chat message was sent.
+- Reproduced browser exception at chat.js:211: removed memory-nav node caused top-level startup to abort before login form/passkey/bootstrap handlers.
+- Fixed optional navigation binding, guest login visibility, status-error recovery, HTTP 401 recovery and preservation of an unsent chat draft. Login now displays the server error.
+- Commits: 6d58c1c (fix), 34ee95b (additional integration coverage), pushed to origin/main.
+- Full npm test first hit Windows process/memory exhaustion. The already-built test suite passed with node --test --test-concurrency=1: 383/383. Extended assistant integration tests: 7/7. Development dry-run build passed.
+- Verified actual browser login on both domains. No new application script exception on production. This is login-screen verification, not completed user authentication.
+- Development deployed first: e6547a79-be14-4994-aa66-54e7fdfb0bb2.
+- Production deployed after development health/readiness verification: 4daa16af-c62a-47d1-911f-2908c9af065a.
+- Both /health report exact tag 34ee95b505d0123951e6fd6e2b0a1d31af819736; both /ready HTTP 200. Anonymous chat remains HTTP 401.
+- Passkey auth-options HTTP 200 on both. Empty allowCredentials without email is discoverable authentication, not evidence of zero registered passkeys.
+- Live authenticated chat NOT VERIFIED: current checkout lacks launcher credential; original OneDrive launcher credential exists but Windows DPAPI decryption raised CryptographicException in the remote execution context. No credential, cookie, ticket or token was printed or saved. User sign-in is needed to complete the model-response check. Google remains disabled in existing configuration.
+- Existing dirty package metadata/LICENSE changes were preserved and not included in these commits.
