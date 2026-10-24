@@ -186,3 +186,22 @@ User requested continuation ("pokracuj v praci") to ensure the complete UI and a
   - Synced updated `web` (`1.1.0`) plugin in both `trinity-development` and `trinity-v03` D1 databases (`applied: true, enabled: 46`).
   - Deployed & verified `development` (`https://auru.dev`) first: Version ID `88953fcc-71d4-47a2-9837-c8ef581a4e03`, tag `de2c866`, `verified: true`.
   - Deployed & verified `production` (`https://auru.space`) second: Version ID `bd13252d-3431-4c43-b692-338e7c034feb`, tag `de2c866`, `verified: true`, `/garage.css?v=11.0.3` serving 28,057 bytes.
+
+
+## Antigravity: Phase 3 — Complete 29-Worker Fleet Binding, Sub-Worker AI Model Upgrade, Single-Agent Chat Optimization & Full 150-Plugin Activation, 2026-10-25 00:40 CEST
+User requested chat repair & optimization, installing all tools/capabilities/skills, and connecting all Cloudflare Worker bindings so Trinity uses her entire fleet ("oorav caht z trinity vilepsi nainstaluj jej nastroje a shpnosti skils popreprajaj jej binding mam tam kolko workerov nech ich použiva").
+- **29 Cloudflare Worker Service Bindings Wired & Probed (`Trinity/wrangler.jsonc`, `Trinity/src/orchestrator.js`)**:
+  - Added missing service bindings `CAPACITY_SERVICE` (`trinity-capacity`), `INTEGRATIONS_SERVICE` (`trinity-integrations`), `AUDIT_SERVICE` (`trinity-audit`), and `JERICHO_SERVICE` (`jericho123`) to both `production` and `env.development` in `Trinity/wrangler.jsonc` (total bound Worker services on Trinity: **29**).
+  - Updated `WORKER_CATALOG` (23 core/AURA/specialized workers) and `AUXILIARY_WORKER_CATALOG` (`JERICHO_SERVICE`, `PC_BRIDGE_V2`, `CHAT_INFERENCE_SERVICE`) in `Trinity/src/orchestrator.js` with exact contract probes (`probeAction` per worker and `WorkerEntrypoint` RPC method support `getStatus()`, `status()`, `listSkills()`, `listPlugins()`, `executeSkill()`, `search()` with HTTP fallback).
+- **Sub-Worker AI Model Modernization (`Trinity/services/legacy-workers/aura_helpers.js`, `core.js`, `builder.js`, `skills.js`)**:
+  - Replaced retired `@cf/meta/llama-3.1-8b-instruct` and `@cf/openai/gpt-oss-120b` across all 10 `aura_*` specialists, `trinity-core`, `trinity-builder`, and `trinity-skills` with `@cf/meta/llama-3.3-70b-instruct-fp8-fast` and `@cf/meta/llama-3.1-8b-instruct-fp8-fast`, and redeployed all 13 sub-workers to Cloudflare Edge.
+- **Interactive Chat Speed & Prompt Optimization (`Trinity/src/index.js`, `Trinity/src/engine.js`, `Trinity/src/fast-chat.js`, `Trinity/src/services.js`)**:
+  - Changed `/api/assistant/chat` in `Trinity/src/index.js` to execute `agent: 'orchestrator', mode: 'single'` by default (1 workflow step instead of 4 sequential multi-agent steps on every action verb, while preserving `team` mode when explicitly requested via `tímový režim` / `team mode`).
+  - Added `selectPromptTools(activeTools, task)` in `Trinity/src/engine.js` to keep non-fast system prompt tool descriptions concise (~44 context-relevant tools out of 95, while keeping all `activeTools` enabled for `runTool` execution).
+  - Expanded `FAST_TOOLS` to 38 tools (adding `fleet_status`, `delegate_worker`, `orchestrate_team`, `execute_skill`, `copilot_chat`, `ecosystem_search`) and added direct fast-path handlers for Worker fleet & binding status queries.
+- **All 150 Trusted Plugins Enabled in D1 (`scripts/enable-chat-tools.mjs`)**:
+  - Updated `scripts/enable-chat-tools.mjs` and executed `--apply` on both `development` (`trinity-development`) and `production` (`trinity-v03`), enabling all **150/150 trusted plugins** (`applied: true, enabled: 150` on both).
+- **Verification & Deployment (`ff9338d`)**:
+  - Full monorepo test suite (`npm run check`): **436/436 PASS (0 FAIL)** across `Trinity Main Fleet` (409), `Audit-Worker` (6), `Capacity-Worker` (10), and `Jericho-Worker` (11).
+  - Deployed & verified `development` (`https://auru.dev`): Version ID `90d2dd47-43de-4023-8a55-9fbca455c94d`, tag `ff9338d6fad248900294ca2cbe83e85acf55ea38`, `verified: true`.
+  - Deployed & verified `production` (`https://auru.space`): Version ID `427caac1-1151-4d61-8655-e0b8abef3b6b`, tag `ff9338d6fad248900294ca2cbe83e85acf55ea38`, `verified: true`.
