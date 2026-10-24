@@ -298,9 +298,9 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
   if(['auto','deepseek-r1','llama','qwen','workers-ai','fast','cloud'].includes(provider)){
     if(!env.AI)throw new Error('Cloudflare Workers AI nie je pripojené.');
     const defaultModel=provider==='deepseek-r1'?'@cf/deepseek-ai/deepseek-r1-distill-qwen-32b'
-      :provider==='llama'?'@cf/meta/llama-3.3-70b-instruct'
+      :provider==='llama'?"@cf/meta/llama-3.3-70b-instruct-fp8-fast"
       :provider==='qwen'?'@cf/qwen/qwen2.5-72b-instruct'
-      :provider==='fast'?(env.AI_FAST_MODEL||'@cf/meta/llama-3.1-8b-instruct')
+      :provider==='fast'?(env.AI_FAST_MODEL||"@cf/meta/llama-3.1-8b-instruct-fp8-fast")
       :(env.AI_MODEL || '@cf/openai/gpt-oss-120b');
     const model=customModel || defaultModel;
     const invoke = async selectedModel => {
@@ -322,7 +322,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     if (usableModelText(text)) return {text,model,provider:'workers-ai',usage:result.usage||null};
     // A successful HTTP response can still contain a broken generation (e.g. thousands of "!").
     // Retry once on a different bound model; never persist that output as a completed answer.
-    const fallbackModel = env.AI_FALLBACK_MODEL || '@cf/meta/llama-3.3-70b-instruct';
+    const fallbackModel = (provider==='fast'?env.AI_FAST_FALLBACK_MODEL:env.AI_FALLBACK_MODEL) || "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
     if (model === fallbackModel) throw new Error('Záložný model nevrátil použiteľnú odpoveď. Skús iný model.');
     const fallback = await invoke(fallbackModel);
     const fallbackText = extractModelText(fallback);

@@ -105,3 +105,7 @@ Nasadenie: najprv `npx.cmd wrangler deploy --config wrangler.chat.jsonc --env de
 Overenie skutočnej inferencie bez čítania lokálnych prihlasovacích súborov: `node scripts/check-chat-inference-live.mjs development` z koreňa. Použije krátkodobý Wrangler remote preview viazaný na localhost a ukončí iba svoj vlastný proces; žiadne tokeny nevypisuje. Tento test nie je potvrdením úspešného prihlásenia používateľa v prehliadači.
 
 Chat už nevytvára overené Google identity alebo administrátorské oprávnenia z e-mailu v správe. PayPal/Revolut pokyny nie sú potvrdením pripojenia banky. Text prísahy nevystavuje falošný doklad o uložení. Skutočnú konfiguráciu spravujú existujúce autorizované formuláre a OAuth callback.
+
+Modely sú nastavené na `@cf/meta/llama-3.1-8b-instruct-fp8-fast` pre rýchly rozhovor a `@cf/meta/llama-3.3-70b-instruct-fp8-fast` pre komplexné úlohy alebo zálohu rýchleho modelu. Starý `@cf/meta/llama-3.1-8b-instruct` bol v oficiálnom changelogu uvedený na vyradenie 30. 5. 2026: https://developers.cloudflare.com/changelog/post/2026-05-08-planned-model-deprecations/ . Katalóg: https://developers.cloudflare.com/workers-ai/models/llama-3.3-70b-instruct-fp8-fast/ .
+
+Ak je remote preview chránené Cloudflare Access, kontrolný skript bez Access oprávnenia skončí ako neoverený test. Ochranu nevypínaj; úspešný build ani test s náhradnou AI službou nedokazuje živú odpoveď poskytovateľa.

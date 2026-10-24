@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import worker from '../services/chat-inference.js';
 import {callModel} from '../src/services.js';
-const model='@cf/meta/llama-3.1-8b-instruct';
+const model="@cf/meta/llama-3.1-8b-instruct-fp8-fast";
 const request=body=>new Request('https://chat.internal/generate',{method:'POST',body:JSON.stringify(body)});
 test('private worker validates the request and bounds inference output',async()=>{
  let captured;const env={AI:{run:async(selected,input)=>{captured={selected,input};return {response:'Ahoj'};}}};

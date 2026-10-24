@@ -6,7 +6,7 @@ export default {
   if(path==='/health'&&request.method==='GET')return reply({status:env.AI?'serving':'unavailable',ready:!!env.AI,service:'chat-inference',deployment:env.CF_VERSION_METADATA||null},env.AI?200:503);
   if(path!=='/generate')return reply({error:'Not found'},404);
   if(request.method!=='POST')return reply({error:'Method not allowed'},405);
-  const allowed=new Set([env.AI_FAST_MODEL||'@cf/meta/llama-3.1-8b-instruct',env.AI_FALLBACK_MODEL||'@cf/meta/llama-3.3-70b-instruct']);
+  const allowed=new Set([env.AI_FAST_MODEL||"@cf/meta/llama-3.1-8b-instruct-fp8-fast",env.AI_FALLBACK_MODEL||"@cf/meta/llama-3.3-70b-instruct-fp8-fast"]);
   let body;
   try{const raw=await request.text();if(raw.length>60000)return reply({error:'Input too large'},413);body=JSON.parse(raw);}catch{return reply({error:'Invalid JSON'},400);}
   if(!allowed.has(body.model)||!Array.isArray(body.messages)||!body.messages.length||body.messages.length>24||body.messages.some(item=>!['system','user','assistant'].includes(item.role)||typeof item.content!=='string'||item.content.length>20000))return reply({error:'Invalid inference request'},400);
