@@ -59,3 +59,17 @@ test('chat denial preserves the draft and opens authentication',async()=>{
  assert.equal(s.elements.get('message').value,'Ahoj');assert.equal(s.elements.get('login').hidden,false);
  assert.equal(s.elements.get('send').disabled,false);
 });
+
+test('overview link is hidden until an owner is authenticated',async()=>{
+ for(const role of ['user','admin','owner']){
+  const s=setup();s.context.TrinityAuth.requestJSON=async()=>({account:{role,email:'member@example.test'},pc_bridge:{connected:false}});
+  s.context.fetch=async path=>Response.json(path.includes('/ui-evolution')?{state:{}}:[]);
+  await s.bootstrap.initialize();assert.equal(s.elements.get('owner-overview-nav').hidden,role!=='owner');
+  s.bootstrap.lock();assert.equal(s.elements.get('owner-overview-nav').hidden,true);
+ }
+});
+test('direct overview navigation returns nonowners to chat without reading dashboard data',async()=>{
+ const s=setup();s.run("state={account:{role:'admin'}}");
+ s.context.fetch=async path=>{assert.notEqual(path,'/api/assistant/dashboard');return Response.json([]);};
+ await s.run("setView('dashboard',false)");assert.equal(s.run('currentView'),'chat');
+});

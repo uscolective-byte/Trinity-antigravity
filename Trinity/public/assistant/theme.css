@@ -2124,3 +2124,40 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 16px rgba(56, 189, 248, 0.25) !important;
   outline: none !important;
 }
+
+/* 2026-10-24: quieter surfaces; preserve the existing workspace layout. */
+:root{--canvas:#12171c;--paper:#1b2229;--ink:#e8ecef;--muted:#a0aab3;--line:#323c45;--purple:#709b93;--blue:#8caaa8;--teal:#709b93;--cyan:#8caaa8;--cyan-glow:transparent;--gradient-brand:linear-gradient(135deg,#537b72,#709b93)}
+body{background:#12171c!important;background-image:none!important;color:#e8ecef!important}
+body::before,body::after,.sidebar::before,.sidebar::after{background-image:none!important;animation:none!important}
+.sidebar{background:#171d23!important;border-color:#303941!important;box-shadow:none!important;backdrop-filter:none!important}
+main,.chat-view,#chat-area{background:transparent!important}
+header{background:#161d23!important;border-color:#303941!important;box-shadow:none!important;backdrop-filter:none!important}
+.brand,.brand:hover{background:transparent!important;border-color:transparent!important;box-shadow:none!important}
+.brand-mark{background:#537b72!important;box-shadow:none!important;color:#fff!important}
+.main-nav button,.main-nav button:hover{box-shadow:none!important}
+.main-nav button.active{background:#293c3b!important;border-color:#45625e!important;color:#eaf2ef!important}
+.panel,.hero-card,.metric,.project-card,.studio-top,.settings-card{background:#1b232b!important;border-color:#323d46!important;box-shadow:none!important;backdrop-filter:none!important}
+.panel::before,.hero-card::before,.metric::before{display:none!important}
+#welcome,.welcome-zen{background:transparent!important;border-color:transparent!important;box-shadow:none!important}
+#welcome h1{background:none!important;-webkit-text-fill-color:currentColor!important;color:#edf0f2!important;text-shadow:none!important}
+.avatar,.avatar.large{background:#263c37!important;color:#c6dad1!important;box-shadow:none!important;border-color:#466358!important;animation:none!important}
+.suggestions button,.suggestions button:hover{background:#1e282f!important;border-color:#3b474f!important;color:#d7e0e2!important;box-shadow:none!important}
+#chat-form,.composer-wrap{background:#192128!important;border-color:#35414b!important;box-shadow:none!important}
+#message{background:transparent!important;color:#e8ecef!important;box-shadow:none!important}
+button.primary,#send{background:#537b72!important;border-color:#638e83!important;box-shadow:none!important;color:#fff!important}
+button:hover:not(:disabled){transform:none!important;filter:none!important}
+button:focus-visible,a:focus-visible{outline:2px solid #a2c0b6!important;outline-offset:3px}
+input,select,textarea{background:#151d24!important;border-color:#3b4650!important;box-shadow:none!important;color:#e8ecef!important}
+input:focus,select:focus,textarea:focus{border-color:#89ada1!important;box-shadow:0 0 0 2px #89ada126!important}
+.message{box-shadow:none!important}
+.message.user{background:#263b37!important;border-color:#3c5a50!important}
+.message.assistant{background:#1a232b!important;border-color:#303e48!important}
+.pc-bridge-badge,.environment-badge,.fast-model-pill,.detail-chip,.status-pill-clean{box-shadow:none!important;text-shadow:none!important}
+.living-core .orbit,.living-core::before,.living-core::after{animation:none!important;box-shadow:none!important;opacity:.25}
+.living-core .core{background:#466b61!important;box-shadow:none!important}
+html[data-theme="light"] body{background:#eef0ed!important;color:#26312c!important}
+html[data-theme="light"] .sidebar,html[data-theme="light"] header{background:#e5e9e3!important;border-color:#cbd3c9!important}
+html[data-theme="light"] .panel,html[data-theme="light"] .hero-card,html[data-theme="light"] .metric,html[data-theme="light"] #chat-form,html[data-theme="light"] .composer-wrap,html[data-theme="light"] .message.assistant{background:#f9faf7!important;border-color:#cbd3c9!important;color:#26312c!important}
+html[data-theme="light"] #welcome h1,html[data-theme="light"] #message{color:#26312c!important}
+html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{background:#f5f7f2!important;color:#26312c!important;border-color:#bdcbbb!important}
+html[data-theme="light"] .main-nav button.active,html[data-theme="light"] .message.user{background:#dce9df!important;color:#26312c!important}

@@ -694,6 +694,7 @@ async function route(request,env,ctx){
     return json(await createCryptoWallet(env,ownerId));
   }
   if(path==='/api/assistant/dashboard'&&request.method==='GET'){
+    requireOwner(user);
     const isAdmin=['admin','owner'].includes(user.role);
     const [today,memory,projects,recent,activeJobs,failedToday,pendingUsers,pcBridge]=await Promise.all([
       env.DB.prepare("SELECT COUNT(*) AS count FROM ops_jobs WHERE status='completed' AND date(updated_at)=date('now')").first(),
