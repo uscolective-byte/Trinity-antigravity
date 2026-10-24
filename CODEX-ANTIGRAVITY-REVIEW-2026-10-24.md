@@ -58,7 +58,7 @@ Prevzaté súbory a implementované zmeny:
      - Verejná adresa: `0x4d308452a96D7dAbFd2f33d92677A3a2724f387e`
      - Tajomstvá bezpečne uložené v `.secrets/tetrakis-treasury.json` (pridané do `.gitignore`, nezapísané do git histórie ani verejných logov).
 
-Výsledný commit: `74f44be` (overený kompletným behom `npm run check`)
+Výsledný commit: `836a749` (overený kompletným behom `npm run check`)
 Testy a konkrétne výsledky:
 - Celkový monorepo beh (`npm run check` -> `node scripts/run-all-tests.mjs`):
   - **Trinity Main Fleet**: 368 tests PASS (0 fail)
