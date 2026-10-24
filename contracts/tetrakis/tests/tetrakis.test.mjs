@@ -1,9 +1,9 @@
-import { test, describe, before } from 'node:test';
+import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import ganache from 'ganache';
+import { startLocalEvm } from './local-evm.mjs';
 import { ethers } from 'ethers';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,6 +13,7 @@ const artifactPath = path.join(contractsDir, 'build/TetrakisToken.json');
 
 describe('Tetrakis ($TTK) ERC-20 Specification & EVM Verification Suite', () => {
   let provider;
+  let connection;
   let deployer;
   let treasurySigner;
   let user1;
@@ -28,19 +29,11 @@ describe('Tetrakis ($TTK) ERC-20 Specification & EVM Verification Suite', () => 
     assert.ok(fs.existsSync(artifactPath), 'Artifact must exist before testing');
     artifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
 
-    // Start in-memory EVM provider using ganache (shanghai EVM compatible)
-    const ganacheProvider = ganache.provider({
-      wallet: {
-        totalAccounts: 10,
-        unlockedAccounts: [EXPECTED_TREASURY]
-      },
-      chain: {
-        hardfork: 'shanghai'
-      },
-      logging: { quiet: true }
-    });
-
-    provider = new ethers.BrowserProvider(ganacheProvider);
+    connection = await startLocalEvm();
+    provider = new ethers.JsonRpcProvider(connection.url, 31337, {staticNetwork:true});
+    provider.pollingInterval = 30;
+    assert.equal(await provider.send('eth_chainId', []), '0x7a69');
+    await provider.send('anvil_impersonateAccount', [EXPECTED_TREASURY]);
     const signers = await provider.listAccounts();
     deployer = signers[0];
     user1 = signers[1];
@@ -52,12 +45,18 @@ describe('Tetrakis ($TTK) ERC-20 Specification & EVM Verification Suite', () => 
       value: ethers.parseEther('10.0')
     });
 
-    treasurySigner = await provider.getSigner(EXPECTED_TREASURY);
+    treasurySigner = new ethers.JsonRpcSigner(provider, EXPECTED_TREASURY);
 
     // Deploy contract
     const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, deployer);
     tokenContract = await factory.deploy();
     await tokenContract.waitForDeployment();
+  });
+
+  after(async () => { provider?.destroy(); await connection?.close(); });
+
+  test('Compiled runtime matches the local deployment', async () => {
+    assert.equal(ethers.keccak256(await provider.getCode(await tokenContract.getAddress())), artifact.runtimeKeccak256);
   });
 
   test('Metadata: Name, Symbol, Decimals', async () => {

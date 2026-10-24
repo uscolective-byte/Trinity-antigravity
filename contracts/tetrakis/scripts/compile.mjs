@@ -10,19 +10,21 @@ const __dirname = path.dirname(__filename);
 const contractsDir = path.resolve(__dirname, '..');
 
 const sourcePath = path.join(contractsDir, 'TetrakisToken.sol');
-const sourceCode = fs.readFileSync(sourcePath, 'utf8');
+// Normalize checkouts so Windows CRLF cannot change Solidity metadata hashes.
+const readSource = file => fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+const sourceCode = readSource(sourcePath);
 
 function findImports(importPath) {
   try {
     if (importPath.startsWith('@openzeppelin/')) {
       const resolvedPath = path.resolve(contractsDir, 'node_modules', importPath);
       if (fs.existsSync(resolvedPath)) {
-        return { contents: fs.readFileSync(resolvedPath, 'utf8') };
+        return { contents: readSource(resolvedPath) };
       }
     }
     const localPath = path.resolve(contractsDir, importPath);
     if (fs.existsSync(localPath)) {
-      return { contents: fs.readFileSync(localPath, 'utf8') };
+      return { contents: readSource(localPath) };
     }
     return { error: `File not found: ${importPath}` };
   } catch (err) {

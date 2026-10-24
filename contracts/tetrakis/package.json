@@ -15,6 +15,9 @@
     "solc": "0.8.24"
   },
   "devDependencies": {
-    "ganache": "7.9.2"
+    "@foundry-rs/anvil": "1.7.1"
+  },
+  "overrides": {
+    "tmp": "0.2.7"
   }
 }
