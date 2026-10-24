@@ -39,6 +39,7 @@
     "cpu_ms": 30000
   },
   "rules": [
+    {"type":"Data","globs":["**/*.webp"],"fallthrough":true},
     {
       "type": "Text",
       "globs": [

@@ -7,7 +7,7 @@ import {Miniflare,convertV4MiniflareOptions} from 'miniflare';
 let mf,db;
 const session='a'.repeat(64),digest=createHash('sha256').update(session).digest('hex');
 before(async()=>{
- const modules=readdirSync('dist').filter(n=>!n.endsWith('.map')&&!n.endsWith('.md')).map(name=>({type:name==='index.js'?'ESModule':'Text',path:resolve('dist',name)}));
+ const modules=readdirSync('dist').filter(n=>!n.endsWith('.map')&&!n.endsWith('.md')).map(name=>({type:name==='index.js'?'ESModule':name.endsWith('.webp')?'Data':'Text',path:resolve('dist',name)}));
  modules.sort((a,b)=>a.type==='ESModule'?-1:b.type==='ESModule'?1:0);
  mf=new Miniflare(convertV4MiniflareOptions({modules,compatibilityDate:'2026-10-11',compatibilityFlags:['nodejs_compat'],bindings:{TRINITY_AUTH_MODE:'google',TRINITY_OWNER_EMAIL:'owner@example.test'},d1Databases:{DB:'overview-test'}}));
  db=await mf.getD1Database('DB');

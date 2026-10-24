@@ -24,3 +24,6 @@ https://github.com/advisories/GHSA-4qv8-2p9j-2685
 https://github.com/advisories/GHSA-848j-6mx2-7j84
 https://www.npmjs.com/package/@foundry-rs/anvil
 https://www.getfoundry.sh/anvil/index.html
+
+## GitHub execution blocker
+The first dependency-security workflow run (40092202075) did not execute any steps. Its public check-run annotation states: "The job was not started because your account is locked due to a billing issue." This is distinct from the successful local audit/test results. No payment or billing setting was changed.
