@@ -123,3 +123,20 @@ test('Telegram status describes settings without revealing secrets',()=>{
     assert.equal(JSON.stringify(status).includes(t.env.TELEGRAM_BOT_TOKEN),false);
   } finally {t.restore();}
 });
+
+test('Telegram reads an existing custom Cloudflare secret binding without copying the value',async()=>{
+  const t=setup();
+  try {
+    delete t.env.TELEGRAM_BOT_TOKEN;
+    t.env.telegram8842409933='test-alias-secret-value';
+    const status=telegramIntegrationStatus(t.env);
+    assert.equal(status.bot_token,true);
+    assert.equal(JSON.stringify(status).includes(t.env.telegram8842409933),false);
+    const work=t.context();
+    const response=await handleTelegramWebhook(t.createRequest(t.message('/help')),t.env,work.ctx);
+    assert.equal(response.status,200);
+    await work.done();
+    assert.equal(t.sent.length,1);
+    assert.ok(t.requests.some(item=>item.url.endsWith('/bottest-alias-secret-value/sendMessage')));
+  } finally {t.restore();}
+});

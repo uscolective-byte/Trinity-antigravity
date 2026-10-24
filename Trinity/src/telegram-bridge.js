@@ -5,10 +5,14 @@ import {equal,rateLimit,readJSON} from './security.js';
 const reply = (data, status = 200) => Response.json(data, {status});
 const allowedIds = value => new Set(String(value || '').split(',').map(x => x.trim()).filter(x => /^[0-9]+$/.test(x)));
 const WEBHOOK_HEADER = 'X-Telegram-Bot-Api-Secret-Token';
+// Alias is the Cloudflare binding NAME only. Its secret VALUE remains in the Worker.
+export function telegramToken(env) {
+  return env.TELEGRAM_BOT_TOKEN || env.telegram8842409933 || '';
+}
 
 export function telegramIntegrationStatus(env) {
   return {
-    bot_token: Boolean(env.TELEGRAM_BOT_TOKEN),
+    bot_token: Boolean(telegramToken(env)),
     webhook_secret: Boolean(env.TELEGRAM_WEBHOOK_SECRET),
     allowed_users: allowedIds(env.TELEGRAM_ALLOWED_USER_IDS).size > 0,
     provider: env.TELEGRAM_AI_PROVIDER === 'openai' ? 'openai' : 'gemini',
@@ -33,7 +37,7 @@ function parseCommand(input, env) {
 }
 
 async function sendTelegramMessage(env, chatId, text) {
-  const response = await fetch('https://api.telegram.org/bot' + env.TELEGRAM_BOT_TOKEN + '/sendMessage', {
+  const response = await fetch('https://api.telegram.org/bot' + telegramToken(env) + '/sendMessage', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({chat_id: chatId, text: String(text).slice(0, 3900)}),

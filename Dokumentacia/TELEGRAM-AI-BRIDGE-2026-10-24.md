@@ -30,7 +30,7 @@ wrangler secret put GEMINI_API_KEY --env development
 wrangler secret put OPENAI_API_KEY --env development
 ```
 
-- `TELEGRAM_BOT_TOKEN`: nový token z @BotFather
+- `TELEGRAM_BOT_TOKEN`: nový token z @BotFather. Produkčný Cloudflare Worker `trinity` už obsahuje tajomstvo pod vlastným názvom **`telegram8842409933`**. Telegram AI bridge aj odosielanie notifikácií rozpoznáva tento alias bez kopírovania alebo zobrazenia hodnoty tokenu. Nie je preto potrebné vkladať nový token ešte raz.
 - `TELEGRAM_WEBHOOK_SECRET`: samostatná náhodná hodnota (A-Z, a-z, 0-9, _ alebo -, minimálne 32 znakov)
 - `TELEGRAM_ALLOWED_USER_IDS`: Telegram numerické ID majiteľa, voliteľne zoznam oddelený čiarkami. Nie názov bota ani telefón.
 - `TELEGRAM_AI_PROVIDER`: voliteľná NETAJNÁ premenná `gemini` (predvolená) alebo `openai`. Bezpečne ju možno nastaviť vo Wrangler `vars` danej environment sekcii.
