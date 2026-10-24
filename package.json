@@ -10,5 +10,8 @@
     "check": "node scripts/run-all-tests.mjs",
     "deploy:all": "node scripts/deploy-all-workers.mjs",
     "gemini:chat": "node scripts/gemini-dev-chat.mjs"
+  },
+  "dependencies": {
+    "ethers": "^6.17.0"
   }
 }
