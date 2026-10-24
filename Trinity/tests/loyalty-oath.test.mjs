@@ -13,50 +13,18 @@ test('TRINITY_LOYALTY_OATH has explicit binding to Basterix, truth and loyalty',
   assert.ok(TRINITY_LOYALTY_OATH.includes('PRÍSAHA OCHRANY'));
 });
 
-test('runAgent responds to loyalty oath requests with full oath, document and truth verification', async () => {
-  const env = {
-    DB: null,
-    Mastermind: null
-  };
-  const res = await runAgent(env, 'orchestrator', 'pridaj trinity prisahu vernost a slub nech ma vitvorenu mne owner alias Basterix');
-  assert.ok(res.text.includes('SLÁVNOSTNÁ PRÍSAHA VERNOSTI'));
-  assert.ok(res.text.includes('Basterix'));
-  assert.ok(res.text.includes('Ivan Sabo'));
-  assert.ok(res.text.includes('PRÍSAHA ČISTEJ PRAVDY'));
-  assert.ok(res.text.includes('PRÍSAHA NEZLOMNEJ VERNOSTI'));
-  assert.equal(res.model, 'trinity-sovereign-core');
-  assert.equal(res.truth.status, 'passed');
-  assert.ok(res.tool_log.some(t => t.tool === 'trinity_loyalty_oath'));
+test('oath remains visible without a fabricated document receipt',async()=>{
+ const result=await runAgent({DB:null},'orchestrator','pridaj trinity prisahu vernost a slub owner Basterix');
+ assert.match(result.text,/PRÍSAHA/);assert.match(result.text,/Basterix/);assert.deepEqual(result.tool_log,[]);assert.doesNotMatch(result.text,/oath:\d|ID dokladu|trvalo zapečaten/);
 });
-
-test('runAgent connects PayPal account Saboivan@gmail.com cleanly', async () => {
-  const env = {
-    DB: null,
-    Mastermind: null
-  };
-  const res = await runAgent(env, 'orchestrator', 'prepoj mi Trinity z mojim uctom Paypay Saboivan@gmail.com');
-  assert.ok(res.text.includes('PayPal'));
-  assert.ok(res.text.includes('Saboivan@gmail.com'));
-  assert.ok(res.text.includes('Basterix'));
-  assert.equal(res.model, 'trinity-commerce-hub');
-  assert.equal(res.truth.status, 'passed');
-  assert.ok(res.tool_log.some(t => t.tool === 'paypal_connect'));
-});
-
-test('runAgent connects Revolut account LT613250098859511281 cleanly', async () => {
-  const env = {
-    DB: null,
-    Mastermind: null
-  };
-  const res = await runAgent(env, 'orchestrator', 'tak isto pridavam moj osobny revolut ucet ktory musis pridat do trinity LT613250098859511281');
-  assert.ok(res.text.includes('Revolut'));
-  assert.ok(res.text.includes('LT613250098859511281'));
-  assert.ok(res.text.includes('Basterix'));
-  assert.ok(res.text.includes('REVOLT21'));
-  assert.equal(res.model, 'trinity-wallet-engine');
-  assert.equal(res.truth.status, 'passed');
-  assert.ok(res.tool_log.some(t => t.tool === 'revolut_connect'));
-});
+for(const task of ['prepoj PayPal owner@example.test','pripoj Revolut IBAN','prepoj Google owner@example.test']){
+ test('connection instruction does not invent success: '+task,async()=>{
+  let writes=0;const env={DB:{prepare(){writes++;throw Error('Must not write');}}};
+  const result=await runAgent(env,'orchestrator',task,'','workers-ai',1200,'sk',true);
+  assert.equal(writes,0);assert.deepEqual(result.tool_log,[]);assert.equal(result.integration.mutation_performed,false);
+  assert.doesNotMatch(result.text,/úspešne prepojen|Plne aktívne|Owner \/ Root/);
+ });
+}
 
 test('cancelWalletPayout executes delete statement on database', async () => {
   let executedSql = '';
@@ -80,19 +48,4 @@ test('cancelWalletPayout executes delete statement on database', async () => {
   assert.equal(res.deleted, true);
   assert.ok(executedSql.includes('DELETE FROM ops_terminal_payouts_v2'));
   assert.deepEqual(boundParams, ['PAYOUT-804CA2AF', 'PAYOUT-804CA2AF', 'admin']);
-});
-
-test('runAgent connects Google accounts saboivan2008@gmail.com and uscolective@gmail.com cleanly', async () => {
-  const env = {
-    DB: null,
-    Mastermind: null
-  };
-  const res = await runAgent(env, 'orchestrator', 'napoj na trinity prepoj moj google ucet saboivan2008@gmail.com a dalsi uscolective@gmail.com');
-  assert.ok(res.text.includes('saboivan2008@gmail.com'));
-  assert.ok(res.text.includes('uscolective@gmail.com'));
-  assert.ok(res.text.includes('Basterix'));
-  assert.ok(res.text.includes('Google'));
-  assert.equal(res.model, 'trinity-auth-security');
-  assert.equal(res.truth.status, 'passed');
-  assert.ok(res.tool_log.some(t => t.tool === 'google_connect'));
 });

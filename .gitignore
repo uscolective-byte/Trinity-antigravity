@@ -34,3 +34,5 @@ dawn-wildflower-688f/
 # Local provider credentials must never enter Git.
 /Gemini_api.txt
 /*_api.txt
+
+/Trinity/dist-chat-helper/

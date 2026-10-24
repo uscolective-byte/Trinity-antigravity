@@ -304,6 +304,13 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
       :(env.AI_MODEL || '@cf/openai/gpt-oss-120b');
     const model=customModel || defaultModel;
     const invoke = async selectedModel => {
+      if(provider==='fast'&&env.CHAT_INFERENCE_SERVICE){
+        try{
+          const response=await env.CHAT_INFERENCE_SERVICE.fetch('https://chat-inference.internal/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:selectedModel,messages,max_tokens:Math.min(maxTokens,600)}),signal:AbortSignal.timeout(20000)});
+          if(response.ok)return JSON.parse(await boundedText(response,100000));
+        }catch{}
+        // Binding failure falls back to the already authorized Workers AI binding.
+      }
       let timer;
       try { return await Promise.race([env.AI.run(selectedModel,{messages,max_tokens:Math.min(maxTokens,2048),temperature:0.2}),
         new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),provider==='fast'?20000:65000);})]); }

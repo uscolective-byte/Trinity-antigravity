@@ -447,3 +447,13 @@ test('Autonomous Commodity Desk analyzes all 22 commodities, connects real banks
   assert.ok(autoBody.trades_executed.length>=1);
   assert.ok(autoBody.document_id);
 });
+
+
+test('fast chat executes calculator and preserves durable receipts and artifacts',async()=>{
+ const response=await req('/api/assistant/chat',{message:'Koľko je 17 + 25?',session:crypto.randomUUID(),engine:'auto',language:'sk'});
+ assert.equal(response.status,202,await response.clone().text());const queued=await response.json();let done;
+ for(let attempt=0;attempt<100;attempt++){done=await(await req('/api/ops/jobs/'+queued.id)).json();if(['completed','failed'].includes(done.status))break;await new Promise(resolve=>setTimeout(resolve,150));}
+ assert.equal(done.status,'completed',JSON.stringify(done));assert.equal(done.provider,'fast');assert.equal(done.result,'42');
+ assert.equal(done.steps[0].tool_log[0].tool,'calculate');assert.equal(done.steps[0].tool_log[0].status,'completed');
+ assert.equal((await req('/api/ops/jobs/'+queued.id+'/artifact')).status,200);
+});

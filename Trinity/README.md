@@ -92,3 +92,16 @@ Automatický režim používa rýchly Workers AI model pre bežný rozhovor; úl
 Secrets sa neaktualizujú podľa veku automaticky. `wrangler secret list` vracia iba názvy, nie hodnoty. Produkcia a development majú samostatné secrets. Kľúče pre inference sú `GEMINI_API_KEY`, `OPENAI_API_KEY` a `OLLAMA_API_KEY`; Workers AI používa binding `AI`. Prítomnosť názvu nepotvrdzuje platnosť kľúča, kredit ani úspešné generovanie. Nikdy nekopíruj produkčné oprávnenia do developmentu len na odstránenie chyby.
 
 Rotáciu vykonaj iba s platnou novou hodnotou cez interaktívny `npx.cmd wrangler secret put NAZOV --env development`, over vývoj a potom samostatne nastav produkciu s `--env=""`. Hodnoty nedávaj do README, príkazovej histórie ani Gitu. Nemeň bez migračného postupu `TRINITY_VAULT_KEY` (šifrované údaje) alebo `TRINITY_SESSION_SECRET` (existujúce relácie). Lokálne súbory s API kľúčmi sú ignorované.
+
+
+## Interný komunikačný Worker
+
+Rýchle generovanie obsluhuje `trinity-chat-inference` v produkcii a samostatný `trinity-chat-inference-development` vo vývoji. Hlavná aplikácia ich volá cez privátny binding `CHAT_INFERENCE_SERVICE`; pomocník nemá verejné routes, workers.dev ani preview URL. Má iba Workers AI, bez databázy, kľúčov k externým modelom alebo práva vykonávať nástroje. Pri výpadku bindingu sa použije pôvodný Workers AI binding.
+
+Krátky rozhovor používa skrátené pokyny a rozpočet najviac 600 výstupných tokenov. Presné jednoduché výpočty a aktuálny čas vykonáva hlavná Trinity priamo cez `calculate` a `current_time`. Ďalšie nástroje zostávajú viazané na nainštalované pluginy a serverové oprávnenia. Workflow retry, auditné doklady a artefakty zostávajú zachované.
+
+Nasadenie: najprv `npx.cmd wrangler deploy --config wrangler.chat.jsonc --env development --tag COMMIT`, potom hlavná aplikácia `npm.cmd run deploy:development -- --tag COMMIT`. Po overení rovnaký postup pre produkciu s `--env=""` a `npm.cmd run deploy`. Inštaláciu lokálnych výpočtových a textových nástrojov vykoná z koreňa `node scripts/enable-chat-tools.mjs development --apply`, následne osobitne `production --apply`. Bez `--apply` skript iba vypíše plán.
+
+Overenie skutočnej inferencie bez čítania lokálnych prihlasovacích súborov: `node scripts/check-chat-inference-live.mjs development` z koreňa. Použije krátkodobý Wrangler remote preview viazaný na localhost a ukončí iba svoj vlastný proces; žiadne tokeny nevypisuje. Tento test nie je potvrdením úspešného prihlásenia používateľa v prehliadači.
+
+Chat už nevytvára overené Google identity alebo administrátorské oprávnenia z e-mailu v správe. PayPal/Revolut pokyny nie sú potvrdením pripojenia banky. Text prísahy nevystavuje falošný doklad o uložení. Skutočnú konfiguráciu spravujú existujúce autorizované formuláre a OAuth callback.

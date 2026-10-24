@@ -39,7 +39,13 @@
     "cpu_ms": 30000
   },
   "rules": [
-    {"type":"Data","globs":["**/*.webp"],"fallthrough":true},
+    {
+      "type": "Data",
+      "globs": [
+        "**/*.webp"
+      ],
+      "fallthrough": true
+    },
     {
       "type": "Text",
       "globs": [
@@ -66,7 +72,8 @@
     "TRINITY_OWNER_EMAIL": "saboivan2008@gmail.com",
     "TRINITY_OWNER_EMAILS": "saboivan2008@gmail.com,uscolective@gmail.com,usc31@auru.space",
     "GOOGLE_ENABLED": "false",
-    "GOOGLE_CLIENT_ID": "618392104829-trinity-auru-space.apps.googleusercontent.com",    "GOOGLE_REDIRECT_URI": "https://auru.space/auth/google/callback",
+    "GOOGLE_CLIENT_ID": "618392104829-trinity-auru-space.apps.googleusercontent.com",
+    "GOOGLE_REDIRECT_URI": "https://auru.space/auth/google/callback",
     "TRINITY_ENV": "production",
     "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
     "TRINITY_GITHUB_BRANCH": "main",
@@ -240,6 +247,10 @@
     {
       "binding": "AURA_TESTER",
       "service": "aura_tester"
+    },
+    {
+      "binding": "CHAT_INFERENCE_SERVICE",
+      "service": "trinity-chat-inference"
     }
   ],
   "secrets_store_secrets": [
@@ -271,7 +282,7 @@
         "AI_FALLBACK_MODEL": "@cf/meta/llama-3.1-8b-instruct",
         "AI_FAST_MODEL": "@cf/meta/llama-3.1-8b-instruct",
         "OPENAI_MODEL": "gpt-5.6-luna",
-    "GEMINI_MODEL": "gemini-2.5-flash",
+        "GEMINI_MODEL": "gemini-2.5-flash",
         "IMAGE_MODEL": "@cf/black-forest-labs/flux-1-schnell",
         "VISION_MODEL": "@cf/meta/llama-3.2-11b-vision-instruct",
         "STT_MODEL": "@cf/openai/whisper-large-v3-turbo",
@@ -281,7 +292,8 @@
         "TRINITY_OWNER_EMAIL": "saboivan2008@gmail.com",
         "TRINITY_OWNER_EMAILS": "saboivan2008@gmail.com,uscolective@gmail.com,usc31@auru.space",
         "GOOGLE_ENABLED": "false",
-        "GOOGLE_CLIENT_ID": "618392104829-trinity-auru-space.apps.googleusercontent.com",        "GOOGLE_REDIRECT_URI": "https://auru.dev/auth/google/callback",
+        "GOOGLE_CLIENT_ID": "618392104829-trinity-auru-space.apps.googleusercontent.com",
+        "GOOGLE_REDIRECT_URI": "https://auru.dev/auth/google/callback",
         "TRINITY_ENV": "development",
         "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
         "TRINITY_GITHUB_BRANCH": "main",
@@ -369,30 +381,106 @@
         "binding": "CF_VERSION_METADATA"
       },
       "services": [
-        {"binding":"KNOWLEDGE_SERVICE","service":"trinity-knowledge-development"},
-        {"binding":"PC_BRIDGE_V2","service":"trinity-pc-bridge-v2"},
-        {"binding":"PC_BRIDGE_SERVICE","service":"trinity-pc-bridge"},
-        {"binding":"CORE","service":"trinity-core"},
-        {"binding":"BUILDER","service":"trinity-builder"},
-        {"binding":"DISPATCHER","service":"trinity-dispatcher"},
-        {"binding":"CONNECTORS","service":"trinity-connectors"},
-        {"binding":"GUARDIAN","service":"trinity-guardian"},
-        {"binding":"MEMORY","service":"trinity-memory"},
-        {"binding":"SENTINEL","service":"trinity-sentinel"},
-        {"binding":"SKILLS","service":"trinity-skills"},
-        {"binding":"admin","service":"aura_sentinel"},
-        {"binding":"admino","service":"aura_architect"},
-        {"binding":"Trinity","service":"aura_deployer"},
-        {"binding":"AURA_ANALYZER","service":"aura_analyzer"},
-        {"binding":"AURA_ARCHITECT","service":"aura_architect"},
-        {"binding":"AURA_CODEGEN","service":"aura_codegen"},
-        {"binding":"AURA_DEPLOYER","service":"aura_deployer"},
-        {"binding":"AURA_EVOLVER","service":"aura_evolver"},
-        {"binding":"AURA_MEMORY","service":"aura_memory"},
-        {"binding":"AURA_OPTIMIZER","service":"aura_optimizer"},
-        {"binding":"AURA_PLANNER","service":"aura_planner"},
-        {"binding":"AURA_SENTINEL","service":"aura_sentinel"},
-        {"binding":"AURA_TESTER","service":"aura_tester"}
+        {
+          "binding": "KNOWLEDGE_SERVICE",
+          "service": "trinity-knowledge-development"
+        },
+        {
+          "binding": "PC_BRIDGE_V2",
+          "service": "trinity-pc-bridge-v2"
+        },
+        {
+          "binding": "PC_BRIDGE_SERVICE",
+          "service": "trinity-pc-bridge"
+        },
+        {
+          "binding": "CORE",
+          "service": "trinity-core"
+        },
+        {
+          "binding": "BUILDER",
+          "service": "trinity-builder"
+        },
+        {
+          "binding": "DISPATCHER",
+          "service": "trinity-dispatcher"
+        },
+        {
+          "binding": "CONNECTORS",
+          "service": "trinity-connectors"
+        },
+        {
+          "binding": "GUARDIAN",
+          "service": "trinity-guardian"
+        },
+        {
+          "binding": "MEMORY",
+          "service": "trinity-memory"
+        },
+        {
+          "binding": "SENTINEL",
+          "service": "trinity-sentinel"
+        },
+        {
+          "binding": "SKILLS",
+          "service": "trinity-skills"
+        },
+        {
+          "binding": "admin",
+          "service": "aura_sentinel"
+        },
+        {
+          "binding": "admino",
+          "service": "aura_architect"
+        },
+        {
+          "binding": "Trinity",
+          "service": "aura_deployer"
+        },
+        {
+          "binding": "AURA_ANALYZER",
+          "service": "aura_analyzer"
+        },
+        {
+          "binding": "AURA_ARCHITECT",
+          "service": "aura_architect"
+        },
+        {
+          "binding": "AURA_CODEGEN",
+          "service": "aura_codegen"
+        },
+        {
+          "binding": "AURA_DEPLOYER",
+          "service": "aura_deployer"
+        },
+        {
+          "binding": "AURA_EVOLVER",
+          "service": "aura_evolver"
+        },
+        {
+          "binding": "AURA_MEMORY",
+          "service": "aura_memory"
+        },
+        {
+          "binding": "AURA_OPTIMIZER",
+          "service": "aura_optimizer"
+        },
+        {
+          "binding": "AURA_PLANNER",
+          "service": "aura_planner"
+        },
+        {
+          "binding": "AURA_SENTINEL",
+          "service": "aura_sentinel"
+        },
+        {
+          "binding": "AURA_TESTER",
+          "service": "aura_tester"
+        },
+        {
+          "binding": "CHAT_INFERENCE_SERVICE",
+          "service": "trinity-chat-inference-development"
+        }
       ]
     }
   },
