@@ -14,8 +14,9 @@ console.log('║   Kompletné nasadenie všetkých modulov na Cloudflare (auru.d
 console.log('╚════════════════════════════════════════════════════════════════════╝');
 
 function run(command, args, cwd = root) {
-  console.log(`\n[Deploy] Spúšťam: ${command} ${args.join(' ')} v ${cwd === root ? 'root' : cwd.slice(root.length)}`);
-  const res = spawnSync(command, args, { cwd, stdio: 'inherit', env: process.env });
+  const quotedCommand = (command.includes(' ') && !command.startsWith('"')) ? `"${command}"` : command;
+  console.log(`\n[Deploy] Spúšťam: ${quotedCommand} ${args.join(' ')} v ${cwd === root ? 'root' : cwd.slice(root.length)}`);
+  const res = spawnSync(quotedCommand, args, { cwd, stdio: 'inherit', env: process.env, shell: true });
   if (res.status !== 0) {
     console.error(`[Deploy CHYBA] Príkaz ${command} zlyhal s kódom ${res.status}`);
     process.exit(res.status || 1);
@@ -23,7 +24,8 @@ function run(command, args, cwd = root) {
 }
 
 function runCapture(command, args, cwd = root) {
-  const res = spawnSync(command, args, { cwd, encoding: 'utf8', env: process.env });
+  const quotedCommand = (command.includes(' ') && !command.startsWith('"')) ? `"${command}"` : command;
+  const res = spawnSync(quotedCommand, args, { cwd, encoding: 'utf8', env: process.env, shell: true });
   return (res.stdout || '').trim();
 }
 
