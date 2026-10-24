@@ -2161,3 +2161,9 @@ html[data-theme="light"] .panel,html[data-theme="light"] .hero-card,html[data-th
 html[data-theme="light"] #welcome h1,html[data-theme="light"] #message{color:#26312c!important}
 html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{background:#f5f7f2!important;color:#26312c!important;border-color:#bdcbbb!important}
 html[data-theme="light"] .main-nav button.active,html[data-theme="light"] .message.user{background:#dce9df!important;color:#26312c!important}
+
+/* Native hidden attributes must win over navigation display rules. */
+.main-nav button[hidden]{display:none!important}
+body #welcome .avatar,body #welcome .avatar.large{background:#395c51!important;color:#e3ece6!important;box-shadow:none!important;animation:none!important}
+body .main-nav button.active{box-shadow:none!important}
+body .composer-wrap{background:transparent!important}
