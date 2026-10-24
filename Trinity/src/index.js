@@ -1,4 +1,5 @@
 import {revolutProStatus,configureRevolutPro,handleRevolutProPublic,paypalStatus,configurePaypal,commerceStatus,configureCommerceAccounts,upsertCommerceProduct,deleteCommerceProduct,handleCommercePublic} from './revolut.js';
+import {paypalDiagnostics,createPayPalOrder,capturePayPalOrder,getPayPalOrderStatus} from './paypal-rest.js';
 import {getUiEvolutionState,applyUiEvolution,handleUiChangeAction,renderDynamicThemeCss} from './ui-evolution.js';
 import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnvironments,handlePublicSiteRoute,seedTwentyCloudflareDomains} from './domain-environments.js';
 import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,generatePhotoCreation,generateCreativePack,listMultimediaCreations} from './multimedia-studio.js';
@@ -644,6 +645,9 @@ async function route(request,env,ctx){
     return json(await configureRevolutPro(env,ownerId,await readJSON(request,20000)));
   }
   if(path==='/api/assistant/paypal/status'&&request.method==='GET'){requireOwner(user);return json(await paypalStatus(env));}
+  if(path==='/api/assistant/paypal/rest-status'&&request.method==='GET'){requireOwner(user);return json(paypalDiagnostics(env));}
+  if(path==='/api/assistant/paypal/order/create'&&request.method==='POST'){requireOwner(user);await rateLimit(env,`paypal-order:${user.id}`,20,300);return json(await createPayPalOrder(env,await readJSON(request,10000)),201);}
+  if(path==='/api/assistant/paypal/order/capture'&&request.method==='POST'){requireOwner(user);await rateLimit(env,`paypal-capture:${user.id}`,20,300);const b=await readJSON(request,10000);return json(await capturePayPalOrder(env,b.order_id));}
   if(path==='/api/assistant/paypal/products'&&request.method==='POST'){
     requireOwner(user);await rateLimit(env,`paypal-config:${user.id}`,10,300);
     return json(await configurePaypal(env,ownerId,await readJSON(request,20000)));
