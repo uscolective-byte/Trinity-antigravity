@@ -148,3 +148,22 @@ User explicitly requested working chat on both domains, faster responses, real t
 - Independent LIVE deployed-workflow tests via existing authorized Cloudflare platform CLI, seeded as nonprivileged read-only diagnostic jobs (owner_mode=0): development conversation 35b27573-7b44-4c81-be94-0d02a7e2b120 completed with actual fp8-fast model; calculator d0cac9e1-954d-4995-a388-c8f94bf359cf completed with result 42 and calculate receipt. Production conversation be6ae68f-b07b-49bb-8b14-6ddc785b8ca2 completed with actual fp8-fast model, model-step duration 217 ms; calculator b77c779b-1948-4b08-a8de-40ba1eda11d5 completed with result 42 and receipt. No mocked results or completion flags inserted. CLI total test durations (14-15 seconds conversation; 9-10 seconds calculator) include multiple administrative command round trips and are not browser latency.
 - Browser-session sign-in remains unverified. Automatic approval review rejected direct reading/decryption of stored DPAPI credentials; none used. Remote preview was blocked by Cloudflare Access; protection remained enabled. The deployed workflow was instead verified through its normal authorized platform interface, without a new session, privilege grant or public test endpoint. No new auth secrets created.
 - Read the user-invoked local google-antigravity-sdk skill and architecture reference. Main app is a JS Worker; no Python SDK installation or SDK runtime integration claimed.
+
+
+## Antigravity: Sovereign Obsidian UI Overhaul, Fast-Chat Tool Expansion & Full Core Plugin Activation, 2026-10-24 23:33 CEST
+User requested complete UI overhaul ("uprav UI komplet cele"), expanded memory/modules/tools/plugins in fast chat, and project licensing.
+- Preserved all Codex commits (`1cbad79`, `b6425f5`, `fca3726`, `1d2a85e`, `f1f7ab4`, `a74e4a9`, `37a5f78`) and dependency overrides (`undici: 7.30.1`, `npm audit` = 0 vulnerabilities).
+- **Complete UI Overhaul (`Trinity/public/assistant/garage.css`, `chat.html`, `chat.js.txt`)**:
+  - Replaced crooked rotations, jagged `clip-path`, `Impact` font overrides, and jarring cream/dark contrast clashes in `garage.css` with **Trinity 11.0 Sovereign Obsidian & Glass UI** (dark obsidian glassmorphism + full `html[data-theme="light"]` support).
+  - Restored visibility of header status pills (`#subtitle`, `.domain-bridge-switch`, `.fast-model-pill`, `#environment-badge`, `#pc-bridge-badge`, `#account-state`), header dialogs (`#memory-button`, `#tools-button`), sidebar status (`.sidebar-bottom`, `.sidebar-status-clean`), and navigation icons.
+  - Added direct sidebar navigation buttons for `commodities`, `modules`, `graph`, and `agentlab` while preserving `#owner-overview-nav` owner-only gating and keeping `memory-nav` absent (`assistant-login.integration.test.mjs` verified).
+- **Fast-Chat & Tool/Plugin Expansion (`Trinity/src/fast-chat.js`, `Trinity/src/engine.js`, `scripts/enable-chat-tools.mjs`)**:
+  - Expanded `FAST_TOOLS` from 9 to 25 safe read/utility tools (`list_capabilities`, `list_skills`, `list_connectors`, `service_status`, `integration_status`, `domain_list`, `domain_check`, `wallet_terminals_status`, `portfolio_summary`, `json_tool`, `hash_text`, `extract_entities`, `format_text`, `date_math`, `timezone_convert`, `uuid_tool`) while keeping fast prompt well below 5,000 characters.
+  - Added deterministic direct-tool execution in `directChatTool` & `engine.js` for capability/module inspection (`list_capabilities`), skills (`list_skills`), domain inventory (`domain_list`), and memory search (`search_memory`), alongside existing `calculate` and `current_time`.
+  - Enabled all 46 core tool-providing plugins in both `trinity-development` and `trinity-v03` D1 databases via `scripts/enable-chat-tools.mjs --apply` (`applied: true, enabled: 46` on both).
+- **Licensing (`LICENSE`, `package.json`, `Trinity/package.json`)**:
+  - Added MIT `LICENSE` and package `"license": "MIT"` metadata.
+- **Verification & Deployment (`a4489a7`)**:
+  - Full monorepo suite (`npm test` + `npm run check`): **409/409** Trinity Main Fleet + **6/6** Audit-Worker + **10/10** Capacity-Worker + **11/11** Jericho-Worker = **436/436 PASS (0 FAIL)**.
+  - Deployed `development` (`auru.dev`) first: Version ID `c4080ffd-023b-41e3-9ab8-4dad4fe3f211`, tag `a4489a7`, `/health` serving, `/ready` true, `/garage.css` verified.
+  - Deployed `production` (`auru.space`) second: Version ID `e8ffa429-ec2b-4162-8724-ce00b9d5916a`, tag `a4489a7`, `/health` serving, `/ready` true, `/garage.css` verified.
