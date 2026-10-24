@@ -611,3 +611,257 @@ body.garage-ui dialog::backdrop {
   background: rgba(2, 6, 23, 0.72) !important;
   backdrop-filter: blur(6px) !important;
 }
+
+
+/* ============================================================================
+   WORKSPACE-SPECIFIC COMPONENTS (ALL 12 TRINITY WORKSPACES)
+   ============================================================================ */
+
+/* Subnav Buttons, Domain Filters & Settings Section Tabs */
+body.garage-ui .subnav-btn,
+body.garage-ui .domain-filter-btn,
+body.garage-ui #settings-sections button,
+body.garage-ui .tab-strip button {
+  padding: 8px 14px !important;
+  border-radius: var(--radius-sm) !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: rgba(15, 23, 42, 0.55) !important;
+  color: var(--text-secondary) !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.16s ease !important;
+}
+
+html[data-theme="light"] body.garage-ui .subnav-btn,
+html[data-theme="light"] body.garage-ui .domain-filter-btn,
+html[data-theme="light"] body.garage-ui #settings-sections button,
+html[data-theme="light"] body.garage-ui .tab-strip button {
+  background: rgba(255, 255, 255, 0.85) !important;
+}
+
+body.garage-ui .subnav-btn:hover,
+body.garage-ui .domain-filter-btn:hover,
+body.garage-ui #settings-sections button:hover,
+body.garage-ui .tab-strip button:hover {
+  color: var(--text-primary) !important;
+  border-color: var(--border-strong) !important;
+  background: rgba(56, 189, 248, 0.1) !important;
+}
+
+body.garage-ui .subnav-btn.active,
+body.garage-ui .domain-filter-btn.active,
+body.garage-ui #settings-sections button.active,
+body.garage-ui .tab-strip button.active {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.22) 0%, rgba(129, 140, 248, 0.18) 100%) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--accent-cyan) !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.18) !important;
+}
+
+/* Settings Workspace & Command Bar */
+body.garage-ui .settings-commandbar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 14px 16px !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-lg) !important;
+  margin-bottom: 16px !important;
+}
+
+body.garage-ui #settings-sections {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+body.garage-ui .settings-status {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)) !important;
+  gap: 12px !important;
+  margin-bottom: 18px !important;
+}
+
+body.garage-ui .settings-layout {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)) !important;
+  gap: 16px !important;
+}
+
+body.garage-ui .preference-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  gap: 12px !important;
+}
+
+body.garage-ui .setting-row,
+body.garage-ui .integration-item,
+body.garage-ui .provider-test-row,
+body.garage-ui .commerce-provider-card {
+  padding: 14px 16px !important;
+  border-radius: var(--radius-md) !important;
+  background: rgba(15, 23, 42, 0.5) !important;
+  border: 1px solid var(--border-subtle) !important;
+  margin-bottom: 10px !important;
+}
+
+html[data-theme="light"] body.garage-ui .setting-row,
+html[data-theme="light"] body.garage-ui .integration-item,
+html[data-theme="light"] body.garage-ui .provider-test-row,
+html[data-theme="light"] body.garage-ui .commerce-provider-card {
+  background: rgba(248, 250, 252, 0.9) !important;
+}
+
+/* Commodities & Wall Street Pro Terminal */
+body.garage-ui .terminal-stats-strip {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+  gap: 10px !important;
+  padding: 12px 16px !important;
+  background: rgba(9, 14, 26, 0.82) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  margin-bottom: 14px !important;
+}
+
+body.garage-ui .terminal-stat-item {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+
+body.garage-ui .terminal-stat-item span {
+  font-size: 11px !important;
+  color: var(--text-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+}
+
+body.garage-ui .terminal-stat-item strong {
+  font-family: var(--font-mono) !important;
+  font-size: 14px !important;
+  color: var(--text-primary) !important;
+}
+
+body.garage-ui .terminal-body-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 2.2fr) minmax(260px, 1fr) !important;
+  gap: 14px !important;
+}
+
+@media (max-width: 1024px) {
+  body.garage-ui .terminal-body-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+body.garage-ui .terminal-orderbook-box,
+body.garage-ui .terminal-trade-box {
+  background: rgba(9, 14, 26, 0.78) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 14px !important;
+}
+
+/* Domains & Hosting Workspace */
+body.garage-ui .domain-metrics-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)) !important;
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+}
+
+body.garage-ui .domain-metric-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 14px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+body.garage-ui .domain-metric-label {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  color: var(--text-muted) !important;
+}
+
+body.garage-ui .domain-metric-value {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  font-family: var(--font-mono) !important;
+  color: var(--text-primary) !important;
+}
+
+body.garage-ui .domain-filter-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+/* Docs, Knowledge Graph & Agent Lab */
+body.garage-ui .docs-arch-diagram {
+  display: grid !important;
+  gap: 12px !important;
+  padding: 16px !important;
+  background: rgba(9, 14, 26, 0.75) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+body.garage-ui .arch-layer {
+  padding: 12px 14px !important;
+  border-radius: var(--radius-md) !important;
+  background: rgba(15, 23, 42, 0.75) !important;
+  border: 1px solid var(--border-subtle) !important;
+}
+
+body.garage-ui .arch-node {
+  display: inline-block !important;
+  padding: 6px 11px !important;
+  margin: 4px !important;
+  border-radius: var(--radius-sm) !important;
+  background: rgba(56, 189, 248, 0.12) !important;
+  border: 1px solid rgba(56, 189, 248, 0.28) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+body.garage-ui .graph-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 320px !important;
+  gap: 16px !important;
+}
+
+@media (max-width: 1024px) {
+  body.garage-ui .graph-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Studio / Builder Workspace */
+body.garage-ui .builder-shell {
+  display: grid !important;
+  grid-template-columns: 300px minmax(0, 1fr) !important;
+  gap: 16px !important;
+}
+
+@media (max-width: 1024px) {
+  body.garage-ui .builder-shell {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+body.garage-ui .preview-panel iframe {
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: #ffffff !important;
+}

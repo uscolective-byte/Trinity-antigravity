@@ -221,7 +221,7 @@ export const TOOL_SCHEMAS={
   ,orchestrate_team:z.object({
     task:z.string().trim().min(1).max(10000)
   }).strict()
-  ,fleet_status:z.object({}).strict()
+  ,fleet_status:z.object({}).strict(),open_weather:z.object({query:z.string().trim().min(1).max(120)}).strict(),open_wikipedia:z.object({query:z.string().trim().min(1).max(200),lang:z.enum(['sk','en','cz','de','fr']).optional().default('sk')}).strict(),network_dns:z.object({domain:z.string().trim().min(3).max(253),type:z.enum(['A','AAAA','MX','TXT','CNAME','NS','SOA']).optional().default('A')}).strict(),crypto_prices:z.object({coins:z.array(z.string().trim().min(1).max(40)).min(1).max(10).optional().default(['bitcoin','ethereum','solana'])}).strict(),tech_news:z.object({limit:z.number().int().min(1).max(20).optional().default(8)}).strict(),macro_data:z.object({country:z.string().trim().min(2).max(3).optional().default('SVK'),indicator:z.string().trim().min(2).max(40).optional().default('NY.GDP.MKTP.CD')}).strict(),free_modules_catalog:z.object({}).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -927,6 +927,13 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(name==='delegate_worker')return {...await delegateWorker(env,args.worker,args.action,args.data),_evidence:{effect:'mutation',action:'delegate_worker',receipt_id:crypto.randomUUID()}};
   if(name==='orchestrate_team')return {...await orchestratePipeline(env,args.task),_evidence:{effect:'mutation',action:'orchestrate_team',receipt_id:crypto.randomUUID()}};
   if(name==='fleet_status')return {...await inspectFleet(env),_evidence:{effect:'read',action:'fleet_status',receipt_id:crypto.randomUUID()}};
+  if(name==='open_weather')return {...await fetchWeather(args.query),_evidence:{effect:'read',action:'open_weather',receipt_id:crypto.randomUUID()}};
+  if(name==='open_wikipedia')return {...await fetchWikipedia(args.query,{lang:args.lang}),_evidence:{effect:'read',action:'open_wikipedia',receipt_id:crypto.randomUUID()}};
+  if(name==='network_dns')return {...await resolveDns(args.domain,args.type),_evidence:{effect:'read',action:'network_dns',receipt_id:crypto.randomUUID()}};
+  if(name==='crypto_prices')return {...await fetchCryptoMarkets(args.coins),_evidence:{effect:'read',action:'crypto_prices',receipt_id:crypto.randomUUID()}};
+  if(name==='tech_news')return {...await fetchTechNews(args.limit),_evidence:{effect:'read',action:'tech_news',receipt_id:crypto.randomUUID()}};
+  if(name==='macro_data')return {...await fetchWorldBankIndicator(args.country,args.indicator),_evidence:{effect:'read',action:'macro_data',receipt_id:crypto.randomUUID()}};
+  if(name==='free_modules_catalog')return {modules:FREE_MODULES_CATALOG,_evidence:{effect:'read',action:'free_modules_catalog',receipt_id:crypto.randomUUID()}};
 }
 export async function recallMemory(env,task){
   if(!await pluginEnabled(env,'memory'))return [];
@@ -1030,5 +1037,5 @@ export const TOOL_HELP={
   delegate_worker:'Priamo deleguje akciu na niektorého z 23 špecializovaných workerov Trinity (AURA, CORE, DISPATCHER, atď.): {worker:string, action:string, data?:object}',
   orchestrate_team:'Spustí autonómnu koordináciu celej flotily Trinity špecialistov nad komplexnou úlohou: {task:string}',
   fleet_status:'Skontroluje stav pripojenia a dostupnosť všetkých 23 špecializovaných workerov Trinity: {}',
-  wallet_create:'Vytvorí alebo nastaví peňaženku Trinity, priradí Web3 krypto adresu a nastaví bankové / platobné terminály: {iban?, bic?, revolut_handle?, paypal_email?}'
+  wallet_create:'Vytvorí alebo nastaví peňaženku Trinity, priradí Web3 krypto adresu a nastaví bankové / platobné terminály: {iban?, bic?, revolut_handle?, paypal_email?}',open_weather:'Živé počasie a predpoveď z Open-Meteo/WMO bez API kľúča: {query:"Bratislava"}',open_wikipedia:'Overený encyklopedický súhrn z Wikipédie: {query:string,lang?:"sk"|"en"|"cz"|"de"|"fr"}',network_dns:'Kryptografické overenie DNS záznamov cez Cloudflare 1.1.1.1 DoH: {domain:string,type?:"A"|"AAAA"|"MX"|"TXT"|"CNAME"|"NS"}',crypto_prices:'Skutočné spotové ceny kryptomien z DefiLlama Open API: {coins?:["bitcoin","ethereum","solana"]}',tech_news:'Najnovšie technologické správy z Hacker News: {limit?:1..20}',macro_data:'Oficiálne makroekonomické ukazovatele zo Svetovej banky: {country?:"SVK",indicator?:"NY.GDP.MKTP.CD"}',free_modules_catalog:'Zoznam 6 bezplatných živých Open-Data API modulov Trinity: {}'
 };
