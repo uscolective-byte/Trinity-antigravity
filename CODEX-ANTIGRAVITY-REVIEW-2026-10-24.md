@@ -98,3 +98,15 @@ User requested an active repair while Antigravity paused. No chat message was se
 - Passkey auth-options HTTP 200 on both. Empty allowCredentials without email is discoverable authentication, not evidence of zero registered passkeys.
 - Live authenticated chat NOT VERIFIED: current checkout lacks launcher credential; original OneDrive launcher credential exists but Windows DPAPI decryption raised CryptographicException in the remote execution context. No credential, cookie, ticket or token was printed or saved. User sign-in is needed to complete the model-response check. Google remains disabled in existing configuration.
 - Existing dirty package metadata/LICENSE changes were preserved and not included in these commits.
+
+## Codex: scoped UI polish after owner clarification, 2026-10-24 13:32 CEST
+User clarified that the current layout, AI Studio, domains, wallet/payments and full documentation should stay. Only the overview is owner-only; remove Morpheus & Agents from navigation and soften the visual background.
+- Released commits 609aa14 and e51cdde. No password/auth configuration, schema, trial, profile or billing changes deployed.
+- Earlier full-redesign/password draft preserved in git stash "codex: preserve superseded full redesign and password draft before scoped UI polish"; do not restore it over the clarified live UI automatically.
+- Overview navigation hidden for nonowners and direct hash navigation returns them to chat. Dashboard endpoint now calls requireOwner before reading dashboard data.
+- Actual compiled Worker integration checks: anonymous 401, authenticated user 403, authenticated admin 403. Browser confirmed owner overview hidden without owner identity, existing navigation retained, no Morpheus tab, background-image none.
+- Full suite discovered 390 tests: 388 passed; two new access tests initially failed due to missing ops_control in their isolated fixture. Fixture corrected and all three affected runtime tests passed on rerun; frontend bootstrap/navigation checks passed. Both production build and development dry-run build passed.
+- Development verified before production. Final exact deployment tag: e51cdde19435a29ac0d63ac465b7c06723739b76.
+- Development version: dc47db15-0599-485a-97f2-b2389ead73c2. Production version: 134faeed-f7a7-4c62-b89e-c0030a55d3ad. Both health/ready HTTP 200.
+- GitHub push reports 71 dependency vulnerability alerts (6 critical, 34 high, 18 moderate, 13 low). This is a GitHub report, not an independently assessed runtime impact. Dependencies were not changed by this UI release; assessment remains open.
+- Owner-session live response remains unverified; no credentials read or authentication bypass added during this scope.
