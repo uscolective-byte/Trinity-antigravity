@@ -1,0 +1,47 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const source=readFileSync(new URL('../public/assistant/chat.js.txt',import.meta.url),'utf8');
+const html=readFileSync(new URL('../public/assistant/chat.html',import.meta.url),'utf8');
+function setup(){
+ const ids=new Set([...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]));
+ const elements=new Map();
+ function node(){return {hidden:false,value:'',checked:false,disabled:false,textContent:'',innerHTML:'',dataset:{},style:{},classList:{add(){},remove(){},toggle(){}},addEventListener(){},querySelector(){return node();},querySelectorAll(){return [];},append(){},replaceChildren(){},focus(){},setAttribute(){},getAttribute(){return null;},removeAttribute(){}};}
+ for(const id of ids)elements.set(id,node());
+ const storage=new Map(),calls=[];let bootstrap;
+ const context={console,URL,URLSearchParams,TextDecoder,AbortController,AbortSignal,Response,crypto,Intl,Date,setTimeout,clearTimeout,
+ document:{getElementById:id=>elements.get(id)||null,querySelectorAll:()=>[],createElement:node,documentElement:node(),body:node(),addEventListener(){}},
+ localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
+ location:{hostname:'auru.dev',host:'auru.dev',origin:'https://auru.dev',href:'https://auru.dev/',hash:'',search:'',pathname:'/'},
+ history:{replaceState(){}},navigator:{},window:{addEventListener(){},PublicKeyCredential:function(){}},
+ fetch:async()=>Response.json({error:'Prihlás sa do Trinity.'},{status:401}),
+ TrinityAuth:{start(options){bootstrap=options;},config:async()=>({google_enabled:false,google_required:false}),requestJSON:async()=>({account:{role:'guest'}})}
+ };
+ vm.createContext(context);vm.runInContext(source,context,{timeout:3000});
+ return {context,elements,calls,get bootstrap(){return bootstrap;},run:code=>vm.runInContext(code,context)};
+}
+test('real assistant HTML boots completely even without the removed memory navigation',()=>{
+ const s=setup();assert.equal(s.elements.has('memory-nav'),false);
+ assert.equal(typeof s.bootstrap.initialize,'function');assert.equal(typeof s.elements.get('login-form').onsubmit,'function');
+});
+test('guest status opens authentication instead of presenting a working chat',async()=>{
+ const s=setup();await s.bootstrap.initialize();
+ assert.equal(s.elements.get('login').hidden,false);assert.equal(s.elements.get('app-views').hidden,true);
+ assert.match(s.elements.get('notice').textContent,/Prihlás/);
+});
+test('status failure leaves a visible recoverable login screen',async()=>{
+ const s=setup();s.context.TrinityAuth.requestJSON=async()=>{throw Error('Server nedostupný');};
+ await s.bootstrap.initialize();assert.equal(s.elements.get('login').hidden,false);
+ assert.equal(s.elements.get('app-views').hidden,true);assert.equal(s.elements.get('notice').textContent,'Server nedostupný');
+});
+test('expired API session reopens login without treating a denial as success',async()=>{
+ const s=setup();await assert.rejects(s.run("api('/projects')"),e=>e.status===401);
+ assert.equal(s.elements.get('login').hidden,false);assert.equal(s.elements.get('app-views').hidden,true);
+});
+test('login surfaces server rejection and retains the key for correction',async()=>{
+ const s=setup();s.elements.get('key').value='test-only-fake-key';
+ s.context.TrinityAuth.requestJSON=async()=>{throw Object.assign(Error('Nesprávny prístupový kľúč.'),{status:401});};
+ await s.elements.get('login-form').onsubmit({preventDefault(){}});
+ assert.equal(s.elements.get('key').value,'test-only-fake-key');assert.match(s.elements.get('notice').textContent,/Nesprávny/);
+});
