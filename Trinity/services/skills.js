@@ -86,7 +86,7 @@ export default {
         }
         if (skill.type === "ai" && env.AI) {
           try {
-            const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+            const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fp8-fast", {
               messages: [
                 { role: "system", content: "You are executing skill: " + skill.name + ". Config: " + skill.config },
                 { role: "user", content: d.input || "" }

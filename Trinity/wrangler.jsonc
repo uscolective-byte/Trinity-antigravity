@@ -252,6 +252,22 @@
     {
       "binding": "CHAT_INFERENCE_SERVICE",
       "service": "trinity-chat-inference"
+    },
+    {
+      "binding": "CAPACITY_SERVICE",
+      "service": "trinity-capacity"
+    },
+    {
+      "binding": "INTEGRATIONS_SERVICE",
+      "service": "trinity-integrations"
+    },
+    {
+      "binding": "AUDIT_SERVICE",
+      "service": "trinity-audit"
+    },
+    {
+      "binding": "JERICHO_SERVICE",
+      "service": "jericho123"
     }
   ],
   "secrets_store_secrets": [
@@ -482,6 +498,22 @@
         {
           "binding": "CHAT_INFERENCE_SERVICE",
           "service": "trinity-chat-inference-development"
+        },
+        {
+          "binding": "CAPACITY_SERVICE",
+          "service": "trinity-capacity"
+        },
+        {
+          "binding": "INTEGRATIONS_SERVICE",
+          "service": "trinity-integrations"
+        },
+        {
+          "binding": "AUDIT_SERVICE",
+          "service": "trinity-audit"
+        },
+        {
+          "binding": "JERICHO_SERVICE",
+          "service": "jericho123"
         }
       ]
     }

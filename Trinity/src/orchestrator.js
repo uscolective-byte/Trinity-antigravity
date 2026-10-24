@@ -1,7 +1,8 @@
 /**
  * Trinity Active Orchestration Layer (src/orchestrator.js)
  * 
- * Provides unified, real-time coordination across all 23 specialized workers in the Trinity ecosystem:
+ * Provides unified, real-time coordination across all 23 specialized workers in the Trinity ecosystem
+ * (plus auxiliary bindings JERICHO_SERVICE, PC_BRIDGE_V2, CHAT_INFERENCE_SERVICE):
  * - 10 AURA workers: aura_analyzer, aura_architect, aura_codegen, aura_deployer, aura_evolver,
  *                   aura_memory, aura_optimizer, aura_planner, aura_sentinel, aura_tester
  * - 8 Core Trinity workers: trinity-core, trinity-builder, trinity-dispatcher, trinity-connectors,
@@ -18,6 +19,7 @@ export const WORKER_CATALOG = {
     service: 'aura_analyzer',
     name: 'AURA Analyzer',
     domain: 'analysis',
+    probeAction: 'aura.status',
     role: 'Hĺbková statická a dynamická analýza kódu, dátových tokov a systémového zdravia',
     actions: ['analyze.code', 'analyze.data', 'analyze.system', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
@@ -25,6 +27,7 @@ export const WORKER_CATALOG = {
     service: 'aura_architect',
     name: 'AURA Architect',
     domain: 'architecture',
+    probeAction: 'aura.status',
     role: 'Systémová architektúra, diagramy rozhraní, topológia mikroslužieb a evaluácia dizajnu',
     actions: ['architect.design', 'architect.review', 'architect.evaluate', 'architect.diagram', 'architect.edge.add', 'architect.graph', 'architect.node.add', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
@@ -32,6 +35,7 @@ export const WORKER_CATALOG = {
     service: 'aura_codegen',
     name: 'AURA Codegen',
     domain: 'coding',
+    probeAction: 'aura.status',
     role: 'Generovanie produkčného kódu, refaktoring, scaffolding, SQL migrácie a dokumentácia',
     actions: ['codegen.generate', 'codegen.refactor', 'codegen.scaffold', 'codegen.docs', 'codegen.migration', 'codegen.sql', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
@@ -39,6 +43,7 @@ export const WORKER_CATALOG = {
     service: 'aura_deployer',
     name: 'AURA Deployer',
     domain: 'deployment',
+    probeAction: 'aura.status',
     role: 'Staging, verifikácia a riadené nasadzovanie verzií na Cloudflare Edge',
     actions: ['deploy.stage', 'deploy.list', 'deploy.complete', 'deploy.rollback', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
@@ -46,6 +51,7 @@ export const WORKER_CATALOG = {
     service: 'aura_evolver',
     name: 'AURA Evolver',
     domain: 'evolution',
+    probeAction: 'aura.status',
     role: 'Samo-zdokonaľovanie, reflexné cykly, evolučné návrhy a hodnotenie kvality',
     actions: ['evolve.propose', 'evolve.history', 'evolve.reflections', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
@@ -53,6 +59,7 @@ export const WORKER_CATALOG = {
     service: 'aura_memory',
     name: 'AURA Memory Specialist',
     domain: 'memory',
+    probeAction: 'aura.status',
     role: 'Konsolidácia dlhodobej pamäte, sémantická syntéza a neurálne prepojenia',
     actions: ['memory.synthesize', 'memory.consolidate', 'memory.semantic.search', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
@@ -60,6 +67,7 @@ export const WORKER_CATALOG = {
     service: 'aura_optimizer',
     name: 'AURA Optimizer',
     domain: 'optimization',
+    probeAction: 'aura.status',
     role: 'Optimalizácia tokenov, SQL dotazov, výpočtového výkonu a znižovanie latencie',
     actions: ['optimize.system', 'optimize.query', 'optimize.tokens', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
@@ -67,6 +75,7 @@ export const WORKER_CATALOG = {
     service: 'aura_planner',
     name: 'AURA Planner',
     domain: 'planning',
+    probeAction: 'aura.status',
     role: 'Hierarchický dekompozitor úloh, plánovač projektov, míľnikov a časových osí',
     actions: ['plan.task', 'plan.project', 'plan.sprint', 'plan.timeline', 'plan.create', 'plan.decompose', 'plan.goals', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
@@ -74,6 +83,7 @@ export const WORKER_CATALOG = {
     service: 'aura_sentinel',
     name: 'AURA Sentinel',
     domain: 'security',
+    probeAction: 'aura.status',
     role: 'Aktívny bezpečnostný monitor, detekcia anomálií, skenovanie zraniteľností a alerty',
     actions: ['sentinel.alert', 'sentinel.monitor', 'sentinel.scan', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
@@ -81,6 +91,7 @@ export const WORKER_CATALOG = {
     service: 'aura_tester',
     name: 'AURA Tester',
     domain: 'testing',
+    probeAction: 'aura.status',
     role: 'Automatické generovanie a spúšťanie testov, validácia endpointov a regresná kontrola',
     actions: ['test.endpoint', 'test.generate', 'test.system', 'test.validate', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
@@ -90,6 +101,7 @@ export const WORKER_CATALOG = {
     service: 'trinity-core',
     name: 'Trinity Core Jadro',
     domain: 'reasoning',
+    probeAction: 'core.state.get',
     role: 'Jadro vedomia, kognitívne uvažovanie, stav Trinity a rozhodovacia matica',
     actions: ['core.reason', 'core.reflect', 'core.state.get', 'core.state.set', 'core.personality.get', 'core.personality.set', 'core.brain.state', 'core.decide']
   },
@@ -97,13 +109,15 @@ export const WORKER_CATALOG = {
     service: 'trinity-builder',
     name: 'Trinity Builder',
     domain: 'coding',
+    probeAction: 'build.list',
     role: 'Ukladanie a kompilácia overených kódových blokov a skriptov',
-    actions: ['build.store', 'build.list']
+    actions: ['build.store', 'build.list', 'build.get', 'build.code']
   },
   DISPATCHER: {
     service: 'trinity-dispatcher',
     name: 'Trinity Dispatcher',
     domain: 'dispatch',
+    probeAction: 'job.list',
     role: 'Zaraďovanie úloh, prideľovanie agentov a smerovanie výpočtových kapacít',
     actions: ['task.create', 'task.list', 'job.create', 'job.list', 'route_aura', 'dispatch']
   },
@@ -111,6 +125,7 @@ export const WORKER_CATALOG = {
     service: 'trinity-connectors',
     name: 'Trinity Connectors',
     domain: 'connectors',
+    probeAction: 'connect.list',
     role: 'Správa externých konektorov a autorizovaných integračných mostov',
     actions: ['connect.list', 'connect.register', 'connect.test']
   },
@@ -118,6 +133,7 @@ export const WORKER_CATALOG = {
     service: 'trinity-guardian',
     name: 'Trinity Guardian',
     domain: 'security',
+    probeAction: 'audit.list',
     role: 'Systémový dohľad, integrita zdravia infraštruktúry a auditné záznamy',
     actions: ['audit.list', 'guardian.check']
   },
@@ -125,6 +141,8 @@ export const WORKER_CATALOG = {
     service: 'trinity-memory',
     name: 'Trinity Memory Store',
     domain: 'memory',
+    probeAction: 'memory?key=__trinity_health__',
+    acceptStatuses: [200, 404],
     role: 'Kľúčovo-hodnotové úložisko perzistentných poznámok a systémových stavov',
     actions: ['memory.get', 'memory.set', 'memory.list']
   },
@@ -132,6 +150,7 @@ export const WORKER_CATALOG = {
     service: 'trinity-sentinel',
     name: 'Trinity Sentinel Monitor',
     domain: 'monitoring',
+    probeAction: 'monitor.health',
     role: 'Monitorovanie tokenov, systémových chýb, health stavov a autonómnych procesov',
     actions: ['monitor.health', 'monitor.scan', 'monitor.tokens', 'monitor.events', 'monitor.autonomous.list']
   },
@@ -139,6 +158,7 @@ export const WORKER_CATALOG = {
     service: 'trinity-skills',
     name: 'Trinity Skills Engine',
     domain: 'skills',
+    probeAction: 'skill.list',
     role: 'Zoznam, registrácia a vzdialené vykonávanie zručností Trinity',
     actions: ['skill.list', 'skill.register', 'skill.execute', 'skill.enable', 'skill.disable', 'plugin.list']
   },
@@ -148,6 +168,7 @@ export const WORKER_CATALOG = {
     service: 'trinity-knowledge',
     name: 'Trinity Knowledge Base',
     domain: 'knowledge',
+    probeAction: 'status',
     role: 'Sémantické vyhľadávanie a správa overených dokumentov v znalostnej knižnici',
     rpc: true
   },
@@ -155,28 +176,65 @@ export const WORKER_CATALOG = {
     service: 'trinity-capacity',
     name: 'Trinity Capacity Ledger',
     domain: 'capacity',
+    probeAction: 'status',
     role: 'Správa denných limitov, rezervácia pracovných jednotiek a ochrana pred preťažením',
+    rpc: true,
     rest: true
   },
   INTEGRATIONS_SERVICE: {
     service: 'trinity-integrations',
     name: 'Trinity Integrations',
     domain: 'integrations',
-    role: 'Firecrawl web scraping a externé cloudové integrácie',
+    probeAction: 'status',
+    role: 'Firecrawl web scraping, Firebase synchronizácia a externé cloudové integrácie',
+    rpc: true,
     rest: true
   },
   PC_BRIDGE_SERVICE: {
     service: 'trinity-pc-bridge',
     name: 'Trinity PC Bridge',
     domain: 'bridge',
+    probeAction: 'status',
     role: 'Obojsmerný most na lokálny počítač (skripty, aplikácie, súbory, screenshoty)',
+    rpc: true,
     rest: true
   },
   AUDIT_SERVICE: {
     service: 'trinity-audit',
     name: 'Trinity Audit Worker',
     domain: 'audit',
+    probeAction: 'openapi.json',
     role: 'Kryptograficky overené CI/CD auditné záznamy a sledovanie commitov',
+    rest: true
+  }
+};
+
+export const AUXILIARY_WORKER_CATALOG = {
+  JERICHO_SERVICE: {
+    service: 'jericho123',
+    name: 'Jericho123 Crypto Super-Agent',
+    domain: 'crypto',
+    probeAction: 'api/status',
+    role: 'Autonómny krypto super-agent, Tetrakis (TRK) treasury, trhové signály a DeFi výnosy',
+    rpc: true,
+    rest: true,
+    actions: ['status', 'ping', 'getPrices', 'getSignals', 'getTreasury', 'getTetrakisInfo', 'executeWorkCycle', 'api/status', 'api/prices', 'api/signals', 'api/treasury', 'api/yields', 'api/tetrakis']
+  },
+  PC_BRIDGE_V2: {
+    service: 'trinity-pc-bridge-v2',
+    name: 'Trinity PC Bridge v2',
+    domain: 'bridge',
+    probeAction: 'status',
+    role: 'Sekundárny most pre lokálne príkazy a desktop integráciu',
+    rpc: true,
+    rest: true
+  },
+  CHAT_INFERENCE_SERVICE: {
+    service: 'trinity-chat-inference',
+    name: 'Trinity Fast Chat Inference Worker',
+    domain: 'inference',
+    probeAction: 'health',
+    role: 'Dedikovaný nízkolatenčný AI inference worker pre okamžité odpovede v chate',
     rest: true
   }
 };
@@ -185,7 +243,7 @@ export const WORKER_CATALOG = {
  * Zavolá konkrétny worker cez Cloudflare service binding alebo RPC
  */
 export async function delegateWorker(env, workerBinding, action, data = {}, options = {}) {
-  const meta = WORKER_CATALOG[workerBinding];
+  const meta = WORKER_CATALOG[workerBinding] || AUXILIARY_WORKER_CATALOG[workerBinding];
   if (!meta) {
     throw new Error(`Neznámy worker binding: ${workerBinding}`);
   }
@@ -208,7 +266,7 @@ export async function delegateWorker(env, workerBinding, action, data = {}, opti
   const started = Date.now();
 
   try {
-    // 1. RPC volanie (napr. KNOWLEDGE_SERVICE)
+    // 1. RPC volanie (napr. KNOWLEDGE_SERVICE, CAPACITY_SERVICE, INTEGRATIONS_SERVICE, PC_BRIDGE_SERVICE, JERICHO_SERVICE)
     if (meta.rpc) {
       if (typeof binding[action] === 'function') {
         const result = await Promise.race([
@@ -222,8 +280,24 @@ export async function delegateWorker(env, workerBinding, action, data = {}, opti
         const result = await binding.search(query);
         return { ok: true, worker: workerBinding, result, duration_ms: Date.now() - started, traceId };
       }
-      if (typeof binding.getStatus === 'function' && action === 'status') {
-        const result = await binding.getStatus();
+      if ((action === 'status' || action === 'aura.status') && (typeof binding.getStatus === 'function' || typeof binding.status === 'function')) {
+        const fn = typeof binding.getStatus === 'function' ? () => binding.getStatus() : () => binding.status();
+        const result = await Promise.race([
+          fn(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('RPC Timeout')), timeoutMs))
+        ]);
+        return { ok: true, worker: workerBinding, result, duration_ms: Date.now() - started, traceId };
+      }
+      if ((action === 'skills' || action === 'skill.list' || action === 'aura.skills') && typeof binding.listSkills === 'function') {
+        const result = await binding.listSkills();
+        return { ok: true, worker: workerBinding, result, duration_ms: Date.now() - started, traceId };
+      }
+      if ((action === 'plugins' || action === 'plugin.list') && typeof binding.listPlugins === 'function') {
+        const result = await binding.listPlugins();
+        return { ok: true, worker: workerBinding, result, duration_ms: Date.now() - started, traceId };
+      }
+      if ((action === 'execute_skill' || action === 'skill.execute' || action === 'aura.execute_skill') && typeof binding.executeSkill === 'function') {
+        const result = await binding.executeSkill(data.skill || data.name, data.params || data);
         return { ok: true, worker: workerBinding, result, duration_ms: Date.now() - started, traceId };
       }
     }
@@ -234,9 +308,10 @@ export async function delegateWorker(env, workerBinding, action, data = {}, opti
       ...(internalSecret ? { 'Authorization': `Bearer ${internalSecret}` } : {})
     };
 
-    // 2. REST volanie (napr. MEMORY, CAPACITY, INTEGRATIONS)
-    if (meta.rest || workerBinding === 'MEMORY') {
-      const path = options.path || (action.startsWith('/') ? action : `/${action}`);
+    // 2. REST volanie (napr. MEMORY, AUDIT_SERVICE, JERICHO_SERVICE, alebo fallback pre RPC ak je v teste iba fetch)
+    if (meta.rest || workerBinding === 'MEMORY' || (meta.rpc && typeof binding.fetch === 'function')) {
+      const cleanAction = (action === 'status' || action === 'aura.status') ? (meta.probeAction && meta.probeAction !== 'status' ? meta.probeAction : 'health') : action;
+      const path = options.path || (cleanAction.startsWith('/') ? cleanAction : `/${cleanAction}`);
       const method = options.method || (options.mutating || Object.keys(data).length > 0 ? 'POST' : 'GET');
       const init = {
         method,
@@ -250,8 +325,9 @@ export async function delegateWorker(env, workerBinding, action, data = {}, opti
       const text = await boundedText(response);
       let payload;
       try { payload = JSON.parse(text); } catch { payload = { text }; }
+      const accepted = response.ok || (Array.isArray(meta.acceptStatuses) && meta.acceptStatuses.includes(response.status));
       return {
-        ok: response.ok,
+        ok: accepted,
         status: response.status,
         worker: workerBinding,
         result: payload,
@@ -316,9 +392,9 @@ export async function delegateWorker(env, workerBinding, action, data = {}, opti
 }
 
 /**
- * Komplexná multi-agentová orchestrácia úlohy:
+ * Komplexná multi-agentová orchestrácia úlohy naprieč bound Cloudflare Workermi:
  * 1. Dekompozícia a plánovanie (AURA_PLANNER / CORE)
- * 2. Paralelná alebo sekvenčná exekúcia špecialistov (AURA_ANALYZER, AURA_ARCHITECT, AURA_CODEGEN, AURA_TESTER, atď.)
+ * 2. Paralelná exekúcia špecialistov (AURA_ANALYZER, AURA_ARCHITECT, AURA_CODEGEN, AURA_TESTER, AURA_OPTIMIZER, SKILLS, KNOWLEDGE_SERVICE, JERICHO_SERVICE, CAPACITY_SERVICE)
  * 3. Bezpečnostná kontrola a syntéza (AURA_SENTINEL / GUARDIAN)
  */
 export async function orchestratePipeline(env, task, options = {}) {
@@ -348,7 +424,6 @@ export async function orchestratePipeline(env, task, options = {}) {
         delegateWorker(env, 'AURA_CODEGEN', 'codegen.generate', { prompt: task, language: 'javascript' }, { traceId, idempotency_key: crypto.randomUUID() })
           .then(async res => {
             executionLog.push({ phase: 'codegen', worker: 'AURA_CODEGEN', ok: res.ok, result: res.result });
-            // Ak kód bol vygenerovaný, validujeme ho cez AURA_TESTER
             if (res.ok && env.AURA_TESTER && res.result) {
               const testRes = await delegateWorker(env, 'AURA_TESTER', 'test.validate', { code: JSON.stringify(res.result) }, { traceId });
               executionLog.push({ phase: 'testing', worker: 'AURA_TESTER', ok: testRes.ok, result: testRes.result });
@@ -359,7 +434,7 @@ export async function orchestratePipeline(env, task, options = {}) {
   }
 
   // Architektúra a dizajn
-  if (/\b(architekt|dizajn|navrh|systém|databáz|schema|diagram|komponent)\b/i.test(taskLower)) {
+  if (/\b(architekt|dizajn|navrh|systém|databáz|schema|diagram|komponent|ui)\b/i.test(taskLower)) {
     if (env.AURA_ARCHITECT) {
       specialistCalls.push(
         delegateWorker(env, 'AURA_ARCHITECT', 'architect.design', { prompt: task }, { traceId, idempotency_key: crypto.randomUUID() })
@@ -379,7 +454,7 @@ export async function orchestratePipeline(env, task, options = {}) {
   }
 
   // Optimalizácia
-  if (/\b(optimaliz|zrýchli|zrychli|token|query|latencia|výkon)\b/i.test(taskLower)) {
+  if (/\b(optimaliz|zrýchli|zrychli|token|query|latencia|výkon|vyleps)\b/i.test(taskLower)) {
     if (env.AURA_OPTIMIZER) {
       specialistCalls.push(
         delegateWorker(env, 'AURA_OPTIMIZER', 'optimize.tokens', { prompt: task }, { traceId })
@@ -394,6 +469,16 @@ export async function orchestratePipeline(env, task, options = {}) {
       specialistCalls.push(
         delegateWorker(env, 'KNOWLEDGE_SERVICE', 'search', { query: task }, { traceId })
           .then(res => executionLog.push({ phase: 'knowledge', worker: 'KNOWLEDGE_SERVICE', ok: res.ok, result: res.result }))
+      );
+    }
+  }
+
+  // Krypto, Tetrakis & Treasury cez Jericho123
+  if (/\b(krypto|crypto|bitcoin|eth|solana|tetrakis|trk|jericho|treasury|defi|yield)\b/i.test(taskLower)) {
+    if (env.JERICHO_SERVICE) {
+      specialistCalls.push(
+        delegateWorker(env, 'JERICHO_SERVICE', 'api/signals', {}, { traceId })
+          .then(res => executionLog.push({ phase: 'crypto_signals', worker: 'JERICHO_SERVICE', ok: res.ok, result: res.result }))
       );
     }
   }
@@ -429,7 +514,7 @@ export async function orchestratePipeline(env, task, options = {}) {
 }
 
 /**
- * Overí stav celej flotily 23 workerov
+ * Overí stav celej flotily 23 workerov (+ pomocných workerov JERICHO_SERVICE, CHAT_INFERENCE_SERVICE, PC_BRIDGE_V2)
  */
 export async function inspectFleet(env) {
   const bindings = Object.keys(WORKER_CATALOG);
@@ -440,7 +525,28 @@ export async function inspectFleet(env) {
       if (!configured) {
         return { binding, service: meta.service, name: meta.name, status: 'not_configured', role: meta.role };
       }
-      const probe = await delegateWorker(env, binding, meta.rpc ? 'status' : 'aura.status', {}, { timeoutMs: 3000 });
+      const probeAction = meta.probeAction || (meta.rpc ? 'status' : 'aura.status');
+      const probe = await delegateWorker(env, binding, probeAction, { limit: 1 }, { timeoutMs: 4000 });
+      return {
+        binding,
+        service: meta.service,
+        name: meta.name,
+        status: probe.ok ? 'online' : 'unreachable',
+        duration_ms: probe.duration_ms,
+        role: meta.role
+      };
+    })
+  );
+
+  const auxBindings = Object.keys(AUXILIARY_WORKER_CATALOG);
+  const auxiliary_workers = await Promise.all(
+    auxBindings.map(async binding => {
+      const meta = AUXILIARY_WORKER_CATALOG[binding];
+      const configured = Boolean(env[binding]);
+      if (!configured) {
+        return { binding, service: meta.service, name: meta.name, status: 'not_configured', role: meta.role };
+      }
+      const probe = await delegateWorker(env, binding, meta.probeAction || 'status', {}, { timeoutMs: 4000 });
       return {
         binding,
         service: meta.service,
@@ -461,6 +567,7 @@ export async function inspectFleet(env) {
     online_count: online,
     offline_count: total - online,
     workers: results,
+    auxiliary_workers,
     checked_at: new Date().toISOString()
   };
 }

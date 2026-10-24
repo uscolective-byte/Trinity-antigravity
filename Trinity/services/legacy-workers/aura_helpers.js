@@ -2,7 +2,7 @@
 
 export function getAiModel(env, preferred) {
   if (preferred && env[preferred]) return env[preferred];
-  return env.AI_MODEL || '@cf/openai/gpt-oss-120b';
+  return env.AI_MODEL || '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 }
 
 export async function runAuraAi(env, systemPrompt, userPrompt, options = {}) {
@@ -10,7 +10,7 @@ export async function runAuraAi(env, systemPrompt, userPrompt, options = {}) {
     throw new Error('AI binding nie je dostupné.');
   }
   const model = options.model || getAiModel(env);
-  const fallbackModel = options.fallbackModel || '@cf/meta/llama-3.1-8b-instruct';
+  const fallbackModel = options.fallbackModel || '@cf/meta/llama-3.1-8b-instruct-fp8-fast';
   const messages = [
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userPrompt }

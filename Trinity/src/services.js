@@ -143,30 +143,35 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
         generation_config:{max_output_tokens:Math.min(maxTokens,8192),temperature:0.25}}),
       signal:AbortSignal.timeout(65000),redirect:'manual'
     });
+    let usedModel=model;
     if(!response.ok && (response.status===404 || response.status===400)){
       const contents=[];
       if(system)contents.push({role:'user',parts:[{text:`Systémové inštrukcie:\n${system}`}]},{role:'model',parts:[{text:'Rozumiem inštrukciám.'}]});
       contents.push({role:'user',parts:[{text:input}]});
-      const fallbackUrl=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(interactionModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-      const fallbackResponse=await fetch(fallbackUrl,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          contents,
-          generationConfig:{maxOutputTokens:Math.min(maxTokens,8192),temperature:0.25}
-        }),
-        signal:AbortSignal.timeout(65000),
-        redirect:'manual'
-      });
-      if(fallbackResponse.ok){
-        response=fallbackResponse;
+      for(const candidateModel of [...new Set([interactionModel,'gemini-2.5-flash'])]){
+        const fallbackUrl=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidateModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const fallbackResponse=await fetch(fallbackUrl,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            contents,
+            generationConfig:{maxOutputTokens:Math.min(maxTokens,8192),temperature:0.25}
+          }),
+          signal:AbortSignal.timeout(65000),
+          redirect:'manual'
+        });
+        if(fallbackResponse.ok){
+          response=fallbackResponse;
+          usedModel=candidateModel;
+          break;
+        }
       }
     }
     const data=JSON.parse(await boundedText(response,250000));
     if(!response.ok)throw new Error(`Gemini HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
     const text=extractGeminiInteractionText(data);
     if(!text)throw new Error('Gemini vrátilo prázdnu odpoveď.');
-    return {text,model,provider,usage:{input:data.usageMetadata?.promptTokenCount||0,output:data.usageMetadata?.candidatesTokenCount||0}};
+    return {text,model:usedModel,provider,usage:{input:data.usageMetadata?.promptTokenCount||0,output:data.usageMetadata?.candidatesTokenCount||0}};
   }
   if(provider==='openai') {
     let apiKey=typeof env.OPENAI_API_KEY==='string'?env.OPENAI_API_KEY.trim():'';

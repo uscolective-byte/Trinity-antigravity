@@ -46,7 +46,7 @@ export default {
         }
         let thought = "No response";
         if (env.AI) {
-          const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+          const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fp8-fast", {
             messages: [
               { role: "system", content: sp?.content || "You are Trinity." },
               { role: "user", content: d.prompt || "" }
@@ -72,7 +72,7 @@ export default {
         }
         let reflection = "Trinity autonomous reflection";
         if (env.AI) {
-          const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+          const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fp8-fast", {
             messages: [
               { role: "system", content: "You are Trinity reflecting. Generate an insight." },
               { role: "user", content: JSON.stringify(recent.results) }
@@ -132,7 +132,7 @@ export default {
       if (call.action === "core.decide") {
         let decision = { choice: d.options?.[0] || "default", reasoning: "autonomous policy" };
         if (env.AI) {
-          const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+          const ai = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fp8-fast", {
             messages: [
               { role: "system", content: "You are Trinity's decision engine. Pick best option. JSON: {\"choice\": \"...\", \"reasoning\": \"...\"}" },
               { role: "user", content: "Options: " + JSON.stringify(d.options) + " Criteria: " + (d.criteria || "") }

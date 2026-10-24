@@ -767,7 +767,8 @@ async function route(request,env,ctx){
     const delegated=shouldDelegate(d.message);
     const provider=selectChatProvider(d.engine,d.message);
     const ownerMode=user.role==='owner';
-    return json(await createJob(env,{task:d.message,session_id:d.session,agent:delegated?'auto':'orchestrator',mode:delegated?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,idempotency_key:crypto.randomUUID()}),202);
+    const teamMode=/\b(t[ií]mov[yý]\s+re[zž]im|team\s+mode)\b/i.test(d.message);
+    return json(await createJob(env,{task:d.message,session_id:d.session,agent:teamMode?'auto':'orchestrator',mode:teamMode?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,idempotency_key:crypto.randomUUID()}),202);
   }
   if(path==='/api/copilot/chat'&&request.method==='POST'){
     await rateLimit(env,`copilot:${user.id}`,30,60);

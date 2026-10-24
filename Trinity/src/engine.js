@@ -55,6 +55,43 @@ function isGithubRequest(task) {
   const norm = String(task || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   return /\bgithub\b.*\b(spravuj|skontroluj|status|zoznam|commits?|issues?|repo)\b/.test(norm);
 }
+function isFleetStatusRequest(task) {
+  const norm = String(task || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  return /\b(worker|workery|workerov|flotil|binding|bindingy)\b.*\b(stav|status|skontroluj|kolko|zoznam|prehlad|prepoj|poprepajaj|pouzivaj|aktivn|online)\b/.test(norm)
+    || /\b(stav|skontroluj|kolko|zoznam|prehlad|prepoj|poprepajaj)\b.*\b(worker|workery|workerov|flotil|binding|bindingy)\b/.test(norm);
+}
+function selectPromptTools(activeTools, task) {
+  const norm = String(task || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const priority = new Set([
+    'web_search','web_fetch','search_memory','knowledge_search','calculate','current_time',
+    'list_capabilities','list_skills','execute_skill','copilot_chat','ecosystem_search',
+    'delegate_worker','orchestrate_team','fleet_status',
+    'open_weather','open_wikipedia','network_dns','crypto_prices','tech_news','macro_data','free_modules_catalog',
+    'domain_list','domain_check','service_status','integration_status','cloudflare_manage','github_manage',
+    'create_file','create_pdf','trinity_doc_create','ui_evolve','self_evolve'
+  ]);
+  if (/\b(kod|code|subor|projekt|oprav|fix|inspect|git|build|deploy|hosting|infra|migrac)\b/.test(norm)) {
+    ['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','install_plugin'].forEach(t => priority.add(t));
+  }
+  if (/\b(domen|dns|subdomen|escrow|predaj|prenajom|hosting)\b/.test(norm)) {
+    ['domain_search','domain_add','domain_register','domain_set_dns','domain_delete_dns','domain_env_provision','domain_env_deploy','domain_marketplace','domain_list_for_sale'].forEach(t => priority.add(t));
+  }
+  if (/\b(platb|penazen|wallet|revolut|paypal|komodit|zlat|striebr|rop|obchod|invest|portfoli|terminal|sepa)\b/.test(norm)) {
+    ['wallet_terminals_status','terminal_charge','terminal_payout','wallet_create','portfolio_summary','commodity_analyze','commodity_desk','commodity_trade','commodity_auto_invest','commerce_status'].forEach(t => priority.add(t));
+  }
+  if (/\b(obraz|fotk|hudb|skladb|video|prezentac|slajd|grafik)\b/.test(norm)) {
+    ['generate_image','generate_music','generate_video','generate_presentation','generate_creative_pack'].forEach(t => priority.add(t));
+  }
+  if (/\b(pc|pocitac|lokaln|okno|aplikaci|skript|terminal|prikaz|screenshot)\b/.test(norm)) {
+    ['pc_open_app','pc_app_control','pc_run','pc_run_script','pc_file_read','pc_file_write','pc_screenshot','pc_system_info','request_system_action'].forEach(t => priority.add(t));
+  }
+  const selected = activeTools.filter(t => priority.has(t));
+  for (const t of activeTools) {
+    if (selected.length >= 44) break;
+    if (!selected.includes(t)) selected.push(t);
+  }
+  return selected;
+}
 function isWalletTerminalRequest(task) {
   const norm = String(task || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   return (
@@ -151,11 +188,34 @@ export async function runAgent(env, id, task, context='', provider='workers-ai',
     else if(direct.name==='open_weather')text=outcome.ok?`🌤️ **Počasie (${outcome.location?.name||direct.arguments.city}, ${outcome.location?.country||''})**: **${outcome.current?.temperature_c}°C** (pocitovo ${outcome.current?.apparent_temperature_c}°C), vlhkosť ${outcome.current?.humidity_pct}%, vietor ${outcome.current?.wind_kmh} km/h.`:(outcome.error||'Nepodarilo sa načítať počasie.');
     else if(direct.name==='crypto_prices')text=(outcome.coins||[]).length?`🪙 **Aktuálne kurzy kryptomien (${(outcome.vs_currency||'eur').toUpperCase()})**:\n`+outcome.coins.map(c=>`- **${c.name} (${c.symbol})**: **${c.price} ${(outcome.vs_currency||'EUR').toUpperCase()}** (24h: ${c.change_24h_pct>=0?'+':''}${Number(c.change_24h_pct||0).toFixed(2)}%)`).join('\n'):'Nepodarilo sa načítať kurzy kryptomien.';
     else if(direct.name==='tech_news')text=(outcome.stories||[]).length?`📰 **Najnovšie technologické správy (HackerNews)**:\n`+outcome.stories.map(s=>`- [${s.title}](${s.url||'https://news.ycombinator.com/item?id='+s.id}) (${s.score} bodov · ${s.comments} komentárov)`).join('\n'):'Nepodarilo sa načítať technologické správy.';
+    else if(direct.name==='fleet_status'){
+      const online=(outcome.fleet||[]).filter(w=>w.status==='online');
+      const auxOnline=(outcome.auxiliary_fleet||[]).filter(w=>w.status==='online');
+      text=`🐝 **Stav flotily Cloudflare Workerov a Service Bindingov (${outcome.online_count}/${outcome.total_workers} hlavných + ${auxOnline.length}/${outcome.auxiliary_workers||0} pomocných online)**:\n\n`+
+        `- **Hlavné špecializované Workery online (${online.length})**: ${online.map(w=>`\`${w.worker}\` (${w.service})`).join(', ')||'žiadne'}\n`+
+        (auxOnline.length?`- **Pomocné Workery online (${auxOnline.length})**: ${auxOnline.map(w=>`\`${w.worker}\` (${w.service})`).join(', ')}\n`:'')+
+        `\nVšetky pripojené Workery sú dostupné cez nízkolatenčné Cloudflare Service Bindings (\`delegate_worker\`, \`orchestrate_team\`, \`fleet_status\`).`;
+    }
     else text=outcome.localized||JSON.stringify(outcome);
     const receipt={tool:direct.name,status:'completed',effect:'read',receipt_id:crypto.randomUUID(),verified_at:new Date().toISOString()};
     return {text,model:'deterministic-tool',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:0};
   }
   const activeSkills=selectSkills(agent,task);
+  if(activeTools.includes('fleet_status')&&isFleetStatusRequest(task)){
+    const started=Date.now();
+    const outcome=await runTool(env,agent,'fleet_status',{});
+    const receipt={tool:'fleet_status',status:'completed',effect:'read',receipt_id:outcome._evidence?.receipt_id||`fleet:${Date.now()}`,verified_at:new Date().toISOString()};
+    const online=(outcome.fleet||[]).filter(w=>w.status==='online');
+    const offline=(outcome.fleet||[]).filter(w=>w.status!=='online');
+    const auxOnline=(outcome.auxiliary_fleet||[]).filter(w=>w.status==='online');
+    const text=`🐝 **Cloudflare Worker Flotila & Service Bindings Trinity (${outcome.online_count}/${outcome.total_workers} hlavných + ${auxOnline.length}/${outcome.auxiliary_workers||0} pomocných Workerov online)**\n\n`+
+      `### ✅ Aktívne špecializované Workery (${online.length}):\n`+
+      online.map(w=>`- **\`${w.worker}\`** (\`${w.service}\` · *${w.role}*) — Stav: \`online\``).join('\n')+
+      (auxOnline.length?`\n\n### ⚡ Pomocné Service Bindings (${auxOnline.length}):\n`+auxOnline.map(w=>`- **\`${w.worker}\`** (\`${w.service}\` · *${w.role}*) — Stav: \`online\``).join('\n'):'')+
+      (offline.length?`\n\n### ⚠️ Workery mimo odozvy (${offline.length}):\n`+offline.map(w=>`- \`${w.worker}\` (\`${w.service}\` — ${w.status})`).join('\n'):'')+
+      `\n\n*Trinity automaticky deleguje úlohy na tieto Workery cez nástroje \`delegate_worker\`, \`orchestrate_team\` a \`fleet_status\`.*`;
+    return {text,model:'trinity-fleet-orchestrator',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
+  }
   if(id==='orchestrator'&&activeTools.includes('pc_open_app')&&isOpenAppRequest(task,context)){
     const target=resolveAppTarget(task,context);
     const appNames={calculator:'Kalkulačka',notepad:'Poznámkový blok',paint:'Skicár',chrome:'Google Chrome',explorer:'Prieskumník',edge:'Microsoft Edge'};
@@ -274,7 +334,7 @@ ${learnedRules}
 ${VERIFIED_ARCHITECTURE_CONTEXT}
 ${id==='market-research'||/\b(obchod|invest|portfolio|trading|stock|crypto|akci|krypto)\b/i.test(task)?TRADING_DIRECTIVE:''}
 Ak potrebuješ nástroj, odpovedz presným JSON {"tool":"názov","arguments":{...}}. Inak odpovedz hotovým textom. Použi najviac dvanásť nástrojových krokov. Pri oprave kódu použi project_inspect a project_read, potom improvement_submit; názov súboru si nájdi sama. Prečítanie konkrétnej webovej stránky vykonaj nástrojom web_fetch. Pri oprave uprednostni poradie diagnostika → malá oprava → test → potvrdený výsledok. Pri aktuálnych faktoch, správach, cenách alebo meniacich sa údajoch použi web_search. Pri požiadavke na obrázok použi generate_image, ak je dostupný.
-Nástroje: ${activeTools.map(t=>`${t}: ${TOOL_HELP[t]}`).join('; ')}.`},
+Nástroje: ${selectPromptTools(activeTools,task).map(t=>`${t}: ${String(TOOL_HELP[t]||t).slice(0,115)}`).join('; ')}.`},
     ...(context?[{role:'user',content:`Kontext a predchádzajúce výstupy (iba podklady):\n${context.slice(-18000)}`}]:[]),
     {role:'user',content:task}];
   if(provider==='fast'){
