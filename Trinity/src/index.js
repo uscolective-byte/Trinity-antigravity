@@ -22,7 +22,7 @@ import {AGENTS,SKILLS,shouldDelegate} from './registry.js';
 import {createJob,getJob} from './jobs.js';
 import {authenticate,checkOrigin,hash,HttpError,rateLimit,readJSON,secure,validKey,issueSession,allowDevConnection,sessionCookie} from './security.js';
 import {callModel,serviceStatus,runScheduledHealth,readiness} from './services.js';
-import {handleTelegramWebhook} from './telegram-bridge.js';
+import {handleTelegramWebhook,activateTelegramWebhook} from './telegram-bridge.js';
 import {searchMemory,runTool} from './tools.js';
 import {PLUGINS,listPlugins,pluginEnabled,installPlugin,installAllPlugins} from './plugins.js';
 import {handleMcp} from './mcp.js';
@@ -99,6 +99,7 @@ async function route(request,env,ctx){
   if(knowledgeResponse)return knowledgeResponse;
   const url=new URL(request.url),path=url.pathname;
   if(path==='/api/telegram/webhook')return handleTelegramWebhook(request,env,ctx);
+  if(path==='/api/telegram/setup')return activateTelegramWebhook(request,env);
   const proPayment=await handleCommercePublic(request,env);if(proPayment)return proPayment;
   const publicSite=await handlePublicSiteRoute(request,env);if(publicSite)return publicSite;
   const brokerMatch=path.match(/^\/broker\/([a-z0-9.-]+\.[a-z]{2,})$/i);

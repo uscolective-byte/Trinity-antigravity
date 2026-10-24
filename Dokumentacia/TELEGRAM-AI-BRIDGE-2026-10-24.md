@@ -54,3 +54,19 @@ Kontrola: `getWebhookInfo` a súkromná správa `/help` z allowlistovaného ID, 
 ## Plán rozšírenia
 
 V ďalšej etape previesť asynchrónne správy na Cloudflare Queue s opakovaním doručenia a zaviesť časovo ohraničenú per-chat pamäť. Použiť oddelenú identitu Telegramu a explicitne autorizované nástroje, nie admin kľúč Trinity.
+
+## One-time production registration (security)
+
+The owner has supplied their private Telegram account numeric ID separately; store it only as the Worker secret `TELEGRAM_ALLOWED_USER_IDS`, never as a commit, log or public env var.
+
+The production Worker may already have bot-token secret `telegram8842409933`. The integration reads it as an explicit alias; no token extraction or duplicate secret is needed.
+
+Before registration, store two separate Worker secrets:
+- `TELEGRAM_WEBHOOK_SECRET` — randomly generated 32+ safe characters, supplied to Telegram's `setWebhook`, validated on every inbound request.
+- `TRINITY_TELEGRAM_SETUP_KEY` — independently generated temporary 32+ character bearer value, used only once to call `POST https://auru.space/api/telegram/setup` using request header `X-Trinity-Telegram-Setup`.
+
+The setup route requires HTTPS on `auru.space`, `TRINITY_ENV=production`, a matching temporary key, valid webhook secret and allowlist. It first checks `getWebhookInfo` and **refuses to replace any existing webhook at a different URL**. It registers `allowed_updates=["message"]` and does not drop pending messages; it verifies registration with another `getWebhookInfo` call.
+
+After successful registration, immediately delete `TRINITY_TELEGRAM_SETUP_KEY` from the Worker and verify that the setup route returns HTTP 401. No secret values should be logged or printed. If the existing webhook belongs to a different service, do not override it automatically.
+
+A new production deployment should happen only after tests and latest-main integration checks succeed. Live Telegram delivery and AI model responses are separate checks from tests and webhook registration.

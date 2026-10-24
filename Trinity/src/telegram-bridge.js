@@ -57,7 +57,9 @@ export async function processTelegramUpdate(env, update) {
   if (!output) {
     try {
       const system = 'Si Trinity, AI asistentka v súkromnom Telegram chate. Odpovedaj stručne a užitočne v jazyku používateľa. Tento kanál je IBA na textové odpovede. Nemáš oprávnenie vykonávať príkazy, upravovať repozitár, súbory, deploy, platby ani meniť nastavenia. Nikdy netvrď, že si niečo vykonala, ak si poskytla iba návrh.';
-      const result = await callModel(env, provider, [{role:'system',content:system},{role:'user',content:question}], 750);
+      // Use an API-supported, fast model for Telegram without changing Trinity's main OpenAI settings.
+      const apiModel = provider === 'openai' ? 'gpt-4.1-mini' : null;
+      const result = await callModel(env, provider, [{role:'system',content:system},{role:'user',content:question}], 750, apiModel);
       output = String(result.text || '').trim() || 'Model nevrátil odpoveď.';
     } catch {
       output = 'Model momentálne neodpovedá. Skontroluj konfiguráciu poskytovateľa v Trinity.';
@@ -100,4 +102,60 @@ export async function handleTelegramWebhook(request, env, ctx) {
   if (ctx?.waitUntil) ctx.waitUntil(run);
   else await run;
   return reply({ok: true});
+}
+
+async function telegramApi(env, method, payload) {
+  const response = await fetch('https://api.telegram.org/bot' + telegramToken(env) + '/' + method, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload || {}),
+    redirect: 'manual',
+    signal: AbortSignal.timeout(10000)
+  });
+  if (!response.ok) throw new Error('Telegram ' + method + ' HTTP ' + response.status);
+  const data = await response.json();
+  if (data.ok !== true) throw new Error('Telegram ' + method + ' rejected request');
+  return data.result;
+}
+
+// One-time bootstrap: callable only while a separate, temporary Worker secret exists.
+// It does not reveal or transfer the bot token. It will not replace a foreign webhook.
+export async function activateTelegramWebhook(request, env) {
+  if (request.method !== 'POST') return reply({error:'Method not allowed'},405);
+  const origin = new URL(request.url).origin;
+  if (origin !== 'https://auru.space' || env.TRINITY_ENV !== 'production') {
+    return reply({error:'Production-only operation'},403);
+  }
+  const setupKey = env.TRINITY_TELEGRAM_SETUP_KEY;
+  const suppliedKey = request.headers.get('X-Trinity-Telegram-Setup');
+  if (typeof setupKey !== 'string' || setupKey.length < 32 || !suppliedKey ||
+      !await equal(setupKey, suppliedKey)) {
+    return reply({error:'Not authorized'},401);
+  }
+  const status = telegramIntegrationStatus(env);
+  if (!status.bot_token || !status.webhook_secret || !status.allowed_users ||
+      !/^[a-zA-Z0-9_-]{32,256}$/.test(String(env.TELEGRAM_WEBHOOK_SECRET))) {
+    return reply({error:'Telegram configuration incomplete'},503);
+  }
+  const webhookUrl = 'https://auru.space/api/telegram/webhook';
+  let info;
+  try {
+    info = await telegramApi(env,'getWebhookInfo');
+  } catch {
+    return reply({error:'Telegram bot token could not be verified'},502);
+  }
+  if (info?.url && info.url !== webhookUrl) {
+    // Refuse to steal the single active webhook from any other service.
+    return reply({error:'An existing different webhook is configured',existing_webhook:info.url},409);
+  }
+  try {
+    await telegramApi(env,'setWebhook',{url:webhookUrl,
+      secret_token:env.TELEGRAM_WEBHOOK_SECRET,
+      allowed_updates:['message'],drop_pending_updates:false,max_connections:10});
+    const registered = await telegramApi(env,'getWebhookInfo');
+    if (registered?.url !== webhookUrl) throw new Error('Webhook verification failed');
+    return reply({ok:true,registered:true,url:webhookUrl,pending_updates:registered?.pending_update_count||0});
+  } catch {
+    return reply({error:'Webhook registration or verification failed'},502);
+  }
 }
