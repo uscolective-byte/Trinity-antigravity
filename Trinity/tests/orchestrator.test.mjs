@@ -170,3 +170,45 @@ test('SkillRegistry exposes and executes orchestration skills', async () => {
   const res = await skillRegistry.execute('callWorkerAction', { worker: 'CORE', action: 'core.reason', data: { prompt: 'think' } }, env);
   assert.equal(res.ok, true);
 });
+
+test('orchestratePipeline reports partial or failed when a required phase fails', async () => {
+  const env = {
+    AURA_PLANNER: {
+      async fetch() {
+        return Response.json({ ok: true, result: { plan: ['analyze', 'code'] } });
+      }
+    },
+    AURA_CODEGEN: {
+      async fetch() {
+        return Response.json({ ok: false, error: 'Codegen failure' }, { status: 500 });
+      }
+    }
+  };
+
+  const res = await orchestratePipeline(env, 'Napíš kód pre platobnú bránu');
+  assert.equal(res.ok, false);
+  assert.equal(res.status, 'partial');
+  assert.ok(res.failed_phases >= 1);
+});
+
+test('delegateWorker preserves caller context and does not fabricate owner approval when null', async () => {
+  let capturedBody = null;
+  const env = {
+    AURA_ANALYZER: {
+      async fetch(url, init) {
+        capturedBody = JSON.parse(init.body);
+        return Response.json({ ok: true });
+      }
+    }
+  };
+
+  await delegateWorker(env, 'AURA_ANALYZER', 'analyze.code', { code: 'test' });
+  assert.equal(capturedBody.approval, null);
+
+  await delegateWorker(env, 'AURA_ANALYZER', 'analyze.code', { code: 'test' }, {
+    actor: { id: 'usr-123', role: 'developer' }
+  });
+  assert.equal(capturedBody.approval.actor_role, 'developer');
+  assert.equal(capturedBody.approval.actor_id, 'usr-123');
+  assert.equal(capturedBody.approval.approved, true);
+});

@@ -203,7 +203,7 @@ export async function delegateWorker(env, workerBinding, action, data = {}, opti
   const timeoutMs = options.timeoutMs || 15000;
   const traceId = options.traceId || crypto.randomUUID();
   const idempotency_key = options.idempotency_key || (options.mutating ? crypto.randomUUID() : undefined);
-  const approval = options.approval || { approved: true, actor_role: 'owner', request_id: crypto.randomUUID() };
+  const approval = options.approval !== undefined ? options.approval : (options.actor ? { approved: options.approved !== false, actor_role: options.actor.role || 'user', actor_id: options.actor.id, request_id: crypto.randomUUID() } : null);
 
   const started = Date.now();
 
@@ -406,9 +406,12 @@ export async function orchestratePipeline(env, task, options = {}) {
   // FÁZA 4: Syntéza výsledkov
   const successfulSteps = executionLog.filter(l => l.ok);
   const failedSteps = executionLog.filter(l => !l.ok);
+  const status = (failedSteps.length === 0 && successfulSteps.length > 0) ? 'complete' : (successfulSteps.length > 0 ? 'partial' : 'failed');
+  const isOk = status === 'complete';
 
   return {
-    ok: successfulSteps.length > 0,
+    ok: isOk,
+    status,
     traceId,
     duration_ms: Date.now() - started,
     task,
