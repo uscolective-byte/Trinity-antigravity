@@ -18,9 +18,9 @@ Nasledujúca časť zachováva **historický stav z 18. októbra**; jej identifi
 - **Admin & Sovereign Owner Lab (Ivan Sabo / Basterix)**: <https://auru.dev>
 - **Worker**: <https://trinity.saboivan2008.workers.dev/>
 - **Verzia**: `11.0.0` (unifikované pre Worker aj používateľské rozhranie)
-- **Produkčné Cloudflare Version ID (`auru.space`)**: `965cd9a0-6818-4932-a422-5d21d38c6573`
-- **Vývojové Cloudflare Version ID (`auru.dev`)**: `1f2ea1bc-cd1c-4b49-bf73-cb807191e474`
-- **Git Commit Tag**: `ea6e601f5c6b77227bc0f9beee3ce010a33bfef1`
+- **Produkčné Cloudflare Version ID (`auru.space`)**: `e6dddd5d-70f2-454a-bb3c-50915d645374`
+- **Vývojové Cloudflare Version ID (`auru.dev`)**: `dc80a8e3-3004-4303-8043-f9b5d7e4c245`
+- **Git Commit Tag**: `5e68e767e769f24cbc4ec37874da51a7a5fb86dc`
 - **PC Bridge Worker**: `trinity-pc-bridge`
 - **Privátna lokálna brána**: verzia `1.3.0` (počúva na `127.0.0.1:8791`)
 
