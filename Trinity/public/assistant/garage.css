@@ -90,3 +90,10 @@ html[data-theme="light"] body.garage-ui .sidebar,html[data-theme="light"] body.g
 html[data-theme="light"] body.garage-ui .brand>span:last-child,html[data-theme="light"] body.garage-ui #page-title,html[data-theme="light"] body.garage-ui .main-nav button{color:#24231f!important}
 html[data-theme="light"] body.garage-ui .brand small,html[data-theme="light"] body.garage-ui .header-actions button,html[data-theme="light"] body.garage-ui #language,html[data-theme="light"] body.garage-ui #account-label{color:#625e55!important}
 body.garage-ui [hidden],body.garage-ui .view[hidden],body.garage-ui button[hidden]{display:none!important}
+
+/* Let the original mural remain visible behind the workspace. */
+body.garage-ui #app-views,body.garage-ui #chat-view,body.garage-ui #chat-area,body.garage-ui .view{background:transparent!important}
+body.garage-ui .brand>span:last-child{font-size:24px!important;line-height:1!important}
+body.garage-ui #welcome h1{font-style:italic!important;letter-spacing:-2px!important}
+body.garage-ui #welcome{clip-path:polygon(0 .8%,99.5% 0,100% 98.7%,.5% 100%)}
+body.garage-ui #send{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;width:auto!important;min-width:94px!important;min-height:42px!important;border-radius:1px!important}
