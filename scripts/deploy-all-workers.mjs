@@ -37,7 +37,7 @@ console.log('====================================================');
 
 const results = [];
 
-function deployWorker(name, cwd, configPath) {
+function deployWorker(name, cwd, configPath, env = "") {
   console.log(`\n⏳ Deploying ${name}...`);
   const fullConfig = resolve(cwd, configPath);
   if (!existsSync(fullConfig)) {
@@ -47,7 +47,8 @@ function deployWorker(name, cwd, configPath) {
   }
 
   try {
-    const cmd = `npx wrangler deploy --config "${fullConfig}"`;
+    const envFlag = env ? ` --env "${env}"` : "";
+    const cmd = `npx wrangler deploy --config "${fullConfig}"${envFlag}`;
     console.log(`   Running: ${cmd} (in ${cwd})`);
     const output = execSync(cmd, { cwd, stdio: 'pipe', encoding: 'utf8', env: { ...process.env, CI: '1', WRANGLER_SEND_METRICS: 'false' } });
     console.log(`✅ ${name} deployed successfully!`);
@@ -82,10 +83,12 @@ for (const w of STANDALONE_WORKERS) {
   deployWorker(w.name, dir, w.config);
 }
 
-// 4. Deploy Trinity Main Worker
-console.log('\n--- PHASE 4: Deploying Trinity Main Worker ---');
+// 4. Deploy Trinity Main Workers
+console.log('\n--- PHASE 4: Deploying Trinity Main Workers (Production & Development) ---');
 const trinityMainDir = resolve(ROOT_DIR, 'Trinity');
-deployWorker('trinity-main', trinityMainDir, 'wrangler.jsonc');
+try { execSync('node scripts/build-mcp-app.mjs', { cwd: trinityMainDir, stdio: 'pipe' }); } catch (_) {}
+deployWorker('trinity-main (production -> auru.space)', trinityMainDir, 'wrangler.jsonc', '');
+deployWorker('trinity-main (development -> auru.dev)', trinityMainDir, 'wrangler.jsonc', 'development');
 
 console.log('\n====================================================');
 console.log('📊 DEPLOYMENT SUMMARY');
