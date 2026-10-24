@@ -16,7 +16,10 @@
     "gemini:chat": "node scripts/gemini-dev-chat.mjs",
     "inventory": "node scripts/project-inventory.mjs",
     "setup": "node scripts/project-pipeline.mjs setup",
-    "check": "node scripts/project-pipeline.mjs check"
+    "check": "node scripts/project-pipeline.mjs check",
+    "start": "node scripts/trinity-unified-local.mjs",
+    "trinity": "node scripts/trinity-unified-local.mjs",
+    "deploy:all": "node scripts/deploy-all.mjs"
   },
   "dependencies": {
     "wrangler": "^4.152.0"

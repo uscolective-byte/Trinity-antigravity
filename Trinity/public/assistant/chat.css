@@ -1913,3 +1913,38 @@ button {
   padding: 6px 12px !important;
   font-size: 12.5px !important;
 }
+
+/* Jednotná Trinity Domain Bridge */
+.domain-bridge-switch {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 999px !important;
+  padding: 3px 9px !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.domain-bridge-switch .bridge-link {
+  color: var(--muted) !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+  padding: 2px 4px !important;
+  border-radius: 4px !important;
+  transition: all 0.15s ease !important;
+}
+
+.domain-bridge-switch .bridge-link:hover {
+  color: var(--text) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  text-decoration: none !important;
+}
+
+.domain-bridge-switch .bridge-sep {
+  color: var(--accent) !important;
+  font-size: 10px !important;
+  opacity: 0.8 !important;
+}
