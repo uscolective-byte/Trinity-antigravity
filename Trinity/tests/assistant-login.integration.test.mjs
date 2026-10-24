@@ -45,3 +45,17 @@ test('login surfaces server rejection and retains the key for correction',async(
  await s.elements.get('login-form').onsubmit({preventDefault(){}});
  assert.equal(s.elements.get('key').value,'test-only-fake-key');assert.match(s.elements.get('notice').textContent,/Nesprávny/);
 });
+
+test('authenticated owner opens the chat with the current HTML',async()=>{
+ const s=setup();s.context.TrinityAuth.requestJSON=async()=>({account:{role:'owner',email:'owner@example.test'},pc_bridge:{connected:false},cloud:true});
+ s.context.fetch=async path=>Response.json(path.includes('/ui-evolution')?{state:{}}:[]);
+ await s.bootstrap.initialize();
+ assert.equal(s.elements.get('login').hidden,true,s.elements.get('notice').textContent);
+ assert.equal(s.elements.get('app-views').hidden,false);assert.equal(s.elements.get('logout').hidden,false);
+});
+test('chat denial preserves the draft and opens authentication',async()=>{
+ const s=setup();s.elements.get('message').value='Ahoj';s.elements.get('engine').value='cloud';
+ await s.elements.get('chat-form').onsubmit({preventDefault(){}});
+ assert.equal(s.elements.get('message').value,'Ahoj');assert.equal(s.elements.get('login').hidden,false);
+ assert.equal(s.elements.get('send').disabled,false);
+});
