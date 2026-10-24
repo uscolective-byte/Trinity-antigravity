@@ -1840,6 +1840,7 @@ class SkillRegistry {
     const customList = [...this._customSkills.entries()].map(([name, item]) => ({
       name,
       type: 'custom',
+      category: item.meta?.category || 'custom',
       meta: item.meta,
       registeredAt: item.registeredAt
     }));
@@ -1855,3 +1856,12 @@ class SkillRegistry {
 }
 
 export const skillRegistry = new SkillRegistry();
+
+skillRegistry.register('learnFromChat', (text, env) => memorySkills.learnFromChat(text, env), { category: 'memory' });
+skillRegistry.register('getAllCommands', (env) => memorySkills.getAllCommands(env), { category: 'memory' });
+skillRegistry.register('resolveCustomCommand', (text, env) => memorySkills.resolveCustomCommand(text, env), { category: 'memory' });
+
+import { delegateWorker, orchestratePipeline, inspectFleet } from './orchestrator.js';
+skillRegistry.register('callWorkerAction', (params = {}, env) => delegateWorker(env, params.worker, params.action, params.data), { category: 'orchestration' });
+skillRegistry.register('orchestrateTeamTask', (params = {}, env) => orchestratePipeline(env, params.task || params.prompt || ''), { category: 'orchestration' });
+skillRegistry.register('fleetHealthCheck', (_params, env) => inspectFleet(env), { category: 'orchestration' });

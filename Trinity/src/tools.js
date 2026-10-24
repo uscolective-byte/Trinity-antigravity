@@ -1,3 +1,4 @@
+import { delegateWorker, orchestratePipeline, inspectFleet } from './orchestrator.js';
 import {fetchPublicWeb} from './web-access.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
 import {createSelfImprovementProposal,approveSelfImprovementProposal,applySelfImprovementProposal} from './self-improvement.js';
@@ -212,6 +213,15 @@ export const TOOL_SCHEMAS={
   ,terminal_charge:terminalChargeSchema
   ,terminal_payout:terminalPayoutSchema
   ,wallet_create:terminalConfigSchema
+  ,delegate_worker:z.object({
+    worker:z.string().trim().min(1),
+    action:z.string().trim().min(1),
+    data:z.record(z.string(),z.unknown()).optional()
+  }).strict()
+  ,orchestrate_team:z.object({
+    task:z.string().trim().min(1).max(10000)
+  }).strict()
+  ,fleet_status:z.object({}).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -914,6 +924,9 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     }
     return {results,cached:false};
   }
+  if(name==='delegate_worker')return {...await delegateWorker(env,args.worker,args.action,args.data),_evidence:{effect:'mutation',action:'delegate_worker',receipt_id:crypto.randomUUID()}};
+  if(name==='orchestrate_team')return {...await orchestratePipeline(env,args.task),_evidence:{effect:'mutation',action:'orchestrate_team',receipt_id:crypto.randomUUID()}};
+  if(name==='fleet_status')return {...await inspectFleet(env),_evidence:{effect:'read',action:'fleet_status',receipt_id:crypto.randomUUID()}};
 }
 export async function recallMemory(env,task){
   if(!await pluginEnabled(env,'memory'))return [];
@@ -1014,5 +1027,8 @@ export const TOOL_HELP={
   wallet_terminals_status:'Prehľad peňaženky Trinity, zostatok a pripojené platobné terminály (SEPA IBAN, Revolut, PayPal, Web3 krypto): {}',
   terminal_charge:'Vytvorí požiadavku na platbu a vygeneruje terminálový SEPA EPC QR kód, Revolut odkaz, PayPal odkaz a krypto adresu na príjem peňazí: {amount_eur, purpose, terminal_type?, variable_symbol?, payer_name?}',
   terminal_payout:'Vytvorí príkaz na výber peňazí z peňaženky Trinity na bankový IBAN, PayPal alebo Revolut: {amount_eur, destination_type:bank_iban|paypal|revolut|crypto, target, note?}',
+  delegate_worker:'Priamo deleguje akciu na niektorého z 23 špecializovaných workerov Trinity (AURA, CORE, DISPATCHER, atď.): {worker:string, action:string, data?:object}',
+  orchestrate_team:'Spustí autonómnu koordináciu celej flotily Trinity špecialistov nad komplexnou úlohou: {task:string}',
+  fleet_status:'Skontroluje stav pripojenia a dostupnosť všetkých 23 špecializovaných workerov Trinity: {}',
   wallet_create:'Vytvorí alebo nastaví peňaženku Trinity, priradí Web3 krypto adresu a nastaví bankové / platobné terminály: {iban?, bic?, revolut_handle?, paypal_email?}'
 };
