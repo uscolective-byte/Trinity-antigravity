@@ -167,3 +167,22 @@ User requested complete UI overhaul ("uprav UI komplet cele"), expanded memory/m
   - Full monorepo suite (`npm test` + `npm run check`): **409/409** Trinity Main Fleet + **6/6** Audit-Worker + **10/10** Capacity-Worker + **11/11** Jericho-Worker = **436/436 PASS (0 FAIL)**.
   - Deployed `development` (`auru.dev`) first: Version ID `c4080ffd-023b-41e3-9ab8-4dad4fe3f211`, tag `a4489a7`, `/health` serving, `/ready` true, `/garage.css` verified.
   - Deployed `production` (`auru.space`) second: Version ID `e8ffa429-ec2b-4162-8724-ce00b9d5916a`, tag `a4489a7`, `/health` serving, `/ready` true, `/garage.css` verified.
+
+
+
+## Antigravity: Phase 2 — CSP Inline Style Fix, Live Open-Data API Tool Wiring & 12-Workspace CSS Completion, 2026-10-25 00:05 CEST
+User requested continuation ("pokracuj v praci") to ensure the complete UI and all modules/tools work seamlessly across all workspaces.
+- **Root-Cause CSP & Cache Fix (`Trinity/src/index.js`, `Trinity/public/assistant/chat.html`)**:
+  - Updated `Content-Security-Policy` on `/`, `/ops`, `/dashboard`, `/index.html` to include `style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; frame-src 'self' blob: data:;` while keeping `script-src 'self'` strict. Previously `style-src 'self'` blocked over 60 inline `style="..."` layout grids/charts in `chat.html` and dynamic `element.style.*` updates in `chat.js.txt`.
+  - Added `'Cache-Control': 'no-cache, must-revalidate'` to `/garage.css` and bumped asset query strings in `chat.html` to `?v=11.0.3`.
+- **Live Open-Data API Modules Wired End-to-End (`Trinity/src/tools.js`, `Trinity/src/plugins.js`, `Trinity/src/fast-chat.js`, `Trinity/src/engine.js`)**:
+  - Wired the 7 zero-key live Open-Data API tools from `free-modules.js` (`open_weather`, `open_wikipedia`, `network_dns`, `crypto_prices`, `tech_news`, `macro_data`, `free_modules_catalog`) into `TOOL_SCHEMAS`, `runTool`, `TOOL_HELP`, `CORE_PLUGINS` (`web` v1.1.0), and `FAST_TOOLS` (now 32 fast tools).
+  - Added deterministic fast-path handlers in `directChatTool` & `engine.js` for weather (`ake je pocasie v <mesto>`), crypto prices (`kurzy kryptomien` / `cena bitcoinu`), and tech news (`tech spravy`).
+  - Capped `activeSkills.slice(0, 8)` in `engine.js` system prompt construction to prevent ~45,000-character prompt bloat on non-fast `workers-ai` / cloud provider calls.
+- **12-Workspace CSS Completion (`Trinity/public/assistant/garage.css`)**:
+  - Added dedicated styling for `.subnav-btn`, `.domain-filter-btn`, `#settings-sections button`, `.settings-commandbar`, `.settings-status`, `.settings-layout`, `.terminal-stats-strip`, `.terminal-body-grid`, `.terminal-orderbook-box`, `.domain-metrics-grid`, `.domain-metric-card`, `.docs-arch-diagram`, `.graph-layout`, and `.builder-shell`.
+- **Verification & Deployment (`de2c866`)**:
+  - Full monorepo suite (`npm test` + `npm run check`): **436/436 PASS (0 FAIL)**.
+  - Synced updated `web` (`1.1.0`) plugin in both `trinity-development` and `trinity-v03` D1 databases (`applied: true, enabled: 46`).
+  - Deployed & verified `development` (`https://auru.dev`) first: Version ID `88953fcc-71d4-47a2-9837-c8ef581a4e03`, tag `de2c866`, `verified: true`.
+  - Deployed & verified `production` (`https://auru.space`) second: Version ID `bd13252d-3431-4c43-b692-338e7c034feb`, tag `de2c866`, `verified: true`, `/garage.css?v=11.0.3` serving 28,057 bytes.
