@@ -141,7 +141,14 @@ export async function runAgent(env, id, task, context='', provider='workers-ai',
   const direct=directChatTool(task,activeTools);
   if(direct){
     const outcome=await runTool(env,agent,direct.name,direct.arguments,{adminAuthorized:executionPolicy.directAdmin});
-    const text=direct.name==='calculate'?String(outcome.result):outcome.localized;
+    let text;
+    if(direct.name==='calculate')text=String(outcome.result);
+    else if(direct.name==='current_time')text=outcome.localized;
+    else if(direct.name==='list_capabilities')text=`Mám aktívnych ${(outcome.plugins||[]).filter(p=>p.enabled).length}/${(outcome.plugins||[]).length} modulov a ${(outcome.tools||[]).length} nástrojov.\n\nAktívne moduly: ${(outcome.plugins||[]).filter(p=>p.enabled).map(p=>p.name).join(', ')}.`;
+    else if(direct.name==='list_skills')text=`Mám dostupných ${(outcome.skills||[]).length} špecializovaných zručností (skills): ${(outcome.skills||[]).map(s=>s.name).join(', ')}.`;
+    else if(direct.name==='domain_list')text=(outcome.items||[]).length?`Evidované domény (${outcome.items.length}): ${outcome.items.map(d=>`${d.domain_name} (${d.status})`).join(', ')}.`:'V evidencii zatiaľ nie sú žiadne domény.';
+    else if(direct.name==='search_memory')text=(outcome.matches||[]).length?`Nájdené záznamy v pamäti (${outcome.matches.length}):\n`+outcome.matches.slice(0,8).map(m=>`- **${m.key||m.source||'záznam'}**: ${String(m.value||m.content||'').slice(0,220)}`).join('\n'):'V pamäti sa pre tento dopyt nenašiel žiadny záznam.';
+    else text=outcome.localized||JSON.stringify(outcome);
     const receipt={tool:direct.name,status:'completed',effect:'read',receipt_id:crypto.randomUUID(),verified_at:new Date().toISOString()};
     return {text,model:'deterministic-tool',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:0};
   }

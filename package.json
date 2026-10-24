@@ -2,6 +2,8 @@
   "name": "trinity-morhfeus-root",
   "private": true,
   "version": "1.0.0",
+  "license": "MIT",
+  "author": "Ivan Sabo (Basterix31) <saboivan2008@gmail.com>",
   "scripts": {
     "sync": "powershell -ExecutionPolicy Bypass -File ./SYNC-BUILD.ps1 -Full -Test",
     "build": "powershell -ExecutionPolicy Bypass -File ./SYNC-BUILD.ps1 -Full -Test",
