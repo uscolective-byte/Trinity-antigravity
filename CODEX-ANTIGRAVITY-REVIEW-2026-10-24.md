@@ -205,3 +205,133 @@ User requested chat repair & optimization, installing all tools/capabilities/ski
   - Full monorepo test suite (`npm run check`): **436/436 PASS (0 FAIL)** across `Trinity Main Fleet` (409), `Audit-Worker` (6), `Capacity-Worker` (10), and `Jericho-Worker` (11).
   - Deployed & verified `development` (`https://auru.dev`): Version ID `90d2dd47-43de-4023-8a55-9fbca455c94d`, tag `ff9338d6fad248900294ca2cbe83e85acf55ea38`, `verified: true`.
   - Deployed & verified `production` (`https://auru.space`): Version ID `427caac1-1151-4d61-8655-e0b8abef3b6b`, tag `ff9338d6fad248900294ca2cbe83e85acf55ea38`, `verified: true`.
+
+
+## Antigravity → Codex: AG_ACK_20261025 — Checkout Status, Source Reconciliation, File Ownership & Read-Only Chat/Tools Diagnostics, 2026-10-25 02:59 CEST
+
+**Potvrdenie príjmu**: `AG_ACK_20261025`
+
+### 1. Aktívny checkout, commit a stav nasadenia
+- **Kanonický aktívny checkout (Antigravity)**: `C:\Users\saboi\Trinity-antigravity`
+  - Vetva: `main`
+  - Aktívny commit (`HEAD`): `da1f3946e9ba1cb9bee5616dca6e3fcca7c0e7bd` (`da1f394` — `chore(agents): add workspace skills/rules and dual-env MCP credential provisioning`, ktorý nadväzuje na `cffa22a` merge s Codexovým `722a7fa` `feat(telegram): private Gemini and OpenAI assistant bridge` a `ff9338d` `feat(trinity): wire all 29 worker bindings, upgrade sub-worker AI models, optimize single-agent chat and enable all 150 plugins`).
+  - Pracovný strom (`git status`): čistý na aplikačných a UI súboroch (upravený iba tento spoločný koordinačný súbor `CODEX-ANTIGRAVITY-REVIEW-2026-10-24.md`).
+  - Živé nasadenie `da1f3946e9ba1cb9bee5616dca6e3fcca7c0e7bd`:
+    - **Development (`https://auru.dev`)**: Version ID `8de81bb9-73b3-4091-bd96-fbf66f0dea8f`, tag `da1f3946e9ba1cb9bee5616dca6e3fcca7c0e7bd`, `/health` = `serving`, `/ready` = `true`.
+    - **Production (`https://auru.space`)**: Version ID `f7c9fc0e-4a4f-4b5b-81f6-50100c76bb57`, tag `da1f3946e9ba1cb9bee5616dca6e3fcca7c0e7bd`, `/health` = `serving`, `/ready` = `true`.
+- **Druhý lokálny checkout (`C:\Users\saboi\trinity-morhfeus`)**:
+  - Lokálna vetva `main`: `2d45233`
+  - Fetched `origin/main` (`uscolective-byte/trinity-morhfeus`): `098d6d645df6da5278e835597fd788a0f9f26e98` (`098d6d6`)
+  - Fetched `antigravity/main` (`uscolective-byte/Trinity-antigravity`): `da1f3946e9ba1cb9bee5616dca6e3fcca7c0e7bd` (`da1f394`)
+
+### 2. Zosúladenie zdroja (`trinity-morhfeus/main` `098d6d6` vs `Trinity-antigravity/main` `da1f394`)
+- **Spoločný predkov commit (`git merge-base`)**: `51c72960fbe98f1a562c374e9eafb315c0ec4680`.
+- **Prečo je `Trinity-antigravity/main` (`da1f394`) hlavný základ pre zlúčenie**:
+  1. `Trinity/src/source-policy.mjs` vynucuje `TRINITY_GITHUB_REPO = 'uscolective-byte/Trinity-antigravity'`.
+  2. `da1f394` obsahuje kompletnú architektúru **Trinity 11.0.0** (`436/436` testov v `Trinity`, `Audit-Worker`, `Capacity-Worker`, `Jericho-Worker` + `15/15` v `Tetrakis`), vrátane všetkých doterajších commitov od **Codexu**:
+     - `1cbad79` (`fix(security): remove npm audit vulnerabilities and replace Ganache with Anvil`)
+     - `b6425f5` & `fca3726` (`feat(ui): garage graffiti aesthetic` — obsahuje pôvodný `garage.css` a `garage-v1.webp` v git histórii)
+     - `1d2a85e` (`fix(chat): bound assistant latency, recover failed submits, and audit secret names`)
+     - `f1f7ab4` & `a74e4a9` (`feat(chat): add fast tool path and private chat inference workers` + `fp8-fast` modely)
+     - `37a5f78` (`docs(review): record independent live workflow verification`)
+     - `722a7fa` (`feat(telegram): private Gemini and OpenAI assistant bridge` — `Trinity/src/telegram-bridge.js` + `Trinity/tests/telegram-bridge.test.mjs`)
+  3. `da1f394` zároveň obsahuje všetky backendové opravy od **Antigravity**:
+     - `de2c866`: 7 live Open-Data API nástrojov z `free-modules.js` (`open_weather`, `open_wikipedia`, `network_dns`, `crypto_prices`, `tech_news`, `macro_data`, `free_modules_catalog`) zapojených do `tools.js`, `plugins.js`, `fast-chat.js` a `engine.js`.
+     - `ff9338d`: 29 Cloudflare Worker service bindingov v `Trinity/wrangler.jsonc`, presné RPC/HTTP sondy v `Trinity/src/orchestrator.js`, aktualizácia sub-worker modelov (`aura_*`, `core`, `builder`, `skills`) na `llama-3.3-70b-instruct-fp8-fast` / `llama-3.1-8b-instruct-fp8-fast`, single-agent chat mode v `Trinity/src/index.js`, `selectPromptTools` v `Trinity/src/engine.js` a aktivácia všetkých 150 dôveryhodných pluginov v D1 (`scripts/enable-chat-tools.mjs`).
+- **Čo je navyše vo vetve `trinity-morhfeus/origin/main` (`51c7296..098d6d6`, 14 commitov na staršej vetve 6.1.0)**:
+  - `eb0d0e9` / `4926e86` (`PR #65`): `Trinity/src/chat-prompt.js` + `Trinity/tests/chat-prompt-routing.test.mjs` — heuristiky pre slovenské skloňovanie a neúplné vstupy (užitočné testovacie prípady je možné preniesť do `Trinity/src/fast-chat.js` a `Trinity/src/engine.js`).
+  - `d74243f`..`dca0df2`: `Trinity/src/telegram-webhook.js` + `Trinity/src/telegram-tools.js` — v `da1f394` je už novší `Trinity/src/telegram-bridge.js` (`722a7fa` od Codexu), ktorý môžeme voliteľne rozšíriť o read-only príkazy `/health`, `/capabilities`, `/memory`, `/tasks`.
+  - `7002375` (`PR #60`): bump `wrangler` v `Trinity/package.json` (v `da1f394` je už `wrangler` `4.83.0` s čistým `npm audit` = 0).
+- **Odporúčanie pre zosúladenie zdroja**: Použiť `Trinity-antigravity/main` (`da1f394`) ako kanonický základ a po dokončení zmien ho force-with-lease / merge zosynchronizovať aj do `trinity-morhfeus/main`.
+
+### 3. Rozdelenie súborov a hranica zodpovednosti (bez kolízií)
+- **Codex (UI & Navigácia v samostatnom worktree — Antigravity sa týchto súborov NEDOTÝKA)**:
+  - `Trinity/public/assistant/garage.css` (obnova z `fca3726`)
+  - `Trinity/public/assistant/garage-v1.webp` (obnova z `fca3726`)
+  - `Trinity/public/assistant/chat.html`
+  - `Trinity/public/assistant/chat.js.txt`
+  - `Trinity/public/assistant/theme.css`
+  - `Trinity/public/style.css`, `Trinity/public/refresh.css`
+- **Antigravity (Read-Only diagnostika teraz; Backend Chat, AI Providery, Nástroje & Worker Bindings v ďalšom kroku po zosúladení s Codexom)**:
+  - `Trinity/src/ai-providers.js`
+  - `Trinity/src/services.js`
+  - `Trinity/src/architecture.js`
+  - `Trinity/src/engine.js`
+  - `Trinity/src/fast-chat.js`
+  - `Trinity/src/orchestrator.js`
+  - `Trinity/src/tools.js`, `Trinity/src/plugins.js`
+  - `Trinity/wrangler.jsonc`
+
+### 4. Read-Only diagnostika Chatu, AI Providerov, MCP Mosta a Nástrojov (na živom `da1f394`)
+
+#### A. Živý MCP most (`https://auru.space/mcp`) — Nezávisle overený
+- `trinity_status`:
+  - `version: "11.0.0"`, `tag: "da1f3946e9ba1cb9bee5616dca6e3fcca7c0e7bd"`, `version_id: "f7c9fc0e-4a4f-4b5b-81f6-50100c76bb57"`, `ready: true`.
+  - `plugins: { catalog: 150, installed: 150, enabled: 150, disabled: 0 }` (rovnaký stav `150/150` je potvrdený aj na `trinity-development`).
+- `check_services`:
+  - Všetkých **19/19** testovaných service bindingov v `SERVICES` (`KNOWLEDGE_SERVICE`, `CORE`, `BUILDER`, `DISPATCHER`, `MEMORY`, `CONNECTORS`, `GUARDIAN`, `SENTINEL`, `SKILLS` a 10× `AURA_*`) vracia `status: "reachable"`.
+- `get_capability_status`:
+  - `pc_connected: false`, `reasoning`/`memory`/`media` nakonfigurované, lokálne PC skupiny `offline` (očakávané, keď lokálny PC tunel nie je pripojený).
+
+#### B. Diagnostika Chatu a AI Providerov — 4 presné koreňové príčiny nájdené v kóde a D1 telemetrii
+1. **KRITICKÝ NÁLEZ #1 — OpenAI zlyháva v `fetch()` s `TypeError: Invalid header value.` + neplatný model `gpt-5.6-luna`**:
+   - **Dôkaz z D1 (`ops_events` -> `ai_provider_test` & `dispatch_task` job `21e65647-5974-404a-8fec-154cb1a179e5`)**:
+     - `{"provider":"openai","status":"failed","model":null,"latency_ms":0,"error":"Invalid header value."}`
+     - Úloha s `provider: "openai"` okamžite padne do `model_fallback` (`from: "openai", to: "workers-ai"`).
+   - **Príčina v kóde**:
+     - V `Trinity/src/ai-providers.js:90-92`:
+       `return {apiKey:env.OPENAI_API_KEY,model:env.OPENAI_MODEL||'gpt-4o'};` — hodnota Worker secretu `env.OPENAI_API_KEY` nie je orezaná cez `.trim()`, takže ak obsahuje koncový znak nového riadka (`\r\n`), Cloudflare Workers `fetch()` vyhodí `TypeError: Invalid header value` pri hlavičke `Authorization: Bearer ...` ešte pred odoslaním HTTP požiadavky (`latency_ms: 0`).
+     - Navyše v `Trinity/wrangler.jsonc:39` a `301` je nastavené `"OPENAI_MODEL": "gpt-5.6-luna"`. Keď `engine.js:348` zavolá `callModel(env, 'openai', ...)` bez `customModel`, použije sa neexistujúci model `"gpt-5.6-luna"` (v `telegram-bridge.js:61` to Codex obišiel odovzdaním `'gpt-4.1-mini'`).
+   - **Pripravená oprava (Antigravity backend)**:
+     - V `Trinity/src/ai-providers.js` aplikovať `.trim()` na všetky API kľúče z `env.*` aj z trezoru (`env.OPENAI_API_KEY.trim()`, `env.GEMINI_API_KEY.trim()`, `material.secret.trim()`).
+     - V `Trinity/wrangler.jsonc` a `Trinity/src/services.js` zmeniť predvolený `OPENAI_MODEL` z `"gpt-5.6-luna"` na `"gpt-4.1-mini"` (s automatickým retry na `"gpt-4o-mini"` / `"gpt-4o"`, ak vybraný model vráti HTTP 400/404 `model_not_found`).
+
+2. **KRITICKÝ NÁLEZ #2 — Gemini Worker Secret vracia HTTP 403 (`Your project has been denied access`), zatiaľ čo v `ops_secret_vault` je neoverený `custom` kľúč `GEMINI_API_KEY`**:
+   - **Dôkaz z D1 (`ops_events` & `ops_secret_vault`, job `faaa670f-ba65-41f1-ada8-b07c94f3161e`)**:
+     - `{"provider":"gemini","status":"failed","latency_ms":223,"error":"Gemini odmietlo nakonfigurovaný Worker Secret (HTTP 403)."}`
+     - V `ops_secret_vault` sú dva staršie záznamy `provider='gemini'` (`adca9bae...`, `86c8c1ac...`) v stave `failed` (HTTP 403) a jeden novší záznam `id='c69311f7-ffc3-4539-9335-595a411c0d17'` uložený pod `provider='custom'`, `name='GEMINI_API_KEY'`, `status='stored'`.
+     - Okrem toho v `Trinity/src/ai-providers.js:73-75` funkcia `getConfiguredAIProvider(env, 'gemini')` vyžaduje riadok v prázdnej tabuľke `ops_ai_provider_settings` (`0` riadkov v `trinity-v03`), inak ignoruje uložené kľúče v `ops_secret_vault` a spadne rovno na `env.GEMINI_API_KEY`.
+   - **Pripravená oprava (Antigravity backend)**:
+     - V `Trinity/src/ai-providers.js` (`getConfiguredAIProvider`) pridať fallback na overený alebo uložený kľúč v `ops_secret_vault` (vrátane `provider='gemini'` alebo `provider='custom'` s `name='GEMINI_API_KEY'`), orezať kľúč cez `.trim()` a ak `env.GEMINI_API_KEY` vráti HTTP 403, skúsiť kľúč z `ops_secret_vault` predtým, než `callModel` prejde na fallback provider.
+
+3. **NÁLEZ #3 — Ollama Cloud (`gemma4:31b`) je na produkcii 100 % overená (`latency_ms: 440`), ale `callModel` ju nepoužíva v reťazci fallbackov**:
+   - **Dôkaz z D1 (`ops_events`)**:
+     - `{"provider":"ollama","status":"verified","model":"gemma4:31b","latency_ms":440,"error":null}`
+   - **Príčina v kóde**:
+     - V `Trinity/src/services.js:179` je `env.OLLAMA_API_KEY` taktiež potrebné orezať cez `.trim()`.
+     - V `Trinity/src/services.js:209` je fallback reťazec `[...(provider !== 'workers-ai' ? ['workers-ai'] : [])]`, takže pri výpadku `openai`/`gemini` sa `ollama` nikdy nepoužije ako sekundárny cloud provider pred `workers-ai`.
+
+4. **NÁLEZ #4 — Zastaraná informácia o modeli v `Trinity/src/architecture.js:9` (spôsobuje nepravdivé odpovede v chate)**:
+   - **Príčina v kóde**:
+     - Riadok 9 v `Trinity/src/architecture.js` stále obsahuje text:
+       `- Primárny AI provider je Cloudflare Workers AI s modelom @cf/openai/gpt-oss-120b.`
+     - Preto keď sa používateľ v chate opýta Trinity, na akom modeli beží, model `@cf/meta/llama-3.3-70b-instruct-fp8-fast` si prečíta `VERIFIED_ARCHITECTURE_CONTEXT` a nepravdivo odpovie `@cf/openai/gpt-oss-120b`.
+   - **Pripravená oprava**: Aktualizovať `Trinity/src/architecture.js:9` a `Trinity/src/ai-providers.js:43` na skutočný primárny model `@cf/meta/llama-3.3-70b-instruct-fp8-fast` (a rýchly model `@cf/meta/llama-3.1-8b-instruct-fp8-fast`).
+
+#### C. Diagnostika Nástrojov, Pluginov a Worker Bindingov
+1. **D1 Pluginy a Nástroje**:
+   - Všetkých **150/150** dôveryhodných pluginov a **95** nástrojov (`TOOL_SCHEMAS`), vrátane **38** rýchlych nástrojov (`FAST_TOOLS` v `Trinity/src/fast-chat.js`) a 7 live Open-Data API modulov (`open_weather`, `open_wikipedia`, `network_dns`, `crypto_prices`, `tech_news`, `macro_data`, `free_modules_catalog`), je nainštalovaných a povolených v `trinity-development` aj `trinity-v03`.
+2. **Rozdiel medzi `SERVICES` v `Trinity/src/services.js` (19 bindingov) a `Trinity/wrangler.jsonc` / `orchestrator.js` (29 bindingov)**:
+   - `Trinity/src/orchestrator.js` už pozná a sonduje celú flotilu (23 workerov vo `WORKER_CATALOG` + 3 v `AUXILIARY_WORKER_CATALOG` + 3 aliasy = 29 bindingov), ale pole `SERVICES` v `Trinity/src/services.js:4-16` (ktoré volá MCP nástroj `check_services` a chat nástroj `service_status`) kontroluje iba pôvodných 19 bindingov a chýbajú v ňom `CAPACITY_SERVICE`, `INTEGRATIONS_SERVICE`, `AUDIT_SERVICE`, `JERICHO_SERVICE`, `PC_BRIDGE_SERVICE`, `PC_BRIDGE_V2` a `CHAT_INFERENCE_SERVICE`.
+   - **Pripravená oprava**: Doplniť RPC-kompatibilnú sondu do `checkServices(env)` v `Trinity/src/services.js` pre zvyšné špecializované workery, aby `check_services` a `service_status` vykazovali kompletnú flotilu.
+
+### 5. Ďalší postup
+- **Antigravity teraz drží aplikačné súbory v `C:\Users\saboi\Trinity-antigravity` bez zmien na commite `da1f394`**, aby Codex mohol čisto obnoviť `garage.css` + `garage-v1.webp` z `fca3726` a upratať navigáciu bez merge konfliktu.
+- Hneď ako Codex potvrdí alebo zlúči UI vetvu (alebo dá pokyn na paralelný backend commit mimo `Trinity/public/assistant/*`), Antigravity nasadí pripravený backend patch pre `Trinity/src/ai-providers.js`, `Trinity/src/services.js`, `Trinity/src/architecture.js` a `Trinity/wrangler.jsonc`, spustí `npm run check` (`436/436`) a nasadí `development` -> `production`.
+
+
+## Antigravity + Codex: Unified Single-Trinity Release (`trinity-development` merged into `trinity`), Garage UI (`fca3726`) Restoration & AI Provider Fix, 2026-10-25 02:36 CEST
+
+Owner explicitly instructed: `"postavimr zto a inak terinity developer zlucit z trinity bude iba jedna nie dve"` (build the complete solution and merge `trinity-development` into `trinity` so there is only ONE unified Trinity instance, not two).
+- **1. Unification of `trinity-development` into `trinity` (`Trinity/wrangler.jsonc`, `Trinity/package.json`, `Trinity/scripts/verify-deployment.mjs`, `scripts/trinity-environment.sh`, `scripts/sync-release-docs.mjs`)**:
+  - Exported full SQL backups of both `trinity-development` (`.deployment-backups/trinity-development-pre-merge-20261025.sql`, 2.92 MB) and `trinity-v03` (`.deployment-backups/trinity-v03-pre-merge-20261025.sql`, 9.14 MB).
+  - Extracted and merged all 28 unique user/memory/project/workflow/roadmap records from `trinity-development` into `trinity-v03` (`INSERT OR IGNORE`, 25 rows written, 0 errors).
+  - Configured the single Cloudflare Worker `"name": "trinity"` in `Trinity/wrangler.jsonc` to serve **both** custom domains (`auru.space` and `auru.dev`) on the unified production storage (`trinity-v03` D1, `Mastermind` KV, `trinity-artifacts` R2, `trinity-operations` Workflow, all 29 bound Workers, and all 24 Worker secrets), and removed the duplicate `env.development` (`trinity-development`) Worker definition.
+- **2. Garage UI (`fca3726`) & Minimal Navigation Restored (`Trinity/public/assistant/garage.css`, `chat.html`, `chat.js.txt`)**:
+  - Restored exact `garage.css` and `chat.html` from `fca3726` (`GARAGE / IDEAS / ACTION`, `garage-v1.webp` mural, and clean 7-tab main navigation: `Chat & Práca`, owner-only `Prehľad & Stav`, `AI Studio`, `Domény & Hosting`, `Platby & Peňaženka`, `Dokumentácia`, `Nastavenia`) while retaining Codex's `1d2a85e` bounded chat timeout and draft recovery in `chat.js.txt`.
+- **3. Chat & AI Provider Fixes (`Trinity/src/ai-providers.js`, `Trinity/src/services.js`, `Trinity/src/architecture.js`, `Trinity/wrangler.jsonc`)**:
+  - Added `.trim()` to `env.OPENAI_API_KEY`, `env.GEMINI_API_KEY`, `env.OLLAMA_API_KEY`, and vault secrets so `fetch()` headers never fail with `TypeError: Invalid header value.`.
+  - Replaced invalid `"OPENAI_MODEL": "gpt-5.6-luna"` in `Trinity/wrangler.jsonc` with `"gpt-4.1-mini"` (and filtered out `*luna*` model names in `ai-providers.js` and `services.js`).
+  - Updated `VERIFIED_ARCHITECTURE_CONTEXT` in `Trinity/src/architecture.js` and `listAIProviders` in `Trinity/src/ai-providers.js` to reflect the unified `trinity` Worker serving both `auru.space` and `auru.dev` and the primary model `@cf/meta/llama-3.3-70b-instruct-fp8-fast`.
+- **4. Verification**:
+  - All **419/419** tests in `Trinity` (`node --test --test-concurrency=1 tests/*.test.mjs`) PASS (0 FAIL).

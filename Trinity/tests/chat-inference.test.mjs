@@ -26,11 +26,9 @@ test('binding outage retains existing bounded Workers AI fallback',async()=>{
  let local=0;const result=await callModel({CHAT_INFERENCE_SERVICE:{fetch:async()=>new Response('',{status:503})},AI:{run:async()=>{local++;return {response:'Náhradná odpoveď'};}}},'fast',[]);
  assert.equal(local,1);assert.equal(result.text,'Náhradná odpoveď');
 });
-test('helper is private and bindings separate development and production',()=>{
+test('helper is private and bound to unified trinity Worker',()=>{
  const config=JSON.parse(readFileSync(new URL('../wrangler.chat.jsonc',import.meta.url),'utf8'));
  assert.equal(config.workers_dev,false);assert.equal(config.preview_urls,false);assert.equal(config.routes,undefined);
- assert.equal(config.env.development.workers_dev,false);
  const main=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
  assert.equal(main.services.find(s=>s.binding==='CHAT_INFERENCE_SERVICE').service,'trinity-chat-inference');
- assert.equal(main.env.development.services.find(s=>s.binding==='CHAT_INFERENCE_SERVICE').service,'trinity-chat-inference-development');
 });

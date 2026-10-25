@@ -488,7 +488,7 @@ $('domain-register-form')?.addEventListener('submit',safe(async(e)=>{e.preventDe
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
 $('login-form').onsubmit=safe(async()=>{await TrinityAuth.requestJSON('/api/ops/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:$('key').value})});$('key').value='';await init();});
 localize();
-Object.assign(words.sk,{greeting:'Tvoje nápady. Náš priestor.',intro:'Napíš, čo máš na mysli. Porozprávame sa, použijem pamäť a nástroje alebo sa spolu pustíme do práce.',welcomeLabel:'TRINITY 11.0 · SOVEREIGN CORE',loginTitle:'Vstúp do Trinity',footnote:'Tvor. Pýtaj sa. Overuj výsledky.'});
+Object.assign(words.sk,{greeting:'Tvoje nápady. Náš priestor.',intro:'Napíš, čo máš na mysli. Porozprávame sa, niečo vymyslíme alebo sa spolu pustíme do práce.',welcomeLabel:'TRINITY / GARAGE',loginTitle:'Vstúp do Trinity',footnote:'Tvor. Pýtaj sa. Overuj výsledky.'});
 localize();
 void TrinityAuth.start({configure:async()=>{await configureGoogleLogin();initPasskeyLogin();},initialize:init,lock:()=>lockSession(''),notice});
 

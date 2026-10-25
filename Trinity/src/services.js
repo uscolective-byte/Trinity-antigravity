@@ -132,7 +132,8 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     return {text:data.message.content,model,provider,usage:{input:data.prompt_eval_count||0,output:data.eval_count||0}};
   }
   if(provider==='gemini') {
-    const {apiKey,model}=await getConfiguredAIProvider(env,'gemini');
+    const {apiKey:rawKey,model}=await getConfiguredAIProvider(env,'gemini');
+    const apiKey=String(rawKey||'').trim();
     const system=messages.filter(message=>message.role==='system').map(message=>message.content).join('\n\n').slice(0,40000);
     const input=messages.filter(message=>message.role!=='system').slice(-12)
       .map(message=>`${message.role==='assistant'?'TRINITY':'POUŽÍVATEĽ'}:\n${String(message.content).slice(0,20000)}`).join('\n\n');
@@ -175,12 +176,13 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
   }
   if(provider==='openai') {
     let apiKey=typeof env.OPENAI_API_KEY==='string'?env.OPENAI_API_KEY.trim():'';
-    let model=customModel||env.OPENAI_MODEL||'gpt-4o';
+    const envModel=env.OPENAI_MODEL&&!/luna/i.test(env.OPENAI_MODEL)?env.OPENAI_MODEL.trim():'';
+    let model=customModel||envModel||'gpt-4.1-mini';
     if(!apiKey){
       try {
         const vaultProvider=await getConfiguredAIProvider(env,'openai');
         if(vaultProvider?.apiKey){
-          apiKey=vaultProvider.apiKey;
+          apiKey=String(vaultProvider.apiKey).trim();
           if(vaultProvider.model)model=vaultProvider.model;
         }
       }catch{}
@@ -217,6 +219,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     let {apiKey,model}=await getConfiguredAIProvider(env,'groq').catch(()=>({}));
     if(!apiKey)apiKey=env.GROQ_API_KEY;
     if(!apiKey)throw new Error('Groq API nie je nakonfigurované.');
+    apiKey=String(apiKey).trim();
     if(!model)model=env.GROQ_MODEL||'llama-3.3-70b-versatile';
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://api.groq.com/openai/v1/chat/completions',{
@@ -234,6 +237,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     let {apiKey,model}=await getConfiguredAIProvider(env,'deepseek').catch(()=>({}));
     if(!apiKey)apiKey=env.DEEPSEEK_API_KEY;
     if(!apiKey)throw new Error('DeepSeek API nie je nakonfigurované.');
+    apiKey=String(apiKey).trim();
     if(!model)model=env.DEEPSEEK_MODEL||'deepseek-chat';
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://api.deepseek.com/chat/completions',{
@@ -251,6 +255,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     let {apiKey,model}=await getConfiguredAIProvider(env,'anthropic').catch(()=>({}));
     if(!apiKey)apiKey=env.ANTHROPIC_API_KEY;
     if(!apiKey)throw new Error('Anthropic Claude API nie je nakonfigurované.');
+    apiKey=String(apiKey).trim();
     if(!model)model=env.ANTHROPIC_MODEL||'claude-3-5-sonnet-20241022';
     const system=messages.filter(m=>m.role==='system').map(m=>m.content).join('\n\n').slice(0,40000);
     const chatMessages=messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'assistant':'user',content:String(m.content).slice(0,40000)}));
@@ -269,6 +274,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     let {apiKey,model}=await getConfiguredAIProvider(env,'mistral').catch(()=>({}));
     if(!apiKey)apiKey=env.MISTRAL_API_KEY;
     if(!apiKey)throw new Error('Mistral AI API nie je nakonfigurované.');
+    apiKey=String(apiKey).trim();
     if(!model)model=env.MISTRAL_MODEL||'mistral-large-latest';
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://api.mistral.ai/v1/chat/completions',{
@@ -286,6 +292,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     let {apiKey,model}=await getConfiguredAIProvider(env,'openrouter').catch(()=>({}));
     if(!apiKey)apiKey=env.OPENROUTER_API_KEY;
     if(!apiKey)throw new Error('OpenRouter API nie je nakonfigurované.');
+    apiKey=String(apiKey).trim();
     if(!model)model=env.OPENROUTER_MODEL||'deepseek/deepseek-r1:free';
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://openrouter.ai/api/v1/chat/completions',{

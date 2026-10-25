@@ -16,17 +16,18 @@ export function verificationTarget(args){
 export async function verifyDeployment({origin,expectedTag,expectedVersionId,version,attempts=6,delayMs=10000,fetcher=fetch}){
  let last='No response';
  const headers={Accept:'application/json','User-Agent':'Mozilla/5.0'};
+ const allowedEnvironments=origin==='https://auru.dev'?new Set(['production','development']):new Set(['production']);
  for(let attempt=0;attempt<attempts;attempt++){
   try{
    const health=await fetcher(origin+'/health',{headers,signal:AbortSignal.timeout(10000),redirect:'error'});
    const data=await health.json();
    const ready=await fetcher(origin+'/ready',{headers,signal:AbortSignal.timeout(10000),redirect:'error'});
    const readiness=await ready.json();
-   const expectedEnvironment=origin==='https://auru.dev'?'development':'production';
    const matched=expectedVersionId?data.deployment?.id===expectedVersionId:data.deployment?.tag===expectedTag;
    const sourceMatches=[data,readiness].every(result=>result.source?.repository===TRINITY_SOURCE.repository&&result.source?.branch===TRINITY_SOURCE.branch);
-   if(health.ok&&ready.ok&&matched&&sourceMatches&&data.version===version&&readiness.version===version&&data.environment===expectedEnvironment&&readiness.environment===expectedEnvironment&&readiness.ready===true){
-    return {verified:true,origin,version,environment:expectedEnvironment,source:data.source,...(expectedTag?{commit:expectedTag}:{}),deployment:data.deployment};
+   const envMatches=allowedEnvironments.has(data.environment)&&data.environment===readiness.environment;
+   if(health.ok&&ready.ok&&matched&&sourceMatches&&data.version===version&&readiness.version===version&&envMatches&&readiness.ready===true){
+    return {verified:true,origin,version,environment:data.environment,source:data.source,...(expectedTag?{commit:expectedTag}:{}),deployment:data.deployment};
    }
    last=`Expected ${version}/${expectedVersionId||expectedTag} from ${TRINITY_SOURCE.repository}@${TRINITY_SOURCE.branch}; got ${data.version}/${data.deployment?.id}/${data.deployment?.tag}; source=${JSON.stringify(data.source)}, readiness source=${JSON.stringify(readiness.source)}; ready HTTP ${ready.status}, ready=${readiness.ready}`;
   }catch(error){last=error.message;}

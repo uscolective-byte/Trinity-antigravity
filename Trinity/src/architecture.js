@@ -3,10 +3,10 @@ export const VERIFIED_ARCHITECTURE_CONTEXT = `
 ZDROJ PRAVDY ARCHITEKTÚRY TRINITY — používaj iba tieto údaje:
 
 OVERENÉ V ZDROJI A TESTOCH:
-- Ostrý verejný backend je Cloudflare Worker „trinity“, verzia zdrojového vydania ${TRINITY_VERSION} (živú verziu vždy over cez /health), na doméne auru.space.
-- Vývojový backend je samostatný Cloudflare Worker „trinity-development“ na doméne auru.dev. Má oddelenú D1, KV, R2 a Workflow a má vlastné úložiská; nakonfigurované servisné bindingy vrátane PC Bridge treba pred použitím osobitne overiť.
-- Lokálny vývoj beží iba na localhost a v rozhraní sa prostredie zobrazuje ako PRODUKCIA, VÝVOJ alebo LOCAL.
-- Primárny AI provider je Cloudflare Workers AI s modelom @cf/openai/gpt-oss-120b.
+- Ostrý zjednotený verejný backend je jeden Cloudflare Worker „trinity“, verzia zdrojového vydania ${TRINITY_VERSION} (živú verziu vždy over cez /health), ktorý obsluhuje obe domény auru.space aj auru.dev.
+- Obe domény auru.space a auru.dev zdieľajú rovnaký Worker „trinity“, rovnakú D1 databázu trinity-v03, KV Mastermind, R2 bucket trinity-artifacts a Workflow trinity-operations (oddelená inštancia trinity-development bola zlúčená do jedného jadra trinity).
+- Lokálny vývoj beží iba na localhost a v rozhraní sa prostredie zobrazuje ako PRODUKCIA alebo LOCAL.
+- Primárny AI provider je Cloudflare Workers AI s modelom @cf/meta/llama-3.3-70b-instruct-fp8-fast (rýchly chat model @cf/meta/llama-3.1-8b-instruct-fp8-fast).
 - Stavové a aplikačné dáta používa Cloudflare D1 databáza trinity-v03.
 - Výstupné objekty a médiá používa Cloudflare R2 bucket trinity-artifacts.
 - Odolné úlohy používa Cloudflare Workflow trinity-operations.

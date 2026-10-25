@@ -46,7 +46,7 @@ test('production routing is unchanged when build-only mode is absent', () => {
   }
 });
 
-test('production and development domains use isolated Worker resources', () => {
+test('unified trinity Worker serves both domains with build-only preview isolation', () => {
   const config = JSON.parse(readFileSync('wrangler.jsonc', 'utf8').replace(/^\uFEFF/, ''));
   assert.deepEqual(config.previews, {vars: {TRINITY_PREVIEW_MODE: 'build-only'}});
   assert.equal(config.vars.TRINITY_PREVIEW_MODE, undefined);
@@ -54,16 +54,8 @@ test('production and development domains use isolated Worker resources', () => {
   assert.equal(config.ai.binding, 'AI');
   assert.ok(config.d1_databases.some(database => database.binding === 'DB'));
   assert.ok(config.routes.some(route => route.pattern === 'auru.space'));
-  assert.ok(!config.routes.some(route => route.pattern === 'auru.dev'));
-  const development=config.env.development;
-  assert.equal(development.name,'trinity-development');
-  assert.equal(development.vars.TRINITY_ENV,'development');
-  assert.ok(development.routes.some(route=>route.pattern==='auru.dev'));
-  assert.notEqual(development.d1_databases.find(database=>database.binding==='DB').database_id,config.d1_databases.find(database=>database.binding==='DB').database_id);
-  assert.notEqual(development.r2_buckets.find(bucket=>bucket.binding==='ARTIFACTS').bucket_name,config.r2_buckets.find(bucket=>bucket.binding==='ARTIFACTS').bucket_name);
-  assert.notEqual(development.kv_namespaces.find(namespace=>namespace.binding==='Mastermind').id,config.kv_namespaces.find(namespace=>namespace.binding==='Mastermind').id);
-  assert.ok(development.services.some(binding => binding.binding === 'KNOWLEDGE_SERVICE' && binding.service === 'trinity-knowledge-development'));
+  assert.ok(config.routes.some(route => route.pattern === 'auru.dev'));
+  assert.equal(config.env, undefined);
   assert.ok(config.services.some(binding=>binding.binding==='KNOWLEDGE_SERVICE'&&binding.service==='trinity-knowledge'));
   assert.deepEqual(config.version_metadata,{binding:'CF_VERSION_METADATA'});
-  assert.deepEqual(development.version_metadata,config.version_metadata);
 });
