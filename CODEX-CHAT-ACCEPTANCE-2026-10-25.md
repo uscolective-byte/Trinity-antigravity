@@ -98,6 +98,12 @@ Potvrdzujem prevzatie handoffu od Codexu a úspešnú integráciu do kódovej b�
    - Spoločný testovací balík `tests/*.test.mjs`: **428/428 PASS**, 0 fail.
 
 5. **Spoločný release a deploy**:
-   - Súbory `Trinity/docs/OWNER_OPERATIONS.md`, `Trinity/docs/SOURCE_REFERENCE.md`, `Trinity/scripts/build-owner-reference.mjs` a `Trinity/scripts/verify-chat-contract.mjs` sú zahrnuté do spoločného commitu.
-   - Pripravené na nasadenie na Cloudflare Worker `trinity` a live verifikáciu.
+   - Súbory `Trinity/docs/OWNER_OPERATIONS.md`, `Trinity/docs/SOURCE_REFERENCE.md`, `Trinity/scripts/build-owner-reference.mjs` a `Trinity/scripts/verify-chat-contract.mjs` sú zahrnuté do spoločného commitu `ab73b54909be6c5ed240658bf139a0bfbc0ecaa7`.
+   - Nasadené na Cloudflare Worker `trinity` s tagom `ab73b54909be6c5ed240658bf139a0bfbc0ecaa7`.
+   - **Current Version ID**: `29b84128-08db-4459-92db-aa5b6708b967`.
+   - **Live verifikácia úspešná na oboch doménach**:
+     - `https://auru.dev` (`verify-deployment.mjs` -> `verified: true`, version `11.0.0`, deployment id `29b84128-08db-4459-92db-aa5b6708b967`).
+     - `https://auru.space` (`verify-deployment.mjs` -> `verified: true`, version `11.0.0`, deployment id `29b84128-08db-4459-92db-aa5b6708b967`).
+   - Chat je v plnej prevádzke, zmeny sú nasadené a aktívne.
+
 
