@@ -468,3 +468,11 @@ test('storing a PayPal secret cannot falsely verify a provider connection',async
  assert.notEqual(row.status,'verified');
  assert.equal(JSON.parse(row.verification_json).connected,false);
 });
+
+test('mobile assets and real PWA icons are served publicly without exposing API data',async()=>{
+ for(const [path,type] of [['/mobile.css','text/css'],['/mobile-device.js','application/javascript'],['/mobile-icon-192.png','image/png'],['/mobile-icon-512.png','image/png']]){
+  const response=await req(path,undefined,false);assert.equal(response.status,200,path);assert.match(response.headers.get('Content-Type'),new RegExp(type));assert.equal(response.headers.get('X-Content-Type-Options'),'nosniff');
+ }
+ const manifest=await(await req('/manifest.json',undefined,false)).json();assert.equal(manifest.icons.length,2);
+ const png=Buffer.from(await(await req('/mobile-icon-512.png',undefined,false)).arrayBuffer());assert.equal(png.readUInt32BE(16),512);assert.equal(png.readUInt32BE(20),512);
+});

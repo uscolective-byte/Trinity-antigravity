@@ -71,6 +71,7 @@ import assistantHTML from '../public/assistant/chat.html';
 import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
+import {handleMobileAsset} from './mobile-assets.js';
 import manifestJSON from '../public/assistant/manifest.json';
 import serviceWorkerJS from '../public/assistant/sw.js.txt';
 import authBootstrapJS from '../public/auth-bootstrap.js.txt';
@@ -100,6 +101,7 @@ async function route(request,env,ctx){
   const knowledgeResponse=await handleKnowledge(request,env);
   if(knowledgeResponse)return knowledgeResponse;
   const url=new URL(request.url),path=url.pathname;
+  const mobileAsset=handleMobileAsset(request);if(mobileAsset)return mobileAsset;
   if(path==='/api/telegram/webhook')return handleTelegramWebhook(request,env,ctx);
   if(path==='/api/telegram/setup')return activateTelegramWebhook(request,env);
   const proPayment=await handleCommercePublic(request,env);if(proPayment)return proPayment;
