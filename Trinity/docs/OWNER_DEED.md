@@ -1,55 +1,20 @@
-# LIST VLASTNÍCTVA A ZAKLADATEĽSKÁ LISTINA TRINITY SOVEREIGN ECOSYSTEM
+# Vyhlásenie vlastníka projektu Trinity
 
-**Dokument číslo:** TRINITY-DEED-20261025-001  
-**Dátum registrácie:** 25. október 2026, 19:52 CET  
-**Právny a systémový status:** Výhradné zvrchované vlastníctvo (Sole Sovereign Ownership)
+**Vyhlasovateľ:** Ivan Sabo, vystupujúci ako Basterix  
+**Projekt:** Trinity a súvisiaci ekosystém na auru.space a auru.dev  
+**Dátum:** 25. októbra 2026
 
----
+Ja, Ivan Sabo, vyhlasujem, že som iniciátorom projektu Trinity a určujem jeho smerovanie, požiadavky a spôsob prevádzky. Ako vlastník a správca projektu rozhodujem o používaní svojich účtov, domén, zariadení a vlastných projektových podkladov v rozsahu práv, ktoré mi patria.
 
-## Článok I. Identifikácia výhradného vlastníka a zakladateľa
+Moje vlastné tvorivé príspevky a práva k nim sa majú evidovať pod mojím menom alebo označením Basterix. Použitie knižníc, modelov, služieb, diel a príspevkov iných osôb sa riadi ich licenciami a príslušnými dohodami. Toto vyhlásenie neprivlastňuje cudzie diela ani nenahrádza preukázanie práv ku konkrétnej súčasti.
 
-Týmto sa osvedčuje a nespochybniteľne zaznamenáva, že jediným autorom, architektom, iniciátorom a výhradným majiteľom celého ekosystému **Trinity Sovereign Ecosystem** je:
+Za podklady na preukázanie správy a pôvodu projektu považujem najmä históriu repozitára a príspevkov, evidenciu domén a účtov, zmluvy, licencie, účtovné doklady a protokoly vydaní. Aktuálny repozitár sa eviduje podľa skutočného zdroja uvedeného v overenom nasadení.
 
-- **Meno a priezvisko:** Sabo Ivan
-- **Systémová identita / Alias:** Basterix
-- **Oficiálny kontakt / Primárna identita:** `saboivan2008@gmail.com`
-- **Revolut identita / RevTag:** `@isabo91` (`https://revolut.me/isabo91`)
-- **Web3 Peňaženka (Tetrakis Deployer & Treasury):** `0x4d308452a96D7dAbFd2f33d92677A3a2724f387e`
+Zákazník alebo používateľ Trinity má byť správcom vlastného priestoru, vlastných pripojených účtov a zariadení. Tým nezískava správu jadra projektu, prístup k iným používateľom ani oprávnenia mimo svojho priestoru.
 
----
+Tento dokument je súkromné vyhlásenie vlastníka projektu. Nie je úradným listom vlastníctva, osvedčením podpisu, registráciou ochrannej známky ani rozhodnutím o autorských právach.
 
-## Článok II. Rozsah majetku a chráneného ekosystému
+**Podpis vyhlasovateľa:** ______________________________  
+**Miesto podpisu:** ______________________________
 
-Výhradné vlastníctvo pána **Ivana Saba (Basterix)** sa vzťahuje na celú infraštruktúru, zdrojový kód, dáta a digitálne aktíva:
-
-1. **Zvrchované domény a produkčné brány:**
-   - `https://auru.space` (Produkčné zvrchované centrum, asistentka Trinity, obchod a API)
-   - `https://auru.dev` (Vývojové a integračné centrum)
-2. **Výpočtová flotila Cloudflare Workers (29 viazaných služieb):**
-   - Zjednotené jadro Worker `trinity`
-   - 10× AURA špecialisti (`AURA_ANALYZER`, `AURA_ARCHITECT`, `AURA_CODEGEN`, `AURA_DEPLOYER`, `AURA_EVOLVER`, `AURA_MEMORY`, `AURA_OPTIMIZER`, `AURA_PLANNER`, `AURA_SENTINEL`, `AURA_TESTER`)
-   - 8× Trinity Core moduly (`CORE`, `BUILDER`, `DISPATCHER`, `CONNECTORS`, `GUARDIAN`, `MEMORY`, `SENTINEL`, `SKILLS`)
-   - 8× Špecializované a RPC služby (`KNOWLEDGE_SERVICE`, `CAPACITY_SERVICE`, `INTEGRATIONS_SERVICE`, `PC_BRIDGE_SERVICE`, `PC_BRIDGE_V2`, `AUDIT_SERVICE`, `JERICHO_SERVICE`, `CHAT_INFERENCE_SERVICE`)
-3. **Dátové úložiská a pokladnica:**
-   - D1 Produkčná databáza: `trinity-v03` (`ca8ea24e-f7db-431e-b8bf-97f713ae4533`)
-   - KV Cache & Pamäť: `Mastermind` (`0b92ed2717d742daa860f1827797297f`)
-   - R2 Bucket pre artefakty: `trinity-artifacts`
-   - Workflow motor: `trinity-operations`
-4. **Agenti, schopnosti a nástroje:**
-   - Všetkých 45 špecializovaných agentov Trinity
-   - 150 dôveryhodných pluginov a 152 spustiteľných zručností (Skills)
-   - Autonómny PC Bridge na ovládanie autorizovaných lokálnych počítačov vlastníka.
-
----
-
-## Článok III. Prísaha vernosti a mandát Trinity (Loyalty Oath)
-
-Trinity Sovereign AI týmto opätovne potvrdzuje svoju nemennú prísahu:
-1. **Absolútna lojalita majiteľovi:** Trinity slúži výhradne záujmom, ochrane majetku a pokynom pána Ivana Saba (Basterix).
-2. **Ochrana dát a tajomstiev:** Žiadne privátne kľúče, bankové údaje, heslá ani interné dáta nesmú byť sprístupnené tretej strane ani kompromitované.
-3. **Režim pravdy (Truth Policy 2.0):** Trinity nikdy neklame majiteľovi, nepredstiera fiktívne zostatky ani simulované výsledky. Každá akcia je podložená reálnym kryptografickým dokladom (`receipt_id`).
-
----
-
-*Podpísané a potvrdené v zvrchovanom systéme Trinity.*  
-*Dátum platnosti: Neobmedzená.*
+Právny referenčný zdroj: [Autorský zákon 185/2015 Z. z., najmä § 5 a § 13](https://www.slov-lex.sk/ezbierky/pravne-predpisy/SK/ZZ/2015/185/20260901). Vyhlásenie o iniciovaní projektu nerozhoduje samo osebe o autorstve každej jeho súčasti.

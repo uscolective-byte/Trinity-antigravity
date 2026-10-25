@@ -457,3 +457,14 @@ test('fast chat executes calculator and preserves durable receipts and artifacts
  assert.equal(done.steps[0].tool_log[0].tool,'calculate');assert.equal(done.steps[0].tool_log[0].status,'completed');
  assert.equal((await req('/api/ops/jobs/'+queued.id+'/artifact')).status,200);
 });
+
+test('storing a PayPal secret cannot falsely verify a provider connection',async()=>{
+ const storedResponse=await req('/api/assistant/secrets',{provider:'paypal',name:'paypal-verification-regression',secret:'test-only-not-a-real-paypal-secret'});
+ assert.ok(storedResponse.ok,await storedResponse.clone().text());
+ const stored=(await storedResponse.json()).item;
+ const checked=await req('/api/assistant/secrets/'+stored.id+'/verify',{});
+ assert.ok(checked.status>=400);
+ const row=await db.prepare('SELECT status,verification_json FROM ops_secret_vault WHERE id=?').bind(stored.id).first();
+ assert.notEqual(row.status,'verified');
+ assert.equal(JSON.parse(row.verification_json).connected,false);
+});

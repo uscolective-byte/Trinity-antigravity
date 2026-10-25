@@ -442,7 +442,7 @@ export async function getRevolutAccountOverview(env){
    mode:'payment-links-ready',
    revolut_me:revolutUrl,
    business_name:accountsData?.business_name||'Ivan Sabo · Basterix',
-   note:'Revolut.me (@isabo91) je pripravený pre platby a zmluvy. Pre zobrazenie bankového zostatku vlož Revolut API kľúč do Secret Vaultu.'
+   note:'Revolut.me je platobný odkaz, nie overené bankové spojenie. Business API vyžaduje oprávnený Revolut Business účet; osobný účet potrebuje podporované Open Banking prepojenie a súhlas v banke. Bez takého spojenia zostatok ani transakcie nemám overené.'
   };
  }
  try{

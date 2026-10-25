@@ -289,8 +289,9 @@ export async function verifySecret(env,ownerId,id){
       :row.provider==='mistral'?await verifyOpenAICompatible('https://api.mistral.ai/v1/models',secret,'mistral')
       :row.provider==='openrouter'?await verifyOpenAICompatible('https://openrouter.ai/api/v1/models',secret,'openrouter')
       :row.provider==='revolut'?await verifyRevolut(secret)
-      :row.provider==='paypal'?{connected:true,provider:'paypal',status:'stored'}
+      :row.provider==='paypal'?{connected:false,provider:'paypal',status:'requires-configuration'}
       :await verifyGenericProvider(row.provider,secret);
+    if(verification.connected!==true)throw new HttpError(409,'Uložené tajomstvo nie je overené spojenie. PayPal vyžaduje kompletnú konfiguráciu a úspešný test poskytovateľa.');
     const changed=await env.DB.prepare("UPDATE ops_secret_vault SET status='verified',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=? RETURNING *").bind(JSON.stringify(verification),id).first();
     return present(changed);
   }catch(error){
