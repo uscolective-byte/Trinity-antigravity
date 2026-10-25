@@ -1,0 +1,19 @@
+{
+  "name": "Trinity Sovereign AI",
+  "short_name": "Trinity",
+  "description": "Zvrchovaná osobná AI asistentka a operačné centrum majiteľa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080c14",
+  "theme_color": "#080c14",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/garage-v1.webp",
+      "sizes": "192x192 512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities", "business"]
+}

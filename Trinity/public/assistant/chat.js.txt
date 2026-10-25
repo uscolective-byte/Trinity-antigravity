@@ -3423,3 +3423,8 @@ function initScrollBottom(){
   update();
 }
 try{enhanceAccordions();buildDocsSettingsIndex();initScrollBottom();}catch(error){console.error('UI enhancement failed',error);}
+
+
+if(typeof window!=='undefined'&&'serviceWorker' in navigator && location.protocol==='https:'){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});
+}

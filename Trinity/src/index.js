@@ -71,6 +71,8 @@ import assistantHTML from '../public/assistant/chat.html';
 import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
+import manifestJSON from '../public/assistant/manifest.json';
+import serviceWorkerJS from '../public/assistant/sw.js';
 import authBootstrapJS from '../public/auth-bootstrap.js.txt';
 import themeCSS from '../public/assistant/theme.css';
 import garageCSS from '../public/assistant/garage.css';
@@ -122,6 +124,8 @@ async function route(request,env,ctx){
   if(request.method==='GET'&&path==='/builder.css')return new Response(builderCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/garage.css')return new Response(garageCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/garage-v1.webp')return new Response(garageArt,{headers:{'Content-Type':'image/webp'}});
+    if(request.method==='GET'&&path==='/manifest.json')return new Response(typeof manifestJSON==='string'?manifestJSON:JSON.stringify(manifestJSON),{headers:{'Content-Type':'application/manifest+json; charset=utf-8','Cache-Control':'no-cache'}});
+  if(request.method==='GET'&&path==='/sw.js')return new Response(serviceWorkerJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache'}});
   if(request.method==='GET'&&path==='/theme.css')return new Response(await renderDynamicThemeCss(env,themeCSS),{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(path==='/health'||path==='/api/health'){
     const response=json({service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),source:sourceMetadata(env),deployment:releaseMetadata(env),agents:AGENTS.length,status:'serving',truth_mode:'evidence-required'});const origin=request.headers.get('Origin');
