@@ -66,7 +66,7 @@ import html from '../public/index.html';
 import appJS from '../public/app.js.txt';
 import css from '../public/style.css';
 import refreshCSS from '../public/refresh.css';
-import {selectChatProvider} from './chat-routing.js';
+import {selectChatProvider,pickChatProvider} from './chat-routing.js';
 import assistantHTML from '../public/assistant/chat.html';
 import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
@@ -768,7 +768,7 @@ async function route(request,env,ctx){
     if(d.engine==='local')requireAdmin(user);
     const wantsMemory=/^(zapamätaj si|zapamataj si|remember)\s*[:,-]?\s+/i.test(d.message);
     const delegated=shouldDelegate(d.message);
-    const provider=selectChatProvider(d.engine,d.message);
+    const provider=await pickChatProvider(env,d.engine,d.message);
     const ownerMode=user.role==='owner';
     const teamMode=/\b(t[ií]mov[yý]\s+re[zž]im|team\s+mode)\b/i.test(d.message);
     return json(await createJob(env,{task:d.message,session_id:d.session,agent:teamMode?'auto':'orchestrator',mode:teamMode?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,idempotency_key:crypto.randomUUID()}),202);

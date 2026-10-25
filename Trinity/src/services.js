@@ -94,7 +94,10 @@ export function extractModelText(result) {
   if(typeof result==='string')return result;
   if(typeof result?.output_text==='string')return result.output_text;
   if(typeof result?.response==='string')return result.response;
-  if(typeof result?.choices?.[0]?.message?.content==='string')return result.choices[0].message.content;
+  const choiceMsg = result?.choices?.[0]?.message;
+  if(Array.isArray(choiceMsg?.tool_calls) && choiceMsg.tool_calls.length) return JSON.stringify({ tool_calls: choiceMsg.tool_calls });
+  if(choiceMsg?.function_call) return JSON.stringify({ type: 'function', function: choiceMsg.function_call });
+  if(typeof choiceMsg?.content === 'string') return choiceMsg.content;
   if(Array.isArray(result?.output)){
     return result.output.flatMap(item=>Array.isArray(item?.content)?item.content:[])
       .filter(part=>['output_text','text'].includes(part?.type)||typeof part?.text==='string')
@@ -106,6 +109,8 @@ export function extractModelText(result) {
 export function extractGeminiInteractionText(result){
   if(typeof result?.output_text==='string')return result.output_text.trim();
   if(Array.isArray(result?.candidates?.[0]?.content?.parts)){
+    const fnPart = result.candidates[0].content.parts.find(p => p.functionCall);
+    if(fnPart?.functionCall) return JSON.stringify({ functionCall: fnPart.functionCall });
     const partsText=result.candidates[0].content.parts.map(p=>p.text||'').join('\n').trim();
     if(partsText)return partsText;
   }

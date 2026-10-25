@@ -66,7 +66,7 @@
     "AI_FALLBACK_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
     "AI_FAST_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
     "OPENAI_MODEL": "gpt-4.1-mini",
-    "GEMINI_MODEL": "gemini-2.5-flash",
+    "GEMINI_MODEL": "gemini-3.8-flash",
     "IMAGE_MODEL": "@cf/black-forest-labs/flux-1-schnell",
     "VISION_MODEL": "@cf/meta/llama-3.2-11b-vision-instruct",
     "STT_MODEL": "@cf/openai/whisper-large-v3-turbo",

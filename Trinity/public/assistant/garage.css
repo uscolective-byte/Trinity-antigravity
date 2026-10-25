@@ -158,3 +158,40 @@ body.garage-ui [hidden],body.garage-ui .view[hidden],body.garage-ui button[hidde
 
 body.garage-ui #app-views,body.garage-ui #chat-view,body.garage-ui #chat-area,body.garage-ui .view{background:transparent!important}
 body.garage-ui .brand>span:last-child{font-size:24px!important;line-height:1!important}
+
+
+/* ===== Pevné rozloženie chatu: zadávacie pole je vždy viditeľné ===== */
+body.garage-ui{height:100dvh!important;overflow:hidden!important}
+body.garage-ui .chat-view{position:relative!important;flex:1 1 0!important;height:auto!important;min-height:0!important;display:grid!important;grid-template-rows:minmax(0,1fr) auto!important;overflow:hidden!important}
+body.garage-ui .chat-view[hidden]{display:none!important}
+body.garage-ui #chat-area{min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain}
+body.garage-ui .composer-wrap{position:relative!important;grid-row:2!important;align-self:end!important;flex-shrink:0!important}
+body.garage-ui #scroll-bottom{position:absolute!important;right:32px;z-index:5;background:#24231f!important;color:#f3efe5!important;border:1px solid #e4e436!important;font:700 11px "Courier New",monospace!important;padding:8px 12px!important;cursor:pointer;box-shadow:3px 3px 0 rgba(0,0,0,.4)!important}
+body.garage-ui #scroll-bottom[hidden]{display:none!important}
+body.garage-ui .message .content[data-thinking="1"]{font:700 13px "Courier New",monospace!important;color:#4a4436!important;-webkit-text-fill-color:#4a4436!important}
+body.garage-ui .message .content[data-thinking="1"]::after{content:'';display:inline-block;width:8px;height:8px;margin-left:8px;background:#e4e436;border:1px solid #1e1b16;animation:tr-think 1s steps(2) infinite}
+@keyframes tr-think{50%{opacity:.15}}
+
+/* ===== Zbaliteľné sekcie (dokumentácia, nastavenia) ===== */
+body.garage-ui .acc-card>.acc-head{cursor:pointer;position:relative;padding-right:38px!important;user-select:none}
+body.garage-ui .acc-card>.acc-head::after{content:'▸';position:absolute;right:12px;top:50%;transform:translateY(-50%) rotate(90deg);font:700 16px "Courier New",monospace;color:#24231f;transition:transform .15s}
+body.garage-ui .acc-card.acc-collapsed>.acc-head::after{transform:translateY(-50%) rotate(0deg)}
+body.garage-ui .acc-card.acc-collapsed>.acc-body{display:none!important}
+body.garage-ui .acc-card>.acc-body{padding-top:10px}
+body.garage-ui .acc-card.acc-collapsed{padding-bottom:12px!important}
+body.garage-ui .acc-card>.acc-head:focus-visible{outline:2px solid #1e1b16!important;outline-offset:2px}
+body.garage-ui .acc-toggle-all{background:transparent!important;color:#c9c1b1!important;border:1px solid #5a5347!important;font:10px "Courier New",monospace!important;padding:7px 10px!important;margin-left:8px;cursor:pointer}
+body.garage-ui #documents-view .acc-toggle-all{color:#3b372f!important;border-color:#a29a89!important}
+body.garage-ui .docs-card{background:#f3efe5!important;color:#111!important;border:1px solid #aa9f8b!important;border-radius:2px!important;box-shadow:4px 4px 0 rgba(0,0,0,.2)!important}
+body.garage-ui .docs-card :is(h3,h2,p,li,b,code,span,small){color:#111!important;-webkit-text-fill-color:#111!important}
+body.garage-ui .docs-card code{background:#e2dccd!important;border:1px solid #b8af9a;padding:1px 5px}
+body.garage-ui .docs-card pre.docs-arch-diagram{background:#191815!important;overflow-x:auto}
+body.garage-ui .docs-card pre.docs-arch-diagram,body.garage-ui .docs-card pre.docs-arch-diagram *{color:#f5f2eb!important;-webkit-text-fill-color:#f5f2eb!important}
+body.garage-ui .docs-settings-index{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+body.garage-ui .docs-settings-index button{background:transparent!important;color:#111!important;border:1px solid #a29a89!important;font:11px Arial,sans-serif!important;padding:7px 10px!important;text-align:left;cursor:pointer}
+body.garage-ui .docs-settings-index button:hover{background:#e4e436!important}
+
+body.garage-ui .message .content,body.garage-ui .message.assistant .content,body.garage-ui .message.user .content{white-space:normal!important}
+body.garage-ui .message .content pre.code-block,body.garage-ui .message .content pre.code-block code{white-space:pre!important}
+
+body.garage-ui .message .content ul.md-list,body.garage-ui .message .content ol.md-list{display:block!important;gap:0!important}

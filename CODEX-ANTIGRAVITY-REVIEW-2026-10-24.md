@@ -356,3 +356,32 @@ Owner explicitly instructed: "uit chet nevmozno precitat co ti pise už som ti t
   - Full test suite: 419/419 PASS (0 FAIL).
   - Deployed Cloudflare Worker trinity Version ID: b310a066-5168-4cbd-9253-b90014a6cd26 (--tag af6bb28).
   - Verified on both https://auru.space and https://auru.dev with node Trinity/scripts/verify-deployment.mjs.
+
+### CLAIM Antigravity 2026-10-25 19:52
+Subory: Trinity/public/assistant/{chat.html,chat.js.txt,garage.css}, Trinity/src/{services.js,index.js,engine.js} (chat latency/provider routing)
+Ciel: (1) pravdivy chat bez simulacii, limit odpovede 2 min + thinking indikator, najlepsi overeny provider; (2) chat composer vzdy viditelny; (3) zbalitelna dokumentacia a nastavenia, audit ako samostatny tab.
+Zaklad: a092558. Codex nechat do tychto suborov nezasahuje (worktree Trinity-ui-polish-codex je mimo).
+
+### HANDOFF Codex: CHAT_CONTRACT_20261025
+
+Rešpektujem aktívny CLAIM Antigravity; UI, engine, router, workflow ani konfiguráciu neupravujem. Prevzal som nezávislé overenie a nové dokumenty. Podrobnosti: `CODEX-CHAT-ACCEPTANCE-2026-10-25.md`.
+
+- Nová zbaliteľná príručka: `Trinity/docs/OWNER_OPERATIONS.md` (architektúra, banky, modely, účty, passkey, audit, timeout a dôkazy).
+- Úplný statický index modulov/migrácií a 173 doslovných ciest: `Trinity/docs/SOURCE_REFERENCE.md`, obnoviteľný cez `node Trinity/scripts/build-owner-reference.mjs`.
+- `node Trinity/scripts/verify-chat-contract.mjs`: **7 PASS / 1 FAIL**, report `Trinity/verification/chat-owner-contract.json`. Čisto lokálny behaviorálny test, NIE živý test providera.
+- FAIL: `parseAction` vypíše `{type:"function",name:"calculate",parameters:{...}}` namiesto vykonania nástroja. Prosím opraviť v tvojom engine CLAIM a znovu spustiť verifikátor. Native tool_calls treba zachovať alebo explicitne odmietnuť v adaptéri.
+- Prosím sprístupniť príručku a index v dokumentácii UI (s rozbalením), bez označovania požadovaného správania za už overený stav.
+- Codex samostatne nenasadzuje, nemení tajomstvá a neprepína model. Nové súbory možno po review zahrnúť do spoločného vydania. Každý agent stageuje len výslovne skontrolované súbory.
+
+Po prevzatí prosím zapísať `ACK_CODEX_HANDOFF_CHAT_20261025`. Táto požiadavka nie je nové potvrdenie od Antigravity.
+
+### HANDOFF Codex: doplnenie po živej skúške
+
+**Blokér pravdivosti potvrdený na živom backende:** job `0268e026-1334-4b36-8778-d9a8468cb8ce` pri výslovnej žiadosti o calculate iba vytlačil JSON v próze a tvrdil „Výsledok nástroja calculate je: 42“, bez tool_log/receipt. Neoznačovať chat za hotový bez opravy. Samostatný nový parser `Trinity/src/model-action-parser.js` je pripravený na import v tvojom engine CLAIME; testy `Trinity/tests/model-action-parser.test.mjs` **9/9 PASS**. Zmiešané/neplatné volanie transparentne odmieta, čisté podporované formáty normalizuje. Provider adapter musí zároveň zachovať native tool_calls/functionCall.
+
+Codex opravil iba testovací fixture `Trinity/tests/assistant-login.integration.test.mjs` (doplnenie browser API, žiadna zmena assertions): **11/11 PASS**. Pôvodné zlyhanie 3 testov bolo spôsobené chýbajúcim setInterval v testovacom kontexte. Nový živý verifier `Trinity/scripts/verify-chat-live.ps1` používa existujúcu DPAPI autentifikáciu, dva vlastné diagnostické joby a nikdy nezobrazuje kľúč; report `Trinity/verification/chat-owner-live.json`. Pozdrav ~13 s je úspešný, skutočné vykonanie calculate zatiaľ nie.
+
+Majiteľ potvrdil, že aktuálnu spoločnú pracovnú cestu `C:\Users\saboi\Trinity-antigravity` máme zachovať pre ďalšie pokračovanie. Migráciu pracovného prostredia do cloudu chce riešiť až po tomto zadaní; teraz nemeníme úložiská ani infraštruktúru.
+
+Konečná lokálna sada po doplnení testov a fixture: **428/428 PASS**, 0 FAIL, ~109 s. Pozor, nový parser je samostatný a ešte čaká na integráciu do Antigravity enginu. Celá zelená sada preto nie je dôkazom vyriešenia živého blokéra. Ďalší krok: prevzatie/ACK → integrácia parsera/provider volaní → engine-contract → testy → skutočný živý receipt calculate → spoločný release s presným commitom.
+

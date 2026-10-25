@@ -1037,6 +1037,49 @@
               <li><b>PC Bridge 2.0 (`src/system-actions.js`):</b> Bezpečný lokálny most, kde tvoj počítač sám odchádzajúcim HTTPS spojením preberá iba tebou schválené úlohy (žiadne otvorené porty smerom z internetu).</li>
             </ul>
           </article>
+
+  <article class="docs-card">
+  <span class="docs-badge">TOK CHATU · LIMITY · PRAVDIVOSť</span>
+  <h3>Ako chat spracuje správu: od odoslania po odpoveď</h3>
+  <ul class="docs-list">
+  <li><b>1. Odoslanie:</b> UI posiela <code>POST /api/assistant/chat</code> (limit 12 požiadaviek za minútu na používateľa, správa najviac 12 000 znakov). Zápis úlohy ide do D1 (<code>ops_jobs</code>) a spúšťa Workflow <code>TrinityOperations</code>.</li>
+  <li><b>2. Výber modelu (auto):</b> krátke pozdravy (do 80 znakov) idu na rýchly Workers AI model. Ostatné úlohy idu na najsilnejšieho <i>overeného a povoleného</i> poskytovateľa v poradí Gemini → OpenAI → Anthropic → DeepSeek → Groq → Mistral → OpenRouter. Ak žiadny nie je overený, použije sa Cloudflare Workers AI (Llama 3.3 70B). Ak model vyberieš ručne, rešpektuje sa.</li>
+  <li><b>3. Časový limit 2 minút:</b> krok workflowu má limit 2 minút a bez opakovania. Agent má rozpočet 100 sekúnd, jedno volanie modelu najviac 65 sekúnd. Pri zostatku pod 35 sekúnd si vynútí finálnu odpoveď. Ak externý poskytovateľ zlyhá, raz sa použije záloha Workers AI a záznam o tom je v kroku <code>model_fallback</code>.</li>
+  <li><b>4. Premyšľam:</b> pod odpoveďou sa zobrazuje skutočný čas behu a počet dokončených krokov z <code>/api/ops/jobs/:id</code>. Neukazuje sa vymyslený myslenkový text.</li>
+  <li><b>5. Pravdivosť:</b> Truth Policy blokuje tvrdenia o vykonanej akcii bez potvrdenia nástroja (<code>findUnsupportedActionClaims</code>). Trinity nepridáva simulované dáta a pri module, ktorý vyžaduje prihlásenie alebo kľúč, požiada o autentifikáciu alebo potvrdenie.</li>
+  </ul>
+  </article>
+
+  <article class="docs-card">
+  <span class="docs-badge">BINDINGY · ÚLOŽISKÁ · DOMÉNY</span>
+  <h3>Jeden worker <code>trinity</code>: bindingy, úložiská a plánovanie</h3>
+  <ul class="docs-list">
+  <li><b>Domény:</b> <code>auru.space</code> aj <code>auru.dev</code> obsluhuje ten istý worker <code>trinity</code> s rovnakým úložiskom. Samostatný development worker už neexistuje.</li>
+  <li><b>Durable Objects:</b> <code>Brain</code> (TrinityAgent), <code>CHAT_AGENT</code> (relácie), <code>GUARDIAN_AGENT</code> (audit). <b>Workflow:</b> <code>OPS_WORKFLOW</code> = TrinityOperations.</li>
+  <li><b>D1:</b> <code>DB</code> = trinity-v03 (hlavná databáza), <code>rea</code> = trinity-db, <code>trinity_basterix</code> = trinity-pc-bridge. <b>KV:</b> <code>Mastermind</code>. <b>R2:</b> <code>ARTIFACTS</code> = trinity-artifacts. <b>Secrets Store:</b> <code>OLLAMA_SECRET</code>. <b>AI:</b> Workers AI binding.</li>
+  <li><b>Servisné workery (29 bindingov):</b> 10× AURA špecialisti (analyzer, architect, codegen, deployer, evolver, memory, optimizer, planner, sentinel, tester) + aliasy <code>admin</code>, <code>admino</code>, <code>Trinity</code>; 8× jadro (CORE, BUILDER, DISPATCHER, CONNECTORS, GUARDIAN, MEMORY, SENTINEL, SKILLS); špecializované služby (KNOWLEDGE, CAPACITY, INTEGRATIONS, PC_BRIDGE a PC_BRIDGE_V2, AUDIT, JERICHO, CHAT_INFERENCE).</li>
+  <li><b>Plánované úlohy (cron):</b> <code>*/30 * * * *</code>, <code>0 0 * * *</code> a <code>0 11 * * *</code>.</li>
+  <li><b>Nasadenie:</b> testy → <code>wrangler deploy --tag &lt;git-sha&gt;</code> → overenie <code>verify-deployment.mjs</code> pre obe domény. Stav vidíš na <code>/health</code> a <code>/ready</code>.</li>
+  </ul>
+  </article>
+
+  <article class="docs-card">
+  <span class="docs-badge">MODELY · KĽÚČE · BEZPEČNOSť</span>
+  <h3>Modely, kľúče a ich ukladanie</h3>
+  <ul class="docs-list">
+  <li><b>Predvolené modely:</b> text Llama 3.3 70B fp8 fast, záloha a rýchly režim Llama 3.1 8B, obrázky FLUX.1 schnell, videňie Llama 3.2 11B Vision, reč na text Whisper large v3 turbo, text na reč MeloTTS, Ollama Cloud gemma4:31b, OpenAI gpt-4.1-mini, Gemini podľa overeného nastavenia.</li>
+  <li><b>Kľúče:</b> pridané v Nastaveniach sa šifrujú AES-GCM v <code>ops_secret_vault</code>, pred použitím sa overujú u poskytovateľa a v UI sa nikdy nezobrazujú. Worker Secrets majú prednosť pred trezorom iba tam, kde je to v kóde uvedené.</li>
+  <li><b>Kontrola:</b> v Nastaveniach → Pripojenia môžeš každého poskytovateľa otestovať živým volaním. Výsledok sa uloží ako nedávna kontrola.</li>
+  </ul>
+  </article>
+
+  <article class="docs-card">
+  <span class="docs-badge">INDEX NASTAVENÍ</span>
+  <h3>Všetky nastavenia na jednom mieste (klikni a otvorí sa)</h3>
+  <p class="settings-help">Zoznam sa vytvára automaticky z Nastavení, takže vždy zodpovedá skutočnému obsahu: banky a platby, domény, kľúče, Passkeys, rola a prístupy a ďalšie.</p>
+  <div id="docs-settings-index"></div>
+  </article>
+
         </div>
       </div>
 
@@ -1206,7 +1249,7 @@
         <article class="settings-status"><span>DATABÁZA</span><b id="settings-database">—</b><small>Indexovaná D1 + KV cache + R2 archív</small></article>
         <article class="settings-status commerce-status-card"><span>OBCHOD A PLATBY</span><b id="settings-commerce-summary">—</b><small id="settings-commerce-detail">Revolut Pro & PayPal odkazy</small></article>
       </div>
-      <div class="settings-commandbar"><label class="settings-search"><span>⌕</span><input id="settings-search" type="search" placeholder="Hľadať nastavenia, moduly a pripojenia…" autocomplete="off"></label><nav id="settings-sections" aria-label="Kategórie nastavení"><button type="button" class="active" data-settings-filter="all">Všetko</button><button type="button" data-settings-filter="ui-evolution">🎨 Živý vzhľad & UI</button><button type="button" data-settings-filter="commerce">💳 Obchod a platby</button><button type="button" data-settings-filter="general">Všeobecné</button><button type="button" data-settings-filter="studio">AI Studio</button><button type="button" data-settings-filter="capabilities">Schopnosti</button><button type="button" data-settings-filter="connections">Pripojenia</button><button type="button" data-settings-filter="data">Dáta a bezpečnosť</button><button type="button" data-settings-filter="developer">Vývojár</button><button type="button" data-settings-filter="admin">Admin</button></nav></div>
+      <div class="settings-commandbar"><label class="settings-search"><span>⌕</span><input id="settings-search" type="search" placeholder="Hľadať nastavenia, moduly a pripojenia…" autocomplete="off"></label><nav id="settings-sections" aria-label="Kategórie nastavení"><button type="button" class="active" data-settings-filter="all">Všetko</button><button type="button" data-settings-filter="audit">📜 Audit &amp; história</button><button type="button" data-settings-filter="ui-evolution">🎨 Živý vzhľad & UI</button><button type="button" data-settings-filter="commerce">💳 Obchod a platby</button><button type="button" data-settings-filter="general">Všeobecné</button><button type="button" data-settings-filter="studio">AI Studio</button><button type="button" data-settings-filter="capabilities">Schopnosti</button><button type="button" data-settings-filter="connections">Pripojenia</button><button type="button" data-settings-filter="data">Dáta a bezpečnosť</button><button type="button" data-settings-filter="developer">Vývojár</button><button type="button" data-settings-filter="admin">Admin</button></nav></div>
       <div class="settings-grid wide-settings">
         <section id="settings-ui-evolution-panel" class="panel admin-panel commerce-panel" data-settings-section="ui-evolution" data-settings-keywords="živý vzhľad ui samorozvoj téma farby písmo nadpis css widgety dizajn trinity">
           <div class="panel-head"><div><span class="eyebrow">TRINITY LIVE UI EVOLUTION</span><h2>Živá úprava vzhľadu a autonómny dizajn UI</h2></div><span id="ui-evolution-active-badge" class="detail-chip">AKTÍVNY ŠTÝL</span></div>
@@ -1359,7 +1402,7 @@
           </div>
           <div id="passkey-list" class="api-key-list"></div>
         </section>
-        <section id="settings-monitor-panel" class="panel admin-panel" data-settings-section="admin" data-settings-keywords="monitoring incidenty alerty audit export timeline logy operacie">
+        <section id="settings-monitor-panel" class="panel admin-panel" data-settings-section="audit" data-settings-keywords="monitoring incidenty alerty audit export timeline logy operacie">
           <div class="panel-head">
             <div><span class="eyebrow">AUDITNÝ LOG OPERÁCIÍ</span><h2>História zmien a audit systému</h2></div>
             <div style="display:flex; gap:8px;">

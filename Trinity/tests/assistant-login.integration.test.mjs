@@ -10,8 +10,9 @@ function setup(){
  function node(){return {hidden:false,value:'',checked:false,disabled:false,textContent:'',innerHTML:'',dataset:{},style:{},classList:{add(){},remove(){},toggle(){}},addEventListener(){},querySelector(){return node();},querySelectorAll(){return [];},append(){},replaceChildren(){},focus(){},setAttribute(){},getAttribute(){return null;},removeAttribute(){}};}
  for(const id of ids)elements.set(id,node());
  const storage=new Map(),calls=[];let bootstrap;
- const context={console,URL,URLSearchParams,TextDecoder,AbortController,AbortSignal,Response,crypto,Intl,Date,setTimeout,clearTimeout,
- document:{getElementById:id=>elements.get(id)||null,querySelectorAll:()=>[],createElement:node,documentElement:node(),body:node(),addEventListener(){}},
+ const context={console,URL,URLSearchParams,TextDecoder,AbortController,AbortSignal,Response,crypto,Intl,Date,setTimeout,clearTimeout,setInterval,clearInterval,
+ MutationObserver:class {observe(){} disconnect(){}},
+ document:{getElementById:id=>elements.get(id)||null,querySelector:()=>null,querySelectorAll:()=>[],createElement:node,documentElement:node(),body:node(),addEventListener(){}},
  localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
  location:{hostname:'auru.dev',host:'auru.dev',origin:'https://auru.dev',href:'https://auru.dev/',hash:'',search:'',pathname:'/'},
  history:{replaceState(){}},navigator:{},window:{addEventListener(){},PublicKeyCredential:function(){}},
