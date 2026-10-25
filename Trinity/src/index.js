@@ -28,7 +28,7 @@ import {PLUGINS,listPlugins,pluginEnabled,installPlugin,installAllPlugins} from 
 import {handleMcp} from './mcp.js';
 import {TRUTH_POLICY_VERSION} from './truth.js';
 import {SYSTEM_CAPABILITIES,createSystemAction,listSystemActions,getSystemAction,approveSystemAction,rejectSystemAction,claimSystemAction,finishSystemAction,authenticateGateway,getPCBridgeStatus} from './system-actions.js';
-import {listStudioProjects,getStudioProject,createStudioProject,reviseStudioProject} from './studio.js';
+import {createStudioCheckoutOffer,listStudioProjects,getStudioProject,createStudioProject,reviseStudioProject} from './studio.js';
 import {beginGoogleLogin,finishGoogleLogin,googleAuthRequired,googleOAuthConfigured} from './google-auth.js';
 import {normalizeLanguage} from './cognition.js';
 import {mediaStatus} from './media.js';
@@ -381,6 +381,11 @@ async function route(request,env,ctx){
     if(request.method==='GET'&&!studioRoute[2])return json({project:await getStudioProject(env,'primary',id)});
     if(request.method==='POST'&&studioRoute[2]==='revise'){await rateLimit(env,`studio-revise:${user.id}`,8,300);return json({project:await reviseStudioProject(env,'primary',id,await readJSON(request,20000))});}
     if(request.method==='GET'&&studioRoute[2]==='export'){const project=await getStudioProject(env,'primary',id);return new Response(project.html,{headers:{'Content-Type':'text/html; charset=utf-8','Content-Disposition':`attachment; filename="${project.name.replace(/[^a-z0-9_-]+/gi,'-').slice(0,50)||'trinity-web'}.html"`}});}
+  }
+    const studioOfferRoute=path.match(/^\/api\/assistant\/studio\/projects\/([0-9a-f-]+)\/offer$/i);
+  if(studioOfferRoute&&request.method==='POST'){
+    const body=await readJSON(request,2000).catch(()=>({}));
+    return json(await createStudioCheckoutOffer(env,user.email||'owner',studioOfferRoute[1],body),201);
   }
   if(path==='/api/assistant/studio/audit'&&request.method==='POST'){
     const data=reviewRequestSchema.parse(await readJSON(request,500_000));

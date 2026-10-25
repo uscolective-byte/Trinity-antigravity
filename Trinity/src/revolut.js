@@ -184,7 +184,7 @@ async function paypalCatalog(env){
  try{return paypalCatalogSchema.parse(JSON.parse(raw));}catch{throw new HttpError(503,'Neplatná konfigurácia PayPal produktov.');}
 }
 
-async function commerceAccounts(env){
+export async function commerceAccounts(env){
  const stored=env.Mastermind?await env.Mastermind.get(COMMERCE_ACCOUNTS_KEY):null;
  if(!stored){
   if(env.TRINITY_OWNER_EMAIL||env.TRINITY_ENV){

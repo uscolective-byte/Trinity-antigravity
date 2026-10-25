@@ -1,3 +1,4 @@
+import {upsertCommerceProduct, commerceAccounts} from './revolut.js';
 import {z} from 'zod';
 import {callModel} from './services.js';
 import {HttpError} from './security.js';
@@ -68,4 +69,38 @@ export async function reviseStudioProject(env,owner,id,input){
   const review = auditHtmlQuality(built.html);
   await recordStudioReview(env, id, version, review).catch(()=>{});
   return getStudioProject(env,owner,id);
+}
+
+
+export async function createStudioCheckoutOffer(env, owner, projectId, options = {}) {
+  const project = await getStudioProject(env, owner, projectId);
+  const accounts = await commerceAccounts(env);
+  const priceEur = Number(options.priceEur || 150);
+  const cents = Math.round(priceEur * 100);
+  const offerId = 'web-' + projectId.slice(0, 8);
+  const offerTitle = options.title || ('Tvorba webu: ' + project.name);
+  const provider = options.provider === 'paypal' ? 'paypal' : 'revolut-pro';
+  
+  await upsertCommerceProduct(env, owner, {
+    provider,
+    product: {
+      id: offerId,
+      name: offerTitle,
+      description: 'Dodanie a nasadenie webového projektu "' + project.name + '" (verzia ' + project.version + ') od Trinity AI Studio.',
+      amount_cents: cents,
+      currency: 'EUR',
+      payment_url: provider === 'paypal' ? accounts.paypal_url : accounts.revolut_url
+    }
+  });
+
+  return {
+    project_id: projectId,
+    project_name: project.name,
+    offer_id: offerId,
+    price_eur: priceEur,
+    provider,
+    checkout_url: '/pay/' + (provider === 'paypal' ? 'paypal' : 'revolut-pro') + '/' + offerId,
+    revolut_direct_url: accounts.revolut_url,
+    status: 'offer_created'
+  };
 }
