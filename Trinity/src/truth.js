@@ -85,7 +85,19 @@ function supportsClaim(receipt,claimId){
 
 export function findUnsupportedActionClaims(text,toolLog=[]){
   const source=String(text||'');
-  return CLAIM_RULES.filter(rule=>rule.patterns.some(pattern=>pattern.test(source))&&!toolLog.some(receipt=>supportsClaim(receipt,rule.id))).map(rule=>rule.id);
+  const unsupported=CLAIM_RULES.filter(rule=>rule.patterns.some(pattern=>pattern.test(source))&&!toolLog.some(receipt=>supportsClaim(receipt,rule.id))).map(rule=>rule.id);
+  const normalized=source.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const namedResults=[
+    /\b(?:vysledok|vystup)\s+nastroja\s+`?([a-z_][a-z0-9_-]*)`?\s+(?:je|bol)\s*:/g,
+    /\b(?:result|output)\s+(?:of|from)\s+(?:the\s+)?(?:tool\s+)?`?([a-z_][a-z0-9_-]*)`?\s+(?:is|was)\s*:/g
+  ];
+  for(const pattern of namedResults){
+    for(const match of normalized.matchAll(pattern)){
+      const name=match[1];
+      if(!toolLog.some(r=>r?.tool===name&&r.status==='completed'&&r.receipt_id))unsupported.push('tool_result:'+name);
+    }
+  }
+  return [...new Set(unsupported)];
 }
 
 export function truthStatus(text,toolLog=[]){

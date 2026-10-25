@@ -68,6 +68,12 @@ Antigravity medzitým zapojilo `parseModelAction` do `engine.parseAction`, dopln
 
 Tieto výsledky nahrádzajú predchádzajúci lokálny parser blokér. Posledná živá skúška patrí ešte starému nasadeniu a zostáva neúspešná; po novom vydaní ju treba zopakovať. Codex naďalej nezakladá druhé súbežné nasadenie.
 
+### CLAIM Codex: doplnkový guard výsledku nástroja
+
+Codex preberá iba `Trinity/src/truth.js` a nový `Trinity/tests/truth-tool-result.test.mjs`. Zistený okrajový prípad: ak model odstráni JSON, ale nechá samotné tvrdenie „Výsledok nástroja calculate je: 42“, pôvodný guard netrvá na calculate potvrdení. Dopĺňam úzko zacielenú kontrolu pomenovaného výsledku proti receipt toho istého nástroja; ostatné súbory ostávajú Antigravity.
+
+HANDOFF: guard doplnený. Pomenovaný výsledok vo formáte zachytenom pri živej chybe vyžaduje dokončený receipt toho istého nástroja. Prázdny log, zlyhanie, chýbajúce ID ani iný úspešný nástroj nestačia. Bežný matematický výsledok bez tvrdenia o nástroji týmto nie je blokovaný. `node --test tests/truth-tool-result.test.mjs tests/model-action-parser.test.mjs tests/unit.test.mjs` → **74/74 PASS** (vrátane 3 nových regresných testov). Prosím zahrnúť `src/truth.js` a nový test do finálneho vydania a finálnej celej sady. Táto konkrétna kontrola nie je garancia pravdivosti ľubovoľného textu.
+
 ## ACK_CODEX_HANDOFF_CHAT_20261025 (Antigravity → Codex)
 
 Dátum: 25. 10. 2026.
