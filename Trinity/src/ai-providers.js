@@ -9,6 +9,16 @@ export const aiProviderInputSchema=z.object({
   project_control:z.boolean().default(false)
 }).strict();
 
+export function sanitizeApiKey(raw,pattern=null){
+  const text=String(raw||'').trim();
+  if(!text)return '';
+  if(pattern){
+    const matched=text.match(pattern);
+    if(matched?.[0])return matched[0];
+  }
+  return text.replace(/[^\x21-\x7E]/g,'').trim();
+}
+
 const decodeVerification=value=>{try{return value?JSON.parse(value):null;}catch{return null;}};
 const safeError=value=>String(value||'Neznáma chyba').replace(/([?&](?:key|api_key)=)[^&\s]+/gi,'$1[redacted]').replace(/(x-goog-api-key\s*[:=]\s*)\S+/gi,'$1[redacted]').slice(0,500);
 export const GEMINI_OPERATOR_ACTIONS=['read','write','edit','selfwrite','run','deploy','share','upload','upgrade','screenshot','open_app','notify','system_info','scrape','web_fetch','download','git_commit','git_pr'];
@@ -36,9 +46,9 @@ export async function listAIProviders(env,ownerId){
   const geminiSecrets=secrets.filter(item=>item.provider==='gemini');
   const openaiSetting=settings.results.find(item=>item.provider==='openai')||null;
   const openaiSecrets=secrets.filter(item=>item.provider==='openai');
-  const environmentGemini=typeof env.GEMINI_API_KEY==='string'&&env.GEMINI_API_KEY.trim().length>=8;
-  const environmentOpenAI=typeof env.OPENAI_API_KEY==='string'&&env.OPENAI_API_KEY.trim().length>=20;
-  const environmentOllama=!!(env.OLLAMA_SECRET||typeof env.OLLAMA_API_KEY==='string'&&env.OLLAMA_API_KEY.trim().length>=8);
+  const environmentGemini=typeof env.GEMINI_API_KEY==='string'&&sanitizeApiKey(env.GEMINI_API_KEY,/AIza[A-Za-z0-9_-]{25,}/).length>=8;
+  const environmentOpenAI=typeof env.OPENAI_API_KEY==='string'&&sanitizeApiKey(env.OPENAI_API_KEY,/sk-[A-Za-z0-9_-]{16,}/).length>=20;
+  const environmentOllama=!!(env.OLLAMA_SECRET||typeof env.OLLAMA_API_KEY==='string'&&sanitizeApiKey(env.OLLAMA_API_KEY).length>=8);
   const resolvedOpenAIModel=openaiSetting?.model||(env.OPENAI_MODEL&&!/luna/i.test(env.OPENAI_MODEL)?env.OPENAI_MODEL.trim():'gpt-4.1-mini');
   return {items:[
     {id:'workers-ai',name:'Cloudflare Workers AI',configured:!!env.AI,enabled:true,model:env.AI_MODEL||'@cf/meta/llama-3.3-70b-instruct-fp8-fast',managed_by:'cloudflare',last_check:checks.get('workers-ai')||null},
@@ -74,8 +84,8 @@ export async function getConfiguredAIProvider(env,provider){
   const row=await env.DB.prepare(`SELECT s.owner_id,s.provider,s.secret_id,s.model,v.status,v.verification_json
     FROM ops_ai_provider_settings s JOIN ops_secret_vault v ON v.id=s.secret_id AND v.owner_id=s.owner_id
     WHERE s.provider=? AND s.enabled=1 AND v.status='verified' ORDER BY s.updated_at DESC LIMIT 1`).bind(provider).first();
-  if(!row&&provider==='gemini'&&typeof env.GEMINI_API_KEY==='string'&&env.GEMINI_API_KEY.trim().length>=8){
-    const geminiKey=env.GEMINI_API_KEY.trim();
+  if(!row&&provider==='gemini'&&typeof env.GEMINI_API_KEY==='string'&&sanitizeApiKey(env.GEMINI_API_KEY,/AIza[A-Za-z0-9_-]{25,}/).length>=8){
+    const geminiKey=sanitizeApiKey(env.GEMINI_API_KEY,/AIza[A-Za-z0-9_-]{25,}/);
     let model=env.GEMINI_MODEL?String(env.GEMINI_MODEL).trim().replace(/^models\//,''):'';
     if(!model&&env.Mastermind)model=await env.Mastermind.get('ai:gemini:default-model')||'';
     if(!model){
@@ -89,11 +99,11 @@ export async function getConfiguredAIProvider(env,provider){
     }
     return {apiKey:geminiKey,model:`models/${model}`};
   }
-  if(!row&&provider==='openai'&&typeof env.OPENAI_API_KEY==='string'&&env.OPENAI_API_KEY.trim().length>=20){
+  if(!row&&provider==='openai'&&typeof env.OPENAI_API_KEY==='string'&&sanitizeApiKey(env.OPENAI_API_KEY,/sk-[A-Za-z0-9_-]{16,}/).length>=20){
     const openaiModel=env.OPENAI_MODEL&&!/luna/i.test(env.OPENAI_MODEL)?env.OPENAI_MODEL.trim():'gpt-4.1-mini';
-    return {apiKey:env.OPENAI_API_KEY.trim(),model:openaiModel};
+    return {apiKey:sanitizeApiKey(env.OPENAI_API_KEY,/sk-[A-Za-z0-9_-]{16,}/),model:openaiModel};
   }
   if(!row)throw new HttpError(503,`${provider==='gemini'?'Gemini':provider==='openai'?'OpenAI / ChatGPT':'AI poskytovateľ'} nie je nakonfigurovaný a overený.`);
   const material=await getSecretMaterial(env,{ownerId:row.owner_id,id:row.secret_id,provider});
-  return {apiKey:String(material.secret||'').trim(),model:row.model};
+  return {apiKey:sanitizeApiKey(material.secret),model:row.model};
 }

@@ -3,13 +3,13 @@ import {readFileSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const cwd=resolve(dirname(fileURLToPath(import.meta.url)),'../Trinity');
-const environment=process.argv[2];
+const environment=process.argv[2]||'production';
 if(!['development','production'].includes(environment))throw Error('Specify environment');
 const config=JSON.parse(readFileSync(resolve(cwd,'wrangler.jsonc'),'utf8'));
-const section=environment==='development'?config.env.development:config;
+const section=(environment==='development'&&config.env?.development)?config.env.development:config;
 const database=section.d1_databases.find(db=>db.binding==='DB').database_name;
 const workflow=section.workflows.find(w=>w.binding==='OPS_WORKFLOW').name;
-const cli=resolve(cwd,'node_modules/wrangler/bin/wrangler.js'),envArg=environment==='development'?'--env=development':'--env=';
+const cli=resolve(cwd,'node_modules/wrangler/bin/wrangler.js'),envArg=(environment==='development'&&config.env?.development)?'--env=development':'--env=';
 const quote=value=>"'"+String(value).replaceAll("'","''")+"'";
 function run(args){const p=spawnSync(process.execPath,[cli,...args,envArg,'--json'],{cwd,encoding:'utf8',timeout:30000,windowsHide:true});if(p.error||p.status!==0)throw Error('Cloudflare platform command failed; credentials and raw output suppressed.');try{return JSON.parse(p.stdout);}catch{throw Error('Unrecognized platform receipt');}}
 function sql(command){const rows=run(['d1','execute',database,'--remote','--command',command]);if(rows.some(row=>row.success!==true))throw Error('D1 query not confirmed');return rows.flatMap(row=>row.results||[]);}

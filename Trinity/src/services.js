@@ -1,5 +1,5 @@
 import {createSystemAction,getSystemAction} from './system-actions.js';
-import {getConfiguredAIProvider} from './ai-providers.js';
+import {getConfiguredAIProvider,sanitizeApiKey} from './ai-providers.js';
 
 export const SERVICES = {
   KNOWLEDGE_SERVICE:{name:'Znalostná knižnica',rpc:'getStatus'},
@@ -14,6 +14,16 @@ export const SERVICES = {
   AURA_OPTIMIZER:{name:'Optimalizácia',action:'aura.status'}, AURA_PLANNER:{name:'Plánovanie',action:'aura.status'},
   AURA_SENTINEL:{name:'Bezpečnostný špecialista',action:'aura.status'}, AURA_TESTER:{name:'Testovanie',action:'aura.status'}
 };
+export const EXTENDED_SERVICES = {
+  ...SERVICES,
+  CAPACITY_SERVICE:{name:'Kapacitný manažér',rpc:'getStatus'},
+  INTEGRATIONS_SERVICE:{name:'Integračné centrum',rpc:'getStatus'},
+  AUDIT_SERVICE:{name:'Auditný motor',rpc:'getStatus'},
+  JERICHO_SERVICE:{name:'Jericho Engine',path:'/health'},
+  PC_BRIDGE_SERVICE:{name:'PC Bridge',path:'/api/status'},
+  PC_BRIDGE_V2:{name:'PC Bridge V2',path:'/api/status'},
+  CHAT_INFERENCE_SERVICE:{name:'Chat Inference',path:'/health'}
+};
 export async function boundedText(response, limit = 40000) {
   if (!response.body) return '';
   const reader = response.body.getReader(); let size=0; const chunks=[];
@@ -24,14 +34,15 @@ export async function boundedText(response, limit = 40000) {
 export async function serviceStatus(env, requested) {
   const names = requested ? [requested] : Object.keys(SERVICES);
   return Promise.all(names.map(async binding => {
-    const spec = SERVICES[binding]; if(!spec) throw new Error('Unknown service');
+    const spec = EXTENDED_SERVICES[binding]; if(!spec) throw new Error('Unknown service');
     if(!env[binding]) return {binding,name:spec.name,status:'not_configured'};
     const start=Date.now();
     try {
-      if(spec.rpc){
+      if(spec.rpc && typeof env[binding][spec.rpc]==='function'){
         let timer;let data;
         try{data=await Promise.race([env[binding][spec.rpc](),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('RPC timeout')),12000);})]);}finally{clearTimeout(timer);}
-        return {binding,name:spec.name,status:data?.ready===true?'reachable':'error',duration_ms:Date.now()-start,probe:spec.rpc,note:'Overený prístup k úložisku dokumentov; nepotvrdzuje správnosť ich obsahu.'};
+        const ok=data?.ready===true||data?.ok===true||data?.status==='ready'||data?.status==='serving';
+        return {binding,name:spec.name,status:ok?'reachable':'error',duration_ms:Date.now()-start,probe:spec.rpc,note:'Overený prístup k úložisku dokumentov; nepotvrdzuje správnosť ich obsahu.'};
       }
       const path=spec.path||'/';
       const init={method:spec.action?'POST':'GET',signal:AbortSignal.timeout(12000)};
@@ -75,7 +86,7 @@ export async function runScheduledHealth(env,cron){
 export async function getOllamaKey(env) {
   const key = env.OLLAMA_API_KEY || (env.OLLAMA_SECRET ? await env.OLLAMA_SECRET.get() : '');
   if (!key || /^(ssh-|-----BEGIN)/.test(key.trim())) throw new Error('Ollama vyžaduje API kľúč; device key nie je API kľúč.');
-  return key.trim();
+  return sanitizeApiKey(key);
 }
 export function extractModelText(result) {
   if(typeof result==='string')return result;
@@ -133,7 +144,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
   }
   if(provider==='gemini') {
     const {apiKey:rawKey,model}=await getConfiguredAIProvider(env,'gemini');
-    const apiKey=String(rawKey||'').trim();
+    const apiKey=sanitizeApiKey(rawKey,/AIza[A-Za-z0-9_-]{25,}/);
     const system=messages.filter(message=>message.role==='system').map(message=>message.content).join('\n\n').slice(0,40000);
     const input=messages.filter(message=>message.role!=='system').slice(-12)
       .map(message=>`${message.role==='assistant'?'TRINITY':'POUŽÍVATEĽ'}:\n${String(message.content).slice(0,20000)}`).join('\n\n');
@@ -175,14 +186,14 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     return {text,model:usedModel,provider,usage:{input:data.usageMetadata?.promptTokenCount||0,output:data.usageMetadata?.candidatesTokenCount||0}};
   }
   if(provider==='openai') {
-    let apiKey=typeof env.OPENAI_API_KEY==='string'?env.OPENAI_API_KEY.trim():'';
+    let apiKey=typeof env.OPENAI_API_KEY==='string'?sanitizeApiKey(env.OPENAI_API_KEY,/sk-[A-Za-z0-9_-]{16,}/):'';
     const envModel=env.OPENAI_MODEL&&!/luna/i.test(env.OPENAI_MODEL)?env.OPENAI_MODEL.trim():'';
     let model=customModel||envModel||'gpt-4.1-mini';
     if(!apiKey){
       try {
         const vaultProvider=await getConfiguredAIProvider(env,'openai');
         if(vaultProvider?.apiKey){
-          apiKey=String(vaultProvider.apiKey).trim();
+          apiKey=sanitizeApiKey(vaultProvider.apiKey,/sk-[A-Za-z0-9_-]{16,}/);
           if(vaultProvider.model)model=vaultProvider.model;
         }
       }catch{}
@@ -219,7 +230,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     let {apiKey,model}=await getConfiguredAIProvider(env,'groq').catch(()=>({}));
     if(!apiKey)apiKey=env.GROQ_API_KEY;
     if(!apiKey)throw new Error('Groq API nie je nakonfigurované.');
-    apiKey=String(apiKey).trim();
+    apiKey=sanitizeApiKey(apiKey);
     if(!model)model=env.GROQ_MODEL||'llama-3.3-70b-versatile';
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://api.groq.com/openai/v1/chat/completions',{
@@ -237,7 +248,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     let {apiKey,model}=await getConfiguredAIProvider(env,'deepseek').catch(()=>({}));
     if(!apiKey)apiKey=env.DEEPSEEK_API_KEY;
     if(!apiKey)throw new Error('DeepSeek API nie je nakonfigurované.');
-    apiKey=String(apiKey).trim();
+    apiKey=sanitizeApiKey(apiKey);
     if(!model)model=env.DEEPSEEK_MODEL||'deepseek-chat';
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://api.deepseek.com/chat/completions',{
@@ -255,7 +266,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     let {apiKey,model}=await getConfiguredAIProvider(env,'anthropic').catch(()=>({}));
     if(!apiKey)apiKey=env.ANTHROPIC_API_KEY;
     if(!apiKey)throw new Error('Anthropic Claude API nie je nakonfigurované.');
-    apiKey=String(apiKey).trim();
+    apiKey=sanitizeApiKey(apiKey);
     if(!model)model=env.ANTHROPIC_MODEL||'claude-3-5-sonnet-20241022';
     const system=messages.filter(m=>m.role==='system').map(m=>m.content).join('\n\n').slice(0,40000);
     const chatMessages=messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'assistant':'user',content:String(m.content).slice(0,40000)}));
@@ -274,7 +285,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     let {apiKey,model}=await getConfiguredAIProvider(env,'mistral').catch(()=>({}));
     if(!apiKey)apiKey=env.MISTRAL_API_KEY;
     if(!apiKey)throw new Error('Mistral AI API nie je nakonfigurované.');
-    apiKey=String(apiKey).trim();
+    apiKey=sanitizeApiKey(apiKey);
     if(!model)model=env.MISTRAL_MODEL||'mistral-large-latest';
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://api.mistral.ai/v1/chat/completions',{
@@ -292,7 +303,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     let {apiKey,model}=await getConfiguredAIProvider(env,'openrouter').catch(()=>({}));
     if(!apiKey)apiKey=env.OPENROUTER_API_KEY;
     if(!apiKey)throw new Error('OpenRouter API nie je nakonfigurované.');
-    apiKey=String(apiKey).trim();
+    apiKey=sanitizeApiKey(apiKey);
     if(!model)model=env.OPENROUTER_MODEL||'deepseek/deepseek-r1:free';
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://openrouter.ai/api/v1/chat/completions',{

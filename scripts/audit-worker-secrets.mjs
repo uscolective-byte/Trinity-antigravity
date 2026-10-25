@@ -9,14 +9,14 @@ if(!existsSync(cli))throw new Error('Install Trinity dependencies first: npm ci 
 // Strict allowlist: never output secret values, raw CLI output, arbitrary secret names or local credential files.
 const groups={ai:['GEMINI_API_KEY','OPENAI_API_KEY','OLLAMA_API_KEY','GROQ_API_KEY','DEEPSEEK_API_KEY','ANTHROPIC_API_KEY','MISTRAL_API_KEY','OPENROUTER_API_KEY'],security:['TRINITY_SESSION_SECRET','TRINITY_VAULT_KEY'],operations:['TRINITY_OPS_KEY','TRINITY_GATEWAY_KEY','TRINITY_GITHUB_TOKEN','CF_API_TOKEN'],google:['GOOGLE_CLIENT_ID','GOOGLE_CLIENT_SECRET']};
 const report={checked_at:new Date().toISOString(),values_read:false,rotation_performed:false,environments:{}};
-for(const [environment,arg] of [['development','--env=development'],['production','--env=']]){
+const config=JSON.parse(readFileSync(resolve(worker,'wrangler.jsonc'),'utf8'));
+const targets=config.env?.development?[['development','--env=development',config.env.development],['production','--env=',config]]:[['production','--env=',config]];
+for(const [environment,arg,selected] of targets){
  const proc=spawnSync(process.execPath,[cli,'secret','list',arg],{cwd:worker,encoding:'utf8',timeout:45000,windowsHide:true});
  if(proc.error||proc.status!==0)throw new Error('Cannot list '+environment+' secrets; check Wrangler authentication privately.');
  let rows;try{rows=JSON.parse(proc.stdout);}catch{throw new Error('Unexpected secret-list response; raw output suppressed.');}
  const names=new Set(rows.map(row=>row.name));
- const config=JSON.parse(readFileSync(resolve(worker,'wrangler.jsonc'),'utf8'));
- const selected=environment==='development'?config.env.development:config;
  const vars=selected.vars||{};
- report.environments[environment]={secret_count:names.size,groups:Object.fromEntries(Object.entries(groups).map(([group,keys])=>[group,Object.fromEntries(keys.map(key=>[key,names.has(key)?'secret-present':Object.hasOwn(vars,key)?'configured-variable':'not-present']))])),note:'Presence is not provider verification. AI binding is separate. No environment credentials are copied.'};
+ report.environments[environment]={secret_count:names.size,routes:(selected.routes||[]).map(r=>r.pattern),groups:Object.fromEntries(Object.entries(groups).map(([group,keys])=>[group,Object.fromEntries(keys.map(key=>[key,names.has(key)?'secret-present':Object.hasOwn(vars,key)?'configured-variable':'not-present']))])),note:'Presence is not provider verification. AI binding is separate. No environment credentials are copied.'};
 }
 console.log(JSON.stringify(report,null,2));

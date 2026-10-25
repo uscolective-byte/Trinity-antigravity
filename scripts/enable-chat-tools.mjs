@@ -4,7 +4,7 @@ import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {PLUGINS} from '../Trinity/src/plugins.js';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
-const environment=process.argv[2];
+const environment=process.argv[2]||'production';
 if(!['development','production'].includes(environment))throw Error('Specify development or production.');
 const corePlugins=PLUGINS;
 const ids=corePlugins.map(p=>p.id);
@@ -13,7 +13,8 @@ const statements=corePlugins.map(p=>`INSERT INTO ops_plugins(id,version,installe
 statements.push(`INSERT INTO ops_events(action,details) VALUES('chat_tools_enabled',${quote(JSON.stringify({plugins:ids.length,source:'owner-request',scope:'full-trusted-catalog'}))});`);
 if(!process.argv.includes('--apply')){console.log(JSON.stringify({environment,planned:ids,applied:false}));process.exit(0);}
 const worker=resolve(root,'Trinity');const config=JSON.parse(readFileSync(resolve(worker,'wrangler.jsonc'),'utf8'));
-const section=environment==='development'?config.env.development:config;
+const section=(environment==='development'&&config.env?.development)?config.env.development:config;
+const envFlag=(environment==='development'&&config.env?.development)?'--env=development':'--env=';
 const database=section.d1_databases.find(db=>db.binding==='DB')?.database_name;
 if(!database)throw Error('Missing environment DB.');
 const cli=resolve(worker,'node_modules/wrangler/bin/wrangler.js');
@@ -21,7 +22,7 @@ const tmpFile=resolve(worker,`.enable-tools-${environment}.sql`);
 writeFileSync(tmpFile,statements.join('\n'),'utf8');
 let result;
 try{
-  result=spawnSync(process.execPath,[cli,'d1','execute',database,'--remote',environment==='development'?'--env=development':'--env=','--file',tmpFile,'--json'],{cwd:worker,encoding:'utf8',timeout:60000,windowsHide:true});
+  result=spawnSync(process.execPath,[cli,'d1','execute',database,'--remote',envFlag,'--file',tmpFile,'--json'],{cwd:worker,encoding:'utf8',timeout:60000,windowsHide:true});
 }finally{
   try{unlinkSync(tmpFile);}catch{}
 }
