@@ -337,3 +337,22 @@ Owner explicitly instructed: `"postavimr zto a inak terinity developer zlucit z 
   - Deleted duplicate Cloudflare Workers `trinity-development` and `trinity-chat-inference-development` so only one unified `trinity` core exists in Cloudflare.
 - **4. Verification**:
   - All **419/419** tests in `Trinity` (`node --test --test-concurrency=1 tests/*.test.mjs`) PASS (0 FAIL).
+
+
+## Antigravity Release: High-Contrast Chat Readability, Markdown Engine & Layout Stability (commit af6bb28), 2026-10-25 06:49 CEST
+
+Owner explicitly instructed: "uit chet nevmozno precitat co ti pise už som ti to posielal" and "prosim ta trnirinoprav ten ui ma vela chibov".
+- **1. Chat Message Readability & High Contrast (Trinity/public/assistant/garage.css)**:
+  - Enforced solid dark ink (#111111, -webkit-text-fill-color: #111111 !important) across all assistant (#f3efe5 cream paper) and user (#e5e89a lime paper) bubbles, paragraph text, list items, quotes, and child nodes, overriding pale gray/white leaks (#e2e8f0 / #f1f5f9) from theme.css.
+  - Enforced bold heading contrast (#000000, font-weight 800), dark terminal-style code blocks (#191815 background, #f5f2eb monospace font, 1px #4a453b border), and inline code (#12110e on #e2dccd with #b8af9a border).
+- **2. Layout & Scrolling Stabilization (Trinity/public/assistant/garage.css)**:
+  - Fixed double-scrollbar bug between #app-views and #chat-area by setting #app-views to overflow: hidden; display: flex; flex-direction: column; while keeping other views (.view:not(.chat-view)) independently scrollable with their own overflow-y: auto.
+  - Guaranteed relative, non-overlapping input composer (.composer-wrap) pinned to the bottom of the viewport without obscuring recent messages.
+- **3. Robust Markdown & Safe Reply Engine (Trinity/public/assistant/chat.js.txt)**:
+  - Re-engineered formatMarkdown(text): normalizes CRLF/LF line breaks first, extracts and protects multiline code blocks via token substitution so prose line breaks never corrupt code blocks, parses markdown headings (#, ##, ###), blockquotes (>), bold (**), italics (*), links ([text](url)), bullet lists and numbered lists, and restores code blocks untouched.
+  - Hardened renderReply(target, raw) to safely coerce strings, objects, or job results without throwing TypeError: text.match is not a function.
+  - Protected garage-ui from dynamic theme.css reloads in refreshUiEvolutionLive to eliminate styling flicker.
+- **4. Verification & Deployment**:
+  - Full test suite: 419/419 PASS (0 FAIL).
+  - Deployed Cloudflare Worker trinity Version ID: b310a066-5168-4cbd-9253-b90014a6cd26 (--tag af6bb28).
+  - Verified on both https://auru.space and https://auru.dev with node Trinity/scripts/verify-deployment.mjs.
