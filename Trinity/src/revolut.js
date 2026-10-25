@@ -1,3 +1,4 @@
+import {resolveProviderSecret} from './secret-vault.js';
 import bundledCatalog from '../config/revolut-pro-products.json' with {type:'json'};
 import {z} from 'zod';
 import {HttpError} from './security.js';
@@ -425,4 +426,58 @@ export async function handleCommercePublic(request,env){
   },
   products
  },{headers});
+}
+
+
+export async function getRevolutAccountOverview(env){
+ let apiKey=env?.REVOLUT_API_KEY;
+ if(!apiKey){
+  try{apiKey=await resolveProviderSecret(env,'revolut');}catch{}
+ }
+ const accountsData=await commerceAccounts(env);
+ const revolutUrl=accountsData?.revolut_url||'https://revolut.me/isabo91';
+ if(!apiKey){
+  return {
+   connected:false,
+   mode:'payment-links-ready',
+   revolut_me:revolutUrl,
+   business_name:accountsData?.business_name||'Ivan Sabo · Basterix',
+   note:'Revolut.me (@isabo91) je pripravený pre platby a zmluvy. Pre zobrazenie bankového zostatku vlož Revolut API kľúč do Secret Vaultu.'
+  };
+ }
+ try{
+  const res=await fetch('https://b2b.revolut.com/api/1.0/accounts',{
+   headers:{Authorization:`Bearer ${String(apiKey).trim()}`,Accept:'application/json'},
+   signal:AbortSignal.timeout(15000)
+  });
+  if(!res.ok){
+   return {
+    connected:false,
+    error:`Revolut API vrátilo HTTP ${res.status}`,
+    revolut_me:revolutUrl,
+    business_name:accountsData?.business_name||'Ivan Sabo · Basterix'
+   };
+  }
+  const accounts=await res.json();
+  return {
+   connected:true,
+   mode:'live-api',
+   revolut_me:revolutUrl,
+   business_name:accountsData?.business_name||'Ivan Sabo · Basterix',
+   accounts:Array.isArray(accounts)?accounts.map(a=>({
+    id:a.id,
+    name:a.name,
+    currency:a.currency,
+    balance:a.balance,
+    state:a.state
+   })):[]
+  };
+ }catch(err){
+  return {
+   connected:false,
+   error:err.message,
+   revolut_me:revolutUrl,
+   business_name:accountsData?.business_name||'Ivan Sabo · Basterix'
+  };
+ }
 }

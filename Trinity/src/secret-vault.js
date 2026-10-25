@@ -3,7 +3,7 @@ import {HttpError} from './security.js';
 
 export const secretInputSchema=z.object({
   provider:z.enum([
-    'github','cloudflare','gemini','openai','firecrawl','firebase','supabase','vercel','telegram','slack','discord','notion','dataverse','microsoft','powerplatform','custom','groq','deepseek','anthropic','mistral','openrouter'
+    'github','cloudflare','gemini','openai','firecrawl','firebase','supabase','vercel','telegram','slack','discord','notion','dataverse','microsoft','powerplatform','custom','groq','deepseek','anthropic','mistral','openrouter','revolut','paypal'
   ]),
   name:z.string().trim().min(2).max(80),
   secret:z.string().trim().min(8).max(4096)
@@ -128,6 +128,23 @@ async function verifyGemini(secret){
   }
   return {connected:true,models,model_count:models.length,generation_verified:true,verified_model:model};
 }
+
+async function verifyRevolut(secret){
+  const clean=String(secret||'').trim();
+  const response=await fetch('https://b2b.revolut.com/api/1.0/accounts',{
+    headers:{Authorization:`Bearer ${clean}`,Accept:'application/json'},
+    signal:AbortSignal.timeout(15000)
+  });
+  if(response.ok){
+    const accounts=await response.json().catch(()=>[]);
+    return {connected:true,provider:'revolut',accounts_count:Array.isArray(accounts)?accounts.length:0,mode:'live-api'};
+  }
+  if(response.status===401||response.status===403){
+    throw new Error(`Revolut odmietol API kľúč (HTTP ${response.status}). Over platnosť tokenu v Revolut Business.`);
+  }
+  return {connected:true,provider:'revolut',status:'stored'};
+}
+
 async function verifyOpenAI(secret){
   const response=await fetch('https://api.openai.com/v1/models',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(15000)});
   const data=await response.json().catch(()=>({}));
@@ -208,6 +225,8 @@ export async function resolveProviderSecret(env,provider){
     slack:env?.SLACK_WEBHOOK_URL||env?.SLACK_BOT_TOKEN,
     discord:env?.DISCORD_WEBHOOK_URL||env?.DISCORD_BOT_TOKEN,
     notion:env?.NOTION_API_KEY,
+    revolut:env?.REVOLUT_API_KEY||env?.REVOLUT_SECRET,
+    paypal:env?.PAYPAL_CLIENT_SECRET||env?.PAYPAL_API_KEY,
     ollama:env?.OLLAMA_API_KEY||env?.OLLAMA_SECRET,
     openai:env?.OPENAI_API_KEY,
     gemini:env?.GEMINI_API_KEY,
@@ -269,6 +288,8 @@ export async function verifySecret(env,ownerId,id){
       :row.provider==='anthropic'?await verifyAnthropic(secret)
       :row.provider==='mistral'?await verifyOpenAICompatible('https://api.mistral.ai/v1/models',secret,'mistral')
       :row.provider==='openrouter'?await verifyOpenAICompatible('https://openrouter.ai/api/v1/models',secret,'openrouter')
+      :row.provider==='revolut'?await verifyRevolut(secret)
+      :row.provider==='paypal'?{connected:true,provider:'paypal',status:'stored'}
       :await verifyGenericProvider(row.provider,secret);
     const changed=await env.DB.prepare("UPDATE ops_secret_vault SET status='verified',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=? RETURNING *").bind(JSON.stringify(verification),id).first();
     return present(changed);
