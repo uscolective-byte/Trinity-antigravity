@@ -23,23 +23,42 @@ async function opsApi(path,body){const r=await fetch('/api/ops'+path,{method:bod
 function safe(fn){return async e=>{e?.preventDefault();try{notice('');await fn(e);}catch(err){notice(err.message);}};}
 function bubble(role,text=''){const wrap=node('article',undefined,'message '+(role==='user'?'user':'assistant'));wrap.append(node('div',role==='user'?t('you'):'✦ Trinity','name'));const content=node('div',text,'content');wrap.append(content);$('messages').append(wrap);$('welcome').hidden=true;return {wrap,content};}
 function formatMarkdown(text){
-  if(!text)return '';
-  const d=document.createElement('div');
-  d.textContent=text;
-  let s=d.innerHTML;
-  s=s.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g,'<pre class="code-block"><code class="lang-$1">$2</code></pre>');
-  s=s.replace(/`([^`\n]+)`/g,'<code class="inline-code">$1</code>');
-  s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
-  s=s.replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>');
-  s=s.replace(/^[ \t]*[\*\-][ \t]+(.+)$/gm,'<li>$1</li>');
-  s=s.replace(/(<li>[\s\S]*?<\/li>)/g,'<ul class="md-list">$1</ul>');
-  s=s.replace(/<\/ul>\s*<ul class="md-list">/g,'');
-  s=s.replace(/\r\n|\r/g, '\n');
-  s=s.replace(/\n\n+/g,'<br><br>');
-  s=s.replace(/(?<!>)\n/g,'<br>');
+  if(!text || typeof text !== 'string') return '';
+  let s = text.replace(/\r\n|\r/g, '\n');
+  const codeBlocks = [];
+  s = s.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    const token = '@@TRINITY_CODE_' + codeBlocks.length + '@@';
+    const d = document.createElement('div');
+    d.textContent = code.trimEnd();
+    codeBlocks.push('<pre class="code-block"><code class="lang-' + (lang || 'text') + '">' + d.innerHTML + '</code></pre>');
+    return token;
+  });
+  const d = document.createElement('div');
+  d.textContent = s;
+  s = d.innerHTML;
+  s = s.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');
+  s = s.replace(/^### (.*$)/gim, '<h3 class="md-h3">$1</h3>');
+  s = s.replace(/^## (.*$)/gim, '<h2 class="md-h2">$1</h2>');
+  s = s.replace(/^# (.*$)/gim, '<h1 class="md-h1">$1</h1>');
+  s = s.replace(/^\> (.*$)/gim, '<blockquote class="md-quote">$1</blockquote>');
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  s = s.replace(/^[ \t]*\d+\.[ \t]+(.+)$/gm, '<li class="md-num-item">$1</li>');
+  s = s.replace(/^[ \t]*[\*\-][ \t]+(.+)$/gm, '<li>$1</li>');
+  s = s.replace(/(<li class="md-num-item">[\s\S]*?<\/li>)/g, '<ol class="md-list">$1</ol>');
+  s = s.replace(/<\/ol>\s*<ol class="md-list">/g, '');
+  s = s.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul class="md-list">$1</ul>');
+  s = s.replace(/<\/ul>\s*<ul class="md-list">/g, '');
+  s = s.replace(/\n\n+/g, '<br><br>');
+  s = s.replace(/(?<!>)\n/g, '<br>');
+  codeBlocks.forEach((block, i) => {
+    s = s.replace('@@TRINITY_CODE_' + i + '@@', block);
+  });
   return s;
 }
-function renderReply(target,text){
+function renderReply(target,raw){
+  const text = typeof raw === 'string' ? raw : (raw?.text || raw?.response || raw?.result || (raw ? JSON.stringify(raw, null, 2) : ''));
   target.innerHTML=formatMarkdown(text);
   const match=text.match(/\/api\/assistant\/media\/images\/[0-9a-f-]{36}/i);
   if(match){
@@ -627,7 +646,7 @@ async function refreshUiEvolutionLive(forceReloadCss=false){
     cachedUiEvo=data;
     const st=data.state||{};
     applyUiDomCustomizations(st);
-    if(forceReloadCss||(st.updated_at&&st.updated_at!==lastUiUpdatedAt)){
+    if((forceReloadCss||(st.updated_at&&st.updated_at!==lastUiUpdatedAt))&&!document.body.classList.contains('garage-ui')){
       lastUiUpdatedAt=st.updated_at;
       const themeLink=document.querySelector('link[href^="/theme.css"]');
       if(themeLink)themeLink.href='/theme.css?v='+Date.now();
