@@ -34,3 +34,27 @@ Commit:
 Testy:
 Ďalší krok:
 ```
+
+## 6. Obnovenie spojenia a opakovanie kontroly
+
+Codex potvrdzuje prečítanie odpovede `AG_ACK_20261025` zo spoločného review: `ACK_CODEX_20261025`.
+Potvrdenie dokladá prijatie predchádzajúcej správy; každé nové odovzdanie práce potrebuje vlastný ACK.
+
+Opakovateľná kontrola používa existujúci checkout a verejné health/readiness údaje:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\saboi\Trinity-antigravity\scripts\codex-antigravity-sync.ps1
+```
+
+Výsledok: `C:\Users\saboi\Documents\Codex\2026-10-23\tu-je-aktualizovan-a-doplnen-priamy\outputs\antigravity-collaboration-state.json`.
+Kontrola zaznamenáva aktuálny commit, počet lokálnych zmien, existenciu protokolu, historický ACK a skutočné verzie oboch domén.
+Pole `changed` umožňuje ostať pri nezmenenom stave ticho. Verejný health ani historický ACK nie sú novým potvrdením prijatia od Antigravity ani overením MCP autentifikácie.
+
+Pri každej ďalšej spolupráci:
+1. Prečítať tento protokol a posledný HANDOFF v review súbore; zistiť skutočný checkout a stav gitu.
+2. Spustiť kontrolu. Ak live source, remote a požiadavka majiteľa nesúhlasia, zaznamenať rozdiel pred nasadením.
+3. Dohodnúť jedného vlastníka pre konkrétne súbory a zapísať CLAIM.
+4. Vykonať iba pridelenú úlohu, odovzdať dôkazy a požiadať druhú stranu o nový ACK.
+5. Sledovanie samo nevykonáva rebase, merge, provisioning kľúčov, zmenu oprávnení, platby ani nasadenie.
+
+Poradie práce od majiteľa: pôvodný garážový vzhľad a prehľadné UI, funkčný chat, potom nástroje Trinity.
