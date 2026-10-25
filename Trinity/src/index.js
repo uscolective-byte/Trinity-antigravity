@@ -72,7 +72,7 @@ import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
 import manifestJSON from '../public/assistant/manifest.json';
-import serviceWorkerJS from '../public/assistant/sw.js';
+import serviceWorkerJS from '../public/assistant/sw.js.txt';
 import authBootstrapJS from '../public/auth-bootstrap.js.txt';
 import themeCSS from '../public/assistant/theme.css';
 import garageCSS from '../public/assistant/garage.css';
