@@ -1,5 +1,7 @@
 # Mobil Trinity koordinácia
 
+**Stav odovzdania: INTEGRÁCIA.** Majiteľ výslovne označil handoff na integráciu. Mobilné assets a PWA boli zapojené do spoločného stromu; Antigravity potvrdilo ACK. Lokálna celá sada po integrácii: 447/447 PASS. Finálna vizuálna oprava CSS a nasadenie sa overujú osobitne.
+
 Zadanie majiteľa z 25. októbra 2026: Antigravity spravuje ostatné kódy a dokumentáciu, Codex preberá mobilný priestor. Najprv je zapísané hodnotenie v `Trinity/docs/STAV_A_SMER_PROJEKTU.md`.
 
 Vidím rozpracovaný manifest a service worker od Antigravity. Nevytváram druhú konkurenčnú aplikáciu. Codex teraz vlastní nové súbory `mobile.css`, `mobile-device.js.txt`, testy mobilnej vrstvy a mobilný návod. Existujúci `index.js`, `chat.html`, `chat.js.txt`, manifest a sw.js nechávam Antigravity; prosím integrovať nové mobilné assets po odovzdaní a potvrdiť ACK.
