@@ -34,7 +34,9 @@ function formatMarkdown(text){
   s=s.replace(/^[ \t]*[\*\-][ \t]+(.+)$/gm,'<li>$1</li>');
   s=s.replace(/(<li>[\s\S]*?<\/li>)/g,'<ul class="md-list">$1</ul>');
   s=s.replace(/<\/ul>\s*<ul class="md-list">/g,'');
+  s=s.replace(/\r\n|\r/g, '\n');
   s=s.replace(/\n\n+/g,'<br><br>');
+  s=s.replace(/(?<!>)\n/g,'<br>');
   return s;
 }
 function renderReply(target,text){
@@ -217,8 +219,9 @@ $('chat-form').onsubmit=safe(async()=>{
    const job=await r.json();if(!job.id||!job.session_id)throw new Error('Server nevrátil identifikátor úlohy.');jobId=job.id;session=job.session_id;localStorage.setItem('trinity-chat-session',session);context.textContent='Úloha: '+job.id;let completed=false;for(let i=0;i<120;i++){if(controller.signal.aborted){await fetch('/api/ops/jobs/'+job.id+'/cancel',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});throw new DOMException('Stopped','AbortError');}const response=await fetch('/api/ops/jobs/'+job.id,{signal:AbortSignal.any([controller.signal,AbortSignal.timeout(15000)])});if(!response.ok){if(response.status===401)lockSession();throw new Error('Work status unavailable');}const j=await response.json();const finished=(j.steps||[]).filter(s=>s.status==='completed').length;context.textContent=`${(j.steps||[]).length} ${t('steps')} · ${finished} ${t('done')}`;if(j.status==='failed')throw new Error(j.error);if(j.status==='cancelled')throw new DOMException('Stopped','AbortError');if(j.status==='completed'){renderReply(reply.content,j.result);completed=true;break;}await new Promise(r=>setTimeout(r, i < 6 ? 400 : i < 15 ? 750 : 1200));}if(!completed)throw new Error(language==='en'?'The task is still running. Open it in the advanced center.':'Úloha stále beží. Otvor ju v pokročilom centre.');
   }else{
    const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='';while(true){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});let end;while((end=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,end);buffer=buffer.slice(end+1);if(!line)continue;const event=JSON.parse(line);if(event.type==='delta'){if(!reply.content.dataset.streaming){reply.content.textContent='';reply.content.dataset.streaming='true';}reply.content.textContent+=event.text;}if(event.type==='context'){session=event.session;context.textContent=`${event.model} · ${t('memory')}: ${event.memories.length} · ${event.history}`;}if(event.type==='tool'){context.append(node('div',`${t(event.name)} · ${event.status}`));$('activity').textContent=t(event.name);}if(event.type==='status')$('activity').textContent=event.text;if(event.type==='error')throw new Error(event.error);}bottom();}
+    renderReply(reply.content,reply.content.textContent);
+    delete reply.content.dataset.streaming;
   }
-  renderReply(reply.content,reply.content.textContent);
   const copy=node('button',t('copy'),'copy');copy.onclick=async()=>{await navigator.clipboard.writeText(reply.content.innerText||reply.content.textContent);copy.textContent=t('copied');};reply.wrap.append(copy);localStorage.setItem('trinity-chat-session',session);await sessions();await refreshUiEvolutionLive();
  }catch(e){if(e.name==='AbortError'&&!timedOut){reply.content.textContent=t('stopDone');}else{const message=timedOut||e.name==='TimeoutError'?'Server neodpovedal v časovom limite. Úloha môže ďalej bežať; skontroluj históriu rozhovoru.':e.message;reply.content.textContent=message+(jobId?' Úloha: '+jobId:'');if(!jobId)$('message').value=text;notice(message);}}
  finally{clearTimeout(requestTimer);controller=null;$('send').disabled=false;$('stop').hidden=true;$('activity').textContent='';$('remember').checked=false;bottom();}
@@ -591,6 +594,7 @@ $('commerce-product-form')?.addEventListener('submit',safe(async(e)=>{
 let lastUiUpdatedAt=null,cachedUiEvo=null,docCategoryFilter='',docSearchQuery='';
 function applyUiDomCustomizations(st){
   if(!st)return;
+  if(document.body&&document.body.classList.contains('garage-ui'))return;
   const brandLink=document.querySelector('.sidebar .brand > span:last-child');
   if(brandLink&&st.brand_title){
     const sub=st.brand_subtitle||'Tvoja osobná asistentka';

@@ -22,7 +22,17 @@ const present=row=>({id:row.id,provider:row.provider,name:row.name,secret_hint:r
 export async function listSecrets(env,ownerId){const rows=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE owner_id=? AND status!='revoked' ORDER BY created_at DESC LIMIT 100").bind(ownerId).all();return rows.results.map(present);}
 export async function storeSecret(env,ownerId,input){const data=secretInputSchema.parse(input),encrypted=await encrypt(env,ownerId,data.provider,data.name,data.secret),hint=`••••${data.secret.slice(-4)}`,id=crypto.randomUUID();const row=await env.DB.prepare(`INSERT INTO ops_secret_vault(id,owner_id,provider,name,secret_ciphertext,secret_iv,secret_hint) VALUES(?,?,?,?,?,?,?) ON CONFLICT(owner_id,provider,name) DO UPDATE SET secret_ciphertext=excluded.secret_ciphertext,secret_iv=excluded.secret_iv,secret_hint=excluded.secret_hint,status='stored',verification_json=NULL,updated_at=datetime('now'),last_verified_at=NULL,revoked_at=NULL RETURNING *`).bind(id,ownerId,data.provider,data.name,encrypted.ciphertext,encrypted.iv,hint).first();await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('secret_stored',?)").bind(JSON.stringify({id:row.id,provider:data.provider,name:data.name,owner_id:ownerId})).run();return present(row);}
 async function verifyGitHub(secret){const headers={Authorization:`Bearer ${secret}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'Trinity-Integration-Hub'};const [user,repo]=await Promise.all([fetch('https://api.github.com/user',{headers,signal:AbortSignal.timeout(15000)}),fetch('https://api.github.com/repos/uscolective-byte/trinity-morhfeus',{headers,signal:AbortSignal.timeout(15000)})]);if(!user.ok)throw new Error(`GitHub odmietol poverenie (HTTP ${user.status}).`);const account=await user.json();return {connected:true,account:account.login,repository_access:repo.ok,repository:'uscolective-byte/trinity-morhfeus'};}
-async function verifyCloudflare(secret){const response=await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(15000)});const data=await response.json().catch(()=>({}));if(!response.ok||!data.success)throw new Error(`Cloudflare odmietol token (HTTP ${response.status}).`);return {connected:true,token_status:data.result?.status||'active'};}
+async function verifyCloudflare(secret){
+  let response=await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(15000)});
+  let data=await response.json().catch(()=>({}));
+  if((!response.ok||!data.success)&&response.status===401){
+    const acctResp=await fetch('https://api.cloudflare.com/client/v4/accounts/b60342e5e52f5646fbd4e913bb409334/tokens/verify',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(15000)});
+    const acctData=await acctResp.json().catch(()=>({}));
+    if(acctResp.ok&&acctData.success){response=acctResp;data=acctData;}
+  }
+  if(!response.ok||!data.success)throw new Error(`Cloudflare odmietol token (HTTP ${response.status}).`);
+  return {connected:true,token_status:data.result?.status||'active'};
+}
 async function verifyFirecrawl(secret){
   const response=await fetch('https://api.firecrawl.dev/v1/scrape',{
     method:'POST',
@@ -95,7 +105,7 @@ async function verifyGemini(secret){
   if(!response.ok)throw new Error(`Gemini odmietlo API kľúč (HTTP ${response.status}).`);
   const models=(data.models||[]).filter(item=>(item.supportedGenerationMethods||[]).includes('generateContent')).map(item=>item.name).filter(name=>/^models\/gemini-/i.test(name)).slice(0,100);
   if(!models.length)throw new Error('Gemini nevrátilo žiadny model pre generovanie textu.');
-  const model=models.includes('models/gemini-2.5-flash')?'models/gemini-2.5-flash':models.includes('models/gemini-3.8-flash')?'models/gemini-3.8-flash':models.find(name=>/flash/i.test(name)&&!/image|tts|preview/i.test(name))||models[0];
+  const model=models.includes('models/gemini-3.8-flash')?'models/gemini-3.8-flash':models.includes('models/gemini-3.5-flash')?'models/gemini-3.5-flash':models.find(name=>/flash/i.test(name)&&!/image|tts|preview|2\.5/i.test(name))||models[0];
   let live=await fetch('https://generativelanguage.googleapis.com/v1beta/interactions',{
     method:'POST',headers:{'x-goog-api-key':secret,'Content-Type':'application/json'},
     body:JSON.stringify({model:model.replace(/^models\//,''),input:'Reply exactly OK.',store:false,generation_config:{max_output_tokens:8,temperature:0}}),
@@ -197,12 +207,35 @@ export async function resolveProviderSecret(env,provider){
     telegram:env?.TELEGRAM_BOT_TOKEN,
     slack:env?.SLACK_WEBHOOK_URL||env?.SLACK_BOT_TOKEN,
     discord:env?.DISCORD_WEBHOOK_URL||env?.DISCORD_BOT_TOKEN,
-    notion:env?.NOTION_API_KEY
+    notion:env?.NOTION_API_KEY,
+    ollama:env?.OLLAMA_API_KEY||env?.OLLAMA_SECRET,
+    openai:env?.OPENAI_API_KEY,
+    gemini:env?.GEMINI_API_KEY,
+    groq:env?.GROQ_API_KEY,
+    deepseek:env?.DEEPSEEK_API_KEY,
+    anthropic:env?.ANTHROPIC_API_KEY,
+    mistral:env?.MISTRAL_API_KEY,
+    openrouter:env?.OPENROUTER_API_KEY
   };
   if(typeof envMap[provider]==='string'&&envMap[provider].trim())return envMap[provider].trim();
   if(env?.DB?.prepare&&typeof env.TRINITY_VAULT_KEY==='string'){
     try{
-      const row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider=? AND status!='revoked' ORDER BY CASE WHEN status='verified' THEN 0 ELSE 1 END, updated_at DESC LIMIT 1").bind(provider).first();
+      let row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider=? AND status!='revoked' ORDER BY CASE WHEN status='verified' THEN 0 ELSE 1 END, updated_at DESC LIMIT 1").bind(provider).first();
+      if(!row&&provider==='cloudflare'){
+        row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider='custom' AND status!='revoked' AND (lower(name) LIKE '%cloudflare%' OR lower(name) LIKE '%claudflare%' OR lower(name)='cf' OR lower(name)='wrangler') ORDER BY updated_at DESC LIMIT 1").first();
+      }
+      if(!row&&provider==='ollama'){
+        row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider='custom' AND status!='revoked' AND lower(name) LIKE '%ollama%' ORDER BY updated_at DESC LIMIT 1").first();
+      }
+      if(!row&&provider==='gemini'){
+        row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider='custom' AND status!='revoked' AND lower(name) LIKE '%gemini%' ORDER BY updated_at DESC LIMIT 1").first();
+      }
+      if(!row&&provider==='openai'){
+        row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider='custom' AND status!='revoked' AND (lower(name) LIKE '%openai%' OR lower(name) LIKE '%chatgpt%') ORDER BY updated_at DESC LIMIT 1").first();
+      }
+      if(!row&&provider==='notion'){
+        row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider='custom' AND status!='revoked' AND lower(name) LIKE '%notion%' ORDER BY updated_at DESC LIMIT 1").first();
+      }
       if(row)return await decrypt(env,row);
     }catch{}
   }

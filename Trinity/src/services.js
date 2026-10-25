@@ -1,5 +1,6 @@
 import {createSystemAction,getSystemAction} from './system-actions.js';
 import {getConfiguredAIProvider,sanitizeApiKey} from './ai-providers.js';
+import {resolveProviderSecret} from './secret-vault.js';
 
 export const SERVICES = {
   KNOWLEDGE_SERVICE:{name:'Znalostná knižnica',rpc:'getStatus'},
@@ -84,8 +85,9 @@ export async function runScheduledHealth(env,cron){
   return summary;
 }
 export async function getOllamaKey(env) {
-  const key = env.OLLAMA_API_KEY || (env.OLLAMA_SECRET ? await env.OLLAMA_SECRET.get() : '');
-  if (!key || /^(ssh-|-----BEGIN)/.test(key.trim())) throw new Error('Ollama vyžaduje API kľúč; device key nie je API kľúč.');
+  let key = env.OLLAMA_API_KEY || (env.OLLAMA_SECRET ? await env.OLLAMA_SECRET.get() : '');
+  if (!key) key = await resolveProviderSecret(env, 'ollama');
+  if (!key || /^(ssh-|-----BEGIN)/.test(String(key).trim())) throw new Error('Ollama vyžaduje API kľúč; device key nie je API kľúč.');
   return sanitizeApiKey(key);
 }
 export function extractModelText(result) {
@@ -160,7 +162,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
       const contents=[];
       if(system)contents.push({role:'user',parts:[{text:`Systémové inštrukcie:\n${system}`}]},{role:'model',parts:[{text:'Rozumiem inštrukciám.'}]});
       contents.push({role:'user',parts:[{text:input}]});
-      for(const candidateModel of [...new Set([interactionModel,'gemini-2.5-flash'])]){
+      for(const candidateModel of [...new Set([interactionModel,'gemini-3.8-flash','gemini-3.5-flash'])]){
         const fallbackUrl=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidateModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
         const fallbackResponse=await fetch(fallbackUrl,{
           method:'POST',
