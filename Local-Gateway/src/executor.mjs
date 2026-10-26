@@ -92,6 +92,25 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
   }
   if(proposal.action==='read'&&payload.task==='local-inference')return runLocalInference(payload);
   if(proposal.action==='read')return readWorkspaceFile(workspaceRoot,payload.path);
+  if(proposal.action==='system_info'){
+    const os=await import('node:os');
+    const cpus=os.cpus();
+    const memTotal=Math.round(os.totalmem()/(1024*1024));
+    const memFree=Math.round(os.freemem()/(1024*1024));
+    return {
+      action:'system_info',
+      hostname:os.hostname(),
+      platform:os.platform(),
+      user:os.userInfo().username,
+      uptime_s:Math.round(os.uptime()),
+      cpu_cores:cpus.length,
+      cpu_model:cpus[0]?.model||'Unknown CPU',
+      mem_total_mb:memTotal,
+      mem_free_mb:memFree,
+      mem_used_pct:Math.round(((memTotal-memFree)/memTotal)*100),
+      success:true
+    };
+  }
   if(proposal.action==='open_app'){
     const appTarget=payload.target||payload.app||'calculator';
     const appMap={
