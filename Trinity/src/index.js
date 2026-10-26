@@ -62,6 +62,7 @@ import {runEvolutionCycle} from './evolution.js';
 import {listSelfImprovementProposals,createSelfImprovementProposal,approveSelfImprovementProposal,applySelfImprovementProposal} from './self-improvement.js';
 import {listDomains,getDomain,createDomain,registerDomain,checkDomainAvailability,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord} from './domains.js';
 import {listArtifacts,createArtifact,createPdfArtifact,getArtifact} from './artifacts.js';
+import {recordHeartbeat, registerAgent, findBestAgentForCapabilities} from './os-registry.js';
 import html from '../public/index.html';
 import appJS from '../public/app.js.txt';
 import css from '../public/style.css';
@@ -703,6 +704,42 @@ async function route(request,env,ctx){
       try{const jRows=await env.DB.prepare('SELECT id, task, team, provider, status, created_at, updated_at FROM ops_jobs ORDER BY created_at DESC LIMIT 50').all();jobs=jRows.results||[];}catch{}
     }
     return json({tasks,jobs,total:tasks.length+jobs.length});
+  }
+  if(path==='/api/os/agents'&&request.method==='GET'){
+    let agents=[];
+    if(env.DB?.prepare){
+      try{
+        const rows=await env.DB.prepare('SELECT agent_id, name, type, version, status, endpoint, owner, environment, heartbeat_at, load_score, trust_score, updated_at FROM agents ORDER BY trust_score DESC, updated_at DESC LIMIT 100').all();
+        agents=rows.results||[];
+      }catch{}
+    }
+    return json({agents,count:agents.length});
+  }
+  if(path==='/api/os/capabilities'&&request.method==='GET'){
+    let capabilities=[];
+    if(env.DB?.prepare){
+      try{
+        const rows=await env.DB.prepare('SELECT capability_id, name, description, category, critical FROM capabilities ORDER BY category, name LIMIT 100').all();
+        capabilities=rows.results||[];
+      }catch{}
+    }
+    return json({capabilities,count:capabilities.length});
+  }
+  if(path==='/api/os/policies'&&request.method==='GET'){
+    let policies=[];
+    if(env.DB?.prepare){
+      try{
+        const rows=await env.DB.prepare('SELECT policy_id, name, enabled, severity, rule_json, description FROM sovereign_policies ORDER BY name LIMIT 50').all();
+        policies=rows.results||[];
+      }catch{}
+    }
+    return json({policies,count:policies.length});
+  }
+  if(path==='/api/os/heartbeat'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,4096);
+    const hb=await recordHeartbeat(env,body);
+    return json({success:true,heartbeat:hb});
   }
   if(path==='/api/assistant/settings'&&request.method==='GET'){
     const [plugins,memory,apis,keys,portfolios,pcBridge,secrets,commerce]=await Promise.all([
