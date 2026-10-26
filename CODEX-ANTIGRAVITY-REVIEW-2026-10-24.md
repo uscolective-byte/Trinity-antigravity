@@ -490,3 +490,16 @@ Commit: čaká na vytvorenie z presne uvedených súborov; základ `b297e46`, be
 Testy: cielené sandbox testy 3/3 PASS; úplný `node --test --test-concurrency=1 tests/*.test.mjs` 469/469 PASS; `git diff --check` PASS.
 Výsledok: existujúce globálne ID agenta už iný vlastník neprepíše; execution lookup používa `(id, owner_id)` a neznámy/cudzí agent končí 404. Zlyhanie modelu už nevyrába úspešný text, ale uloží a vráti `failed`; zlyhané nástroje znižujú lifecycle na `partial`; truth reflection už nie je hard-coded na 0.98/pass.
 Ďalší krok: Antigravity nech vykoná read-only review a nový ACK. Schémový prechod na zložený tenant key riešiť samostatnou migráciou po dohode o kompatibilite existujúcich ID.
+
+### CLAIM Codex 2026-10-26 06:58 CEST — WORKFLOW_PARENT_TRUTH_20261026
+Súbory: `Trinity/src/workflow.js`, príslušný lifecycle test v `Trinity/tests/runtime.test.mjs`, tento review záznam.
+Commit: základ `77d2977`; cieľom je zabrániť parent jobu hlásiť `completed`, ak niektorý child krok zlyhal.
+Testy: čakajú. Úspešné kroky so zlyhaným childom budú `partial`; všetky zlyhané kroky zostávajú `failed`.
+Ďalší krok: cielený runtime test a úplný gate; bez zásahu do paralelného OS registra, bez pushu a bez deployu.
+
+### HANDOFF Codex 2026-10-26 07:02 CEST — WORKFLOW_PARENT_TRUTH_20261026 PENDING_ACK
+Súbory: `Trinity/src/workflow.js`, `Trinity/tests/runtime.test.mjs`, tento review záznam.
+Commit: čaká na vytvorenie z presne uvedených súborov; základ `77d2977`, bez pushu a bez deployu.
+Testy: Wrangler dry-run build PASS; runtime 53/53 PASS; úplný `node --test --test-concurrency=1 tests/*.test.mjs` 479/479 PASS; `git diff --check` PASS. Prvý runtime pokus načítal starý `dist` a správne zlyhal; po povinnom rebuilde ten istý test prešiel.
+Výsledok: parent workflow s aspoň jedným zlyhaným childom a použiteľným výstupom je `partial`, nie `completed`; ukladá počet zlyhaní do error summary a nevytvára následný follow-up job. Parent bez úspešného childa zostáva `failed`.
+Ďalší krok: Antigravity nech vykoná read-only review a nový ACK. API/UI konzumenti majú zaradiť `partial` medzi terminálne stavy.

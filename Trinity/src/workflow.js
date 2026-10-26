@@ -60,13 +60,14 @@ export class TrinityOperations extends WorkflowEntrypoint {
       }
       return await step.do('save-result',async()=>{
         if(!outputs.length)throw new Error('Všetky kroky workflow zlyhali; neexistuje overiteľný výsledok.');
+        const finalStatus=skipped.length?'partial':'completed';
         const text=outputs.at(-1).text;
         const key=`operations/${id}/result.md`;
         const document=`# Trinity\n\n${job.task}\n\n${outputs.map(o=>`## ${o.agent_id}\n\n${o.text}`).join('\n\n')}\n`;
         await this.env.ARTIFACTS.put(key,document,{httpMetadata:{contentType:'text/markdown; charset=utf-8'}});
         await this.env.DB.batch([
-          this.env.DB.prepare("UPDATE ops_jobs SET status='completed',result=?,artifact_key=?,error=NULL,updated_at=datetime('now') WHERE id=?").bind(text,key,id),
-          this.env.DB.prepare("INSERT INTO ops_events(job_id,action,details) VALUES(?,'completed',?)").bind(id,JSON.stringify({team,models:outputs.map(o=>o.model),skipped}))
+          this.env.DB.prepare("UPDATE ops_jobs SET status=?,result=?,artifact_key=?,error=?,updated_at=datetime('now') WHERE id=?").bind(finalStatus,text,key,skipped.length?`${skipped.length} krokov zlyhalo.`:null,id),
+          this.env.DB.prepare("INSERT INTO ops_events(job_id,action,details) VALUES(?,?,?)").bind(id,finalStatus,JSON.stringify({team,models:outputs.map(o=>o.model),skipped}))
         ]);
         await recordStepDocument(this.env,{
           title:`Krok úlohy: ${String(job.task||'Úloha').slice(0,110)}`,
@@ -79,8 +80,8 @@ export class TrinityOperations extends WorkflowEntrypoint {
           receipt_id:`job:${id}`,
           tags:['workflow',...team]
         });
-        await createFollowupJob(this.env,job,text);
-        return {job_id:id,status:'completed',artifact_key:key};
+        if(finalStatus==='completed')await createFollowupJob(this.env,job,text);
+        return {job_id:id,status:finalStatus,artifact_key:key,failed_steps:skipped.length};
       });
     }catch(e){
       await step.do('record-failure',async()=>{
