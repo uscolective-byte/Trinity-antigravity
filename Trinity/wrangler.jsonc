@@ -280,6 +280,9 @@
   "env": {
     "staging": {
       "name": "trinity-staging",
+      "triggers": {
+        "crons": []
+      },
       "routes": [
         {
           "pattern": "auru.dev",

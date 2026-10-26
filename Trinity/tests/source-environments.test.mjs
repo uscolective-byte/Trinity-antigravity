@@ -20,6 +20,7 @@ test('one repository and branch serve isolated production and staging Workers',(
  assert.deepEqual(staging.routes,[{pattern:'auru.dev',custom_domain:true}]);
  assert.equal(staging.vars.TRINITY_ENV,'staging');
  assert.equal(staging.vars.TRINITY_PREVIEW_MODE,'build-only');
+ assert.deepEqual(staging.triggers,{crons:[]},'staging must not inherit production schedules');
  assert.equal(staging.vars.TRINITY_GITHUB_REPO,TRINITY_SOURCE.repository);
  assert.equal(staging.vars.TRINITY_GITHUB_BRANCH,TRINITY_SOURCE.branch);
  assert.deepEqual(staging.d1_databases.find(binding=>binding.binding==='DB'),{
