@@ -3,6 +3,7 @@
  * Riadiaca vrstva pre Agent Registry, Capability-First Scheduler, Policy Engine a Knowledge Graph.
  */
 import {z} from 'zod';
+import {HttpError} from './security.js';
 
 export const heartbeatSchema=z.object({
   agent_id:z.string().trim().min(2).max(100).regex(/^[A-Za-z0-9_-]+$/),
@@ -11,6 +12,17 @@ export const heartbeatSchema=z.object({
   latency_ms:z.number().finite().min(0).max(600000).default(0),
   cpu_load:z.number().finite().min(0).max(1).default(0),
   memory_load:z.number().finite().min(0).max(1).default(0)
+}).strict();
+
+export const agentRegistrationSchema=z.object({
+  agent_id:z.string().trim().min(2).max(100).regex(/^[A-Za-z0-9_-]+$/),
+  name:z.string().trim().min(2).max(160),
+  type:z.enum(['core','aura','standalone','bridge','external']).default('core'),
+  version:z.string().trim().regex(/^\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/).default('12.0.0'),
+  status:z.enum(['registered','available','busy','degraded','offline']).default('available'),
+  endpoint:z.string().trim().min(2).max(120).regex(/^[A-Za-z0-9_-]+$/).nullable().default(null),
+  owner:z.string().trim().min(2).max(200).default('system'),
+  capabilities:z.array(z.string().trim().min(3).max(100).regex(/^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/)).max(50).default([])
 }).strict();
 
 export function sanitizeD1(val) {
@@ -43,18 +55,16 @@ export function enforceCompletedEvidence(status, result) {
 /**
  * Agent Registry: Registrácia a správa stavov
  */
-export async function registerAgent(env, {
-  agent_id,
-  name,
-  type = 'core',
-  version = '12.0.0',
-  status = 'available',
-  endpoint = null,
-  owner = 'system',
-  capabilities = []
-}) {
+export async function registerAgent(env, input) {
+  const {agent_id,name,type,version,status,endpoint,owner,capabilities}=agentRegistrationSchema.parse(input);
   const now = Date.now();
   if (env?.DB?.prepare) {
+    const capabilityRows=[];
+    for(const capName of capabilities){
+      const cap=await env.DB.prepare('SELECT capability_id FROM capabilities WHERE name=?').bind(capName).first();
+      if(!cap?.capability_id)throw new HttpError(400,`Neznáma capability: ${capName}`);
+      capabilityRows.push(cap);
+    }
     await env.DB.prepare(`
       INSERT INTO agents (agent_id, name, type, version, status, endpoint, owner, heartbeat_at, updated_at)
       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8)
@@ -78,14 +88,11 @@ export async function registerAgent(env, {
     ).run();
 
     // Mapovanie schopností
-    for (const capName of capabilities) {
-      const cap = await env.DB.prepare('SELECT capability_id FROM capabilities WHERE name=?').bind(capName).first();
-      if (cap?.capability_id) {
-        await env.DB.prepare(`
-          INSERT OR IGNORE INTO agent_capabilities (agent_id, capability_id, confidence, priority)
-          VALUES (?1, ?2, 1.0, 100)
-        `).bind(sanitizeD1(agent_id), cap.capability_id).run();
-      }
+    for (const cap of capabilityRows) {
+      await env.DB.prepare(`
+        INSERT OR IGNORE INTO agent_capabilities (agent_id, capability_id, confidence, priority)
+        VALUES (?1, ?2, 1.0, 100)
+      `).bind(sanitizeD1(agent_id), cap.capability_id).run();
     }
   }
   return { agent_id, name, status, registered_at: now };

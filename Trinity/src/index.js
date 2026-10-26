@@ -743,6 +743,12 @@ async function route(request,env,ctx){
     const hb=await recordHeartbeat(env,body);
     return json({success:true,heartbeat:hb});
   }
+  if(path==='/api/os/agents/register'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,16384);
+    const agent=await registerAgent(env,{...body,owner:ownerId});
+    return json({success:true,agent},201);
+  }
   if(path==='/api/os/schedule'&&request.method==='POST'){
     requireAdmin(user);
     const body=z.object({required_capabilities:z.array(z.string().trim().min(3).max(100).regex(/^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/)).min(1).max(20)}).strict().parse(await readJSON(request,8192));

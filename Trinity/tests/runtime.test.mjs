@@ -234,6 +234,14 @@ test('Sovereign agent registry and policy rules require admin access',async()=>{
   assert.equal(unscheduled.status,409,await unscheduled.clone().text());
   assert.equal((await unscheduled.json()).scheduled,false);
   assert.equal((await req('/api/os/schedule',{required_capabilities:['INVALID'] })).status,400);
+  const registration={agent_id:'TEST_MEMORY_NODE',name:'Test Memory Node',type:'standalone',version:'12.0.0',status:'available',endpoint:'MEMORY',capabilities:['memory.search']};
+  assert.equal((await req('/api/os/agents/register',registration,false,{Cookie:cookie})).status,403);
+  const registered=await req('/api/os/agents/register',registration);
+  assert.equal(registered.status,201,await registered.clone().text());
+  const scheduled=await req('/api/os/schedule',{required_capabilities:['memory.search']});
+  assert.equal(scheduled.status,200,await scheduled.clone().text());
+  assert.equal((await scheduled.json()).decision.agent_id,'TEST_MEMORY_NODE');
+  assert.equal((await req('/api/os/agents/register',{...registration,agent_id:'UNKNOWN_CAP',capabilities:['memory.unknown']})).status,400);
 });
 
 

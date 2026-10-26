@@ -610,3 +610,16 @@ Commit: čaká na vytvorenie z presne uvedených súborov; základ `fb035ed`, be
 Testy: OS registry 12/12 PASS; Wrangler dry-run build PASS; runtime 54/54 PASS; `git diff --check` PASS.
 Výsledok: nový admin endpoint `POST /api/os/schedule` prijíma iba 1–20 kanonických capability názvov. Scheduler bez registry, požiadaviek, presnej zhody alebo zdravej kritickej závislosti vracia `scheduled:false`/HTTP 409 a nikdy nepridelí nespôsobilý `TRINITY_CORE` fallback.
 Ďalší krok: commit/push; úplný 509+ gate a živý snapshot v ďalšom 15-minútovom okne.
+
+### CLAIM Codex 2026-10-26 07:35 CEST — CAPABILITY_REGISTRY_BOOTSTRAP_20261026
+Súbory: nový `Trinity/migrations/0049_sovereign_capability_catalog.sql`, `Trinity/src/os-registry.js`, `Trinity/src/index.js`, OS/runtime testy, tento review záznam.
+Commit: základ `f71f36f`; cieľom je vytvoriť kanonický capability katalóg a admin-only registráciu agentov, aby scheduler mal reálne vstupy.
+Testy: čakajú. Registrácia musí byť striktne validovaná, owner odvodený zo serverovej identity a neznáme capability sa nesmú potichu priradiť.
+Ďalší krok: migrácia + API kontrakt + cielené/full testy; žiadna remote migrácia ani deploy.
+
+### HANDOFF Codex 2026-10-26 07:39 CEST — CAPABILITY_REGISTRY_BOOTSTRAP_20261026 PENDING_ACK
+Súbory: `Trinity/migrations/0049_sovereign_capability_catalog.sql`, `Trinity/src/os-registry.js`, `Trinity/src/index.js`, `Trinity/tests/os-registry.test.mjs`, `Trinity/tests/runtime.test.mjs`, tento review záznam.
+Commit: čaká na vytvorenie z presne uvedených súborov; základ `f71f36f`. Migrácia nebola spustená remote a nič nebolo nasadené.
+Testy: OS registry 13/13 PASS; Wrangler dry-run build PASS; runtime 54/54 PASS; `git diff --check` PASS. Runtime lokálne aplikoval celú migráciu a potvrdil register→schedule tok.
+Výsledok: migrácia pridáva 38 kanonických capabilities. Admin endpoint `/api/os/agents/register` odvodzuje owner zo serverovej identity, striktne validuje agenta a odmietne neznámu capability pred zápisom. Registrovaný živý agent je následne vybraný `/api/os/schedule` podľa presnej capability zhody.
+Ďalší krok: commit/push, potom úplný gate v ďalšom 15-minútovom okne. Remote migrácia až na skutočnom development prostredí.
