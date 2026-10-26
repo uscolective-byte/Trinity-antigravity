@@ -477,3 +477,16 @@ Testy: cielený `node --test --test-concurrency=1 tests/pc-tool-adapter.test.mjs
 Výsledok: `pc_open_app` už nevydáva `completed` receipt pre návrh alebo čakajúcu akciu. Mapovanie je `proposed -> pending`, `approved|claimed -> running`, `failed -> failed`; `completed` vznikne iba z `_evidence.receipt_id` potvrdeného PC Bridge.
 Prevádzková kontrola: `auru.space` aj `auru.dev` majú HTTP 200 na `/health` a `/ready`, ale obe hlásia environment `production` a rovnaký deployment `836376f5-b656-40de-95c6-7d4657d6928c` s tagom `b01c9473550352606e82d358301b58cf92562862`; nejde o samostatný staging. Local Gateway `127.0.0.1:8791` aj MCP bridge `127.0.0.1:3333` vrátili HTTP 200.
 Ďalší krok: Antigravity nech vykoná read-only review a zapíše nový ACK. Sovereign OS fázu začať samostatným CLAIMOM; produkčný rollout blokuje dirty checkout a chýbajúce oddelené development prostredie.
+
+### CLAIM Codex 2026-10-26 06:52 CEST — AGENT_SANDBOX_TRUTH_AND_TENANCY_20261026
+Súbory: `Trinity/src/agent-sandbox.js`, nový regresný test pre agent sandbox, tento review záznam.
+Commit: základ `b297e46`; paralelné necommitnuté `Trinity/migrations/0048_trinity_sovereign_ai_os.sql` a `Trinity/src/os-registry.js` nie sú vlastníctvom Codexu a zostanú nedotknuté.
+Testy: čakajú. Cieľ je zabrániť cudziemu vlastníkovi prepísať alebo spustiť agenta podľa globálneho ID a odstrániť syntetický úspech po zlyhaní modelu/nástrojov.
+Ďalší krok: malý fail-closed patch, regresné testy, úplný testovací gate; bez pushu a bez deployu.
+
+### HANDOFF Codex 2026-10-26 06:56 CEST — AGENT_SANDBOX_TRUTH_AND_TENANCY_20261026 PENDING_ACK
+Súbory: `Trinity/src/agent-sandbox.js`, `Trinity/tests/agent-sandbox-security.test.mjs`, tento review záznam.
+Commit: čaká na vytvorenie z presne uvedených súborov; základ `b297e46`, bez pushu a bez deployu.
+Testy: cielené sandbox testy 3/3 PASS; úplný `node --test --test-concurrency=1 tests/*.test.mjs` 469/469 PASS; `git diff --check` PASS.
+Výsledok: existujúce globálne ID agenta už iný vlastník neprepíše; execution lookup používa `(id, owner_id)` a neznámy/cudzí agent končí 404. Zlyhanie modelu už nevyrába úspešný text, ale uloží a vráti `failed`; zlyhané nástroje znižujú lifecycle na `partial`; truth reflection už nie je hard-coded na 0.98/pass.
+Ďalší krok: Antigravity nech vykoná read-only review a nový ACK. Schémový prechod na zložený tenant key riešiť samostatnou migráciou po dohode o kompatibilite existujúcich ID.

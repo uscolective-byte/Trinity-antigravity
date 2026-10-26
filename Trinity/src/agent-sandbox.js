@@ -119,6 +119,9 @@ export async function createOrUpdateCustomAgent(env, ownerId = 'admin', input) {
   const data = customAgentSchema.parse(input);
   if (!env.DB) throw new HttpError(500, 'Databáza Trinity nie je dostupná.');
 
+  const existing = await env.DB.prepare('SELECT owner_id FROM ops_custom_agents WHERE id = ?').bind(data.id).first();
+  if (existing && existing.owner_id !== ownerId) throw new HttpError(409, 'ID agenta už patrí inému vlastníkovi.');
+
   await env.DB.prepare(`
     INSERT INTO ops_custom_agents (id, owner_id, name, description, role, model, system_prompt, temperature, tools_json, autonomous_mode, domain_binding, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
@@ -165,10 +168,11 @@ export async function executeCustomAgent(env, ownerId = 'admin', input) {
 
   let agentRow = null;
   if (env.DB) {
-    agentRow = await env.DB.prepare('SELECT * FROM ops_custom_agents WHERE id = ?').bind(parsed.agent_id).first();
+    agentRow = await env.DB.prepare('SELECT * FROM ops_custom_agents WHERE id = ? AND owner_id = ?').bind(parsed.agent_id, ownerId).first();
   }
+  if (!agentRow) throw new HttpError(404, 'Agent neexistuje alebo nepatrí prihlásenému vlastníkovi.');
 
-  const agent = agentRow ? {
+  const agent = {
     id: agentRow.id,
     name: agentRow.name,
     role: agentRow.role,
@@ -176,14 +180,6 @@ export async function executeCustomAgent(env, ownerId = 'admin', input) {
     system_prompt: agentRow.system_prompt,
     tools: JSON.parse(agentRow.tools_json || '[]'),
     autonomous_mode: Boolean(agentRow.autonomous_mode)
-  } : {
-    id: parsed.agent_id,
-    name: 'Default Agent',
-    role: 'Assistant',
-    model: env.AI_MODEL || '@cf/openai/gpt-oss-120b',
-    system_prompt: 'Si autonómny AI agent v prostredí Trinity.',
-    tools: [],
-    autonomous_mode: true
   };
 
   const steps = [];
@@ -233,19 +229,24 @@ export async function executeCustomAgent(env, ownerId = 'admin', input) {
   ];
 
   let rawOutput = '';
+  let modelError = null;
   try {
     const modelRes = await callModel(env, 'workers-ai', messages);
-    rawOutput = modelRes.text || 'Odpoveď agenta bola vygenerovaná.';
-  } catch {
-    rawOutput = `Agent [${agent.name}] vykonal analýzu a spracoval ${steps.length} krokov v autonómnom režime pre zadanú úlohu: "${parsed.input}".`;
+    rawOutput = modelRes.text || '';
+    if (!rawOutput) modelError = 'Model nevrátil textový výsledok.';
+  } catch (error) {
+    modelError = error instanceof Error ? error.message : String(error);
   }
 
   // Step 4: Self-Reflection & Auto-Correction
+  const failedTools = steps.filter(step => step.phase === 'tool_execution' && step.status === 'failed').length;
+  const executionStatus = modelError ? 'failed' : failedTools ? 'partial' : 'completed';
   const selfReflection = {
     evaluated: true,
-    passed_truth_check: true,
-    correction_needed: false,
-    confidence_score: 0.98
+    passed_truth_check: executionStatus === 'completed',
+    correction_needed: executionStatus !== 'completed',
+    confidence_score: executionStatus === 'completed' ? 1 : 0,
+    error: modelError
   };
   steps.push({
     step: steps.length + 1,
@@ -260,15 +261,17 @@ export async function executeCustomAgent(env, ownerId = 'admin', input) {
   if (env.DB) {
     await env.DB.prepare(`
       INSERT INTO ops_agent_executions (id, agent_id, owner_id, input, output, steps_json, status, duration_ms, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, 'completed', ?, datetime('now'))
-    `).bind(execId, agent.id, ownerId, parsed.input, rawOutput, JSON.stringify(steps), durationMs).run().catch(() => null);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `).bind(execId, agent.id, ownerId, parsed.input, rawOutput || null, JSON.stringify(steps), executionStatus, durationMs).run();
   }
 
   return {
     execution_id: execId,
     agent_id: agent.id,
     agent_name: agent.name,
-    output: rawOutput,
+    output: rawOutput || null,
+    status: executionStatus,
+    error: modelError,
     steps,
     duration_ms: durationMs,
     self_reflection: selfReflection
