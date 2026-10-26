@@ -11,13 +11,13 @@ import fs from "node:fs";
 const execAsync = promisify(exec);
 
 // Konfigurácia TRINITY Sandboxu
-const DEFAULT_WORKSPACE = path.resolve("C:/Users/saboi/Trinity-antigravity");
-const WORKSPACE_DIR = process.env.TRINITY_WORKSPACE ? path.resolve(process.env.TRINITY_WORKSPACE) : DEFAULT_WORKSPACE;
-const BRIDGE_PORT = parseInt(process.env.TRINITY_PORT || "3333", 10);
-const BRIDGE_TOKEN = process.env.TRINITY_TOKEN || "trinity-local-secret";
+export const DEFAULT_WORKSPACE = path.resolve("C:/Users/saboi/Trinity-antigravity");
+export const WORKSPACE_DIR = process.env.TRINITY_WORKSPACE ? path.resolve(process.env.TRINITY_WORKSPACE) : DEFAULT_WORKSPACE;
+export const BRIDGE_PORT = parseInt(process.env.TRINITY_PORT || "3333", 10);
+export const BRIDGE_TOKEN = process.env.TRINITY_TOKEN || "trinity-local-secret";
 
 // Constitutional Security Audit - zakázané deštruktívne vzory príkazov
-const BLOCKED_PATTERNS = [
+export const BLOCKED_PATTERNS = [
   /rm\s+-rf\s+\/($|\s)/i,
   /mkfs/i,
   /dd\s+if=/i,
@@ -27,7 +27,7 @@ const BLOCKED_PATTERNS = [
   /Remove-Item\s+-Recurse\s+-Force\s+C:\\/i
 ];
 
-function auditCommand(cmd) {
+export function auditCommand(cmd) {
   for (const pattern of BLOCKED_PATTERNS) {
     if (pattern.test(cmd)) {
       throw new Error(`SECURITY AUDIT REJECTED: Príkaz porušuje bezpečnostné pravidlá TRINITY (${cmd})`);
@@ -35,7 +35,7 @@ function auditCommand(cmd) {
   }
 }
 
-async function runSafeCommand(command, subdir = ".", timeoutMs = 120000) {
+export async function runSafeCommand(command, subdir = ".", timeoutMs = 120000) {
   auditCommand(command);
   const resolvedCwd = path.resolve(WORKSPACE_DIR, subdir);
   const normalizedRoot = path.resolve(WORKSPACE_DIR);
@@ -128,60 +128,112 @@ mcpServer.tool(
 );
 
 // 2. HTTP Bridge pre Webový Chat (gemini.google.com / chatgpt.com -> localhost:3333)
-const app = express();
-app.use(cors({
-  origin: "*"
-}));
-app.use(express.json({ limit: "10mb" }));
+export const ALLOWED_ORIGIN_PATTERNS = [
+  /^https:\/\/(www\.)?auru\.(space|dev)$/,
+  /^https:\/\/gemini\.google\.com$/,
+  /^https:\/\/(chatgpt\.com|chat\.openai\.com)$/,
+  /^https:\/\/claude\.ai$/,
+  /^http:\/\/localhost(:\d+)?$/,
+  /^http:\/\/127\.0\.0\.1(:\d+)?$/
+];
 
-// Health check
-app.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    service: "trinity-mcp-bridge",
-    workspace: WORKSPACE_DIR,
-    timestamp: new Date().toISOString()
-  });
-});
+export function isOriginAllowed(origin) {
+  if (!origin || origin === "null") return true; // Direct non-browser CLI/Curl/Tampermonkey requests
+  return ALLOWED_ORIGIN_PATTERNS.some(p => p.test(origin));
+}
 
-app.post("/exec", async (req, res) => {
-  const token = req.headers["x-trinity-token"];
-  if (token !== BRIDGE_TOKEN) {
-    return res.status(401).json({ error: "Neplatný TRINITY token" });
-  }
-
-  const { tool, command, args, subdir } = req.body;
-  try {
-    let finalCmd = command;
-    let targetSubdir = subdir || ".";
-
-    if (tool === "wrangler") {
-      const cleanArgs = (args || command || "").replace(/^wrangler\s+/i, "");
-      finalCmd = `npx --yes wrangler ${cleanArgs}`;
-      if (!subdir && fs.existsSync(path.join(WORKSPACE_DIR, "Trinity"))) {
-        targetSubdir = "Trinity";
+export function createApp() {
+  const app = express();
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS_REJECTED: Origin '${origin}' nie je povolený.`));
       }
     }
+  }));
+  app.use(express.json({ limit: "10mb" }));
 
-    if (!finalCmd) {
-      return res.status(400).json({ status: "error", message: "Chýba príkaz na vykonanie" });
+  // Health check
+  app.get("/health", (req, res) => {
+    res.json({
+      status: "ok",
+      service: "trinity-mcp-bridge",
+      workspace: WORKSPACE_DIR,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  app.post("/exec", async (req, res) => {
+    const token = req.headers["x-trinity-token"];
+    if (token !== BRIDGE_TOKEN) {
+      return res.status(401).json({ error: "Neplatný TRINITY token" });
     }
 
-    const result = await runSafeCommand(finalCmd, targetSubdir);
-    res.json({ status: "ok", tool: tool || "cmd", result });
-  } catch (err) {
-    res.status(400).json({ status: "error", message: err.message });
-  }
-});
+    const { tool, command, args, subdir } = req.body;
+    try {
+      let finalCmd = command;
+      let targetSubdir = subdir || ".";
 
-// Spustenie HTTP daemonu
-app.listen(BRIDGE_PORT, "127.0.0.1", () => {
-  console.error(`[TRINITY Bridge] HTTP brána beží na http://127.0.0.1:${BRIDGE_PORT}`);
-  console.error(`[TRINITY Bridge] Workspace: ${WORKSPACE_DIR}`);
-});
+      if (tool === "wrangler") {
+        const cleanArgs = (args || command || "").replace(/^wrangler\s+/i, "");
+        finalCmd = `npx --yes wrangler ${cleanArgs}`;
+        if (!subdir && fs.existsSync(path.join(WORKSPACE_DIR, "Trinity"))) {
+          targetSubdir = "Trinity";
+        }
+      }
+
+      if (!finalCmd) {
+        return res.status(400).json({ status: "error", message: "Chýba príkaz na vykonanie" });
+      }
+
+      const result = await runSafeCommand(finalCmd, targetSubdir);
+      res.json({ status: "ok", tool: tool || "cmd", result });
+    } catch (err) {
+      res.status(400).json({ status: "error", message: err.message });
+    }
+  });
+
+  // CORS error handler
+  app.use((err, req, res, next) => {
+    if (err && err.message && err.message.startsWith("CORS_REJECTED")) {
+      return res.status(403).json({ error: err.message });
+    }
+    res.status(500).json({ error: err ? err.message : "Internal server error" });
+  });
+
+  return app;
+}
+
+const app = createApp();
+
+// Spustenie HTTP daemonu iba ak je súbor spustený priamo
+const isMainModule = process.argv[1] && (
+  import.meta.url.toLowerCase().endsWith(path.basename(process.argv[1]).toLowerCase()) ||
+  path.resolve(process.argv[1]).toLowerCase() === path.resolve(decodeURI(new URL(import.meta.url).pathname)).toLowerCase()
+);
+
+let httpServer = null;
+if (isMainModule && process.env.NODE_ENV !== "test") {
+  httpServer = app.listen(BRIDGE_PORT, "127.0.0.1", () => {
+    console.error(`[TRINITY Bridge] HTTP brána beží na http://127.0.0.1:${BRIDGE_PORT}`);
+    console.error(`[TRINITY Bridge] Workspace: ${WORKSPACE_DIR}`);
+  });
+
+  httpServer.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`[TRINITY Bridge] Upozornenie: Port ${BRIDGE_PORT} je už obsadený inou inštanciou.`);
+      console.error(`[TRINITY Bridge] Server už aktívne beží na porte ${BRIDGE_PORT}.`);
+      process.exit(0);
+    } else {
+      console.error(`[TRINITY Bridge] Chyba servera:`, err.message);
+    }
+  });
+}
 
 // Stdio transport ak je spustený cez MCP klienta
-if (process.env.MCP_STDIO === "true" || !process.stdout.isTTY) {
+if (isMainModule && (process.env.MCP_STDIO === "true" || !process.stdout.isTTY) && process.env.NODE_ENV !== "test") {
   try {
     const transport = new StdioServerTransport();
     await mcpServer.connect(transport);
