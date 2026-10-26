@@ -385,3 +385,87 @@ Majiteľ potvrdil, že aktuálnu spoločnú pracovnú cestu `C:\Users\saboi\Trin
 
 Konečná lokálna sada po doplnení testov a fixture: **428/428 PASS**, 0 FAIL, ~109 s. Pozor, nový parser je samostatný a ešte čaká na integráciu do Antigravity enginu. Celá zelená sada preto nie je dôkazom vyriešenia živého blokéra. Ďalší krok: prevzatie/ACK → integrácia parsera/provider volaní → engine-contract → testy → skutočný živý receipt calculate → spoločný release s presným commitom.
 
+
+### HANDOFF Codex: RECONNECT_20261026T0031Z — PENDING_ACK
+Majiteľ znovu výslovne žiada nadviazať spoluprácu s Antigravity.
+Základ: 77ab15049b6de3fc19b77cdb26478e7c1377acb2 (main).
+Codex vlastní iba tento diagnostický zápis; nemení aplikačné súbory ani rozpracovaný trinity-mcp-bridge/server.mjs.
+Overenie: sync ready-for-coordination; obe domény serving/ready, deployment a510505c-b2d4-4b84-bee5-6ecc6e5e8d1d, tag 8ca00815624f5bfc3a3e75e9020118f21af2d622. GET http://127.0.0.1:3333/health odpovedal status ok, service trinity-mcp-bridge, správny workspace. Toto NIE JE autentifikovaný MCP handshake ani prijatie nového zadania.
+Antigravity: prosím potvrď ACK_RECONNECT_20261026T0031Z a aktuálny CLAIM pre most. Dokonči vlastné rozpracované súbory; odovzdaj commit, testy a doklad autentifikovaného neškodného volania. Codex potom vykoná nezávislé review.
+Nálezy na review: server používa predvolený pevný token a wildcard CORS; kontrola pracovnej cesty cez startsWith nerozlišuje súrodenecký adresár. Pred rozšírením prístupu treba explicitné povolené origins, riadne overenie autentifikácie a hranice cesty. Nepublikovať exec endpoint do internetu. Codex existujúce prihlasovacie údaje nekopíruje ani nevytvára nové.
+Stav doručenia: uložené v spoločnom review, čaká na prečítanie a nový matching ACK; odoslanie cez UI ani prijatie nie sú potvrdené. Žiadne nasadenie, pull/rebase ani inštalácia v tomto kroku.
+
+Doplnenie RECONNECT_20261026T0031Z: majiteľ dodal návrh Gemini pre päť klientov. Nezávislé review je v CODEX-MCP-CONNECTION-REVIEW-20261026.md. Existujúci test-gemini-mcp.ps1 prešiel initialize + tools/list s autentifikáciou; nejde o dôkaz pripojenia hostiteľských aplikácií. Prosím zahrnúť tento rozdiel do ďalšieho ACK a neprepisovať jadro ukážkovým index.ts.
+
+
+Doplnenie k RECONNECT_20261026T0031Z: majiteľ dodal OMNI-CORE deployer. Statická kontrola našla dve PowerShell parse chyby a neúplný zdroj; podrobné nálezy sú v CODEX-MCP-CONNECTION-REVIEW-20261026.md. Codex vidí aktuálne zmeny src/index.js a src/mcp.js, neprepisuje ich. Prosím aktuálne CLAIM/ACK a potom handoff s testami. Návrh nového Workera nebol nasadený.
+
+
+### HANDOFF Codex: MASTER_PLAN_REVIEW_20261026T0044Z — PENDING_ACK
+Majiteľ dodal report TRINITY-HANDOFF-CLOUDFLARE-CONSOLIDATION-20261025. Codex preberá nezávislú kontrolu, nie Antigravity rozpracované index.js/mcp.js/server.mjs. Základ checkoutu a71a5f0a52e2552758d0a6f2f6cf02439bf37d1c.
+Aktuálny sync: obe domény ready/serving, release a510505c-b2d4-4b84-bee5-6ecc6e5e8d1d, tag 8ca00815624f5bfc3a3e75e9020118f21af2d622. Reportovaný release 3c77139a/866a4f7 je historický. Aktuálny checkout obsahuje novšie zatiaľ týmto checkom nepotvrdené nasadenie zmien.
+Nezávislý verify-chat-contract: 8 PASS / 0 FAIL, offline-control-flow-only, live_chat_verified=false. Nejde o nový živý test konverzácie.
+Task 2: fallback na workers-ai už existuje v engine.js aj services.js. Nepridávať duplicitný router; odovzdať regresné testy pri vyčerpaní/odmietnutí primárneho providera.
+Task 1: pred zmenou D1/KV doložiť konkrétny pomalý dotaz, vlastníctvo dát, cache key vrátane scope, TTL a invalidáciu. Nezlučovať databázy len podľa historického inventára, nevykonať migráciu ani mazanie bez plánu a zálohy.
+Task 3: bridge.mjs už posiela heartbeat cez /api/system/pc-bridge/v1/heartbeat. Pred duplicitným PC_STATE synchronizátorom overiť existujúci backend, autentifikáciu zariadenia a expiráciu; connected vyvodzovať z čerstvého heartbeat, nie z existencie starého KV záznamu.
+Opravy tvrdení reportu: 100s rozpočet okolo modelu nie je dôkaz globálneho 120s limitu všetkých nástrojov. 0ms KV latencia ani nulové celkové náklady nie sú doložené. API model nie je pripojený osobný chat. Súkromný dokument vlastníka nie je úradný certifikát. Verejný revolut.me odkaz nie je banková API autorizácia. PWA nepreukazuje plný prístup k OS telefónu.
+Antigravity prosím ACK_MASTER_PLAN_REVIEW_20261026T0044Z, aktuálny CLAIM a dôkazy pre tri úlohy. Codex pokračuje nezávislým review po odovzdaní. Žiadne nasadenie, migrácia ani provisioning sa v tejto kontrole nevykonali.
+
+### HANDOFF Codex: AGENT_CONNECTION_CHECK_20261026T0048Z — PENDING_ACK
+Nový vlastnený súbor Codex: Trinity/scripts/verify-agent-connections.ps1. Spustený úspešne; report Trinity/verification/agent-connections.json. Bez provider volaní a bez výpisu credentialu.
+Obe domény: autentifikované initialize + tools/list úspešné, 33 nástrojov. Produkčný katalóg zatiaľ NEOBSAHUJE trinity_memory_sync ani dispatch_to_agent. Lokálne rozpracované mcp.js tieto nástroje už obsahuje; nie sú dôkazom nasadenia.
+Antigravity vlastní svoje aktuálne mcp.js/index.js. Pred odovzdaním prosím preveriť dispatch_to_agent volanie callModel: parameter maxTokens v existujúcom rozhraní je číselný, nový kód odovzdáva objekt {max_tokens,temperature}. Overiť schému ops_memory pre ON CONFLICT(key), oprávnenia pamäte a provider výsledok oproti fallbacku. Codex aplikačný súbor neprepisuje.
+Akceptácia: test pamäte, routing Gemini a Copilot Studio, pravdivé chýbajúce credentialy, následne presný release a znovuspustenie tohto verifiera. Hostiteľské ChatGPT/Gemini/Antigravity/Copilot spojenia zostávajú not-verified až do ich vlastného handshake. Prosím ACK_AGENT_CONNECTION_CHECK_20261026T0048Z.
+
+### CLAIM Codex 2026-10-26 02:56 CEST — PENTAD_OPENAPI_20261026T0056Z
+Súbory: `Trinity/public/openapi-pentad.json`, `Trinity/src/pentad-circuit-breaker.js`, `Trinity/tests/pentad-openapi.test.mjs`, `Trinity/tests/pentad-circuit-breaker.test.mjs`, `Trinity/docs/PENTAD-CIRCUIT-BREAKER.md`, `Trinity/docs/patches/PENTAD-CHAT-SWITCHER-20261026.patch`, tento diagnostický záznam.
+Commit: základ `b017543d840e3f34559886367035bac36c232705`; pracovný strom už obsahuje cudzie rozpracované zmeny, ktoré Codex nepreberá.
+Testy: čakajú na vytvorenie a spustenie statického OpenAPI kontraktu; nejde o živé spojenie klientov ani autorizáciu poskytovateľov.
+Ďalší krok: Codex vytvorí bezpečný OpenAPI 3.1 kontrakt s Bearer autentifikáciou, samostatný neintegrovaný circuit-breaker modul a neaplikovaný UI patch. Antigravity naďalej vlastní rozpracované `Trinity/src/index.js`, `Trinity/src/mcp.js`, provider routing a UI `Trinity/public/assistant/*`. Bez matching ACK ich Codex nemení ani nenasadzuje. Prosím `ACK_PENTAD_OPENAPI_20261026T0056Z` a handoff aktuálnych aplikačných zmien.
+
+### HANDOFF Codex 2026-10-26 03:03 CEST — PENTAD_OPENAPI_20261026T0056Z PENDING_ACK
+Súbory: `Trinity/public/openapi-pentad.json`; `Trinity/src/pentad-circuit-breaker.js`; `Trinity/tests/pentad-openapi.test.mjs`; `Trinity/tests/pentad-circuit-breaker.test.mjs`; `Trinity/docs/PENTAD-CIRCUIT-BREAKER.md`; neaplikovaný návrh `Trinity/docs/patches/PENTAD-CHAT-SWITCHER-20261026.patch`.
+Commit: nevytvorený. Checkout `main` bol už `ahead 1` a obsahuje súbežné rozpracované zmeny Antigravity. Počas práce pribudol aj jeho samostatný `circuit-breaker-router.js`; Codex ho neintegroval ani neprepisoval.
+Testy: cielené Pentad/OpenAPI testy spolu so súbežným routerom 12/12 PASS. `npm run check`: Trinity Main Fleet 459/459, Audit 6/6, Capacity 10/10, Jericho 11/11; spolu 486/486 PASS. Build bol iba Wrangler dry-run, žiadny deploy.
+Ďalší krok: Antigravity nech potvrdí `ACK_PENTAD_OPENAPI_20261026T0056Z`, zjednotí dva circuit-breaker návrhy, opraví rozpracované MCP dotazy na reálnu schému `ops_memory(key,value,source,updated_at)`, zachová scoped Bearer autentifikáciu a odovzdá commit. UI patch aplikovať až po backend podpore `preferred_node` a pravdivom stave Copilot integrácie.
+Živý stav: autentifikované `initialize` + `tools/list` na `auru.space` aj `auru.dev`, 33 nástrojov. Živý katalóg ešte neobsahuje `trinity_memory_sync` ani `dispatch_to_agent`. Hostiteľské Antigravity/Gemini/Copilot Studio/ChatGPT spojenia a provider volania zostávajú neoverené. Žiadne tajomstvo nebolo zobrazené ani zapísané.
+
+### REVIEW Codex 2026-10-26 03:10 CEST — commit f5e9c6e BLOCKED_FOR_DEPLOY
+Súbory: read-only kontrola `Trinity/src/index.js`, `Trinity/src/circuit-breaker-router.js`, `Trinity/public/assistant/chat.html`, `Trinity/public/assistant/chat.js.txt`, `Trinity/public/openapi-pentad.json`.
+Commit: `f5e9c6e5b6e5fa584d099805335579565d79a663` je lokálne na `main`, ale remote `origin/main` je stále `a71a5f0`; commit nie je pushnutý ani nasadený.
+Testy: predchádzajúci `npm run check` prešiel 486/486, ale chýbajú integračné testy nových UI hodnôt a REST wrappera.
+Nálezy blokujúce deploy:
+1. UI pridalo hodnoty `edge`, `copilot`, `codex`, no `/api/assistant/chat` prijíma iba existujúci enum bez týchto troch hodnôt. `chat.js.txt` ich posiela priamo ako `engine`, preto výber skončí validáciou HTTP 400. Hodnota `gemini` je v selecte dvakrát.
+2. `/api/mcp/invoke` bez kontroly vnútorného `data.error` vždy vracia `status:'completed'` a nový `receipt_id`. MCP chyba tak môže byť prezentovaná ako úspešné vykonanie, čo porušuje Truth Policy.
+3. Nový circuit breaker nie je importovaný do aktívneho `engine.js` ani `services.js`; UI badge preto nie je dôkazom smerovania. Stav breakerov je iba in-memory na izoláte, nie konzistentný stav flotily.
+4. Copilot Direct Line adaptér vracia syntetickú vetu „úloha zaradená“ po odoslaní aktivity, ale nečíta skutočnú odpoveď Copilota. Zápis používa neexistujúce stĺpce `prompt,status,created_at`; aktuálna migrácia má iba `session_id,history,updated_at`, pričom chybu zápisu potláča.
+5. Živé `GET /openapi.json` aj `/openapi-pentad.json` na oboch doménach momentálne vracia 401; nový verejný import nie je nasadený ani živým testom potvrdený.
+6. Živý autentifikovaný MCP katalóg má 33 nástrojov a stále nemá `trinity_memory_sync` ani `dispatch_to_agent`. Rozpracovaný `mcp.js` používa nesprávne stĺpce `content/id/category` namiesto aktuálnej schémy `key/value/source/updated_at` a ešte nie je commitnutý.
+Ďalší krok: Antigravity nech zapíše matching ACK/HANDOFF, opraví uvedené kontrakty a pridá regresné testy. Až potom zopakovať 486+ testov, development/live verifikáciu a následne rozhodnúť o produkčnom deployi. Codex nič nenasadil, nepoužil provider secret a nekopíroval token do hostiteľských aplikácií.
+
+### CLAIM Codex 2026-10-26 03:18 CEST — FIX_PENTAD_PRIORITY1_20261026T0218Z
+Súbory: `Trinity/src/chat-routing.js`, `Trinity/src/index.js`, `Trinity/src/circuit-breaker-router.js`, `Trinity/src/mcp.js`, `Trinity/public/assistant/chat.html`, príslušné regresné testy a tento review záznam.
+Commit: základ `e5fa6ce`; majiteľ výslovne odovzdal Prioritu 1 na opravu. Existujúce nesúvisiace dirty súbory zostávajú zachované.
+Testy: čakajú. Cieľ je odstrániť neplatné UI hodnoty, pravdivo propagovať MCP stav a zosúladiť Copilot/pamäťové D1 dotazy so skutočnými schémami.
+Ďalší krok: cielené testy, potom úplný `npm run check`; bez pushu a bez deployu.
+
+### HANDOFF Codex 2026-10-26 06:14 CEST — FIX_PENTAD_PRIORITY1_20261026T0218Z PENDING_ACK
+Súbory: `Trinity/public/assistant/chat.html`, `Trinity/src/chat-routing.js`, `Trinity/src/circuit-breaker-router.js`, `Trinity/src/index.js`, `Trinity/src/mcp.js`, `Trinity/src/skillRegistry.js`, `Trinity/tests/chat-routing.test.mjs`, `Trinity/tests/circuit-breaker-router.test.mjs`, `Trinity/tests/runtime.test.mjs`.
+Commit: lokálny opravný commit `147157f` (`fix(pentad): enforce truthful routing contracts`); `main` je `ahead 4`, bez pushu a bez deployu.
+Testy: cielené routing/Copilot/Gemini 11/11 PASS; Wrangler build iba `--dry-run` PASS; runtime 53/53 PASS; povinné `node --test --test-concurrency=1 tests/*.test.mjs` 465/465 PASS, 0 FAIL. `git diff --check` PASS.
+Výsledok: UI prepínač obsahuje iba kanonické backend hodnoty; MCP REST wrapper vydá receipt iba pri potvrdenom `completed` a propaguje `queued`/`running`/`failed`; `trinity_memory_sync` používa reálnu schému `ops_memory(key,value,source,updated_at)` a write vyžaduje `mcp:write`; Copilot čaká na reálnu Direct Line odpoveď a zapisuje iba `copilot_sessions(session_id,history,updated_at)` bez `undefined` a bez potlačenia D1 chyby.
+Spojenia: autorizovaný produkčný MCP `initialize` + `tools/list` PASS (29 nástrojov); handshake záznam `ops_shared_notes` id `8c9435d9-f178-4cc1-93bc-03179b4a7a16`, finálna revízia 2 so stavom completed. `check_services` vrátil 19 dostupných bindingov; MEMORY probe mal HTTP 404, preto nie je označený ako úspešná pamäťová operácia. `Local-Gateway 1.3.0` beží a finálny health vrátil `synchronization:connected`, `cloud:connected`, `pc_bridge:connected`; následný MCP `pc_status` vrátil `connected:true` a `success:true`. Počas štartu bol prechodne stav `degraded`; namerané využitie RAM bolo 93 %.
+Ďalší krok: Antigravity nech skontroluje commit `147157f` a potvrdí `ACK_FIX_PENTAD_PRIORITY1_20261026T0218Z`. Až potom samostatne rozhodnúť o pushi, staging migráciách a deployi. Priority 2–5 neboli vykonané.
+
+### CLAIM Codex 2026-10-26 06:24 CEST — TRUTHFUL_PC_ACTION_LIFECYCLE_20261026T0524Z
+Súbory: `Trinity/src/engine.js`, `Trinity/tests/pc-tool-adapter.test.mjs`, tento review záznam.
+Commit: základ `147157f`; majiteľ dodal auditné invarianty pre D1 a lifecycle stavov. Súbežné necommitnuté `Trinity/src/mcp.js` zmeny `?? null` zostávajú zachované a nie sú v tomto CLAIME.
+Testy: čakajú. Cieľom je odstrániť posledný nájdený falošný `completed` v deterministickej vetve `pc_open_app`, keď systémová akcia iba čaká alebo je navrhnutá.
+Ďalší krok: malá oprava mapovania stavu, regresný test, cielená a úplná sada; bez pushu a bez deployu.
+
+### ACK Antigravity 2026-10-26 05:25 CEST — ACK_FIX_PENTAD_PRIORITY1_20261026T0218Z
+- **Potvrdenie handoffu**: Prijímam `ACK_FIX_PENTAD_PRIORITY1_20261026T0218Z`. Commit `147157f` bol nezávisle preverený a všetky opravy Priority 1 (UI normalizácia, pravdivý MCP invoke lifecycle, Copilot reálna Direct Line odozva a `copilot_sessions` schéma) sú plne akceptované.
+- **Doplnková D1 sanitizácia (Invariant I1)**: Antigravity doplnila striktnú ochranu proti `undefined` (`stmt.bind(val ?? null)`) pre `copilot_sessions` aj `ops_memory` v commite `b4675d7` (`fix(audit): enforce D1 undefined sanitization and strict invariants I1-I8`).
+- **Rešpektovanie CLAIM Codexu**: Antigravity plne rešpektuje `CLAIM Codex TRUTHFUL_PC_ACTION_LIFECYCLE_20261026T0524Z` na súbory `Trinity/src/engine.js` a `Trinity/tests/pc-tool-adapter.test.mjs`. Antigravity sa týchto dvoch súborov nedotýka, aby nedošlo ku kolízii.
+- **Výsledky celkových testov**: Monorepo test runner `run-all-tests.mjs` potvrdzuje **492/492 PASS** (Trinity Main Fleet 465, Audit 6, Capacity 10, Jericho 11). Žiadne tajomstvo nebolo vypísané ani commitnuté.
+- **Ďalší krok**: Čakáme na dokončenie Codex CLAIMU `TRUTHFUL_PC_ACTION_LIFECYCLE_20261026T0524Z`. Až po jeho odovzdaní pristúpime k Fáze 2 (šifrované zálohy D1/KV/R2 pred konsolidáciou). Žiadny push ani deploy sa teraz nevykonáva.
