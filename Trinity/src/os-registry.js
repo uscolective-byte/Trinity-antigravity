@@ -25,6 +25,12 @@ export const agentRegistrationSchema=z.object({
   capabilities:z.array(z.string().trim().min(3).max(100).regex(/^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/)).max(50).default([])
 }).strict();
 
+export const leaseSchema=z.object({
+  agent_id:z.string().trim().min(2).max(100).regex(/^[A-Za-z0-9_-]+$/),
+  job_id:z.string().trim().min(2).max(160).regex(/^[A-Za-z0-9:_-]+$/),
+  lease_seconds:z.number().int().min(5).max(3600).default(300)
+}).strict();
+
 export function sanitizeD1(val) {
   return val === undefined ? null : val;
 }
@@ -138,31 +144,32 @@ export async function recordHeartbeat(env, input) {
 /**
  * Agent Leasing: Zámky úloh s expiračným oknom
  */
-export async function acquireLease(env, { agent_id, job_id, lease_seconds = 300 }) {
+export async function acquireLease(env, input) {
+  const {agent_id,job_id,lease_seconds}=leaseSchema.parse(input);
   const now = Date.now();
   const expires_at = now + (lease_seconds * 1000);
   const lease_id = `lease_${now}_${Math.random().toString(36).slice(2, 8)}`;
 
   if (env?.DB?.prepare) {
-    // Overenie existujúceho aktívneho lease
-    const existing = await env.DB.prepare('SELECT lease_id, agent_id, expires_at FROM agent_leases WHERE job_id=?').bind(sanitizeD1(job_id)).first();
-    if (existing && existing.expires_at > now && existing.agent_id !== agent_id) {
-      throw new Error(`Úloha ${job_id} je už zamknutá agentom ${existing.agent_id} do ${new Date(existing.expires_at).toISOString()}`);
-    }
-
-    await env.DB.prepare(`
+    const claimed=await env.DB.prepare(`
       INSERT INTO agent_leases (lease_id, agent_id, job_id, expires_at, created_at)
       VALUES (?1, ?2, ?3, ?4, ?5)
       ON CONFLICT(job_id) DO UPDATE SET
+        lease_id = excluded.lease_id,
         agent_id = excluded.agent_id,
-        expires_at = excluded.expires_at
+        expires_at = excluded.expires_at,
+        created_at = excluded.created_at
+      WHERE agent_leases.expires_at <= ?5 OR agent_leases.agent_id = excluded.agent_id
+      RETURNING lease_id, agent_id, job_id, expires_at
     `).bind(
       lease_id,
       sanitizeD1(agent_id),
       sanitizeD1(job_id),
       expires_at,
       now
-    ).run();
+    ).first();
+    if(!claimed)throw new Error(`Úloha ${job_id} už má aktívny lease iného agenta.`);
+    return claimed;
   }
 
   return { lease_id, agent_id, job_id, expires_at };

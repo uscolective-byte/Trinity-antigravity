@@ -175,17 +175,18 @@ test('Agent Leasing: acquireLease and releaseLease manage task exclusivity', asy
       prepare: (sql) => ({
         bind: (...params) => ({
           first: async () => {
-            if (sql.includes('SELECT lease_id, agent_id, expires_at FROM agent_leases')) {
-              const jobId = params[0];
-              return leases.get(jobId) || null;
+            if (sql.includes('INSERT INTO agent_leases')) {
+              const [lease_id,agent_id,job_id,expires_at,now]=params;
+              const existing=leases.get(job_id);
+              if(existing&&existing.expires_at>now&&existing.agent_id!==agent_id)return null;
+              const row={lease_id,agent_id,job_id,expires_at};
+              leases.set(job_id,row);
+              return row;
             }
             return null;
           },
           run: async () => {
-            if (sql.includes('INSERT INTO agent_leases')) {
-              const [lease_id, agent_id, job_id, expires_at] = params;
-              leases.set(job_id, { lease_id, agent_id, expires_at });
-            } else if (sql.includes('DELETE FROM agent_leases')) {
+            if (sql.includes('DELETE FROM agent_leases')) {
               leases.delete(params[0]);
             }
             return { success: true };
@@ -203,7 +204,7 @@ test('Agent Leasing: acquireLease and releaseLease manage task exclusivity', asy
   // 2. Reject another agent claiming active lease
   await assert.rejects(async () => {
     await acquireLease(mockEnv, { agent_id: 'AGENT_B', job_id: 'job-999', lease_seconds: 60 });
-  }, /Úloha job-999 je už zamknutá/);
+  }, /aktívny lease/);
 
   // 3. Release lease
   const rel = await releaseLease(mockEnv, 'job-999');
@@ -212,6 +213,19 @@ test('Agent Leasing: acquireLease and releaseLease manage task exclusivity', asy
   // 4. Now another agent can acquire it
   const lease2 = await acquireLease(mockEnv, { agent_id: 'AGENT_B', job_id: 'job-999', lease_seconds: 60 });
   assert.equal(lease2.agent_id, 'AGENT_B');
+});
+
+test('Agent Leasing: invalid lease requests never reach D1',async()=>{
+  let prepared=false;
+  const env={DB:{prepare(){prepared=true;}}};
+  for(const input of [
+    {agent_id:'A',job_id:'job-1',lease_seconds:60},
+    {agent_id:'AGENT_A',job_id:'x',lease_seconds:60},
+    {agent_id:'AGENT_A',job_id:'job-1',lease_seconds:4},
+    {agent_id:'AGENT_A',job_id:'job-1',lease_seconds:3601},
+    {agent_id:'AGENT_A',job_id:'job-1',extra:true}
+  ])await assert.rejects(acquireLease(env,input));
+  assert.equal(prepared,false);
 });
 
 test('Capability Scheduler: findBestAgentForCapabilities matches capabilities and ranks agents', async () => {

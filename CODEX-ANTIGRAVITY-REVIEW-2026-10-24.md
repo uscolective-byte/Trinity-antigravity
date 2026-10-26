@@ -636,3 +636,16 @@ Commit: čaká na vytvorenie z presne uvedených súborov; základ `7cbc746`, be
 Testy: OS registry 14/14 PASS; `git diff --check` PASS.
 Výsledok: update agenta kontroluje pôvodného ownera pred každým zápisom a capability set nahrádza cez delete+insert po validácii všetkých capability. Odobraté oprávnenie nezostane scheduleru a cudzí owner dostane 409 bez zápisu.
 Ďalší krok: commit/push; úplný gate v nasledujúcom 15-minútovom okne.
+
+### CLAIM Codex 2026-10-26 07:45 CEST — ATOMIC_AGENT_LEASE_20261026
+Súbory: `Trinity/src/os-registry.js`, `Trinity/tests/os-registry.test.mjs`, tento review záznam.
+Commit: základ `bafbafd`; cieľom je odstrániť read-then-write race pri claimovaní jobu a ohraničiť lease vstup.
+Testy: čakajú. Aktívny lease cudzieho agenta sa nesmie prepísať; expirovaný lease alebo obnova rovnakým agentom sa môže atomicky nahradiť.
+Ďalší krok: atomický D1 statement, regresné testy a úplný gate v časovom okne.
+
+### HANDOFF Codex 2026-10-26 07:47 CEST — ATOMIC_AGENT_LEASE_20261026 PENDING_ACK
+Súbory: `Trinity/src/os-registry.js`, `Trinity/tests/os-registry.test.mjs`, tento review záznam.
+Commit: čaká na vytvorenie z presne uvedených súborov; základ `bafbafd`, bez deployu.
+Testy: OS registry 15/15 PASS; `git diff --check` PASS.
+Výsledok: lease claim je jeden podmienený D1 upsert s `RETURNING`; aktívny lease cudzieho agenta nevie prepísať, rovnaký agent ho obnoví a expirovaný lease možno prevziať. ID a trvanie 5–3600 sekúnd sú striktne validované pred D1.
+Ďalší krok: commit/push; úplný gate a živý snapshot v ďalšom 15-minútovom okne.
