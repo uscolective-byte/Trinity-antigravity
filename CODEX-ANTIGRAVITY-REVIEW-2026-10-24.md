@@ -545,3 +545,10 @@ Súbory: `Trinity/src/engine.js`, `Trinity/tests/truth-tool-result.test.mjs`, te
 Commit: základ `482fb84`; cieľom je zabrániť generickej agentnej slučke označiť výsledok `{ok:false}` alebo `partial` ako `completed` s náhodným receiptom.
 Testy: čakajú. Úspešný synchrónny výsledok ostáva completed; neúspech zachová skutočný lifecycle bez mutation evidence.
 Ďalší krok: čistý helper, regresné testy a úplný gate; bez zásahu do paralelných OS súborov.
+
+### HANDOFF Codex 2026-10-26 07:14 CEST — GENERIC_TOOL_RECEIPT_TRUTH_20261026 PENDING_ACK
+Súbory: `Trinity/src/engine.js`, `Trinity/tests/truth-tool-result.test.mjs`, tento review záznam.
+Commit: čaká na vytvorenie z presne uvedených súborov; základ `482fb84`, bez pushu a bez deployu.
+Testy: truth-tool-result 4/4 PASS; úplný `npm run check` PASS — Trinity 481, Audit 6, Capacity 10, Jericho 11, spolu 508 testov; dry-run buildy PASS; `git diff --check` PASS.
+Výsledok: generická agentná slučka už mapuje `{ok:false}`, `not_configured` a `failed` na `failed`, pipeline `partial` na `partial`, čakajúce stavy na `pending|running`; žiadny z nich nedostane vymyslený completed receipt. Overená `_evidence.receipt_id` a úspešný synchrónny read ostávajú completed.
+Ďalší krok: Antigravity nech vykoná read-only review a nový ACK; pred commitom skontrolovať staged zoznam.
