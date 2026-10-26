@@ -623,3 +623,16 @@ Commit: čaká na vytvorenie z presne uvedených súborov; základ `f71f36f`. Mi
 Testy: OS registry 13/13 PASS; Wrangler dry-run build PASS; runtime 54/54 PASS; `git diff --check` PASS. Runtime lokálne aplikoval celú migráciu a potvrdil register→schedule tok.
 Výsledok: migrácia pridáva 38 kanonických capabilities. Admin endpoint `/api/os/agents/register` odvodzuje owner zo serverovej identity, striktne validuje agenta a odmietne neznámu capability pred zápisom. Registrovaný živý agent je následne vybraný `/api/os/schedule` podľa presnej capability zhody.
 Ďalší krok: commit/push, potom úplný gate v ďalšom 15-minútovom okne. Remote migrácia až na skutočnom development prostredí.
+
+### CLAIM Codex 2026-10-26 07:41 CEST — AGENT_REGISTRY_OWNERSHIP_AND_REPLACEMENT_20261026
+Súbory: `Trinity/src/os-registry.js`, `Trinity/tests/os-registry.test.mjs`, tento review záznam.
+Commit: základ `7cbc746`; cieľom je blokovať prepis cudzieho agent ID a pri aktualizácii nahradiť, nie iba pridávať capability väzby.
+Testy: čakajú. Všetky capability sa najprv overia; cudzí owner ani neznáma capability nesmú vykonať žiadny zápis.
+Ďalší krok: cielené testy, commit/push, úplný gate v ďalšom časovom okne.
+
+### HANDOFF Codex 2026-10-26 07:43 CEST — AGENT_REGISTRY_OWNERSHIP_AND_REPLACEMENT_20261026 PENDING_ACK
+Súbory: `Trinity/src/os-registry.js`, `Trinity/tests/os-registry.test.mjs`, tento review záznam.
+Commit: čaká na vytvorenie z presne uvedených súborov; základ `7cbc746`, bez deployu.
+Testy: OS registry 14/14 PASS; `git diff --check` PASS.
+Výsledok: update agenta kontroluje pôvodného ownera pred každým zápisom a capability set nahrádza cez delete+insert po validácii všetkých capability. Odobraté oprávnenie nezostane scheduleru a cudzí owner dostane 409 bez zápisu.
+Ďalší krok: commit/push; úplný gate v nasledujúcom 15-minútovom okne.

@@ -78,6 +78,7 @@ test('Agent Registry: registerAgent binds sanitized parameters and maps capabili
             return { success: true };
           },
           first: async () => {
+            if (sql.includes('SELECT owner FROM agents')) return null;
             if (sql.includes('SELECT capability_id FROM capabilities')) {
               return { capability_id: 'cap_memory_search' };
             }
@@ -98,7 +99,8 @@ test('Agent Registry: registerAgent binds sanitized parameters and maps capabili
   assert.equal(reg.agent_id, 'TRINITY_MEMORY');
   assert.equal(reg.name, 'Memory Sovereign Node');
   assert.equal(reg.status, 'available');
-  assert.equal(executedStatements.length >= 2, true);
+  assert.equal(executedStatements.length >= 3, true);
+  assert.ok(executedStatements.some(st=>st.sql.includes('DELETE FROM agent_capabilities')));
   // Verify sanitized params do not contain undefined
   for (const st of executedStatements) {
     for (const p of st.params) {
@@ -111,6 +113,13 @@ test('Agent Registry: rejects unknown capabilities before writing the agent', as
   let writes=0;
   const env={DB:{prepare:sql=>({bind:()=>({first:async()=>null,run:async()=>{writes++;}})})}};
   await assert.rejects(registerAgent(env,{agent_id:'AGENT_X',name:'Agent X',capabilities:['memory.unknown']}),/Neznáma capability/);
+  assert.equal(writes,0);
+});
+
+test('Agent Registry: another owner cannot replace an existing global agent id', async () => {
+  let writes=0;
+  const env={DB:{prepare:sql=>({bind:()=>({first:async()=>sql.includes('SELECT owner FROM agents')?{owner:'owner-a'}:null,run:async()=>{writes++;}})})}};
+  await assert.rejects(registerAgent(env,{agent_id:'AGENT_X',name:'Agent X',owner:'owner-b'}),/inému vlastníkovi/);
   assert.equal(writes,0);
 });
 

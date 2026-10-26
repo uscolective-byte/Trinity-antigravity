@@ -59,6 +59,8 @@ export async function registerAgent(env, input) {
   const {agent_id,name,type,version,status,endpoint,owner,capabilities}=agentRegistrationSchema.parse(input);
   const now = Date.now();
   if (env?.DB?.prepare) {
+    const existing=await env.DB.prepare('SELECT owner FROM agents WHERE agent_id=?').bind(agent_id).first();
+    if(existing&&existing.owner!==owner)throw new HttpError(409,'ID agenta už patrí inému vlastníkovi.');
     const capabilityRows=[];
     for(const capName of capabilities){
       const cap=await env.DB.prepare('SELECT capability_id FROM capabilities WHERE name=?').bind(capName).first();
@@ -87,7 +89,8 @@ export async function registerAgent(env, input) {
       now
     ).run();
 
-    // Mapovanie schopností
+    // Registrácia nahrádza capability set, aby odobraté oprávnenia nezostali aktívne.
+    await env.DB.prepare('DELETE FROM agent_capabilities WHERE agent_id=?').bind(agent_id).run();
     for (const cap of capabilityRows) {
       await env.DB.prepare(`
         INSERT OR IGNORE INTO agent_capabilities (agent_id, capability_id, confidence, priority)
