@@ -1,6 +1,19 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {runTool} from '../src/tools.js';
+import {pcActionReceipt} from '../src/engine.js';
+
+test('PC open-app receipt is completed only with verified execution evidence',()=>{
+  const timestamp='2026-10-26T06:30:00.000Z';
+  assert.deepEqual(pcActionReceipt({id:'proposal-1',status:'proposed'},timestamp),{
+    tool:'pc_open_app',status:'pending',effect:'proposal',receipt_id:'proposal-1',verified_at:timestamp
+  });
+  assert.equal(pcActionReceipt({id:'claimed-1',status:'claimed'},timestamp).status,'running');
+  assert.equal(pcActionReceipt({id:'failed-1',status:'failed'},timestamp).status,'failed');
+  assert.deepEqual(pcActionReceipt({_evidence:{receipt_id:'verified-1'}},timestamp),{
+    tool:'pc_open_app',status:'completed',effect:'mutation',actions:['execute'],receipt_id:'verified-1',verified_at:timestamp
+  });
+});
 
 test('admin PC tools validate their own schema and dispatch bounded gateway payloads',async()=>{
   const payloads=[];

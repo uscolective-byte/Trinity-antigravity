@@ -20,6 +20,13 @@ export function executionPolicyForProvider(provider,ownerMode=false){
   const directAdmin=ownerMode===true;
   return {geminiOperator:provider==='gemini'&&directAdmin,directAdmin,allowInternal:directAdmin,allowDirectPC:directAdmin,approvalRequired:false};
 }
+export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
+  if(outcome?._evidence?.receipt_id){
+    return {tool:'pc_open_app',status:'completed',effect:'mutation',actions:['execute'],receipt_id:outcome._evidence.receipt_id,verified_at:verifiedAt};
+  }
+  const status=outcome?.status==='failed'?'failed':outcome?.status==='claimed'||outcome?.status==='approved'?'running':'pending';
+  return {tool:'pc_open_app',status,effect:'proposal',receipt_id:outcome?.id||crypto.randomUUID(),verified_at:verifiedAt};
+}
 function isImageRequest(task) {
   return /\b(fotku|fotografia|fotografiu|obrázok|obrazok|ilustráciu|ilustraciu|nakresli|portrét|portret)\b/i.test(task)
     || /\b(vygeneruj|vytvor)\b.*\b(fotku|fotografiu|obrázok|obrazok|ilustráciu|ilustraciu|portrét|portret)\b/i.test(task);
@@ -220,7 +227,7 @@ export async function runAgent(env, id, task, context='', provider='workers-ai',
     const appName=appNames[target]||target;
     const started=Date.now();
     const outcome=await runTool(env,agent,'pc_open_app',{target},{adminAuthorized:executionPolicy.directAdmin});
-    const receipt=outcome?._evidence?.receipt_id?{tool:'pc_open_app',status:'completed',effect:'mutation',actions:['execute'],receipt_id:outcome._evidence.receipt_id,verified_at:new Date().toISOString()}:{tool:'pc_open_app',status:'completed',effect:'read',receipt_id:outcome.id||crypto.randomUUID(),verified_at:new Date().toISOString()};
+    const receipt=pcActionReceipt(outcome);
     const isCompleted=outcome?.desktop?.operation==='launch'||outcome?.status==='completed';
     const text=isCompleted
       ?(language==='en'?`I have opened ${appName} on your computer.`:`Otvorila som aplikáciu ${appName} na tvojom počítači.`)
