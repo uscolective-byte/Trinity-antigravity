@@ -82,7 +82,7 @@ export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
 const json=(data,status=200)=>Response.json(data,{status});
 const runtimeEnvironment=(request,env)=>['localhost','127.0.0.1','::1'].includes(new URL(request.url).hostname)?'local':env.TRINITY_ENV||'local';
 const uuid=z.string().uuid();
-const MCP_READ_TOOLS=new Set(['trinity_control_panel','infrastructure_status','project_inspect','project_read','list_improvements','get_capability_status','trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status','ecosystem_stats','search_ecosystem']);
+const MCP_READ_TOOLS=new Set(['trinity_memory_sync','trinity_control_panel','infrastructure_status','project_inspect','project_read','list_improvements','get_capability_status','trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status','ecosystem_stats','search_ecosystem']);
 function requireAdmin(user){if(!['admin','owner'].includes(user.role))throw new HttpError(403,'Táto operácia je dostupná iba správcovi Trinity.');}
 function requireOwner(user){if(user.role!=='owner')throw new HttpError(403,'Táto operácia je dostupná iba vlastníkovi Trinity.');}
 async function handleScopedMcp(request,env,ctx){
@@ -129,6 +129,64 @@ async function route(request,env,ctx){
     if(request.method==='GET'&&path==='/manifest.json')return new Response(typeof manifestJSON==='string'?manifestJSON:JSON.stringify(manifestJSON),{headers:{'Content-Type':'application/manifest+json; charset=utf-8','Cache-Control':'no-cache'}});
   if(request.method==='GET'&&path==='/sw.js')return new Response(serviceWorkerJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache'}});
   if(request.method==='GET'&&path==='/theme.css')return new Response(await renderDynamicThemeCss(env,themeCSS),{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
+  if((path==='/openapi.json'||path==='/openapi-pentad.json'||path==='/public/openapi-pentad.json')&&request.method==='GET'){
+    return json({
+      openapi: '3.1.0',
+      info: {
+        title: 'TRINITY Sovereign Pentad MCP Gateway',
+        version: TRINITY_VERSION,
+        description: 'Centrálny MCP a REST router prepájajúci Cloudflare Sovereign Core (Trinity), Antigravity IDE, Google Gemini, Microsoft Copilot Studio (crm17) a ChatGPT/Codex.'
+      },
+      servers: [{ url: 'https://auru.space' }, { url: 'https://auru.dev' }],
+      paths: {
+        '/mcp': {
+          post: {
+            operationId: 'callMcpJsonRpc',
+            summary: 'JSON-RPC 2.0 endpoint pre MCP klientov',
+            requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+            responses: { '200': { description: 'JSON-RPC 2.0 výsledok' } }
+          }
+        },
+        '/api/mcp/invoke': {
+          post: {
+            operationId: 'invokeTrinityMcpTool',
+            summary: 'Spustí nástroj Trinity alebo prepošle príkaz medzi agentmi.',
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      tool: { type: 'string', example: 'trinity_status' },
+                      arguments: { type: 'object' }
+                    },
+                    required: ['tool']
+                  }
+                }
+              }
+            },
+            responses: {
+              '200': { description: 'Výstup z TRINITY MCP s auditným dokladom receipt_id' }
+            }
+          }
+        }
+      }
+    });
+  }
+  if(path==='/api/mcp/invoke'&&request.method==='POST'){
+    const client=await authenticateApiKey(request,env,'mcp:write');
+    const {tool,arguments:args}=await readJSON(request,64000);
+    const mcpReq=new Request(new URL(request.url).origin+'/mcp',{
+      method:'POST',
+      headers:{'Content-Type':'application/json',Accept:'application/json'},
+      body:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',params:{name:tool,arguments:args||{}}})
+    });
+    const mcpRes=await handleMcp(mcpReq,env,ctx,{projectControl:true});
+    const data=await mcpRes.json();
+    const receipt_id=`TRN-RCPT-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0,6).toUpperCase()}`;
+    return json({status:'completed',tool,receipt_id,result:data.result||data});
+  }
   if(path==='/health'||path==='/api/health'){
     const response=json({service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),source:sourceMetadata(env),deployment:releaseMetadata(env),agents:AGENTS.length,status:'serving',truth_mode:'evidence-required'});const origin=request.headers.get('Origin');
     if(['https://trinity-morhfeus-20261001.web.app','https://trinity-morhfeus-20261001.firebaseapp.com'].includes(origin)){response.headers.set('Access-Control-Allow-Origin',origin);response.headers.set('Vary','Origin');}
