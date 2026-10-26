@@ -8,8 +8,8 @@ const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
 console.log('╔════════════════════════════════════════════════════════════════════╗');
-console.log('║               ✦ TRINITY UNIFIED DEPLOY ALL ✦                       ║');
-console.log('║   Zjednotené nasadenie jedného jadra Trinity (auru.space/auru.dev) ║');
+console.log('║              ✦ TRINITY GUARDED STAGING DEPLOY ✦                    ║');
+console.log('║       Tento príkaz nikdy automaticky nenasadzuje produkciu.         ║');
 console.log('╚════════════════════════════════════════════════════════════════════╝');
 
 function run(command, args, cwd = root) {
@@ -31,20 +31,13 @@ function runCapture(command, args, cwd = root) {
 const commitSha = runCapture('git', ['rev-parse', 'HEAD']);
 console.log(`[Deploy] Git Commit: ${commitSha}`);
 
-// 1. Deploy Sub-workers
-console.log('\n--- 1/2 Nasadzujem podporné cloudové moduly ---');
-run(npx, ['--no-install', 'wrangler', 'deploy'], resolve(root, 'Knowledge-Worker'));
-run(npx, ['--no-install', 'wrangler', 'deploy'], resolve(root, 'Integrations-Worker'));
-run(npx, ['--no-install', 'wrangler', 'deploy'], resolve(root, 'PC-Bridge-Worker'));
-run(npx, ['--no-install', 'wrangler', 'deploy'], resolve(root, 'Capacity-Worker'));
-
-// 2. Deploy Unified Trinity (auru.space + auru.dev)
-console.log('\n--- 2/2 Nasadzujem zjednotený Worker trinity (auru.space + auru.dev) ---');
-run(npm, ['run', 'deploy', '--', '--tag', commitSha], resolve(root, 'Trinity'));
+// Staging is deployed and verified on its own. Production and supporting
+// production workers require a separate, explicit post-ACK command.
+console.log('\n--- 1/1 Nasadzujem izolovaný staging Worker trinity-staging (auru.dev) ---');
+run(npm, ['run', 'deploy:staging', '--', '--tag', commitSha], resolve(root, 'Trinity'));
 run(process.execPath, ['scripts/verify-deployment.mjs', 'https://auru.dev', commitSha], resolve(root, 'Trinity'));
-run(process.execPath, ['scripts/verify-deployment.mjs', 'https://auru.space', commitSha], resolve(root, 'Trinity'));
 
 console.log('\n╔════════════════════════════════════════════════════════════════════╗');
-console.log('║            ✦ VŠETKO BOLO ÚSPEŠNE NASADENÉ A OVERENÉ! ✦              ║');
-console.log('║       Zjednotená Trinity (auru.space & auru.dev) je 100% LIVE       ║');
+console.log('║             ✦ STAGING BOL NASADENÝ A OVERENÝ ✦                     ║');
+console.log('║       Produkcia auru.space zostala bez zmeny a vyžaduje ACK.       ║');
 console.log('╚════════════════════════════════════════════════════════════════════╝');

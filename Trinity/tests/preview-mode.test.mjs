@@ -46,7 +46,7 @@ test('production routing is unchanged when build-only mode is absent', () => {
   }
 });
 
-test('unified trinity Worker serves both domains with build-only preview isolation', () => {
+test('production and staging routes are isolated and staging fails closed', () => {
   const config = JSON.parse(readFileSync('wrangler.jsonc', 'utf8').replace(/^\uFEFF/, ''));
   assert.deepEqual(config.previews, {vars: {TRINITY_PREVIEW_MODE: 'build-only'}});
   assert.equal(config.vars.TRINITY_PREVIEW_MODE, undefined);
@@ -54,8 +54,12 @@ test('unified trinity Worker serves both domains with build-only preview isolati
   assert.equal(config.ai.binding, 'AI');
   assert.ok(config.d1_databases.some(database => database.binding === 'DB'));
   assert.ok(config.routes.some(route => route.pattern === 'auru.space'));
-  assert.ok(config.routes.some(route => route.pattern === 'auru.dev'));
-  assert.equal(config.env, undefined);
+  assert.equal(config.routes.some(route => route.pattern === 'auru.dev'),false);
+  assert.equal(config.env.staging.name,'trinity-staging');
+  assert.deepEqual(config.env.staging.routes,[{pattern:'auru.dev',custom_domain:true}]);
+  assert.equal(config.env.staging.vars.TRINITY_ENV,'staging');
+  assert.equal(config.env.staging.vars.TRINITY_PREVIEW_MODE,'build-only');
+  assert.equal(config.env.staging.d1_databases[0].database_name,'trinity-development');
   assert.ok(config.services.some(binding=>binding.binding==='KNOWLEDGE_SERVICE'&&binding.service==='trinity-knowledge'));
   assert.deepEqual(config.version_metadata,{binding:'CF_VERSION_METADATA'});
 });

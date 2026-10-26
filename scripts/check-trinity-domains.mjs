@@ -9,7 +9,7 @@ export function assessDomainResponse(kind, host, path, response) {
   if (kind === 'app') {
     if (httpStatus !== 200) return { ok: false, reason: 'APP_HTTP_ERROR' };
     if (path === '/health') {
-      const expected = host === 'auru.space' ? 'production' : 'development';
+      const expected = host === 'auru.space' ? 'production' : 'staging';
       if (body?.environment !== expected || body?.status !== 'serving' || body?.service !== 'Trinity') {
         return { ok: false, reason: 'APP_ENVIRONMENT_OR_HEALTH_MISMATCH' };
       }

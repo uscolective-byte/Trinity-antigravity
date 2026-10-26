@@ -37,9 +37,9 @@ while ($true) {
   Write-Host ""
   Write-Host "  CLOUDFLARE CLOUD & WEBY:" -ForegroundColor White
   Write-Host "   [6] 🌐  Otvoriť Trinity Produkciu v prehliadači (auru.space)" -ForegroundColor Magenta
-  Write-Host "   [7] 🛠️  Otvoriť Trinity Development v prehliadači (auru.dev)" -ForegroundColor Magenta
+  Write-Host "   [7] 🛠️  Otvoriť Trinity Staging v prehliadači (auru.dev)" -ForegroundColor Magenta
   Write-Host "   [8] 🚀  Nasadiť na Produkciu (npm run deploy)" -ForegroundColor Yellow
-  Write-Host "   [9] 📦  Nasadiť na Development (npm run deploy:development)" -ForegroundColor Yellow
+  Write-Host "   [9] 📦  Nasadiť na Staging (npm run deploy:staging)" -ForegroundColor Yellow
   Write-Host ""
   Write-Host "  SPRÁVA PROSTREDIA:" -ForegroundColor White
   Write-Host "   [10] 🔄  Nainštalovať/aktualizovať všetky skripty a balíčky" -ForegroundColor White
@@ -90,7 +90,7 @@ while ($true) {
       Pop-Location
     }
     '7' {
-      Write-Host "`nOtváram Development: https://auru.dev" -ForegroundColor Magenta
+      Write-Host "`nOtváram Staging: https://auru.dev" -ForegroundColor Magenta
       Push-Location "$root\Trinity"
       powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$root\Trinity\OTVORIT-TRINITY.ps1" -Environment development
       Pop-Location
@@ -104,9 +104,9 @@ while ($true) {
       [void][Console]::ReadLine()
     }
     '9' {
-      Write-Host "`nNasadzujem Trinity na DEVELOPMENT (auru.dev)..." -ForegroundColor Yellow
+      Write-Host "`nNasadzujem Trinity na STAGING (auru.dev)..." -ForegroundColor Yellow
       Push-Location "$root\Trinity"
-      npm.cmd run deploy:development
+      npm.cmd run deploy:staging
       Pop-Location
       Write-Host "`nStlačte Enter pre návrat do menu..."
       [void][Console]::ReadLine()

@@ -7,6 +7,12 @@ test('rejects development hostname serving production environment', () => {
   assert.equal(result.ok, false);
 });
 
+test('accepts development hostname only when it reports staging', () => {
+  const result = assess('app', 'auru.dev', '/health', { httpStatus: 200, body: { service: 'Trinity', status: 'serving', environment: 'staging', version: '11.0.0' } });
+  assert.equal(result.ok, true);
+  assert.equal(result.environment, 'staging');
+});
+
 test('health result preserves actual HTTP status separately from application status', () => {
   const result = assess('app', 'auru.space', '/health', { httpStatus: 503, body: { service: 'Trinity', status: 'serving', environment: 'production' } });
   assert.equal(result.ok, false);
