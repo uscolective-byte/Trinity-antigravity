@@ -137,6 +137,21 @@ test('Agent Registry: recordHeartbeat updates agent status and load score', asyn
   assert.equal(executedStatements.length, 2);
 });
 
+test('Agent Registry: heartbeat rejects malformed or unbounded telemetry before D1', async () => {
+  let prepared=false;
+  const env={DB:{prepare(){prepared=true;throw new Error('must not reach D1');}}};
+  for(const input of [
+    {agent_id:'x',status:'available'},
+    {agent_id:'agent-1',status:'invented'},
+    {agent_id:'agent-1',active_jobs:-1},
+    {agent_id:'agent-1',latency_ms:600001},
+    {agent_id:'agent-1',cpu_load:1.01},
+    {agent_id:'agent-1',memory_load:Number.NaN},
+    {agent_id:'agent-1',extra:true}
+  ]) await assert.rejects(recordHeartbeat(env,input));
+  assert.equal(prepared,false);
+});
+
 test('Agent Leasing: acquireLease and releaseLease manage task exclusivity', async () => {
   const leases = new Map();
   const mockEnv = {

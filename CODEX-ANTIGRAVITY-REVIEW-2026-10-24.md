@@ -584,3 +584,16 @@ Commit: čaká na vytvorenie z presne uvedených súborov; základ `f865334`, be
 Testy: Wrangler dry-run build PASS; runtime 54/54 PASS; kompletný `npm run check` PASS — Trinity 482, Audit 6, Capacity 10, Jericho 11, spolu 509 testov; Gemini MCP handshake/katalóg PASS; Local Gateway a MCP Bridge HTTP 200.
 Výsledok: `/api/os/agents` a `/api/os/policies` sú admin/owner-only; anonymous dostane 401, ordinary user 403. `/api/os/capabilities` ostáva dostupný autentifikovanému používateľovi.
 Ďalší krok: commit/push, read-only review Antigravity; bez produkčného deployu, kým chýba development gate.
+
+### CLAIM Codex 2026-10-26 07:26 CEST — SOVEREIGN_HEARTBEAT_VALIDATION_20261026
+Súbory: `Trinity/src/os-registry.js`, `Trinity/tests/os-registry.test.mjs`, tento review záznam.
+Commit: základ `0cd14b0`; cieľom je striktne validovať agent heartbeat pred D1 zápisom.
+Testy: čakajú. Agent ID, status, počty, latencia a normalizované CPU/RAM musia byť ohraničené; extra polia a neplatné hodnoty sa odmietnu.
+Ďalší krok: cielený test, potom úplný gate v ďalšom časovom okne; bez deployu.
+
+### HANDOFF Codex 2026-10-26 07:28 CEST — SOVEREIGN_HEARTBEAT_VALIDATION_20261026 PENDING_ACK
+Súbory: `Trinity/src/os-registry.js`, `Trinity/tests/os-registry.test.mjs`, tento review záznam.
+Commit: čaká na vytvorenie z presne uvedených súborov; základ `0cd14b0`, bez deployu.
+Testy: OS registry 11/11 PASS; `git diff --check` PASS.
+Výsledok: heartbeat povoľuje iba kanonické stavy, ohraničené celé active_jobs, latenciu 0–600000 ms a CPU/RAM 0–1; neplatné ID, NaN, záporné a extra polia sa odmietnu pred D1.
+Ďalší krok: commit/push, úplný gate v ďalšom 15-minútovom okne a read-only review Antigravity.

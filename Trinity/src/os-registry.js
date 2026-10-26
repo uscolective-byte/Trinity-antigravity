@@ -2,6 +2,16 @@
  * TRINITY 12.0 SOVEREIGN AI OPERATING SYSTEM REGISTRY & SCHEDULER
  * Riadiaca vrstva pre Agent Registry, Capability-First Scheduler, Policy Engine a Knowledge Graph.
  */
+import {z} from 'zod';
+
+export const heartbeatSchema=z.object({
+  agent_id:z.string().trim().min(2).max(100).regex(/^[A-Za-z0-9_-]+$/),
+  status:z.enum(['registered','available','busy','degraded','offline']).default('available'),
+  active_jobs:z.number().int().min(0).max(100000).default(0),
+  latency_ms:z.number().finite().min(0).max(600000).default(0),
+  cpu_load:z.number().finite().min(0).max(1).default(0),
+  memory_load:z.number().finite().min(0).max(1).default(0)
+}).strict();
 
 export function sanitizeD1(val) {
   return val === undefined ? null : val;
@@ -84,14 +94,8 @@ export async function registerAgent(env, {
 /**
  * Heartbeat telemetria a stráženie dostupnosti
  */
-export async function recordHeartbeat(env, {
-  agent_id,
-  status = 'available',
-  active_jobs = 0,
-  latency_ms = 0,
-  cpu_load = 0.0,
-  memory_load = 0.0
-}) {
+export async function recordHeartbeat(env, input) {
+  const {agent_id,status,active_jobs,latency_ms,cpu_load,memory_load}=heartbeatSchema.parse(input);
   const now = Date.now();
   const id = `hb_${now}_${Math.random().toString(36).slice(2, 8)}`;
   const load_score = Math.min(1.0, Math.max(0.0, active_jobs / 10));
