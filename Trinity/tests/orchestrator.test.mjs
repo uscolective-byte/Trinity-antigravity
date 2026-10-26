@@ -158,6 +158,26 @@ test('runTool supports delegate_worker, orchestrate_team, and fleet_status', asy
   assert.equal(fleetRes._evidence.effect, 'read');
 });
 
+test('runTool does not fabricate mutation evidence for failed or partial orchestration', async () => {
+  const orchestrator = AGENTS.find(a => a.id === 'orchestrator');
+  const missing = await runTool({}, orchestrator, 'delegate_worker', {
+    worker: 'AURA_ANALYZER',
+    action: 'analyze.code',
+    data: { code: 'test' }
+  });
+  assert.equal(missing.ok, false);
+  assert.equal(missing.status, 'not_configured');
+  assert.equal(missing._evidence, undefined);
+
+  const partial = await runTool({
+    AURA_PLANNER: {async fetch(){return Response.json({ok:true,result:{plan:[]}});}},
+    AURA_CODEGEN: {async fetch(){return Response.json({ok:false,error:'failed'},{status:500});}}
+  }, orchestrator, 'orchestrate_team', {task:'Napíš kód pre test'});
+  assert.equal(partial.ok, false);
+  assert.equal(partial.status, 'partial');
+  assert.equal(partial._evidence, undefined);
+});
+
 test('SkillRegistry exposes and executes orchestration skills', async () => {
   assert.ok(skillRegistry.has('callWorkerAction'));
   assert.ok(skillRegistry.has('orchestrateTeamTask'));

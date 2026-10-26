@@ -503,3 +503,17 @@ Commit: čaká na vytvorenie z presne uvedených súborov; základ `77d2977`, be
 Testy: Wrangler dry-run build PASS; runtime 53/53 PASS; úplný `node --test --test-concurrency=1 tests/*.test.mjs` 479/479 PASS; `git diff --check` PASS. Prvý runtime pokus načítal starý `dist` a správne zlyhal; po povinnom rebuilde ten istý test prešiel.
 Výsledok: parent workflow s aspoň jedným zlyhaným childom a použiteľným výstupom je `partial`, nie `completed`; ukladá počet zlyhaní do error summary a nevytvára následný follow-up job. Parent bez úspešného childa zostáva `failed`.
 Ďalší krok: Antigravity nech vykoná read-only review a nový ACK. API/UI konzumenti majú zaradiť `partial` medzi terminálne stavy.
+
+### CLAIM Codex 2026-10-26 07:04 CEST — ORCHESTRATION_RECEIPT_TRUTH_20261026
+Súbory: `Trinity/src/tools.js`, `Trinity/tests/orchestrator.test.mjs`, tento review záznam.
+Commit: základ `2600c5c`; cieľom je nevydávať mutation evidence pre `not_configured`, `partial` alebo `failed` delegovanie.
+Testy: čakajú. Úspešné delegovanie a pipeline `complete` receipt zachovajú; neúspech dostane diagnostický lifecycle bez mutation receipt.
+Ďalší krok: cielené orchestration testy a úplný gate; bez zásahu do `index.js` alebo paralelného OS registra.
+
+### HANDOFF Codex 2026-10-26 07:08 CEST — ORCHESTRATION_RECEIPT_TRUTH_20261026 PENDING_ACK
+Súbory: `Trinity/src/tools.js`, `Trinity/tests/orchestrator.test.mjs`, tento review záznam.
+Commit: čaká na vytvorenie z presne uvedených súborov; základ `2600c5c`, bez pushu a bez deployu.
+Testy: orchestration 12/12 PASS; úplný `npm run check` PASS — Trinity 480/480, Audit 6/6, Capacity 10/10, Jericho 11/11, spolu 507/507; Wrangler dry-run buildy PASS; `git diff --check` PASS.
+Výsledok: `delegate_worker` dostane mutation receipt iba pri `ok:true`; `orchestrate_team` iba pri `ok:true` a `status:'complete'`. `not_configured`, `partial` a `failed` už nemajú `_evidence` predstierajúce mutáciu.
+Živá kontrola: Gemini MCP autentifikácia/initialize/katalóg PASS; obe domény health/ready HTTP 200 s rovnakým produkčným deploymentom `836376f5-b656-40de-95c6-7d4657d6928c`; Local Gateway a lokálny MCP Bridge HTTP 200. Neautorizovaný priamy GET na chránený PC heartbeat správne vrátil 401, pričom autentifikovaný stav cez Local Gateway hlási `pc_bridge:connected`.
+Ďalší krok: Antigravity nech vykoná read-only review a nový ACK. Produkčný deploy zostáva blokovaný dirty checkoutom a chýbajúcim samostatným development prostredím.

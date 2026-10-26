@@ -934,8 +934,14 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     }
     return {results,cached:false};
   }
-  if(name==='delegate_worker')return {...await delegateWorker(env,args.worker,args.action,args.data),_evidence:{effect:'mutation',action:'delegate_worker',receipt_id:crypto.randomUUID()}};
-  if(name==='orchestrate_team')return {...await orchestratePipeline(env,args.task),_evidence:{effect:'mutation',action:'orchestrate_team',receipt_id:crypto.randomUUID()}};
+  if(name==='delegate_worker'){
+    const outcome=await delegateWorker(env,args.worker,args.action,args.data);
+    return outcome.ok===true?{...outcome,_evidence:{effect:'mutation',action:'delegate_worker',receipt_id:crypto.randomUUID()}}:outcome;
+  }
+  if(name==='orchestrate_team'){
+    const outcome=await orchestratePipeline(env,args.task);
+    return outcome.ok===true&&outcome.status==='complete'?{...outcome,_evidence:{effect:'mutation',action:'orchestrate_team',receipt_id:crypto.randomUUID()}}:outcome;
+  }
   if(name==='fleet_status')return {...await inspectFleet(env),_evidence:{effect:'read',action:'fleet_status',receipt_id:crypto.randomUUID()}};
   if(name==='open_weather')return {...await fetchWeather(args.query),_evidence:{effect:'read',action:'open_weather',receipt_id:crypto.randomUUID()}};
   if(name==='open_wikipedia')return {...await fetchWikipedia(args.query,{lang:args.lang}),_evidence:{effect:'read',action:'open_wikipedia',receipt_id:crypto.randomUUID()}};
