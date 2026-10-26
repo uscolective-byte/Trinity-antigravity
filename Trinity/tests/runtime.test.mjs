@@ -219,6 +219,18 @@ test('Trinity OS: /api/os/status a /api/os/processes vracia stav jadra a zoznam 
   assert.ok(Array.isArray(procData.jobs));
 });
 
+test('Sovereign agent registry and policy rules require admin access',async()=>{
+  assert.equal((await req('/api/os/agents',undefined,false)).status,401);
+  assert.equal((await req('/api/os/policies',undefined,false)).status,401);
+  const session=await issueSession({DB:db},Date.now()+60000,'ordinary-os-user@example.test');
+  const cookie=session.headers.get('set-cookie').split(';')[0];
+  assert.equal((await req('/api/os/agents',undefined,false,{Cookie:cookie})).status,403);
+  assert.equal((await req('/api/os/policies',undefined,false,{Cookie:cookie})).status,403);
+  assert.equal((await req('/api/os/agents')).status,200);
+  assert.equal((await req('/api/os/policies')).status,200);
+  assert.equal((await req('/api/os/capabilities',undefined,false,{Cookie:cookie})).status,200);
+});
+
 
 test('MCP App exposes a bundled view and useful text fallback',async()=>{
  const headers={Accept:'application/json, text/event-stream'};

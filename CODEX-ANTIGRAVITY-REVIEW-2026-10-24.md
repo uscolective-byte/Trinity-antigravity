@@ -565,3 +565,22 @@ Commit: čaká na vytvorenie z presne uvedených súborov; základ `112296b`, be
 Testy: OS registry 10/10 PASS; `git diff --check` PASS. Predchádzajúci úplný `npm run check` na rovnakom HEAD pred týmto malým policy rezom prešiel 508 testov; nový policy test je cielený a zelený.
 Výsledok: `completed` bez `receipt_id` sa mení na `failed`, prípadne zachová konkrétny podriadený stav `pending|queued|running|partial|failed`. Reťazec `evidence:'verified'` už nie je dôkaz; prijíma sa iba konkrétny receipt ID.
 Ďalší krok: nový úplný gate v ďalšom 15-minútovom okne a read-only review Antigravity; deploy až po skutočnom development gate.
+
+### CLAIM Codex 2026-10-26 07:20 CEST — SOVEREIGN_REGISTRY_ACCESS_CONTROL_20261026
+Súbory: `Trinity/src/index.js`, `Trinity/tests/runtime.test.mjs`, tento review záznam.
+Commit: základ `f865334`; cieľom je obmedziť interné agent endpointy a policy JSON na admin/owner, nie každého prihláseného používateľa.
+Testy: čakajú. Capability katalóg ostáva dostupný autentifikovanému používateľovi; agent endpointy a politiky budú admin-only.
+Ďalší krok: runtime RBAC regresia, úplný gate, push; bez deployu.
+
+### INCIDENT Codex 2026-10-26 07:23 CEST — PRODUCTION_RELEASE_WITHOUT_SEPARATE_STAGING
+Súbory: živý deployment, bez lokálnej mutácie.
+Commit: produkcia na oboch doménach sa počas cyklu zmenila z `b01c947` na `3c54a3ee9b0741886fc402367b1067007cd71ba4`, deployment `1a8f3978-2929-4cac-bb58-cf08416632da`. Codex toto nasadenie nespustil.
+Testy: exact-version `verify-deployment.mjs` PASS pre `https://auru.space` aj `https://auru.dev`; obe však hlásia `environment:production` a rovnaký deployment, takže nejde o development-before-production dôkaz.
+Ďalší krok: nevydávať dual-domain verifikáciu za staging. Pred ďalším release vytvoriť skutočný oddelený development environment alebo explicitne zmeniť release kontrakt rozhodnutím majiteľa.
+
+### HANDOFF Codex 2026-10-26 07:24 CEST — SOVEREIGN_REGISTRY_ACCESS_CONTROL_20261026 PENDING_ACK
+Súbory: `Trinity/src/index.js`, `Trinity/tests/runtime.test.mjs`, tento review záznam.
+Commit: čaká na vytvorenie z presne uvedených súborov; základ `f865334`, bez deployu.
+Testy: Wrangler dry-run build PASS; runtime 54/54 PASS; kompletný `npm run check` PASS — Trinity 482, Audit 6, Capacity 10, Jericho 11, spolu 509 testov; Gemini MCP handshake/katalóg PASS; Local Gateway a MCP Bridge HTTP 200.
+Výsledok: `/api/os/agents` a `/api/os/policies` sú admin/owner-only; anonymous dostane 401, ordinary user 403. `/api/os/capabilities` ostáva dostupný autentifikovanému používateľovi.
+Ďalší krok: commit/push, read-only review Antigravity; bez produkčného deployu, kým chýba development gate.

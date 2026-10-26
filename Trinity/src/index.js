@@ -706,6 +706,7 @@ async function route(request,env,ctx){
     return json({tasks,jobs,total:tasks.length+jobs.length});
   }
   if(path==='/api/os/agents'&&request.method==='GET'){
+    requireAdmin(user);
     let agents=[];
     if(env.DB?.prepare){
       try{
@@ -726,6 +727,7 @@ async function route(request,env,ctx){
     return json({capabilities,count:capabilities.length});
   }
   if(path==='/api/os/policies'&&request.method==='GET'){
+    requireAdmin(user);
     let policies=[];
     if(env.DB?.prepare){
       try{
