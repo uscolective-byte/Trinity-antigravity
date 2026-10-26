@@ -31,6 +31,26 @@ export const leaseSchema=z.object({
   lease_seconds:z.number().int().min(5).max(3600).default(300)
 }).strict();
 
+export const reputationUpdateSchema=z.object({
+  agent_id:z.string().trim().min(2).max(100).regex(/^[A-Za-z0-9_-]+$/),
+  success:z.boolean().default(true),
+  latency_ms:z.number().finite().min(0).max(600000).default(100),
+  audit_score:z.number().finite().min(0).max(1).default(1)
+}).strict();
+
+export const knowledgeObservationSchema=z.object({
+  entityType:z.enum(['project','agent','capability','artifact','model','user','service','deployment','incident','decision']),
+  entityName:z.string().trim().min(2).max(200),
+  observation:z.string().trim().min(1).max(8000),
+  receiptId:z.string().trim().min(3).max(200).regex(/^[A-Za-z0-9:._-]+$/).nullable().default(null),
+  source:z.string().trim().min(2).max(160).default('system')
+}).strict();
+
+async function deterministicEntityId(type,name){
+  const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(`${type}\0${name}`));
+  return `ent_${type}_${[...new Uint8Array(bytes)].slice(0,12).map(value=>value.toString(16).padStart(2,'0')).join('')}`;
+}
+
 export function sanitizeD1(val) {
   return val === undefined ? null : val;
 }
@@ -257,12 +277,8 @@ export async function findBestAgentForCapabilities(env, requiredCapabilities = [
 /**
  * Reputation Engine: Výpočet metrík dôvery
  */
-export async function updateAgentReputation(env, {
-  agent_id,
-  success = true,
-  latency_ms = 100,
-  audit_score = 1.0
-}) {
+export async function updateAgentReputation(env, input) {
+  const {agent_id,success,latency_ms,audit_score}=reputationUpdateSchema.parse(input);
   const now = Date.now();
   if (!env?.DB?.prepare) return { trust_score: 1.0 };
 
@@ -312,15 +328,10 @@ export async function updateAgentReputation(env, {
 /**
  * Multi-Level Knowledge Graph: Zápis a previazanie poznatkov
  */
-export async function recordKnowledgeGraphNode(env, {
-  entityType,
-  entityName,
-  observation,
-  receiptId,
-  source = 'system'
-}) {
+export async function recordKnowledgeGraphNode(env, input) {
+  const {entityType,entityName,observation,receiptId,source}=knowledgeObservationSchema.parse(input);
   const now = Date.now();
-  const entityId = `ent_${entityType}_${entityName.toLowerCase().replace(/[^a-z0-9_-]/g, '_')}`;
+  const entityId = await deterministicEntityId(entityType,entityName);
   const obsId = `obs_${now}_${Math.random().toString(36).slice(2, 8)}`;
   const evId = `ev_${now}_${Math.random().toString(36).slice(2, 8)}`;
 

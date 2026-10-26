@@ -350,6 +350,21 @@ test('Agent Reputation: updateAgentReputation calculates trust score and updates
   assert.notEqual(updatedAgentTrust, null);
 });
 
+test('Agent Reputation: invalid metrics never reach D1 or poison trust ranking',async()=>{
+  let prepared=false;
+  const env={DB:{prepare(){prepared=true;}}};
+  for(const input of [
+    {agent_id:'x'},
+    {agent_id:'AGENT_A',success:'yes'},
+    {agent_id:'AGENT_A',latency_ms:-1},
+    {agent_id:'AGENT_A',latency_ms:Number.NaN},
+    {agent_id:'AGENT_A',audit_score:1.1},
+    {agent_id:'AGENT_A',audit_score:-0.1},
+    {agent_id:'AGENT_A',extra:true}
+  ])await assert.rejects(updateAgentReputation(env,input));
+  assert.equal(prepared,false);
+});
+
 test('Knowledge Graph: recordKnowledgeGraphNode links entity, observation and verified receipt evidence', async () => {
   const inserted = [];
   const mockEnv = {
@@ -373,8 +388,29 @@ test('Knowledge Graph: recordKnowledgeGraphNode links entity, observation and ve
     source: 'deploy_all'
   });
 
-  assert.match(res.entityId, /^ent_project_trinity/);
+  assert.match(res.entityId, /^ent_project_[a-f0-9]{24}$/);
   assert.match(res.obsId, /^obs_/);
   assert.equal(res.receiptId, 'TRN-RCPT-20261026-SOVEREIGN-DEPLOY-001');
   assert.equal(inserted.length, 3); // 1. entity, 2. observation, 3. evidence
+});
+
+test('Knowledge Graph: entity ids are deterministic, collision-resistant and inputs are bounded',async()=>{
+  const env={DB:{prepare:()=>({bind:()=>({run:async()=>({success:true})})})}};
+  const first=await recordKnowledgeGraphNode(env,{entityType:'project',entityName:'Trinity A',observation:'healthy'});
+  const repeat=await recordKnowledgeGraphNode(env,{entityType:'project',entityName:'Trinity A',observation:'updated'});
+  const formerlyColliding=await recordKnowledgeGraphNode(env,{entityType:'project',entityName:'Trinity-A',observation:'separate'});
+  assert.equal(first.entityId,repeat.entityId);
+  assert.notEqual(first.entityId,formerlyColliding.entityId);
+  assert.match(first.entityId,/^ent_project_[a-f0-9]{24}$/);
+
+  let prepared=false;
+  const blockedEnv={DB:{prepare(){prepared=true;}}};
+  for(const input of [
+    {entityType:'unknown',entityName:'Trinity',observation:'x'},
+    {entityType:'project',entityName:'x',observation:'x'},
+    {entityType:'project',entityName:'Trinity',observation:''},
+    {entityType:'project',entityName:'Trinity',observation:'x',receiptId:'bad receipt'},
+    {entityType:'project',entityName:'Trinity',observation:'x',extra:true}
+  ])await assert.rejects(recordKnowledgeGraphNode(blockedEnv,input));
+  assert.equal(prepared,false);
 });

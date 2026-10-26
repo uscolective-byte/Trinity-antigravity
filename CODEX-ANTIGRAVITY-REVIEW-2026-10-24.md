@@ -649,3 +649,29 @@ Commit: čaká na vytvorenie z presne uvedených súborov; základ `bafbafd`, be
 Testy: OS registry 15/15 PASS; `git diff --check` PASS.
 Výsledok: lease claim je jeden podmienený D1 upsert s `RETURNING`; aktívny lease cudzieho agenta nevie prepísať, rovnaký agent ho obnoví a expirovaný lease možno prevziať. ID a trvanie 5–3600 sekúnd sú striktne validované pred D1.
 Ďalší krok: commit/push; úplný gate a živý snapshot v ďalšom 15-minútovom okne.
+
+### CLAIM Codex 2026-10-26 07:49 CEST — REPUTATION_INPUT_INTEGRITY_20261026
+Súbory: `Trinity/src/os-registry.js`, `Trinity/tests/os-registry.test.mjs`, tento review záznam.
+Commit: základ `1b498a6`; cieľom je zabrániť neplatnej telemetrii poškodiť trust ranking.
+Testy: čakajú. Agent ID, boolean success, latencia a audit score musia byť striktne ohraničené pred D1.
+Ďalší krok: cielené testy, commit/push a úplný gate v nasledujúcom okne.
+
+### HANDOFF Codex 2026-10-26 07:51 CEST — REPUTATION_INPUT_INTEGRITY_20261026 PENDING_ACK
+Súbory: `Trinity/src/os-registry.js`, `Trinity/tests/os-registry.test.mjs`, tento review záznam.
+Commit: bude spojený s nasledujúcim kompatibilným OS integrity rezom; základ `1b498a6`, bez deployu.
+Testy: OS registry 16/16 PASS; `git diff --check` PASS.
+Výsledok: reputation update povoľuje iba validné agent ID, boolean success, latenciu 0–600000 ms a audit score 0–1; NaN, extra polia a hodnoty mimo rozsahu sa odmietnu pred D1.
+Ďalší krok: dokončiť Knowledge Graph integritu, potom spoločný commit/push a úplný gate.
+
+### CLAIM Codex 2026-10-26 07:52 CEST — KNOWLEDGE_GRAPH_INPUT_INTEGRITY_20261026
+Súbory: `Trinity/src/os-registry.js`, `Trinity/tests/os-registry.test.mjs`, tento review záznam.
+Commit: základ `1b498a6`; cieľom je ohraničiť znalostné pozorovania a zabrániť kolíziám normalizovaných názvov entít.
+Testy: čakajú. Entity typ/názov, observation, source a receipt ID musia byť validované pred D1; ID entity bude deterministický SHA-256 odtlačok typu a presného názvu.
+Ďalší krok: cielené testy, spoločný commit/push a úplný gate v časovom okne.
+
+### HANDOFF Codex 2026-10-26 07:55 CEST — KNOWLEDGE_GRAPH_INPUT_INTEGRITY_20261026 PENDING_ACK
+Súbory: `Trinity/src/os-registry.js`, `Trinity/tests/os-registry.test.mjs`, tento review záznam. Commit obsahuje aj kompatibilný reputation integrity rez z predchádzajúceho handoffu.
+Commit: čaká na vytvorenie z presne uvedených súborov; základ `1b498a6`, bez deployu.
+Testy: prvý cielený beh odhalil staré očakávanie slug ID; po aktualizácii kontraktu OS registry 17/17 PASS; `git diff --check` PASS.
+Výsledok: Knowledge Graph validuje typ/názov entity, observation, source a receipt ID pred D1. Entity ID je stabilný 96-bitový prefix SHA-256 z presného `(type,name)`, takže názvy, ktoré predtým kolidovali po slugifikácii, ostanú oddelené.
+Ďalší krok: commit/push; kompletný gate + MCP/bridge/health snapshot v ďalšom 15-minútovom okne.
