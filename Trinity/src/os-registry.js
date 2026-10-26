@@ -22,13 +22,10 @@ export async function isPolicyEnabled(env, policyName) {
 
 export function enforceCompletedEvidence(status, result) {
   if (status === 'completed') {
-    const hasEvidence = Boolean(result?.receipt_id || result?._evidence?.receipt_id || result?.evidence);
-    if (!hasEvidence && (result?.error || result?.isError)) {
-      return 'failed';
-    }
-    if (!hasEvidence && result?.status === 'queued') {
-      return 'queued';
-    }
+    const hasEvidence = Boolean(result?.receipt_id || result?._evidence?.receipt_id || result?.evidence?.receipt_id);
+    if (hasEvidence) return 'completed';
+    if (['pending','queued','running','partial','failed'].includes(result?.status)) return result.status;
+    return 'failed';
   }
   return status;
 }

@@ -552,3 +552,16 @@ Commit: čaká na vytvorenie z presne uvedených súborov; základ `482fb84`, be
 Testy: truth-tool-result 4/4 PASS; úplný `npm run check` PASS — Trinity 481, Audit 6, Capacity 10, Jericho 11, spolu 508 testov; dry-run buildy PASS; `git diff --check` PASS.
 Výsledok: generická agentná slučka už mapuje `{ok:false}`, `not_configured` a `failed` na `failed`, pipeline `partial` na `partial`, čakajúce stavy na `pending|running`; žiadny z nich nedostane vymyslený completed receipt. Overená `_evidence.receipt_id` a úspešný synchrónny read ostávajú completed.
 Ďalší krok: Antigravity nech vykoná read-only review a nový ACK; pred commitom skontrolovať staged zoznam.
+
+### CLAIM Codex 2026-10-26 07:16 CEST — SOVEREIGN_POLICY_EVIDENCE_ENFORCEMENT_20261026
+Súbory: `Trinity/src/os-registry.js`, `Trinity/tests/os-registry.test.mjs`, tento review záznam.
+Commit: základ remote `3c54a3e` + truth fix `112296b`; OS súbory boli odovzdané na remote druhou stranou a teraz sa opravuje konkrétny kontrakt.
+Testy: čakajú. Politika `completed_requires_evidence` musí fail-closed odmietnuť každý completed výsledok bez konkrétneho `receipt_id`; ľubovoľný text `evidence` nestačí.
+Ďalší krok: cielené Policy Engine testy, úplný gate, normálny push; bez deployu.
+
+### HANDOFF Codex 2026-10-26 07:18 CEST — SOVEREIGN_POLICY_EVIDENCE_ENFORCEMENT_20261026 PENDING_ACK
+Súbory: `Trinity/src/os-registry.js`, `Trinity/tests/os-registry.test.mjs`, tento review záznam.
+Commit: čaká na vytvorenie z presne uvedených súborov; základ `112296b`, bez deployu.
+Testy: OS registry 10/10 PASS; `git diff --check` PASS. Predchádzajúci úplný `npm run check` na rovnakom HEAD pred týmto malým policy rezom prešiel 508 testov; nový policy test je cielený a zelený.
+Výsledok: `completed` bez `receipt_id` sa mení na `failed`, prípadne zachová konkrétny podriadený stav `pending|queued|running|partial|failed`. Reťazec `evidence:'verified'` už nie je dôkaz; prijíma sa iba konkrétny receipt ID.
+Ďalší krok: nový úplný gate v ďalšom 15-minútovom okne a read-only review Antigravity; deploy až po skutočnom development gate.

@@ -50,7 +50,7 @@ test('Policy Engine: enforceCompletedEvidence enforces receipt requirement', () 
   // Completed with receipt is valid
   assert.equal(enforceCompletedEvidence('completed', { receipt_id: 'TRN-RCPT-123' }), 'completed');
   assert.equal(enforceCompletedEvidence('completed', { _evidence: { receipt_id: 'TRN-RCPT-456' } }), 'completed');
-  assert.equal(enforceCompletedEvidence('completed', { evidence: 'verified' }), 'completed');
+  assert.equal(enforceCompletedEvidence('completed', { evidence: { receipt_id: 'TRN-RCPT-789' } }), 'completed');
 
   // Completed with error or isError and no receipt turns into failed
   assert.equal(enforceCompletedEvidence('completed', { error: 'Failed' }), 'failed');
@@ -58,6 +58,9 @@ test('Policy Engine: enforceCompletedEvidence enforces receipt requirement', () 
 
   // Completed with status queued and no receipt turns into queued
   assert.equal(enforceCompletedEvidence('completed', { status: 'queued' }), 'queued');
+  assert.equal(enforceCompletedEvidence('completed', {}), 'failed');
+  assert.equal(enforceCompletedEvidence('completed', { evidence: 'verified' }), 'failed');
+  assert.equal(enforceCompletedEvidence('completed', { status: 'partial' }), 'partial');
 
   // Other statuses remain untouched
   assert.equal(enforceCompletedEvidence('queued', {}), 'queued');
