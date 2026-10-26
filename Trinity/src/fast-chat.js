@@ -1,6 +1,6 @@
 import {languageDirective} from './cognition.js';
 export const FAST_TOOLS=new Set([
-  'calculate','current_time','analyze_text','convert_units','statistics',
+  'calculate','current_time','analyze_text','convert_units','statistics','infrastructure_status','project_snapshot',
   'search_memory','knowledge_search','web_search','web_fetch',
   'list_capabilities','list_skills','list_connectors','service_status','integration_status',
   'fleet_status','delegate_worker','orchestrate_team','execute_skill','copilot_chat','ecosystem_search',
@@ -15,6 +15,12 @@ Ak potrebuješ nástroj, vráť iba JSON {"tool":"názov","arguments":{...}}. In
 }
 export function directChatTool(task,tools){
  const text=String(task).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ if(/^(?:prosim\s+)?(?:stav|status|aky je stav|co sa deje|deje sa nieco|su nejake zmeny|zmeny|kontrola|diagnostika|prehlad|ako sa mas|jak sa mas)\s*[?.!]*$/.test(text)){
+   if(tools.includes('infrastructure_status'))return {name:'infrastructure_status',arguments:{}};
+   if(tools.includes('fleet_status'))return {name:'fleet_status',arguments:{}};
+   if(tools.includes('list_capabilities'))return {name:'list_capabilities',arguments:{}};
+ }
+ if(/^(?:prosim\s+)?(?:co je nove|co sa robilo|co si robila|posledne ulohy|prehlad projektov|projekty)\s*[?.!]*$/.test(text)&&tools.includes('project_snapshot'))return {name:'project_snapshot',arguments:{}};
  const expression=text.match(/^(?:(?:prosim\s+)?(?:kolko\s+(?:je|bude)|vypocitaj|spocitaj|calculate|what is)\s*:?\s*)?(-?\d+(?:[.,]\d+)?)\s*([+*×/÷−-])\s*(-?\d+(?:[.,]\d+)?)\s*[?=.!]?$/);
  if(expression&&tools.includes('calculate'))return {name:'calculate',arguments:{operation:({'+':'add','-':'subtract','−':'subtract','*':'multiply','×':'multiply','/':'divide','÷':'divide'})[expression[2]],values:[expression[1],expression[3]].map(value=>Number(value.replace(',','.')))}};
  if(/^(?:prosim\s+)?(?:kolko je hodin|aky je (?:aktualny )?cas|what time is it)\s*[?.!]*$/.test(text)&&tools.includes('current_time'))return {name:'current_time',arguments:{timezone:'Europe/Bratislava'}};

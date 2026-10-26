@@ -89,13 +89,20 @@ export function findUnsupportedActionClaims(text,toolLog=[]){
   const normalized=source.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   const namedResults=[
     /\b(?:vysledok|vystup)\s+nastroja\s+`?([a-z_][a-z0-9_-]*)`?\s+(?:je|bol)\s*:/g,
-    /\b(?:result|output)\s+(?:of|from)\s+(?:the\s+)?(?:tool\s+)?`?([a-z_][a-z0-9_-]*)`?\s+(?:is|was)\s*:/g
+    /\b(?:result|output)\s+(?:of|from)\s+(?:the\s+)?(?:tool\s+)?`?([a-z_][a-z0-9_-]*)`?\s+(?:is|was)\s*:/g,
+    /\b(?:\*\*|\b)(?:nastroj|tool)(?:\*\*|\b)\s*:\s*`?([a-z_][a-z0-9_-]*)`?/g
   ];
   for(const pattern of namedResults){
     for(const match of normalized.matchAll(pattern)){
       const name=match[1];
       if(!toolLog.some(r=>r?.tool===name&&r.status==='completed'&&r.receipt_id))unsupported.push('tool_result:'+name);
     }
+  }
+  if(/\b(?:\*\*|\b)(?:vystup|output)(?:\*\*|\b)\s*:\s*(?:```|\{)/i.test(normalized)&&!toolLog.some(r=>r?.status==='completed'&&r.receipt_id)){
+    unsupported.push('simulated_tool_output');
+  }
+  if(/\b(?:nemam|nemame)\s+(?:priamy\s+)?(?:pristup|moznost)\s+(?:k\s+(?:vasim\s+)?(?:suborom|terminalu|pc)|vykonavat\s+(?:ziadne\s+)?akcie)\b/i.test(normalized)){
+    unsupported.push('false_capability_disclaimer');
   }
   return [...new Set(unsupported)];
 }

@@ -28,7 +28,8 @@ function actionObject(value){
 }
 function containsCallShape(text){
   return /["'](?:tool|tool_calls|functionCall)["']\s*:/.test(text)
-    || /["']type["']\s*:\s*["']function["']/.test(text);
+    || /["']type["']\s*:\s*["']function["']/.test(text)
+    || /(?:^|\n)\s*(?:\*\*|\b)(?:nástroj|nastroj|tool)(?:\*\*|\b)\s*:\s*`?[a-z_][a-z0-9_-]*`?/i.test(text);
 }
 export function parseModelAction(input){
   if(typeof input!=='string'){
