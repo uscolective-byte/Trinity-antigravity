@@ -29,6 +29,7 @@ export function handleMcp(request,env,ctx,access={}){
   return createMcpHandler(()=>{
   const server=new McpServer({name:'trinity',version:TRINITY_VERSION});
     const requireProjectAccess=()=>{if(access.projectControl!==true)throw new Error('Tento MCP klient nemá projektové oprávnenie.');};
+    const requireAutomationAccess=()=>{if(access.automationControl!==true)throw new Error('Tento MCP klient nemá oprávnenie spúšťať autonómne cykly.');};
     server.registerTool('infrastructure_status',{description:'Stav konfigurácie domén, hostingu a vývoja Trinity.',inputSchema:{}},async()=>result(infrastructureStatus(env)));
     server.registerTool('project_inspect',{description:'Nájde relevantné zdrojové súbory a presný commit Trinity.',inputSchema:{query:z.string().max(2000).default('')}},async({query})=>{requireProjectAccess();return result(await inspectProject(env,query));});
     server.registerTool('project_read',{description:'Číta zdroj z GitHubu bez zapnutého PC.',inputSchema:{path:z.string().max(500),ref:z.string().regex(/^[a-f0-9]{40}$/).optional()}},async({path,ref})=>{requireProjectAccess();return result(await readProjectSource(env,path,ref));});
@@ -236,10 +237,10 @@ export function handleMcp(request,env,ctx,access={}){
       async({name,domain,type})=>result(universalEcosystem.synthesizeApp(name,domain,{type})));
 
     server.registerTool('trigger_brain_cycle',{description:'Spustí autonómny cyklus mozgu Trinity (kontrola stavu a úloh).',inputSchema:{}},
-      async()=>result(await runBrainCycle(env)));
+      async()=>{requireAutomationAccess();return result(await runBrainCycle(env));});
 
     server.registerTool('trigger_evolution_cycle',{description:'Spustí evolučný cyklus analýzy chýb a seba-zdokonaľovania.',inputSchema:{}},
-      async()=>result(await runEvolutionCycle(env)));
+      async()=>{requireAutomationAccess();return result(await runEvolutionCycle(env));});
 
     return server;
   },{route:'/mcp'})(request,env,ctx);

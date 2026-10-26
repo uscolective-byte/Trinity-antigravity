@@ -16,6 +16,7 @@ import {FREE_MODULES_CATALOG,fetchWeather,fetchWikipedia,resolveDns,fetchCryptoM
 import {z} from 'zod';
 import {TRINITY_VERSION,releaseMetadata,sourceMetadata} from './version.js';
 import {buildOnlyPreviewResponse,isBuildOnlyPreview} from './preview-mode.js';
+import {claimScheduledCron,enforceSovereignEdge,scheduledOperationsForCron} from './sovereign-shield.js';
 import {TrinityAgent,ChatAgent,GuardianAgent} from './legacy.js';
 import {TrinityOperations} from './workflow.js';
 import {AGENTS,SKILLS,shouldDelegate} from './registry.js';
@@ -114,7 +115,7 @@ async function handleScopedMcp(request,env,ctx){
   if(!await pluginEnabled(env,'mcp'))throw new HttpError(503,'MCP rozšírenie je vypnuté.');
   if(body.method==='tools/call'&&['dispatch_task','create_daily_plan'].includes(body.params?.name))await rateLimit(env,`job:api:${client.id}`,12);
   const forwarded=new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify(body)});
-  return handleMcp(forwarded,env,ctx,{projectControl:true});
+  return handleMcp(forwarded,env,ctx,{projectControl:true,automationControl:false});
 }
 async function route(request,env,ctx){
   const previewResponse=buildOnlyPreviewResponse(request,env,{version:TRINITY_VERSION,agents:AGENTS.length});
@@ -203,7 +204,7 @@ async function route(request,env,ctx){
       headers:{'Content-Type':'application/json',Accept:'application/json, text/event-stream'},
       body:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',params:{name:tool,arguments:args||{}}})
     });
-    const mcpRes=await handleMcp(mcpReq,env,ctx,{projectControl:true});
+    const mcpRes=await handleMcp(mcpReq,env,ctx,{projectControl:true,automationControl:false});
     const data=await readMcpEnvelope(mcpRes);
     const outcome=classifyMcpResult(data);
     if(outcome.status==='failed')return json({status:'failed',tool,error:outcome.error,result:outcome.result},400);
@@ -1058,8 +1059,8 @@ async function route(request,env,ctx){
       return json(await deleteTrinityDocument(env,user.email||user.id,docId));
     }
   }
-  if(path==='/api/assistant/brain/run'&&request.method==='POST'){requireAdmin(user);return json(await runBrainCycle(env));}
-  if(path==='/api/assistant/evolution/run'&&request.method==='POST'){requireAdmin(user);return json(await runEvolutionCycle(env));}
+  if(path==='/api/assistant/brain/run'&&request.method==='POST'){requireAdmin(user);await rateLimit(env,`brain-manual:${user.id}`,2,300);return json(await runBrainCycle(env));}
+  if(path==='/api/assistant/evolution/run'&&request.method==='POST'){requireOwner(user);await rateLimit(env,`evolution-manual:${user.id}`,1,900);return json(await runEvolutionCycle(env));}
   const mediaRoute=path.match(/^\/api\/assistant\/media\/images\/([0-9a-f-]+)$/i);
   if(mediaRoute&&request.method==='GET'){
     const id=uuid.parse(mediaRoute[1]);const object=await env.ARTIFACTS.get(`media/images/${id}.jpg`);
@@ -1284,7 +1285,7 @@ async function route(request,env,ctx){
       if(body.method==='tools/call'&&['dispatch_task','create_daily_plan'].includes(body.params?.name))await rateLimit(env,`job:${user.id}`,12);
       request=new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify(body)});
     }
-    return handleMcp(request,env,ctx,{projectControl:['admin','owner'].includes(user.role)});
+    return handleMcp(request,env,ctx,{projectControl:['admin','owner'].includes(user.role),automationControl:user.role==='owner'});
   }
   if(path==='/api/ops/status'&&request.method==='GET'){
     const counts=await env.DB.prepare('SELECT status,COUNT(*) AS count FROM ops_jobs GROUP BY status').all();
@@ -1388,11 +1389,29 @@ async function route(request,env,ctx){
 }
 export default {
   async fetch(request,env,ctx){
-    try{return secure(await route(request,env,ctx));}
+    try{
+      const shieldResponse=await enforceSovereignEdge(request);
+      if(shieldResponse)return secure(shieldResponse);
+      return secure(await route(request,env,ctx));
+    }
     catch(e){const status=e instanceof z.ZodError?400:e.status||500;
       if(status===500)console.error(JSON.stringify({event:'request_failed',path:new URL(request.url).pathname}));
       return secure(json({error:status===500?'Interná chyba. Pozri záznamy služby.':e instanceof z.ZodError?'Neplatné údaje požiadavky.':e.message},status));}
   },
-  async scheduled(controller,env,ctx){if(isBuildOnlyPreview(env))return;ctx.waitUntil((async()=>{const summary=await runScheduledHealth(env,controller.cron);await recordHealthIncident(env,summary);await runBrainCycle(env);await runEvolutionCycle(env);await scanForImprovements(env);})());},
+  async scheduled(controller,env,ctx){
+    if(isBuildOnlyPreview(env))return;
+    const operations=scheduledOperationsForCron(controller?.cron);
+    ctx.waitUntil((async()=>{
+      if(!await claimScheduledCron(env,controller.cron,controller.scheduledTime))return;
+      for(const operation of operations){
+        if(operation==='health'){
+          const summary=await runScheduledHealth(env,controller.cron);
+          await recordHealthIncident(env,summary);
+        }else if(operation==='brain')await runBrainCycle(env);
+        else if(operation==='evolution')await runEvolutionCycle(env);
+        else if(operation==='improvement-scan')await scanForImprovements(env);
+      }
+    })());
+  },
   async email(message,env){if(isBuildOnlyPreview(env)){message.setReject('Build-only Preview does not accept email.');return;}await handleInboundEmail(message,env);}
 };

@@ -99,5 +99,10 @@ export function secure(response) {
   out.headers.set('Referrer-Policy','no-referrer');
   out.headers.set('X-Frame-Options','DENY');
   out.headers.set('Cache-Control','no-store');
+  out.headers.set('Strict-Transport-Security','max-age=31536000; includeSubDomains; preload');
+  out.headers.set('Permissions-Policy','camera=(), microphone=(), geolocation=(), payment=()');
+  if((out.headers.get('Content-Type')||'').includes('application/json')){
+    out.headers.set('Content-Security-Policy',"default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
+  }
   return out;
 }
