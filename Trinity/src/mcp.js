@@ -12,7 +12,8 @@ import {z} from 'zod';
 import {AGENTS} from './registry.js';
 import {createJob,getJob,listJobs} from './jobs.js';
 import {searchMemory} from './tools.js';
-import {serviceStatus,readiness} from './services.js';
+import {callModel,serviceStatus,readiness} from './services.js';
+import {skillRegistry} from './skillRegistry.js';
 import {listPlugins} from './plugins.js';
 import {createSystemAction,getSystemAction,listSystemActions,approveSystemAction} from './system-actions.js';
 import {geminiProjectControlEnabled} from './ai-providers.js';
@@ -50,6 +51,47 @@ export function handleMcp(request,env,ctx,access={}){
 
     server.registerTool('create_daily_plan',{description:'Pripraví slovenský denný plán z dodaných úloh, bez zmien kalendára. Vyžaduje UUID idempotency_key; vrátené ID je zaradenie. Výsledok načítaj cez get_task.',inputSchema:dailyPlanShape},
       async args=>result(await createDailyPlan(env,args)));
+
+    server.registerTool('trinity_memory_sync',{description:'Zápis, čítanie a vyhľadávanie v zdieľanej sémantickej pamäti Trinity medzi ChatGPT, Gemini, Copilotom a Antigravity.',
+      inputSchema:{action:z.enum(['read','write','search']),key:z.string().max(200).optional(),payload:z.string().max(10000).optional(),source_agent:z.enum(['chatgpt','gemini','copilot','antigravity','trinity']).default('trinity')}},
+      async({action,key,payload,source_agent})=>{
+        if(action==='search'){
+          const q=key||payload||'';
+          return result(await searchMemory(env,q));
+        }
+        if(action==='read'){
+          if(!key)return result({error:'Chýba kľúč pamäte pre čítanie.'});
+          const row=await env.DB.prepare('SELECT key,value,source,updated_at FROM ops_memory WHERE key=?').bind(key).first();
+          return result(row||{found:false,key});
+        }
+        if(action==='write'){
+          if(!key||!payload)return result({error:'Chýba kľúč alebo obsah pre zápis.'});
+          await env.DB.prepare("INSERT INTO ops_memory(key,value,source,updated_at) VALUES(?,?,?,datetime('now')) ON CONFLICT(key) DO UPDATE SET value=excluded.value,source=excluded.source,updated_at=datetime('now')").bind(key,payload,`agent:${source_agent}`).run();
+          return result({status:'saved',key,source_agent,updated_at:new Date().toISOString()});
+        }
+        return result({error:'Neznáma akcia pamäte.'});
+      });
+
+    server.registerTool('dispatch_to_agent',{description:'Prepošle úlohu do iného AI systému (Gemini, OpenAI / ChatGPT, alebo Microsoft Copilot Studio).',
+      inputSchema:{target:z.enum(['gemini','openai','copilot_studio']),prompt:z.string().min(1).max(12000),context_key:z.string().max(200).optional()}},
+      async({target,prompt,context_key})=>{
+        let contextPrefix='';
+        if(context_key){
+          const mem=await env.DB.prepare('SELECT value FROM ops_memory WHERE key=?').bind(context_key).first();
+          if(mem?.value)contextPrefix=`[Kontext z pamäte ${context_key}]:\n${mem.value}\n\n`;
+        }
+        const fullPrompt=contextPrefix+prompt;
+        if(target==='copilot_studio'){
+          const fn=skillRegistry.get('copilotStudioAsk');
+          if(!fn)return result({error:'Skill copilotStudioAsk nie je dostupný.'});
+          return result(await fn({query:fullPrompt},env));
+        }
+        if(target==='openai'||target==='gemini'){
+          const response=await callModel(env,target,[{role:'user',content:fullPrompt}],2000);
+          return result({target,response,timestamp:new Date().toISOString()});
+        }
+        return result({error:`Neznámy cieľový agent: ${target}`});
+      });
 
     // ── Pôvodné nástroje ──
     server.registerTool('list_agents',{description:`Zoznam ${AGENTS.length} špecialistov Trinity.`,inputSchema:{}},

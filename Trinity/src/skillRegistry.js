@@ -1393,7 +1393,8 @@ export const copilotStudioSkills = {
     if (!query) return { success: false, error: 'Chýba query.' };
     const secret = env?.COPILOT_STUDIO_SECRET;
     if (!secret) return { success: false, error: 'COPILOT_STUDIO_SECRET nie je nastavený (wrangler secret put COPILOT_STUDIO_SECRET).' };
-    const base = String(env?.DIRECTLINE_URL || 'https://directline.botframework.com').replace(/\/+$/, '') + '/v3/directline';
+    const configuredBase = String(env?.DIRECTLINE_URL || 'https://directline.botframework.com').replace(/\/+$/, '');
+    const base = configuredBase.endsWith('/v3/directline') ? configuredBase : configuredBase + '/v3/directline';
     const timeoutMs = Math.min(Math.max(Number(options.timeoutMs) || 20000, 3000), 45000);
     const deadline = Date.now() + timeoutMs;
     const call = async (path, method, bearer, body) => {

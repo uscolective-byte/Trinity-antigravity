@@ -66,7 +66,7 @@ import html from '../public/index.html';
 import appJS from '../public/app.js.txt';
 import css from '../public/style.css';
 import refreshCSS from '../public/refresh.css';
-import {selectChatProvider,pickChatProvider} from './chat-routing.js';
+import {selectChatProvider,pickChatProvider,CHAT_ENGINE_VALUES,normalizeChatEngine} from './chat-routing.js';
 import assistantHTML from '../public/assistant/chat.html';
 import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
@@ -82,13 +82,33 @@ export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
 const json=(data,status=200)=>Response.json(data,{status});
 const runtimeEnvironment=(request,env)=>['localhost','127.0.0.1','::1'].includes(new URL(request.url).hostname)?'local':env.TRINITY_ENV||'local';
 const uuid=z.string().uuid();
-const MCP_READ_TOOLS=new Set(['trinity_memory_sync','trinity_control_panel','infrastructure_status','project_inspect','project_read','list_improvements','get_capability_status','trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status','ecosystem_stats','search_ecosystem']);
+const MCP_READ_TOOLS=new Set(['trinity_control_panel','infrastructure_status','project_inspect','project_read','list_improvements','get_capability_status','trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status','ecosystem_stats','search_ecosystem']);
+async function readMcpEnvelope(response){
+  const raw=await response.text();
+  const dataLines=raw.split(/\r?\n/).filter(line=>line.startsWith('data:')).map(line=>line.slice(5).trim()).filter(Boolean);
+  const payload=dataLines.length?dataLines.at(-1):raw.trim();
+  try{return JSON.parse(payload);}catch{return {error:{code:-32603,message:'MCP vrátil neplatnú odpoveď.'}};}
+}
+function decodeMcpContent(result){
+  const text=result?.content?.find(item=>item?.type==='text')?.text;
+  if(typeof text!=='string')return result;
+  try{return JSON.parse(text);}catch{return text;}
+}
+function classifyMcpResult(envelope){
+  if(envelope?.error)return {status:'failed',error:envelope.error};
+  const result=envelope?.result;
+  const payload=decodeMcpContent(result);
+  if(result?.isError||payload?.error||payload?.success===false||payload?.ok===false||payload?.status==='failed')return {status:'failed',error:payload?.error||payload?.message||'MCP nástroj zlyhal.',result:payload};
+  if(['queued','running','proposed','pending'].includes(payload?.status)||payload?.approval_required===true)return {status:payload?.status==='running'?'running':'queued',result:payload};
+  return {status:'completed',result:payload};
+}
 function requireAdmin(user){if(!['admin','owner'].includes(user.role))throw new HttpError(403,'Táto operácia je dostupná iba správcovi Trinity.');}
 function requireOwner(user){if(user.role!=='owner')throw new HttpError(403,'Táto operácia je dostupná iba vlastníkovi Trinity.');}
 async function handleScopedMcp(request,env,ctx){
   if(request.method!=='POST')throw new HttpError(405,'MCP API kľúč podporuje iba POST požiadavky.');
   const body=await readJSON(request,60000);
-  const scope=body.method==='tools/call'&&!MCP_READ_TOOLS.has(body.params?.name)?'mcp:write':'mcp:read';
+  const memoryRead=body.method==='tools/call'&&body.params?.name==='trinity_memory_sync'&&['read','search'].includes(body.params?.arguments?.action);
+  const scope=body.method==='tools/call'&&!MCP_READ_TOOLS.has(body.params?.name)&&!memoryRead?'mcp:write':'mcp:read';
   const client=await authenticateApiKey(request,env,scope);
   if(!await pluginEnabled(env,'mcp'))throw new HttpError(503,'MCP rozšírenie je vypnuté.');
   if(body.method==='tools/call'&&['dispatch_task','create_daily_plan'].includes(body.params?.name))await rateLimit(env,`job:api:${client.id}`,12);
@@ -175,17 +195,20 @@ async function route(request,env,ctx){
     });
   }
   if(path==='/api/mcp/invoke'&&request.method==='POST'){
-    const client=await authenticateApiKey(request,env,'mcp:write');
+    await authenticateApiKey(request,env,'mcp:write');
     const {tool,arguments:args}=await readJSON(request,64000);
     const mcpReq=new Request(new URL(request.url).origin+'/mcp',{
       method:'POST',
-      headers:{'Content-Type':'application/json',Accept:'application/json'},
+      headers:{'Content-Type':'application/json',Accept:'application/json, text/event-stream'},
       body:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',params:{name:tool,arguments:args||{}}})
     });
     const mcpRes=await handleMcp(mcpReq,env,ctx,{projectControl:true});
-    const data=await mcpRes.json();
+    const data=await readMcpEnvelope(mcpRes);
+    const outcome=classifyMcpResult(data);
+    if(outcome.status==='failed')return json({status:'failed',tool,error:outcome.error,result:outcome.result},400);
+    if(outcome.status!=='completed')return json({status:outcome.status,tool,result:outcome.result});
     const receipt_id=`TRN-RCPT-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0,6).toUpperCase()}`;
-    return json({status:'completed',tool,receipt_id,result:data.result||data});
+    return json({status:'completed',tool,receipt_id,result:outcome.result});
   }
   if(path==='/health'||path==='/api/health'){
     const response=json({service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),source:sourceMetadata(env),deployment:releaseMetadata(env),agents:AGENTS.length,status:'serving',truth_mode:'evidence-required'});const origin=request.headers.get('Origin');
@@ -833,7 +856,7 @@ async function route(request,env,ctx){
   }
   if(path==='/api/assistant/chat'&&request.method==='POST'){
     await rateLimit(env,`job:${user.id}`,12);
-    const d=z.object({message:z.string().min(1).max(12000),session:z.string().uuid(),language:z.string().max(35).default('auto').transform(normalizeLanguage),engine:z.enum(['auto','cloud','fast','openai','gemini','ollama','local','deepseek-r1','llama','qwen','groq','deepseek','anthropic','mistral','openrouter']).default('auto'),remember:z.boolean().optional(),allow_files:z.boolean().optional()}).strict().parse(await readJSON(request));
+    const d=z.object({message:z.string().min(1).max(12000),session:z.string().uuid(),language:z.string().max(35).default('auto').transform(normalizeLanguage),engine:z.preprocess(normalizeChatEngine,z.enum(CHAT_ENGINE_VALUES)).default('auto'),remember:z.boolean().optional(),allow_files:z.boolean().optional()}).strict().parse(await readJSON(request));
     if(d.engine==='local')requireAdmin(user);
     const wantsMemory=/^(zapamätaj si|zapamataj si|remember)\s*[:,-]?\s+/i.test(d.message);
     const delegated=shouldDelegate(d.message);

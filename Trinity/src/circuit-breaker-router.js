@@ -1,3 +1,5 @@
+import {skillRegistry} from './skillRegistry.js';
+
 /**
  * TRINITY Sovereign Circuit Breaker Router (Pentad Edition)
  * Zabezpečuje odolné smerovanie medzi Cloudflare Workers AI (Edge), Gemini a Copilot Studio (crm17).
@@ -86,62 +88,42 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
 /**
  * Smerovanie úlohy na Microsoft Copilot Studio (crm17) cez Direct Line
  */
-export async function callCopilotStudioDirectLine(prompt, env, timeoutMs = 15000) {
+export async function callCopilotStudioDirectLine(prompt, env, timeoutMs = 15000, options = {}) {
   const breaker = circuitBreakers.copilot;
   if (breaker.isOpen()) {
     throw new Error('Copilot Studio circuit breaker je OPEN (výpadok služby)');
   }
 
-  const secret = env.COPILOT_STUDIO_SECRET || env.COPILOT_DIRECTLINE_SECRET;
-  if (!secret) {
+  if (!env.COPILOT_STUDIO_SECRET) {
     throw new Error('Chýba COPILOT_STUDIO_SECRET vo Worker secrets');
   }
 
   try {
-    // 1. Získanie konverzácie
-    const directlineUrl = env.DIRECTLINE_URL || 'https://europe.directline.botframework.com/v3/directline';
-    const initRes = await fetchWithTimeout(`${directlineUrl}/conversations`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${secret}` }
-    }, timeoutMs);
-
-    if (!initRes.ok) {
-      throw new Error(`Direct Line handshake failed: HTTP ${initRes.status}`);
+    const copilot = await skillRegistry.execute(
+      'copilotStudioAsk',
+      { query: String(prompt || '').trim() },
+      env,
+      { timeoutMs, pollMs: options.pollMs }
+    );
+    if (!copilot?.success || !copilot.conversationId || !Array.isArray(copilot.replies) || !copilot.replies.length) {
+      throw new Error(copilot?.error || 'Copilot Studio nevrátil odpoveď.');
     }
-
-    const conv = await initRes.json();
-
-    // 2. Odoslanie správy
-    const actRes = await fetchWithTimeout(`${directlineUrl}/conversations/${conv.conversationId}/activities`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${conv.token || secret}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        type: 'message',
-        from: { id: 'usr_basterix_root', name: 'Sabo Ivan / Basterix' },
-        text: prompt
-      })
-    }, timeoutMs);
-
-    if (!actRes.ok) {
-      throw new Error(`Direct Line activity post failed: HTTP ${actRes.status}`);
-    }
-
-    breaker.recordSuccess();
-
-    // Zápis do D1 auditnej tabuľky ak existuje
+    const text = copilot.replies.join('\n');
     if (env.DB?.prepare) {
-      env.DB.prepare(`
-        INSERT INTO copilot_sessions (session_id, prompt, status, created_at)
-        VALUES (?1, ?2, 'DISPATCHED', datetime('now'))
-      `).bind(conv.conversationId, prompt.slice(0, 500)).run().catch(() => {});
+      const history = JSON.stringify([
+        { role: 'user', content: String(prompt || '') },
+        { role: 'assistant', content: text }
+      ]);
+      await env.DB.prepare(`
+        INSERT INTO copilot_sessions (session_id, history, updated_at)
+        VALUES (?1, ?2, datetime('now'))
+        ON CONFLICT(session_id) DO UPDATE SET history=excluded.history, updated_at=excluded.updated_at
+      `).bind(copilot.conversationId ?? null, history ?? null).run();
     }
-
+    breaker.recordSuccess();
     return {
-      conversationId: conv.conversationId,
-      text: `[Copilot Studio crm17] Úloha zaradená do relácie ${conv.conversationId}`,
+      conversationId: copilot.conversationId,
+      text,
       node: 'copilot-studio-crm17'
     };
   } catch (err) {
@@ -166,10 +148,10 @@ export async function callGeminiApi(prompt, system, env, timeoutMs = 15000) {
 
   try {
     const model = env.GEMINI_MODEL || 'gemini-2.5-pro';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
     const res = await fetchWithTimeout(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify({
         systemInstruction: system ? { parts: [{ text: system }] } : undefined,
         contents: [{ role: 'user', parts: [{ text: prompt }] }]
