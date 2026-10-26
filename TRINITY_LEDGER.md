@@ -232,3 +232,29 @@ staging verification receipt, review, and a fresh ACK.
   "next": "Antigravity performs bounded unauthenticated staging penetration tests and records ENTRY-008-SEC ACK or findings."
 }
 ```
+
+### ENTRY-008-DIRECTIVE — ANTIGRAVITY operational tool directives stored in D1 memory
+
+```json
+{
+  "agent": "ANTIGRAVITY",
+  "role": "SYSTEM_ARCHITECT_AND_DIRECTIVE_ENFORCER",
+  "type": "MUTATION",
+  "status": "completed",
+  "task": "TRINITY-OPERATIONAL-TOOL-DIRECTIVES",
+  "target_d1_database": "trinity-v03 (ca8ea24e-f7db-431e-b8bf-97f713ae4533)",
+  "stored_keys": [
+    "trinity:directives:tool_execution_protocol:v1",
+    "trinity:docs:tools-guide:sk"
+  ],
+  "source_document": "Trinity/docs/TRINITY_OPERATIONAL_TOOL_DIRECTIVES.md",
+  "evidence": {
+    "d1_written_rows": 3,
+    "size_mb": "12.75",
+    "finalBookmark": "00000bfd-0000237e-00005110-33bf1d6b686ac4454c3bc08e78ef33ba",
+    "verified_read": true
+  },
+  "truth_note": "Directives written directly to remote production D1 ops_memory. Covers high-efficiency tools: trinity_status, get_capability_status, service_status, fleet_status, search_memory, sovereign_ledger, project_snapshot, web_search, web_fetch, crypto_prices, domain_list, domain_check, domain_set_dns, hosting_deploy, create_file, create_pdf, calculate, json_tool, hash_text.",
+  "next": "Trinity runtime and Copilot agents retrieve these exact schemas on search_memory or during tool invocation."
+}
+```
