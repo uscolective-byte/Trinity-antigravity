@@ -18,13 +18,18 @@ export const BRIDGE_TOKEN = process.env.TRINITY_TOKEN || "trinity-local-secret";
 
 // Constitutional Security Audit - zakázané deštruktívne vzory príkazov
 export const BLOCKED_PATTERNS = [
-  /rm\s+-rf\s+\/($|\s)/i,
+  // Broader rm -rf: catches rm with -r/--recursive and any path starting with / or [a-z]: or ~
+  /\brm\s+.*(-[a-z]*r[a-z]*|--recursive)\b.*(?:\s|^)["']?(?:\/|[a-z]:[\\/]|~)/i,
   /mkfs/i,
   /dd\s+if=/i,
   /:(){ :|:& };:/,
   /format\s+[a-z]:/i,
-  /del\s+\/s\s+\/q\s+c:\\/i,
-  /Remove-Item\s+-Recurse\s+-Force\s+C:\\/i
+  // Windows del / erase with /s and /q flags in any order targeting root or drive root
+  /\b(?:del|erase)\b.*(?:\/s.*\/q|\/q.*\/s).*["']?(?:[a-z]:(?:[\\/]|$|\s|["'])|\\\\|\/)/i,
+  // Windows rmdir / rd with /s and /q flags in any order targeting root or drive root
+  /\b(?:rmdir|rd)\b.*(?:\/s.*\/q|\/q.*\/s).*["']?(?:[a-z]:(?:[\\/]|$|\s|["'])|\\\\|\/)/i,
+  // PowerShell Remove-Item with -Recurse and -Force in any order targeting root or drive root
+  /\bRemove-Item\s+.*(?:-recurse.*-force|-force.*-recurse).*["']?(?:[a-z]:(?:[\\/]|$|\s|["'])|\\\\|\/)/i
 ];
 
 export function auditCommand(cmd) {
@@ -39,8 +44,9 @@ export async function runSafeCommand(command, subdir = ".", timeoutMs = 120000) 
   auditCommand(command);
   const resolvedCwd = path.resolve(WORKSPACE_DIR, subdir);
   const normalizedRoot = path.resolve(WORKSPACE_DIR);
-  
-  if (!resolvedCwd.toLowerCase().startsWith(normalizedRoot.toLowerCase())) {
+  const rel = path.relative(normalizedRoot, resolvedCwd);
+
+  if (rel.startsWith("..") || path.isAbsolute(rel)) {
     throw new Error(`SANDBOX VIOLATION: Pokus o únik mimo TRINITY_WORKSPACE (${resolvedCwd})`);
   }
 
@@ -232,8 +238,8 @@ if (isMainModule && process.env.NODE_ENV !== "test") {
   });
 }
 
-// Stdio transport ak je spustený cez MCP klienta
-if (isMainModule && (process.env.MCP_STDIO === "true" || !process.stdout.isTTY) && process.env.NODE_ENV !== "test") {
+// Stdio transport iba ak je explicitne zapnutý cez MCP_STDIO=true
+if (isMainModule && process.env.MCP_STDIO === "true" && process.env.NODE_ENV !== "test") {
   try {
     const transport = new StdioServerTransport();
     await mcpServer.connect(transport);

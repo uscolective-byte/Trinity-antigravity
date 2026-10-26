@@ -10,7 +10,10 @@ import {
   releaseLease,
   findBestAgentForCapabilities,
   updateAgentReputation,
-  recordKnowledgeGraphNode
+  recordKnowledgeGraphNode,
+  recordResourceState,
+  findBestResource,
+  publishSovereignEvent
 } from '../src/os-registry.js';
 
 test('sanitizeD1: converts undefined to null and preserves valid values', () => {
@@ -413,4 +416,39 @@ test('Knowledge Graph: entity ids are deterministic, collision-resistant and inp
     {entityType:'project',entityName:'Trinity',observation:'x',extra:true}
   ])await assert.rejects(recordKnowledgeGraphNode(blockedEnv,input));
   assert.equal(prepared,false);
+});
+
+test('Resource Scheduler: records bounded telemetry and selects only a returned healthy resource',async()=>{
+  const statements=[];
+  const env={DB:{prepare:sql=>({bind:(...params)=>({
+    run:async()=>{statements.push({sql,params});return {success:true};},
+    first:async()=>sql.includes('FROM resource_state')?{resource_id:'GPU_1',node_name:'GPU node',cpu_score:0.2,memory_score:0.3,queue_depth:1,active_jobs:1,tier:'gpu',updated_at:Date.now(),rank:0.8}:null
+  })})}};
+  const state=await recordResourceState(env,{resource_id:'GPU_1',node_name:'GPU node',cpu_score:0.2,memory_score:0.3,queue_depth:1,active_jobs:1,tier:'gpu'});
+  assert.equal(state.resource_id,'GPU_1');
+  assert.equal(statements.length,1);
+  const decision=await findBestResource(env,{required_tier:'gpu'});
+  assert.equal(decision.strategy,'resource_matched');
+  assert.equal(decision.resource.resource_id,'GPU_1');
+});
+
+test('Resource Scheduler: invalid telemetry and unavailable registry fail closed',async()=>{
+  let prepared=false;
+  const env={DB:{prepare(){prepared=true;}}};
+  await assert.rejects(recordResourceState(env,{resource_id:'GPU_1',node_name:'GPU',cpu_score:1.1,memory_score:0.2}));
+  await assert.rejects(findBestResource(env,{max_queue_depth:-1}));
+  assert.equal(prepared,false);
+  assert.equal((await findBestResource({},{})).strategy,'registry_unavailable');
+});
+
+test('Sovereign Event Bus: stores an idempotent pending outbox record without claiming delivery',async()=>{
+  let stored=null;
+  const env={DB:{prepare:sql=>({bind:(...params)=>({
+    run:async()=>{if(sql.includes('INSERT INTO sovereign_events'))stored={id:params[0],topic:params[1],aggregate_type:params[2],aggregate_id:params[3],delivery_status:'pending',idempotency_key:params[5],occurred_at:params[6]};return {success:true};},
+    first:async()=>stored
+  })})}};
+  const idempotency_key=crypto.randomUUID();
+  const event=await publishSovereignEvent(env,{topic:'scheduler.resource_selected',aggregate_type:'resource',aggregate_id:'GPU_1',payload:{rank:0.8},idempotency_key});
+  assert.equal(event.delivery_status,'pending');
+  assert.equal(event.idempotency_key,idempotency_key);
 });

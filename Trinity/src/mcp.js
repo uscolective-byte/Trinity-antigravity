@@ -22,6 +22,7 @@ import {universalEcosystem} from './universal-ecosystem.js';
 import {runBrainCycle} from './brain.js';
 import {runEvolutionCycle} from './evolution.js';
 import {sharedNotesInput,syncSharedNotes} from './shared-notes.js';
+import {recordLedgerEntry,queryLedger} from './os-registry.js';
 
 const result=data=>({content:[{type:'text',text:JSON.stringify(data,null,2)}]});
 
@@ -38,6 +39,16 @@ export function handleMcp(request,env,ctx,access={}){
     registerAppTool(server,'trinity_control_panel',{description:'Interaktívny panel Trinity pre MCP Apps; poskytuje aj plný textový stav.',inputSchema:z.object({}),_meta:{ui:{resourceUri:ui}}},async()=>result(infrastructureStatus(env)));
     registerAppResource(server,'Trinity Control',ui,{},async()=>({contents:[{uri:ui,mimeType:RESOURCE_MIME_TYPE,text:controlAppHtml,_meta:{ui:{csp:{connectDomains:[],resourceDomains:[]}}}}]}));
     server.registerTool('sync_shared_notes',{description:'Synchronizuje spoločné lokálne a cloudové poznámky s revíziami; konflikt neprepíše novšiu verziu.',inputSchema:sharedNotesInput.shape},async args=>result(await syncSharedNotes(env,args)));
+    server.registerTool('sovereign_ledger',{description:'Autoritatívny D1 ledger spolupráce. Completed vyžaduje evidence; zápis dokazuje iba D1 persistenciu.',
+      inputSchema:{action:z.enum(['append','list']),entry:z.record(z.string(),z.unknown()).optional(),query:z.record(z.string(),z.unknown()).optional()}},
+      async({action,entry,query})=>{
+        if(action==='append'){
+          if(!entry)return result({error:'Chýba ledger entry.'});
+          const persisted=await recordLedgerEntry(env,entry,access.principal);
+          return result({status:'persisted',entry:persisted,persistence_receipt:`ledger:${persisted.id}`});
+        }
+        return result(await queryLedger(env,query||{}));
+      });
     const projectControlAllowed=()=>access.projectControl?Promise.resolve(true):geminiProjectControlEnabled(env,env.TRINITY_OWNER_EMAIL||'');
 
     server.registerTool('trinity_status',{description:'Overí aktuálnu pripravenosť jadra a stav registra pluginov. Netvrdí prístup k PC ani ROOT_ADMIN.',inputSchema:{}},

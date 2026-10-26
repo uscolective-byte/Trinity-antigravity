@@ -40,10 +40,20 @@ test("Trinity Bridge: Destructive Command Audit", () => {
   assert.throws(() => auditCommand("del /s /q c:\\"), /SECURITY AUDIT REJECTED/);
   assert.throws(() => auditCommand("Remove-Item -Recurse -Force C:\\"), /SECURITY AUDIT REJECTED/);
 
+  // Hardened adversarial variants
+  assert.throws(() => auditCommand("del /q /s c:\\"), /SECURITY AUDIT REJECTED/);
+  assert.throws(() => auditCommand("del /f /q /s c:\\"), /SECURITY AUDIT REJECTED/);
+  assert.throws(() => auditCommand("rmdir /s /q c:\\"), /SECURITY AUDIT REJECTED/);
+  assert.throws(() => auditCommand("rd /s /q c:\\"), /SECURITY AUDIT REJECTED/);
+  assert.throws(() => auditCommand("rm -rf /etc"), /SECURITY AUDIT REJECTED/);
+  assert.throws(() => auditCommand("Remove-Item -Force -Recurse C:\\"), /SECURITY AUDIT REJECTED/);
+
   // Safe commands should not throw
   assert.doesNotThrow(() => auditCommand("git status"));
   assert.doesNotThrow(() => auditCommand("node -v"));
   assert.doesNotThrow(() => auditCommand("npm test"));
+  assert.doesNotThrow(() => auditCommand("dir"));
+  assert.doesNotThrow(() => auditCommand("echo hello"));
 });
 
 test("Trinity Bridge: Workspace Boundary & Path Traversal Guard", async () => {
@@ -54,6 +64,14 @@ test("Trinity Bridge: Workspace Boundary & Path Traversal Guard", async () => {
   );
   await assert.rejects(
     () => runSafeCommand("dir", "C:\\Windows\\System32"),
+    /SANDBOX VIOLATION/
+  );
+  await assert.rejects(
+    () => runSafeCommand("dir", "../Trinity-antigravity-backup"),
+    /SANDBOX VIOLATION/
+  );
+  await assert.rejects(
+    () => runSafeCommand("dir", "../Trinity-antigravity-secret"),
     /SANDBOX VIOLATION/
   );
 });

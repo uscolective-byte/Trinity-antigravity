@@ -62,7 +62,8 @@ import {runEvolutionCycle} from './evolution.js';
 import {listSelfImprovementProposals,createSelfImprovementProposal,approveSelfImprovementProposal,applySelfImprovementProposal} from './self-improvement.js';
 import {listDomains,getDomain,createDomain,registerDomain,checkDomainAvailability,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord} from './domains.js';
 import {listArtifacts,createArtifact,createPdfArtifact,getArtifact} from './artifacts.js';
-import {recordHeartbeat, registerAgent, findBestAgentForCapabilities} from './os-registry.js';
+import {recordHeartbeat,registerAgent,findBestAgentForCapabilities,recordResourceState,findBestResource,publishSovereignEvent,recordLedgerEntry,queryLedger} from './os-registry.js';
+import {TrinityHealer,KnowledgeGraphEngine} from './sovereign-ai-os.js';
 import html from '../public/index.html';
 import appJS from '../public/app.js.txt';
 import css from '../public/style.css';
@@ -109,12 +110,13 @@ async function handleScopedMcp(request,env,ctx){
   if(request.method!=='POST')throw new HttpError(405,'MCP API kľúč podporuje iba POST požiadavky.');
   const body=await readJSON(request,60000);
   const memoryRead=body.method==='tools/call'&&body.params?.name==='trinity_memory_sync'&&['read','search'].includes(body.params?.arguments?.action);
-  const scope=body.method==='tools/call'&&!MCP_READ_TOOLS.has(body.params?.name)&&!memoryRead?'mcp:write':'mcp:read';
+  const ledgerRead=body.method==='tools/call'&&body.params?.name==='sovereign_ledger'&&body.params?.arguments?.action==='list';
+  const scope=body.method==='tools/call'&&!MCP_READ_TOOLS.has(body.params?.name)&&!memoryRead&&!ledgerRead?'mcp:write':'mcp:read';
   const client=await authenticateApiKey(request,env,scope);
   if(!await pluginEnabled(env,'mcp'))throw new HttpError(503,'MCP rozšírenie je vypnuté.');
   if(body.method==='tools/call'&&['dispatch_task','create_daily_plan'].includes(body.params?.name))await rateLimit(env,`job:api:${client.id}`,12);
   const forwarded=new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify(body)});
-  return handleMcp(forwarded,env,ctx,{projectControl:true});
+  return handleMcp(forwarded,env,ctx,{projectControl:true,principal:`api-key:${client.id}`,ownerId:client.owner_id});
 }
 async function route(request,env,ctx){
   const previewResponse=buildOnlyPreviewResponse(request,env,{version:TRINITY_VERSION,agents:AGENTS.length});
@@ -196,14 +198,14 @@ async function route(request,env,ctx){
     });
   }
   if(path==='/api/mcp/invoke'&&request.method==='POST'){
-    await authenticateApiKey(request,env,'mcp:write');
+    const client=await authenticateApiKey(request,env,'mcp:write');
     const {tool,arguments:args}=await readJSON(request,64000);
     const mcpReq=new Request(new URL(request.url).origin+'/mcp',{
       method:'POST',
       headers:{'Content-Type':'application/json',Accept:'application/json, text/event-stream'},
       body:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',params:{name:tool,arguments:args||{}}})
     });
-    const mcpRes=await handleMcp(mcpReq,env,ctx,{projectControl:true});
+    const mcpRes=await handleMcp(mcpReq,env,ctx,{projectControl:true,principal:`api-key:${client.id}`,ownerId:client.owner_id});
     const data=await readMcpEnvelope(mcpRes);
     const outcome=classifyMcpResult(data);
     if(outcome.status==='failed')return json({status:'failed',tool,error:outcome.error,result:outcome.result},400);
@@ -755,6 +757,43 @@ async function route(request,env,ctx){
     const decision=await findBestAgentForCapabilities(env,[...new Set(body.required_capabilities)]);
     return json({scheduled:Boolean(decision.agent_id),decision},decision.agent_id?200:409);
   }
+  if(path==='/api/os/resources/heartbeat'&&request.method==='POST'){
+    requireAdmin(user);
+    return json({success:true,resource:await recordResourceState(env,await readJSON(request,8192))});
+  }
+  if(path==='/api/os/resources/schedule'&&request.method==='POST'){
+    requireAdmin(user);
+    const decision=await findBestResource(env,await readJSON(request,8192));
+    if(!decision.resource)return json({scheduled:false,decision},409);
+    const event=await publishSovereignEvent(env,{topic:'scheduler.resource_selected',aggregate_type:'resource',aggregate_id:decision.resource.resource_id,payload:{rank:decision.resource.rank,tier:decision.resource.tier}});
+    return json({scheduled:true,decision,event});
+  }
+  if(path==='/api/os/heal'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,8192);
+    const healer=new TrinityHealer(env);
+    const report=await healer.diagnoseAndRecover(body);
+    return json({success:true,report});
+  }
+  if(path==='/api/os/knowledge'&&request.method==='GET'){
+    requireAdmin(user);
+    const kg=new KnowledgeGraphEngine(env);
+    const type=url.searchParams.get('type')||null;
+    const limit=Math.min(100,Math.max(1,parseInt(url.searchParams.get('limit')||'20',10)));
+    return json(await kg.queryGraph({entityType:type,limit}));
+  }
+  if(path==='/api/os/ledger'&&request.method==='GET'){
+    const agent=url.searchParams.get('agent')||null;
+    const type=url.searchParams.get('type')||null;
+    const status=url.searchParams.get('status')||null;
+    const limit=Math.min(100,Math.max(1,parseInt(url.searchParams.get('limit')||'50',10)));
+    return json(await queryLedger(env,{agent,type,status,limit}));
+  }
+  if(path==='/api/os/ledger'&&request.method==='POST'){
+    const body=await readJSON(request,16384);
+    const entry=await recordLedgerEntry(env,body,`user:${user.id}`);
+    return json({success:true,entry},201);
+  }
   if(path==='/api/assistant/settings'&&request.method==='GET'){
     const [plugins,memory,apis,keys,portfolios,pcBridge,secrets,commerce]=await Promise.all([
       listPlugins(env),env.DB.prepare('SELECT (SELECT COUNT(*) FROM ops_memory)+(SELECT COUNT(*) FROM memory_long) AS count').first(),
@@ -1284,7 +1323,7 @@ async function route(request,env,ctx){
       if(body.method==='tools/call'&&['dispatch_task','create_daily_plan'].includes(body.params?.name))await rateLimit(env,`job:${user.id}`,12);
       request=new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify(body)});
     }
-    return handleMcp(request,env,ctx,{projectControl:['admin','owner'].includes(user.role)});
+    return handleMcp(request,env,ctx,{projectControl:['admin','owner'].includes(user.role),principal:`user:${user.id}`,ownerId});
   }
   if(path==='/api/ops/status'&&request.method==='GET'){
     const counts=await env.DB.prepare('SELECT status,COUNT(*) AS count FROM ops_jobs GROUP BY status').all();

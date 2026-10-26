@@ -46,6 +46,32 @@ export const knowledgeObservationSchema=z.object({
   source:z.string().trim().min(2).max(160).default('system')
 }).strict();
 
+export const resourceStateSchema=z.object({
+  resource_id:z.string().trim().min(2).max(100).regex(/^[A-Za-z0-9_-]+$/),
+  node_name:z.string().trim().min(2).max(160),
+  cpu_score:z.number().finite().min(0).max(1),
+  memory_score:z.number().finite().min(0).max(1),
+  queue_depth:z.number().int().min(0).max(100000).default(0),
+  active_jobs:z.number().int().min(0).max(100000).default(0),
+  tier:z.enum(['edge','workstation','cloud','gpu']).default('edge')
+}).strict();
+
+export const resourceRequestSchema=z.object({
+  required_tier:z.enum(['edge','workstation','cloud','gpu']).nullable().default(null),
+  max_cpu_score:z.number().finite().min(0).max(1).default(0.85),
+  max_memory_score:z.number().finite().min(0).max(1).default(0.85),
+  max_queue_depth:z.number().int().min(0).max(100000).default(100),
+  freshness_ms:z.number().int().min(5000).max(300000).default(60000)
+}).strict();
+
+export const sovereignEventSchema=z.object({
+  topic:z.string().trim().min(3).max(120).regex(/^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/),
+  aggregate_type:z.string().trim().min(2).max(80).regex(/^[a-z][a-z0-9_-]*$/),
+  aggregate_id:z.string().trim().min(2).max(160).regex(/^[A-Za-z0-9:._-]+$/),
+  payload:z.record(z.string(),z.unknown()),
+  idempotency_key:z.string().uuid().optional()
+}).strict();
+
 async function deterministicEntityId(type,name){
   const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(`${type}\0${name}`));
   return `ent_${type}_${[...new Uint8Array(bytes)].slice(0,12).map(value=>value.toString(16).padStart(2,'0')).join('')}`;
@@ -200,6 +226,42 @@ export async function releaseLease(env, job_id) {
     await env.DB.prepare('DELETE FROM agent_leases WHERE job_id=?').bind(sanitizeD1(job_id)).run();
   }
   return { released: true, job_id };
+}
+
+export async function recordResourceState(env,input){
+  const state=resourceStateSchema.parse(input);
+  const updated_at=Date.now();
+  if(env?.DB?.prepare){
+    await env.DB.prepare(`INSERT INTO resource_state(resource_id,node_name,cpu_score,memory_score,queue_depth,active_jobs,tier,updated_at)
+      VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(resource_id) DO UPDATE SET node_name=excluded.node_name,cpu_score=excluded.cpu_score,
+      memory_score=excluded.memory_score,queue_depth=excluded.queue_depth,active_jobs=excluded.active_jobs,tier=excluded.tier,updated_at=excluded.updated_at`)
+      .bind(state.resource_id,state.node_name,state.cpu_score,state.memory_score,state.queue_depth,state.active_jobs,state.tier,updated_at).run();
+  }
+  return {...state,updated_at};
+}
+
+export async function findBestResource(env,input={}){
+  const request=resourceRequestSchema.parse(input);
+  if(!env?.DB?.prepare)return {resource:null,strategy:'registry_unavailable'};
+  const threshold=Date.now()-request.freshness_ms;
+  const resource=await env.DB.prepare(`SELECT resource_id,node_name,cpu_score,memory_score,queue_depth,active_jobs,tier,updated_at,
+    ((1.0-cpu_score)*0.35+(1.0-memory_score)*0.35+(1.0/(queue_depth+1))*0.2+(1.0/(active_jobs+1))*0.1) AS rank
+    FROM resource_state WHERE updated_at>=? AND cpu_score<=? AND memory_score<=? AND queue_depth<=?
+      AND (? IS NULL OR tier=?) ORDER BY rank DESC,resource_id ASC LIMIT 1`)
+    .bind(threshold,request.max_cpu_score,request.max_memory_score,request.max_queue_depth,request.required_tier,request.required_tier).first();
+  return resource?{resource,strategy:'resource_matched'}:{resource:null,strategy:'no_healthy_resource'};
+}
+
+export async function publishSovereignEvent(env,input){
+  const event=sovereignEventSchema.parse(input);
+  if(!env?.DB?.prepare)throw new Error('Sovereign event ledger nie je dostupný.');
+  const id=crypto.randomUUID(),idempotencyKey=event.idempotency_key||crypto.randomUUID(),occurredAt=Date.now();
+  await env.DB.prepare(`INSERT INTO sovereign_events(id,topic,aggregate_type,aggregate_id,payload_json,delivery_status,idempotency_key,occurred_at)
+    VALUES(?,?,?,?,?,'pending',?,?) ON CONFLICT(idempotency_key) DO NOTHING`)
+    .bind(id,event.topic,event.aggregate_type,event.aggregate_id,JSON.stringify(event.payload),idempotencyKey,occurredAt).run();
+  const stored=await env.DB.prepare('SELECT id,topic,aggregate_type,aggregate_id,delivery_status,idempotency_key,occurred_at FROM sovereign_events WHERE idempotency_key=?')
+    .bind(idempotencyKey).first();
+  return stored;
 }
 
 /**
@@ -358,4 +420,103 @@ export async function recordKnowledgeGraphNode(env, input) {
   }
 
   return { entityId, obsId, receiptId, recorded_at: now };
+}
+
+/**
+ * Sovereign Ledger: Single source of truth ledger
+ */
+export const ledgerEntrySchema = z.object({
+  agent: z.string().trim().min(2).max(100),
+  role: z.string().trim().min(2).max(100).nullable().default(null),
+  type: z.enum(['CLAIM', 'WORK', 'HANDOFF', 'ACK', 'REVIEW', 'EVIDENCE', 'AUDIT', 'INCIDENT']),
+  status: z.enum(['planned', 'running', 'completed', 'failed', 'acknowledged']),
+  task: z.string().trim().min(2).max(200).nullable().default(null),
+  message: z.string().trim().min(1).max(8000).nullable().default(null),
+  evidence: z.string().trim().min(1).max(8000).nullable().default(null),
+  idempotency_key: z.string().uuid()
+}).strict();
+
+const stableLedgerJson=value=>{
+  if(Array.isArray(value))return value.map(stableLedgerJson);
+  if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(key=>[key,stableLedgerJson(value[key])]));
+  return value;
+};
+
+async function ledgerInputHash(data,principal){
+  const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(stableLedgerJson({data,principal}))));
+  return [...new Uint8Array(bytes)].map(value=>value.toString(16).padStart(2,'0')).join('');
+}
+
+export async function recordLedgerEntry(env, input, principal) {
+  let data;
+  try {
+    data = ledgerEntrySchema.parse(input);
+  } catch (err) {
+    throw new HttpError(400, `validation_failed: ${err.message}`);
+  }
+  if (data.status === 'completed' && (!data.evidence || data.evidence.trim().length === 0)) {
+    throw new HttpError(400, 'completed_requires_evidence: Every completed task must contain verifiable evidence.');
+  }
+  if(typeof principal!=='string'||!principal.trim())throw new HttpError(401,'authenticated_principal_required');
+
+  const now = Date.now();
+  const id = `ledger_${crypto.randomUUID()}`;
+  const inputHash=await ledgerInputHash(data,principal.trim());
+
+  if (env?.DB?.prepare) {
+    const inserted=await env.DB.prepare(`
+      INSERT INTO sovereign_ledger (id, timestamp, agent, role, type, status, task, message, evidence, principal, idempotency_key, input_hash, created_at)
+      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)
+      ON CONFLICT(idempotency_key) DO NOTHING RETURNING *
+    `).bind(
+      id,
+      now,
+      sanitizeD1(data.agent),
+      sanitizeD1(data.role),
+      sanitizeD1(data.type),
+      sanitizeD1(data.status),
+      sanitizeD1(data.task),
+      sanitizeD1(data.message),
+      sanitizeD1(data.evidence),
+      principal.trim(),
+      data.idempotency_key,
+      inputHash,
+      Math.floor(now / 1000)
+    ).first();
+    if(inserted)return {...inserted,duplicate:false};
+    const existing=await env.DB.prepare('SELECT * FROM sovereign_ledger WHERE idempotency_key=?1').bind(data.idempotency_key).first();
+    if(!existing)throw new HttpError(500,'ledger_persistence_failed');
+    if(existing.input_hash!==inputHash)throw new HttpError(409,'idempotency_conflict');
+    return {...existing,duplicate:true};
+  }
+
+  throw new HttpError(503,'sovereign_ledger_unavailable');
+}
+
+export async function queryLedger(env, { agent = null, type = null, status = null, limit = 50 } = {}) {
+  if (!env?.DB?.prepare) return { entries: [] };
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 50, 200));
+
+  let query = 'SELECT * FROM sovereign_ledger WHERE 1=1';
+  const params = [];
+
+  if (agent) {
+    params.push(sanitizeD1(agent));
+    query += ` AND agent = ?${params.length}`;
+  }
+  if (type) {
+    params.push(sanitizeD1(type));
+    query += ` AND type = ?${params.length}`;
+  }
+  if (status) {
+    params.push(sanitizeD1(status));
+    query += ` AND status = ?${params.length}`;
+  }
+
+  query += ` ORDER BY timestamp DESC LIMIT ?${params.length + 1}`;
+  params.push(safeLimit);
+
+  const stmt = env.DB.prepare(query);
+  const result = await stmt.bind(...params).all();
+  return { entries: result?.results || [] };
 }

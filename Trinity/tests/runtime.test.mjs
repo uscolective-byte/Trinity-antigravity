@@ -39,7 +39,13 @@ before(async()=>{
     db.prepare("INSERT INTO personality(id,trait,value) VALUES(1,'tone','srdečný')")
   ]);
   for(const file of readdirSync('migrations').filter(f=>f.endsWith('.sql')).sort()){
-    const sql=readFileSync('migrations/'+file,'utf8');await db.batch(sql.split(/;\s*(?:\r?\n|$)/).map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s)));
+    const sql=readFileSync('migrations/'+file,'utf8');
+    const statements=sql.split(/;\s*(?:\r?\n|$)/).map(s=>s.trim()).filter(Boolean);
+    try{
+      if(file==='0048_trinity_sovereign_ai_os.sql')for(let index=0;index<statements.length;index++){try{await db.prepare(statements[index]).run();}catch(error){throw new Error(`statement ${index+1}: ${error.message}`,{cause:error});}}
+      else await db.batch(statements.map(s=>db.prepare(s)));
+    }
+    catch(error){throw new Error(`Migration ${file} failed: ${error.message}`,{cause:error});}
   }
 });
 after(async()=>{await mf?.dispose();});
@@ -144,7 +150,22 @@ test('authenticated admin commands execute directly while agent proposals still 
 test('expired claimed actions are closed as failed instead of remaining stuck',async()=>{const created=await(await req('/api/system/actions',{action:'read',payload:{path:'Trinity/package.json'},rationale:'expiry recovery test'})).json();await db.prepare("UPDATE ops_system_actions SET status='claimed',claimed_by='old-gateway',lease_until=0,expires_at=0 WHERE id=?").bind(created.action.id).run();const claim=await(await req('/api/system/actions/claim',{},false,{Authorization:'Bearer '+gatewayKey})).json();assert.equal(claim.action,null);const recovered=await(await req('/api/system/actions/'+created.action.id)).json();assert.equal(recovered.action.status,'failed');assert.match(recovered.action.error,/vypršala/);});
 test('durable job completes, stores artifact, and deduplicates',async()=>{const data={task:'Runtime verification',team:['planner','writer','qa'],idempotency_key:crypto.randomUUID()};const r=await req('/api/ops/jobs',data);assert.equal(r.status,202);const job=await r.json();const duplicate=await(await req('/api/ops/jobs',data)).json();assert.equal(duplicate.id,job.id);assert.equal(duplicate.reused,true);let done;for(let i=0;i<100;i++){done=await(await req('/api/ops/jobs/'+job.id)).json();if(['completed','failed'].includes(done.status))break;await new Promise(r=>setTimeout(r,200));}assert.equal(done.status,'completed',JSON.stringify(done));assert.equal(done.steps.length,3);assert.equal(done.result,'TEST_MODEL_RESULT');const artifact=await req('/api/ops/jobs/'+job.id+'/artifact');assert.equal(artifact.status,200);assert.match(await artifact.text(),/TEST_MODEL_RESULT/);});
 test('workflow records a truthful partial parent when one specialist fails',async()=>{const r=await req('/api/ops/jobs',{task:'FAIL_PLANNER',team:['planner','writer','qa'],idempotency_key:crypto.randomUUID()});assert.equal(r.status,202);const job=await r.json();let done;for(let i=0;i<120;i++){done=await(await req('/api/ops/jobs/'+job.id)).json();if(['completed','partial','failed'].includes(done.status))break;await new Promise(resolve=>setTimeout(resolve,200));}assert.equal(done.status,'partial',JSON.stringify(done));assert.match(done.error,/1 krokov zlyhalo/);assert.equal(done.steps.find(step=>step.agent_id==='planner').status,'failed');assert.equal(done.steps.find(step=>step.agent_id==='writer').status,'completed');assert.equal(done.result,'TEST_MODEL_RESULT');});
-test('MCP initializes and exposes five working tools',async()=>{const headers={Accept:'application/json, text/event-stream'};const r=await req('/mcp',{jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'test',version:'1'}}},true,headers);assert.equal(r.status,200,await r.clone().text());const list=await req('/mcp',{jsonrpc:'2.0',id:2,method:'tools/list',params:{}},true,headers);const text=await list.text();assert.equal(list.status,200,text);assert.match(text,/dispatch_task/);assert.match(text,/search_memory/);const call=await req('/mcp',{jsonrpc:'2.0',id:3,method:'tools/call',params:{name:'list_agents',arguments:{}}},true,headers);assert.equal(call.status,200);assert.match(await call.text(),/orchestrator/);});
+test('MCP initializes and exposes working tools including the sovereign ledger',async()=>{
+  const headers={Accept:'application/json, text/event-stream'};
+  const r=await req('/mcp',{jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'test',version:'1'}}},true,headers);
+  assert.equal(r.status,200,await r.clone().text());
+  const list=await req('/mcp',{jsonrpc:'2.0',id:2,method:'tools/list',params:{}},true,headers),text=await list.text();
+  assert.equal(list.status,200,text);assert.match(text,/dispatch_task/);assert.match(text,/search_memory/);assert.match(text,/sovereign_ledger/);
+  const call=await req('/mcp',{jsonrpc:'2.0',id:3,method:'tools/call',params:{name:'list_agents',arguments:{}}},true,headers);
+  assert.equal(call.status,200);assert.match(await call.text(),/orchestrator/);
+  const idempotency_key=crypto.randomUUID();
+  const append=await req('/mcp',{jsonrpc:'2.0',id:4,method:'tools/call',params:{name:'sovereign_ledger',arguments:{action:'append',entry:{agent:'CODEX',role:'Lead Verifier',type:'WORK',status:'running',task:'Ledger runtime test',message:'Runtime evidence.',evidence:null,idempotency_key}}}},true,headers);
+  assert.equal(append.status,200);assert.match(await append.text(),/persisted/);
+  const query=await req('/mcp',{jsonrpc:'2.0',id:5,method:'tools/call',params:{name:'sovereign_ledger',arguments:{action:'list',query:{agent:'CODEX',limit:10}}}},true,headers);
+  const queryText=await query.text();assert.equal(query.status,200,queryText);assert.match(queryText,/Ledger runtime test/);assert.match(queryText,/user:/);
+  const invalid=await req('/mcp',{jsonrpc:'2.0',id:6,method:'tools/call',params:{name:'sovereign_ledger',arguments:{action:'append',entry:{agent:'CODEX',role:'Lead Verifier',type:'WORK',status:'completed',task:'Invalid completion',message:'Missing evidence.',evidence:null,idempotency_key:crypto.randomUUID()}}}},true,headers);
+  assert.match(await invalid.text(),/completed_requires_evidence/);
+});
 
 
 
@@ -242,6 +263,16 @@ test('Sovereign agent registry and policy rules require admin access',async()=>{
   assert.equal(scheduled.status,200,await scheduled.clone().text());
   assert.equal((await scheduled.json()).decision.agent_id,'TEST_MEMORY_NODE');
   assert.equal((await req('/api/os/agents/register',{...registration,agent_id:'UNKNOWN_CAP',capabilities:['memory.unknown']})).status,400);
+  const resource={resource_id:'GPU_TEST',node_name:'Test GPU',cpu_score:0.2,memory_score:0.3,queue_depth:1,active_jobs:1,tier:'gpu'};
+  assert.equal((await req('/api/os/resources/heartbeat',resource,false,{Cookie:cookie})).status,403);
+  assert.equal((await req('/api/os/resources/heartbeat',resource)).status,200);
+  const resourceDecision=await req('/api/os/resources/schedule',{required_tier:'gpu'});
+  assert.equal(resourceDecision.status,200,await resourceDecision.clone().text());
+  const scheduledResource=await resourceDecision.json();
+  assert.equal(scheduledResource.decision.resource.resource_id,'GPU_TEST');
+  assert.equal(scheduledResource.event.delivery_status,'pending');
+  const ledger=await db.prepare("SELECT topic,delivery_status FROM sovereign_events WHERE aggregate_id='GPU_TEST'").first();
+  assert.deepEqual(ledger,{topic:'scheduler.resource_selected',delivery_status:'pending'});
 });
 
 

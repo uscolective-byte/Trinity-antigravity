@@ -14,6 +14,7 @@
     "gemini:chat": "node scripts/gemini-dev-chat.mjs"
   },
   "dependencies": {
-    "ethers": "^6.17.0"
+    "ethers": "^6.17.0",
+    "npx": "^10.2.2"
   }
 }
