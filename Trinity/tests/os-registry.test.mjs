@@ -263,9 +263,18 @@ test('Capability Scheduler: falls back gracefully when dependencies are unhealth
   };
 
   const result = await findBestAgentForCapabilities(mockEnv, ['tools.execute']);
-  assert.equal(result.agent_id, 'TRINITY_CORE');
-  assert.equal(result.strategy, 'dependency_bypass');
+  assert.equal(result.agent_id, null);
+  assert.equal(result.strategy, 'dependency_blocked');
   assert.match(result.warning, /PC_BRIDGE je nezdravá/);
+});
+
+test('Capability Scheduler: missing registry or match never assigns an incapable fallback', async () => {
+  assert.equal((await findBestAgentForCapabilities({},['memory.search'])).strategy,'registry_unavailable');
+  assert.equal((await findBestAgentForCapabilities({},[])).strategy,'missing_requirements');
+  const env={DB:{prepare:()=>({bind:()=>({first:async()=>null})})}};
+  const result=await findBestAgentForCapabilities(env,['memory.search']);
+  assert.equal(result.agent_id,null);
+  assert.equal(result.strategy,'no_capability_match');
 });
 
 test('Agent Reputation: updateAgentReputation calculates trust score and updates records', async () => {

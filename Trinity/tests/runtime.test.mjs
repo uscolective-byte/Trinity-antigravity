@@ -229,6 +229,11 @@ test('Sovereign agent registry and policy rules require admin access',async()=>{
   assert.equal((await req('/api/os/agents')).status,200);
   assert.equal((await req('/api/os/policies')).status,200);
   assert.equal((await req('/api/os/capabilities',undefined,false,{Cookie:cookie})).status,200);
+  assert.equal((await req('/api/os/schedule',{required_capabilities:['memory.search']},false,{Cookie:cookie})).status,403);
+  const unscheduled=await req('/api/os/schedule',{required_capabilities:['memory.search']});
+  assert.equal(unscheduled.status,409,await unscheduled.clone().text());
+  assert.equal((await unscheduled.json()).scheduled,false);
+  assert.equal((await req('/api/os/schedule',{required_capabilities:['INVALID'] })).status,400);
 });
 
 

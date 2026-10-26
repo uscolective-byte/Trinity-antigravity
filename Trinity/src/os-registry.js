@@ -170,11 +170,11 @@ export async function releaseLease(env, job_id) {
  */
 export async function findBestAgentForCapabilities(env, requiredCapabilities = []) {
   if (!Array.isArray(requiredCapabilities) || requiredCapabilities.length === 0) {
-    return { agent_id: 'TRINITY_CORE', endpoint: 'CORE', rank: 1.0, strategy: 'default_core' };
+    return { agent_id: null, endpoint: null, rank: 0, strategy: 'missing_requirements', warning: 'Scheduler vyžaduje aspoň jednu capability.' };
   }
 
   if (!env?.DB?.prepare) {
-    return { agent_id: 'TRINITY_CORE', endpoint: 'CORE', rank: 1.0, strategy: 'fallback_mock' };
+    return { agent_id: null, endpoint: null, rank: 0, strategy: 'registry_unavailable', warning: 'Capability registry nie je dostupný.' };
   }
 
   const now = Date.now();
@@ -200,12 +200,11 @@ export async function findBestAgentForCapabilities(env, requiredCapabilities = [
   const candidate = await env.DB.prepare(query).bind(...bindParams).first();
 
   if (!candidate) {
-    // Fallback: Ak žiadny agent nemá všetky schopnosti, zvoľ TRINITY_CORE
     return {
-      agent_id: 'TRINITY_CORE',
-      endpoint: 'CORE',
-      rank: 0.5,
-      strategy: 'degraded_fallback',
+      agent_id: null,
+      endpoint: null,
+      rank: 0,
+      strategy: 'no_capability_match',
       warning: `Žiadny živý agent nepokrýva všetky požadované schopnosti: ${requiredCapabilities.join(', ')}`
     };
   }
@@ -221,10 +220,10 @@ export async function findBestAgentForCapabilities(env, requiredCapabilities = [
   const unhealthyDep = deps.find(d => d.status === 'offline' || (d.heartbeat_at && d.heartbeat_at < staleThreshold));
   if (unhealthyDep) {
     return {
-      agent_id: 'TRINITY_CORE',
-      endpoint: 'CORE',
-      rank: 0.4,
-      strategy: 'dependency_bypass',
+      agent_id: null,
+      endpoint: null,
+      rank: 0,
+      strategy: 'dependency_blocked',
       warning: `Agent ${candidate.agent_id} bol preskočený, pretože kritická závislosť ${unhealthyDep.depends_on_agent_id} je nezdravá.`
     };
   }

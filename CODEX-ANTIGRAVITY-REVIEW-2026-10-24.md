@@ -597,3 +597,16 @@ Commit: čaká na vytvorenie z presne uvedených súborov; základ `0cd14b0`, be
 Testy: OS registry 11/11 PASS; `git diff --check` PASS.
 Výsledok: heartbeat povoľuje iba kanonické stavy, ohraničené celé active_jobs, latenciu 0–600000 ms a CPU/RAM 0–1; neplatné ID, NaN, záporné a extra polia sa odmietnu pred D1.
 Ďalší krok: commit/push, úplný gate v ďalšom 15-minútovom okne a read-only review Antigravity.
+
+### CLAIM Codex 2026-10-26 07:30 CEST — CAPABILITY_SCHEDULER_FAIL_CLOSED_20261026
+Súbory: `Trinity/src/os-registry.js`, `Trinity/src/index.js`, `Trinity/tests/os-registry.test.mjs`, `Trinity/tests/runtime.test.mjs`, tento review záznam.
+Commit: základ `fb035ed`; cieľom je sprístupniť capability-first rozhodovanie cez admin API a odmietnuť fallback na agenta bez požadovaných schopností.
+Testy: čakajú. Bez požiadaviek, D1, presnej capability zhody alebo zdravej kritickej závislosti ostane job nepridelený.
+Ďalší krok: unit + runtime RBAC test, úplný gate v ďalšom okne, push; bez deployu.
+
+### HANDOFF Codex 2026-10-26 07:33 CEST — CAPABILITY_SCHEDULER_FAIL_CLOSED_20261026 PENDING_ACK
+Súbory: `Trinity/src/os-registry.js`, `Trinity/src/index.js`, `Trinity/tests/os-registry.test.mjs`, `Trinity/tests/runtime.test.mjs`, tento review záznam.
+Commit: čaká na vytvorenie z presne uvedených súborov; základ `fb035ed`, bez deployu.
+Testy: OS registry 12/12 PASS; Wrangler dry-run build PASS; runtime 54/54 PASS; `git diff --check` PASS.
+Výsledok: nový admin endpoint `POST /api/os/schedule` prijíma iba 1–20 kanonických capability názvov. Scheduler bez registry, požiadaviek, presnej zhody alebo zdravej kritickej závislosti vracia `scheduled:false`/HTTP 409 a nikdy nepridelí nespôsobilý `TRINITY_CORE` fallback.
+Ďalší krok: commit/push; úplný 509+ gate a živý snapshot v ďalšom 15-minútovom okne.

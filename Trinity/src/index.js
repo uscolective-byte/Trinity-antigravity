@@ -743,6 +743,12 @@ async function route(request,env,ctx){
     const hb=await recordHeartbeat(env,body);
     return json({success:true,heartbeat:hb});
   }
+  if(path==='/api/os/schedule'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=z.object({required_capabilities:z.array(z.string().trim().min(3).max(100).regex(/^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/)).min(1).max(20)}).strict().parse(await readJSON(request,8192));
+    const decision=await findBestAgentForCapabilities(env,[...new Set(body.required_capabilities)]);
+    return json({scheduled:Boolean(decision.agent_id),decision},decision.agent_id?200:409);
+  }
   if(path==='/api/assistant/settings'&&request.method==='GET'){
     const [plugins,memory,apis,keys,portfolios,pcBridge,secrets,commerce]=await Promise.all([
       listPlugins(env),env.DB.prepare('SELECT (SELECT COUNT(*) FROM ops_memory)+(SELECT COUNT(*) FROM memory_long) AS count').first(),
