@@ -61,12 +61,12 @@ export function handleMcp(request,env,ctx,access={}){
         }
         if(action==='read'){
           if(!key)return result({error:'Chýba kľúč pamäte pre čítanie.'});
-          const row=await env.DB.prepare('SELECT key,value,source,updated_at FROM ops_memory WHERE key=?').bind(key).first();
+          const row=await env.DB.prepare('SELECT key,value,source,updated_at FROM ops_memory WHERE key=?').bind(key ?? null).first();
           return result(row||{found:false,key});
         }
         if(action==='write'){
           if(!key||!payload)return result({error:'Chýba kľúč alebo obsah pre zápis.'});
-          await env.DB.prepare("INSERT INTO ops_memory(key,value,source,updated_at) VALUES(?,?,?,datetime('now')) ON CONFLICT(key) DO UPDATE SET value=excluded.value,source=excluded.source,updated_at=datetime('now')").bind(key,payload,`agent:${source_agent}`).run();
+          await env.DB.prepare("INSERT INTO ops_memory(key,value,source,updated_at) VALUES(?,?,?,datetime('now')) ON CONFLICT(key) DO UPDATE SET value=excluded.value,source=excluded.source,updated_at=datetime('now')").bind(key ?? null, payload ?? null, (`agent:${source_agent}`) ?? null).run();
           return result({status:'saved',key,source_agent,updated_at:new Date().toISOString()});
         }
         return result({error:'Neznáma akcia pamäte.'});
@@ -77,7 +77,7 @@ export function handleMcp(request,env,ctx,access={}){
       async({target,prompt,context_key})=>{
         let contextPrefix='';
         if(context_key){
-          const mem=await env.DB.prepare('SELECT value FROM ops_memory WHERE key=?').bind(context_key).first();
+          const mem=await env.DB.prepare('SELECT value FROM ops_memory WHERE key=?').bind(context_key ?? null).first();
           if(mem?.value)contextPrefix=`[Kontext z pamäte ${context_key}]:\n${mem.value}\n\n`;
         }
         const fullPrompt=contextPrefix+prompt;
