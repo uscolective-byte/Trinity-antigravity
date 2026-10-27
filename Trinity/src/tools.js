@@ -189,9 +189,10 @@ export const TOOL_SCHEMAS={
     accountId:z.string().optional()
   }).strict()
   ,github_manage:z.object({
-    action:z.enum(['status','repo_info','list_commits','list_issues','create_issue','dispatch_workflow']).default('status'),
+    action:z.enum(['status','repo_info','list_commits','list_issues','create_issue','dispatch_workflow','get_file','read_file','list_files','list_tree']).default('status'),
     repo:z.string().optional(),
-    limit:z.number().int().min(1).max(50).optional(),
+    limit:z.number().int().min(1).max(250).optional(),
+    path:z.string().optional(),
     title:z.string().optional(),
     body:z.string().optional(),
     workflowId:z.string().optional(),
@@ -1045,7 +1046,7 @@ export const TOOL_HELP={
   generate_presentation:'Vytvorí profesionálnu 16:9 interaktívnu prezentáciu (HTML5 Slide Deck s ovládaním šípkami) + tlačový PDF dokument v R2 archíve: {topic:string, title?:string, subtitle?:string, audience?:string, theme?:midnight-tech|cyber-gold|emerald-growth|clean-light|royal-violet, slides_count?:4..10, key_points?:string[]}',
   generate_creative_pack:'Vytvorí kreatívny vizuálny balík (infografiku, kampaň pre sociálne siete, storyboard alebo brand kit) v R2 archíve: {prompt:string, title?:string, pack_type?:infographic|social_pack|storyboard|brand_kit, theme?:midnight-tech|cyber-gold|emerald-growth|clean-light|royal-violet}',
   cloudflare_manage:'Spravuje a diagnostikuje Cloudflare Edge infraštruktúru (Workers, D1, KV, R2, DNS zóny, premazanie cache): {action:status|list_dns_zones|purge_cache|list_workers, zoneId?:string, accountId?:string}',
-  github_manage:'Prepojenie a správa GitHub repozitára (uscolective-byte/trinity-morhfeus), commits, issues, PR a spúšťanie GitHub Actions: {action:status|repo_info|list_commits|list_issues|create_issue|dispatch_workflow, repo?:string, limit?:number, title?:string, body?:string, workflowId?:string, ref?:string}',
+  github_manage:'Prepojenie a správa GitHub repozitára (uscolective-byte/Trinity-antigravity, uscolective-byte/trinity-morhfeus), čítanie súborov, stromu projektu, commits, issues, PR a spúšťanie GitHub Actions: {action:status|repo_info|list_commits|list_issues|get_file|read_file|list_files|list_tree|create_issue|dispatch_workflow, repo?:string, path?:string, ref?:string, limit?:number}',
   firecrawl_scrape:'Hĺbkový web scraping, crawling a extrakcia obsahu z ľubovoľnej URL do čistého Markdownu: {url:string, mode?:scrape|crawl|map, onlyMainContent?:boolean}',
   firebase_manage:'Integrácia s Google Firebase (trinity-morhfeus-20261001), kontrola hostingu, čítanie a ukladanie Firestore dokumentov: {action:status|get_document|set_document, projectId?:string, collection?:string, documentId?:string, data?:object}',
   integration_status:'Prehľad všetkých pripojených externých modulov a platforiem (Cloudflare, GitHub, Firecrawl, Firebase, Supabase): {}',

@@ -1,7 +1,7 @@
 import {languageDirective} from './cognition.js';
 export const FAST_TOOLS=new Set([
   'calculate','current_time','analyze_text','convert_units','statistics','infrastructure_status','project_snapshot',
-  'search_memory','knowledge_search','web_search','web_fetch','browser_scrape','browser_render',
+  'search_memory','knowledge_search','web_search','web_fetch','browser_scrape','browser_render','github_manage',
   'list_capabilities','list_skills','list_connectors','service_status','integration_status',
   'fleet_status','delegate_worker','orchestrate_team','execute_skill','copilot_chat','ecosystem_search',
   'domain_list','domain_check','wallet_terminals_status','portfolio_summary',

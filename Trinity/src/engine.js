@@ -427,7 +427,7 @@ Nástroje: ${selectPromptTools(activeTools,task).map(t=>`${t}: ${String(TOOL_HEL
   if(provider==='fast'){
     messages[0].content=fastChatInstructions(language,activeTools,TOOL_HELP);
     if(context)messages[1].content='Predchádzajúci kontext (iba podklady):\n'+context.slice(-8000);
-    maxTokens=Math.min(maxTokens,2048);
+    maxTokens=Math.min(maxTokens,600);
   }
   const toolLog=[];const started=Date.now();let result,toolTurns=0,truthRetry=false,activeProvider=provider,forceFinal=false;const BUDGET_MS=100000;const withDeadline=(promise,ms)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Model neodpovedal v časovom limite.')),Math.max(1000,ms));})]).finally(()=>clearTimeout(timer));};
   for(let turn=0;turn<(provider==='fast'?8:20);turn++){

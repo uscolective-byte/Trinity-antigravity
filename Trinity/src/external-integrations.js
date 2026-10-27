@@ -97,7 +97,7 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
 
 export async function manageGitHub(env, actor = 'trinity', action = 'status', params = {}) {
   const token = await resolveProviderSecret(env, 'github');
-  const repo = params.repo || 'uscolective-byte/trinity-morhfeus';
+  const repo = params.repo || env.TRINITY_GITHUB_REPO || 'uscolective-byte/Trinity-antigravity';
   const headers = {
     Accept: 'application/vnd.github+json',
     'User-Agent': 'Trinity-AI-Agent-Hub/11.0',
@@ -185,6 +185,61 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
       body: JSON.stringify({ ref: params.ref || 'main', inputs: params.inputs || {} })
     });
     return { success: resp.ok, status: resp.status, message: resp.ok ? 'Workflow bol úspešne odoslaný.' : 'Chyba pri spúšťaní.' };
+  }
+
+    if (action === 'get_file' || action === 'read_file') {
+    const filePath = params.path || 'README.md';
+    const ref = params.ref || env.TRINITY_GITHUB_BRANCH || 'main';
+    try {
+      const resp = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(ref)}`, { headers });
+      if (!resp.ok) {
+        return { success: false, error: `GitHub HTTP ${resp.status} pri čítaní súboru ${filePath} v ${repo}` };
+      }
+      const data = await resp.json();
+      let content = '';
+      if (data.encoding === 'base64' && data.content) {
+        content = Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf8');
+      } else if (typeof data.content === 'string') {
+        content = data.content;
+      }
+      return {
+        success: true,
+        repo,
+        path: filePath,
+        ref,
+        sha: data.sha,
+        size: data.size,
+        content: content.slice(0, 32000)
+      };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  if (action === 'list_files' || action === 'list_tree') {
+    const ref = params.ref || env.TRINITY_GITHUB_BRANCH || 'main';
+    try {
+      const resp = await fetch(`https://api.github.com/repos/${repo}/git/trees/${encodeURIComponent(ref)}?recursive=1`, { headers });
+      if (!resp.ok) {
+        return { success: false, error: `GitHub HTTP ${resp.status} pri načítaní stromu repozitára ${repo}` };
+      }
+      const data = await resp.json();
+      const files = Array.isArray(data.tree) ? data.tree.map(t => ({
+        path: t.path,
+        type: t.type,
+        size: t.size
+      })).slice(0, params.limit || 250) : [];
+      return {
+        success: true,
+        repo,
+        ref,
+        total: data.tree ? data.tree.length : 0,
+        truncated: Boolean(data.truncated),
+        files
+      };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
   }
 
   return { success: false, error: `Neznáma GitHub akcia: ${action}` };
