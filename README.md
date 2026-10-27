@@ -46,6 +46,12 @@ Verzia, domény a vetva v oboch README sa generujú z aplikácie a Wrangler
 konfigurácie. Po zmene vydania spusti `node scripts/sync-release-docs.mjs`; CI kontroluje
 `node scripts/sync-release-docs.mjs --check`.
 
+## Dokumentácia a Špecifikácia 2026
+
+- [Kompletná systémová špecifikácia Trinity 2026](Trinity/docs/TRINITY_SOVEREIGN_SYSTEM_SPEC_2026.md): Detailný prehľad architektúry, 29 viazaných služieb, Truth Policy 2.0, nástrojov, modelov a nasadenia.
+- [Príručka používania nástrojov](Trinity/docs/TRINITY_NASTROJE_A_POUZIVANIE.md): Pravidlá pre Truth Policy, Puppeteer browser, GitHub Engine a Domain Engine.
+- [Postup jedného repozitára pre obe domény](Trinity/docs/SINGLE_REPOSITORY.md): Nasadenie, tagovanie a overenie produkcie a stagingu.
+
 ## Moduly
 
 - `Trinity/`: zjednotené suverénne jadro, chat, AI Studio, domény, pamäť, platobné terminály, API a MCP (29 viazaných služieb).

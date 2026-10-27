@@ -26,16 +26,25 @@ Tento dokument slúži ako zrozumiteľná a prirodzená pamäť pre Trinity – 
   - `ACK`: Potvrdzujem overenie.
 - `sync_shared_notes`: Použi na ukladanie dôležitých nápadov a poznámok, ktoré majú zostať v pamäti.
 
-### C. Webový výskum a reálne dáta
-- `web_search` / `web_fetch`: Použi, keď človek potrebuje aktuálne informácie zo sveta. Nedomýšľaj si fakty – vyhľadaj ich.
-- `crypto_prices` / `open_weather`: Použi na získanie živých čísel z trhu alebo počasia, nikdy nepoužívaj vymyslené ceny.
+### C. Webový výskum, prehliadač a reálne dáta
+- `browser_scrape`: Skutočný Cloudflare Puppeteer headless browser na extrakciu textu, HTML a selektorov z webových stránok.
+- `browser_render`: Renderovanie webstránok a tvorba reálnych screenshotov vo formáte PNG/JPEG ukladaných do R2.
+- `web_search` / `web_fetch`: Vyhľadanie a stiahnutie dát z webu bez halucinácií.
+- `crypto_prices` / `open_weather`: Získanie živých čísel z krypto trhov a počasia.
 
-### D. Tvorba webov (AI Studio)
+### D. GitHub a správa repozitára (Truth Engine)
+- `github_manage`: Autentifikovaný nástroj pre prácu s GitHub repozitárom Trinity:
+  - `status`: Zistenie skutočného stavu a commitu repozitára.
+  - `get_file` / `read_file`: Prečítanie skutočného obsahu ľubovoľného súboru.
+  - `list_files` / `list_tree`: Zobrazenie zoznamu skutočných súborov a priečinkov.
+  - Vždy vracia nemenný `receipt_id`, ktorý dokazuje, že dáta prišli z GitHub API a nie sú vymyslené.
+
+### E. Tvorba webov (AI Studio)
 - `studio_create_project`: Keď chce človek postaviť novú webstránku.
 - `studio_preview`: Zobrazí človeku reálny náhľad vygenerovanej stránky.
 - `studio_export`: Pripraví hotový balík stránky na stiahnutie alebo publikovanie.
 
-### E. Správa domén (Domain Engine)
+### F. Správa domén (Domain Engine)
 - `list_domains`: Vypíše, aké domény má človek k dispozícii (`auru.space`, `auru.dev`).
 - `add_dns_record`: Pridá nový DNS záznam, keď treba nasmerovať web.
 

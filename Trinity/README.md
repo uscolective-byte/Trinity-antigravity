@@ -64,6 +64,12 @@ Google-only režim zapni až po overení klienta, návratu a admin allowlistu.
 nepotvrdzuje jeho aktiváciu. Google login neposkytuje automaticky prístup
 k Workspace, Drive ani Google Cloud; tie potrebujú samostatné oprávnenia.
 
+## Dokumentácia
+
+- [Kompletná systémová špecifikácia Trinity 2026](docs/TRINITY_SOVEREIGN_SYSTEM_SPEC_2026.md) – architektúra triády, 29 viazaných služieb, Truth Policy 2.0, modely a nástroje.
+- [Používanie nástrojov a pravidlá správania](docs/TRINITY_NASTROJE_A_POUZIVANIE.md) – príručka pre prácu s Puppeteer prehliadačom, GitHubom a doménami.
+- [Postup jedného repozitára pre obe domény](docs/SINGLE_REPOSITORY.md) – nasadenie vývoja a produkcie.
+
 ## Nasadenie
 
 Použi [postup pre obe prostredia](docs/SINGLE_REPOSITORY.md). Pred novým kódom
