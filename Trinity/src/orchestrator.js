@@ -103,7 +103,7 @@ export const WORKER_CATALOG = {
     domain: 'reasoning',
     probeAction: 'core.state.get',
     role: 'Jadro vedomia, kognitívne uvažovanie, stav Trinity a rozhodovacia matica',
-    actions: ['core.reason', 'core.reflect', 'core.state.get', 'core.state.set', 'core.personality.get', 'core.personality.set', 'core.brain.state', 'core.decide']
+    actions: ['core.run', 'core.reason', 'core.reflect', 'core.state.get', 'core.state.set', 'core.personality.get', 'core.personality.set', 'core.brain.state', 'core.decide']
   },
   BUILDER: {
     service: 'trinity-builder',
