@@ -427,10 +427,10 @@ Nástroje: ${selectPromptTools(activeTools,task).map(t=>`${t}: ${String(TOOL_HEL
   if(provider==='fast'){
     messages[0].content=fastChatInstructions(language,activeTools,TOOL_HELP);
     if(context)messages[1].content='Predchádzajúci kontext (iba podklady):\n'+context.slice(-8000);
-    maxTokens=Math.min(maxTokens,600);
+    maxTokens=Math.min(maxTokens,2048);
   }
   const toolLog=[];const started=Date.now();let result,toolTurns=0,truthRetry=false,activeProvider=provider,forceFinal=false;const BUDGET_MS=100000;const withDeadline=(promise,ms)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Model neodpovedal v časovom limite.')),Math.max(1000,ms));})]).finally(()=>clearTimeout(timer));};
-  for(let turn=0;turn<(provider==='fast'?4:16);turn++){
+  for(let turn=0;turn<(provider==='fast'?8:20);turn++){
     const remaining=BUDGET_MS-(Date.now()-started);
     if(remaining<=0)throw new Error('Trinity nestihla dokončiť odpoveď v limite 2 minút. Skús užšie zadanie alebo iný model.');
     if(remaining<35000&&!forceFinal){forceFinal=true;messages.push({role:'user',content:'Čas sa kráti. Daj finálnu odpoveď teraz z toho, čo máš overené. Už nežiadaj ďalší nástroj a jasne uveď, čo sa nepodarilo overiť.'});}

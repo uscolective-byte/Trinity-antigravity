@@ -87,3 +87,47 @@ test('modelText accepts string, parsed-object, and choices shapes from Workers A
   assert.equal(modelText({choices:[{message:{content:'ok'}}]}),'ok');
   assert.equal(modelText({}),'');
 });
+
+test('core.run executes browser_scrape tool and captures receipt', async () => {
+  const DB = mockDb();
+  let aiCalls = 0;
+  let connectorsCalled = false;
+  const env = {
+    DB,
+    AI: {
+      run: async () => ({
+        response: ++aiCalls === 1
+          ? JSON.stringify({ type: 'tool', tool: 'browser_scrape', arguments: { url: 'https://example.com' } })
+          : JSON.stringify({ type: 'final', answer: 'Prečítala som live stránku.' })
+      })
+    },
+    CONNECTORS: {
+      fetch: async (url, opts) => {
+        connectorsCalled = true;
+        const body = JSON.parse(opts.body);
+        assert.equal(body.action, 'browser.scrape');
+        assert.equal(body.data.url, 'https://example.com');
+        return new Response(JSON.stringify({
+          ok: true,
+          result: {
+            url: 'https://example.com',
+            title: 'Example Domain',
+            action: 'scrape',
+            content_length: 50,
+            text: 'Example Domain content'
+          }
+        }), { status: 200, headers: { 'content-type': 'application/json' } });
+      }
+    }
+  };
+  const idempotency_key = crypto.randomUUID();
+  const body = { action: 'core.run', data: { prompt: 'Prečítaj example.com' }, idempotency_key };
+  const res = await core.fetch(request(body), env);
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.ok, true);
+  assert.equal(connectorsCalled, true);
+  assert.equal(data.result.tool_log.length, 1);
+  assert.equal(data.result.tool_log[0].tool, 'browser_scrape');
+  assert.equal(data.result.tool_log[0].output.title, 'Example Domain');
+});

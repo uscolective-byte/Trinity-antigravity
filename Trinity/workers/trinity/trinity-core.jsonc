@@ -11,13 +11,13 @@
   "observability": {"enabled": true, "head_sampling_rate": 1},
   "ai": {"binding": "AI"},
   "d1_databases": [{"binding":"DB","database_name":"trinity-v03","database_id":"ca8ea24e-f7db-431e-b8bf-97f713ae4533","migrations_dir":"../../migrations"}],
-  "services": [{"binding":"KNOWLEDGE_SERVICE","service":"trinity-knowledge"}],
+  "services": [{"binding":"KNOWLEDGE_SERVICE","service":"trinity-knowledge"},{"binding":"CONNECTORS","service":"trinity-connectors"}],
   "env": {
     "staging": {
       "name": "trinity-core-staging",
       "ai": {"binding": "AI"},
       "d1_databases": [{"binding":"DB","database_name":"trinity-development","database_id":"1cce5249-e044-4c93-868c-0df534a778b5","migrations_dir":"../../migrations"}],
-      "services": [{"binding":"KNOWLEDGE_SERVICE","service":"trinity-knowledge"}]
+      "services": [{"binding":"KNOWLEDGE_SERVICE","service":"trinity-knowledge"},{"binding":"CONNECTORS","service":"trinity-connectors"}]
     }
   }
 }
