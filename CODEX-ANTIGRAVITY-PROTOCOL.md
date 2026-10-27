@@ -83,3 +83,16 @@ Majiteľ rozhodol: Antigravity, Codex aj vývoj Trinity používajú jeden loká
 | `CLOUDFLARE_ACCESS_CLIENT_ID` / `CLOUDFLARE_ACCESS_CLIENT_SECRET` | Service Token na prechod Cloudflare Access na `*.workers.dev` pri stagingových testoch | Stav 2026-10-27: hodnoty majú tvar 32 hex + 64 hex (nie `….access` + `cfast_…`) a nezodpovedajú žiadnemu Service Tokenu v účte (existuje len `Trinity-PC-Bridge-V2`). Pravdepodobne ide o iný typ kľúča (napr. R2 S3 Access Key ID/Secret) pod nesprávnym názvom → majiteľ potvrdí |
 
 **Ako sa dá bezpečne testovať staging bez Access tokenu** (overené 2026-10-27): dočasný probe worker so service bindingom na `trinity-core-staging` + token v URL; majiteľ ho otvorí v prehliadači po Access prihlásení, výsledok sa overí v D1, probe sa zmaže.
+
+
+## 8. Univerzálne MCP Prepojenie pre Codex a Antigravity (2026-10-27)
+
+Trinity disponuje centrálnou Sovereign Pentad MCP Gateway na:
+- **`https://auru.space/mcp`** (aj `https://auru.dev/mcp`)
+- Podporuje protokol JSON-RPC 2.0 (Streamable SSE / POST).
+- **Autorizácia**: `Authorization: Bearer <TRINITY_MCP_API_KEY>` s hlavičkou `Accept: application/json, text/event-stream`.
+- **Kľúč pre Codexa a nástroje**:
+  - Uložený v `C:\Users\saboi\.env` ako `TRINITY_MCP_API_KEY`.
+  - Windows DPAPI šifrovaný credential: `C:\Users\saboi\Trinity-antigravity\.credentials\codex-mcp.dpapi`.
+- **Overovací test MCP prepojenia**:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\saboi\Trinity-antigravity\Trinity\scripts\test-gemini-mcp.ps1`
