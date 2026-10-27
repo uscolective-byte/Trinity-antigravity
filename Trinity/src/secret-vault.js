@@ -216,26 +216,29 @@ export async function getSecretMaterial(env,{ownerId,id,provider}){const row=awa
 export async function resolveProviderSecret(env,provider){
   const envMap={
     cloudflare:env?.CF_API_TOKEN||env?.CLOUDFLARE_API_TOKEN||env?.TRINITY_CF_TOKEN,
-    github:env?.TRINITY_GITHUB_TOKEN||env?.GITHUB_TOKEN,
-    firecrawl:env?.FIRECRAWL_API_KEY||env?.TRINITY_FIRECRAWL_KEY,
+    github:env?.TRINITY_GITHUB_TOKEN||env?.GITHUB_TOKEN||env?.GITHUBE_API_KEY||env?.GTH||env?.GITHUBE_FINE_TOKEN,
+    firecrawl:env?.FIRECRAWL_API_KEY||env?.TRINITY_FIRECRAWL_KEY||env?.firecrawl,
     firebase:env?.FIREBASE_API_KEY||env?.FIREBASE_SERVICE_ACCOUNT||env?.TRINITY_FIREBASE_KEY,
     supabase:env?.SUPABASE_KEY||env?.SUPABASE_SERVICE_ROLE_KEY,
     vercel:env?.VERCEL_TOKEN,
-    telegram:env?.TELEGRAM_BOT_TOKEN,
+    telegram:env?.TELEGRAM_BOT_TOKEN||env?.telegram8842409933,
     slack:env?.SLACK_WEBHOOK_URL||env?.SLACK_BOT_TOKEN,
     discord:env?.DISCORD_WEBHOOK_URL||env?.DISCORD_BOT_TOKEN,
-    notion:env?.NOTION_API_KEY,
+    notion:env?.NOTION_API_KEY||env?.notionaccess,
     revolut:env?.REVOLUT_API_KEY||env?.REVOLUT_SECRET,
     paypal:env?.PAYPAL_CLIENT_SECRET||env?.PAYPAL_API_KEY,
     ollama:env?.OLLAMA_API_KEY||env?.OLLAMA_SECRET,
     openai:env?.OPENAI_API_KEY,
-    gemini:env?.GEMINI_API_KEY,
-    groq:env?.GROQ_API_KEY,
+    gemini:env?.GEMINI_API_KEY||env?.apigoogle,
+    groq:env?.GROQ_API_KEY||env?.default_grok_default,
     deepseek:env?.DEEPSEEK_API_KEY,
     anthropic:env?.ANTHROPIC_API_KEY,
     mistral:env?.MISTRAL_API_KEY,
     openrouter:env?.OPENROUTER_API_KEY
   };
+    if(envMap[provider]&&typeof envMap[provider].get==='function'){
+    try{const val=await envMap[provider].get();if(val&&typeof val==='string')return val.trim();}catch{}
+  }
   if(typeof envMap[provider]==='string'&&envMap[provider].trim())return envMap[provider].trim();
   if(env?.DB?.prepare&&typeof env.TRINITY_VAULT_KEY==='string'){
     try{
