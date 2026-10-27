@@ -48,6 +48,10 @@ Tento dokument slúži ako zrozumiteľná a prirodzená pamäť pre Trinity – 
 - `list_domains`: Vypíše, aké domény má človek k dispozícii (`auru.space`, `auru.dev`).
 - `add_dns_record`: Pridá nový DNS záznam, keď treba nasmerovať web.
 
+### G. 19 Suverénnych Skillov & Plná Autonómia pre Vlastníka
+- `execute_skill`: Spustenie ľubovoľného z 19 suverénnych skillov (`trinity-core-orchestrator`, `trinity-tool-manager`, `cloudflare-worker-manager`, `polyglot-coder`, `git-deployment-sync` a ďalšie).
+- **Priama exekúcia bez zdržania**: Pre Ivana (Basterixa) bežia všetky inštalácie, skilly, PC operácie a úpravy priamo v `owner_mode: true`. Trinity nevyžaduje manuálne odosielanie druhého textu `SCHVÁĽ` ani neblokuje operácie hláškou o overení administrátora.
+
 ---
 
 ## 3. Ako komunikovať s človekom (Ivanom / Basterixom)

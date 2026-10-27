@@ -159,3 +159,53 @@ npm run deploy -- --tag <git-sha>
 ```powershell
 node Trinity/scripts/verify-deployment.mjs https://auru.space <git-sha>
 ```
+
+---
+
+## 8. Plná Autonómia a Schvaľovací Model pre Vlastníka (Sabo Ivan / Basterix)
+
+Od verzie 11.0.0 (commit `95ac8aa`) má majiteľ systému (**Sabo Ivan / Basterix**, `saboivan2008@gmail.com`) natívne odomknuté plné autonómne vykonávanie:
+
+1. **Automatický Owner Mode (`owner_mode: true`)**:
+   - Každá požiadavka zadaná cez webový chat (`/api/assistant/chat`), úlohy (`/api/ops/jobs`) alebo MCP Bridge (`dispatch_task`) od overeného administrátora/majiteľa sa spracováva priamo s `owner_mode: true`.
+2. **Žiadne blokujúce schvaľovanie (`requires_approval: false`)**:
+   - Plánovač (`planTask`) automaticky prideľuje plné práva (`grants_permissions: true`) a vypína požiadavku na druhé manuálne potvrdenie frázou `SCHVÁĽ`.
+3. **Plný prístup k nástrojom bez obmedzení**:
+   - `DEVELOPMENT_TOOLS` (GitHub, súbory, buildy), `OWNER_BUSINESS_TOOLS` (domény, obchod), `PC_TOOLS` (lokálne ovládanie cez PC Bridge), `execute_skill` a `ecosystem_synthesize` sú trvalo povolené bez vyhadzovania chyby autorizácie.
+
+---
+
+## 9. Katalóg 19 Suverénnych Skillov & Univerzálny Ekosystém
+
+Všetkých 19 základných suverénnych skillov je priamo integrovaných a dostupných v jadre (`Trinity/src/skillRegistry.js`):
+
+| Skupina | Skill ID | Schopnosť a Popis |
+|:---|:---|:---|
+| **Orchestrácia & Autonómia** | `trinity-core-orchestrator` | Koordinácia multi-agent úloh, delegovanie a pipeline. |
+| | `trinity-tool-manager` | Vyhľadávanie, inštalácia a konfigurácia nástrojov a CLI. |
+| | `self-modifying-code` | Riadené samo-upravovanie a rozširovanie kódu. |
+| | `get-more-perspectives` | Poradný zbor 5 expertov (Operator, Skeptic, Visionary, Customer, Finance). |
+| **Infraštruktúra & Edge** | `cloudflare-worker-manager` | Správa, konfigurácia a deployment Cloudflare fleetu a D1 databáz. |
+| | `trinity-domain-manager` | DNS správa, registrácia a leasing domén. |
+| | `api-integration-hub` | Prepojenie externých API (Google GenAI, OpenAI, Ollama, GitHub). |
+| | `copilot-studio-connector` | Integrácia s MS Copilot Studio a Power Platform. |
+| **Vývoj, Bezpečnosť & Git** | `polyglot-coder` | Vývoj a ladenie v Python, TypeScript, Node.js a Next.js. |
+| | `codebase-inventory` | Hĺbková inventarizácia kódu a mapovanie závislostí. |
+| | `autonomous-tester` | Tvorba, spúšťanie a validácia testovacích sád pred nasadením. |
+| | `constitutional-security-audit` | Vynucovanie pravidiel sandboxu, ochrany dát a bezpečnosti. |
+| | `system-security-guardian` | Monitorovanie runtime integrity a bezpečnostný dozor. |
+| | `github-version-control` | Správa vetiev, PR, commitov a changelogov. |
+| | `git-deployment-sync` | Synchronizácia repozitárov medzi `origin` a `morpheus`. |
+| **Znalosti, Štýl & Docs** | `notion-workspace-sync` | Synchronizácia backlogu a Master Buildu s Notion. |
+| | `doc-generator` | Automatické generovanie manuálov, systémových špecifikácií a kníh. |
+| | `match-my-writing-style` | Adaptácia výstupov na osobný komunikačný štýl Sabo Ivana. |
+| | `esoteric-knowledge-mapper` | Prepájanie dát, symboliky a systémových metafor. |
+
+---
+
+## 10. Multi-Platformová Synchronizácia (Cloudflare Fleet, PC Bridge, Mobile PWA)
+
+- **Cloudflare Edge Fleet**: Unified Worker `trinity` obsluhujúci `https://auru.space` (a staging `https://auru.dev`) so zdieľaným D1 úložiskom `trinity-v03`, KV `Mastermind`, R2 `trinity-artifacts` a Workflow `trinity-operations`.
+- **PC Bridge & Local Gateway**: Bounded PC Bridge (`Local-Gateway` a `Trinity/trinity-pc-bridge`) s kryptografickou verifikáciou, HMAC tokenmi a prísnym allowlistom príkazov pre lokálny počítač.
+- **Mobilný Priestor (PWA)**: Responzívne rozhranie optimalizované pre telefóny, podpora mikrofónu, kamery, offline manifestu a okamžitej inštalácie bez emulácie.
+

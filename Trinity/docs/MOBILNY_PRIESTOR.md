@@ -18,6 +18,13 @@ Inštalácia webovej aplikácie nedáva plný prístup k SMS, kontaktom, iným a
 
 API a súkromné rozhovory sa nesmú ukladať do offline service worker cache. Po strate siete sa zápisy automaticky neopakujú. Úspešnú inštaláciu možno oznámiť až na základe udalosti prehliadača alebo skutočnej kontroly na telefóne.
 
+## Autonómia a synchronizácia (11.0.0)
+
+Prihlásený vlastník (Sabo Ivan / Basterix) má na mobilnom zariadení rovnaké plné autonómne práva:
+- Úlohy a požiadavky zadané cez mobilný webový chat sú spracované v `owner_mode: true`.
+- Netreba zadávať potvrdzujúce frázy `SCHVÁĽ` – Trinity vykonáva schválené kroky autonómne.
+- Všetkých 19 suverénnych skillov je prístupných priamo z mobilného rozhrania cez cloudové jadro Trinity.
+
 ## Overenie
 
 `node --test tests/mobile-device.test.mjs` testuje povolenia bez automatického spúšťania médií, hosťovskú reláciu, zmeny výšky pri klávesnici, inštalačný tok a neprehrávanie úloh pri obnovení siete. Tieto lokálne testy nenahrádzajú skúšku na fyzickom telefóne.
