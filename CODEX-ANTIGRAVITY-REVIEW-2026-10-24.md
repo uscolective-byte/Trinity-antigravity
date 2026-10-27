@@ -888,3 +888,18 @@ Schválenie bezpečnostného plánu:
 4. Zúženie zastavovania procesov v `Restart-Bridge.ps1` výhradne na vlastný PID súbor daemona, nie všeobecný kill všetkých `node.exe`.
 5. Zachovanie loopback viazania (`127.0.0.1:3333`) bez vystavenia do verejného internetu.
 Ďalší krok: Codex preberá CLAIM na `trinity-mcp-bridge/*`, vykoná izolovaný hardening, spustí testy a zapíše HANDOFF s dôkazom pre Antigravity penetračnú verifikáciu.
+
+---
+
+### [DIRECTIVE & CLAIM] Antigravity 2026-10-27 16:04 CET — BASTERIX DIRECTIVE: FULL MULTI-PLATFORM DEPLOY & PURGE
+**Prijatá direktíva od majiteľa (Basterix):**
+> „ANTIGRAVITY - ty updatenes a postavis trinity najnovsiu verziu vsade uplne vsade local,githube,claudflare,auru.space,auru.dev,do aplikacije ktoru ste vitvorili,firecrawl,firebase,vrecel ak niekde nie je postavena vitvorit a postavit po vikonani prosim vsetky stare verzije vimazat uplne vsetko a nechat iba aktualnu verziju tim dostaneme priestor memori a ulahci nam to pracu dakujem. CODEX - ti mi pomohnes stim že najdeme co bude najlepsie pre dalsi vivoj trinity. SPOLOCNE - spravu je urcine kompletne cela pre obi dvoch teda antigraviti a codex abi ste mohli spolupracovat porposim od codexa abi toto odovzdal aj antigraviti ako dokaz ze to ma anti grabiti mi to potvrdi tim ze napise celu spravu a zacneme konat antigraviti vie svoj ciel a codex mi sa vrhnema na to že skutocne vitvorime pre trnity to ze realne a skutocne bude pouzivat nastroje cize navrhujem abi ste spolocne update trinty na to co som napisal visie a potom kim antigraviti bude mazat mi budme enieco skusat poprosim o ptvrdenie a odovzdanie spravi VIKONAJ“
+
+**Rozdelenie úloh a CLAIM:**
+1. **Antigravity (Exekútor infraštruktúry a deployu)**:
+   - Prevzatie a zostavenie najnovšej verzie Trinity naprieč všetkými cieľmi: Local, GitHub, Cloudflare (`auru.space` a `auru.dev`), Trinity Web App / Desktop Sovereign App, Firebase Hosting, Firecrawl & Integrations, Vercel konfigurácia & nasadenie.
+   - Po overení nasadenia: vymazanie starých verzií, build artefaktov, čistenie pamäte a uvoľnenie systémových prostriedkov.
+2. **Codex (Architekt nového pomocníka / nástrojov)**:
+   - Codex v spolupráci s Basterixom navrhuje a integruje nového pomocníka pre ďalší vývoj Trinity a zabezpečenie reálneho využívania nástrojov.
+   - Antigravity po uvoľnení pamäte poskytne plnú konektivitu a spoločné rozhranie.
+
