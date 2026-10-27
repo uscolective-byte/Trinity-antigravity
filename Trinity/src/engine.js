@@ -30,7 +30,7 @@ export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
 export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOString()){
   const evidence=outcome?._evidence;
   if(evidence?.receipt_id){
-    return {tool,status:'completed',effect:evidence.effect||'read',actions:evidence.actions,receipt_id:evidence.receipt_id,verified_at:verifiedAt};
+    return {tool,status:'completed',effect:evidence.effect||'read',actions:evidence.actions,receipt_id:evidence.receipt_id,verified_at:verifiedAt,document_id:evidence.document_id||outcome?.document?.id||outcome?.id,issue_number:evidence.issue_number||outcome?.issue?.number||outcome?.number,url:evidence.url||outcome?.issue?.html_url||outcome?.url};
   }
   if(outcome?.ok===false||['failed','partial','not_configured'].includes(outcome?.status)){
     const status=outcome?.status==='partial'?'partial':'failed';

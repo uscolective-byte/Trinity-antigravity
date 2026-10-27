@@ -163,14 +163,42 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
 
   if (action === 'create_issue') {
     if (!token) return { success: false, error: 'Vytváranie GitHub issue vyžaduje token v Trezore tajomstiev.' };
+    const title = params.title || 'Trinity Automated Report';
+    const body = params.body || '';
+    if (!body || body.trim() === title.trim() || body.trim().length < 30) {
+      return { success: false, error: 'Režim pravdy (Truth Policy): Telo issue nesmie byť prázdny alebo triviálny zástupný text (hollow stub).' };
+    }
     const resp = await fetch(`https://api.github.com/repos/${repo}/issues`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
-        title: params.title || 'Trinity Automated Report',
-        body: params.body || 'Vytvorené autonómnym systémom Trinity.',
+        title,
+        body,
         labels: params.labels || ['trinity-bot']
       })
+    });
+    const d = await resp.json().catch(() => ({}));
+    return { success: resp.ok, issue: d };
+  }
+
+  if (action === 'update_issue') {
+    if (!token) return { success: false, error: 'Úprava GitHub issue vyžaduje token v Trezore tajomstiev.' };
+    const issueNumber = params.issue_number || params.number;
+    if (!issueNumber) return { success: false, error: 'Chýba číslo issue (issue_number).' };
+    const payload = {};
+    if (params.title) payload.title = params.title;
+    if (params.body) {
+      if (params.body.trim().length < 30) {
+        return { success: false, error: 'Režim pravdy (Truth Policy): Telo issue nesmie byť prázdny zástupný text.' };
+      }
+      payload.body = params.body;
+    }
+    if (params.state) payload.state = params.state;
+    if (params.labels) payload.labels = params.labels;
+    const resp = await fetch(`https://api.github.com/repos/${repo}/issues/${issueNumber}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(payload)
     });
     const d = await resp.json().catch(() => ({}));
     return { success: resp.ok, issue: d };

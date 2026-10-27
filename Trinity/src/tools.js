@@ -189,7 +189,7 @@ export const TOOL_SCHEMAS={
     accountId:z.string().optional()
   }).strict()
   ,github_manage:z.object({
-    action:z.enum(['status','repo_info','list_commits','list_issues','create_issue','dispatch_workflow','get_file','read_file','list_files','list_tree']).default('status'),
+    action:z.enum(['status','repo_info','list_commits','list_issues','create_issue','update_issue','dispatch_workflow','get_file','read_file','list_files','list_tree']).default('status'),
     repo:z.string().optional(),
     limit:z.number().int().min(1).max(250).optional(),
     path:z.string().optional(),
@@ -197,6 +197,8 @@ export const TOOL_SCHEMAS={
     body:z.string().optional(),
     workflowId:z.string().optional(),
     ref:z.string().optional(),
+    issue_number:z.number().int().optional(),
+    labels:z.array(z.string()).optional(),
     inputs:z.record(z.string(),z.unknown()).optional()
   }).strict()
   ,firecrawl_scrape:z.object({
@@ -734,8 +736,9 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   }
   if(name==='github_manage'){
     const res=await manageGitHub(env,`agent:${agent.id||'trinity'}`,args.action,args);
-    const isMut=Boolean(args.action==='create_issue'||args.action==='dispatch_workflow');
-    return {...res,_evidence:{effect:isMut?'mutation':'read',actions:isMut?['change','publish']:undefined,receipt_id:`github:${args.action}:${crypto.randomUUID()}`}};
+    const isMut=Boolean(args.action==='create_issue'||args.action==='update_issue'||args.action==='dispatch_workflow');
+    const issueNum=res?.issue?.number||(args.action==='update_issue'?(args.issue_number||args.number):undefined);
+    return {...res,_evidence:{effect:isMut?'mutation':'read',actions:isMut?['change','publish']:undefined,receipt_id:`github:${args.action}:${crypto.randomUUID()}`,issue_number:issueNum}};
   }
   if(name==='firecrawl_scrape'){
     const res=await scrapeWithFirecrawl(env,`agent:${agent.id||'trinity'}`,args);
