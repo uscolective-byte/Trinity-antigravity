@@ -57,8 +57,10 @@ Na základe direktívy vlastníka (**Sabo Ivan / Basterix**) a pravidiel suveré
    - Beží na `https://auru.space`, plne funkčný manifest, ikony, media handlery (kamera/mikrofón).
    - Vlastník prihlásený na mobilnom telefóne má okamžitý autonómny prístup k celému ekosystému.
 2. **PC Bridge & Lokálna Brána**:
-   - `Local-Gateway` a `Trinity/trinity-pc-bridge` sú pripravené na lokálne spúšťanie (`start.ps1` / `SPUSTIT-LOCAL.cmd`).
-   - HMAC kľúč a gateway token zabezpečujú šifrovanú komunikáciu medzi Cloudflare Workerom a PC.
+   - `Local-Gateway` je aktívne spustená a pripojená (`127.0.0.1:8791`).
+   - Stav cloudového mosta: `cloud: connected`, `pc_bridge: connected`.
+   - Trinity MCP `pc_status` živé overenie: `connected: true`, Hostname: `Basterix`, User: `saboi`, RAM: 15.9 GB, `files` capability: `verified: true`.
+   - Šifrovaný DPAPI kľúč bezpečne autorizuje komunikáciu bez potreby manuálneho vkladania kľúčov do chatu.
 3. **Kánonický Git**:
    - Všetky zmeny sú commitnuté a zatlačené do `origin/main` a `morpheus/main`.
 
