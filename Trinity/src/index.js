@@ -49,6 +49,7 @@ import {listCustomAgents,createOrUpdateCustomAgent,executeCustomAgent,provisionA
 import {getDevHubStatus,executeDevHubCommand} from './developer-hub.js';
 import {getWallet,transactWallet} from './wallet.js';
 import {getWalletTerminalOverview,saveWalletTerminalConfig,createPaymentTerminalCharge,executeWalletPayout,createCryptoWallet,cancelWalletPayout} from './wallet-terminals.js';
+import {getConnectorsRegistry,syncConnector} from './banking-connectors.js';
 import {handleInboundEmail} from './email.js';
 import {TRINITY2_CAPABILITIES,rolePermissions,requireCapability,updateRolePermission,analyzeImage,transcribeAudio,synthesizeSpeech,listVisualWorkflows,saveVisualWorkflow,listIncidents,resolveIncident,recordHealthIncident,exportAudit} from './trinity2.js';
 import {TrinityCopilotAgent} from './copilot-agent.js';
@@ -883,6 +884,15 @@ async function route(request,env,ctx){
   if(path==='/api/assistant/wallet/terminal/create-crypto'&&request.method==='POST'){
     requireAdmin(user);
     return json(await createCryptoWallet(env,ownerId));
+  }
+  if(path==='/api/assistant/wallet/connectors'&&request.method==='GET'){
+    requireAdmin(user);
+    return json(await getConnectorsRegistry(env,ownerId));
+  }
+  const syncMatch=path.match(/^\/api\/assistant\/wallet\/connectors\/([A-Za-z0-9_-]+)\/sync$/);
+  if(syncMatch&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await syncConnector(env,ownerId,syncMatch[1]));
   }
   if(path==='/api/assistant/dashboard'&&request.method==='GET'){
     requireOwner(user);

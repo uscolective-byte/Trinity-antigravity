@@ -32,7 +32,8 @@ export const terminalConfigSchema = z.object({
   paypal_email: optionalText(120),
   crypto_address: optionalText(80),
   crypto_network: z.enum(['polygon', 'base', 'arbitrum', 'ethereum']).default('polygon'),
-  default_terminal: z.enum(['sepa', 'revolut', 'paypal', 'crypto']).default('sepa')
+  ton_address: optionalText(100),
+  default_terminal: z.enum(['sepa', 'revolut', 'paypal', 'crypto', 'ton']).default('sepa')
 }).strict();
 
 export const terminalChargeSchema = z.object({
@@ -87,6 +88,7 @@ async function ensureTerminalTables(env) {
       note TEXT, created_at TEXT DEFAULT (datetime('now')), UNIQUE(evidence_type, evidence_ref))`
   ];
   for (const sql of statements) await env.DB.prepare(sql).run();
+  try { await env.DB.prepare('ALTER TABLE ops_wallet_terminals ADD COLUMN ton_address TEXT').run(); } catch {}
   readyDatabases.add(env.DB);
 }
 
@@ -124,6 +126,14 @@ export function normalizeEvmAddress(raw) {
   const checksummed = toChecksumAddress(s);
   if (mixed && checksummed !== s) return null; // zlá kontrolná suma EIP-55 = pravdepodobne preklep
   return checksummed;
+}
+
+export function normalizeTonAddress(raw) {
+  const s = String(raw || '').trim();
+  if (/^[EU]Q[a-zA-Z0-9_-]{46}$/.test(s) || /^[EU]Q[a-zA-Z0-9+/]{46}={0,2}$/.test(s) || /^-?[0-1]:[0-9a-fA-F]{64}$/.test(s)) {
+    return s;
+  }
+  return null;
 }
 
 function normalizeRevolutHandle(raw) {
@@ -204,7 +214,7 @@ async function rpc(chain, method, params) {
   return data.result;
 }
 
-async function readUsdcBalance(chain, address) {
+export async function readUsdcBalance(chain, address) {
   try {
     const data = '0x70a08231' + padAddress(address).slice(2);
     const result = await rpc(chain, 'eth_call', [{ to: chain.usdc, data }, 'latest']);
@@ -294,6 +304,13 @@ export async function getWalletTerminalOverview(env, ownerId = 'admin') {
         chain_id: chain.id,
         token: 'USDC',
         token_contract: chain.usdc,
+        telegram_wallet: {
+          configured: Boolean(termRow?.ton_address),
+          ton_address: termRow?.ton_address || null,
+          url: termRow?.ton_address ? `ton://transfer/${termRow.ton_address}` : null,
+          network: 'The Open Network (TON)',
+          supported_tokens: ['USDT', 'TON']
+        },
         onchain_balance: onchain
       }
     },
@@ -331,15 +348,19 @@ export async function saveWalletTerminalConfig(env, ownerId = 'admin', input = {
     if (!clean.crypto) throw new HttpError(400, 'Krypto adresa musí byť platná EVM adresa 0x… (pri zmiešaných veľkostiach písmen sa overuje kontrolná suma EIP-55).');
   }
   if (clean.iban && !data.account_name) throw new HttpError(400, 'Pri IBAN-e je povinné meno príjemcu platby (pre EPC QR).');
+  if (data.ton_address) {
+    clean.ton_address = normalizeTonAddress(data.ton_address);
+    if (!clean.ton_address) throw new HttpError(400, 'Neplatný formát TON adresy.');
+  }
 
   await env.DB.prepare(`
-    INSERT INTO ops_wallet_terminals(owner_id, iban, bic, account_name, revolut_handle, paypal_email, crypto_address, crypto_network, default_terminal, updated_at)
-    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    INSERT INTO ops_wallet_terminals(owner_id, iban, bic, account_name, revolut_handle, paypal_email, crypto_address, crypto_network, default_terminal, ton_address, updated_at)
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     ON CONFLICT(owner_id) DO UPDATE SET iban=excluded.iban, bic=excluded.bic, account_name=excluded.account_name,
       revolut_handle=excluded.revolut_handle, paypal_email=excluded.paypal_email, crypto_address=excluded.crypto_address,
-      crypto_network=excluded.crypto_network, default_terminal=excluded.default_terminal, updated_at=datetime('now')
+      crypto_network=excluded.crypto_network, default_terminal=excluded.default_terminal, ton_address=excluded.ton_address, updated_at=datetime('now')
   `).bind(ownerId, clean.iban || null, clean.bic || null, data.account_name || null, clean.revolut || null,
-    clean.paypal?.value || null, clean.crypto || null, data.crypto_network, data.default_terminal).run();
+    clean.paypal?.value || null, clean.crypto || null, data.crypto_network, data.default_terminal, clean.ton_address || null).run();
   await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('wallet_terminals_config_updated',?)")
     .bind(JSON.stringify({ owner_id: ownerId, updated_at: new Date().toISOString() })).run();
 
