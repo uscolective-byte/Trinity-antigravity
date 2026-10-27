@@ -23,7 +23,13 @@ export const EXTENDED_SERVICES = {
   JERICHO_SERVICE:{name:'Jericho Engine',path:'/health'},
   PC_BRIDGE_SERVICE:{name:'PC Bridge',path:'/api/status'},
   PC_BRIDGE_V2:{name:'PC Bridge V2',path:'/api/status'},
-  CHAT_INFERENCE_SERVICE:{name:'Chat Inference',path:'/health'}
+  CHAT_INFERENCE_SERVICE:{name:'Chat Inference',path:'/health'},
+  RESEARCHER_SERVICE:{name:'Výskumný špecialista',path:'/health'},
+  GEMINI_BRIDGE_SERVICE:{name:'Gemini AI Bridge',path:'/health'},
+  OPS_SERVICE:{name:'Ops Proxy',path:'/health'},
+  CHAT_MAINTAINER_SERVICE:{name:'Chat Maintainer',rpc:'getStatus'},
+  DEPLOYER_SERVICE:{name:'Deployer',path:'/health'},
+  SEEDER_SERVICE:{name:'Seeder',path:'/health'}
 };
 export async function boundedText(response, limit = 40000) {
   if (!response.body) return '';

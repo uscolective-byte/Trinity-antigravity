@@ -10,8 +10,8 @@
     "primary_url": "https://auru.space",
     "development_url": "https://auru.dev",
     "live_check": "Production health and ready HTTP 200. Verified live on auru.space.",
-    "automated_tests": "546 passed across full monorepo (Trinity 503, Jericho 12, Tetrakis 15, Capacity 10, Audit 6)",
-    "checked_at": "2026-10-27",
+    "automated_tests": "568 passed across full monorepo (Trinity 525, Jericho 12, Tetrakis 15, Capacity 10, Audit 6)",
+    "checked_at": "2026-10-28",
     "check_phase": "verified-live-production"
   },
   "features": {
@@ -28,7 +28,7 @@
     "jericho_crypto": "active",
     "tetrakis_token": "active",
     "pc_bridge_v2": "active",
-    "workers_count": 29
+    "workers_count": 35
   },
   "integrations": {
     "gemini_mcp": {

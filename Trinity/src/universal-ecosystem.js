@@ -52,7 +52,11 @@ export const APPLICATION_TEMPLATES = [
   {templateId: 'habit-forge', name: 'Daily Habit & Wellness Forge', type: 'web-app', domain: 'lifestyle-wellness'},
   {templateId: 'code-craft', name: 'Full-Stack Developer Sandbox & Snippet Studio', type: 'web-app', domain: 'software-dev'},
   {templateId: 'creative-studio', name: 'Interactive Script, Song & Storyboard Studio', type: 'web-app', domain: 'creative-arts'},
-  {templateId: 'science-lab', name: 'Biomolecular & Chemistry Research Workbench', type: 'web-app', domain: 'science-discovery'}
+  {templateId: 'science-lab', name: 'Biomolecular & Chemistry Research Workbench', type: 'web-app', domain: 'science-discovery'},
+  {templateId: 'vite-react-template', name: 'Vite React Modern Frontend Archetype', type: 'web-app', domain: 'software-dev', liveWorker: 'vite-react-template'},
+  {templateId: 'chanfana-openapi', name: 'Chanfana OpenAPI 3.0 Backend Archetype', type: 'api', domain: 'cloud-devops', liveWorker: 'chanfana-openapi-template'},
+  {templateId: 'react-router-starter', name: 'React Router SSR Full-Stack Archetype', type: 'web-app', domain: 'software-dev', liveWorker: 'react-router-starter-templates'},
+  {templateId: 'my-react-app', name: 'React Client SPA Archetype', type: 'web-app', domain: 'software-dev', liveWorker: 'my-react-app'}
 ];
 
 class UniversalEcosystem {

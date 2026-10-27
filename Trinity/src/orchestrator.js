@@ -236,6 +236,60 @@ export const AUXILIARY_WORKER_CATALOG = {
     probeAction: 'health',
     role: 'Dedikovaný nízkolatenčný AI inference worker pre okamžité odpovede v chate',
     rest: true
+  },
+  RESEARCHER_SERVICE: {
+    service: 'trinity-agent-researcher',
+    name: 'Trinity Research Specialist',
+    domain: 'research',
+    probeAction: 'health',
+    role: 'Autonómny výskumný agent s Llama 3.3 70B syntézou, webovým rešeršom a ukladaním do pamäte',
+    rest: true,
+    actions: ['health', 'research', 'research/history']
+  },
+  GEMINI_BRIDGE_SERVICE: {
+    service: 'trinity-gemini',
+    name: 'Trinity Google Gemini Bridge',
+    domain: 'multimodal',
+    probeAction: 'health',
+    role: 'Google Gemini 2.5 Flash brána s R2 artefaktmi, KV storage a priamym prepájaním',
+    rest: true,
+    actions: ['health', 'tools', 'generate']
+  },
+  OPS_SERVICE: {
+    service: 'trinity-ops',
+    name: 'Trinity Ops Proxy',
+    domain: 'operations',
+    probeAction: 'health',
+    role: 'Dedikovaný prevádzkový proxy manažér pre /api/ops/ a /mcp požiadavky',
+    rest: true,
+    actions: ['health']
+  },
+  CHAT_MAINTAINER_SERVICE: {
+    service: 'trinity-chat-maintainer',
+    name: 'Trinity Chat Maintainer',
+    domain: 'maintenance',
+    probeAction: 'getStatus',
+    role: 'Správca chatu, kontrola kvality odpovedí a detekcia uviaznutých úloh',
+    rpc: true,
+    actions: ['getStatus', 'inspect', 'reviewReply']
+  },
+  DEPLOYER_SERVICE: {
+    service: 'trinity-deployer',
+    name: 'Trinity Deployer',
+    domain: 'deployment',
+    probeAction: 'health',
+    role: 'Správca kódových snapshotov a staged nasadení cez CODE_KV',
+    rest: true,
+    actions: ['health']
+  },
+  SEEDER_SERVICE: {
+    service: 'trinity-seeder',
+    name: 'Trinity Seeder',
+    domain: 'database',
+    probeAction: 'health',
+    role: 'Inicializačný a migračný seeder pre D1 databázy',
+    rest: true,
+    actions: ['health']
   }
 };
 

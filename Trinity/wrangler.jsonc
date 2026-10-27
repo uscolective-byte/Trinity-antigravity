@@ -268,6 +268,30 @@
     {
       "binding": "JERICHO_SERVICE",
       "service": "jericho123"
+    },
+    {
+      "binding": "RESEARCHER_SERVICE",
+      "service": "trinity-agent-researcher"
+    },
+    {
+      "binding": "GEMINI_BRIDGE_SERVICE",
+      "service": "trinity-gemini"
+    },
+    {
+      "binding": "OPS_SERVICE",
+      "service": "trinity-ops"
+    },
+    {
+      "binding": "CHAT_MAINTAINER_SERVICE",
+      "service": "trinity-chat-maintainer"
+    },
+    {
+      "binding": "DEPLOYER_SERVICE",
+      "service": "trinity-deployer"
+    },
+    {
+      "binding": "SEEDER_SERVICE",
+      "service": "trinity-seeder"
     }
   ],
   "secrets_store_secrets": [

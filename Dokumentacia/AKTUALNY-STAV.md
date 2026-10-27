@@ -1,9 +1,10 @@
 # Aktuálny stav Trinity Sovereign OS (11.0.0)
 
-**Dátum aktualizácie:** 27. októbra 2026  
-**Kanonický repozitár:** `uscolective-byte/Trinity-antigravity` (vetva `main`)  
-**Hlavný architekt a vlastník:** Sabo Ivan (Basterix)  
+**Dátum aktualizácie:** 28. októbra 2026
+**Kanonický repozitár:** `uscolective-byte/Trinity-antigravity` (vetva `main`)
+**Hlavný architekt a vlastník:** Sabo Ivan (Basterix)
 **Truth Policy:** Verzia 2.0 (`evidence-required`, nulové simulácie, povinné overiteľné dôkazy)
+**Architektonický prehľad:** [ARCHITEKTURA-TRINITY-11.md](ARCHITEKTURA-TRINITY-11.md)
 
 ---
 
@@ -24,7 +25,7 @@
 
 ---
 
-## ⚡ Flotila 29 viazaných Workerov (Service Bindings)
+## ⚡ Flotila 35 Viazaných Služieb (Service Bindings)
 
 Hlavný unifikovaný Worker `trinity` má priame väzby na celú flotilu:
 1. **10× AURA špecialisti:**
@@ -33,8 +34,14 @@ Hlavný unifikovaný Worker `trinity` má priame väzby na celú flotilu:
    - *(vrátane systémových aliasov `admin`, `admino`, `Trinity`)*.
 2. **8× Trinity Core uzly:**
    - `CORE`, `BUILDER`, `DISPATCHER`, `CONNECTORS`, `GUARDIAN`, `MEMORY`, `SENTINEL`, `SKILLS`.
-3. **8× Špecializované & RPC služby:**
+3. **14× Špecializované & Pomocné služby:**
    - `JERICHO_SERVICE` (`jericho123`): Autonómny krypto super-agent, Binance live feed, DeFi výnosy a správa pokladnice Tetrakis ($TTK) s hodinovým cronom `0 * * * *`.
+   - `RESEARCHER_SERVICE` (`trinity-agent-researcher`): Autonómny výskumný agent s Llama 3.3 70B syntézou a ukladaním do pamäte.
+   - `GEMINI_BRIDGE_SERVICE` (`trinity-gemini`): Google Gemini 2.5 Flash brána s R2 artefaktmi a KV storage.
+   - `OPS_SERVICE` (`trinity-ops`): Dedikovaný prevádzkový proxy manažér pre `/api/ops/` a `/mcp`.
+   - `CHAT_MAINTAINER_SERVICE` (`trinity-chat-maintainer`): Strážca chatu, kontrola kvality odpovedí a detekcia uviaznutých úloh.
+   - `DEPLOYER_SERVICE` (`trinity-deployer`): Správca kódových snapshotov a staged nasadení cez `CODE_KV`.
+   - `SEEDER_SERVICE` (`trinity-seeder`): Inicializačný a migračný seeder pre D1 databázy.
    - `KNOWLEDGE_SERVICE` (`trinity-knowledge`): Sémantické vyhľadávanie vedomostí a vektorová pamäť.
    - `CAPACITY_SERVICE` (`trinity-capacity`): Dynamický limitér spotreby a účtovná kniha jednotiek (CapacityLedger).
    - `INTEGRATIONS_SERVICE` (`trinity-integrations`): Konektory na externé služby (GitHub, Firecrawl, Firebase).
@@ -75,12 +82,12 @@ Všetky testovacie sady sú 100 % zelené:
 
 | Modul | Počet testov | Výsledok |
 |---|---|---|
-| **Trinity Main Fleet** (`Trinity/tests/*.test.mjs`) | 503 | **503 / 503 PASS** |
+| **Trinity Main Fleet** (`Trinity/tests/*.test.mjs`) | 525 | **525 / 525 PASS** |
 | **Jericho-Worker** (`Jericho-Worker/tests/*.test.mjs`) | 12 | **12 / 12 PASS** |
 | **Tetrakis-Token ($TTK)** (`contracts/tetrakis/tests/*.test.mjs`) | 15 | **15 / 15 PASS** |
 | **Capacity-Worker** (`Capacity-Worker/tests/*.test.mjs`) | 10 | **10 / 10 PASS** |
 | **Audit-Worker** (`Audit-Worker/tests/*.test.mjs`) | 6 | **6 / 6 PASS** |
-| **CELKOVO** | **546** | **546 / 546 PASS (100 %)** |
+| **CELKOVO** | **568** | **568 / 568 PASS (100 %)** |
 
 ---
 
