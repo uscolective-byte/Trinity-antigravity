@@ -20,6 +20,7 @@
     "migrate:development": "npm run migrate:staging"
   },
   "dependencies": {
+    "@cloudflare/puppeteer": "^1.4.0",
     "@modelcontextprotocol/ext-apps": "2.0.3",
     "@modelcontextprotocol/server": "2.3.1",
     "@noble/curves": "2.4.0",

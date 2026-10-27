@@ -58,3 +58,28 @@ Pri každej ďalšej spolupráci:
 5. Sledovanie samo nevykonáva rebase, merge, provisioning kľúčov, zmenu oprávnení, platby ani nasadenie.
 
 Poradie práce od majiteľa: pôvodný garážový vzhľad a prehľadné UI, funkčný chat, potom nástroje Trinity.
+
+## 7. Spoločné lokálne kľúče (`C:\Users\saboi\.env`) — platí od 2026-10-27
+
+Majiteľ rozhodol: Antigravity, Codex aj vývoj Trinity používajú jeden lokálny súbor `C:\Users\saboi\.env` (mimo repa, `.env` je v `.gitignore`, ACL len pre užívateľa `saboi`).
+
+**Čo robiť**
+1. Pred prácou, ktorá potrebuje kľúč, over jeho prítomnosť bez výpisu hodnoty:
+   `powershell -NoProfile -File scripts/shared-env.ps1 -Check`  → vypíše `NAME: set|EMPTY|MISSING`.
+2. Hodnoty do procesu načítaj len v rámci príkazu, ktorý ich potrebuje:
+   `. scripts/shared-env.ps1 -Load` (nastaví premenné prostredia pre aktuálny proces, nič nevypisuje).
+3. Chýbajúci kľúč pridáva **vždy majiteľ** sám (skrytý vstup alebo úprava súboru). Nikdy nežiadať o vloženie kľúča do chatu.
+4. Nový typ kľúča: pridať riadok `NAME=` ako komentár do `.env` + riadok do tabuľky nižšie, aby druhá strana vedela, čo je to a načo.
+
+**Čo je zakázané**
+- Vypisovať, logovať, commitovať alebo vkladať do review/handoff súborov hodnoty kľúčov (`cat .env`, `echo $VAR`, `printenv`, `Get-Content .env` bez maskovania).
+- Kopírovať Cloudflare worker secrets do `.env` — sú write-only a workery ich majú vlastné; nastavujú sa cez `wrangler secret put` (skrytý vstup).
+- Používať kľúč na iný účel než zadal majiteľ; používať Global API Key (len scoped tokeny).
+
+**Inventár kľúčov** (názvy, nie hodnoty; aktualizovať pri zmene)
+| Premenná | Účel | Poznámka |
+|---|---|---|
+| `CLOUDFLARE_API_TOKEN` | Deploy workerov, D1, Workers AI, čítanie Access (účet `b60342e5…`) | Account-owned token (`cfat_…`), overený `active` cez `GET /accounts/<id>/tokens/verify` (nie `/user/tokens/verify` — ten vráti 401). Wrangler je navyše prihlásený cez OAuth |
+| `CLOUDFLARE_ACCESS_CLIENT_ID` / `CLOUDFLARE_ACCESS_CLIENT_SECRET` | Service Token na prechod Cloudflare Access na `*.workers.dev` pri stagingových testoch | Stav 2026-10-27: hodnoty majú tvar 32 hex + 64 hex (nie `….access` + `cfast_…`) a nezodpovedajú žiadnemu Service Tokenu v účte (existuje len `Trinity-PC-Bridge-V2`). Pravdepodobne ide o iný typ kľúča (napr. R2 S3 Access Key ID/Secret) pod nesprávnym názvom → majiteľ potvrdí |
+
+**Ako sa dá bezpečne testovať staging bez Access tokenu** (overené 2026-10-27): dočasný probe worker so service bindingom na `trinity-core-staging` + token v URL; majiteľ ho otvorí v prehliadači po Access prihlásení, výsledok sa overí v D1, probe sa zmaže.

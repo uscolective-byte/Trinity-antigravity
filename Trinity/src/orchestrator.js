@@ -127,7 +127,7 @@ export const WORKER_CATALOG = {
     domain: 'connectors',
     probeAction: 'connect.list',
     role: 'Správa externých konektorov a autorizovaných integračných mostov',
-    actions: ['connect.list', 'connect.register', 'connect.test']
+    actions: ['connect.list', 'connect.register', 'connect.test', 'browser.render', 'browser.scrape', 'connect.browser.run']
   },
   GUARDIAN: {
     service: 'trinity-guardian',
