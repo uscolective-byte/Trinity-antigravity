@@ -118,3 +118,10 @@ test('Jericho Worker: RPC interface methods respond correctly', async () => {
   const treasury = await worker.getTreasury();
   assert.ok(treasury.evm_address.startsWith('0x'));
 });
+
+test('Jericho Worker: scheduled cron triggers autonomous work cycle', async () => {
+  const result = await worker.scheduled({}, {}, {});
+  assert.equal(result.agent, 'Jericho123');
+  assert.equal(result.status, 'COMPLETED');
+  assert.ok(result.work_id.startsWith('jericho:'));
+});

@@ -518,6 +518,13 @@ export default {
     return new Response('Not Found', { status: 404, headers: CORS_HEADERS });
   },
 
+  // Autonomous 24/7 Scheduled Cron Handler for continuous crypto market surveillance
+  async scheduled(event, env, ctx) {
+    const work = await executeWorkCycle(env);
+    console.log(`[Jericho123 Scheduled Work] Completed: ${work.work_id} at ${work.timestamp} (${work.duration_ms}ms)`);
+    return work;
+  },
+
   // Direct RPC methods for Trinity Orchestrator
   async status() {
     return {
