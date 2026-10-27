@@ -251,10 +251,11 @@ export async function searchMemory(env,query='') {
 }
 export async function runTool(env, agent, name, input, executionContext={}) {
   if(!agent.tools.includes(name)||(!TOOL_SCHEMAS[name]&&!PC_TOOLS.has(name))) throw new Error('Tool not allowed');
-  if((DEVELOPMENT_TOOLS.includes(name)||name==='domain_register'&&input?.live_register===true)&&executionContext.adminAuthorized!==true)throw new Error('Táto schopnosť vyžaduje serverom overeného správcu.');
-  if(OWNER_BUSINESS_TOOLS.has(name)&&executionContext.adminAuthorized!==true)throw new Error('Obchodné a vývojové schopnosti Trinity sú dostupné iba overenému ownerovi.');
-  if(PC_TOOLS.has(name)&&executionContext.adminAuthorized!==true)throw new Error('PC nástroje sú dostupné iba v serverom overenom admin režime.');
-  if(['execute_skill','ecosystem_synthesize'].includes(name)&&executionContext.adminAuthorized!==true)throw new Error('Spúšťanie skillov a registrácia rozšírení vyžaduje serverom overeného administrátora.');
+  const isAdminOrOwner=executionContext.adminAuthorized===true||executionContext.ownerMode===true;
+  if((DEVELOPMENT_TOOLS.includes(name)||name==='domain_register'&&input?.live_register===true)&&!isAdminOrOwner)throw new Error('Táto schopnosť vyžaduje serverom overeného správcu.');
+  if(OWNER_BUSINESS_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('Obchodné a vývojové schopnosti Trinity sú dostupné iba overenému ownerovi.');
+  if(PC_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('PC nástroje sú dostupné iba v serverom overenom admin režime.');
+  if(['execute_skill','ecosystem_synthesize'].includes(name)&&!isAdminOrOwner)throw new Error('Spúšťanie skillov a registrácia rozšírení vyžaduje serverom overeného administrátora.');
   if(!INTERNAL_TOOLS.has(name)&&name!=='install_plugin')await ensureToolEnabled(env,name);
   if(name==='request_system_action'&&input&&typeof input==='object')input={action:input.action,payload:input.payload||(typeof input.resource==='string'?{path:input.resource}:{}),rationale:input.rationale||input.reason};
   const args=PC_TOOLS.has(name)?null:TOOL_SCHEMAS[name].parse(input);

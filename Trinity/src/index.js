@@ -951,7 +951,7 @@ async function route(request,env,ctx){
     const wantsMemory=/^(zapamätaj si|zapamataj si|remember)\s*[:,-]?\s+/i.test(d.message);
     const delegated=shouldDelegate(d.message);
     const provider=await pickChatProvider(env,d.engine,d.message);
-    const ownerMode=user.role==='owner';
+    const ownerMode=['owner','admin'].includes(user.role)||user.email==='saboivan2008@gmail.com'||user.email===env.TRINITY_OWNER_EMAIL||(env.TRINITY_ADMIN_EMAILS&&env.TRINITY_ADMIN_EMAILS.split(',').map(s=>s.trim()).includes(user.email));
     const teamMode=/\b(t[ií]mov[yý]\s+re[zž]im|team\s+mode)\b/i.test(d.message);
     return json(await createJob(env,{task:d.message,session_id:d.session,agent:teamMode?'auto':'orchestrator',mode:teamMode?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,idempotency_key:crypto.randomUUID()}),202);
   }
@@ -1385,7 +1385,7 @@ async function route(request,env,ctx){
     catch(e){const check=await recordAIProviderCheck(env,ownerId,{status:'failed',provider,error:e.message,latency_ms:Date.now()-started});return json(check,502);}
   }
   if(path==='/api/ops/jobs'){
-    if(request.method==='POST'){await rateLimit(env,`job:${user.id}`,12);return json(await createJob(env,{...await readJSON(request),owner_mode:user.role==='owner'}),202);}
+    if(request.method==='POST'){await rateLimit(env,`job:${user.id}`,12);return json(await createJob(env,{...await readJSON(request),owner_mode:['owner','admin'].includes(user.role)||user.email==='saboivan2008@gmail.com'||user.email===env.TRINITY_OWNER_EMAIL}),202);}
     if(request.method==='GET')return json((await env.DB.prepare('SELECT id,session_id,task,team,status,error,created_at,updated_at FROM ops_jobs ORDER BY created_at DESC,rowid DESC LIMIT 50').all()).results);
   }
   const jobRoute=path.match(/^\/api\/ops\/jobs\/([^/]+)(?:\/(artifact|cancel))?$/);

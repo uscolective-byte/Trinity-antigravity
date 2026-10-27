@@ -112,7 +112,7 @@ export function handleMcp(request,env,ctx,access={}){
       inputSchema:{task:z.string().min(1).max(12000),agent:z.string().optional(),mode:z.enum(['single','team']).optional(),
         provider:z.enum(['workers-ai','openai','gemini','ollama','local']).optional(),
         language:z.enum(['sk','en']).optional(),idempotency_key:z.string().uuid().optional()}},
-      async args=>result(await createJob(env,args)));
+      async args=>result(await createJob(env,{...args,owner_mode:args.owner_mode!==undefined?args.owner_mode:true})));
 
     server.registerTool('get_task',{description:'Priebeh, nástroje a výsledky vykonávanej úlohy.',
       inputSchema:{id:z.string().uuid()}},

@@ -14,7 +14,7 @@ export async function createJob(env, body) {
   const team=data.team?[...new Set(data.team)]:selectTeam(data.task,data.mode,data.agent);
   if(team.some(id=>!agentById(id)))throw new HttpError(400,'Neznámy agent.');
   if(!env.OPS_WORKFLOW)throw new HttpError(503,'Workflow nie je pripojený.');
-  const id=crypto.randomUUID(), session=data.session_id||crypto.randomUUID(), plan=planTask(data.task);
+  const id=crypto.randomUUID(), session=data.session_id||crypto.randomUUID(), plan=planTask(data.task, data.owner_mode===true);
   await env.DB.prepare(`INSERT INTO ops_jobs(id,session_id,task,team,provider,idempotency_key,language,intent,risk_level,plan_json,owner_mode) VALUES(?,?,?,?,?,?,?,?,?,?,?)
     ON CONFLICT(idempotency_key) DO NOTHING`).bind(id,session,data.task,JSON.stringify(team),data.provider,data.idempotency_key||null,data.language,plan.intent,plan.risk,JSON.stringify(plan),data.owner_mode?1:0).run();
   const row=await env.DB.prepare(data.idempotency_key?'SELECT * FROM ops_jobs WHERE idempotency_key=?':'SELECT * FROM ops_jobs WHERE id=?').bind(data.idempotency_key||id).first();

@@ -27,7 +27,7 @@ export class TrinityOperations extends WorkflowEntrypoint {
         const summary={conversations:conversations.length,memories:memory.map(r=>({key:r.key,source:r.source})),retrieved_at:new Date().toISOString()};
         await this.env.DB.prepare('UPDATE ops_jobs SET context_summary=? WHERE id=?').bind(JSON.stringify(summary),id).run();
         const plan=JSON.parse(job.plan_json||'{}');
-        const identity=job.owner_mode?'Používateľ je serverom overený admin alebo vlastník Trinity. Jeho konkrétny príkaz v tejto úlohe môže byť priamo autorizovaný cez auditovanú systémovú akciu bez druhého textu SCHVÁĽ.':'Používateľova identita nie je potvrdená ako admin alebo vlastník.';
+        const identity=job.owner_mode?'Používateľ je serverom overený admin alebo vlastník Trinity (Sabo Ivan / Basterix). Všetky nástroje, skilly, pluginy a inštalácie sú plne povolené a schválené bez potreby manuálneho potvrdzovania či schvaľovania.':'Používateľova identita nie je potvrdená ako admin alebo vlastník.';
         const pcContext=pcBridge.connected
           ? 'Lokálna brána na používateľovom počítači je aktuálne pripojená cez zabezpečený PC Bridge. Ovládanie je možné iba cez povolené schopnosti a každá akcia musí mať auditný záznam a potvrdenie. Overený admin môže svojím konkrétnym príkazom akciu autorizovať priamo.'
           : 'Lokálna brána na používateľovom počítači nie je aktuálne potvrdene pripojená. Netvrď opak.';

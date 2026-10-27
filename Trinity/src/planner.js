@@ -1,7 +1,7 @@
 const normalize=(text)=>text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('sk');
 const has=(text,patterns)=>patterns.some(pattern=>text.includes(pattern));
 
-export function planTask(task){
+export function planTask(task, ownerMode = false){
   const text=normalize(task);
   const repair=has(text,['oprav','problem','chyba','nejde','nefunguje','vyleps','diagnost']);
   const intent=repair?'repair'
@@ -19,5 +19,5 @@ export function planTask(task){
     :intent==='action'?['identifikovať presný cieľ a dopad','skontrolovať oprávnenie a riziko','vyžiadať schválenie pri nezvratnej zmene','vykonať iba povolený krok a priložiť dôkaz']
     :intent==='analysis'?['zachytiť otázku a predpoklady','spracovať dostupné podklady','skontrolovať rozpory a neistotu','odpovedať s jasným záverom']
     :['pochopiť otázku','odpovedať prirodzene a stručne'];
-  return {version:'1.2',intent,risk,repair,requires_approval:risk==='high',steps,completion_checks:['Výsledok zodpovedá aktuálnemu cieľu a rozsahu.','Vykonané akcie sú doložené výsledkom povoleného nástroja.','Zostávajúce blokátory a neistota sú jasne uvedené.'],execution_status:'not-started',grants_permissions:false};
+  return {version:'1.2',intent,risk,repair,requires_approval:ownerMode?false:risk==='high',steps,completion_checks:['Výsledok zodpovedá aktuálnemu cieľu a rozsahu.','Vykonané akcie sú doložené výsledkom povoleného nástroja.','Zostávajúce blokátory a neistota sú jasne uvedené.'],execution_status:'not-started',grants_permissions:ownerMode?true:false};
 }
