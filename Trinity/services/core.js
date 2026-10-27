@@ -10,9 +10,13 @@ function uuid(value,name='idempotency_key'){
   if(typeof value!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value))failure(`A UUID ${name} is required`);
   return value;
 }
-function modelText(result){
+export function modelText(result){
   if(typeof result?.response==='string')return result.response.trim();
+  // Workers AI returns an already-parsed object in `response` when the model emits pure JSON.
+  if(result?.response&&typeof result.response==='object')return JSON.stringify(result.response);
   if(typeof result?.output_text==='string')return result.output_text.trim();
+  const content=result?.choices?.[0]?.message?.content;
+  if(typeof content==='string')return content.trim();
   return '';
 }
 async function sha256(value){

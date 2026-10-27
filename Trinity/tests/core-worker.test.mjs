@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import core,{parseAgentDirective} from '../services/core.js';
+import core,{parseAgentDirective,modelText} from '../services/core.js';
 
 function request(body){return new Request('https://trinity.internal/',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});}
 
@@ -79,4 +79,11 @@ test('core state mutation requires verified approval and an idempotency UUID',as
   assert.equal(denied.status,403);
   const missingKey=await core.fetch(request({action:'core.state.set',data:{key:'mode',value:'live'},approval:{approved:true,role:'owner'}}),env);
   assert.equal(missingKey.status,400);
+});
+
+test('modelText accepts string, parsed-object, and choices shapes from Workers AI',()=>{
+  assert.equal(modelText({response:' {\"type\":\"final\"} '}),'{\"type\":\"final\"}');
+  assert.deepEqual(JSON.parse(modelText({response:{type:'tool',tool:'knowledge_search',arguments:{query:'x'}}})),{type:'tool',tool:'knowledge_search',arguments:{query:'x'}});
+  assert.equal(modelText({choices:[{message:{content:'ok'}}]}),'ok');
+  assert.equal(modelText({}),'');
 });
