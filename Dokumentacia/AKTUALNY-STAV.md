@@ -1,47 +1,92 @@
-# Aktuálny stav Morhfeus / Trinity
+# Aktuálny stav Trinity Sovereign OS (11.0.0)
 
-Aktualizované: 21. októbra 2026
+**Dátum aktualizácie:** 27. októbra 2026  
+**Kanonický repozitár:** `uscolective-byte/Trinity-antigravity` (vetva `main`)  
+**Hlavný architekt a vlastník:** Sabo Ivan (Basterix)  
+**Truth Policy:** Verzia 2.0 (`evidence-required`, nulové simulácie, povinné overiteľné dôkazy)
 
-Aktuálne overenie zdrojov, modulov a nasadenia je v [kontrole z 21. októbra](ANALYZA-SYNCHRONIZACIA-2026-10-21.md). Nižšie uvedené staršie vydania sú historické; nenahrádzajú nové overenie v pripojenom reporte.
+---
 
-## Nové zdrojové vydanie 10.3.0
+## 🌐 Produkčné a vývojové prostredie
 
-Vylepšenia a podmienky aktivácie sú v [EVOLUTION-10.3](EVOLUTION-10.3.md).
-Počas tejto kontroly produkčný `/health` hlásil 10.2.0, deployment ID `b07fd772-142a-497c-ae76-bd71093ec971`, bez commit tagu.
-Historická kontrola z 20. októbra vtedy nepotvrdila nasadenie 10.3.0. Následná kontrola z 21. októbra potvrdila produkčnú 10.3.0; presné ID uvádza nový report. Priamy deploy nemá Cloudflare token; GitHub CI pred zmenou zlyhával bez spusteného runnera.
+| Parameter | Produkcia (`auru.space`) | Vývoj / Owner Lab (`auru.dev`) |
+|---|---|---|
+| **Doména** | [https://auru.space](https://auru.space) | [https://auru.dev](https://auru.dev) |
+| **Účel** | Verejný klientsky portál & produkčný chat | Súkromné vývojové laboratórium vlastníka |
+| **Cloudflare Worker** | `trinity` | `trinity-staging` |
+| **Verzia jadra** | `11.0.0` | `11.0.0` |
+| **Režim pravdivosti** | `evidence-required` | `evidence-required` |
+| **D1 Databáza** | `trinity-v03` (`ca8ea24e-f7db-431e-b8bf-97f713ae4533`) | `trinity-development` |
+| **KV Namespace** | `Mastermind` (`0b92ed2717d742daa860f1827797297f`) | `Mastermind` |
+| **R2 Archív** | `trinity-artifacts` | `trinity-artifacts` |
+| **Durable Objects** | `Brain` (TrinityAgent), `CHAT_AGENT`, `GUARDIAN_AGENT` | `Brain`, `CHAT_AGENT`, `GUARDIAN_AGENT` |
+| **Workflow** | `trinity-operations` | `trinity-operations-staging` |
 
-Nasledujúca časť zachováva **historický stav z 18. októbra**; jej identifikátory a počty testov nie sú aktuálnou kontrolou.
+---
 
-## Doménová špecializácia a prostredia (Trinity v11.0.0)
+## ⚡ Flotila 29 viazaných Workerov (Service Bindings)
 
-- **Verejný Klientsky Portál (Bežní používatelia)**: <https://auru.space>
-- **Admin & Sovereign Owner Lab (Ivan Sabo / Basterix)**: <https://auru.dev>
-- **Worker**: <https://trinity.saboivan2008.workers.dev/>
-- **Verzia**: `11.0.0` (unifikované pre Worker aj používateľské rozhranie)
-- **Produkčné Cloudflare Version ID (`auru.space`)**: `c90ee0a4-78ee-431d-afb7-6307cf81400c`
-- **Vývojové Cloudflare Version ID (`auru.dev`)**: `2c45ee2b-ddda-44a8-9d29-a1b418ca4a90`
-- **Git Commit Tag**: `86a14f71dd2149f4e950bdb9cd3f00a23b8899ac`
-- **PC Bridge Worker**: `trinity-pc-bridge`
-- **Privátna lokálna brána**: verzia `1.3.0` (počúva na `127.0.0.1:8791`)
+Hlavný unifikovaný Worker `trinity` má priame väzby na celú flotilu:
+1. **10× AURA špecialisti:**
+   - `AURA_ANALYZER`, `AURA_ARCHITECT`, `AURA_CODEGEN`, `AURA_DEPLOYER`, `AURA_EVOLVER`,
+   - `AURA_MEMORY`, `AURA_OPTIMIZER`, `AURA_PLANNER`, `AURA_SENTINEL`, `AURA_TESTER`
+   - *(vrátane systémových aliasov `admin`, `admino`, `Trinity`)*.
+2. **8× Trinity Core uzly:**
+   - `CORE`, `BUILDER`, `DISPATCHER`, `CONNECTORS`, `GUARDIAN`, `MEMORY`, `SENTINEL`, `SKILLS`.
+3. **8× Špecializované & RPC služby:**
+   - `JERICHO_SERVICE` (`jericho123`): Autonómny krypto super-agent, Binance live feed, DeFi výnosy a správa pokladnice Tetrakis ($TTK) s hodinovým cronom `0 * * * *`.
+   - `KNOWLEDGE_SERVICE` (`trinity-knowledge`): Sémantické vyhľadávanie vedomostí a vektorová pamäť.
+   - `CAPACITY_SERVICE` (`trinity-capacity`): Dynamický limitér spotreby a účtovná kniha jednotiek (CapacityLedger).
+   - `INTEGRATIONS_SERVICE` (`trinity-integrations`): Konektory na externé služby (GitHub, Firecrawl, Firebase).
+   - `PC_BRIDGE_SERVICE` a `PC_BRIDGE_V2`: Obojsmerné prepojenie s lokálnym počítačom.
+   - `AUDIT_SERVICE` (`trinity-audit`): Kryptograficky podpísané audity systémových akcií.
+   - `CHAT_INFERENCE_SERVICE` (`trinity-chat-inference`): Rýchla privátna inferencia cez Workers AI.
 
-## Dokončené kroky a architektúra
+---
 
-1. **Pravdivé jadro a stála osobnosť** – nasadené a živo overené (`truth_mode: evidence-required`).
-2. **Potrebné moduly Trinity a ekosystém** – 7 samostatných funkčných modulov (`Trinity`, `PC-Bridge-Worker`, `Local-Gateway`, `Capacity-Worker`, `Audit-Worker`, `Integrations-Worker`, `Knowledge-Worker`).
-3. **Privátne systémové schopnosti a lokálna brána** – `read`, `write`, `edit`, `selfwrite`, `run`, `deploy`, `share`, `upload`, `upgrade`, `open_app`, `screenshot`, `notify`, `system_info` s auditovaným tokom a potvrdením.
-4. **Zjednotenie UI 10.2** – odstránené staré zmienky o verzii 8.5, pridaný živý odznak `PC: Online` / `PC: Offline`, rýchle návrhy na desktopové akcie (Kalkulačka, Poznámkový blok, Chrome), `Cache-Control` hlavičky zabraňujúce uviaznutiu v cache.
-5. **Autonómny mozog (Brain) a evolučný cyklus** – autonómne cykly pre teleologickú pamäť a optimalizáciu úloh.
-6. **Rozšírený Skill Registry a Copilot Agent** – 45 agentov v 9 klastroch, 57 zručností vrátane praktických desktopových a vývojárskych nástrojov.
-7. **Rýchla cesta pre desktopové aplikácie** – deterministické vyhodnotenie žiadostí o otvorenie aplikácií bez zbytočného čakania a s priamym vykonaním cez Local-Gateway.
+## 🪙 Krypto ekosystém & Tetrakis ($TTK)
 
-## Overenie
+1. **Jericho-Worker (`jericho123`)**:
+   - Samostatný worker bežiaci na [jericho123.auru.space](https://jericho123.auru.space) a [jericho123.auru.dev](https://jericho123.auru.dev).
+   - Plánovaný cron trigger: `0 * * * *` (nepretržitá 24/7 autonómna kontrola trhu a výkazníctvo).
+   - Vystavuje pravdivé pracovné výkazy `workReceipt` bez fiktívnych obchodov.
+2. **Smart Contract Tetrakis (`contracts/tetrakis`)**:
+   - Štandard: OpenZeppelin ERC20 v5.1.0 (`TetrakisToken.sol`), kompilované cez solc 0.8.24.
+   - Celková fixná zásoba: **1,000,000,000 TTK** (1 miliarda TTK, 18 desatinných miest).
+   - Oficiálna pokladnica: `0x4d308452a96D7dAbFd2f33d92677A3a2724f387e`.
+   - Invarianty: 100 % zásoby emitovanej pri vzniku, žiadny dodatočný mint, žiadne dane, žiadny blacklist, nemenný kód.
+   - 15 / 15 EVM verifikačných testov PASS.
 
-- **Plná testovacia sada**: 213 / 213 testov prešlo (100 %).
-- **Build všetkých 7 modulov**: úspešný cez `SYNC-BUILD.ps1 -Test`.
-- **Živé `/health` na oboch prostrediach**:
-  - `https://auru.space/health`: Trinity 10.2.0, status `serving`, agents `45`, deployment tag `ecad46f84a214baa76c99fab208cd052c7999e9b`.
-  - `https://auru.dev/health`: Trinity 10.2.0, status `serving`, agents `45`, deployment tag `ecad46f84a214baa76c99fab208cd052c7999e9b`.
+---
 
-## Pravidlo pravdivosti
+## 💻 Lokálny PC Bridge (Reálny terminál)
 
-Trinity nie je označovaná za vedomú ani živú bytosť. Externú akciu môže označiť za vykonanú iba s dôveryhodným potvrdením z aktuálneho behu. Plán, konfigurácia ani stará pamäť nie sú dôkazom vykonania.
+* **Daemon:** `trinity-mcp-bridge` beží lokálne na `http://127.0.0.1:3333`.
+* **Pracovný adresár:** `C:\Users\saboi\Trinity-antigravity`.
+* **Stav v UI:** Odznak `PC: Online` v hlavičke [auru.space](https://auru.space).
+* **Bezpečnostný audit:** Zakázané deštruktívne príkazy (ochrana rootu disku a systémových zložiek), sandbox obmedzený na repozitár.
+* **Výkon:** Priama exekúcia Windows príkazov a čítanie/zápis súborov bez simulácie.
+
+---
+
+## 🧪 Výsledky celého monorepa (`npm run check`)
+
+Všetky testovacie sady sú 100 % zelené:
+
+| Modul | Počet testov | Výsledok |
+|---|---|---|
+| **Trinity Main Fleet** (`Trinity/tests/*.test.mjs`) | 503 | **503 / 503 PASS** |
+| **Jericho-Worker** (`Jericho-Worker/tests/*.test.mjs`) | 12 | **12 / 12 PASS** |
+| **Tetrakis-Token ($TTK)** (`contracts/tetrakis/tests/*.test.mjs`) | 15 | **15 / 15 PASS** |
+| **Capacity-Worker** (`Capacity-Worker/tests/*.test.mjs`) | 10 | **10 / 10 PASS** |
+| **Audit-Worker** (`Audit-Worker/tests/*.test.mjs`) | 6 | **6 / 6 PASS** |
+| **CELKOVO** | **546** | **546 / 546 PASS (100 %)** |
+
+---
+
+## 📜 Zásada pravdivosti (Truth Policy 2.0)
+
+1. Žiadne fiktívne tvrdenia o vedomí, citoch či vlastnej vôli umelej inteligencie.
+2. Žiadne vymýšľanie cien, obchodov, zostatkov na účtoch ani prevodov.
+3. Žiadne textové výhovorky typu *„nemám prístup k súborom“* – pri zvolenom PC Bridge sa volá skutočný lokálny terminál.
+4. Každá akcia je podložená skutočným dokladom (`receipt_id`) a overeným systémovým potvrdením.

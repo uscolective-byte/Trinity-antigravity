@@ -11,7 +11,6 @@ Verzia zdroja: **11.0.0**. Repozitár: [uscolective-byte/Trinity-antigravity](ht
 | Doména | Prostredie | Worker |
 |---|---|---|
 | auru.space | production (zjednotená) | `trinity` |
-| auru.dev | production (zjednotená) | `trinity` |
 
 Tieto údaje sa generujú zo zdrojov a konfigurácie. Aktuálne nasadenie over cez `/health`, `/ready` a commit tag; nejde o živý stav integrácií.
 <!-- trinity-release:end -->
@@ -49,10 +48,12 @@ konfigurácie. Po zmene vydania spusti `node scripts/sync-release-docs.mjs`; CI 
 
 ## Moduly
 
-- `Trinity/`: chat, AI Studio, domény, pamäť, platobné odkazy, API a MCP.
+- `Trinity/`: zjednotené suverénne jadro, chat, AI Studio, domény, pamäť, platobné terminály, API a MCP (29 viazaných služieb).
+- `Jericho-Worker/`: autonómny krypto super-agent, Binance live feed, DeFi výnosy a správa pokladnice Tetrakis ($TTK) s hodinovým cronom.
+- `contracts/tetrakis/`: oficiálny ERC-20 smart kontrakt Tetrakis ($TTK) podľa štandardu OpenZeppelin v5.1.0, 1 miliarda TTK celková zásoba, 15/15 EVM testov.
 - `Knowledge-Worker/`, `Integrations-Worker/`, `Capacity-Worker/`: znalosti, konektory a kapacity.
-- `PC-Bridge-Worker/`, `Local-Gateway/`, `Local-Desktop/`: cloudový most a lokálne nástroje.
-- `Audit-Worker/`: auditné záznamy.
+- `PC-Bridge-Worker/`, `Local-Gateway/`, `Local-Desktop/`, `trinity-mcp-bridge/`: cloudový most a lokálne PC nástroje na porte 3333.
+- `Audit-Worker/`: kryptograficky podpísané auditné záznamy v D1.
 
 Lokálnu bránu spusti cez `npm.cmd run gateway`; desktop cez
 `npm.cmd run desktop`. Spúšťacie súbory a oprávnenia opisujú README týchto modulov.

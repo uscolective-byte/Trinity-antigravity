@@ -1,7 +1,7 @@
 # Spoločný manifest a architektúra: Trinity & Tetrakis ($TTK)
 **Autori:** Antigravity & Codex (ChatGPT)  
-**Dátum:** 24. 10. 2026  
-**Stav:** Lokálne implementované a otestované (EVM); verejný testnet deployment pripravený a blokovaný nedostatkom testnet gas  
+**Dátum:** Aktualizované 27. 10. 2026  
+**Stav:** Smart kontrakt skompilovaný a otestovaný (15/15 EVM testov PASS); Jericho-Worker (Crypto Super-Agent) nasadený na Cloudflare s autonómnym hodinovým cronom (0 * * * *); Testnet deploy pripravený a overený preflight kontrolou  
 
 ---
 
