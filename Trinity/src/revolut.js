@@ -135,7 +135,9 @@ function escapeHtml(s){
  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function renderCheckoutPageHtml(product,accounts){
+function renderCheckoutPageHtml(product,accounts,env){
+ const isPayPal=product?.provider==='paypal';
+ const clientId=env?.PAYPAL_CLIENT_ID||null;
  const eur=(Number(product.amount_cents||0)/100).toFixed(2);
  const seller=accounts?.business_name||'Trinity PayPal Checkout';
  const isPersonal=(accounts?.account_type||'personal')==='personal';
@@ -166,10 +168,38 @@ function renderCheckoutPageHtml(product,accounts){
   <h1>${escapeHtml(product.name)}</h1>
   ${product.description?`<p class="desc">${escapeHtml(product.description)}</p>`:''}
   <div class="price-box"><span>Suma na úhradu</span><strong>${eur} €</strong></div>
+  ${isPayPal && clientId ? `<div id="paypal-button-container" style="min-height:45px"></div>` : ''}
   <a class="pp-btn" href="${escapeHtml(product.payment_url)}" rel="noopener noreferrer">💙 Zaplatiť ${eur} € cez PayPal</a>
   <a class="pp-direct" href="${escapeHtml(product.payment_url)}" rel="noopener noreferrer">Otvoriť priamy platobný odkaz ↗</a>
   <div class="meta">${escapeHtml(note)}<br>ID ponuky: <code>${escapeHtml(product.id)}</code></div>
-</main></body></html>`;
+</main>
+${isPayPal && clientId ? `<script src="https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=EUR"></script>
+<script>
+  if (window.paypal) {
+    paypal.Buttons({
+      style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal' },
+      createOrder: async function() {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amountEur: '${eur}', description: '${escapeHtml(product.name)}', sku: '${escapeHtml(product.id)}' })
+        });
+        const data = await res.json();
+        return data.id || data.order_id;
+      },
+      onApprove: async function(data) {
+        const res = await fetch('/api/orders/' + encodeURIComponent(data.orderID) + '/capture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const details = await res.json();
+        alert('Platba bola úspešne dokončená! ID: ' + (details.id || details.order_id || 'OK'));
+        window.location.reload();
+      }
+    }).render('#paypal-button-container');
+  }
+</script>` : ''}
+</body></html>`;
 }
 
 async function catalog(env){
@@ -392,7 +422,7 @@ export async function handlePaypalPublic(request,env){
  if(!product)throw new HttpError(404,'Platobný odkaz PayPal nie je dostupný.');
  if(hostedCheckout||url.searchParams.get('page')==='1'){
   const accounts=await commerceAccounts(env);
-  return new Response(renderCheckoutPageHtml(product,accounts),{
+  return new Response(renderCheckoutPageHtml(product,accounts,env),{
    status:200,
    headers:{...headers,'Content-Type':'text/html; charset=utf-8'}
   });

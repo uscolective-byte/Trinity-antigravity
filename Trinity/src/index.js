@@ -1,5 +1,5 @@
 import {revolutProStatus,configureRevolutPro,handleRevolutProPublic,paypalStatus,configurePaypal,commerceStatus,configureCommerceAccounts,upsertCommerceProduct,deleteCommerceProduct,handleCommercePublic} from './revolut.js';
-import {paypalDiagnostics,createPayPalOrder,capturePayPalOrder,getPayPalOrderStatus} from './paypal-rest.js';
+import {paypalDiagnostics,createPayPalOrder,capturePayPalOrder,getPayPalOrderStatus,handlePayPalCheckoutApi} from './paypal-rest.js';
 import {getUiEvolutionState,applyUiEvolution,handleUiChangeAction,renderDynamicThemeCss} from './ui-evolution.js';
 import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnvironments,handlePublicSiteRoute,seedTwentyCloudflareDomains} from './domain-environments.js';
 import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,generatePhotoCreation,generateCreativePack,listMultimediaCreations} from './multimedia-studio.js';
@@ -128,6 +128,7 @@ async function route(request,env,ctx){
   if(path==='/api/telegram/webhook')return handleTelegramWebhook(request,env,ctx);
   if(path==='/api/telegram/setup')return activateTelegramWebhook(request,env);
   const proPayment=await handleCommercePublic(request,env);if(proPayment)return proPayment;
+  const ppCheckout=await handlePayPalCheckoutApi(request,env);if(ppCheckout)return ppCheckout;
   const publicSite=await handlePublicSiteRoute(request,env);if(publicSite)return publicSite;
   const brokerMatch=path.match(/^\/broker\/([a-z0-9.-]+\.[a-z]{2,})$/i);
   if(brokerMatch&&request.method==='GET'){
