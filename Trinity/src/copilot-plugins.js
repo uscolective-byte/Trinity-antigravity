@@ -162,6 +162,67 @@ export const BUILTIN_COPILOT_PLUGINS = [
     enabled: true,
     required: false
   }
+,
+  {
+    id: 'developer-toolbox',
+    name: 'Developer Engineering & Syntax Toolbox',
+    version: '1.0.0',
+    description: 'Nástroje pre vývojárov: testovanie a ladenie regulárnych výrazov, validácia JSON schém a metrická analýza kódu.',
+    skills: ['regexTester', 'jsonSchemaValidate', 'codeSnippetAnalyze'],
+    category: 'engineering',
+    enabled: true,
+    required: false
+  },
+  {
+    id: 'entertainment-arcade',
+    name: 'Interactive Entertainment & Gaming Arcade',
+    version: '1.0.0',
+    description: 'Zábavný herný balík: textový RPG quest a dungeon master, vedomostný kvíz a generátor logických hádaniek.',
+    skills: ['rpgQuestMaster', 'triviaQuizEngine', 'riddleGenerator'],
+    category: 'entertainment',
+    enabled: true,
+    required: false
+  },
+  {
+    id: 'education-academy',
+    name: 'Education, Language & Science Academy',
+    version: '1.0.0',
+    description: 'Vzdelávací modul: interaktívny jazykový lektor, krokové matematické rozbory a Leitner kartičkový systém.',
+    skills: ['languageTutor', 'mathConceptExplainer', 'flashcardStudyDeck'],
+    category: 'education',
+    enabled: true,
+    required: false
+  },
+  {
+    id: 'lifestyle-wellness',
+    name: 'Lifestyle, Habits & Wellness Coach',
+    version: '1.0.0',
+    description: 'Osobný rozvoj a zdravie: sledovanie návykov a streakov, výpočet makroživín (BMR/TDEE) a riadené dychové cvičenia.',
+    skills: ['habitForge', 'nutritionMacroCalc', 'breathFocusCoach'],
+    category: 'lifestyle',
+    enabled: true,
+    required: false
+  },
+  {
+    id: 'creative-studio-plus',
+    name: 'Creative Studio & Screenplay Workshop',
+    version: '1.0.0',
+    description: 'Kreatívna tvorba: generátor rýmov a poetických štruktúr a formátovač scenárov podľa štandardov.',
+    skills: ['rhymePoemCraft', 'screenplayFormatter'],
+    category: 'creative',
+    enabled: true,
+    required: false
+  },
+  {
+    id: 'science-explorer',
+    name: 'Science & Fundamental Physics Explorer',
+    version: '1.0.0',
+    description: 'Vedecký modul: periodická tabuľka chemických prvkov a presné univerzálne fyzikálne konštanty.',
+    skills: ['periodicTableLookup', 'physicsConstants'],
+    category: 'science',
+    enabled: true,
+    required: false
+  }
 ];
 
 class CopilotPluginRegistry {

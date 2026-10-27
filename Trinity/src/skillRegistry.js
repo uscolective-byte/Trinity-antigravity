@@ -1,3 +1,4 @@
+import { developerSkills, entertainmentSkills, educationSkills, lifestyleSkills, creativeSkills, scienceSkills } from './multi-category-skills.js';
 /**
  * Trinity Copilot Skill Registry
  * Komplexný zoznam skillov a pluginov pre agenta TrinityCopilotAgent:
@@ -2070,7 +2071,13 @@ export const skills = {
   ...geminiDeveloperSkills,
   ...studioSkills,
   ...copilotStudioSkills,
-  ...productivityPlusSkills,
+    ...productivityPlusSkills,
+  ...developerSkills,
+  ...entertainmentSkills,
+  ...educationSkills,
+  ...lifestyleSkills,
+  ...creativeSkills,
+  ...scienceSkills,
   ...extendedEngineeringSkills,
   ...quantumSkills,
   ...neuralBrainSkills,
@@ -2111,7 +2118,7 @@ class SkillRegistry {
     const builtinList = Object.keys(skills).map(name => ({
       name,
       type: 'builtin',
-      category: Object.keys(coreSkills).includes(name) || Object.keys(coreCatalogSkills).includes(name) ? 'core' : Object.keys(integrationSkills).includes(name) ? 'integration' : Object.keys(extendedEngineeringSkills).includes(name) ? 'engineering' : Object.keys(domainSkills).includes(name) ? 'domains' : Object.keys(quantumSkills).includes(name) ? 'quantum' : Object.keys(memorySkills).includes(name) ? 'memory' : Object.keys(catalogSkills).includes(name) ? 'catalog' : 'user'
+      category: Object.keys(coreSkills).includes(name) || Object.keys(coreCatalogSkills).includes(name) ? 'core' : Object.keys(integrationSkills).includes(name) ? 'integration' : Object.keys(developerSkills).includes(name) ? 'engineering' : Object.keys(entertainmentSkills).includes(name) ? 'entertainment' : Object.keys(educationSkills).includes(name) ? 'education' : Object.keys(lifestyleSkills).includes(name) ? 'lifestyle' : Object.keys(creativeSkills).includes(name) ? 'creative' : Object.keys(scienceSkills).includes(name) ? 'science' : Object.keys(extendedEngineeringSkills).includes(name) ? 'engineering' : Object.keys(domainSkills).includes(name) ? 'domains' : Object.keys(quantumSkills).includes(name) ? 'quantum' : Object.keys(memorySkills).includes(name) ? 'memory' : Object.keys(catalogSkills).includes(name) ? 'catalog' : 'user'
     }));
     const customList = [...this._customSkills.entries()].map(([name, item]) => ({
       name,
@@ -2141,3 +2148,5 @@ import { delegateWorker, orchestratePipeline, inspectFleet } from './orchestrato
 skillRegistry.register('callWorkerAction', (params = {}, env) => delegateWorker(env, params.worker, params.action, params.data), { category: 'orchestration' });
 skillRegistry.register('orchestrateTeamTask', (params = {}, env) => orchestratePipeline(env, params.task || params.prompt || ''), { category: 'orchestration' });
 skillRegistry.register('fleetHealthCheck', (_params, env) => inspectFleet(env), { category: 'orchestration' });
+
+export { developerSkills, entertainmentSkills, educationSkills, lifestyleSkills, creativeSkills, scienceSkills };

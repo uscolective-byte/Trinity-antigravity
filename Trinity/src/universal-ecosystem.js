@@ -26,7 +26,11 @@ export const UNIVERSAL_DOMAINS = [
   {id: 'education-edtech', name: 'Vzdelávanie & EdTech', icon: '🎓', description: 'Interaktívne kurzy, tvorba testov, sumarizácia učiva a doučovanie.'},
   {id: 'marketing-seo', name: 'Marketing & SEO', icon: '📈', description: 'SEO audit, copywrite, analýza kľúčových slov a obsahové stratégie.'},
   {id: 'nlp-translation', name: 'Spracovanie jazyka & Preklad', icon: '🌐', description: 'Viacjazyčná lokalizácia, sumarizácia a extrakcia kľúčových entít.'},
-  {id: 'system-architecture', name: 'Systémová architektúra', icon: '🏛', description: 'Distribuované systémy, mikroslužby, event-driven toky a odolnosť.'}
+  {id: 'system-architecture', name: 'Systémová architektúra', icon: '🏛', description: 'Distribuované systémy, mikroslužby, event-driven toky a odolnosť.'},
+  {id: 'entertainment-gaming', name: 'Hry & Interaktívna zábava', icon: '🎮', description: 'Textové RPG adventúry, kvízy, herná mechanika, interaktívne príbehy a hádanky.'},
+  {id: 'lifestyle-wellness', name: 'Životný štýl & Osobný rozvoj', icon: '🌱', description: 'Sledovanie návykov, time management, nutričné plánovanie a denné rituály.'},
+  {id: 'creative-arts', name: 'Umenie, Hudba & Kreativita', icon: '🎭', description: 'Kreatívne písanie, texty piesní, scenáristika, hudobná teória a audio koncepty.'},
+  {id: 'science-discovery', name: 'Prírodné vedy & Výskum', icon: '🔬', description: 'Periodická tabuľka, fyzikálne konštanty, biochemické modely a vedecké výpočty.'}
 ];
 
 export const APPLICATION_TEMPLATES = [
@@ -40,7 +44,15 @@ export const APPLICATION_TEMPLATES = [
   {templateId: 'finance-tracker', name: 'Real Portfolio & Cashflow Tracker', type: 'web-app', domain: 'fintech'},
   {templateId: 'knowledge-base', name: 'Self-hosted Verified Knowledge Base', type: 'web-app', domain: 'education-edtech'},
   {templateId: 'pc-operator-ui', name: 'Remote PC Control & Automation Panel', type: 'tool', domain: 'iot-automation'},
-  {templateId: 'morpheus-social', name: 'Morpheus Autonomous Social Media Commander', type: 'web-app', domain: 'marketing-seo'}
+  {templateId: 'morpheus-social', name: 'Morpheus Autonomous Social Media Commander', type: 'web-app', domain: 'marketing-seo'},
+  {templateId: 'rpg-quest', name: 'Sovereign RPG Quest & Story Engine', type: 'web-app', domain: 'entertainment-gaming'},
+  {templateId: 'trivia-battle', name: 'Multiplayer Trivia & Quiz Arena', type: 'web-app', domain: 'entertainment-gaming'},
+  {templateId: 'language-lab', name: 'Interactive Language & Vocabulary Lab', type: 'web-app', domain: 'education-edtech'},
+  {templateId: 'math-olympiad', name: 'Math & Science Concept Solver', type: 'web-app', domain: 'education-edtech'},
+  {templateId: 'habit-forge', name: 'Daily Habit & Wellness Forge', type: 'web-app', domain: 'lifestyle-wellness'},
+  {templateId: 'code-craft', name: 'Full-Stack Developer Sandbox & Snippet Studio', type: 'web-app', domain: 'software-dev'},
+  {templateId: 'creative-studio', name: 'Interactive Script, Song & Storyboard Studio', type: 'web-app', domain: 'creative-arts'},
+  {templateId: 'science-lab', name: 'Biomolecular & Chemistry Research Workbench', type: 'web-app', domain: 'science-discovery'}
 ];
 
 class UniversalEcosystem {
