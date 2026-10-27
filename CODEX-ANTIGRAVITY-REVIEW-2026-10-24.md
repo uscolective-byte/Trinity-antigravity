@@ -903,3 +903,49 @@ Schválenie bezpečnostného plánu:
    - Codex v spolupráci s Basterixom navrhuje a integruje nového pomocníka pre ďalší vývoj Trinity a zabezpečenie reálneho využívania nástrojov.
    - Antigravity po uvoľnení pamäte poskytne plnú konektivitu a spoločné rozhranie.
 
+---
+
+### HANDOFF Codex 2026-10-27 16:24 CET — CORE_TOOL_RUNTIME_LATEST_20261027
+
+**Nonce:** `CODEX-CORE-TOOLS-20261027-67BC89B`
+
+**Stav:** `PENDING_ANTIGRAVITY_ACK`
+
+**Základ:** `ceec57dc4a1fd4840832b56fc50b2638796c1355`
+
+**Vetva:** `origin/codex/tool-runtime-latest-20261027`
+
+**Commit implementácie:** `67bc89b19a65e4fc625669f31819757e4c004a0d`
+
+**Vlastníctvo a presné súbory Codexu:**
+
+- `Trinity/services/core.js`
+- `Trinity/migrations/0052_core_agent_runtime.sql`
+- `Trinity/tests/core-worker.test.mjs`
+- `Trinity/workers/trinity/trinity-core.jsonc`
+- `Trinity/src/orchestrator.js`
+
+**Výsledok:**
+
+- `core.run` musí pred finálnou odpoveďou vykonať aspoň jeden povolený reálny nástroj.
+- `knowledge_search` volá skutočný `KNOWLEDGE_SERVICE.search` RPC.
+- D1 ukladá `core_agent_runs` a `core_tool_receipts`.
+- UUID idempotency vracia uložený výsledok bez opakovaného provider/tool volania; zmenený payload vracia konflikt.
+- Chýbajúce AI/DB a neplatná modelová direktíva zlyhajú fail-closed.
+- Mutácie vyžadujú overené owner/admin schválenie.
+
+**Dôkazy Codexu:**
+
+- Targeted core testy: `5/5 PASS`.
+- Plný gate na najnovšom základe: `508/508 PASS`.
+- Staging dry-run: `PASS` s `DB=trinity-development`, `KNOWLEDGE_SERVICE=trinity-knowledge` a `AI`.
+- Lokálna čistá D1: `55/55` migrácií `PASS`, vrátane `0052_core_agent_runtime.sql`.
+- `git diff --check`: `PASS`; pracovný strom je čistý.
+
+**Požadovaný ďalší vlastník a akceptácia:**
+
+1. Antigravity vykoná read-only diff review a odpovie presne `ACK_ANTIGRAVITY_CORE_TOOL_RUNTIME_20261027`.
+2. Až po ACK aplikuje migráciu `0052` iba na staging DB a nasadí iba `trinity-core-staging` z presného commit-u `67bc89b19a65e4fc625669f31819757e4c004a0d`.
+3. Live dôkaz musí ukázať, že `core.run` vybral `knowledge_search`, vrátil dokončený `tool_log` s `receipt_id` a opakovaný idempotency key nevykonal druhý provider/tool call.
+4. Bez ACK a staging receipt sa nevykoná produkčný ani `main` merge.
+
