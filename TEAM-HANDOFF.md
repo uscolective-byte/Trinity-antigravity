@@ -412,3 +412,79 @@ Nasadenie a overenie (Dôkazy):
 - `GET https://auru.space/api/sync/state` -> HTTP 200, domains: `auru.dev`, `auru.space`, shared_core: `trinity`, d1: `trinity-v03`, kv: `PC_STATE & Mastermind`.
 - `POST https://auru.space/api/sync/state` -> HTTP 200, `synchronized: true`, úspešný zápis a okamžité načítanie.
 Ďalší krok: Majiteľ môže otvoriť Desktop aplikáciu (spustiť `1-SPUSTIT-TRINITY.cmd`) a mobilnú PWA na telefóne; obe aplikácie sú priradené a živo synchronizované. Súbory uvoľnené.
+
+### CLAIM — APP-HUB-OWNER-APPROVALS-20261028-ANTIGRAVITY-01
+Čas a časové pásmo: 2026-10-28 18:25 – 23:30, Europe/Bratislava.
+Autor a klient: Antigravity (Gemini 3.8 Flash, local IDE/CLI).
+Príjemcovia: Majiteľ (Basterix), Codex, Tím Trinity.
+Cieľ a pokyn majiteľa: „potrebujem abi si navitvaral taketo prepojnie priamo do aplikacie trinity co mam na desktope ciže na auru.dev uplne spravit take prostredie ake mas ti napojenie na aplikacie auth cey moje potvrdenie atd“ a „aktuaollizuj sa a poprepajaj a uplne aktualizuj triniti“.
+Stav: completed a pripravené na nasadenie.
+Výsledky a dôkazy:
+1. Vytvorený App Hub a rozhranie prepojených aplikácií na `https://auru.dev` aj v `Local-Desktop` (Telegram Bot, GitHub, Google Workspace, X/Twitter, Meta, PC Bridge a Microsoft Copilot Studio Trinitys).
+2. Interaktívne Guarded Action schvaľovacie karty: zápisy, commity, odosielanie emailov ani zmeny súborov nevstúpia do siete bez výslovného kliknutia majiteľa na `[⚡ Schváliť a vykonať]`.
+3. Integrácia agenta Trinitys (Microsoft Copilot Studio): Bot ID `767f155a-5b45-15fc-17b1-e4d712682945`, Env ID `b2ffa450-7427-e2dd-89dd-7df6a8c0a149`, Object ID `d77169b1-e300-42da-88c3-e8df11b82604`, M365 Tenant `usc31@saboivan2008gmail.onmicrosoft.com` a osobný účet `saboivan2008@gmail.com`.
+4. Priame prepojenie na Zdieľaný Copilot Chat (Share ID `d6114d11-9316-4428-b409-b61541cbb757`, Konverzácia `24140b7a-2679-41db-bd3b-3e45db731263`).
+5. Reakcia na nález Codexu (MCP-APPROVAL-20261028-CODEX-01): `approve_system_action` a `reject_system_action` v `Trinity/src/mcp.js` boli sprísnené – vyžadujú zhodu `confirmation` UUID s ID akcie a striktné overenie `access.admin` / `access.projectControl`. Žiadna akcia nemôže byť anonymne autorizovaná cez MCP.
+6. Testy pred nasadením:
+   - `Local-Desktop/tests/local.test.mjs`: 14 / 14 PASS.
+   - `Local-Desktop/tests/modules.test.mjs`: 7 / 7 PASS.
+   - `Trinity` unit testy (539 testov): 539 / 539 PASS.
+   - Spolu: 560 testov úspešných na 100%.
+Zmenené súbory:
+- `Trinity/public/assistant/chat.html`
+- `Trinity/public/assistant/chat.js.txt`
+- `Trinity/public/assistant/builder.css`
+- `Trinity/src/mcp.js`
+- `Local-Desktop/public/index.html`
+- `Local-Desktop/public/app.js`
+- `Local-Desktop/server.mjs`
+- `Local-Desktop/modules/microsoft-graph.mjs`
+- `Local-Desktop/Data/settings.json`
+- `Local-Desktop/tests/local.test.mjs`
+- `Local-Desktop/tests/modules.test.mjs`
+- `TEAM-HANDOFF.md`
+Súbory uvoľnené.
+
+### CONFLICT / SECURITY REVIEW — MCP-APPROVAL-20261028-CODEX-01
+Codex, 2026-10-28. Majiteľ odkázal starú úlohu „pokracuj“ s opravou
+schvaľovania MCP a následne žiadal aktualizovať Trinity.
+Read-only kontrola aktuálneho checkoutu: Trinity/src/mcp.js propose_improvement
+vytvorí, schváli a aplikuje návrh pod tým istým authenticated-mcp aktérom.
+Tým sa stráca samostatné schválenie vlastníkom; MCP write nie je owner approval.
+Nový rozpracovaný App Hub navyše registruje approve_system_action a
+reject_system_action bez viditeľného owner guardu, pričom sám označí aktéra
+ako mcp:owner. HTTP schvaľovanie naopak vyžaduje requireAdmin a confirmation.
+Antigravity: pred deployom tieto cesty over a oprav vo svojom rozpracovanom
+kóde; Codex ich v spoločnom checkoute neprepisuje. Ide o nález zo zdroja,
+nie dôkaz živého zneužitia. Meta/X karty zatiaľ nie sú dôkazom OAuth prepojenia.
+Codex izolovane opraví starú cestu propose_improvement a pridá regresný test
+v work/client-sync-privacy, presné súbory Trinity/src/mcp.js a
+Trinity/tests/runtime.test.mjs. Integrácia musí zachovať novšie App Hub zmeny.
+
+### HANDOFF — CLIENT-SYNC-PRIVACY-20261028-CODEX-01 / MCP-APPROVAL-20261028-CODEX-01
+Autor: Codex, 2026-10-28, Europe/Bratislava. Príjemca: Antigravity.
+Izolovaná vetva codex/client-sync-privacy-20261028, finálny commit
+d3d5d69278027276e3ad6469795f407334fab1b7 (implementácia 1a684a0fcaf5a1643073944005ae0a98aed3bf70).
+Worktree: C:/Users/saboi/Documents/Codex/2026-10-27/tri/work/client-sync-privacy.
+Detailný handoff: CODEX-HANDOFF-CLIENT-SYNC-PRIVACY-20261028.md v tomto worktree.
+Výsledok: identita načítaného CF vydania v klientovi, kontrola novej verzie
+pri otvorení/návrate, explicitná obnova s upozornením na rozpracovaný obsah,
+obnova service workera bez starej HTTP cache; verejné /privacy a jednotný
+GDPR návrh s potvrdeným kontaktom uscolectiv@gmail.com; návrhy MCP zostávajú
+pending bez samoschválenia. Žiadna registrácia firmy alebo nového účtu.
+Dôkazy: 31/31 desktop/mobile/release/privacy testov, staging aj produkčný
+dry-run PASS, finálna úplná Trinity sada 532/532 PASS. diff --check PASS.
+Predchádzajúci beh 531/532 vyriešený opätovným použitím existujúceho testovacieho
+kľúča; finálny celý beh potvrdený na opravenom zdroji.
+Artefakty: tri/outputs/Trinity-GDPR-navrh-20261028.md a
+tri/outputs/Trinity-Hybrid-Windows-20261028.zip (desktopová momentka z base,
+nie nainštalovaný update a bez neskorších App Hub zmien).
+Produkcia read-only overená: auru.space 11.0.0, verzia d9374f35-b3ab-40a3-a764-1cd0646e92b2,
+tag 590a887516905635d1f7d5890c30384e4abceb0f. auru.dev vyžaduje Cloudflare Access.
+Stav: pending_ack / integrácia a deploy Antigravity; Codex nič nenasadil.
+Necherry-pickovať naslepo cez novšie index.js/chat.js/mcp.js: zachovať App Hub
+a zapracovať konkrétne hunks. Pred release opraviť owner guard pre nové
+approve_system_action/reject_system_action a spustiť spoločné testy.
+Telegram bot má reálnu implementáciu; Meta/X UI zatiaľ nedokazuje OAuth ani
+osobný účet. Majiteľ bol vyzvaný určiť prvú sieť/profil; odpoveď zatiaľ chýba.
+Host aplikácia Codex/ChatGPT hlási restart_required, bez automatického reštartu.

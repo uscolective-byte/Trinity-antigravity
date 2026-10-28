@@ -8,6 +8,7 @@ import {WindowsVault} from './modules/vault.mjs';
 import {TrinityCloud} from './modules/cloud.mjs';
 import {geminiModels,geminiChat,copilotStudioChat} from './modules/providers.mjs';
 import {syncNotes} from './modules/notes-sync.mjs';
+import {executeGraphOperation,checkMicrosoftHealth} from './modules/microsoft-graph.mjs';
 import {ProposalStore} from '../Local-Gateway/src/store.mjs';
 import {startCloudLink} from '../Local-Gateway/src/cloud-link.mjs';
 import {startBridgeHeartbeat} from '../Local-Gateway/src/bridge-heartbeat.mjs';
@@ -60,7 +61,7 @@ export async function createLocalApp({dataDir=path.join(root,'Data'),workspace=p
     return syncState;
   });}
   async function connectionStatus(){
-    const configured={};for(const name of ['gemini','copilot-studio','cloud-'+settings.environment,'gateway-'+settings.environment])configured[name]=!!await vault.get(name);
+    const configured={};for(const name of ['gemini','copilot-studio','microsoft-tenant','microsoft-personal','cloud-'+settings.environment,'gateway-'+settings.environment])configured[name]=!!await vault.get(name);
     return {provider:settings.provider,environment:settings.environment,gemini_model:settings.gemini_model||'',configured,sync:syncState,gateway:gatewayState,cloud_sync:settings.cloud_sync===true,mcp_writes:settings.mcp_writes===true};
   }
   async function queueCloudTask(input){return mutate(async()=>{
@@ -211,6 +212,21 @@ export async function createLocalApp({dataDir=path.join(root,'Data'),workspace=p
       if(request.method==='GET'&&url.pathname==='/api/file')return send(response,200,await readWorkspace(url.searchParams.get('path')));
       if(request.method==='GET'&&url.pathname==='/api/notes')return send(response,200,{notes:notes.filter(n=>!n.deleted)});
       if(request.method==='GET'&&url.pathname==='/api/history'){const id=url.searchParams.get('session');if(!/^[0-9a-f-]{36}$/i.test(id||''))throw fail(400,'Neplatná relácia.');return send(response,200,{messages:await jsonFile(path.join(dataDir,'chats',id+'.json'),[])});}
+      if(request.method==='GET'&&url.pathname==='/api/connectors/microsoft/health')return send(response,200,await checkMicrosoftHealth({vault}));
+      if(request.method==='GET'&&url.pathname==='/api/system/actions'){
+        try{
+          const res=await cloud().call('list_system_actions',{});
+          const items=Array.isArray(res)?res:(Array.isArray(res?.items)?res.items:[]);
+          return send(response,200,{items});
+        }catch(e){
+          return send(response,200,{items:[],error:e.message});
+        }
+      }
+      if(request.method==='GET'&&url.pathname==='/api/graph'){
+        const profile=url.searchParams.get('profile');const service=url.searchParams.get('service');const operation=url.searchParams.get('operation')||'list';
+        if(!profile||!service)throw fail(400,'Chýba profile alebo service.');
+        return send(response,200,await executeGraphOperation({profile,service,operation,parameters:Object.fromEntries(url.searchParams.entries()),vault,env:settings.environment,fetcher:externalFetch,cloud:cloud()}));
+      }
       if(request.method==='POST'){
         const input=await requestBody(request);
         if(url.pathname==='/mcp'){
@@ -228,7 +244,21 @@ export async function createLocalApp({dataDir=path.join(root,'Data'),workspace=p
         if(url.pathname==='/api/connections'){
           if(busy)throw fail(409,'Počkaj na dokončenie chatu.');
           const env=input.environment||settings.environment;if(!['production','development'].includes(env))throw fail(400,'Neplatné prostredie.');
-          if(input.credential){const names={gemini:'gemini',copilot:'copilot-studio',cloud:'cloud-'+env,gateway:'gateway-'+env};if(!names[input.credential]||typeof input.value!=='string')throw fail(400,'Neplatné poverenie.');await vault.set(names[input.credential],input.value);}
+          if(input.credential){
+            const names={
+              gemini:'gemini',
+              copilot:'copilot-studio',
+              'copilot-studio':'copilot-studio',
+              tenant:'microsoft-tenant',
+              'microsoft-tenant':'microsoft-tenant',
+              personal:'microsoft-personal',
+              'microsoft-personal':'microsoft-personal',
+              cloud:'cloud-'+env,
+              gateway:'gateway-'+env
+            };
+            if(!names[input.credential]||typeof input.value!=='string')throw fail(400,'Neplatné poverenie.');
+            await vault.set(names[input.credential],input.value);
+          }
           if(input.provider!==undefined){if(!['ollama','gemini','copilot-studio','cloud'].includes(input.provider))throw fail(400,'Neplatný provider.');settings.provider=input.provider;}
           if(input.gemini_model!==undefined){if(!/^[a-zA-Z0-9._-]{1,100}$/.test(input.gemini_model))throw fail(400,'Neplatný model.');settings.gemini_model=input.gemini_model;}
           if(input.cloud_sync!==undefined){if(typeof input.cloud_sync!=='boolean')throw fail(400,'Neplatná synchronizácia.');settings.cloud_sync=input.cloud_sync;}
@@ -246,7 +276,22 @@ export async function createLocalApp({dataDir=path.join(root,'Data'),workspace=p
         }));
         if(url.pathname==='/api/gateway/start')return send(response,200,await startGateway());
         if(url.pathname==='/api/cloud/task')return send(response,201,await queueCloudTask(input));
-        if(url.pathname==='/api/tasks/refresh')return send(response,200,await mutate(async()=>{for(const item of tasks.filter(t=>t.environment===settings.environment&&!['completed','failed'].includes(t.status)).slice(-20)){
+        if(url.pathname==='/api/graph'){
+          const {profile,service,operation,parameters}=input;
+          if(!profile||!service||!operation)throw fail(400,'Chýba profile, service alebo operation.');
+          return send(response,200,await executeGraphOperation({profile,service,operation,parameters:parameters||{},vault,env:settings.environment,fetcher:externalFetch,cloud:cloud()}));
+        }
+        const approveMatch=url.pathname.match(/^\/api\/system\/actions\/([^/]+)\/approve$/);
+        if(url.pathname==='/api/system/actions/approve'||approveMatch){
+          const actionId=approveMatch?decodeURIComponent(approveMatch[1]):(input.id||input.confirmation);
+          try{const res=await cloud().call('approve_system_action',{id:actionId});return send(response,200,res);}catch(e){return send(response,400,{error:e.message});}
+        }
+        const rejectMatch=url.pathname.match(/^\/api\/system\/actions\/([^/]+)\/reject$/);
+        if(url.pathname==='/api/system/actions/reject'||rejectMatch){
+          const actionId=rejectMatch?decodeURIComponent(rejectMatch[1]):(input.id||input.confirmation);
+          try{const res=await cloud().call('reject_system_action',{id:actionId});return send(response,200,res);}catch(e){return send(response,400,{error:e.message});}
+        }
+  if(url.pathname==='/api/tasks/refresh')return send(response,200,await mutate(async()=>{for(const item of tasks.filter(t=>t.environment===settings.environment&&!['completed','failed'].includes(t.status)).slice(-20)){
           try{if(!item.cloud_id){const result=await cloud().call('dispatch_task',{task:item.task,idempotency_key:item.idempotency_key,language:'sk'});item.cloud_id=result.id;}
             const remote=await cloud().call('get_task',{id:item.cloud_id});item.status=remote.status;item.result=remote.result;item.error=remote.error||null;}catch(error){item.error=error.message;}
         }await atomic(tasksFile,JSON.stringify(tasks,null,2));return {tasks};}));

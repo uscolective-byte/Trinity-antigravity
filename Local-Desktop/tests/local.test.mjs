@@ -139,3 +139,107 @@ test('MCP clients share local files but cannot write until configured',async t=>
  assert.equal((await call()).status,200);
  assert.equal(await readFile(path.join(f.dir,'Workspace/copilot.md'),'utf8'),'MCP write');
 });
+
+test('GET /api/system/actions returns 200 with proposed actions (verifying unnesting fix)', async t => {
+  const mockActions = [
+    {
+      id: crypto.randomUUID(),
+      action: 'share',
+      status: 'proposed',
+      payload: { to: ['partner@example.com'], subject: 'Official Quote' },
+      rationale: 'Odoslanie ponuky na schválenie'
+    },
+    {
+      id: crypto.randomUUID(),
+      action: 'write',
+      status: 'proposed',
+      payload: { subject: 'Board Meeting', start: '2026-11-01T09:00:00Z' },
+      rationale: 'Rezervácia kalendára'
+    }
+  ];
+
+  const externalFetch = async (url, init) => {
+    const input = JSON.parse(init.body);
+    if (input.params?.name === 'list_system_actions') {
+      return Response.json({
+        result: {
+          content: [
+            { type: 'text', text: JSON.stringify(mockActions) }
+          ]
+        }
+      });
+    }
+    return Response.json({ result: { content: [{ type: 'text', text: '{}' }] } });
+  };
+
+  const credentials = new Map([
+    ['cloud-development', 'test-cloud-key'],
+    ['cloud-production', 'test-cloud-key']
+  ]);
+  const vault = {
+    get: async n => credentials.get(n) || '',
+    set: async (n, v) => credentials.set(n, v)
+  };
+
+  const f = await fixture(t, () => ({ done: true, message: { content: 'OK' } }), { vault, externalFetch });
+
+  // Execute GET /api/system/actions
+  const response = await f.request('/api/system/actions');
+  assert.equal(response.status, 200, 'GET /api/system/actions must return 200 (unnesting fix)');
+
+  const data = await response.json();
+  const items = Array.isArray(data) ? data : (data.items || []);
+  assert.equal(items.length, 2);
+  assert.equal(items[0].status, 'proposed');
+  assert.equal(items[0].action, 'share');
+  assert.equal(items[1].status, 'proposed');
+  assert.equal(items[1].action, 'write');
+});
+
+test('GET /api/connectors/microsoft/health returns valid status JSON without throwing runtime exceptions', async t => {
+  const credentials = new Map();
+  const vault = {
+    get: async n => credentials.get(n) || '',
+    set: async (n, v) => credentials.set(n, v)
+  };
+
+  const f = await fixture(t, () => ({ done: true, message: { content: 'OK' } }), { vault });
+
+  // 1. Unconfigured State Check
+  const res1 = await f.request('/api/connectors/microsoft/health');
+  assert.equal(res1.status, 200);
+
+  const health1 = await res1.json();
+  assert.equal(health1.status, 'needs_configuration');
+  assert.ok(typeof health1.timestamp === 'string');
+  assert.ok(!isNaN(Date.parse(health1.timestamp)));
+  assert.equal(health1.tenant.account, 'usc31@saboivan2008gmail.onmicrosoft.com');
+  assert.equal(health1.tenant.status, 'not_configured');
+  assert.equal(health1.personal.account, 'saboivan2008@gmail.com');
+  assert.equal(health1.personal.status, 'not_configured');
+  assert.equal(health1.copilotStudio.botId, '767f155a-5b45-15fc-17b1-e4d712682945');
+  assert.equal(health1.copilotStudio.status, 'needs_configuration');
+  assert.equal(health1.guardedActionPolicy.enforced, true);
+  assert.equal(health1.guardedActionPolicy.writeOperationsBlockedWithoutApproval, true);
+
+  // 2. Configured State Check
+  credentials.set('microsoft-tenant', 'secret-tenant-token-999');
+  credentials.set('microsoft-personal', 'secret-personal-token-888');
+  credentials.set('copilot-studio', 'secret-copilot-directline-777');
+
+  const res2 = await f.request('/api/connectors/microsoft/health');
+  assert.equal(res2.status, 200);
+
+  const health2 = await res2.json();
+  assert.equal(health2.status, 'healthy');
+  assert.equal(health2.tenant.status, 'configured');
+  assert.equal(health2.personal.status, 'configured');
+  assert.equal(health2.copilotStudio.status, 'active');
+  assert.equal(health2.guardedActionPolicy.enforced, true);
+
+  // 3. Truth Policy 2.0: No plaintext secrets in response
+  const rawBody = JSON.stringify(health2);
+  assert.ok(!rawBody.includes('secret-tenant-token-999'), 'Tenant secret must not leak');
+  assert.ok(!rawBody.includes('secret-personal-token-888'), 'Personal secret must not leak');
+  assert.ok(!rawBody.includes('secret-copilot-directline-777'), 'Copilot secret must not leak');
+});

@@ -61,6 +61,86 @@ function formatMarkdown(text){
 function renderReply(target,raw){
   const text = typeof raw === 'string' ? raw : (raw?.text || raw?.response || raw?.result || (raw ? JSON.stringify(raw, null, 2) : ''));
   target.innerHTML=formatMarkdown(text);
+  // Check for guarded action approvals in text
+  const actionMatch = text.match(/\b([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\b/i);
+  const isApprovalIntent = /(?:SCHVÁĽ|schválenie|vyžaduje autorizáciu|approval_required|navrhnutá akcia|akcia navrhnutá)/i.test(text);
+  if(actionMatch && isApprovalIntent){
+    const actionId = actionMatch[1];
+    const card = document.createElement('div');
+    card.className = 'guarded-approval-card';
+    card.dataset.actionId = actionId;
+    card.innerHTML = `
+      <div class="approval-card-header">
+        <span class="badge-risk">⚠️ Vyžaduje autorizáciu vlastníka</span>
+        <span style="font-family:monospace;font-size:10px;color:#94a3b8;">${actionId}</span>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:#f8fafc;margin-bottom:6px;">Navrhnutá systémová akcia</div>
+      <div class="approval-actions" style="display:flex;gap:8px;margin-top:6px;">
+        <button class="btn-approve-action" style="background:#10b981;color:#fff;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:600;font-size:11px;">⚡ Schváliť a vykonať</button>
+        <button class="btn-reject-action" style="background:#ef4444;color:#fff;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:600;font-size:11px;">❌ Odmietnuť</button>
+      </div>
+      <div class="approval-status-msg" style="display:none;margin-top:6px;font-size:11px;"></div>
+    `;
+    const approveBtn = card.querySelector('.btn-approve-action');
+    const rejectBtn = card.querySelector('.btn-reject-action');
+    const statusMsg = card.querySelector('.approval-status-msg');
+
+    approveBtn.onclick = async () => {
+      approveBtn.disabled = true;
+      rejectBtn.disabled = true;
+      statusMsg.style.display = 'block';
+      statusMsg.style.color = '#38bdf8';
+      statusMsg.textContent = 'Odosielam autorizáciu...';
+      try {
+        const res = await fetch('/api/system/actions/' + actionId + '/approve', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({confirmation: actionId})
+        });
+        const d = await res.json().catch(()=>({}));
+        if(res.ok) {
+          card.classList.add('approved');
+          statusMsg.style.color = '#34d399';
+          statusMsg.textContent = '✅ Akcia bola autorizovaná vlastníkom a odoslaná na vykonanie!';
+        } else {
+          throw new Error(d.error || 'Schválenie zlyhalo');
+        }
+      } catch(e) {
+        statusMsg.style.color = '#f87171';
+        statusMsg.textContent = 'Chyba: ' + e.message;
+        approveBtn.disabled = false;
+        rejectBtn.disabled = false;
+      }
+    };
+
+    rejectBtn.onclick = async () => {
+      approveBtn.disabled = true;
+      rejectBtn.disabled = true;
+      statusMsg.style.display = 'block';
+      statusMsg.style.color = '#f87171';
+      statusMsg.textContent = 'Odosielam zamietnutie...';
+      try {
+        const res = await fetch('/api/system/actions/' + actionId + '/reject', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({confirmation: actionId})
+        });
+        const d = await res.json().catch(()=>({}));
+        if(res.ok) {
+          card.classList.add('rejected');
+          statusMsg.textContent = '❌ Akcia bola bezpečne zamietnutá.';
+        } else {
+          throw new Error(d.error || 'Zamietnutie zlyhalo');
+        }
+      } catch(e) {
+        statusMsg.textContent = 'Chyba: ' + e.message;
+        approveBtn.disabled = false;
+        rejectBtn.disabled = false;
+      }
+    };
+
+    target.append(card);
+  }
   const match=text.match(/\/api\/assistant\/media\/images\/[0-9a-f-]{36}/i);
   if(match){
     const image=document.createElement('img');
@@ -3593,6 +3673,12 @@ function initOmniDevEvents(){
   };
 
   if($('omni-fs-refresh'))$('omni-fs-refresh').onclick=refreshOmniFiles;
+  if($('omni-apps-refresh'))$('omni-apps-refresh').onclick=loadPendingApprovals;
+  if($('refresh-approvals-btn'))$('refresh-approvals-btn').onclick=loadPendingApprovals;
+  const appsTabBtn = document.querySelector('[data-omni-tab="apps"]');
+  if(appsTabBtn){
+    appsTabBtn.addEventListener('click', () => { loadPendingApprovals(); });
+  }
   if($('omni-skills-refresh'))$('omni-skills-refresh').onclick=refreshOmniSkills;
   if($('omni-audit-refresh'))$('omni-audit-refresh').onclick=async()=>{
     await refreshOmniTelemetry();
@@ -3603,4 +3689,105 @@ function initOmniDevEvents(){
       }
     }catch(_){}
   };
+}
+
+
+async function loadPendingApprovals(){
+  const list = $('pending-approvals-list');
+  if(!list) return;
+  list.innerHTML = '<div style="color:#94a3b8;font-size:11px;">Načítavam čakajúce autorizácie...</div>';
+  try {
+    const res = await fetch('/api/system/actions');
+    if(!res.ok) throw new Error('Nepodarilo sa načítať akcie: ' + res.status);
+    const data = await res.json();
+    const items = (data.items || []).filter(x => x.status === 'proposed');
+    if(!items.length){
+      list.innerHTML = '<div style="color:#94a3b8;font-size:11px;">Žiadne čakajúce autorizácie. Systém bezpečne čaká na tvoje príkazy.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    for(const item of items){
+      const card = document.createElement('div');
+      card.className = 'guarded-approval-card';
+      card.dataset.actionId = item.id;
+      const payloadStr = typeof item.payload === 'object' ? JSON.stringify(item.payload, null, 2) : String(item.payload || '');
+      card.innerHTML = `
+        <div class="approval-card-header">
+          <span class="badge-risk">⚠️ Vyžaduje autorizáciu (${item.action || 'akcia'})</span>
+          <span style="font-family:monospace;font-size:10px;color:#94a3b8;">${item.id}</span>
+        </div>
+        <div style="font-size:11px;color:#cbd5e1;margin-bottom:4px;"><b>Dôvod:</b> ${item.rationale || 'Bez popisu'}</div>
+        <pre class="approval-payload">${payloadStr.slice(0, 500)}</pre>
+        <div class="approval-actions" style="display:flex;gap:8px;margin-top:6px;">
+          <button class="btn-approve-action" style="background:#10b981;color:#fff;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:600;font-size:11px;">⚡ Schváliť a vykonať</button>
+          <button class="btn-reject-action" style="background:#ef4444;color:#fff;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:600;font-size:11px;">❌ Odmietnuť</button>
+        </div>
+        <div class="approval-status-msg" style="display:none;margin-top:6px;font-size:11px;"></div>
+      `;
+
+      const approveBtn = card.querySelector('.btn-approve-action');
+      const rejectBtn = card.querySelector('.btn-reject-action');
+      const statusMsg = card.querySelector('.approval-status-msg');
+
+      approveBtn.onclick = async () => {
+        approveBtn.disabled = true;
+        rejectBtn.disabled = true;
+        statusMsg.style.display = 'block';
+        statusMsg.style.color = '#38bdf8';
+        statusMsg.textContent = 'Odosielam autorizáciu...';
+        try {
+          const r = await fetch('/api/system/actions/' + item.id + '/approve', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({confirmation: item.id})
+          });
+          const d = await r.json().catch(()=>({}));
+          if(r.ok){
+            card.classList.add('approved');
+            statusMsg.style.color = '#34d399';
+            statusMsg.textContent = '✅ Schválené vlastníkom a zaradené na vykonanie!';
+            setTimeout(loadPendingApprovals, 2000);
+          } else {
+            throw new Error(d.error || 'Schválenie zlyhalo');
+          }
+        } catch(e) {
+          statusMsg.style.color = '#f87171';
+          statusMsg.textContent = 'Chyba: ' + e.message;
+          approveBtn.disabled = false;
+          rejectBtn.disabled = false;
+        }
+      };
+
+      rejectBtn.onclick = async () => {
+        approveBtn.disabled = true;
+        rejectBtn.disabled = true;
+        statusMsg.style.display = 'block';
+        statusMsg.style.color = '#f87171';
+        statusMsg.textContent = 'Odosielam zamietnutie...';
+        try {
+          const r = await fetch('/api/system/actions/' + item.id + '/reject', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({confirmation: item.id})
+          });
+          const d = await r.json().catch(()=>({}));
+          if(r.ok){
+            card.classList.add('rejected');
+            statusMsg.textContent = '❌ Zamietnuté.';
+            setTimeout(loadPendingApprovals, 2000);
+          } else {
+            throw new Error(d.error || 'Zamietnutie zlyhalo');
+          }
+        } catch(e) {
+          statusMsg.textContent = 'Chyba: ' + e.message;
+          approveBtn.disabled = false;
+          rejectBtn.disabled = false;
+        }
+      };
+
+      list.append(card);
+    }
+  } catch(e) {
+    list.innerHTML = '<div style="color:#f87171;font-size:11px;">Chyba pri načítaní autorizácií: ' + e.message + '</div>';
+  }
 }

@@ -15,7 +15,7 @@ import {searchMemory} from './tools.js';
 import {callModel,serviceStatus,readiness} from './services.js';
 import {skillRegistry} from './skillRegistry.js';
 import {listPlugins} from './plugins.js';
-import {createSystemAction,getSystemAction,listSystemActions,approveSystemAction} from './system-actions.js';
+import {createSystemAction,getSystemAction,listSystemActions,approveSystemAction,rejectSystemAction} from './system-actions.js';
 import {geminiProjectControlEnabled} from './ai-providers.js';
 import {TrinityCopilotAgent} from './copilot-agent.js';
 import {universalEcosystem} from './universal-ecosystem.js';
@@ -201,6 +201,26 @@ export function handleMcp(request,env,ctx,access={}){
     server.registerTool('list_system_actions',{description:'Zoznam posledných systémových akcií a ich stavov.',
       inputSchema:{}},
       async()=>result(await listSystemActions(env)));
+
+    server.registerTool('approve_system_action',{description:'Schváli navrhnutú systémovú akciu pre vykonanie PC bránou alebo cloudom (vyžaduje zhodné confirmation UUID a admin/project oprávnenie).',
+      inputSchema:{id:z.string().uuid(),confirmation:z.string().uuid().optional()}},
+      async function({id,confirmation}){
+        const allowed = access.admin === true || access.projectControl === true || await projectControlAllowed();
+        if(!allowed) return result({error:'Iba overený správca alebo MCP klient s riadením projektu môže autorizovať systémové akcie.'});
+        if(confirmation && confirmation !== id) return result({error:'Potvrdenie sa nezhoduje s ID akcie.'});
+        const actor = access.principal || (access.admin ? 'mcp:admin' : 'mcp:project-operator');
+        return result(await approveSystemAction(env,id,actor));
+      });
+
+    server.registerTool('reject_system_action',{description:'Zamietne navrhnutú systémovú akciu.',
+      inputSchema:{id:z.string().uuid(),confirmation:z.string().uuid().optional()}},
+      async function({id,confirmation}){
+        const allowed = access.admin === true || access.projectControl === true || await projectControlAllowed();
+        if(!allowed) return result({error:'Iba overený správca alebo MCP klient s riadením projektu môže zamietnuť systémové akcie.'});
+        if(confirmation && confirmation !== id) return result({error:'Potvrdenie sa nezhoduje s ID akcie.'});
+        const actor = access.principal || (access.admin ? 'mcp:admin' : 'mcp:project-operator');
+        return result(await rejectSystemAction(env,id,actor));
+      });
 
     server.registerTool('pc_status',{description:'Stav PC Bridge — či je pripojený, capabilities, integrácie.',inputSchema:{}},
       async()=>{

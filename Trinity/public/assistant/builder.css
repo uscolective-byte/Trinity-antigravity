@@ -210,3 +210,98 @@
   border-radius: 4px;
   padding: 1px 5px;
 }
+
+/* Guarded Approval Cards */
+.guarded-approval-card {
+  margin: 10px 0;
+  padding: 12px;
+  background: #0f172a;
+  border: 1px solid #f59e0b;
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
+.guarded-approval-card.approved {
+  border-color: #10b981;
+  border-left-color: #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+.guarded-approval-card.rejected {
+  border-color: #ef4444;
+  border-left-color: #ef4444;
+  opacity: 0.8;
+}
+.approval-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.approval-card-header span b {
+  color: #f59e0b;
+}
+.badge-risk {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border-radius: 4px;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+.approval-card-body {
+  color: #e2e8f0;
+}
+.approval-card-body code {
+  color: #38bdf8;
+  background: #1e293b;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.approval-payload {
+  margin: 6px 0 0 0;
+  padding: 8px;
+  background: #020617;
+  color: #4ade80;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 10px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.approval-card-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+.btn-approve-action {
+  background: #10b981 !important;
+  color: #020617 !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  border: 0 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+.btn-approve-action:hover {
+  background: #34d399 !important;
+  transform: translateY(-1px);
+}
+.btn-reject-action {
+  background: #334155 !important;
+  color: #f8fafc !important;
+  font-size: 11px !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  border: 1px solid #475569 !important;
+  cursor: pointer !important;
+}
+.btn-reject-action:hover {
+  background: #ef4444 !important;
+}
