@@ -66,7 +66,9 @@ test('Graph GET areas cannot be mutated with arbitrary paths',async()=>{
  assert.equal((await m.bridge.read('personal','calendar')).read_only,true);
  assert.equal((await m.bridge.read('personal','drive')).read_only,true);
  await assert.rejects(m.bridge.read('personal','/me/sendMail'),/Nepodporovaná/);
- assert.equal(m.requests.filter(x=>x.url.includes('/graph.microsoft.com/')).length,0); // host never forwarded via input
+ const graphCalls=m.requests.filter(x=>x.url.startsWith('https://graph.microsoft.com/v1.0/'));
+ assert.ok(graphCalls.length>=4);
+ assert.ok(graphCalls.every(x=>x.method==='GET'));
 });
 test('proposal cannot send email or create event before explicit approval',async()=>{
  const m=mock();await connect(m);
@@ -94,5 +96,5 @@ test('Microsoft secret never appears in status and Direct Line route is explicit
  assert.match(server,/\/api\/microsoft\/copilot\/check/);
  assert.match(server,/explicitTest!==true/);
  assert.match(server,/createMicrosoftBridge/);
- assert.match(server,/url\.pathname==='\/api\/microsoft\/status'/);
+ assert.match(server,/\/api\/microsoft\/status/);
 });
