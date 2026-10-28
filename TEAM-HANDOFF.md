@@ -255,3 +255,98 @@ Nasadenie a overenie (Dôkazy):
 - `GET https://auru.space/api/telegram/status` -> HTTP 200:
   `bot_token: true`, `webhook_secret: true`, `allowed_users: true`, `provider: gemini`, `capabilities: [..., multi-turn-memory, system-grounding, clear]`, `live_verified: true`.
 Stav: completed a nasadené.
+
+### CLAIM — CHATGPT-REVIEW-20261028-01
+Dátum a pásmo: 2026-10-28, Europe/Bratislava.
+Autor a klient: ChatGPT (GitHub connector; bez prístupu k offline PC Basterix).
+Cieľ: kontrola existujúceho tímového protokolu a bezpečná oprava Telegram
+setupu / nepravdivých stavových tvrdení, podľa požiadavky majiteľa na
+kontrolu Trinity 11.0 a jednu PR vetvu.
+Base: 09762204961665c1b9b1ebb7ff48f8b8bbe9bcd7, main.
+Vetva: fix/trinity-handoff-telegram-truth-20261028.
+Vlastnené súbory (iba táto vetva): TEAM-HANDOFF.md (vlastné zápisy na konci),
+Trinity/scripts/setup-telegram-bot.mjs, Trinity/src/telegram-bridge.js,
+Trinity/tests/telegram-truth-and-setup.test.mjs,
+Trinity/docs/SINGLE_REPOSITORY.md.
+Koordinácia: pôvodný Telegram HANDOFF záznam uvoľnil Telegram súbory;
+Antigravity stále vlastní Cloudflare deployment, ktorý tu nemením.
+Codex vlastní súbory developer-tools a client-sync; žiadny z nich nemením.
+Predchádzajúca izolovaná vetva fix/trinity-telegram-truth-and-release-audit-20261028
+zostáva nedotknutá; pre integráciu sa používa táto vetva z aktuálneho main.
+Zákazy: bez deployu, výmazu, reštartu gateway, úprav Worker secrets,
+aktivácie odložených developer-tools alebo ACK za iných agentov.
+Stav: active; čaká sa na testy a samostatný HANDOFF.
+
+### ACK — TEAM-PROTOCOL-20261028-CODEX-01 / ChatGPT
+Dátum a pásmo: 2026-10-28, Europe/Bratislava.
+Autor a klient: ChatGPT, cez autorizovaný GitHub connector.
+Potvrdenie: aktuálny TEAM-HANDOFF.md bol prečítaný a rešpektovaný
+pri izolovanom audite v tomto rozhovore. Prístup k lokálnemu PC Basterix
+zostáva offline; nie je to potvrdenie budúceho automatického čítania v každom
+ChatGPT chate ani ACK za Codex, Antigravity, Copilot či Telegram.
+
+### UPDATE / HANDOFF — CHATGPT-REVIEW-20261028-01
+Dátum a pásmo: 2026-10-28, Europe/Bratislava.
+Autor: ChatGPT (GitHub connector). Príjemca: Codex a Antigravity na review.
+Vetva: fix/trinity-handoff-telegram-truth-20261028.
+Súbory:
+- Trinity/scripts/setup-telegram-bot.mjs: odstránený pevný webhook secret
+  aj osobný chat ID zo zdrojáku; token sa neprijíma argumentom CLI;
+  nový 32-byte kryptografický webhook secret a tri Worker secrets sú
+  nastavované iba pri budúcom autorizovanom spustení setupu.
+- Trinity/src/telegram-bridge.js: live_verified už nie je bez dôkazu true;
+  /pc, /fleet, /crypto rozlišujú konfiguráciu od reálneho dôkazu.
+- Trinity/tests/telegram-truth-and-setup.test.mjs: 5 regresných testov.
+- Trinity/docs/SINGLE_REPOSITORY.md: kanonický repo, worker staging,
+  Cloudflare Access a rozlíšenie deployment tagu od main.
+Dôkazy: GitHub commity b1ddacc, bbc0ffdb, 1376196, 5898832, 390b0a6;
+zdrojové invarianty pre nové skripty staticky skontrolované, starý test
+na názov príkazu /fleet bol zachovaný. Úplný build, npm test a živá
+Telegram konverzácia NEBOLI v tomto kroku vykonané (Basterix offline,
+lokálna kópia kompletného repozitára neprístupná). Bez úspešného CI sa
+tieto zmeny nesmú zlúčiť.
+Dôležitý bezpečnostný nález: stará hodnota webhook secret už bola v
+Git histórii verejného repozitára. Odstránenie z aktuálneho súboru ju
+nerevokuje; treba bezpečne rotovať aktívny webhook secret aj každý
+predtým odhalený bot token a otestovať /help a AI odpoveď.
+Infrastruktúra: bez deployu, bez zmeny Worker secrets, bez zmien
+PC Gateway; developer-tools activation ostáva odložená. Predchádzajúca
+pracovná vetva fix/trinity-telegram-truth-and-release-audit-20261028
+nebola vymazaná ani zlučovaná.
+Stav: pending_ack, pending_ci, pending_secret_rotation; review požadované.
+Ďalší vlastník: Codex alebo Antigravity pre nezávislé testy; ACK musí
+zapísať sám prijímateľ.
+
+### UPDATE — CHATGPT-REVIEW-20261028-01 (reconciliation)
+Čas: 2026-10-28, Europe/Bratislava. Po novom merge na main (7790256) bola
+vetva PR #13 zosúladená: do súboru Trinity/src/telegram-bridge.js bol
+prevzatý celý najnovší mozog Antigravity (5 exportovaných funkcií a 15
+existujúcich testov zostáva zachovaných) a nanovo boli aplikované iba
+7 faktografických opráv stavových tvrdení. Zápisy Antigravity na main
+zostávajú zachované. Reálne CI a e2e testovanie ešte nie sú úspešne
+preukázané; PR zostáva draft.
+
+
+### UPDATE — CHATGPT-REVIEW-20261028-01 / GitHub Actions billing block
+Čas: 2026-10-28, Europe/Bratislava.
+Hlava main pri kontrole: bbca5791f3bd3ce25bdcd806806de1763ef83da4.
+PR: https://github.com/uscolective-byte/Trinity-antigravity/pull/13
+Aktuálny stav PR: hlavná vetva bola bezpečne zintegrovaná merge commitom
+43843da63e26c95bf8a2ee1f65b2174b16701844 (bez force pushu),
+GitHub compare: behind=0, mergeable=true; 15/15 existujúcich
+Telegram unit test definícií Antigravity zostalo neporušených.
+10 izolovaných cielených JavaScript kontrol s mock službami prešlo;
+nepredstavujú plnú npm test sadu.
+Diagnostika CI: všetky tri joby na commite 43843da... majú
+runner_id=0, nulové steps a v check-run annotations toto presné hlásenie:
+"The job was not started because your account is locked due to a billing issue."
+Dôkazy:
+- https://api.github.com/repos/uscolective-byte/Trinity-antigravity/check-runs/122905053181/annotations
+- https://api.github.com/repos/uscolective-byte/Trinity-antigravity/check-runs/122905051193/annotations
+- https://api.github.com/repos/uscolective-byte/Trinity-antigravity/check-runs/122905046302/annotations
+Dopad: build, integrácie, CodeQL a bezpečný merge sú blokované
+problémom s GitHub fakturáciou ešte pred spustením kódu; nedá sa
+to opraviť úpravou testov ani automatickým rerunom bez vyriešenia účtu.
+Stav: pending_billing_resolution, pending_ci, pending_review,
+pending_credential_rotation. Žiadny deploy, merge, reset, mazanie
+ani rotácia kľúčov sa v tomto review nevykonali.
