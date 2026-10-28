@@ -174,7 +174,7 @@ export async function executeCrypto(env) {
 
 export function executeFleet() {
   return (
-    '⚡ KATALÓG CLOUDFLARE WORKEROV TRINITY (nie živá diagnostika)\n\n' +
+    '⚡ FLOTILA 35 CLOUDFLARE WORKEROV TRINITY — KATALÓG (nie živá diagnostika)\n\n' +
     '🎯 10× AURA Špecialisti:\n' +
     '• AURA_ANALYZER, AURA_ARCHITECT, AURA_CODEGEN, AURA_DEPLOYER, AURA_EVOLVER\n' +
     '• AURA_MEMORY, AURA_OPTIMIZER, AURA_PLANNER, AURA_SENTINEL, AURA_TESTER\n\n' +
