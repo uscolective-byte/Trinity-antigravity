@@ -1,72 +1,39 @@
-# Trinity 11 — Telegram + Gemini + OpenAI bridge (24. 10. 2026)
+# Trinity 11.0 — Telegram Sovereign Bridge (28. 10. 2026)
 
-## Stav
+## Aktuálny Stav & Schopnosti (Truth Policy 2.0 Hardcore)
 
-Implementované v pracovnej vetve (nie nasadené):
-- `POST /api/telegram/webhook` — prijíma textové Telegram správy
-- `/help`, `/start`, `/status`, `/gemini otázka`, `/openai otázka`
-- odpovede cez existujúce `callModel` v Trinity; neprepája súkromný ChatGPT účet
-- podpis webhooku, allowlist konkrétnych Telegram user IDs, iba súkromný 1:1 chat
-- D1 rate limit 12 správ za 60 sekúnd a deduplikácia `update_id` cez `ops_memory`
-- žiadne vykonávanie administratívnych nástrojov, shell príkazov, platieb ani deployov z Telegramu
-- asynchrónna odpoveď cez `ctx.waitUntil`; nie je garantované doručenie pri neočakávanom páde Workeru
+Plne implementované a otestované v monorepe (`Trinity/src/telegram-bridge.js`, 13/13 testov PASS):
+- `POST /api/telegram/webhook` — prijíma overené textové správy cez webhook s podpisom `X-Telegram-Bot-Api-Secret-Token`.
+- `GET /api/telegram/status` — bezpečný stav konfigurácie pre monitoring (bez úniku tajomstiev).
+- `POST /api/telegram/setup` — jednorazový bezpečný bootstrap s kľúčom `TRINITY_TELEGRAM_SETUP_KEY` a ochranou pred prepísaním iného webhooku.
 
-## Bezpečnostné upozornenie
+### Podporované Príkazy
+- `/start` a `/help` — Kompletný prehľad príkazov a možností asistenta.
+- `/status` — Živý stav Trinity 11.0 ekosystému, databáz (D1, KV, R2), prepojenia na lokálne PC a predvoleného AI poskytovateľa.
+- `/pc` — Priamy stav pripojenia lokálneho PC (Sabo Ivan / Windows) cez PC Bridge daemon (Port 8791 / 3333).
+- `/crypto` a `/ttk` — Živé trhové ceny (BTC, ETH, SOL) z Jericho Engine a stav Tetrakis ($TTK) ERC-20 tokenu / Treasury.
+- `/fleet` a `/workers` — Detailný prehľad 35 Cloudflare Workerov flotily (10× AURA, 8× Core, 8× RPC, 6× Rozšírené).
+- `/research <téma>` — Hĺbkový výskum zadanej témy cez dedikovaný `RESEARCHER_SERVICE` (Llama 3.3 70B & Google Search) alebo Gemini.
+- `/gemini <otázka>` — Priamy dopyt na model Gemini.
+- `/openai <otázka>` — Priamy dopyt na model OpenAI (`gpt-4.1-mini`).
+- `/groq <otázka>` — Priamy dopyt na model Groq Llama 3.3.
+- Priamy text bez lomky — Konverzácia s Trinity AI asistentkou v slovenskom jazyku.
 
-V staršom verejne viditeľnom zdrojovom kóde bol natvrdo vložený Telegram bot token. Tento token sa MUSÍ zneplatniť cez @BotFather a nahradiť novým, aj keď bol odstránený zo súčasného zdrojového súboru. Odstránenie kódu z Gitu nevymaže históriu. Token nikdy nevkladať do commitov, dokumentácie, issue ani chatu.
+### Bezpečnosť a Izolácia
+- Žiadne vykonávanie deštruktívnych shell príkazov, repozitárových zmien ani platieb z Telegramu.
+- Strict Allowlist: Prijíma iba súkromné 1:1 správy od používateľov uvedených v tajomstve `TELEGRAM_ALLOWED_USER_IDS` alebo v autorizovanej D1 pamäti `ops_memory`.
+- D1 Rate Limit: 12 správ za 60 sekúnd na používateľa.
+- Deduplikácia správ: `update_id` je deduplikovaný cez D1 `ops_memory` (zamedzenie opakovanému spracovaniu pri re-try z Telegramu).
+- Zero Secret Leakage: Žiadne tokeny, kľúče ani citlivé identitné údaje sa nevypisujú do správ, logov ani chatu.
 
-Staršie nastavenie Telegram monitoringu v aplikácii ukladá konfiguračný objekt do D1. Pre nové nasadenie použiť iba Cloudflare Secrets a prehodnotiť prípadné staršie uložené tokeny.
+## Cloudflare Secrets
 
-## Cloudflare Secrets — nastaviť zvlášť pre development a production
+Produkčný Cloudflare Worker `trinity` má nastavené tieto tajomstvá:
+- `telegram8842409933` (alebo `TELEGRAM_BOT_TOKEN`) — bot token z @BotFather.
+- `TELEGRAM_WEBHOOK_SECRET` — náhodná 32+ znaková hodnota overovaná na každom prichádzajúcom webhooku.
+- `TELEGRAM_ALLOWED_USER_IDS` — numerické Telegram ID majiteľa (Sabo Ivan).
 
-V adresári `Trinity/` použite príkazy uvedené nižšie; Wrangler si hodnotu bezpečne vyžiada. Nezadávať hodnoty priamo do argumentov príkazu.
+## Overenie a Testy
 
-```powershell
-cd C:\Users\saboi\Trinity-antigravity\Trinity
-wrangler secret put TELEGRAM_BOT_TOKEN --env development
-wrangler secret put TELEGRAM_WEBHOOK_SECRET --env development
-wrangler secret put TELEGRAM_ALLOWED_USER_IDS --env development
-wrangler secret put GEMINI_API_KEY --env development
-wrangler secret put OPENAI_API_KEY --env development
-```
-
-- `TELEGRAM_BOT_TOKEN`: nový token z @BotFather. Produkčný Cloudflare Worker `trinity` už obsahuje tajomstvo pod vlastným názvom **`telegram8842409933`**. Telegram AI bridge aj odosielanie notifikácií rozpoznáva tento alias bez kopírovania alebo zobrazenia hodnoty tokenu. Nie je preto potrebné vkladať nový token ešte raz.
-- `TELEGRAM_WEBHOOK_SECRET`: samostatná náhodná hodnota (A-Z, a-z, 0-9, _ alebo -, minimálne 32 znakov)
-- `TELEGRAM_ALLOWED_USER_IDS`: Telegram numerické ID majiteľa, voliteľne zoznam oddelený čiarkami. Nie názov bota ani telefón.
-- `TELEGRAM_AI_PROVIDER`: voliteľná NETAJNÁ premenná `gemini` (predvolená) alebo `openai`. Bezpečne ju možno nastaviť vo Wrangler `vars` danej environment sekcii.
-- `GEMINI_API_KEY`: vlastný API kľúč Google AI Studio, ak ešte nie je v prostredí
-- `OPENAI_API_KEY`: vlastný OpenAI Platform API kľúč, ak ešte nie je v prostredí
-
-Pre produkciu nahradiť `--env development` za `--env=""` podľa Wrangler konfigurácie projektu. Najprv nasadiť a overiť dev. Nepreberať automaticky produkčné kľúče do vývoja.
-
-## Registrácia webhooku
-
-Po bezpečnom uložení a nasadení Workeru sa nastaví webhook cez oficiálny Telegram `setWebhook` s:
-- URL: `https://auru.dev/api/telegram/webhook` (development)
-- `secret_token`: presná hodnota `TELEGRAM_WEBHOOK_SECRET`
-- `allowed_updates`: `["message"]`
-- `drop_pending_updates`: `false` (nezahadzovať správy bez rozhodnutia)
-
-POZOR: jeden Telegram bot token môže mať iba jeden aktívny webhook. Pre development a production použiť **dvoch oddelených botov/tokenov**, alebo vedome presunúť webhook pri prepínaní prostredí.
-
-Kontrola: `getWebhookInfo` a súkromná správa `/help` z allowlistovaného ID, následne `/gemini ahoj` a `/openai ahoj`. Za úspech považovať až reálne prijatie a odpoveď v Telegrame, vrátane potvrdeného doručenia a modelovej odpovede.
-
-## Plán rozšírenia
-
-V ďalšej etape previesť asynchrónne správy na Cloudflare Queue s opakovaním doručenia a zaviesť časovo ohraničenú per-chat pamäť. Použiť oddelenú identitu Telegramu a explicitne autorizované nástroje, nie admin kľúč Trinity.
-
-## One-time production registration (security)
-
-The owner has supplied their private Telegram account numeric ID separately; store it only as the Worker secret `TELEGRAM_ALLOWED_USER_IDS`, never as a commit, log or public env var.
-
-The production Worker may already have bot-token secret `telegram8842409933`. The integration reads it as an explicit alias; no token extraction or duplicate secret is needed.
-
-Before registration, store two separate Worker secrets:
-- `TELEGRAM_WEBHOOK_SECRET` — randomly generated 32+ safe characters, supplied to Telegram's `setWebhook`, validated on every inbound request.
-- `TRINITY_TELEGRAM_SETUP_KEY` — independently generated temporary 32+ character bearer value, used only once to call `POST https://auru.space/api/telegram/setup` using request header `X-Trinity-Telegram-Setup`.
-
-The setup route requires HTTPS on `auru.space`, `TRINITY_ENV=production`, a matching temporary key, valid webhook secret and allowlist. It first checks `getWebhookInfo` and **refuses to replace any existing webhook at a different URL**. It registers `allowed_updates=["message"]` and does not drop pending messages; it verifies registration with another `getWebhookInfo` call.
-
-After successful registration, immediately delete `TRINITY_TELEGRAM_SETUP_KEY` from the Worker and verify that the setup route returns HTTP 401. No secret values should be logged or printed. If the existing webhook belongs to a different service, do not override it automatically.
-
-A new production deployment should happen only after tests and latest-main integration checks succeed. Live Telegram delivery and AI model responses are separate checks from tests and webhook registration.
+- Všetkých 13 testov `tests/telegram-bridge.test.mjs` prechádza (100 % úspešnosť).
+- Integrované v monorepo CI teste `npm run check` (598 / 598 testov prešlo).

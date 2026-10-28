@@ -22,7 +22,7 @@ import {AGENTS,SKILLS,shouldDelegate} from './registry.js';
 import {createJob,getJob} from './jobs.js';
 import {authenticate,checkOrigin,hash,HttpError,rateLimit,readJSON,secure,validKey,issueSession,allowDevConnection,sessionCookie} from './security.js';
 import {callModel,serviceStatus,runScheduledHealth,readiness} from './services.js';
-import {handleTelegramWebhook,activateTelegramWebhook} from './telegram-bridge.js';
+import {handleTelegramWebhook,activateTelegramWebhook,telegramIntegrationStatus} from './telegram-bridge.js';
 import {searchMemory,runTool} from './tools.js';
 import {PLUGINS,listPlugins,pluginEnabled,installPlugin,installAllPlugins} from './plugins.js';
 import {handleMcp} from './mcp.js';
@@ -128,6 +128,7 @@ async function route(request,env,ctx){
   const mobileAsset=handleMobileAsset(request);if(mobileAsset)return mobileAsset;
   if(path==='/api/telegram/webhook')return handleTelegramWebhook(request,env,ctx);
   if(path==='/api/telegram/setup')return activateTelegramWebhook(request,env);
+  if(path==='/api/telegram/status'&&request.method==='GET')return json(telegramIntegrationStatus(env));
   const proPayment=await handleCommercePublic(request,env);if(proPayment)return proPayment;
   const ppCheckout=await handlePayPalCheckoutApi(request,env);if(ppCheckout)return ppCheckout;
   const publicSite=await handlePublicSiteRoute(request,env);if(publicSite)return publicSite;

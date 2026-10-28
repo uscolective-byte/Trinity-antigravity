@@ -82,12 +82,29 @@ Všetky testovacie sady sú 100 % zelené:
 
 | Modul | Počet testov | Výsledok |
 |---|---|---|
-| **Trinity Main Fleet** (`Trinity/tests/*.test.mjs`) | 525 | **525 / 525 PASS** |
+| **Trinity Main Fleet** (`Trinity/tests/*.test.mjs`) | 528 | **528 / 528 PASS** |
+| **Local-Gateway** (`Local-Gateway/tests/*.test.mjs`) | 27 | **27 / 27 PASS** |
 | **Jericho-Worker** (`Jericho-Worker/tests/*.test.mjs`) | 12 | **12 / 12 PASS** |
 | **Tetrakis-Token ($TTK)** (`contracts/tetrakis/tests/*.test.mjs`) | 15 | **15 / 15 PASS** |
 | **Capacity-Worker** (`Capacity-Worker/tests/*.test.mjs`) | 10 | **10 / 10 PASS** |
 | **Audit-Worker** (`Audit-Worker/tests/*.test.mjs`) | 6 | **6 / 6 PASS** |
-| **CELKOVO** | **568** | **568 / 568 PASS (100 %)** |
+| **CELKOVO** | **598** | **598 / 598 PASS (100 %)** |
+
+---
+
+## 🤖 Telegram Sovereign Bridge (v11.0)
+
+* **Webhook:** `https://auru.space/api/telegram/webhook`
+* **Stav:** `https://auru.space/api/telegram/status` (13 / 13 testov PASS)
+* **Podporované príkazy:**
+  - `/status` – Živý stav ekosystému, databáz a flotily
+  - `/pc` – Priamy stav lokálneho PC (PC Bridge & Local Gateway)
+  - `/crypto` a `/ttk` – Trhové ceny (BTC, ETH, SOL) a stav Tetrakis ($TTK) pokladnice
+  - `/fleet` a `/workers` – Prehľad 35 Cloudflare Workerov flotily
+  - `/research <téma>` – Autonómny výskum cez Researcher Service
+  - `/gemini`, `/openai`, `/groq` – Priame modely
+  - Textová správa – Osobná konverzácia s Trinity
+* **Bezpečnosť:** Súkromné 1:1 správy, allowlist ID majiteľa, rate limiting 12/min, deduplikácia cez D1 `ops_memory`.
 
 ---
 

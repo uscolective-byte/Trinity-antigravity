@@ -1,6 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {handleTelegramWebhook,telegramIntegrationStatus,activateTelegramWebhook} from '../src/telegram-bridge.js';
+import {
+  handleTelegramWebhook,
+  telegramIntegrationStatus,
+  activateTelegramWebhook,
+  parseCommand,
+  executeStatus,
+  executePC,
+  executeCrypto,
+  executeFleet,
+  executeResearch,
+  getAllowedUserIds
+} from '../src/telegram-bridge.js';
 
 function setup() {
   const sent = [];
@@ -24,6 +35,9 @@ function setup() {
             if (seen.has(key)) return null;
             seen.add(key);
             return {key};
+          },
+          async all() {
+            return {results: []};
           }
         };
       }
@@ -186,4 +200,104 @@ test('Telegram setup registers and verifies webhook only with the temporary secr
     assert.equal(options.secret_token,secret);
     assert.deepEqual(options.allowed_updates,['message']);
   } finally {t.restore();}
+});
+
+test('Telegram handles /status, /pc, /crypto and /fleet commands', async () => {
+  const t = setup();
+  try {
+    // 1. /fleet
+    const fleetUpdate = t.message('/fleet', 12345);
+    fleetUpdate.update_id = 201;
+    const ctxFleet = t.context();
+    await handleTelegramWebhook(t.createRequest(fleetUpdate), t.env, ctxFleet.ctx);
+    await ctxFleet.done();
+    assert.match(t.sent[t.sent.length - 1].text, /FLOTILA 35 CLOUDFLARE WORKEROV/);
+
+    // 2. /pc
+    const pcUpdate = t.message('/pc', 12345);
+    pcUpdate.update_id = 202;
+    const ctxPC = t.context();
+    await handleTelegramWebhook(t.createRequest(pcUpdate), t.env, ctxPC.ctx);
+    await ctxPC.done();
+    assert.match(t.sent[t.sent.length - 1].text, /LOKÁLNE PC/);
+
+    // 3. /crypto
+    const cryptoUpdate = t.message('/crypto', 12345);
+    cryptoUpdate.update_id = 203;
+    const ctxCrypto = t.context();
+    await handleTelegramWebhook(t.createRequest(cryptoUpdate), {
+      ...t.env,
+      JERICHO_SERVICE: {
+        async getPrices() {
+          return {btc: {price_usd: 68500, change_24h_pct: 2.5}};
+        },
+        async getTetrakisInfo() {
+          return {treasury_address: '0x1234567890abcdef1234567890abcdef12345678'};
+        }
+      }
+    }, ctxCrypto.ctx);
+    await ctxCrypto.done();
+    assert.match(t.sent[t.sent.length - 1].text, /BTC: \$68,500/);
+    assert.match(t.sent[t.sent.length - 1].text, /Tetrakis \(\$TTK\) Token/);
+
+    // 4. /status
+    const statusUpdate = t.message('/status', 12345);
+    statusUpdate.update_id = 204;
+    const ctxStatus = t.context();
+    await handleTelegramWebhook(t.createRequest(statusUpdate), t.env, ctxStatus.ctx);
+    await ctxStatus.done();
+    assert.match(t.sent[t.sent.length - 1].text, /Trinity Telegram: nakonfigurované/);
+    assert.match(t.sent[t.sent.length - 1].text, /TRINITY 11\.0 SOVEREIGN ECOSYSTEM/);
+  } finally {
+    t.restore();
+  }
+});
+
+test('Telegram handles /research command via researcher service or fallback', async () => {
+  const t = setup();
+  try {
+    const researchUpdate = t.message('/research kvantové šifrovanie', 12345);
+    researchUpdate.update_id = 205;
+    const ctxResearch = t.context();
+    await handleTelegramWebhook(t.createRequest(researchUpdate), {
+      ...t.env,
+      RESEARCHER_SERVICE: {
+        async fetch(url, options) {
+          const body = JSON.parse(options.body);
+          return Response.json({summary: `Syntetizovaný výskum pre ${body.query}.`});
+        }
+      }
+    }, ctxResearch.ctx);
+    await ctxResearch.done();
+    assert.match(t.sent[t.sent.length - 1].text, /Výsledok Výskumu: kvantové šifrovanie/);
+    assert.match(t.sent[t.sent.length - 1].text, /Syntetizovaný výskum/);
+  } finally {
+    t.restore();
+  }
+});
+
+test('getAllowedUserIds combines env allowed IDs with D1 ops_memory chat IDs', async () => {
+  const mockEnv = {
+    TELEGRAM_ALLOWED_USER_IDS: '111,222',
+    DB: {
+      prepare(sql) {
+        return {
+          async all() {
+            return {
+              results: [
+                {value: JSON.stringify({chat_id: '333', enabled: true})},
+                {value: JSON.stringify({chat_id: '444', enabled: true})}
+              ]
+            };
+          }
+        };
+      }
+    }
+  };
+  const ids = await getAllowedUserIds(mockEnv);
+  assert.equal(ids.has('111'), true);
+  assert.equal(ids.has('222'), true);
+  assert.equal(ids.has('333'), true);
+  assert.equal(ids.has('444'), true);
+  assert.equal(ids.has('555'), false);
 });
