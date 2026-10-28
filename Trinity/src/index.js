@@ -73,6 +73,9 @@ import css from '../public/style.css';
 import refreshCSS from '../public/refresh.css';
 import {selectChatProvider,pickChatProvider,CHAT_ENGINE_VALUES,normalizeChatEngine} from './chat-routing.js';
 import assistantHTML from '../public/assistant/chat.html';
+import toolMarketplaceHTML from '../public/assistant/tool-marketplace.html';
+import toolMarketplaceJS from '../public/assistant/tool-marketplace.js.txt';
+import {marketplaceSnapshot} from './tool-marketplace.js';
 import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
@@ -128,6 +131,8 @@ async function route(request,env,ctx){
   if(knowledgeResponse)return knowledgeResponse;
   const url=new URL(request.url),path=url.pathname;
   const mobileAsset=handleMobileAsset(request);if(mobileAsset)return mobileAsset;
+  if(path==='/marketplace'&&request.method==='GET')return new Response(toolMarketplaceHTML,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",'X-Content-Type-Options':'nosniff'}});
+  if(path==='/tool-marketplace.js'&&request.method==='GET')return new Response(toolMarketplaceJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
   if(path==='/api/telegram/webhook')return handleTelegramWebhook(request,env,ctx);
   if(path==='/api/telegram/setup')return activateTelegramWebhook(request,env);
   if(path==='/api/telegram/status'&&request.method==='GET')return json(telegramIntegrationStatus(env));
@@ -402,6 +407,12 @@ async function route(request,env,ctx){
     }
   }
   const ownerId=(user.email||user.id).trim().toLowerCase();
+  if(path==='/api/assistant/tool-marketplace'&&request.method==='GET'){
+    // Authenticated read-only view; missing D1 rows never imply a successful install.
+    let plugins=[];
+    try{plugins=await listPlugins(env);}catch{plugins=PLUGINS.map(p=>({...p,installed:false,enabled:false}));}
+    return json(marketplaceSnapshot(env,plugins));
+  }
   if(path==='/api/assistant/capabilities'&&request.method==='GET')return json(await capabilityStatus(env));
   if(path==='/api/assistant/morpheus/status'&&request.method==='GET'){
     return json({
