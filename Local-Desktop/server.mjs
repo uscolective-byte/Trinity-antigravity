@@ -54,6 +54,7 @@ export async function createLocalApp({dataDir=path.join(root,'Data'),workspace=p
   let notes=await jsonFile(notesFile,[]),busy=false,port=0;
   // Each Microsoft profile has independent DPAPI-backed tokens and guarded actions.
   const microsoft=createMicrosoftBridge({vault,fetcher:externalFetch});
+  let copilotCheckedAt=null;
   let mutationQueue=Promise.resolve();
   const mutate=fn=>{const next=mutationQueue.then(fn);mutationQueue=next.catch(()=>{});return next;};
   const ollamaBase=`http://127.0.0.1:${ollamaPort}`;
@@ -200,7 +201,7 @@ export async function createLocalApp({dataDir=path.join(root,'Data'),workspace=p
       const origin=request.headers.origin;if(origin&&origin!==`http://${host}`)throw fail(403,'Cudzí pôvod požiadavky.');
       const url=new URL(request.url,`http://${host}`);
       if(request.method==='GET'&&url.pathname==='/health')return send(response,200,{service:'Trinity Local Desktop',version:VERSION,status:'ready',mode:'local'});
-      const assets={'/':['index.html','text/html; charset=utf-8'],'/app.js':['app.js','application/javascript; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8']};
+      const assets={'/':['index.html','text/html; charset=utf-8'],'/app.js':['app.js','application/javascript; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8'],'/microsoft.js':['microsoft.js','application/javascript; charset=utf-8']};
       if(request.method==='GET'&&assets[url.pathname]){
         const [file,type]=assets[url.pathname];response.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"});return response.end(await readFile(path.join(root,'public',file)));
       }
@@ -210,7 +211,7 @@ export async function createLocalApp({dataDir=path.join(root,'Data'),workspace=p
       if(request.method==='GET'&&['/api/microsoft/status','/api/microsoft/health'].includes(url.pathname)){
         const snapshot=await microsoft.status();
         return send(response,200,{ok:true,service:'Trinity Microsoft Graph & Trinitys',...snapshot,
-          copilot:{configured:!!await vault.get('copilot-studio'),verified:false,channel:'Direct Line',note:'Záznam agenta nie je potvrdenie živého routingu.'}});
+          copilot:{configured:!!await vault.get('copilot-studio'),verified:!!copilotCheckedAt,checked_at:copilotCheckedAt,channel:'Direct Line',note:'Overené je iba prijatie odpovede cez nakonfigurovaný Direct Line, nie zhoda Bot ID.'}});
       }
       if(request.method==='GET'&&url.pathname==='/api/microsoft/proposals')return send(response,200,{items:microsoft.listProposals()});
       if(request.method==='GET'&&url.pathname==='/api/cloud/status')return send(response,200,await cloud().call('trinity_status'));
@@ -233,6 +234,15 @@ export async function createLocalApp({dataDir=path.join(root,'Data'),workspace=p
           }else if(input.method?.startsWith('notifications/'))return send(response,200,{});
           else return send(response,200,{jsonrpc:'2.0',id:input.id,error:{code:-32601,message:'Unknown method'}});
           return send(response,200,{jsonrpc:'2.0',id:input.id,result});
+        }
+        if(url.pathname==='/api/microsoft/copilot/check'){
+          if(input.explicitTest!==true)throw fail(403,'Test Copilot Studio vyžaduje vedomý súhlas majiteľa.');
+          const secret=await vault.get('copilot-studio');
+          if(!secret)throw fail(409,'Najprv bezpečne ulož Direct Line secret.');
+          const result=await copilotStudioChat({secret,query:'Trinitys integration health check; reply with READY only.',fetcher:externalFetch,pollMs:500});
+          if(result.done!==true||!result.message?.content?.trim())throw fail(502,'Copilot Studio nevrátil potvrdenú odpoveď.');
+          copilotCheckedAt=new Date().toISOString();
+          return send(response,200,{configured:true,verified:true,checked_at:copilotCheckedAt,agent:'Trinitys',note:'Direct Line odpovedal; identita konkrétneho Bot ID nie je kryptograficky overená.'});
         }
         if(url.pathname==='/api/microsoft/login/start')return send(response,200,await microsoft.startLogin(input));
         if(url.pathname==='/api/microsoft/login/finish')return send(response,200,await microsoft.finishLogin(input));
