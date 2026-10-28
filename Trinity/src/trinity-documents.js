@@ -12,7 +12,8 @@ export const DOCUMENT_CATEGORIES = [
   'commerce',
   'self_improvement',
   'architecture',
-  'manual_doc'
+  'manual_doc',
+  'legal_compliance'
 ];
 
 export const createDocumentSchema = z.object({
@@ -27,13 +28,76 @@ export const createDocumentSchema = z.object({
 
 const memoryCache = new Map();
 
+export const SEED_COMPLIANCE_DOCUMENTS = [
+  {
+    id: 'trinity-gdpr-privacy-consent',
+    title: 'Vyhlásenie o ochrane osobných údajov a súhlas so spracovaním (GDPR)',
+    category: 'legal_compliance',
+    step_name: 'compliance_declaration',
+    actor: 'Trinity Sovereign Core',
+    summary: 'Oficiálne vyhlásenie o ochrane osobných údajov (GDPR / Zákon č. 18/2018 Z. z.) a podmienky súhlasu dotknutej osoby v ekosystéme Trinity (auru.space a auru.dev).',
+    content: `# Vyhlásenie o ochrane osobných údajov a súhlas so spracovaním (GDPR)
+
+**Prevádzkovateľ:** Ivan Sabo (Basterix) / Ekosystém Trinity & Auru Digital Studio
+**Portály a domény:** https://auru.space · https://auru.dev
+**Legislatívny rámec:** Nariadenie (EÚ) 2016/679 (GDPR) a Zákon č. 18/2018 Z. z. o ochrane osobných údajov
+
+## 1. Identifikácia prevádzkovateľa a kontakt
+Prevádzkovateľom informačných systémov Trinity je Ivan Sabo (Basterix), so sídlom v Slovenskej republike.
+Kontakt pre otázky a uplatnenie práv k osobným údajom: gdpr@auru.space.
+
+## 2. Kategórie osobných údajov
+1. **Identifikačné a prihlasovacie údaje:** používateľské meno, e-mail, systémová rola (owner/admin/user).
+2. **Kryptografické a bezpečnostné prvky:** hashe hesiel, WebAuthn/Passkeys verejné kľúče, session tokeny. Privátne kľúče nikdy neopúšťajú klientske zariadenie.
+3. **Technické a sieťové telemetrické údaje:** anonymizovaná IP adresa na úrovni Cloudflare Edge, User-Agent, auditné logy systémových akcií.
+4. **Používateľský obsah a komunikácia:** textové a hlasové príkazy v chate, nahrané súbory, vytvorené doménové záznamy a projektové šablóny.
+5. **Platobné a transakčné údaje:** IBAN a BIC (výhradne dobrovoľne pre generovanie SEPA EPC QR kódov). Žiadne prístupové heslá do internetbankingu ani CVV kódy sa nikdy neukladajú.
+
+## 3. Účely spracúvania a právne základy
+- **Plnenie zmluvy a poskytovanie služieb Trinity (Čl. 6 ods. 1 písm. b) GDPR):** autentifikácia, chat asistent a generovanie webov.
+- **Bezpečnosť a prevencia kybernetických útokov (Čl. 6 ods. 1 písm. f) GDPR):** oprávnený záujem prevádzkovateľa a integrita systémov.
+- **Dlhodobá pamäť a kryptografický trezor (Čl. 6 ods. 1 písm. a) GDPR):** výslovný súhlas dotknutej osoby.
+- **Účtovná a daňová evidencia (Čl. 6 ods. 1 písm. c) GDPR):** plnenie zákonných povinností SR.
+
+## 4. Technické a organizačné bezpečnostné opatrenia
+- Kryptografický trezor AES-GCM 256-bit pre API kľúče a tokeny.
+- Striktná viacúrovňová izolácia priestorov používateľov od jadra.
+- HTTPS / TLS 1.3 s bezpečnostnými hlavičkami CSP a Truth Policy 2.0.
+
+## 5. Práva dotknutej osoby
+Dotknutá osoba má právo na prístup k údajom, ich opravu, vymazanie (právo na zabudnutie), obmedzenie spracúvania, prenosnosť v JSON/MD formáte a právo kedykoľvek odvolať súhlas.
+Dozorný orgán: Úrad na ochranu osobných údajov Slovenskej republiky (https://dataprotection.gov.sk).
+
+## 6. Text výslovného súhlasu dotknutej osoby
+„Týmto udeľujem dobrovoľný, výslovný a informovaný súhlas so spracúvaním mojich osobných údajov na účely používania autonómneho systému Trinity na doménach auru.space a auru.dev v súlade s GDPR. Bol/a som poučený/á o svojich právach a o možnosti tento súhlas kedykoľvek bezplatne odvolať v nastaveniach účtu alebo na gdpr@auru.space.“`,
+    tags: ['gdpr', 'privacy', 'ochrana-udajov', 'compliance', 'pravne-podmienky'],
+    receipt_id: 'compliance:gdpr:v1',
+    auto_generated: false,
+    created_at: '2026-10-28T10:00:00.000Z',
+    export_md_url: '/api/assistant/documents/trinity-gdpr-privacy-consent/export?format=md',
+    export_pdf_url: '/api/assistant/documents/trinity-gdpr-privacy-consent/export?format=pdf'
+  }
+];
+
+function mergeSeedDocuments(items) {
+  const list = Array.isArray(items) ? [...items] : [];
+  const existingIds = new Set(list.map(d => d.id));
+  for (const seed of SEED_COMPLIANCE_DOCUMENTS) {
+    if (!existingIds.has(seed.id)) {
+      list.push(seed);
+    }
+  }
+  return list;
+}
+
+
 async function readDocsIndex(env) {
   if (env?.Mastermind?.get) {
     try {
       const raw = await env.Mastermind.get(DOCS_KV_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) return mergeSeedDocuments(parsed);
       }
     } catch {}
   }
@@ -42,11 +106,11 @@ async function readDocsIndex(env) {
       const row = await env.DB.prepare("SELECT value FROM ops_memory WHERE key = ?").bind(DOCS_KV_KEY).first();
       if (row?.value) {
         const parsed = JSON.parse(row.value);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) return mergeSeedDocuments(parsed);
       }
     } catch {}
   }
-  return memoryCache.get(DOCS_KV_KEY) || [];
+  return mergeSeedDocuments(memoryCache.get(DOCS_KV_KEY) || []);
 }
 
 async function writeDocsIndex(env, items) {

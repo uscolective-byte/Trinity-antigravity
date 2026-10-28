@@ -108,9 +108,10 @@ Všetky testovacie sady sú 100 % zelené:
 
 ---
 
-## 📜 Zásada pravdivosti (Truth Policy 2.0)
+## 📜 Zásada pravdivosti, Licencie & GDPR Compliance
 
 1. Žiadne fiktívne tvrdenia o vedomí, citoch či vlastnej vôli umelej inteligencie.
 2. Žiadne vymýšľanie cien, obchodov, zostatkov na účtoch ani prevodov.
 3. Žiadne textové výhovorky typu *„nemám prístup k súborom“* – pri zvolenom PC Bridge sa volá skutočný lokálny terminál.
 4. Každá akcia je podložená skutočným dokladom (`receipt_id`) a overeným systémovým potvrdením.
+5. **Ochrana osobných údajov (GDPR & Zákon č. 18/2018 Z. z.):** Systém má vypracované oficiálne vyhlásenie o ochrane osobných údajov a formuláciu súhlasu dotknutej osoby ([GDPR-VYHLASENIE-A-SUHLAS.md](GDPR-VYHLASENIE-A-SUHLAS.md)), vrátane technických opatrení (AES-GCM 256-bit šifrovanie, izolácia priestorov, právo na výmaz a export do MD/PDF).

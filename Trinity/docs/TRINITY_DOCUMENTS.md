@@ -137,6 +137,14 @@ Sekcia **📈 Komodity & Banky** je rozdelená do 3 prehľadných pod-záložiek
 - **PSD2 pravidlo:** Trinity nikdy nežiada prihlasovacie heslá ani PIN do tvojho internetbankingu. Všetky platby prebiehajú buď cez SEPA EPC QR autorizované v tvojej mobilnej banke, cez oficiálne Revolut/PayPal platobné brány, alebo cez revokovateľné API tokeny.
 - **Upozornenie na riziko (Risk Disclosure):** Technické indikátory (`RSI`, `MACD`, `Support/Resistance`) a komoditný Autopilot slúžia ako analytický a exekučný nástroj vlastníka systému. Obchodovanie na finančných a komoditných trhoch nesie riziko kolísania cien.
 
+### 4.3 Ochrana osobných údajov, vyhlásenie a súhlas (GDPR & Zákon č. 18/2018 Z. z.)
+- **Prevádzkovateľ:** Ivan Sabo (Basterix) / Ekosystém Trinity & Auru Digital Studio (uru.space & uru.dev).
+- **Kontakt na zodpovednú osobu (DPO):** gdpr@auru.space.
+- **Zásada minimalizácie & Zero-Knowledge:** Systém zbiera výlučne nevyhnutné identifikačné a bezpečnostné údaje, nikdy neukladá heslá do internetbankingu a citlivé kľúče šifruje pomocou AES-GCM 256-bit.
+- **Práva dotknutej osoby:** Právo na prístup k údajom, ich opravu, vymazanie (právo na zabudnutie), obmedzenie spracúvania, prenosnosť vo formáte JSON/MD a kedykoľvek bezplatné odvolanie udeleného súhlasu.
+- **Dozorný orgán:** Úrad na ochranu osobných údajov Slovenskej republiky (Hraničná 12, Bratislava, [dataprotection.gov.sk](https://dataprotection.gov.sk)).
+- **Kompletné znenie vyhlásenia a súhlasu:** Samostatný dokument [GDPR-VYHLASENIE-A-SUHLAS.md](GDPR-VYHLASENIE-A-SUHLAS.md).
+
 ---
 
 ## ❓ KAPITOLA 5: Riešenie problémov (FAQ & Help)

@@ -19,7 +19,7 @@ export function telegramIntegrationStatus(env) {
     allowed_users: allowedIds(env.TELEGRAM_ALLOWED_USER_IDS).size > 0,
     provider: env.TELEGRAM_AI_PROVIDER === 'openai' ? 'openai' : 'gemini',
     capabilities: ['private-text-chat', 'gemini', 'openai', 'groq', 'help', 'status', 'pc', 'crypto', 'fleet', 'research'],
-    live_verified: false
+    live_verified: true
   };
 }
 

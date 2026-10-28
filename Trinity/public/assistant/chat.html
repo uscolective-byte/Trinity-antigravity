@@ -891,6 +891,7 @@
         <button type="button" class="subnav-btn" data-doc-tab="architecture">🏗️ Kompletná Architektúra</button>
         <button type="button" class="subnav-btn" data-doc-tab="banking">🏦 Banky, SEPA & Komodity</button>
         <button type="button" class="subnav-btn" data-doc-tab="licenses">⚖️ Licencie & Bezpečnosť</button>
+        <button type="button" class="subnav-btn" data-doc-tab="gdpr">🛡️ GDPR & Súhlas</button>
         <button type="button" class="subnav-btn" data-doc-tab="archive">📁 Archív záznamov (MD / PDF)</button>
       </nav>
 
@@ -1172,6 +1173,56 @@
         </div>
       </div>
 
+      <div id="doc-pane-gdpr" class="doc-tab-pane" hidden>
+        <div class="docs-portal-grid">
+          <article class="docs-card">
+            <span class="docs-badge">LEGISLATÍVNY RÁMEC & PREVÁDZKOVATEĽ</span>
+            <h3>1. Vyhlásenie o ochrane osobných údajov (GDPR &amp; Zákon č. 18/2018 Z. z.)</h3>
+            <p>Systém Trinity (dostupný na <b>auru.space</b> a <b>auru.dev</b>) rešpektuje tvoje súkromie a spracúva osobné údaje striktne v súlade s Nariadením Európskeho parlamentu a Rady (EÚ) 2016/679 (GDPR) a Zákonom č. 18/2018 Z. z. o ochrane osobných údajov.</p>
+            <ul class="docs-list">
+              <li><b>Prevádzkovateľ:</b> Ivan Sabo (Basterix), v zastúpení ekosystému Trinity / Auru Digital Studio.</li>
+              <li><b>Kontakt pre ochranu údajov (DPO):</b> <code>gdpr@auru.space</code> alebo oficiálny chat podpory.</li>
+              <li><b>Zásada minimalizácie údajov:</b> Trinity zbiera výlučne technické a profilové údaje nevyhnutné na správu tvojho používateľského účtu a poskytovanie AI služieb.</li>
+              <li><b>Žiadne ukladanie bankových hesiel:</b> Trinity nikdy nežiada, nezbiera ani neukladá prístupové heslá do tvojho internetbankingu, PIN kódy ani CVV kódy platobných kariet.</li>
+            </ul>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge">ÚČEL & PRÁVNY ZÁKLAD</span>
+            <h3>2. Rozsah spracúvania, účely a právne základy</h3>
+            <ul class="docs-list">
+              <li><b>Poskytovanie autonómnych služieb (Čl. 6 ods. 1 písm. b) GDPR):</b> Spracúvanie používateľských relácií, konfigurácií webových domén, promptov v chate a AI generovaných výstupov.</li>
+              <li><b>Oprávnený záujem na bezpečnosti (Čl. 6 ods. 1 písm. f) GDPR):</b> Ochrana pred útokmi, zneužitím API, rate-limiting, auditné záznamy v GuardianAgent a D1 logoch bez plaintext tajomstiev.</li>
+              <li><b>Výslovný súhlas dotknutej osoby (Čl. 6 ods. 1 písm. a) GDPR):</b> Ukladanie dlhodobej kontextovej pamäte (Graph RAG / Ops Memory) a voliteľné ukladanie vlastných API kľúčov do AES-GCM trezoru.</li>
+              <li><b>Plnenie zákonných povinností (Čl. 6 ods. 1 písm. c) GDPR):</b> Účtovná evidencia klientskych platieb a doménových registrácií.</li>
+            </ul>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge">PRÁVA DOTKNUTEJ OSOBY</span>
+            <h3>3. Tvoje práva a spôsob ich uplatnenia</h3>
+            <ul class="docs-list">
+              <li><b>Právo na prístup (Čl. 15):</b> Zobrazenie všetkých svojich uložených dát, projektov a histórie chatu v reálnom čase priamo v UI alebo cez export do JSON / Markdown.</li>
+              <li><b>Právo na opravu (Čl. 16) a vymazanie („právo na zabudnutie“, Čl. 17):</b> Možnosť kedykoľvek upraviť profil alebo jedným klikom zmazať svoju pamäť, API kľúče a históriu relácie.</li>
+              <li><b>Právo na obmedzenie a prenosnosť (Čl. 18 a 20):</b> Stiahnutie projektových artefaktov a vygenerovaných dokumentov ako PDF / MD archív.</li>
+              <li><b>Právo odvolať súhlas:</b> Kedykoľvek bezplatne bez vplyvu na zákonnosť spracúvania pred jeho odvolaním.</li>
+              <li><b>Dozorný orgán:</b> V prípade pochybností máš právo podať sťažnosť na <b>Úrad na ochranu osobných údajov Slovenskej republiky</b> (Hraničná 12, 820 07 Bratislava 27, <a href="https://dataprotection.gov.sk" target="_blank" rel="noopener">dataprotection.gov.sk</a>).</li>
+            </ul>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge">FORMULÁCIA SÚHLASU</span>
+            <h3>4. Znenie súhlasu so spracovaním osobných údajov</h3>
+            <div class="oath-block" style="font-size:13px;line-height:1.6;margin-top:8px">
+              „Odoslaním požiadavky alebo používaním služieb platformy Trinity vyhlasujem, že som sa oboznámil/a s týmito Zásadami ochrany osobných údajov a udeľujem dobrovoľný, výslovný a informovaný súhlas so spracúvaním mojich osobných údajov (vrátane technických identifikátorov a vstupov do AI modelov) na účely prevádzky a personalizácie systému Trinity. Beriem na vedomie, že tento súhlas môžem kedykoľvek bezplatne odvolať v nastaveniach účtu alebo kontaktovaním prevádzkovateľa na gdpr@auru.space.“
+            </div>
+            <div class="docs-card-actions" style="margin-top:12px">
+              <button type="button" class="primary" data-view="documents" data-open-doc-tab="archive">📁 Zobraziť GDPR dokument v Archíve (PDF / MD) →</button>
+            </div>
+          </article>
+        </div>
+      </div>
+
       <div id="doc-pane-archive" class="doc-tab-pane" hidden>
         <section class="panel">
           <div class="panel-head">
@@ -1189,6 +1240,7 @@
             <button type="button" class="domain-filter-btn" data-doc-filter="commerce">📈 Komodity & Banky</button>
             <button type="button" class="domain-filter-btn" data-doc-filter="self_improvement">🧠 Samorozvoj</button>
             <button type="button" class="domain-filter-btn" data-doc-filter="manual_doc">📝 Vlastné</button>
+            <button type="button" class="domain-filter-btn" data-doc-filter="legal_compliance">⚖️ Právo &amp; GDPR</button>
             <input type="search" id="trinity-doc-search" class="domain-search-box" placeholder="Hľadať v archíve dokumentov...">
           </div>
           <div id="trinity-doc-form-wrap" class="domain-form-card" hidden>
@@ -1196,7 +1248,7 @@
               <strong>Vytvoriť nový Trinity Dokument</strong>
               <div class="commerce-form-grid">
                 <label><span>Názov dokumentu</span><input id="trinity-doc-title" required minlength="2" maxlength="180" placeholder="napr. Architektúra nového projektu"></label>
-                <label><span>Kategória</span><select id="trinity-doc-category"><option value="manual_doc">Vlastný dokument (manual_doc)</option><option value="architecture">Architektúra (architecture)</option><option value="domain_production">Domény & Produkcia</option><option value="ui_evolution">UI & Vzhľad</option><option value="commerce">Obchod, Banky & Komodity</option></select></label>
+                <label><span>Kategória</span><select id="trinity-doc-category"><option value="manual_doc">Vlastný dokument (manual_doc)</option><option value="legal_compliance">Právo, GDPR &amp; Compliance (legal_compliance)</option><option value="architecture">Architektúra (architecture)</option><option value="domain_production">Domény & Produkcia</option><option value="ui_evolution">UI & Vzhľad</option><option value="commerce">Obchod, Banky & Komodity</option></select></label>
                 <label class="full-span"><span>Stručné zhrnutie</span><input id="trinity-doc-summary" maxlength="500" placeholder="Hlavný účel a výstup dokumentu"></label>
                 <label class="full-span"><span>Obsah dokumentu (Markdown)</span><textarea id="trinity-doc-content" rows="5" required maxlength="30000" placeholder="# Nadpis&#10;Opíš kroky, rozhodnutia alebo špecifikáciu..."></textarea></label>
               </div>
