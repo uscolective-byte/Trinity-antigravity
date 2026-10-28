@@ -412,3 +412,24 @@ Nasadenie a overenie (Dôkazy):
 - `GET https://auru.space/api/sync/state` -> HTTP 200, domains: `auru.dev`, `auru.space`, shared_core: `trinity`, d1: `trinity-v03`, kv: `PC_STATE & Mastermind`.
 - `POST https://auru.space/api/sync/state` -> HTTP 200, `synchronized: true`, úspešný zápis a okamžité načítanie.
 Ďalší krok: Majiteľ môže otvoriť Desktop aplikáciu (spustiť `1-SPUSTIT-TRINITY.cmd`) a mobilnú PWA na telefóne; obe aplikácie sú priradené a živo synchronizované. Súbory uvoľnené.
+
+
+### CLAIM — CHATGPT-TOOL-MARKETPLACE-20261028-01
+Čas: 2026-10-28, Europe/Bratislava.
+Autor: ChatGPT (GitHub connector).
+Majiteľský pokyn: pridať Trinity Marketplace nástrojov pre Instagram,
+ChatGPT/OpenAI API, Cloudflare, Vercel, vývoj a zábavné nástroje.
+Base: 8510a34e825c6e4710516e3850910012f27961a0; samostatná vetva
+feat/trinity-tool-marketplace-20261028; nepreberá žiadne živé cloud zdroje.
+Vlastnené súbory: Trinity/src/tool-marketplace.js,
+Trinity/public/assistant/tool-marketplace.html,
+Trinity/public/assistant/tool-marketplace.js.txt,
+Trinity/src/index.js (iba malý registrátor trasy a statickej stránky),
+Trinity/public/assistant/chat.html (iba navigačný odkaz),
+Trinity/tests/tool-marketplace.test.mjs,
+Trinity/docs/TOOL-MARKETPLACE.md a vlastný append-only zápis v TEAM-HANDOFF.md.
+Codex developer-tools, Antigravity PC/sync/Telegram a ich hotové zmeny
+sa neprepisujú. Rozsah je read-only katalóg + UI; bez Instagram publikovania,
+bez OAuth vo vlastnej réžii, bez Vercel deployu, bez zapisovania secrets,
+bez automatického zapnutia externých pluginov.
+Stav: active; po úpravách test, PR a HANDOFF.
