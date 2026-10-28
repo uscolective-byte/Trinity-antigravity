@@ -433,3 +433,45 @@ Trinity/public/assistant/chat.js.txt, sw.js.txt ani GDPR,
 žiadny Cloudflare deploy, zmena secrets, Entra consent či neautorizovaný MSA login.
 Nemení sa Local-Gateway developer-tools aktivácia (STOP trvá).
 Stav: active. Ďalší zápis UPDATE/HANDOFF a potom nezávislý ACK.
+
+
+### UPDATE / HANDOFF — TRINITYS-MICROSOFT-GRAPH-20261028-CHATGPT-01
+Čas: 2026-10-28, Europe/Bratislava.
+Autor/klient: ChatGPT GitHub connector, jediný implementátor tejto vetvy.
+Základná main vetva pri poslednej kontrole: 8510a34e825c6e4710516e3850910012f27961a0.
+Implementované len v PR/izolovanej vetve (nie v live prevádzke):
+- Local-Desktop/modules/microsoft.mjs: osobitné tenant/personal
+  identity, device-code OAuth, DPAPI-only token, Graph /me verify,
+  read-only mail/calendar/drive, explicitné propose/approve/reject
+  pre sendMail, createEvent, uploadFile, limit a no-replay.
+- Local-Desktop/server.mjs: autorizované /api/microsoft/* trasy,
+  read-only status a health, explicitný Direct Line probe.
+- Local-Desktop/public/index.html a nový microsoft.js:
+  karta dvoch účtov, device code flow, read-only tlačidlá a Guarded
+  Action Approval Card s manuálnym potvrdením.
+- Local-Desktop/tests/microsoft.test.mjs: 8 definovaných Node testov
+  pre príklady oboch účtov a negatívne authorization cases.
+- Trinity/docs/MICROSOFT-TRINITYS-INTEGRATION.md: stav, postup,
+  bezpečnostné obmedzenia a cloud handoff.
+Kontroly: 12/12 izolovaných JS V8 skúšok s mock Graph+DPAPI PASS,
+11/11 ďalších zdrojových/UI/auth kontrol PASS.
+Plné node --test, Local-Desktop 16/16, npm check a skutočný
+Microsoft Graph / Direct Line consent TEST zatiaľ NEVYKONANÉ;
+žiadny cloud deploy, Azure Entra consent, D1 migration či zapisovanie
+credentials. Desktop Commander device Basterix v tomto klientovi
+offline; GitHub Actions bolo blokované billing lock.
+Majiteľ poskytol Copilot share link, ale jeho verejné otvorenie
+vrátilo len Microsoft sign-in page. Obsah rozhovoru teda NEČÍTANÝ;
+z odkazu nevymýšľať údaje.
+Cloudflare/auru.dev App Hub, obojsmerný Copilot routing a cloudové
+Graph action approvals čakajú na HANDOFF od aktívneho vlastníka
+Trinity/src/index.js a Trinity/public/assistant/chat.js.txt.
+Upozornenie: objekty Bot ID a Service Principal Object ID nie sú
+Application (client) ID a nedávajú prístup k Microsoft Graph.
+Príjemca: Codex / Antigravity / vlastníci Cloudflare a PWA.
+Ďalší krok: runtime node testy; opraviť zistené problémy; Entra
+registration/public-client flow a reálne OAuth consent oboch účtov;
+samostatný Cloudflare claim, staged test, exact SHA receipt a až
+potom owner-approved deploy.
+Stav: local_prepared, pending_runtime_tests, pending_owner_oauth,
+pending_cloud_ownership_handoff, pending_ack.
