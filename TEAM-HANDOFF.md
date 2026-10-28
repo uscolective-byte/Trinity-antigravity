@@ -335,5 +335,13 @@ Kontroly a dôkazy:
 - `node --test Trinity/tests/omni-tools.test.mjs` -> 7 / 7 PASS (100 %).
 - `npm run check` naprieč celým monorepom -> 580 / 580 PASS (Trinity 537, Audit 6, Capacity 10, Jericho 12, Tetrakis 15).
 - Wrangler build (`wrangler deploy --dry-run`): 4261.87 KiB upload, validné väzby, kód 0.
-Stav: completed.
-Ďalší krok: Git commit & push, nasadenie unifikovaného workeru na Cloudflare a verifikácia cez verify-deployment.mjs. Súbory uvoľnené.
+Stav: completed a nasadené.
+Nasadenie a overenie (Dôkazy):
+- Commit: `abcb925fecef9fed1511f14ab649cfee9b4ecbad` na vetve `main`.
+- Cloudflare Worker `trinity` (`auru.space` & `auru.dev`):
+  - Version ID: `b377cb43-9ebf-40e5-81eb-ec4ec5eb7c50`
+  - Tag: `abcb925fecef9fed1511f14ab649cfee9b4ecbad`
+- `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id b377cb43-9ebf-40e5-81eb-ec4ec5eb7c50` -> `verified: true`
+- `GET https://auru.space/api/skills/matrix` -> HTTP 200, count: 112 skills.
+- `GET https://auru.space/api/pc-bridge` -> HTTP 200, telemetry: host `Basterix`, CPU: 8 cores, RAM: 15984 MB, prislub_verified: true.
+Ďalší krok: Spustenie lokálneho daemona majiteľom cez `powershell -ExecutionPolicy Bypass -File scripts\start-pc-daemon.ps1` pre trvalý live stream príkazov a telemetrie. Súbory uvoľnené.
