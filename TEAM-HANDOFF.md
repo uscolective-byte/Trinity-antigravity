@@ -246,3 +246,12 @@ Skutočné zmeny:
 6. Monorepo pre-flight testy: 100 % PASS (Trinity 530/530, Audit 6/6, Capacity 10/10, Jericho 12/12, Tetrakis 15/15 — spolu 573 testov).
 Stav: completed.
 Ďalší krok: Nasadenie na produkčný worker `trinity` (`auru.space`) a odovzdanie do live prevádzky. Súbory uvoľnené.
+
+Nasadenie a overenie (Dôkazy):
+- Commit: `7790256` na vetve `main`.
+- Cloudflare Worker `trinity` (`auru.space`) nasadený s tagom `7790256`:
+  - Version ID: `f29ae9b1-6771-4d10-88d0-374987e7df75`
+- `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id f29ae9b1-6771-4d10-88d0-374987e7df75` -> `verified: true`
+- `GET https://auru.space/api/telegram/status` -> HTTP 200:
+  `bot_token: true`, `webhook_secret: true`, `allowed_users: true`, `provider: gemini`, `capabilities: [..., multi-turn-memory, system-grounding, clear]`, `live_verified: true`.
+Stav: completed a nasadené.
