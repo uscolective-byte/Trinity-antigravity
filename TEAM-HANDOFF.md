@@ -215,3 +215,24 @@ Kontroly a dôkazy:
 - Monorepo testy: 598 / 598 PASS (100 % úspešnosť).
 Stav: completed.
 Ďalší krok: Spoločná koordinácia s Codexom v súlade s TEAM-HANDOFF.md. Súbory Telegram mosta uvoľnené.
+
+### CLAIM — CHATGPT-REVIEW-20261028-01
+Dátum a pásmo: 2026-10-28, Europe/Bratislava.
+Autor a klient: ChatGPT (GitHub connector; bez prístupu k offline PC Basterix).
+Cieľ: kontrola existujúceho tímového protokolu a bezpečná oprava Telegram
+setupu / nepravdivých stavových tvrdení, podľa požiadavky majiteľa na
+kontrolu Trinity 11.0 a jednu PR vetvu.
+Base: 09762204961665c1b9b1ebb7ff48f8b8bbe9bcd7, main.
+Vetva: fix/trinity-handoff-telegram-truth-20261028.
+Vlastnené súbory (iba táto vetva): TEAM-HANDOFF.md (vlastné zápisy na konci),
+Trinity/scripts/setup-telegram-bot.mjs, Trinity/src/telegram-bridge.js,
+Trinity/tests/telegram-truth-and-setup.test.mjs,
+Trinity/docs/SINGLE_REPOSITORY.md.
+Koordinácia: pôvodný Telegram HANDOFF záznam uvoľnil Telegram súbory;
+Antigravity stále vlastní Cloudflare deployment, ktorý tu nemením.
+Codex vlastní súbory developer-tools a client-sync; žiadny z nich nemením.
+Predchádzajúca izolovaná vetva fix/trinity-telegram-truth-and-release-audit-20261028
+zostáva nedotknutá; pre integráciu sa používa táto vetva z aktuálneho main.
+Zákazy: bez deployu, výmazu, reštartu gateway, úprav Worker secrets,
+aktivácie odložených developer-tools alebo ACK za iných agentov.
+Stav: active; čaká sa na testy a samostatný HANDOFF.
