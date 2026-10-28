@@ -412,3 +412,24 @@ Nasadenie a overenie (Dôkazy):
 - `GET https://auru.space/api/sync/state` -> HTTP 200, domains: `auru.dev`, `auru.space`, shared_core: `trinity`, d1: `trinity-v03`, kv: `PC_STATE & Mastermind`.
 - `POST https://auru.space/api/sync/state` -> HTTP 200, `synchronized: true`, úspešný zápis a okamžité načítanie.
 Ďalší krok: Majiteľ môže otvoriť Desktop aplikáciu (spustiť `1-SPUSTIT-TRINITY.cmd`) a mobilnú PWA na telefóne; obe aplikácie sú priradené a živo synchronizované. Súbory uvoľnené.
+
+
+### CLAIM — TRINITYS-MICROSOFT-GRAPH-20261028-CHATGPT-01
+Čas: 2026-10-28, Europe/Bratislava.
+Autor/klient: ChatGPT cez GitHub connector.
+Pokyn majiteľa: Teamwork Project Prompt Trinitys (Copilot Studio), M365/Entra + personal MSA, Graph a Guarded Action.
+Base HEAD: 8510a34e825c6e4710516e3850910012f27961a0.
+Izolovaná vetva: feat/trinitys-microsoft-graph-guarded-20261028.
+Vlastníctvo: Local-Desktop/modules/microsoft.mjs (nový),
+Local-Desktop/tests/microsoft.test.mjs (nový),
+Local-Desktop/server.mjs (iba nové Microsoft trasy),
+Local-Desktop/public/index.html a Local-Desktop/public/app.js (iba Microsoft karta),
+Trinity/src/microsoft-graph.js (nový, samostatný read-only/guarded kontrakt),
+Trinity/tests/microsoft-graph.test.mjs (nový),
+Trinity/docs/MICROSOFT-TRINITYS-INTEGRATION.md (nový),
+TEAM-HANDOFF.md (iba vlastné append-only záznamy).
+Žiadny priamy zásah do Codexom nárokovaného Trinity/src/index.js,
+Trinity/public/assistant/chat.js.txt, sw.js.txt ani GDPR,
+žiadny Cloudflare deploy, zmena secrets, Entra consent či neautorizovaný MSA login.
+Nemení sa Local-Gateway developer-tools aktivácia (STOP trvá).
+Stav: active. Ďalší zápis UPDATE/HANDOFF a potom nezávislý ACK.
