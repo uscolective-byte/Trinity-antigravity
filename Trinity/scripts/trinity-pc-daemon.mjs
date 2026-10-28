@@ -183,7 +183,22 @@ export function executeFileSystem(action, payload) {
 export async function runDaemonCycle(baseUrl = TRINITY_URL, key = GATEWAY_KEY) {
   const telemetry = gatherTelemetry();
 
-  // 1. Odoslanie Heartbeatu na Cloudflare Worker
+  // 1. Odoslanie priamej telemetrie do Omni-Dev PC Bridge endpointu
+  try {
+    await fetch(`${baseUrl}/api/pc-bridge/telemetry`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(key ? { Authorization: `Bearer ${key}` } : {})
+      },
+      body: JSON.stringify(telemetry),
+      signal: AbortSignal.timeout(8000)
+    });
+  } catch (e) {
+    // Ignorovať sieťový výpadok
+  }
+
+  // 2. Odoslanie Heartbeatu na Cloudflare Worker pre PC_BRIDGE_V2
   if (key) {
     try {
       await fetch(`${baseUrl}/api/system/pc-bridge/v1/heartbeat`, {

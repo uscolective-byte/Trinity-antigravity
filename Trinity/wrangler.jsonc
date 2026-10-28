@@ -105,6 +105,10 @@
   ],
   "kv_namespaces": [
     {
+      "binding": "PC_STATE",
+      "id": "7eb48d414296418f9c60d87f8c602956"
+    },
+    {
       "binding": "Mastermind",
       "id": "0b92ed2717d742daa860f1827797297f"
     }
