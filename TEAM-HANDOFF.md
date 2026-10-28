@@ -255,3 +255,85 @@ Nasadenie a overenie (Dôkazy):
 - `GET https://auru.space/api/telegram/status` -> HTTP 200:
   `bot_token: true`, `webhook_secret: true`, `allowed_users: true`, `provider: gemini`, `capabilities: [..., multi-turn-memory, system-grounding, clear]`, `live_verified: true`.
 Stav: completed a nasadené.
+
+
+### CLAIM — TRINITY-OMNI-DEV-AURU-DEV-20261028-ANTIGRAVITY-01
+Čas a časové pásmo: 2026-10-28 16:04, Europe/Bratislava.
+Autor a klient: Antigravity (Gemini 3.8 Flash, local IDE/CLI).
+Príjemcovia: Majiteľ (Basterix), Codex, Tím Trinity.
+Cieľ a pokyn majiteľa: „AUTONÓMNY EXEKUČNÝ ROZKAZ PRE ANTIGRAVITY: PROJEKT TRINITY OMNI-DEV (AURU.DEV)“ — transformácia auru.dev na Sovereign AI OS s obojsmerným PC execution bridge daemonom, dynamickým registrom nástrojov (trinity_skills), cloud/github/mail/api nástrojmi, self-evolution poistkou a split-screen omni-studiom.
+Základný commit / checkout: `bbca579` (branch `main`).
+Vlastnené súbory alebo zdroje / prostredie:
+- `Trinity/src/omni-tools.js`
+- `Trinity/src/skill-matrix.js`
+- `Trinity/src/self-evolution.js`
+- `Trinity/src/engine.js`
+- `Trinity/src/services.js`
+- `Trinity/src/index.js`
+- `Trinity/public/assistant/chat.js.txt`
+- `Trinity/public/assistant/chat.html`
+- `Trinity/scripts/trinity-pc-daemon.mjs`
+- `scripts/trinity-pc-daemon.mjs`
+- D1 databáza `trinity-v03` (tabuľka `trinity_skills`)
+- D1 databáza `trinity-pc-bridge`
+- KV `PC_STATE` / `Mastermind`
+Stav: completed.
+
+### UPDATE / HANDOFF — TRINITY-OMNI-DEV-AURU-DEV-20261028-ANTIGRAVITY-01
+Čas a časové pásmo: 2026-10-28 16:30, Europe/Bratislava.
+Autor a klient: Antigravity (Gemini 3.8 Flash, local IDE/CLI).
+Príjemcovia: Majiteľ (Basterix), Codex, Tím Trinity.
+Cieľ a pokyn majiteľa: Transformácia auru.dev na Sovereign AI OS (TRINITY OMNI-DEV) s lokálnym PC mostíkom, dynamickou maticou nástrojov, integrovanými cloudovými nástrojmi, poistkou sebamodifikácie a Split-Screen Omni-Studiom.
+Základný commit / checkout: `bbca579` (branch `main`).
+Vlastnené súbory alebo zdroje / prostredie:
+- `Trinity/src/omni-tools.js`
+- `Trinity/src/skill-matrix.js`
+- `Trinity/src/self-evolution.js`
+- `Trinity/src/tools.js`
+- `Trinity/src/registry.js`
+- `Trinity/src/engine.js`
+- `Trinity/src/index.js`
+- `Trinity/wrangler.jsonc`
+- `Trinity/public/assistant/chat.html`
+- `Trinity/public/assistant/chat.js.txt`
+- `Trinity/public/assistant/builder.css`
+- `Trinity/scripts/trinity-pc-daemon.mjs`
+- `scripts/trinity-pc-daemon.mjs`
+- `scripts/start-pc-daemon.ps1`
+- `verify-chat-contract.mjs`
+- `Trinity/verification/chat-owner-contract.json`
+- `Trinity/tests/omni-tools.test.mjs`
+- D1 `trinity-pc-bridge` (`ba94b9f2-5376-4ef8-92c4-7035df7cacb7`)
+- D1 `trinity-v03` (`ca8ea24e-f7db-431e-b8bf-97f713ae4533`)
+- KV `PC_STATE` (`7eb48d414296418f9c60d87f8c602956`) & `Mastermind`
+- R2 `trinity-artifacts`
+Skutočné zmeny:
+1. **Modul 1 (Local PC Bridge & Daemon):**
+   - Vytvorený daemon `scripts/trinity-pc-daemon.mjs` + PowerShell spúšťač `scripts/start-pc-daemon.ps1`.
+   - Overený fyzický sľub `PRISLUB_TRINITY.txt` na ploche majiteľa (`TRINITY-PROMISE-BASTERIX-20261025`).
+   - Vytvorené D1 tabuľky `pc_telemetry` a `pc_actions` na `trinity-pc-bridge`.
+   - Vytvorené endpointy `/api/pc-bridge` (GET stav / POST akcie) a `/api/pc-bridge/telemetry` (POST telemetria z PC).
+   - Vytvorené a integrované nástroje: `pc_fs_read`, `pc_fs_write`, `pc_fs_patch`, `pc_shell_exec`, `pc_system_telemetry`.
+2. **Modul 2 (Dynamický Skill Register & 2-Vrstvový Router):**
+   - Implementovaný `src/skill-matrix.js`: `loadDynamicSkills`, `registerDynamicSkill`, `routeSkillsSemantic` a `getSelfAwarenessDirective`.
+   - V D1 `trinity-v03` overená prítomnosť a naplnenie tabuľky `trinity_skills` (112 zručností).
+   - Injektované sebauvedomenie TRINITY o schopnostiach a PC mostíku do systémového promptu v `src/engine.js`.
+   - Vytvorené endpointy `/api/skills/matrix` a `/api/skills/register`.
+3. **Modul 3 (Arzenál Cloud, GitHub & API Nástrojov):**
+   - Vytvorený `src/omni-tools.js`: `cfD1Query`, `cfKVStore`, `cfR2Manage`, `cfSelfDeploy`, `githubSuite`, `mailEngine`, `httpFetchPro`.
+   - Všetky nástroje registrované v `src/tools.js` a priradené rolám v `src/registry.js`.
+4. **Modul 4 (Self-Evolution s R2/KV Rollbackom):**
+   - Implementovaný `src/self-evolution.js`: `backupSystemSnapshot` do R2 `snapshots/...` + KV `Mastermind`, syntax check validácia (`validateScriptSyntax`) a `restoreSnapshot`.
+   - Endpoint `/api/system/self-evolve`.
+5. **Modul 5 (Split-Screen Omni-Studio Workspace):**
+   - `Trinity/public/assistant/chat.html`: pridané navigačné tlačidlo `Omni-Dev Studio` a `#omnidev-view` so split-screen panelom (vľavo: Chat + Pentad Orchestrator s 2-min limitom; vpravo: 4 taby - PC Terminal & Files, Code Editor & Self-Modify, Skill Matrix, Sovereign Health).
+   - `Trinity/public/assistant/builder.css`: pridané responzívne split-screen a tab štýly.
+   - `Trinity/public/assistant/chat.js.txt`: implementované funkcie `loadOmniDev`, `refreshOmniTelemetry`, `refreshOmniSkills`, `refreshOmniFiles`, obsluhy terminálu a editora, a auto-aktivácia pri prístupe z `auru.dev`.
+   - Injektované hlavičky `X-Trinity-Host` a `X-Trinity-Mode: omni-dev` pri prístupe z `auru.dev`.
+Kontroly a dôkazy:
+- `node verify-chat-contract.mjs` -> 8 / 8 PASS (100 %).
+- `node --test Trinity/tests/omni-tools.test.mjs` -> 7 / 7 PASS (100 %).
+- `npm run check` naprieč celým monorepom -> 580 / 580 PASS (Trinity 537, Audit 6, Capacity 10, Jericho 12, Tetrakis 15).
+- Wrangler build (`wrangler deploy --dry-run`): 4261.87 KiB upload, validné väzby, kód 0.
+Stav: completed.
+Ďalší krok: Git commit & push, nasadenie unifikovaného workeru na Cloudflare a verifikácia cez verify-deployment.mjs. Súbory uvoľnené.

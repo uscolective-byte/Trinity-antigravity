@@ -4,6 +4,7 @@
   <nav class="main-nav" aria-label="Hlavné menu">
     <button data-view="chat" class="active"><span>💬</span><b data-i18n="chat">Chat & Práca</b></button>
     <button id="owner-overview-nav" data-view="dashboard" hidden><span>⚡</span><b data-i18n="overview">Prehľad & Stav</b></button>
+    <button data-view="omnidev" id="omnidev-nav-btn"><span>⚡</span><b>Omni-Dev Studio</b></button>
     <button data-view="studio"><span>✦</span><b>AI Studio (Weby)</b></button>
     <button data-view="domains"><span>◈</span><b>Domény & Hosting</b></button>
     <button data-view="wallet"><span>💳</span><b>Platby & Peňaženka</b></button>
@@ -33,6 +34,142 @@
     <form id="login-form"><input id="key" type="password" autocomplete="current-password" aria-label="Access key" placeholder="Prístupový kľúč"><button class="primary" data-i18n="login">Prihlásiť</button></form>
   </section>
   <div id="app-views">
+    <section id="omnidev-view" class="view omnidev-view" hidden>
+      <div class="omni-split-container">
+        <!-- Ľavý panel: Chat & Pentad 2.0 Orchestrator -->
+        <div class="omni-panel omni-left-chat">
+          <div class="omni-panel-header">
+            <span class="omni-badge">⚡ CHAT & PENTAD 2.0 ORCHESTRATOR</span>
+            <span class="omni-timer-pill" id="omni-live-timer">⏱ BUDGET: 100 000 ms</span>
+          </div>
+          <div id="omni-chat-messages" class="omni-messages">
+            <div class="assistant-msg" style="padding:10px;background:#1e293b;border-radius:10px;font-size:12px;">
+              <b>Trinity Omni-Dev:</b> Pripravená na vývoj, priame ovládanie hostiteľského PC, správu GitHubu, Cloudflare nástrojov a self-evolution.
+            </div>
+          </div>
+          <div class="omni-composer-sticky">
+            <div class="omni-pentad-bar" style="display:flex;justify-content:space-between;align-items:center;">
+              <small style="color:#94a3b8;font-size:10px;">Pentad 2.0 Router:</small>
+              <select id="omni-pentad-select" style="padding:3px 6px;font-size:10px;background:#0f172a;color:#f8fafc;border:1px solid #334155;border-radius:6px;">
+                <option value="auto">⚪ Auto Pentad Router</option>
+                <option value="cloud">🟢 Edge AI (Llama 3.3 70B)</option>
+                <option value="gemini">🔵 Google Gemini 3.8 Flash</option>
+                <option value="copilot">🟣 Copilot Studio</option>
+                <option value="consensus">🛡️ Consensus Guard (Pentad 2.0)</option>
+              </select>
+            </div>
+            <div class="omni-input-row" style="display:flex;gap:6px;">
+              <textarea id="omni-chat-input" rows="2" style="flex:1;background:#020617;color:#f8fafc;border:1px solid #334155;border-radius:8px;padding:8px;font-size:11px;resize:none;" placeholder="Zadaj úlohu pre Omni-Dev..."></textarea>
+              <button id="omni-chat-send" class="primary" style="padding:0 12px;font-size:11px;">Odoslať ➔</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pravý panel: Omni-Workspace Canvas -->
+        <div class="omni-panel omni-right-canvas">
+          <div class="omni-canvas-tabs">
+            <button class="omni-tab-btn active" data-omni-tab="terminal">💻 Live PC Terminál & Súbory</button>
+            <button class="omni-tab-btn" data-omni-tab="editor">🧬 Code Editor & Self-Modify</button>
+            <button class="omni-tab-btn" data-omni-tab="skills">🧰 Skill Matrix & Store</button>
+            <button class="omni-tab-btn" data-omni-tab="audit">📜 Sovereign Health & Audit</button>
+          </div>
+
+          <!-- Tab 1: Terminal & Files -->
+          <div id="omni-tab-terminal" class="omni-tab-content active">
+            <div class="omni-sub-split">
+              <div class="omni-file-browser">
+                <div class="omni-bar">
+                  <span>📁 Súbory (Host PC)</span>
+                  <button id="omni-fs-refresh" style="font-size:9px;padding:2px 6px;">↻ Obnoviť</button>
+                </div>
+                <input type="text" id="omni-fs-path" value="C:\Users\saboi\Trinity-antigravity" style="padding:4px 8px;font-size:10px;background:#020617;color:#94a3b8;border:0;border-bottom:1px solid #1e293b;" />
+                <div id="omni-file-tree" class="omni-tree-box">Načítavam súbory...</div>
+              </div>
+              <div class="omni-shell-box">
+                <div class="omni-bar">
+                  <span>💻 Živá Konzola (PowerShell / CMD / Node)</span>
+                  <span id="omni-pc-status-pill" style="color:#4ade80;font-size:10px;">● PC: Online</span>
+                </div>
+                <div id="omni-console-log" class="omni-terminal-screen">TRINITY PC BRIDGE TERMINAL v11.0
+Pripravené na spustenie príkazu na hostiteľskom PC...</div>
+                <div class="omni-console-input-row">
+                  <select id="omni-shell-type" style="padding:4px;font-size:10px;background:#1e293b;color:#f8fafc;border:1px solid #334155;border-radius:6px;">
+                    <option value="powershell">PowerShell</option>
+                    <option value="cmd">CMD</option>
+                    <option value="node">Node.js</option>
+                    <option value="python">Python</option>
+                  </select>
+                  <input type="text" id="omni-console-cmd" style="flex:1;padding:6px;font-size:11px;background:#020617;color:#4ade80;border:1px solid #334155;border-radius:6px;font-family:monospace;" placeholder="Zadaj príkaz (napr. git status, dir, node -v)..." />
+                  <button id="omni-console-exec" class="primary" style="padding:4px 10px;font-size:11px;">Spustiť ↵</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Code Editor & Self-Modify Diff -->
+          <div id="omni-tab-editor" class="omni-tab-content">
+            <div class="omni-bar">
+              <span>🧬 Self-Modifying Editor s Auto-Rollback poistkou</span>
+              <button id="omni-editor-save" class="primary" style="font-size:9px;padding:3px 8px;">⚡ Aplikovať zmenu & Otestovať</button>
+            </div>
+            <div class="omni-editor-subbar" style="display:flex;gap:6px;padding:6px;background:#0f172a;border-bottom:1px solid #1e293b;">
+              <input type="text" id="omni-editor-file" value="Trinity/src/engine.js" style="flex:1;padding:4px 8px;font-size:10px;background:#020617;color:#f8fafc;border:1px solid #334155;border-radius:6px;" />
+              <button id="omni-editor-load" style="font-size:10px;padding:3px 8px;">Načítať súbor</button>
+            </div>
+            <textarea id="omni-code-textarea" class="omni-code-area" spellcheck="false">// Trinity Sovereign Engine Core
+// Načítaj súbor pre úpravu...</textarea>
+            <div id="omni-editor-status" class="omni-status-box">Zadaj alebo uprav kód. Pred prepisom sa automaticky vytvorí R2 snapshot a spustí sa verifikačný test.</div>
+          </div>
+
+          <!-- Tab 3: Skill Matrix & API Store -->
+          <div id="omni-tab-skills" class="omni-tab-content">
+            <div class="omni-bar">
+              <span>🧰 Neobmedzený register nástrojov (D1 trinity_skills)</span>
+              <button id="omni-skills-refresh" style="font-size:9px;padding:3px 8px;">↻ Obnoviť</button>
+            </div>
+            <div class="omni-skills-stats" style="display:flex;justify-content:space-between;padding:8px 12px;background:#0f172a;border-bottom:1px solid #1e293b;font-size:10px;color:#94a3b8;">
+              <span>Aktívne nástroje: <b id="omni-skills-count" style="color:#38bdf8;">112</b></span>
+              <span>Sémantický router: <b style="color:#4ade80;">@cf/baai/bge-base-en-v1.5</b></span>
+            </div>
+            <div id="omni-skills-list" class="omni-skills-grid"></div>
+          </div>
+
+          <!-- Tab 4: Sovereign Health & Audit -->
+          <div id="omni-tab-audit" class="omni-tab-content">
+            <div class="omni-bar">
+              <span>📜 Sovereign Health & Circuit Breaker Stavy</span>
+              <button id="omni-audit-refresh" style="font-size:9px;padding:3px 8px;">↻ Obnoviť</button>
+            </div>
+            <div class="omni-health-grid">
+              <div class="health-card" style="padding:10px;background:#1e293b;border-radius:8px;display:flex;flex-direction:column;gap:3px;">
+                <span style="font-size:9px;color:#94a3b8;">HOST PC BRIDGE</span>
+                <b id="omni-health-pc" style="color:#4ade80;font-size:12px;">Basterix (Online)</b>
+                <small id="omni-health-prislub" style="color:#38bdf8;font-size:9px;">Prísľub: Overený na ploche</small>
+              </div>
+              <div class="health-card" style="padding:10px;background:#1e293b;border-radius:8px;display:flex;flex-direction:column;gap:3px;">
+                <span style="font-size:9px;color:#94a3b8;">EDGE AI (Llama 3.3)</span>
+                <b id="omni-health-edge" style="color:#4ade80;font-size:12px;">Aktívne</b>
+                <small style="color:#94a3b8;font-size:9px;">Circuit: CLOSED</small>
+              </div>
+              <div class="health-card" style="padding:10px;background:#1e293b;border-radius:8px;display:flex;flex-direction:column;gap:3px;">
+                <span style="font-size:9px;color:#94a3b8;">GOOGLE GEMINI</span>
+                <b id="omni-health-gemini" style="color:#4ade80;font-size:12px;">Pripravené</b>
+                <small style="color:#94a3b8;font-size:9px;">Circuit: CLOSED</small>
+              </div>
+              <div class="health-card" style="padding:10px;background:#1e293b;border-radius:8px;display:flex;flex-direction:column;gap:3px;">
+                <span style="font-size:9px;color:#94a3b8;">MICROSOFT COPILOT</span>
+                <b id="omni-health-copilot" style="color:#4ade80;font-size:12px;">Pripravené</b>
+                <small style="color:#94a3b8;font-size:9px;">Circuit: CLOSED</small>
+              </div>
+            </div>
+            <div class="omni-bar" style="margin-top:12px;">
+              <span>Overené doklady (Truth Policy 2.0 Receipts)</span>
+            </div>
+            <div id="omni-receipts-table" class="omni-receipts-box" style="padding:10px;font-family:monospace;font-size:10px;color:#94a3b8;overflow-y:auto;flex:1;">Načítavam audit doklady...</div>
+          </div>
+        </div>
+      </div>
+    </section>
     <section id="dashboard-view" class="view dashboard-view" hidden>
       <div id="user-dashboard" class="role-dashboard">
         <div class="hero-card user-hero"><div class="hero-copy"><span class="eyebrow">OSOBNÝ PRIESTOR</span><h1><span data-i18n="hello">Ahoj.</span> <em data-i18n="ready">Čo dnes vytvoríme?</em></h1><p data-i18n="dashboardIntro">Trinity spája rozhovor, pamäť, projekty a nástroje do jedného pokojného pracovného priestoru.</p><div class="hero-actions"><button class="primary" data-open-chat data-prompt="" data-i18n="startChat">Začať rozhovor</button><button data-view="studio" data-i18n="openStudio">Otvoriť AI Studio</button></div></div><div class="living-core" aria-label="Trinity core"><div class="orbit one"></div><div class="orbit two"></div><div class="core">✦</div><span>TRINITY USER</span></div></div>

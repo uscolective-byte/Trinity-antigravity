@@ -35,11 +35,13 @@ import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,genera
 import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,listAllIntegrations} from './external-integrations.js';
 import {getWalletTerminalOverview,createPaymentTerminalCharge,executeWalletPayout,saveWalletTerminalConfig,createCryptoWallet,terminalConfigSchema,terminalChargeSchema,terminalPayoutSchema} from './wallet-terminals.js';
 import {FREE_MODULES_CATALOG,fetchWeather,fetchWikipedia,resolveDns,fetchCryptoMarkets,fetchTechNews,fetchWorldBankIndicator} from './free-modules.js';
+import {cfD1Query,cfKVStore,cfR2Manage,cfSelfDeploy,mailEngine,httpFetchPro,pcFsRead,pcFsWrite,pcFsPatch,pcShellExec,pcSystemTelemetry} from './omni-tools.js';
+import {applySelfModification} from './self-evolution.js';
 
 export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
-export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']);
-export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status']);
+export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
+export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
 export const TOOL_SCHEMAS={
   web_fetch:z.object({url:z.string().url()}).strict(),
   project_inspect:z.object({query:z.string().max(2000).default('')}).strict(),
@@ -226,7 +228,19 @@ export const TOOL_SCHEMAS={
   ,orchestrate_team:z.object({
     task:z.string().trim().min(1).max(10000)
   }).strict()
-  ,fleet_status:z.object({}).strict(),open_weather:z.object({query:z.string().trim().min(1).max(120)}).strict(),open_wikipedia:z.object({query:z.string().trim().min(1).max(200),lang:z.enum(['sk','en','cz','de','fr']).optional().default('sk')}).strict(),network_dns:z.object({domain:z.string().trim().min(3).max(253),type:z.enum(['A','AAAA','MX','TXT','CNAME','NS','SOA']).optional().default('A')}).strict(),crypto_prices:z.object({coins:z.array(z.string().trim().min(1).max(40)).min(1).max(10).optional().default(['bitcoin','ethereum','solana'])}).strict(),tech_news:z.object({limit:z.number().int().min(1).max(20).optional().default(8)}).strict(),macro_data:z.object({country:z.string().trim().min(2).max(3).optional().default('SVK'),indicator:z.string().trim().min(2).max(40).optional().default('NY.GDP.MKTP.CD')}).strict(),free_modules_catalog:z.object({}).strict()
+  ,fleet_status:z.object({}).strict(),open_weather:z.object({query:z.string().trim().min(1).max(120)}).strict(),open_wikipedia:z.object({query:z.string().trim().min(1).max(200),lang:z.enum(['sk','en','cz','de','fr']).optional().default('sk')}).strict(),network_dns:z.object({domain:z.string().trim().min(3).max(253),type:z.enum(['A','AAAA','MX','TXT','CNAME','NS','SOA']).optional().default('A')}).strict(),crypto_prices:z.object({coins:z.array(z.string().trim().min(1).max(40)).min(1).max(10).optional().default(['bitcoin','ethereum','solana'])}).strict(),tech_news:z.object({limit:z.number().int().min(1).max(20).optional().default(8)}).strict(),macro_data:z.object({country:z.string().trim().min(2).max(3).optional().default('SVK'),indicator:z.string().trim().min(2).max(40).optional().default('NY.GDP.MKTP.CD')}).strict(),free_modules_catalog:z.object({}).strict(),
+  cf_d1_query:z.object({database:z.string().optional(),query:z.string(),params:z.array(z.unknown()).optional()}).strict(),
+  cf_kv_store:z.object({namespace:z.string().optional(),action:z.enum(['get','put','set','delete','list']).default('get'),key:z.string(),value:z.unknown().optional(),ttl:z.number().optional()}).strict(),
+  cf_r2_manage:z.object({action:z.enum(['list','upload','put','download','get','delete']).default('list'),key:z.string().optional(),body:z.unknown().optional(),contentType:z.string().optional()}).strict(),
+  cf_self_deploy:z.object({reason:z.string().optional()}).strict(),
+  mail_engine:z.object({action:z.enum(['send','read_inbox','webhook_notify']).default('send'),to:z.string().optional(),subject:z.string().optional(),body:z.string().optional(),html:z.string().optional(),target:z.string().optional(),payload:z.record(z.string(),z.unknown()).optional()}).strict(),
+  http_fetch_pro:z.object({url:z.string(),method:z.enum(['GET','POST','PUT','PATCH','DELETE','HEAD']).default('GET'),headers:z.record(z.string(),z.string()).optional(),body:z.unknown().optional(),secretKey:z.string().optional(),timeoutMs:z.number().optional()}).strict(),
+  pc_fs_read:z.object({path:z.string(),encoding:z.string().optional()}).strict(),
+  pc_fs_write:z.object({path:z.string(),content:z.string(),append:z.boolean().optional()}).strict(),
+  pc_fs_patch:z.object({path:z.string(),target:z.string(),replacement:z.string()}).strict(),
+  pc_shell_exec:z.object({command:z.string(),shell:z.enum(['powershell','cmd','node','python']).optional(),cwd:z.string().optional(),timeout:z.number().optional()}).strict(),
+  pc_system_telemetry:z.object({}).strict(),
+  apply_self_evolution:z.object({filePath:z.string(),originalContent:z.string().optional(),newContent:z.string(),rationale:z.string().optional()}).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -955,6 +969,18 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(name==='tech_news')return {...await fetchTechNews(args.limit),_evidence:{effect:'read',action:'tech_news',receipt_id:crypto.randomUUID()}};
   if(name==='macro_data')return {...await fetchWorldBankIndicator(args.country,args.indicator),_evidence:{effect:'read',action:'macro_data',receipt_id:crypto.randomUUID()}};
   if(name==='free_modules_catalog')return {modules:FREE_MODULES_CATALOG,_evidence:{effect:'read',action:'free_modules_catalog',receipt_id:crypto.randomUUID()}};
+  if(name==='cf_d1_query')return cfD1Query(env, args);
+  if(name==='cf_kv_store')return cfKVStore(env, args);
+  if(name==='cf_r2_manage')return cfR2Manage(env, args);
+  if(name==='cf_self_deploy')return cfSelfDeploy(env, args);
+  if(name==='mail_engine')return mailEngine(env, args);
+  if(name==='http_fetch_pro')return httpFetchPro(env, args);
+  if(name==='pc_fs_read')return pcFsRead(env, args);
+  if(name==='pc_fs_write')return pcFsWrite(env, args);
+  if(name==='pc_fs_patch')return pcFsPatch(env, args);
+  if(name==='pc_shell_exec')return pcShellExec(env, args);
+  if(name==='pc_system_telemetry')return pcSystemTelemetry(env);
+  if(name==='apply_self_evolution')return applySelfModification(env, args);
 }
 export async function recallMemory(env,task){
   if(!await pluginEnabled(env,'memory'))return [];

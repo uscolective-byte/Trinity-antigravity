@@ -1,0 +1,17 @@
+import { runDaemonCycle, gatherTelemetry, executeShell, executeFileSystem, checkPrislubDeed } from '../Trinity/scripts/trinity-pc-daemon.mjs';
+
+export { runDaemonCycle, gatherTelemetry, executeShell, executeFileSystem, checkPrislubDeed };
+
+const ONCE = process.argv.includes('--once');
+const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || '4000', 10);
+
+if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}`) {
+  if (ONCE) {
+    const t = await runDaemonCycle();
+    console.log('[TRINITY PC DAEMON] One-shot overenie úspešné:', JSON.stringify(t, null, 2));
+    process.exit(0);
+  } else {
+    runDaemonCycle();
+    setInterval(runDaemonCycle, POLL_INTERVAL);
+  }
+}

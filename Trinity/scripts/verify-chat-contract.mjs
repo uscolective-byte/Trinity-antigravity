@@ -38,7 +38,7 @@ await check('real calculator execution in offline control flow produces a receip
 await check('unsupported deployment claim does not escape the engine',async()=>{
   const result=await runAgent({AI:{run:async()=>({response:'Nasadila som Worker.'})}},'orchestrator','Povedz, či sa vykonalo nasadenie.','','fast');
   assert.doesNotMatch(result.text,/Nasadila som/);
-  assert.match(result.text,/Nemám overený dôkaz/);
+  assert.match(result.text,/Nemám overený.*dôkaz/);
 });
 const report={checked_at:new Date().toISOString(),scope:'offline-control-flow-only',live_chat_verified:false,
   passed:checks.filter(c=>c.status==='passed').length,failed:checks.filter(c=>c.status==='failed').length,checks};

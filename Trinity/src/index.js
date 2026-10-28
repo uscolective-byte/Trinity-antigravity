@@ -43,6 +43,8 @@ import {handleVoiceDialogue} from './voice-agent.js';
 import {generateEscrowLandingHtml,createEscrowDeal,settleEscrowDeal,getTelegramConfig,saveTelegramConfig,sendTelegramAlert,checkDomainsAndSslHealth,listDomainAlerts,cloneDomainEnvironment} from './domain-desk-advanced.js';
 import {createPriceAlert,listPriceAlerts,checkPriceAlerts,generateInvoiceWithSepaQr,listGeneratedInvoices,getAggregatedNetWorth} from './banking-commodity-advanced.js';
 import {generateRegistrationOptions,verifyRegistrationResponse,generateAuthenticationOptions,verifyAuthenticationResponse,listUserPasskeys,deleteUserPasskey} from './webauthn.js';
+import {loadDynamicSkills,registerDynamicSkill} from './skill-matrix.js';
+import {applySelfModification} from './self-evolution.js';
 import {queryAuditEvents,exportAuditEvents,recordAuditEvent} from './audit-log.js';
 import {createPortfolio,listPortfolios,getPortfolio,recordTrade,setQuote} from './trading.js';
 import {listCustomAgents,createOrUpdateCustomAgent,executeCustomAgent,provisionAgentDomain} from './agent-sandbox.js';
@@ -141,7 +143,11 @@ async function route(request,env,ctx){
     const body=await readJSON(request,10000);
     return json(await createEscrowDeal(env,body),201);
   }
+  const reqHostname = new URL(request.url).hostname;
+  const isOmniDevHost = reqHostname === 'auru.dev' || new URL(request.url).searchParams.get('mode') === 'omni-dev';
   if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
+    'X-Trinity-Host': reqHostname,
+    'X-Trinity-Mode': isOmniDevHost ? 'omni-dev' : 'production',
     'Cache-Control':'no-cache, no-store, must-revalidate',
     'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; frame-src 'self' blob: data:; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
   if(request.method==='GET'&&path==='/app.js')return new Response(appJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
@@ -278,6 +284,51 @@ async function route(request,env,ctx){
   if(path==='/api/system/actions/claim'&&request.method==='POST'){
     const gateway=await authenticateGateway(request,env);await rateLimit(env,`gateway-claim:${gateway}`,120);
     return json({action:await claimSystemAction(env,gateway)});
+  }
+  if(path==='/api/pc-bridge'&&request.method==='GET'){
+    const status = await getPCBridgeStatus(env);
+    let kvTelemetry = null;
+    if(env.PC_STATE){
+      try{ kvTelemetry = JSON.parse(await env.PC_STATE.get('telemetry:latest') || 'null'); }catch{}
+    }
+    return json({ ok: true, status, telemetry: kvTelemetry });
+  }
+  if(path==='/api/pc-bridge/telemetry'&&request.method==='POST'){
+    const body = await readJSON(request, 64000);
+    if(env.PC_STATE){
+      await env.PC_STATE.put('telemetry:latest', JSON.stringify(body), { expirationTtl: 300 });
+    }
+    if(env.trinity_basterix){
+      await env.trinity_basterix.prepare(
+        "INSERT INTO pc_telemetry (id, gateway_id, hostname, platform, uptime, cpu_percent, memory_used_mb, memory_total_mb, disks_json, prislub_verified, last_seen, updated_at) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now')) ON CONFLICT (id) DO UPDATE SET gateway_id=excluded.gateway_id, hostname=excluded.hostname, platform=excluded.platform, uptime=excluded.uptime, cpu_percent=excluded.cpu_percent, memory_used_mb=excluded.memory_used_mb, memory_total_mb=excluded.memory_total_mb, disks_json=excluded.disks_json, prislub_verified=excluded.prislub_verified, last_seen=excluded.last_seen, updated_at=datetime('now')"
+      ).bind(
+        body.gateway_id || 'gateway:pc',
+        body.hostname || 'PC',
+        body.platform || 'win32',
+        body.uptime_seconds || 0,
+        body.cpu?.cores || 0,
+        body.memory?.used_mb || 0,
+        body.memory?.total_mb || 0,
+        JSON.stringify(body.disks || {}),
+        body.prislub_verified ? 1 : 0,
+        body.timestamp || Date.now()
+      ).run().catch(()=>{});
+    }
+    return json({ ok: true, stored: true, at: Date.now() });
+  }
+  if(path==='/api/skills/matrix'&&request.method==='GET'){
+    const dynamicSkills = await loadDynamicSkills(env);
+    return json({ ok: true, count: dynamicSkills.length, skills: dynamicSkills });
+  }
+  if(path==='/api/skills/register'&&request.method==='POST'){
+    const skillData = await readJSON(request, 32000);
+    const regResult = await registerDynamicSkill(env, skillData);
+    return json(regResult);
+  }
+  if(path==='/api/system/self-evolve'&&request.method==='POST'){
+    const evolveData = await readJSON(request, 128000);
+    const evolveResult = await applySelfModification(env, evolveData);
+    return json(evolveResult);
   }
   if(path==='/api/system/pc-bridge/v1/heartbeat'&&request.method==='POST'){
     const gateway=await authenticateGateway(request,env);await rateLimit(env,`gateway-heartbeat:${gateway}`,120);

@@ -12,6 +12,7 @@ import {TRADING_DIRECTIVE} from './trading.js';
 import {memorySkills} from './memorySkill.js';
 import {ownerLearnBehaviorRule,createSelfImprovementProposal,listActiveBehaviorRules,behaviorRulesDirective} from './self-improvement.js';
 import {createTrinityDocument} from './trinity-documents.js';
+import {getSelfAwarenessDirective} from './skill-matrix.js';
 import {parseModelAction} from './model-action-parser.js';
 export function parseAction(text) {
   return parseModelAction(text);
