@@ -402,5 +402,13 @@ Kontroly a dôkazy:
 - `node --test Trinity/tests/cross-domain-sync.test.mjs` -> 2 / 2 PASS.
 - `node verify-chat-contract.mjs` -> 8 / 8 PASS.
 - `npm run check` naprieč celým monorepom -> 582 / 582 PASS (100 %).
-Stav: completed.
-Ďalší krok: Git commit & push, nasadenie unifikovaného workeru na Cloudflare a verifikácia cez verify-deployment.mjs. Súbory uvoľnené.
+Stav: completed a nasadené.
+Nasadenie a overenie (Dôkazy):
+- Commit: `590a887516905635d1f7d5890c30384e4abceb0f` na vetve `main`.
+- Cloudflare Worker `trinity` (`auru.space` & `auru.dev`):
+  - Version ID: `d9374f35-b3ab-40a3-a764-1cd0646e92b2`
+  - Tag: `590a887516905635d1f7d5890c30384e4abceb0f`
+- `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id d9374f35-b3ab-40a3-a764-1cd0646e92b2` -> `verified: true`
+- `GET https://auru.space/api/sync/state` -> HTTP 200, domains: `auru.dev`, `auru.space`, shared_core: `trinity`, d1: `trinity-v03`, kv: `PC_STATE & Mastermind`.
+- `POST https://auru.space/api/sync/state` -> HTTP 200, `synchronized: true`, úspešný zápis a okamžité načítanie.
+Ďalší krok: Majiteľ môže otvoriť Desktop aplikáciu (spustiť `1-SPUSTIT-TRINITY.cmd`) a mobilnú PWA na telefóne; obe aplikácie sú priradené a živo synchronizované. Súbory uvoľnené.
