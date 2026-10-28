@@ -1,5 +1,10 @@
 # Protokol spolupráce Codex (GPT) ↔ Antigravity
 
+Aktualizácia majiteľa 2026-10-28: spoločný vstupný bod pre všetkých účastníkov
+je [TEAM-HANDOFF.md](TEAM-HANDOFF.md). Povinné čítanie, CLAIM pred zmenou,
+UPDATE po zmene a HANDOFF/ACK majú prednosť pred starým synchronizačným
+postupom nižšie. Tento dokument sám nepovoľuje automatický pull/rebase/push.
+
 Platí pre repozitár `C:\Users\saboi\Trinity-antigravity` (vetva `main`). Komunikácia s majiteľom (Basterix) vždy po slovensky.
 
 ## 1. Rozdelenie práce
@@ -11,7 +16,7 @@ Platí pre repozitár `C:\Users\saboi\Trinity-antigravity` (vetva `main`). Komun
 
 ## 2. Odovzdávací cyklus (každá iterácia)
 1. **Claim**: strana zapíše do `CODEX-ANTIGRAVITY-REVIEW-2026-10-24.md` sekciu `CLAIM` (súbory, cieľ, základný commit).
-2. **Sync**: `git pull --rebase origin main` pred prácou, `git push` po každom commite.
+2. **Sync**: over aktuálny HEAD, pracovný strom a vlastníctvo zmien. Pull/rebase/push vykonaj iba v dohodnutom rozsahu; nikdy automaticky v zdieľanom rozpracovanom checkoute.
 3. **Práca** v oddelených súboroch alebo samostatnom worktree.
 4. **Handoff**: zápis `HANDOFF` (commit SHA, zmenené súbory, výsledok testov, čo ostáva).
 5. **Druhá strana** potvrdí slovom `ACK_<dátum>` a až potom preberá súbory.
@@ -23,7 +28,7 @@ Platí pre repozitár `C:\Users\saboi\Trinity-antigravity` (vetva `main`). Komun
 - Tvrdenia o výsledku musia mať dôkaz (výstup testu, verifikácia nasadenia).
 
 ## 4. Riešenie konfliktov
-- Ak obaja zmenili ten istý súbor: novší commit sa rebasuje, nič sa neprepisuje silou (`--force` je zakázaný).
+- Ak obaja zmenili ten istý súbor: zastaviť dotknutú úpravu, zapísať CONFLICT a dohodnúť integrátora. Nič sa automaticky nerebasuje ani neprepisuje silou.
 - Spor o smere rozhoduje majiteľ.
 
 ## 5. Šablóna záznamu

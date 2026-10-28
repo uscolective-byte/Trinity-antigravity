@@ -1,5 +1,12 @@
 # AGENTS.md — Trinity-antigravity
 
+Pred každou úlohou povinne prečítaj [TEAM-HANDOFF.md](TEAM-HANDOFF.md).
+Pred každým príkazom skontroluj jeho aktuálnosť; pred zmenou zapíš CLAIM,
+over vlastníctvo súborov, po zmene UPDATE a pri odovzdaní HANDOFF/ACK.
+Tento postup platí pre všetkých agentov v tomto repozitári. Zachovaj cudzie
+zmeny; konflikt zastavuje dotknuté úpravy. Aktuálne úlohy hľadaj v TEAM-HANDOFF.md,
+nie iba v historickom handoffe uvedenom nižšie.
+
 Pokyny pre agentov (Codex, Antigravity). S majiteľom (Sabo Ivan / Basterix) komunikuj po slovensky.
 
 1. Najprv prečítaj [CODEX-ANTIGRAVITY-PROTOCOL.md](CODEX-ANTIGRAVITY-PROTOCOL.md) a posledný HANDOFF (aktuálne `CODEX-HANDOFF-FROM-ANTIGRAVITY-CORE-TOOLS-20261027.md`).

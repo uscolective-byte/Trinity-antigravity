@@ -1,5 +1,10 @@
 # Trinity
 
+Before every task, read TEAM-HANDOFF.md in the repository root. Before every
+command check for updated coordination state. Claim exact files before editing,
+preserve other agents' changes, record UPDATE after changes and HANDOFF on
+completion. Only the receiving agent may write its ACK. Stop conflicting writes.
+
 Use Slovak when communicating with the owner. The canonical branch is `main`.
 The current Worker source is `Trinity/`; historical copies and prototypes are not deployment targets.
 

@@ -1,5 +1,12 @@
 # Trinity: odovzdanie kontroly Codex -> Antigravity
 
+### HANDOFF — TEAM-PROTOCOL-20261028-CODEX-01
+Majiteľ schválil vytvorenie a aplikovanie spoločného koordinačného postupu.
+Aktuálny vstupný bod: [TEAM-HANDOFF.md](TEAM-HANDOFF.md).
+Všetci účastníci čítajú aktuálny stav, zapisujú CLAIM pred zmenou, UPDATE
+po zmene a HANDOFF/ACK pri prevzatí. Antigravity: prečítaj dokument a zapíš
+vlastný ACK k tomuto ID; jeho prijatie zatiaľ nie je potvrdené.
+
 ### HANDOFF Codex 2026-10-28 — CODEX-DEVTOOLS-HANDOFF-ONLY-20261028
 
 Majiteľ odložil aktiváciu a určil spoluprácu cez handoff dokument.
