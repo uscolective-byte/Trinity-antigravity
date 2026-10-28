@@ -1,0 +1,110 @@
+'use strict';
+// Read-only storefront. No secret inputs, no external installs, no privileged mutations.
+const $ = id => document.getElementById(id);
+let items = [], activeCategory = 'all';
+const labels = {all:'Všetko',ai:'AI / ChatGPT',social:'Sociálne siete',cloud:'Cloud / Vercel',developer:'Vývoj & OpenAPI',fun:'Zábava & tvorba',utilities:'Pomôcky'};
+const statuses = {
+  'catalog-only':'V katalógu',
+  'registered-enabled':'Zaregistrovaný · povolený',
+  'registered-disabled':'Zaregistrovaný · vypnutý',
+  'configured-unverified':'Konfigurácia nájdená',
+  'needs-connection':'Vyžaduje pripojenie',
+  'available-local':'Lokálne dostupný'
+};
+function element(tag, text, cls){
+  const item=document.createElement(tag);
+  if(text!==undefined)item.textContent=String(text);
+  if(cls)item.className=cls;
+  return item;
+}
+function randomIndex(length){
+  if(!Number.isSafeInteger(length)||length<=0)throw new Error('Neplatný rozsah');
+  const max=2**32;
+  const limit=max-(max%length);
+  const buf=new Uint32Array(1);
+  do{crypto.getRandomValues(buf)}while(buf[0]>=limit);
+  return buf[0]%length;
+}
+const funIdeas=[
+  'Navrhni malú hru na päť minút s jedným originálnym pravidlom.',
+  'Vytvor webovú stránku, ktorá mení vzhľad podľa aktuálnej hodiny.',
+  'Vymysli mobilnú aplikáciu, ktorá ľuďom šetrí každý deň desať minút.',
+  'Zorganizuj kvíz o vede s tromi úrovňami náročnosti.',
+  'Navrhni súťaž: kto napíše najkratší, ale čitateľný algoritmus.'
+];
+const devChallenges=[
+  'Napíš test pre funkciu, ktorá spracúva neplatný JSON.',
+  'Vytvor responzívnu kartu s klávesnicovým ovládaním.',
+  'Navrhni HTTP API s idempotentnou POST operáciou.',
+  'Zmeraj čas vykonania funkcie bez prezradenia osobných údajov.',
+  'Napíš funkciu, ktorá bezpečne rozpozná duplicitné riadky v CSV.'
+];
+function play(id){
+  let output;
+  if(id==='play-dice')output='🎲 Padlo '+String(1+randomIndex(6));
+  else if(id==='play-coin')output=randomIndex(2)===0?'🪙 Hlava':'🪙 Znak';
+  else if(id==='play-creative')output='🎨 '+funIdeas[randomIndex(funIdeas.length)];
+  else if(id==='play-challenge')output='🕹️ '+devChallenges[randomIndex(devChallenges.length)];
+  else return;
+  $('play-result').textContent=output;
+}
+function render(){
+  const text=$('search').value.trim().toLocaleLowerCase('sk');
+  const visible=items.filter(i=>(activeCategory==='all'||i.category===activeCategory)&&
+    (!text||[i.name,i.description,i.requirements,...(i.tools||[])].join(' ').toLocaleLowerCase('sk').includes(text)));
+  $('metrics').textContent='Zobrazených '+visible.length+' z '+items.length+' položiek · skutočný stav nástrojov závisí od autorizácie a testov';
+  const grid=$('cards');grid.replaceChildren();
+  if(!visible.length){grid.append(element('p','Nič sa nenašlo. Skús inú kategóriu alebo názov.','empty'));return;}
+  for(const item of visible){
+    const card=element('article',undefined,'card');
+    const top=element('div',undefined,'card-top');
+    top.append(element('span',item.icon||'◇','card-icon'));
+    const state=element('span',statuses[item.status]||'Neoverené','state'+(item.configured?' configured':''));
+    top.append(state);card.append(top);
+    card.append(element('h2',item.name));
+    card.append(element('p',item.description||''));
+    if(item.requirements)card.append(element('small','Podmienky: '+item.requirements));
+    if(item.tools?.length)card.append(element('small','Nástroje: '+item.tools.slice(0,4).join(', ')+(item.tools.length>4?'…':'')));
+    const footer=element('footer');
+    if(item.kind==='browser'){
+      const button=element('button','Spustiť lokálne');button.type='button';
+      button.addEventListener('click',()=>play(item.id));footer.append(button);
+    }
+    if(item.documentation){
+      const link=element('a','Oficiálna dokumentácia');link.href=item.documentation;link.target='_blank';link.rel='noopener noreferrer';footer.append(link);
+    }
+    if(item.kind==='native'){
+      const link=element('a','Použiť v Trinity');link.href='/#chat';footer.append(link);
+    }
+    if(item.kind==='external'){
+      footer.append(element('small','Pripojenie vyžaduje OAuth alebo správcu'));
+    }
+    card.append(footer);card.append(element('small',item.note||''));
+    grid.append(card);
+  }
+}
+async function init(){
+  const filters=$('filters');
+  for(const [key,label] of Object.entries(labels)){
+    const button=element('button',label);
+    button.type='button';button.setAttribute('aria-pressed',key===activeCategory?'true':'false');
+    button.addEventListener('click',()=>{
+      activeCategory=key;
+      for(const b of filters.querySelectorAll('button'))b.setAttribute('aria-pressed',b===button?'true':'false');
+      render();
+    });
+    filters.append(button);
+  }
+  $('search').addEventListener('input',render);
+  try{
+    const response=await fetch('/api/assistant/tool-marketplace',{credentials:'same-origin',headers:{Accept:'application/json'},signal:AbortSignal.timeout(12000)});
+    if(!response.ok)throw new Error(response.status===401?'Prihlás sa do Trinity a znovu otvor Marketplace.':'Služba vrátila HTTP '+response.status);
+    const data=await response.json();
+    if(!Array.isArray(data.items))throw new Error('Marketplace nedostal platný katalóg.');
+    items=data.items;
+    $('loading').hidden=true;render();
+  }catch(err){
+    $('loading').textContent='Nepodarilo sa načítať katalóg: '+String(err.message||'chyba')+'. Vráť sa do Trinity a over prihlásenie.';
+  }
+}
+document.addEventListener('DOMContentLoaded',init);
