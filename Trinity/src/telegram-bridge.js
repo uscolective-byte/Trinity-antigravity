@@ -19,7 +19,8 @@ export function telegramIntegrationStatus(env) {
     allowed_users: allowedIds(env.TELEGRAM_ALLOWED_USER_IDS).size > 0,
     provider: env.TELEGRAM_AI_PROVIDER === 'openai' ? 'openai' : 'gemini',
     capabilities: ['private-text-chat', 'gemini', 'openai', 'groq', 'help', 'status', 'pc', 'crypto', 'fleet', 'research'],
-    live_verified: true
+    // A configured token is not proof of delivery, model inference or completed tools.
+    live_verified: false
   };
 }
 
@@ -87,14 +88,14 @@ export function parseCommand(input, env) {
 export async function executeStatus(env) {
   const status = telegramIntegrationStatus(env);
   const pc = await getPCBridgeStatus(env).catch(() => ({connected: false, status: 'offline'}));
-  const pcDesc = pc.connected ? '🟢 Pripojené (saboi-PC)' : '⚪ Offline / uspaté';
+  const pcDesc = pc.connected ? '🟢 PC Bridge hlási spojenie (Gateway a vykonanie nástroja neoverené)' : '⚪ Offline / neoverené';
   const cfgDesc = status.bot_token && status.webhook_secret && status.allowed_users ? 'nakonfigurované' : 'neúplná konfigurácia';
   return (
     `Trinity Telegram: ${cfgDesc}.\n\n` +
     '🛡️ TRINITY 11.0 SOVEREIGN ECOSYSTEM\n' +
     '• Verzia: 11.0.0 Sovereign Edition\n' +
     '• Produkčné domény: https://auru.space | https://auru.dev\n' +
-    '• Flotila: 35 prepojených Cloudflare Workerov\n' +
+    '• Flotila: katalóg Workerov (živá dostupnosť každej služby neoverená)\n' +
     '• Databázy: D1 trinity-v03, KV Mastermind, R2 trinity-artifacts\n' +
     `• Lokálne PC: ${pcDesc}\n` +
     `• Predvolený AI model: ${status.provider.toUpperCase()}\n` +
@@ -108,7 +109,7 @@ export async function executePC(env) {
     return (
       '💻 LOKÁLNE PC (saboi-PC / Windows)\n\n' +
       '• Stav: 🟢 Online & Pripravené\n' +
-      '• Local Gateway: http://127.0.0.1:8791 (Pripojené)\n' +
+      '• Local Gateway: samostatná dostupnosť a receipt neoverené\n' +
       '• MCP Bridge: Port 3333 (trinity-mcp-bridge)\n' +
       '• Bezpečný workspace: ~/trinity_local\n' +
       '• Truth Policy: 2.0 Hardcore (Striktná verifikácia)'
@@ -157,7 +158,7 @@ export async function executeCrypto(env) {
     }
     msg += '\n';
   } else {
-    msg += '• Trhové dáta: Jericho Engine inicializovaný (prepojenie aktívne)\n\n';
+    msg += '• Trhové dáta: nedostupné; spojenie s Jericho nie je potvrdené\n\n';
   }
   const treasuryAddr = ttkInfo?.treasury_address
     ? `${ttkInfo.treasury_address.slice(0, 10)}...${ttkInfo.treasury_address.slice(-6)}`
@@ -173,7 +174,7 @@ export async function executeCrypto(env) {
 
 export function executeFleet() {
   return (
-    '⚡ FLOTILA 35 CLOUDFLARE WORKEROV TRINITY\n\n' +
+    '⚡ KATALÓG CLOUDFLARE WORKEROV TRINITY (nie živá diagnostika)\n\n' +
     '🎯 10× AURA Špecialisti:\n' +
     '• AURA_ANALYZER, AURA_ARCHITECT, AURA_CODEGEN, AURA_DEPLOYER, AURA_EVOLVER\n' +
     '• AURA_MEMORY, AURA_OPTIMIZER, AURA_PLANNER, AURA_SENTINEL, AURA_TESTER\n\n' +
@@ -188,7 +189,7 @@ export function executeFleet() {
     '• CHAT_MAINTAINER_SERVICE (Autonomous Chat Healing)\n' +
     '• DEPLOYER_SERVICE (KV Code Deployer)\n' +
     '• SEEDER_SERVICE (D1 Database Seeder)\n\n' +
-    'Všetky služby sú zviazané cez Cloudflare Service Bindings na https://auru.space.'
+    'Konfigurácia a zoznam služieb samy nepreukazujú ich dostupnosť; over ich cez /ready a jednotlivo cez health sondy.'
   );
 }
 
