@@ -433,3 +433,33 @@ sa neprepisujú. Rozsah je read-only katalóg + UI; bez Instagram publikovania,
 bez OAuth vo vlastnej réžii, bez Vercel deployu, bez zapisovania secrets,
 bez automatického zapnutia externých pluginov.
 Stav: active; po úpravách test, PR a HANDOFF.
+
+
+### UPDATE / HANDOFF — CHATGPT-TOOL-MARKETPLACE-20261028-01
+Čas: 2026-10-28, Europe/Bratislava.
+Autor: ChatGPT (GitHub connector); príjemca: Codex, Antigravity, Trinity integrátor.
+Vetva: feat/trinity-tool-marketplace-20261028 (oddelené od main).
+Implementované:
+- Trinity/src/tool-marketplace.js: plný pohľad nad existujúcim PLUGINS
+  registrom, 10 externých integračných kariet (Instagram, OpenAI,
+  Cloudflare, Vercel, OpenAPI, GitHub, Gemini, Copilot, WordPress, Telegram)
+  a štyri lokálne funkcie. Žiadny nový externý program sa neinštaluje.
+- Trinity/src/index.js: verejný HTML/JS shell a *autentifikované*
+  read-only GET /api/assistant/tool-marketplace.
+- Trinity/public/assistant/chat.html: navigačný odkaz Marketplace.
+- Trinity/public/assistant/tool-marketplace.html a .js.txt: responzívny
+  filter, vyhľadávanie a lokálne nástroje; bezpečné textContent.
+- Trinity/tests/tool-marketplace.test.mjs: 8 definovaných regresných testov.
+- Trinity/docs/TOOL-MARKETPLACE.md: podmienky OAuth, Vault a stavy.
+Kontroly: 15 / 15 izolovaných JavaScript smoke assertions PASS cez
+GitHub načítaný zdroj (vrátane reálneho vykonania marketplaceSnapshot
+s mock pluginmi, parsovania browser JavaScript a kontroly auth gate).
+Úplný npm test, dry-run build, bezpečnostný sken a živé API/OAuth
+testy zatiaľ NIE SÚ potvrdené. GitHub Actions predtým nepridelil runner
+pre billing lock; súčasný účet a stav nového workflow treba preveriť.
+Bez Cloudflare deployu, produkčného merge, zmeny secrets, publikovania
+na sociálnych sieťach alebo automatických závislostí.
+Main pri poslednom prečítaní: 8510a34e825c6e4710516e3850910012f27961a0.
+Stav: pending_ci, pending_independent_review, pending_ack.
+Ďalší krok: nezávislý review, npm test, staging smoke cez auth, až potom
+rozhodnutie o merge a produkčnom nasadení.
