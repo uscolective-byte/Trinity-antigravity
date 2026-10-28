@@ -16,7 +16,7 @@ const writePermissions='offline_access openid profile User.Read Mail.Read Mail.S
 const GRAPH='https://graph.microsoft.com/v1.0';
 const LOGIN='https://login.microsoftonline.com';
 const KEY_ID_RE=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const getProfile=id=>{const p=MICROSOFT_PROFILES[id];if(!p)throw new Error('Neplatný Microsoft profil.');return p;};
+const getProfile=id=>{if(typeof id!=='string'||!Object.hasOwn(MICROSOFT_PROFILES,id))throw fail('Neplatný Microsoft profil.');return MICROSOFT_PROFILES[id];};
 const vaultKey=(profile,name)=>'ms-'+profile+'-'+name;
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 async function parseResponse(response){
