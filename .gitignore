@@ -37,6 +37,7 @@ dawn-wildflower-688f/
 
 /Trinity/dist-chat-helper/
 trinity-mcp-bridge/logs/
+/Trinity/workspace/projects/
 .agents/
 .claude/
 opencode.json

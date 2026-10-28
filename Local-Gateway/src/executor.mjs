@@ -7,6 +7,7 @@ import {sha256} from './store.mjs';
 import {executeDesktop} from './desktop.mjs';
 import {processCommand} from './process-command.mjs';
 import {scriptCommand} from './script-command.mjs';
+import {developerTools} from './developer-tools.mjs';
 
 const MAX_TEXT=1_000_000;
 const MAX_OUTPUT=128_000;
@@ -52,6 +53,11 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
   if(proposal.status!=='approved')throw new Error('Návrh nebol schválený.');
   if(new Date(proposal.expiresAt).getTime()<Date.now())throw new Error('Schválenie vypršalo.');
   const payload=proposal.payload||{};
+  if(payload.task==='developer-tools'){
+    const operation=payload.operation||'catalog';
+    if(!(['catalog','inspect'].includes(operation)?['read','run']:['run']).includes(proposal.action))throw new Error('Developer tool changes require an approved run action.');
+    return {action:proposal.action,task:payload.task,...await developerTools(workspaceRoot,payload,runProcess)};
+  }
   if(['write','edit','selfwrite'].includes(proposal.action)){
     if(typeof payload.content!=='string'||Buffer.byteLength(payload.content)>MAX_TEXT)throw new Error('Obsah chýba alebo je príliš veľký.');
     if(proposal.action==='selfwrite'&&!String(payload.path||'').replaceAll('\\','/').startsWith('Trinity/'))throw new Error('Selfwrite môže meniť iba projekt Trinity.');

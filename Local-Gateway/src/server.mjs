@@ -7,6 +7,7 @@ import {ProposalStore} from './store.mjs';
 import {executeProposal,readWorkspaceFile} from './executor.mjs';
 import {startCloudLink} from './cloud-link.mjs';
 import {startBridgeHeartbeat} from './bridge-heartbeat.mjs';
+import {DEVELOPER_TOOLS} from './developer-tools.mjs';
 
 const here=path.dirname(fileURLToPath(import.meta.url));
 const gatewayRoot=path.resolve(here,'..');
@@ -32,6 +33,7 @@ const server=http.createServer(async(request,response)=>{
     const url=new URL(request.url,'http://127.0.0.1');
     if(request.method==='GET'&&url.pathname==='/health')return send(response,200,{service:'Trinity Local Gateway',version:'1.3.0',status:'ready',synchronization:cloudState.status==='connected'&&pcBridgeState.status==='connected'?'connected':'degraded',binding:'127.0.0.1',local_auth:token?'required':'misconfigured',cloud:cloudState.status,cloud_last_success_at:cloudState.last_success_at||null,pc_bridge:pcBridgeState.status,pc_bridge_last_success_at:pcBridgeState.last_success_at||null,desktop_control:'approval-required',local_model:'qwen3:4b-instruct',recovered_interrupted:recoveredInterrupted.length});
     if(!authorized(request))return send(response,401,{error:'Neplatné lokálne oprávnenie.'});
+    if(request.method==='GET'&&url.pathname==='/api/developer-tools')return send(response,200,{tools:DEVELOPER_TOOLS,execution:'request_system_action',task:'developer-tools',operations:['catalog','inspect','create','install','execute']});
     if(request.method==='GET'&&url.pathname==='/api/sync/status')return send(response,200,{cloud:cloudState,pc_bridge:pcBridgeState,queue:await store.stats(),recovered_interrupted:recoveredInterrupted});
     if(request.method==='GET'&&url.pathname==='/api/capabilities')return send(response,200,{internal:true,capabilities:CAPABILITIES});
     if(request.method==='GET'&&url.pathname==='/api/proposals')return send(response,200,{items:await store.list()});
