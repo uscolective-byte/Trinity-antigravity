@@ -65,7 +65,7 @@ export function createMicrosoftBridge({vault,fetcher=fetch,clock=()=>Date.now()}
    const refresh=await vault.get(vaultKey(profile,'refresh'));
    const clientId=await vault.get(vaultKey(profile,'client'));
    if(!refresh||!KEY_ID_RE.test(clientId))throw fail('Microsoft profil nie je autorizovaný.',409);
-   const form=new URLSearchParams({grant_type:'refresh_token',client_id:clientId,refresh_token:refresh,scope:permissions});
+   const form=new URLSearchParams({grant_type:'refresh_token',client_id:clientId,refresh_token:refresh,scope:await vault.get(vaultKey(profile,'scope'))||permissions});
    const data=await api(LOGIN+'/'+account(profile).authority+'/oauth2/v2.0/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:form});
    if(!data.access_token)throw fail('Microsoft nevrátil access token.',502);
    access=data.access_token;
@@ -112,6 +112,7 @@ export function createMicrosoftBridge({vault,fetcher=fetch,clock=()=>Date.now()}
     await vault.set(vaultKey(profile,'refresh'),result.refresh_token);
     await vault.set(vaultKey(profile,'client'),pending.clientId);
     await vault.set(vaultKey(profile,'expires'),String(clock()+Math.min(Number(result.expires_in)||3600,3600)*1000));
+    await vault.set(vaultKey(profile,'scope'),pending.scope);
     pendingLogin.delete(profile);
     const verification=await this.verify(profile);
     return {status:verification.verified?'verified':'identity-mismatch',connected:verification.verified,profile};
