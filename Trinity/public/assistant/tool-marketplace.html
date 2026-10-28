@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090f1b"><title>Trinity 11 · Tools Marketplace</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#090f1b;color:#e6edf5}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% 0,#172e49 0,transparent 45%),#090f1b}
+header{padding:26px max(22px,calc((100vw - 1260px)/2));display:flex;gap:16px;align-items:center;justify-content:space-between;border-bottom:1px solid #253248}
+a{color:#b5d7ff}a:hover{color:white}.back{text-decoration:none;font-size:14px}main{max-width:1260px;padding:42px 22px 80px;margin:auto}
+h1{font-size:clamp(28px,4.8vw,50px);margin:8px 0 12px;letter-spacing:-.04em}.eyebrow{text-transform:uppercase;color:#8bbef8;letter-spacing:.15em;font-size:12px;font-weight:700}
+p{line-height:1.6;color:#aebcd0}.lead{max-width:760px;font-size:17px}.controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:30px 0 15px}
+input{width:min(400px,100%);flex:1;padding:15px 17px;border-radius:11px;background:#121e30;border:1px solid #3b4d68;color:white;font:inherit}
+input:focus,button:focus-visible,a:focus-visible{outline:2px solid #9ad3ff;outline-offset:2px}
+.filters{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0 26px}
+button{cursor:pointer;color:#cfe0f4;background:#142338;border:1px solid #334760;border-radius:10px;padding:10px 14px;font:inherit}
+button[aria-pressed="true"]{background:#2e6092;border-color:#80bbff;color:#fff}
+.metrics{font-size:13px;color:#9bb1cc;margin-top:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:15px}
+.card{background:linear-gradient(160deg,#142136,#0e1929);border:1px solid #2c3e56;border-radius:15px;padding:20px;min-height:243px;display:flex;flex-direction:column;gap:12px}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.card-icon{font-size:24px}
+.card h2{font-size:17px;margin:0}.card p{font-size:13px;line-height:1.5;margin:0}
+.state{font-size:11px;border:1px solid #3c5270;border-radius:99px;padding:5px 8px;color:#b9cbdf;white-space:nowrap}
+.state.configured{border-color:#558a8f;color:#a0e4d8}
+.card footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto}.card footer a,.card footer button{font-size:12px;padding:8px 10px;border-radius:8px;text-decoration:none}
+.card footer a{border:1px solid #416b9b;background:#1a3654;color:#d9ecff}
+.card small{color:#96a9c0}.notice{background:#13243a;border-left:3px solid #92bde8;padding:14px 18px;border-radius:6px;font-size:13px;margin:26px 0}
+.result{min-height:24px;color:#bcebd4;font-weight:650;margin-top:12px}
+#loading{color:#9eb4cd;padding:15px 0}.empty{grid-column:1/-1;color:#9cb0c8}
+@media (max-width:650px){header{padding:19px}main{padding:24px 18px 60px}.card{min-height:214px}}
+</style></head>
+<body><header><strong>◈ TRINITY / TOOL MARKETPLACE</strong><a class="back" href="/#chat">← Späť do Trinity</a></header>
+<main><span class="eyebrow">Trinity 11.0 · katalóg nástrojov</span><h1>Nástroje, konektory a tvorivé laboratórium.</h1>
+<p class="lead">Prehľad integrovaných pluginov a rozšírení: Instagram, OpenAI API, Cloudflare, Vercel, GitHub, Gemini, Copilot a ďalšie. <strong>Pridanie do katalógu neznamená, že externý účet je pripojený.</strong></p>
+<div class="notice">Každý externý konektor vyžaduje vlastné oprávnenie. Stav „nakonfigurované“ neznamená úspešný API test. Publikovanie, nasadenie a finančné operácie sa tu automaticky nevykonávajú.</div>
+<div class="controls"><label for="search">Hľadať nástroj</label><input id="search" type="search" placeholder="Instagram, API, Cloudflare, CSV, vývoj..." autocomplete="off"></div>
+<div class="filters" id="filters" aria-label="Kategórie nástrojov"></div>
+<div class="metrics" id="metrics" aria-live="polite"></div>
+<p id="loading" role="status">Načítavam aktuálny register Trinity…</p>
+<section class="grid" id="cards" aria-label="Katalóg nástrojov"></section>
+<div class="result" id="play-result" role="status" aria-live="polite"></div>
+</main><script src="/tool-marketplace.js" defer></script></body></html>

@@ -412,3 +412,90 @@ Nasadenie a overenie (Dôkazy):
 - `GET https://auru.space/api/sync/state` -> HTTP 200, domains: `auru.dev`, `auru.space`, shared_core: `trinity`, d1: `trinity-v03`, kv: `PC_STATE & Mastermind`.
 - `POST https://auru.space/api/sync/state` -> HTTP 200, `synchronized: true`, úspešný zápis a okamžité načítanie.
 Ďalší krok: Majiteľ môže otvoriť Desktop aplikáciu (spustiť `1-SPUSTIT-TRINITY.cmd`) a mobilnú PWA na telefóne; obe aplikácie sú priradené a živo synchronizované. Súbory uvoľnené.
+
+
+### CLAIM — CHATGPT-TOOL-MARKETPLACE-20261028-01
+Čas: 2026-10-28, Europe/Bratislava.
+Autor: ChatGPT (GitHub connector).
+Majiteľský pokyn: pridať Trinity Marketplace nástrojov pre Instagram,
+ChatGPT/OpenAI API, Cloudflare, Vercel, vývoj a zábavné nástroje.
+Base: 8510a34e825c6e4710516e3850910012f27961a0; samostatná vetva
+feat/trinity-tool-marketplace-20261028; nepreberá žiadne živé cloud zdroje.
+Vlastnené súbory: Trinity/src/tool-marketplace.js,
+Trinity/public/assistant/tool-marketplace.html,
+Trinity/public/assistant/tool-marketplace.js.txt,
+Trinity/src/index.js (iba malý registrátor trasy a statickej stránky),
+Trinity/public/assistant/chat.html (iba navigačný odkaz),
+Trinity/tests/tool-marketplace.test.mjs,
+Trinity/docs/TOOL-MARKETPLACE.md a vlastný append-only zápis v TEAM-HANDOFF.md.
+Codex developer-tools, Antigravity PC/sync/Telegram a ich hotové zmeny
+sa neprepisujú. Rozsah je read-only katalóg + UI; bez Instagram publikovania,
+bez OAuth vo vlastnej réžii, bez Vercel deployu, bez zapisovania secrets,
+bez automatického zapnutia externých pluginov.
+Stav: active; po úpravách test, PR a HANDOFF.
+
+
+### UPDATE / HANDOFF — CHATGPT-TOOL-MARKETPLACE-20261028-01
+Čas: 2026-10-28, Europe/Bratislava.
+Autor: ChatGPT (GitHub connector); príjemca: Codex, Antigravity, Trinity integrátor.
+Vetva: feat/trinity-tool-marketplace-20261028 (oddelené od main).
+Implementované:
+- Trinity/src/tool-marketplace.js: plný pohľad nad existujúcim PLUGINS
+  registrom, 10 externých integračných kariet (Instagram, OpenAI,
+  Cloudflare, Vercel, OpenAPI, GitHub, Gemini, Copilot, WordPress, Telegram)
+  a štyri lokálne funkcie. Žiadny nový externý program sa neinštaluje.
+- Trinity/src/index.js: verejný HTML/JS shell a *autentifikované*
+  read-only GET /api/assistant/tool-marketplace.
+- Trinity/public/assistant/chat.html: navigačný odkaz Marketplace.
+- Trinity/public/assistant/tool-marketplace.html a .js.txt: responzívny
+  filter, vyhľadávanie a lokálne nástroje; bezpečné textContent.
+- Trinity/tests/tool-marketplace.test.mjs: 8 definovaných regresných testov.
+- Trinity/docs/TOOL-MARKETPLACE.md: podmienky OAuth, Vault a stavy.
+Kontroly: 15 / 15 izolovaných JavaScript smoke assertions PASS cez
+GitHub načítaný zdroj (vrátane reálneho vykonania marketplaceSnapshot
+s mock pluginmi, parsovania browser JavaScript a kontroly auth gate).
+Úplný npm test, dry-run build, bezpečnostný sken a živé API/OAuth
+testy zatiaľ NIE SÚ potvrdené. GitHub Actions predtým nepridelil runner
+pre billing lock; súčasný účet a stav nového workflow treba preveriť.
+Bez Cloudflare deployu, produkčného merge, zmeny secrets, publikovania
+na sociálnych sieťach alebo automatických závislostí.
+Main pri poslednom prečítaní: 8510a34e825c6e4710516e3850910012f27961a0.
+Stav: pending_ci, pending_independent_review, pending_ack.
+Ďalší krok: nezávislý review, npm test, staging smoke cez auth, až potom
+rozhodnutie o merge a produkčnom nasadení.
+
+
+### UPDATE / BLOCKED / HANDOFF — CHATGPT-MARKETPLACE-DEPLOY-20261028-01
+Čas a pásmo: 2026-10-28, Europe/Bratislava.
+Autor: ChatGPT, GitHub connector.
+Pokyn majiteľa: „nasadit ale predtim si precitaj co je noe poznas pravidlo“.
+Zachovaný bezpečnostný postup: prečítaný aktuálny TEAM-HANDOFF.md
+v main (SHA súboru 6d98e907aa0d97119eb17ce5a1940dbe13946328)
+a pôvodný CLAIM / HANDOFF Marketplace. Aktuálny main pri kontrole:
+8510a34e825c6e4710516e3850910012f27961a0.
+PR #14: https://github.com/uscolective-byte/Trinity-antigravity/pull/14
+HEAD PR: 61f5e57cbe1675441bc2c26a9f7ff499ec980dd4,
+0 chýbajúcich commitov voči main a mergeable=true, ale stále draft.
+CI pre HEAD: CodeQL run 40737296683, Trinity CI 40737296738,
+integrations run 40737297165 = failure; GitHub anotácie uvádzajú
+"The job was not started because your account is locked due to a billing issue."
+Nejde o neúspešné npm testy: žiadny GitHub Actions runner úlohy nevykonal.
+Basterix cez Desktop Commander hlási offline (posledný kontakt ~19h).
+Živé čítanie auru.dev/health aj staging workers.dev smeruje na
+Cloudflare Access login a bez autorizácie neposkytuje /ready receipt.
+Verejne načítané auru.space/health uviedlo verziu 11.0.0,
+deployment tag 646f436283b112272f59a54c920057601de8b99f;
+je v rozpore s novším hlásením handoffu o deployi 590a887 a
+nepreukazuje nasadenie PR #14. Možnú časovú/proxy cache odlišnosť
+treba overiť cez priamy autorizovaný Cloudflare version ID.
+Autorizovaný Cloudflare deploy konektor v tomto klientovi nie je
+dostupný; nie je povolené obísť chýbajúci test ani prevziať
+Cloudflare zdroj vlastnený Antigravity bez odovzdania.
+Výsledok: žiadny merge/deploy/secret mutation nebol vykonaný;
+nové zmeny kódu nezavedené; PR #14 zostáva otvorený.
+Príjemca: Antigravity (vlastník Cloudflare rolloutu) a Codex.
+Po obnovení runnerov alebo lokálnych testov: npm ci, npm test,
+Wrangler dry-run, staging s autorizovaným Cloudflare Access,
+overiť /health, /ready, commit tag a GET /api/assistant/tool-marketplace
+so skutočnou prihlásenou reláciou, až potom produkcia.
+Stav: blocked_billing / blocked_cloudflare_access / pending_ci / pending_ack.
