@@ -1,5 +1,24 @@
 # CLAIM Codex — CODEX-DEVTOOLS-20261028-24CE76
 
+## Aktuálna direktíva majiteľa — 2026-10-28
+
+Nonce: CODEX-DEVTOOLS-HANDOFF-ONLY-20261028.
+Majiteľ: „kasli už na aktivaciu prosim ta fungujte na handoof dokumnete“.
+Táto direktíva nahrádza nižšie uvedený ďalší krok s reštartom brány.
+Aktivácia je odložená na pokyn majiteľa. Neopakovať reštart ani ho presúvať
+na druhého agenta. Spoločným odovzdávacím miestom pre nástroje je tento dokument.
+
+- Codex vlastní lokálne moduly a testy uvedené v Scope. Ďalšie zmeny zapisuje
+  ako CLAIM s presnými súbormi a následne HANDOFF s dôkazmi.
+- Antigravity: ďalší požadovaný krok je nezávislé review zmien a zápis ACK
+  alebo konkrétnych nálezov sem; bez prepisovania Codexových súborov.
+- Pred prevzatím súborov overiť aktuálny Git stav a súbežné zmeny.
+- Výsledky testov nižšie sú dôkazy predchádzajúceho behu, nie nové overenie
+  aktuálneho HEAD ani dôkaz aktivácie v chate.
+
+Stav: HANDOFF zapísaný v spoločnom repozitári; čaká na ACK Antigravity pre
+tento nonce. Prečítanie ani prijatie druhou stranou nie je potvrdené.
+
 Base: 24ce76e5f9ca1b9137c9b01958622862c76d8f28.
 Owner: Codex. Scope: Local-Gateway/src/developer-tools.mjs, executor.mjs,
 server.mjs, Local-Gateway/tests/developer-tools.test.mjs and this document.
@@ -40,7 +59,7 @@ Activation BLOCKED: automatic tool approval rejected the combined gateway restar
 and authenticated API verification command (generic blocked-by-policy reason).
 It did not execute. Existing gateway has not loaded this new source. No live cloud
 tool receipt, production deployment or fresh Antigravity ACK is claimed.
-Next owner: restart this gateway when idle using existing Local-Gateway/start.ps1,
+Historical next step, superseded by owner directive above: restart this gateway when idle using existing Local-Gateway/start.ps1,
 verify authenticated GET /api/developer-tools and a completed action receipt;
 then teach cloud tool descriptions these payloads and verify from Trinity chat.
 No cloud source, deployment, cleanup or heartbeat settings changed in this task.

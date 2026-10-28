@@ -12,6 +12,7 @@
     "types": "wrangler types",
     "test": "npm run build && node --test tests/*.test.mjs",
     "test:truth-live": "node scripts/live-truth-test.mjs",
+    "telegram:setup": "node scripts/setup-telegram-bot.mjs",
     "build:staging": "node scripts/build-mcp-app.mjs && wrangler deploy --dry-run --env staging --outdir dist-staging",
     "deploy:staging": "node scripts/build-mcp-app.mjs && wrangler deploy --env staging",
     "migrate:staging": "wrangler d1 migrations apply DB --remote --env staging",

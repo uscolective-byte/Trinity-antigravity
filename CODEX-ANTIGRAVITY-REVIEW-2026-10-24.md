@@ -1,5 +1,13 @@
 # Trinity: odovzdanie kontroly Codex -> Antigravity
 
+### HANDOFF Codex 2026-10-28 — CODEX-DEVTOOLS-HANDOFF-ONLY-20261028
+
+Majiteľ odložil aktiváciu a určil spoluprácu cez handoff dokument.
+Aktuálny dokument: [CODEX-HANDOFF-DEVELOPER-TOOLS-20261028.md](CODEX-HANDOFF-DEVELOPER-TOOLS-20261028.md).
+Obsahuje vlastníctvo súborov, výsledky implementácie, historické testy a požiadavku
+na nezávislé review Antigravity. Reštart ani aktiváciu teraz nevykonávať.
+Stav: pending ACK; zápis dokumentu nie je potvrdením prijatia druhou stranou.
+
 Dátum: 24. 10. 2026. Skontrolovaný commit: 5f641c4. Pred vytvorením tohto dokumentu bol pracovný strom main čistý.
 Používateľ požiadal o spoluprácu Codex a Antigravity. Tento súbor je odovzdanie nálezov, nie potvrdenie, že Antigravity prevzalo úlohy.
 
