@@ -345,3 +345,62 @@ Nasadenie a overenie (Dôkazy):
 - `GET https://auru.space/api/skills/matrix` -> HTTP 200, count: 112 skills.
 - `GET https://auru.space/api/pc-bridge` -> HTTP 200, telemetry: host `Basterix`, CPU: 8 cores, RAM: 15984 MB, prislub_verified: true.
 Ďalší krok: Spustenie lokálneho daemona majiteľom cez `powershell -ExecutionPolicy Bypass -File scripts\start-pc-daemon.ps1` pre trvalý live stream príkazov a telemetrie. Súbory uvoľnené.
+
+### CLAIM — DESKTOP-MOBILE-AURU-DEV-SYNC-20261028-ANTIGRAVITY-01
+Čas a časové pásmo: 2026-10-28 16:47, Europe/Bratislava.
+Autor a klient: Antigravity (Gemini 3.8 Flash, local IDE/CLI).
+Príjemcovia: Majiteľ (Basterix), Codex, Tím Trinity.
+Cieľ a pokyn majiteľa: Aktualizácia desktop aplikácie (Local-Desktop) a mobilnej aplikácie (PWA) na auru.dev a zosúladenie/synchronizácia oboch domén (auru.dev ⇄ auru.space).
+Základný commit / checkout: `ba36695` (branch `main`).
+Vlastnené súbory alebo zdroje / prostredie:
+- `Local-Desktop/modules/cloud.mjs`
+- `Local-Desktop/server.mjs`
+- `Local-Desktop/Data/settings.json`
+- `Local-Desktop/public/index.html`
+- `Trinity/public/assistant/manifest.json`
+- `Trinity/public/assistant/chat.html`
+- `Trinity/public/assistant/chat.js.txt`
+- `Trinity/public/assistant/builder.css`
+- `Trinity/src/index.js`
+- `Trinity/tests/cross-domain-sync.test.mjs`
+Stav: completed.
+
+### UPDATE / HANDOFF — DESKTOP-MOBILE-AURU-DEV-SYNC-20261028-ANTIGRAVITY-01
+Čas a časové pásmo: 2026-10-28 16:53, Europe/Bratislava.
+Autor a klient: Antigravity (Gemini 3.8 Flash, local IDE/CLI).
+Príjemcovia: Majiteľ (Basterix), Codex, Tím Trinity.
+Cieľ a pokyn majiteľa: Aktualizácia desktop aplikácie (Local-Desktop) a mobilnej aplikácie (PWA) na auru.dev a zosúladenie/synchronizácia oboch domén (auru.dev ⇄ auru.space).
+Základný commit / checkout: `ba36695` (branch `main`).
+Vlastnené súbory alebo zdroje / prostredie:
+- `Local-Desktop/modules/cloud.mjs`
+- `Local-Desktop/server.mjs`
+- `Local-Desktop/Data/settings.json`
+- `Local-Desktop/public/index.html`
+- `Trinity/public/assistant/manifest.json`
+- `Trinity/public/assistant/chat.html`
+- `Trinity/public/assistant/chat.js.txt`
+- `Trinity/public/assistant/builder.css`
+- `Trinity/src/index.js`
+- `Trinity/tests/cross-domain-sync.test.mjs`
+Skutočné zmeny:
+1. **Desktop aplikácia (`Local-Desktop`):**
+   - Nastavené primárne prostredie na `development` (`https://auru.dev`) v `Data/settings.json` a `server.mjs`.
+   - V `modules/cloud.mjs` pridaná podpora pre `dual-sync` a obojsmerné volania (`syncBoth`).
+   - V `public/index.html` pridaná voľba: `Sovereign OS · auru.dev`, `Produkcia · auru.space` a `Zosúladené · auru.dev ⇄ auru.space`.
+   - Všetkých 12 testov v `Local-Desktop/tests/local.test.mjs` a 4 testy v `modules.test.mjs`: **100 % PASS**.
+2. **Mobilná aplikácia (PWA pre Android / iOS):**
+   - Aktualizovaný `manifest.json`: názov `Trinity Sovereign AI OS`, zameranie na `auru.dev` aj `auru.space`, zachovaný `start_url: /?device=mobile#chat` a validované ikony 192x192 a 512x512.
+   - PWA testy `Trinity/tests/mobile-pwa.test.mjs`: **6 / 6 PASS**.
+3. **Zosúladenie a synchronizácia oboch domén (`auru.dev` ⇄ `auru.space`):**
+   - V `Trinity/src/index.js` pridaný obojsmerný synchronizačný endpoint `/api/sync/state` (GET overenie zdieľaného D1/KV jadra / POST synchronizácia relácie a stavu cez KV `PC_STATE` & `Mastermind`).
+   - V `Trinity/public/assistant/chat.js.txt` pridaná funkcia `syncCrossDomain()`, ktorá pri načítaní a pri odoslaní správy/vytvorení chatu synchronizuje reláciu používateľa naprieč doménami.
+   - V `Trinity/public/assistant/chat.html` a `builder.css` pridaný vizuálny indikátor zosúladenia: `.domain-bridge-switch` s aktívnou doménou a odznakom `● Zosúladené`.
+Kontroly a dôkazy:
+- `node --test Local-Desktop/tests/local.test.mjs` -> 12 / 12 PASS.
+- `node --test Local-Desktop/tests/modules.test.mjs` -> 4 / 4 PASS.
+- `node --test Trinity/tests/mobile-pwa.test.mjs` -> 6 / 6 PASS.
+- `node --test Trinity/tests/cross-domain-sync.test.mjs` -> 2 / 2 PASS.
+- `node verify-chat-contract.mjs` -> 8 / 8 PASS.
+- `npm run check` naprieč celým monorepom -> 582 / 582 PASS (100 %).
+Stav: completed.
+Ďalší krok: Git commit & push, nasadenie unifikovaného workeru na Cloudflare a verifikácia cez verify-deployment.mjs. Súbory uvoľnené.

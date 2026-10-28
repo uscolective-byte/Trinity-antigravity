@@ -1,11 +1,11 @@
 {
-  "name": "Trinity mobilný pracovný priestor",
+  "name": "Trinity Sovereign AI OS",
   "short_name": "Trinity",
-  "description": "Prenosný prístup k vlastnému účtu, úlohám a nástrojom Trinity",
+  "description": "Zvrchovaný mobilný a cloudový operačný systém Trinity (auru.dev & auru.space)",
   "start_url": "/?device=mobile#chat",
   "display": "standalone",
-  "background_color": "#191916",
-  "theme_color": "#191916",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
   "orientation": "any",
   "icons": [
     {
@@ -24,7 +24,8 @@
   "categories": [
     "productivity",
     "utilities",
-    "business"
+    "business",
+    "developer"
   ],
   "id": "/",
   "scope": "/",

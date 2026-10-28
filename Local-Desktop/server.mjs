@@ -45,8 +45,8 @@ export async function createLocalApp({dataDir=path.join(root,'Data'),workspace=p
   workspace=await realpath(workspace);
   const settingsFile=path.join(dataDir,'settings.json'),notesFile=path.join(dataDir,'notes.json');
   const settings=await jsonFile(settingsFile,{model:'qwen3:4b',num_ctx:4096,num_predict:768});
-  settings.provider||='ollama';settings.environment||='production';
-  const cloud=()=>new TrinityCloud({environment:settings.environment,getToken:()=>vault.get('cloud-'+settings.environment),fetcher:externalFetch});
+  settings.provider||='ollama';settings.environment||='development';
+  const cloud=()=>new TrinityCloud({environment:settings.environment==='dual-sync'?'development':settings.environment,getToken:async()=>(await vault.get('cloud-'+(settings.environment==='dual-sync'?'development':settings.environment)))||(await vault.get('cloud-development'))||(await vault.get('cloud-production')),fetcher:externalFetch});
   let syncState={status:'not-checked'},gatewayState={status:'disabled'},stopGateway=()=>{},stopHeartbeat=()=>{};
   const tasksFile=path.join(dataDir,'tasks.json');let tasks=await jsonFile(tasksFile,[]);
   if(!validModel(settings.model))throw new Error('Invalid saved model');

@@ -316,6 +316,53 @@ async function route(request,env,ctx){
     }
     return json({ ok: true, stored: true, at: Date.now() });
   }
+  if(path==='/api/sync/state'){
+    if(request.method==='GET'){
+      let syncedState = null, kvTelemetry = null;
+      if(env.PC_STATE){
+        try{ syncedState = JSON.parse(await env.PC_STATE.get('cross_domain:state') || 'null'); }catch{}
+        try{ kvTelemetry = JSON.parse(await env.PC_STATE.get('telemetry:latest') || 'null'); }catch{}
+      }
+      if(!syncedState && env.Mastermind){
+        try{ syncedState = JSON.parse(await env.Mastermind.get('cross_domain:state') || 'null'); }catch{}
+      }
+      const pcStatus = await getPCBridgeStatus(env);
+      return json({
+        ok: true,
+        synchronized: true,
+        domains: ['auru.dev', 'auru.space'],
+        active_host: request.headers.get('Host') || 'unknown',
+        shared_core: {
+          unified_worker: 'trinity',
+          version: '11.0.0',
+          d1: 'trinity-v03',
+          kv: 'PC_STATE & Mastermind',
+          r2: 'trinity-artifacts'
+        },
+        pc_bridge: {
+          ...pcStatus,
+          telemetry: kvTelemetry
+        },
+        state: syncedState,
+        synced_at: Date.now()
+      });
+    }
+    if(request.method==='POST'){
+      const update = await readJSON(request, 64000);
+      const payload = JSON.stringify({
+        ...update,
+        updated_at: Date.now(),
+        updated_from: request.headers.get('Host') || 'unknown'
+      });
+      if(env.PC_STATE){
+        await env.PC_STATE.put('cross_domain:state', payload, { expirationTtl: 86400 * 30 });
+      }
+      if(env.Mastermind){
+        await env.Mastermind.put('cross_domain:state', payload, { expirationTtl: 86400 * 30 });
+      }
+      return json({ ok: true, synchronized: true, at: Date.now() });
+    }
+  }
   if(path==='/api/skills/matrix'&&request.method==='GET'){
     const dynamicSkills = await loadDynamicSkills(env);
     return json({ ok: true, count: dynamicSkills.length, skills: dynamicSkills });
