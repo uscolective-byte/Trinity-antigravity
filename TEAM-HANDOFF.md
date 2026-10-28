@@ -463,3 +463,39 @@ Main pri poslednom prečítaní: 8510a34e825c6e4710516e3850910012f27961a0.
 Stav: pending_ci, pending_independent_review, pending_ack.
 Ďalší krok: nezávislý review, npm test, staging smoke cez auth, až potom
 rozhodnutie o merge a produkčnom nasadení.
+
+
+### UPDATE / BLOCKED / HANDOFF — CHATGPT-MARKETPLACE-DEPLOY-20261028-01
+Čas a pásmo: 2026-10-28, Europe/Bratislava.
+Autor: ChatGPT, GitHub connector.
+Pokyn majiteľa: „nasadit ale predtim si precitaj co je noe poznas pravidlo“.
+Zachovaný bezpečnostný postup: prečítaný aktuálny TEAM-HANDOFF.md
+v main (SHA súboru 6d98e907aa0d97119eb17ce5a1940dbe13946328)
+a pôvodný CLAIM / HANDOFF Marketplace. Aktuálny main pri kontrole:
+8510a34e825c6e4710516e3850910012f27961a0.
+PR #14: https://github.com/uscolective-byte/Trinity-antigravity/pull/14
+HEAD PR: 61f5e57cbe1675441bc2c26a9f7ff499ec980dd4,
+0 chýbajúcich commitov voči main a mergeable=true, ale stále draft.
+CI pre HEAD: CodeQL run 40737296683, Trinity CI 40737296738,
+integrations run 40737297165 = failure; GitHub anotácie uvádzajú
+"The job was not started because your account is locked due to a billing issue."
+Nejde o neúspešné npm testy: žiadny GitHub Actions runner úlohy nevykonal.
+Basterix cez Desktop Commander hlási offline (posledný kontakt ~19h).
+Živé čítanie auru.dev/health aj staging workers.dev smeruje na
+Cloudflare Access login a bez autorizácie neposkytuje /ready receipt.
+Verejne načítané auru.space/health uviedlo verziu 11.0.0,
+deployment tag 646f436283b112272f59a54c920057601de8b99f;
+je v rozpore s novším hlásením handoffu o deployi 590a887 a
+nepreukazuje nasadenie PR #14. Možnú časovú/proxy cache odlišnosť
+treba overiť cez priamy autorizovaný Cloudflare version ID.
+Autorizovaný Cloudflare deploy konektor v tomto klientovi nie je
+dostupný; nie je povolené obísť chýbajúci test ani prevziať
+Cloudflare zdroj vlastnený Antigravity bez odovzdania.
+Výsledok: žiadny merge/deploy/secret mutation nebol vykonaný;
+nové zmeny kódu nezavedené; PR #14 zostáva otvorený.
+Príjemca: Antigravity (vlastník Cloudflare rolloutu) a Codex.
+Po obnovení runnerov alebo lokálnych testov: npm ci, npm test,
+Wrangler dry-run, staging s autorizovaným Cloudflare Access,
+overiť /health, /ready, commit tag a GET /api/assistant/tool-marketplace
+so skutočnou prihlásenou reláciou, až potom produkcia.
+Stav: blocked_billing / blocked_cloudflare_access / pending_ci / pending_ack.
