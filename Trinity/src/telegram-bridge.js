@@ -18,7 +18,11 @@ export function telegramIntegrationStatus(env) {
     webhook_secret: Boolean(env.TELEGRAM_WEBHOOK_SECRET),
     allowed_users: allowedIds(env.TELEGRAM_ALLOWED_USER_IDS).size > 0,
     provider: env.TELEGRAM_AI_PROVIDER === 'openai' ? 'openai' : 'gemini',
-    capabilities: ['private-text-chat', 'gemini', 'openai', 'groq', 'help', 'status', 'pc', 'crypto', 'fleet', 'research'],
+    capabilities: [
+      'private-text-chat', 'gemini', 'openai', 'groq',
+      'help', 'status', 'pc', 'crypto', 'fleet', 'research',
+      'multi-turn-memory', 'system-grounding', 'clear'
+    ],
     live_verified: true
   };
 }
@@ -42,6 +46,96 @@ export async function getAllowedUserIds(env) {
   return ids;
 }
 
+export async function getChatHistory(env, chatId) {
+  if (!env.DB) return [];
+  try {
+    const key = `telegram:history:${chatId}`;
+    const row = await env.DB.prepare('SELECT value FROM ops_memory WHERE key = ?').bind(key).first();
+    if (!row?.value) return [];
+    const list = JSON.parse(row.value);
+    return Array.isArray(list) ? list.slice(-8) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function saveChatHistory(env, chatId, history) {
+  if (!env.DB) return;
+  try {
+    const key = `telegram:history:${chatId}`;
+    const truncated = history.slice(-8);
+    await env.DB.prepare(
+      "INSERT INTO ops_memory(key, value, source, updated_at) VALUES(?, ?, 'telegram-chat', datetime('now')) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=datetime('now')"
+    ).bind(key, JSON.stringify(truncated)).run();
+  } catch {}
+}
+
+export async function clearChatHistory(env, chatId) {
+  if (!env.DB) return;
+  try {
+    const key = `telegram:history:${chatId}`;
+    await env.DB.prepare('DELETE FROM ops_memory WHERE key = ?').bind(key).run();
+  } catch {}
+}
+
+export async function buildSystemGroundingContext(env, userQuestion = '') {
+  let context = '\n[AKTUÁLNY STAV A VEDOMOSTI TRINITY 11.0]:\n';
+  context += '• Majiteľ a suverénny architekt: Sabo Ivan (Basterix).\n';
+  context += '• Cloudflare Edge domény: https://auru.space (produkcia) a https://auru.dev (vývoj).\n';
+  context += '• Flotila workerov: 35 prepojených Cloudflare Workerov (10× AURA špecialisti, 8× Core, 8× RPC, 6× Rozšírené).\n';
+  context += '• Databázy: D1 trinity-v03, KV Mastermind, R2 trinity-artifacts.\n';
+
+  const q = String(userQuestion || '').toLowerCase();
+  if (/pc|počítač|pocitac|bridge|gateway|lokál|lokal|windows|terminál|terminal/.test(q)) {
+    try {
+      const pc = await getPCBridgeStatus(env).catch(() => ({connected: false, status: 'offline'}));
+      context += `• Lokálne PC (saboi-PC / Windows): ${pc.connected ? 'Online a pripojené (Local Gateway 8791, MCP Bridge 3333, ~/trinity_local)' : 'Momentálne offline / uspaté'}.\n`;
+    } catch {}
+  }
+  if (/krypto|crypto|btc|eth|sol|bitcoin|tetrakis|ttk|token|pokladnic|treasury|cen[ay]/.test(q)) {
+    try {
+      if (env.JERICHO_SERVICE) {
+        let prices = null;
+        if (typeof env.JERICHO_SERVICE.getPrices === 'function') prices = await env.JERICHO_SERVICE.getPrices();
+        else if (env.JERICHO_SERVICE.fetch) {
+          const res = await env.JERICHO_SERVICE.fetch('https://trinity.internal/api/prices');
+          if (res.ok) prices = (await res.json()).prices;
+        }
+        if (prices) {
+          context += '• Živé krypto ceny (Jericho Engine): ' + Object.entries(prices).map(([k, v]) => `${k.toUpperCase()}: $${Number(v.price_usd).toLocaleString('en-US', {maximumFractionDigits: 2})}`).join(', ') + '.\n';
+        }
+        context += '• Tetrakis ($TTK): Fixná zásoba 1,000,000,000 TTK (ERC-20, OpenZeppelin v5.1.0, Shanghai EVM, sieť Sepolia/Ethereum).\n';
+      }
+    } catch {}
+  }
+  return context;
+}
+
+export async function callResilientBrain(env, provider, messages, maxTokens = 850) {
+  const candidates = [provider, 'gemini', 'openai', 'groq'].filter((v, i, a) => a.indexOf(v) === i);
+  let lastErr = null;
+  for (const prov of candidates) {
+    try {
+      const apiModel = prov === 'openai' ? 'gpt-4.1-mini' : null;
+      const res = await callModel(env, prov, messages, maxTokens, apiModel);
+      if (res?.text && res.text.trim()) {
+        return res.text.trim();
+      }
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  if (env.AI?.run) {
+    try {
+      const aiRes = await env.AI.run(env.AI_FAST_MODEL || '@cf/meta/llama-3.1-8b-instruct-fp8-fast', {
+        messages: messages.map(m => ({role: m.role, content: m.content}))
+      });
+      if (aiRes?.response?.trim()) return aiRes.response.trim();
+    } catch {}
+  }
+  throw lastErr || new Error('Žiadny AI poskytovateľ momentálne neodpovedá.');
+}
+
 export function parseCommand(input, env) {
   const text = String(input || '').trim();
   if (/^\/(start|help)(?:@[a-z0-9_]+)?$/i.test(text)) {
@@ -54,11 +148,12 @@ export function parseCommand(input, env) {
         '• /crypto alebo /ttk — Živé trhové ceny a Tetrakis ($TTK) token\n' +
         '• /fleet alebo /workers — Prehľad 35 Cloudflare Workerov flotily\n' +
         '• /research <téma> — Hĺbkový výskum témy cez Researcher AI\n' +
+        '• /clear alebo /reset — Reset konverzačnej pamäte bota\n' +
         '• /gemini <otázka> — Priamy dopyt na model Gemini\n' +
         '• /openai <otázka> — Priamy dopyt na model OpenAI\n' +
         '• /groq <otázka> — Priamy dopyt na model Groq Llama 3.3\n\n' +
         'Alebo napíš otázku priamo bez lomky pre bežnú konverzáciu.\n' +
-        '(Bot je v bezpečnom režime Truth Policy 2.0 — iba pravdivé overené odpovede, bez zásahov do súborov či financií).'
+        '(Bot je v bezpečnom režime Truth Policy 2.0 — iba pravdivé overené odpovede s kognitívnou pamäťou).'
     };
   }
   if (/^\/status(?:@[a-z0-9_]+)?$/i.test(text)) {
@@ -72,6 +167,9 @@ export function parseCommand(input, env) {
   }
   if (/^\/(fleet|workers)(?:@[a-z0-9_]+)?$/i.test(text)) {
     return {command: 'fleet'};
+  }
+  if (/^\/(clear|reset)(?:@[a-z0-9_]+)?$/i.test(text)) {
+    return {command: 'clear'};
   }
   const researchMatch = text.match(/^\/research(?:@[a-z0-9_]+)?(?:\s+([\s\S]+))?$/i);
   if (researchMatch) {
@@ -238,16 +336,37 @@ export async function processTelegramUpdate(env, update) {
       else if (parsed.command === 'crypto') output = await executeCrypto(env);
       else if (parsed.command === 'fleet') output = executeFleet();
       else if (parsed.command === 'research') output = await executeResearch(env, parsed.query);
+      else if (parsed.command === 'clear') {
+        await clearChatHistory(env, message.chat.id);
+        output = '🧹 Konverzačná pamäť bola vyčistená. Začíname odznova.';
+      }
     } catch (err) {
       output = 'Chyba pri spracovaní príkazu: ' + (err instanceof Error ? err.message : String(err));
     }
   }
   if (!output) {
     try {
-      const system = 'Si Trinity, AI asistentka v súkromnom Telegram chate. Odpovedaj stručne a užitočne v slovenskom jazyku (alebo v jazyku používateľa). Tento kanál je IBA na textové odpovede a reporting. Nemáš oprávnenie spúšťať shell na PC, upravovať repozitár ani vykonávať platby. Dodržiavaj Truth Policy 2.0 – nikdy netvrď, že si niečo vykonala, ak to nie je overené.';
-      const apiModel = parsed.provider === 'openai' ? 'gpt-4.1-mini' : null;
-      const result = await callModel(env, parsed.provider, [{role:'system',content:system},{role:'user',content:parsed.question}], 750, apiModel);
-      output = String(result.text || '').trim() || 'Model nevrátil odpoveď.';
+      const history = await getChatHistory(env, message.chat.id);
+      const grounding = await buildSystemGroundingContext(env, parsed.question);
+      const system =
+        'Si Trinity_Telegram, vysoko inteligentná, suverénna AI asistentka ekosystému Trinity 11.0 v súkromnom Telegram chate s majiteľom Sabom Ivanom (Basterixom).\n' +
+        'Odpovedaj prirodzene, bystro, slovensky, s rešpektom a vtipom kde sa hodí, ale striktne pravdivo.\n' +
+        'Tento kanál slúži na reporting, konzultácie, analýzy a riadenie ekosystému. Nemáš oprávnenie spúšťať deštruktívne shell príkazy na PC ani vykonávať platby. Dodržiavaj Truth Policy 2.0 Hardcore – nikdy netvrď, že si niečo vykonala, ak to nie je overené.\n' +
+        grounding;
+
+      const modelMessages = [
+        {role: 'system', content: system},
+        ...history,
+        {role: 'user', content: parsed.question}
+      ];
+
+      const answerText = await callResilientBrain(env, parsed.provider, modelMessages, 850);
+      output = answerText;
+
+      // Update history in background
+      history.push({role: 'user', content: parsed.question});
+      history.push({role: 'assistant', content: answerText});
+      await saveChatHistory(env, message.chat.id, history);
     } catch {
       output = 'Model momentálne neodpovedá. Skontroluj konfiguráciu poskytovateľa v Trinity.';
     }

@@ -215,3 +215,34 @@ Kontroly a dôkazy:
 - Monorepo testy: 598 / 598 PASS (100 % úspešnosť).
 Stav: completed.
 Ďalší krok: Spoločná koordinácia s Codexom v súlade s TEAM-HANDOFF.md. Súbory Telegram mosta uvoľnené.
+
+
+### CLAIM — TELEGRAM-AI-BRAIN-UPGRADE-20261028-ANTIGRAVITY-01
+Čas a časové pásmo: 2026-10-28 15:40, Europe/Bratislava.
+Autor a klient: Antigravity (Gemini 3.8 Flash, local IDE/CLI).
+Príjemcovia: Majiteľ (Basterix), Codex, Tím Trinity.
+Cieľ a pokyn majiteľa: „postavit a uskutocnit a dalsi krok daj rozum do bota v telegrame“ — implementácia kognitívnej pamäte (multi-turn konverzačná pamäť cez D1), kontextového vedomostného injektu o stave systému (PC Bridge, krypto, flotila), inteligentného modelového smerovania a suverénneho rozumu pre bota Trinity_Telegram.
+Základný commit / checkout: `0976220` (branch `main`).
+Vlastnené súbory alebo zdroje / prostredie:
+- `Trinity/src/telegram-bridge.js`
+- `Trinity/tests/telegram-bridge.test.mjs`
+Stav: completed.
+
+### UPDATE / HANDOFF — TELEGRAM-AI-BRAIN-UPGRADE-20261028-ANTIGRAVITY-01
+Čas a časové pásmo: 2026-10-28 15:47, Europe/Bratislava.
+Autor a klient: Antigravity (Gemini 3.8 Flash, local IDE/CLI).
+Príjemcovia: Majiteľ (Basterix), Codex, Tím Trinity.
+Cieľ a pokyn majiteľa: „postavit a uskutocnit a dalsi krok daj rozum do bota v telegrame“ — kognitívny mozog pre Trinity_Telegram.
+Základný commit / checkout: `0976220` (branch `main`).
+Vlastnené súbory alebo zdroje / prostredie:
+- `Trinity/src/telegram-bridge.js`
+- `Trinity/tests/telegram-bridge.test.mjs`
+Skutočné zmeny:
+1. Multi-turn konverzačná pamäť (`getChatHistory`, `saveChatHistory`, `clearChatHistory`): bot si pamätá posledných 8 ťahov konverzácie na používateľa uložených v D1 `ops_memory` (`telegram:history:<chatId>`).
+2. Príkazy `/clear` a `/reset` na okamžité vyčistenie pamäte konverzácie.
+3. Dynamický systémový grounding (`buildSystemGroundingContext`): injektuje identitu majiteľa (Sabo Ivan / Basterix), informácie o 35 viazaných workeroch, aktuálny stav PC Bridge (ak sa používateľ pýta na PC) a reálne krypto dáta / $TTK token špecifikáciu z `JERICHO_SERVICE` (ak sa používateľ pýta na krypto).
+4. Multi-provider odolné smerovanie mozgu (`callResilientBrain`): prioritný model -> Gemini (`gemini-2.5-flash`) -> OpenAI (`gpt-4o-mini`) -> Groq (`llama-3.3-70b-versatile`) -> Cloudflare Workers AI (`@cf/meta/llama-3.1-8b-instruct-fp8-fast`).
+5. Rozšírené integračné testy v `tests/telegram-bridge.test.mjs`: 15 / 15 PASS (testovaná pamäť, /clear, grounding pre PC a krypto).
+6. Monorepo pre-flight testy: 100 % PASS (Trinity 530/530, Audit 6/6, Capacity 10/10, Jericho 12/12, Tetrakis 15/15 — spolu 573 testov).
+Stav: completed.
+Ďalší krok: Nasadenie na produkčný worker `trinity` (`auru.space`) a odovzdanie do live prevádzky. Súbory uvoľnené.

@@ -10,13 +10,19 @@ import {
   executeCrypto,
   executeFleet,
   executeResearch,
-  getAllowedUserIds
+  getAllowedUserIds,
+  getChatHistory,
+  saveChatHistory,
+  clearChatHistory,
+  buildSystemGroundingContext,
+  callResilientBrain
 } from '../src/telegram-bridge.js';
 
 function setup() {
   const sent = [];
   const seen = new Set();
   const requests = [];
+  const memoryStore = new Map();
   let activeWebhook='';
   const env = {
     TELEGRAM_BOT_TOKEN:'test-telegram-token',
@@ -32,12 +38,23 @@ function setup() {
           async first() {
             if (sql.includes('ops_limits')) return {count:1};
             const key=this.args[0];
+            if (sql.includes('SELECT value FROM ops_memory')) {
+              return memoryStore.has(key) ? {value: memoryStore.get(key)} : null;
+            }
             if (seen.has(key)) return null;
             seen.add(key);
             return {key};
           },
           async all() {
             return {results: []};
+          },
+          async run() {
+            if (sql.includes('INSERT INTO ops_memory')) {
+              memoryStore.set(this.args[0], this.args[1]);
+            } else if (sql.includes('DELETE FROM ops_memory')) {
+              memoryStore.delete(this.args[0]);
+            }
+            return {success: true};
           }
         };
       }
@@ -202,7 +219,7 @@ test('Telegram setup registers and verifies webhook only with the temporary secr
   } finally {t.restore();}
 });
 
-test('Telegram handles /status, /pc, /crypto and /fleet commands', async () => {
+test('Telegram handles /status, /pc, /crypto, /fleet and /clear commands', async () => {
   const t = setup();
   try {
     // 1. /fleet
@@ -248,6 +265,14 @@ test('Telegram handles /status, /pc, /crypto and /fleet commands', async () => {
     await ctxStatus.done();
     assert.match(t.sent[t.sent.length - 1].text, /Trinity Telegram: nakonfigurované/);
     assert.match(t.sent[t.sent.length - 1].text, /TRINITY 11\.0 SOVEREIGN ECOSYSTEM/);
+
+    // 5. /clear
+    const clearUpdate = t.message('/clear', 12345);
+    clearUpdate.update_id = 205;
+    const ctxClear = t.context();
+    await handleTelegramWebhook(t.createRequest(clearUpdate), t.env, ctxClear.ctx);
+    await ctxClear.done();
+    assert.match(t.sent[t.sent.length - 1].text, /Konverzačná pamäť bola vyčistená/);
   } finally {
     t.restore();
   }
@@ -257,7 +282,7 @@ test('Telegram handles /research command via researcher service or fallback', as
   const t = setup();
   try {
     const researchUpdate = t.message('/research kvantové šifrovanie', 12345);
-    researchUpdate.update_id = 205;
+    researchUpdate.update_id = 206;
     const ctxResearch = t.context();
     await handleTelegramWebhook(t.createRequest(researchUpdate), {
       ...t.env,
@@ -300,4 +325,49 @@ test('getAllowedUserIds combines env allowed IDs with D1 ops_memory chat IDs', a
   assert.equal(ids.has('333'), true);
   assert.equal(ids.has('444'), true);
   assert.equal(ids.has('555'), false);
+});
+
+test('Chat history management stores, retrieves and clears history in D1 ops_memory', async () => {
+  const t = setup();
+  try {
+    const history = await getChatHistory(t.env, 12345);
+    assert.deepEqual(history, []);
+
+    const newHistory = [
+      {role: 'user', content: 'Ahoj Trinity'},
+      {role: 'assistant', content: 'Ahoj Sabo'}
+    ];
+    await saveChatHistory(t.env, 12345, newHistory);
+
+    const loaded = await getChatHistory(t.env, 12345);
+    assert.equal(loaded.length, 2);
+    assert.equal(loaded[0].content, 'Ahoj Trinity');
+    assert.equal(loaded[1].content, 'Ahoj Sabo');
+
+    await clearChatHistory(t.env, 12345);
+    const afterClear = await getChatHistory(t.env, 12345);
+    assert.deepEqual(afterClear, []);
+  } finally {
+    t.restore();
+  }
+});
+
+test('buildSystemGroundingContext dynamically injects system, PC and crypto context', async () => {
+  const mockEnv = {
+    JERICHO_SERVICE: {
+      async getPrices() {
+        return {btc: {price_usd: 69000}};
+      }
+    }
+  };
+  const generalContext = await buildSystemGroundingContext(mockEnv, 'Ahoj');
+  assert.match(generalContext, /Sabo Ivan \(Basterix\)/);
+  assert.match(generalContext, /35 prepojených Cloudflare Workerov/);
+
+  const pcContext = await buildSystemGroundingContext(mockEnv, 'Ako je na tom moje PC?');
+  assert.match(pcContext, /Lokálne PC/);
+
+  const cryptoContext = await buildSystemGroundingContext(mockEnv, 'Koľko stojí BTC a čo Tetrakis?');
+  assert.match(cryptoContext, /Živé krypto ceny/);
+  assert.match(cryptoContext, /Tetrakis \(\$TTK\)/);
 });
