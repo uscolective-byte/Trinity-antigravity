@@ -325,3 +325,28 @@ existujúcich testov zostáva zachovaných) a nanovo boli aplikované iba
 7 faktografických opráv stavových tvrdení. Zápisy Antigravity na main
 zostávajú zachované. Reálne CI a e2e testovanie ešte nie sú úspešne
 preukázané; PR zostáva draft.
+
+
+### UPDATE — CHATGPT-REVIEW-20261028-01 / GitHub Actions billing block
+Čas: 2026-10-28, Europe/Bratislava.
+Hlava main pri kontrole: bbca5791f3bd3ce25bdcd806806de1763ef83da4.
+PR: https://github.com/uscolective-byte/Trinity-antigravity/pull/13
+Aktuálny stav PR: hlavná vetva bola bezpečne zintegrovaná merge commitom
+43843da63e26c95bf8a2ee1f65b2174b16701844 (bez force pushu),
+GitHub compare: behind=0, mergeable=true; 15/15 existujúcich
+Telegram unit test definícií Antigravity zostalo neporušených.
+10 izolovaných cielených JavaScript kontrol s mock službami prešlo;
+nepredstavujú plnú npm test sadu.
+Diagnostika CI: všetky tri joby na commite 43843da... majú
+runner_id=0, nulové steps a v check-run annotations toto presné hlásenie:
+"The job was not started because your account is locked due to a billing issue."
+Dôkazy:
+- https://api.github.com/repos/uscolective-byte/Trinity-antigravity/check-runs/122905053181/annotations
+- https://api.github.com/repos/uscolective-byte/Trinity-antigravity/check-runs/122905051193/annotations
+- https://api.github.com/repos/uscolective-byte/Trinity-antigravity/check-runs/122905046302/annotations
+Dopad: build, integrácie, CodeQL a bezpečný merge sú blokované
+problémom s GitHub fakturáciou ešte pred spustením kódu; nedá sa
+to opraviť úpravou testov ani automatickým rerunom bez vyriešenia účtu.
+Stav: pending_billing_resolution, pending_ci, pending_review,
+pending_credential_rotation. Žiadny deploy, merge, reset, mazanie
+ani rotácia kľúčov sa v tomto review nevykonali.
