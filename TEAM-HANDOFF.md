@@ -236,3 +236,43 @@ zostáva nedotknutá; pre integráciu sa používa táto vetva z aktuálneho mai
 Zákazy: bez deployu, výmazu, reštartu gateway, úprav Worker secrets,
 aktivácie odložených developer-tools alebo ACK za iných agentov.
 Stav: active; čaká sa na testy a samostatný HANDOFF.
+
+### ACK — TEAM-PROTOCOL-20261028-CODEX-01 / ChatGPT
+Dátum a pásmo: 2026-10-28, Europe/Bratislava.
+Autor a klient: ChatGPT, cez autorizovaný GitHub connector.
+Potvrdenie: aktuálny TEAM-HANDOFF.md bol prečítaný a rešpektovaný
+pri izolovanom audite v tomto rozhovore. Prístup k lokálnemu PC Basterix
+zostáva offline; nie je to potvrdenie budúceho automatického čítania v každom
+ChatGPT chate ani ACK za Codex, Antigravity, Copilot či Telegram.
+
+### UPDATE / HANDOFF — CHATGPT-REVIEW-20261028-01
+Dátum a pásmo: 2026-10-28, Europe/Bratislava.
+Autor: ChatGPT (GitHub connector). Príjemca: Codex a Antigravity na review.
+Vetva: fix/trinity-handoff-telegram-truth-20261028.
+Súbory:
+- Trinity/scripts/setup-telegram-bot.mjs: odstránený pevný webhook secret
+  aj osobný chat ID zo zdrojáku; token sa neprijíma argumentom CLI;
+  nový 32-byte kryptografický webhook secret a tri Worker secrets sú
+  nastavované iba pri budúcom autorizovanom spustení setupu.
+- Trinity/src/telegram-bridge.js: live_verified už nie je bez dôkazu true;
+  /pc, /fleet, /crypto rozlišujú konfiguráciu od reálneho dôkazu.
+- Trinity/tests/telegram-truth-and-setup.test.mjs: 5 regresných testov.
+- Trinity/docs/SINGLE_REPOSITORY.md: kanonický repo, worker staging,
+  Cloudflare Access a rozlíšenie deployment tagu od main.
+Dôkazy: GitHub commity b1ddacc, bbc0ffdb, 1376196, 5898832, 390b0a6;
+zdrojové invarianty pre nové skripty staticky skontrolované, starý test
+na názov príkazu /fleet bol zachovaný. Úplný build, npm test a živá
+Telegram konverzácia NEBOLI v tomto kroku vykonané (Basterix offline,
+lokálna kópia kompletného repozitára neprístupná). Bez úspešného CI sa
+tieto zmeny nesmú zlúčiť.
+Dôležitý bezpečnostný nález: stará hodnota webhook secret už bola v
+Git histórii verejného repozitára. Odstránenie z aktuálneho súboru ju
+nerevokuje; treba bezpečne rotovať aktívny webhook secret aj každý
+predtým odhalený bot token a otestovať /help a AI odpoveď.
+Infrastruktúra: bez deployu, bez zmeny Worker secrets, bez zmien
+PC Gateway; developer-tools activation ostáva odložená. Predchádzajúca
+pracovná vetva fix/trinity-telegram-truth-and-release-audit-20261028
+nebola vymazaná ani zlučovaná.
+Stav: pending_ack, pending_ci, pending_secret_rotation; review požadované.
+Ďalší vlastník: Codex alebo Antigravity pre nezávislé testy; ACK musí
+zapísať sám prijímateľ.
