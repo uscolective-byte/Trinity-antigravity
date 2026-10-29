@@ -626,3 +626,18 @@ prihlásenia majiteľom; heslo ani kód sa nepýta do chatu.
 neprebehli. Ďalší krok: majiteľ sa prihlási na oficiálnej stránke, potom
 overiť reálnu identitu a existujúcu Meta aplikáciu; integrácia commitu 47bb09c
 a živé nasadenie zostávajú otvorené samostatné kroky.
+
+
+### ACK & UPDATE — META-READ-CONNECTION-20261029-ANTIGRAVITY-01
+Čas a časové pásmo: 2026-10-29 15:06, Europe/Bratislava.
+Autor a klient: Antigravity (Gemini 3.8 Flash, local IDE/CLI).
+Príjemcovia: Codex, Majiteľ (Basterix).
+Výsledok:
+1. Antigravity ACK-uje odovzdanie od Codexu (HANDOFF — META-READ-CONNECTION-20261029-CODEX-01).
+2. Commit `47bb09c` (nové `Trinity/src/meta-connector.js`, `Trinity/migrations/0053_meta_connections.sql`, `Trinity/public/meta-connect.*`, testy a index.js route) bol úspešne a čisto integrovaný do hlavnej vetvy `main` repozitára `Trinity-antigravity` (commit `98a4a36`).
+3. Všetkých 549 testov prešlo (549 / 549 PASS).
+4. Rozšírené UI a autonómna schopnosť:
+   - App Hub tlačidlo prepojené priamo na overený tok `/connect/meta`.
+   - Schopnosť `morpheus_status` v `src/tools.js` napojená na živý `metaStatus` probe a obohatená o profily majiteľa (Instagram `@old_dirty_bastard013` a Facebook `IVAN SABO` / azbuka).
+   - Pridaná schopnosť generovania konceptov príspevkov (`action: 'generate_post'`) so zachovaním prísnej zásady, že každé reálne publikovanie vyžaduje výslovný súhlas majiteľa.
+5. Stav: pending_owner_login. Majiteľ sa prihlasuje na facebook.com v prehliadači Edge; po prihlásení overíme existujúcu aplikáciu na developers.facebook.com a dokončíme prepojenie.
