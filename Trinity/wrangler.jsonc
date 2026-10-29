@@ -79,7 +79,9 @@
     "TRINITY_GITHUB_BRANCH": "main",
     "TRINITY_AUTO_IMPROVE": "true",
     "TRINITY_AUTO_MERGE": "true",
-    "AI_FAST_FALLBACK_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+    "AI_FAST_FALLBACK_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "META_APP_ID": "1105151122389213",
+    "META_GRAPH_VERSION": "v21.0"
   },
   "ai": {
     "binding": "AI"
@@ -341,7 +343,9 @@
         "TRINITY_GITHUB_BRANCH": "main",
         "TRINITY_AUTO_IMPROVE": "false",
         "TRINITY_AUTO_MERGE": "false",
-        "AI_FAST_FALLBACK_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+        "AI_FAST_FALLBACK_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        "META_APP_ID": "1105151122389213",
+        "META_GRAPH_VERSION": "v21.0"
       },
       "ai": {
         "binding": "AI"
