@@ -558,3 +558,15 @@ test('mobile assets and real PWA icons are served publicly without exposing API 
  const manifest=await(await req('/manifest.json',undefined,false)).json();assert.equal(manifest.icons.length,2);
  const png=Buffer.from(await(await req('/mobile-icon-512.png',undefined,false)).arrayBuffer());assert.equal(png.readUInt32BE(16),512);assert.equal(png.readUInt32BE(20),512);
 });
+
+test('Meta callback serves only a public shell and API requires an owner browser session',async()=>{
+ for(const path of ['/connect/meta','/api/assistant/connectors/meta/callback?code=test-only-code&state=test']){
+  const response=await req(path,undefined,false);assert.equal(response.status,200);
+  const html=await response.text();assert.match(html,/meta-connect.js/);assert.equal(html.includes('test-only-code'),false);
+  assert.match(response.headers.get('Cache-Control'),/no-store/);
+  assert.equal(response.headers.get('Referrer-Policy'),'no-referrer');
+ }
+ assert.equal((await req('/api/assistant/connectors/meta',undefined,false)).status,401);
+ assert.equal((await req('/api/assistant/connectors/meta')).status,401);
+ assert.equal((await req('/api/assistant/connectors/meta/start',{},true,{Origin:'https://evil.test'})).status,403);
+});

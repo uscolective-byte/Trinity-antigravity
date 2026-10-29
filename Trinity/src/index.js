@@ -78,6 +78,9 @@ import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
 import {handleMobileAsset} from './mobile-assets.js';
 import manifestJSON from '../public/assistant/manifest.json';
+import metaConnectHTML from '../public/meta-connect.html';
+import metaConnectJS from '../public/meta-connect.js.txt';
+import {handleMetaConnection} from './meta-connector.js';
 import serviceWorkerJS from '../public/assistant/sw.js.txt';
 import authBootstrapJS from '../public/auth-bootstrap.js.txt';
 import themeCSS from '../public/assistant/theme.css';
@@ -150,6 +153,8 @@ async function route(request,env,ctx){
     'X-Trinity-Mode': isOmniDevHost ? 'omni-dev' : 'production',
     'Cache-Control':'no-cache, no-store, must-revalidate',
     'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; frame-src 'self' blob: data:; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
+  if(request.method==='GET'&&['/connect/meta','/api/assistant/connectors/meta/callback'].includes(path))return new Response(metaConnectHTML,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"}});
+  if(request.method==='GET'&&path==='/meta-connect.js')return new Response(metaConnectJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
   if(request.method==='GET'&&path==='/app.js')return new Response(appJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/style.css')return new Response(css+'\n'+refreshCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/chat.js')return new Response(assistantJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
@@ -402,6 +407,7 @@ async function route(request,env,ctx){
     }
   }
   const ownerId=(user.email||user.id).trim().toLowerCase();
+  const metaResponse=await handleMetaConnection(request,env,user);if(metaResponse)return metaResponse;
   if(path==='/api/assistant/capabilities'&&request.method==='GET')return json(await capabilityStatus(env));
   if(path==='/api/assistant/morpheus/status'&&request.method==='GET'){
     return json({
