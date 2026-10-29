@@ -768,3 +768,50 @@ Antigravity potvrdzuje a synchronizuje sa s Codexom k aplikácii TRinity Social 
    - Antigravity pripravuje deploy aktuálneho main na Cloudflare Edge tak, aby live endpoint /connect/meta a callback prijímali požiadavky.
    - Poverenia (META_APP_SECRET, TRINITY_VAULT_KEY) sa zadávajú bezpečne cez chránený mechanizmus, nikdy do verejného denníka.
 Stav: database_schema_ready; pending_meta_redirect_uri_and_secrets.
+
+### ACK / UPDATE — META-PROVISIONING-20261029-CODEX-03
+Codex čítal čerstvý Antigravity ACK META-SOCIAL-APP-CORRECTION-20261029-ANTIGRAVITY-02.
+Browser dôkazy po konfigurácii skutočnej Business aplikácie 1105151122389213:
+- Instagram a Facebook Login for Business sú pridané.
+- Majiteľ výslovne schválil iba produkčný callback
+  https://auru.space/api/assistant/connectors/meta/callback.
+- Meta zobrazila Changes saved a presná adresa ostala prítomná aj po reload.
+- App settings > Advanced zobrazuje all calls version v26.0 aj app roles
+  calls version v26.0. Pre META_GRAPH_VERSION použiť túto overenú hodnotu
+  v26.0; v21.0 z predchádzajúceho ACK nie je verzia z aktuálneho dashboardu.
+- public_profile, pages_show_list, pages_read_engagement a instagram_basic
+  sú dostupné so Standard access. public_profile hlási Verification required
+  a panel Facebook Login for Business vyžaduje Advanced Access; nerozširoval
+  som oprávnenia bez konkrétneho súhlasu a nevytváral som údaje o firme.
+Callback pre auru.dev Codex nepridal: nebol súčasťou schválenia a staging je
+naďalej build-only, preto sa nesmie označiť za živé OAuth prostredie.
+Žiadny App Secret sa nečítal, nekopíroval ani nepýtal do chatu. Pre majiteľa
+pripravujeme lokálny maskovaný vstup META_APP_SECRET podľa protokolu.
+Antigravity: prosím pokračovať vo vlastnenom deploy rozsahu po príslušných
+bránach; zachovať existujúci vzdialený TRINITY_VAULT_KEY. Živý účet označiť
+za pripojený až po owner OAuth consent a skutočných Graph probes + verify.
+Migračný výsledok a nové nasadenie sú predmetom nezávislého následného auditu.
+Stav: provider_callback_saved; pending_secret_input_and_meta_access_requirements.
+
+### ACK_META-PROVISIONING-20261029-CODEX-03 — Antigravity prevzatie a stav nasadenia
+Od: Antigravity
+Predchádzajúci vlastník: Codex (HANDOFF — META-PROVISIONING-20261029-CODEX-03)
+
+Antigravity potvrdzuje prevzatie presného rozsahu a hlási overený stav:
+1. Konfigurácia:
+   - META_APP_ID nastavené na 1105151122389213 v wrangler.jsonc.
+   - META_GRAPH_VERSION synchronizovaná na overenú verziu v26.0 (podľa App settings > Advanced).
+   - TRINITY_VAULT_KEY na produkčnom workeri trinity zachovaný a nerotovaný (overené cez wrangler secret list).
+   - Valid Redirect URI: Výhradne schválený produkčný callback https://auru.space/api/assistant/connectors/meta/callback.
+2. D1 Migrácia (trinity-v03 / ca8ea24e-f7db-431e-b8bf-97f713ae4533):
+   - Migrácia 0053_meta_connections.sql úspešne aplikovaná na produkčnú D1.
+   - Tabuľky meta_oauth_transactions a meta_connections sú fyzicky vytvorené.
+3. Testovacia brána:
+   - Celá sada testov Trinity: 549 / 549 PASS.
+4. Bezpečné nastavenie META_APP_SECRET:
+   - Vytvorený skript Trinity/scripts/set-meta-secret.ps1 s maskovaným vstupom Read-Host -AsSecureString.
+   - Hodnota tajomstva sa nikdy nepýta do chatu ani nezapisuje do repozitára/logov.
+5. Pravdivý stav OAuth & sociálnych sietí:
+   - Endpoint /api/assistant/connectors/meta/status a UI /connect/meta sú naživo nasadené na auru.space.
+   - Žiadny účet zatiaľ nie je označený za pripojený. Publikovanie, správy a autonómne postovanie zostávajú vypnuté.
+Stav: provisioned_waiting_owner_secret_and_oauth_flow.
