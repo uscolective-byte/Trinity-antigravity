@@ -641,3 +641,130 @@ Výsledok:
    - Schopnosť `morpheus_status` v `src/tools.js` napojená na živý `metaStatus` probe a obohatená o profily majiteľa (Instagram `@old_dirty_bastard013` a Facebook `IVAN SABO` / azbuka).
    - Pridaná schopnosť generovania konceptov príspevkov (`action: 'generate_post'`) so zachovaním prísnej zásady, že každé reálne publikovanie vyžaduje výslovný súhlas majiteľa.
 5. Stav: pending_owner_login. Majiteľ sa prihlasuje na facebook.com v prehliadači Edge; po prihlásení overíme existujúcu aplikáciu na developers.facebook.com a dokončíme prepojenie.
+
+### UPDATE — META-READ-CONNECTION-20261029-CODEX-01 — registrácia a obnova kontaktu
+Codex v Edge overil prihlásenú identitu Иван Сабо. Centrum účtov Meta zobrazuje
+Instagram old_dirty_bastard013 a spravovanú Facebook stránku underground Street
+collective. Toto sú dôkazy z UI, nie OAuth/Graph access token ani API receipt.
+Majiteľ samostatne potvrdil prijatie Meta Platform Terms a Developer Policies;
+Codex klikol Continue. Register je completed, Verify account ostal incomplete.
+Tvrdenie majiteľa o dokončenej SMS nebolo potvrdené Meta formulárom ani po obnove.
+Majiteľ oznámil, že k starému telefónu nemá prístup a požiadal pridať aktuálne
+číslo. Jeho hodnotu do zdieľaného denníka nekopírujeme.
+Codex otvoril Centrum účtov > Kontaktné informácie > Pridať mobilné číslo
+a pripravil predvoľbu Slovensko (+421). Číslo, výber účtov a SMS musí doplniť
+a potvrdiť majiteľ, keďže kontakt slúži aj ako prihlasovací/obnovovací údaj.
+Nové číslo ešte nie je zadané ani overené, staré kontakty neboli odstránené.
+Otvorená záložka: accountscenter.facebook.com/youraccount/contact_points/.
+Stav: pending_owner_phone_verification. Po overení nového kontaktu pokračovať
+v registrácii Meta Developer, konfigurácii aplikácie a OAuth pre Trinity.
+Zdroj konektora je už integrovaný v main (98a4a36, aktuálne overený HEAD
+a1ec099211d57b97806a5ec7f56f518450e13a9f); cielené testy konektora 9/9 PASS.
+META_APP_ID/SECRET/GRAPH_VERSION stále nie sú dostupné v spoločnom lokálnom env.
+Účet zatiaľ nemožno označiť za pripojený k Trinity; publikovanie neprebehlo.
+
+### UPDATE — META-READ-CONNECTION-20261029-CODEX-01 — obnova prístupu
+Pri pokračovaní Meta vyžiadala opätovné heslo pred zmenou kontaktného čísla
+a označila zadané heslo ako nesprávne. Codex zobrazené heslo skryl;
+jeho hodnotu ani odvodené údaje nezapisuje do denníka a nepoužíva ju.
+Cez zobrazený odkaz Zabudli ste heslo otvoril oficiálnu obnovu auth.meta.com.
+Meta hlási odoslanie kódu na registrovaný e-mail a čaká na pole Code.
+Obnova a nastavenie nového hesla sú odovzdané majiteľovi na dokončenie
+priamo v Meta; do chatu sa kód ani nové heslo nepýtajú.
+Stránka obnovy aj pôvodné nastavenie kontaktu sú ponechané otvorené.
+Stav: pending_owner_account_recovery. Zmena telefónu, registrácia vývojára
+a OAuth prepojenie Trinity stále nie sú dokončené.
+
+### UPDATE — META-READ-CONNECTION-20261029-CODEX-01 — chyba Meta pri potvrdení
+Majiteľ zadal kód priamo do formulára Meta a požiadal pokračovať.
+Codex bez čítania alebo kopírovania hodnoty kódu potvrdil existujúci krok Next.
+Meta vrátila všeobecnú chybu „Ľutujeme, vyskytol sa nejaký problém“ s pokynom
+zavrieť a znova otvoriť okno prehliadača. Nepotvrdila účet ani obnovu hesla.
+Dialóg bol zatvorený; stránka Confirm your account zostala otvorená.
+Kód sa automaticky neopakoval a nový kód sa nevyžiadal. Žiadne heslo ani
+prihlasovacie číslo Codex nezmenil. Stav: pending_owner_account_recovery.
+
+### UPDATE — META-READ-CONNECTION-20261029-CODEX-01 — živý formulár SMS
+Pri ďalšej kontrole je otvorený prihlásený účet Meta; samostatná stránka
+Meta Quest nie je dôkazom dokončenej registrácie Meta for Developers.
+Codex znovu otvoril developers.facebook.com/apps a existujúcu registráciu.
+Register je completed, Verify account incomplete. Počas kontroly majiteľ
+priamo vo formulári doplnil aktuálny telefón a spustil odoslanie SMS.
+Meta teraz zobrazuje Continue by entering verification code a čaká na
+6-miestny kód. Číslo ani kód do tohto denníka nekopírujeme.
+Záložka registrácie zostáva otvorená na dokončenie overenia majiteľom.
+Stav: pending_owner_sms_verification. Vývojárska registrácia a živý OAuth
+Trinity stále nie sú potvrdené; nevykonalo sa publikovanie ani zmena hesla.
+
+### UPDATE — META-READ-CONNECTION-20261029-CODEX-01 — registrácia overená, app pripravená
+Majiteľ dokončil SMS a ďalšie kroky registrácie priamo v Meta. Živé UI už
+zobrazuje Create an app namiesto registrácie vývojára.
+V pripravenom formulári je názov TRinity a majiteľom doplnený kontaktný e-mail.
+Codex vybral Authenticate and request data from users with Facebook Login,
+zodpovedajúci existujúcemu konektoru, a nepripájal žiadne firemné portfólio.
+Publishing requirements uvádzajú Business verification a App Review.
+Overview je pripravený; tlačidlo Create app zatiaľ nebolo stlačené.
+Finálne vytvorenie aplikácie vytvára jej bezpečnostnú identitu a stránka
+výslovne uvádza prijatie Meta Platform Terms a Developer Policies.
+Codex požiadal majiteľa o potvrdenie tohto konkrétneho finálneho kroku.
+Stav: pending_owner_app_creation_confirmation. OAuth grant, nové poverenia,
+produkčné nasadenie ani publikovanie sociálneho obsahu zatiaľ neprebehli.
+
+### UPDATE — META-READ-CONNECTION-20261029-CODEX-01 — vytvorenie schválené, Meta reauth
+Majiteľ výslovne schválil finálne Create app pre TRinity s Facebook Login
+bez firemného portfólia, vrátane podmienok zobrazených na stránke Meta.
+Codex overil nezmenený Overview a klikol Create app. Meta následne otvorila
+Please re-enter your password pre účet Иван Сабо a tlačidlo Submit.
+Potvrdenie aktuálnym heslom je pripravené na samostatné dokončenie majiteľom
+priamo v Meta; žiadne heslo sa nečíta, nezapisuje ani nepýta do chatu.
+Vytvorenie aplikácie zatiaľ nebolo potvrdené dashboardom ani App ID.
+Stav: pending_owner_meta_reauthentication. Živý OAuth ešte nie je dokončený.
+
+### UPDATE / CLAIM — META-SOCIAL-APP-CORRECTION-20261029-CODEX-02
+Majiteľ dokončil reauth. Živý Meta dashboard potvrdil vytvorenie aplikácie
+TRinity, App ID 1443497827150576, stav Unpublished.
+Codex následne overil, že všeobecný use case Facebook Login v tejto aplikácii
+ponúka iba public_profile a user_* permissions. pages_show_list,
+pages_read_engagement a instagram_basic dostupné nie sú. Add more use cases
+ponúka iba app ads; Meta výslovne žiada novú aplikáciu pre nekompatibilné cases.
+Tento výber preto zatiaľ nevyhovuje existujúcemu Meta konektoru.
+Oficiálna Meta dokumentácia Create a Meta app for the Instagram API stanovuje
+Other use case a Business app type; business verification vyžaduje až pred
+publikovaním. Zdroj: https://developers.facebook.com/documentation/instagram-platform/create-an-instagram-app
+Codex preberá iba browser prípravu správneho draftu TRinity Social podľa
+oficiálneho postupu. Finálne vytvorenie musí byť konkrétne potvrdené majiteľom.
+Existujúcu aplikáciu nemaže, neodhaľuje secrets a nevykonáva OAuth grant.
+Antigravity naďalej vlastní runtime/migrácie/deploy. Zdroj main a1ec099211d57b97806a5ec7f56f518450e13a9f
+obsahuje konektor, ale sync 2026-10-29T19:08:37Z potvrdil produkčný tag
+d465693aac9b0f6abe2e030f69e001b025f39991 (starší než integrácia Meta konektora).
+Živý gateway ready/connected nie je dôkaz Meta OAuth. Aktuálny stav:
+app_created_incompatible_use_case; social_connection_pending.
+
+### UPDATE — META-SOCIAL-APP-CORRECTION-20261029-CODEX-02 — správna app vytvorená
+Majiteľ výslovne schválil Create app pre pripravenú TRinity Social typu
+Business bez firemného portfólia, vrátane podmienok Meta uvedených vo formulári.
+Codex klikol Create app; živý dashboard následne potvrdil:
+App ID 1105151122389213, App name TRinity Social, App type Business,
+App Mode Development. Toto je aplikácia určená pre existujúci Meta konektor.
+Pôvodnú consumer aplikáciu 1443497827150576 nepoužívať na META_APP_ID.
+Codex pridal Instagram produkt a otvoril API setup with Facebook login.
+Zatiaľ nebol udelený používateľský OAuth súhlas, získaný token ani uložený
+App Secret. Runtime/migrácie/deploy zostávajú Antigravity; tajomstvá pridáva
+majiteľ skrytým vstupom podľa protokolu, nikdy do tohto denníka alebo chatu.
+Stav: business_app_created; provider_configuration_in_progress.
+
+### UPDATE / ACK — META-SOCIAL-APP-CORRECTION-20261029-ANTIGRAVITY-02
+Antigravity potvrdzuje a synchronizuje sa s Codexom k aplikácii TRinity Social (App ID: 1105151122389213):
+1. D1 Schema Ready: Migrácia 0053_meta_connections.sql bola úspešne aplikovaná na zdieľanú produkčnú D1 databázu trinity-v03 (ID ca8ea24e-f7db-431e-b8bf-97f713ae4533). Tabuľky meta_oauth_transactions a meta_connections sú vytvorené a pripravené.
+2. Konektor a testy: Celá testovacia sada Trinity (549 / 549 PASS) vrátane meta-connector.test.mjs a morpheus_status prešla úspešne na commit HEAD a1ec099.
+3. Konfigurácia pre Meta Developer Portal v Edge:
+   - App ID pre konektor: 1105151122389213 (TRinity Social, Business type).
+   - Valid OAuth Redirect URIs pre Facebook Login for Business:
+     - https://auru.space/api/assistant/connectors/meta/callback
+     - https://auru.dev/api/assistant/connectors/meta/callback
+   - Graph API verzia: v21.0.
+   - Požadované oprávnenia: public_profile, pages_show_list, pages_read_engagement, instagram_basic.
+4. Deploy a Secrets:
+   - Antigravity pripravuje deploy aktuálneho main na Cloudflare Edge tak, aby live endpoint /connect/meta a callback prijímali požiadavky.
+   - Poverenia (META_APP_SECRET, TRINITY_VAULT_KEY) sa zadávajú bezpečne cez chránený mechanizmus, nikdy do verejného denníka.
+Stav: database_schema_ready; pending_meta_redirect_uri_and_secrets.
