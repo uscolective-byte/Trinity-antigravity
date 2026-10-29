@@ -1,3 +1,47 @@
+
+// Universal Trinity Media Lightbox & Voice TTS
+function openTrinityLightbox({type,src,title='Médiá Trinity'}){
+  const modal=$('trinity-media-lightbox'),body=$('lightbox-content'),caption=$('lightbox-caption'),dl=$('lightbox-dl-btn');
+  if(!modal||!body)return;
+  body.innerHTML='';
+  if(caption)caption.textContent=title;
+  if(dl){
+    dl.href=src;
+    dl.download=title.replace(/[^a-z0-9_-]/gi,'_');
+  }
+  if(type==='image'){
+    const img=document.createElement('img');img.src=src;img.alt=title;body.append(img);
+  }else if(type==='video'){
+    const vid=document.createElement('video');vid.src=src;vid.controls=true;vid.autoplay=true;vid.playsInline=true;body.append(vid);
+  }else if(type==='audio'){
+    const aud=document.createElement('audio');aud.src=src;aud.controls=true;aud.autoplay=true;body.append(aud);
+  }
+  modal.hidden=false;
+}
+
+function speakTrinityMessage(text,btn=null){
+  if(!('speechSynthesis' in window)){
+    notice('Váš prehliadač nepodporuje syntézu reči.');
+    return;
+  }
+  if(window.speechSynthesis.speaking){
+    window.speechSynthesis.cancel();
+    if(btn){btn.textContent='🔊 Prehrať';btn.classList.remove('speaking');}
+    return;
+  }
+  const clean=text.replace(/\x1b\[[0-9;]*m/g,'').replace(/\[[^\]]+\]\([^)]+\)/g,'').slice(0,1200);
+  const utter=new SpeechSynthesisUtterance(clean);
+  utter.lang=uiLanguage()==='sk'?'sk-SK':'en-US';
+  utter.rate=1.0;
+  if(btn){
+    btn.textContent='⏹️ Zastaviť';
+    btn.classList.add('speaking');
+    utter.onend=()=>{btn.textContent='🔊 Prehrať';btn.classList.remove('speaking');};
+    utter.onerror=()=>{btn.textContent='🔊 Prehrať';btn.classList.remove('speaking');};
+  }
+  window.speechSynthesis.speak(utter);
+}
+
 'use strict';
 const $=id=>document.getElementById(id);
 const words={
@@ -61,6 +105,63 @@ function formatMarkdown(text){
 function renderReply(target,raw){
   const text = typeof raw === 'string' ? raw : (raw?.text || raw?.response || raw?.result || (raw ? JSON.stringify(raw, null, 2) : ''));
   target.innerHTML=formatMarkdown(text);
+
+  // 1. Image lightbox zoom
+  const imgMatches = text.match(/\/api\/assistant\/media\/images\/[0-9a-f-]{36}|https?:\/\/[^\s"'>]+\.(png|jpe?g|webp|svg|gif)|data:image\/[^;]+;base64,[^\s"'>]+/gi);
+  if(imgMatches){
+    for(const iUrl of imgMatches){
+      // Check if not already rendered
+      if(!target.querySelector(`img[src="${iUrl}"]`)){
+        const img = document.createElement('img');
+        img.className = 'generated-media';
+        img.src = iUrl;
+        img.alt = 'Fotka / Obrázok Trinity';
+        img.loading = 'lazy';
+        img.style.cursor = 'zoom-in';
+        img.title = 'Klikni pre zobrazenie v plnom rozlíšení';
+        img.onclick = () => openTrinityLightbox({type:'image',src:iUrl,title:'Fotka Trinity'});
+        target.append(img);
+      }
+    }
+  }
+
+  // 2. Video detection and embedding
+  const vidMatches = text.match(/\/api\/assistant\/media\/video\/[0-9a-f-]{36}|https?:\/\/[^\s"'>]+\.(mp4|webm|mov)|data:video\/[^;]+;base64,[^\s"'>]+/gi);
+  if(vidMatches){
+    for(const vUrl of vidMatches){
+      const box = document.createElement('div');
+      box.className = 'embedded-media-box';
+      box.innerHTML = `<video controls playsinline preload="metadata" src="${vUrl}"></video><div class="media-card-bar"><span>🎬 Video záznam Trinity</span><button type="button">🔍 Otvoriť v kine (Fullscreen)</button></div>`;
+      box.querySelector('button').onclick = () => openTrinityLightbox({type:'video',src:vUrl,title:'Video záznam Trinity'});
+      target.append(box);
+    }
+  }
+
+  // 3. Audio detection and embedding
+  const audMatches = text.match(/\/api\/assistant\/media\/audio\/[0-9a-f-]{36}|https?:\/\/[^\s"'>]+\.(mp3|wav|ogg)|data:audio\/[^;]+;base64,[^\s"'>]+/gi);
+  if(audMatches){
+    for(const aUrl of audMatches){
+      if(!target.querySelector(`audio[src="${aUrl}"]`)){
+        const box = document.createElement('div');
+        box.className = 'embedded-media-box';
+        box.innerHTML = `<audio controls preload="metadata" src="${aUrl}"></audio><div class="media-card-bar"><span>🎵 Zvukový záznam / Hudba</span><button type="button">🔍 Prehrávač</button></div>`;
+        box.querySelector('button').onclick = () => openTrinityLightbox({type:'audio',src:aUrl,title:'Zvukový záznam'});
+        target.append(box);
+      }
+    }
+  }
+
+  // 4. Speak response button
+  const speakFooter = document.createElement('div');
+  speakFooter.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:8px;';
+  const spBtn = document.createElement('button');
+  spBtn.type = 'button';
+  spBtn.className = 'msg-speak-btn';
+  spBtn.textContent = '🔊 Prehrať hlasom';
+  spBtn.onclick = () => speakTrinityMessage(text, spBtn);
+  speakFooter.append(spBtn);
+  target.append(speakFooter);
+
   // Check for guarded action approvals in text
   const actionMatch = text.match(/\b([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\b/i);
   const isApprovalIntent = /(?:SCHVÁĽ|schválenie|vyžaduje autorizáciu|approval_required|navrhnutá akcia|akcia navrhnutá)/i.test(text);
@@ -3791,3 +3892,13 @@ async function loadPendingApprovals(){
     list.innerHTML = '<div style="color:#f87171;font-size:11px;">Chyba pri načítaní autorizácií: ' + e.message + '</div>';
   }
 }
+
+
+// Lightbox Close Events
+$('lightbox-close-btn')?.addEventListener('click', ()=>{ if($('trinity-media-lightbox')) $('trinity-media-lightbox').hidden=true; });
+$('lightbox-backdrop')?.addEventListener('click', ()=>{ if($('trinity-media-lightbox')) $('trinity-media-lightbox').hidden=true; });
+window.addEventListener('keydown', (e)=>{
+  if(e.key==='Escape' && $('trinity-media-lightbox') && !$('trinity-media-lightbox').hidden){
+    $('trinity-media-lightbox').hidden=true;
+  }
+});

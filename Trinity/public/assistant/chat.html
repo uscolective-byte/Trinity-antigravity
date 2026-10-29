@@ -1921,4 +1921,18 @@ Pripravené na spustenie príkazu na hostiteľskom PC...</div>
 </main>
 <dialog id="memory-dialog"><div class="dialog-head"><div><span class="eyebrow" data-i18n="memoryLabel">ČO SI O TEBE PAMÄTÁM</span><h2 data-i18n="memoryTitle">Pamäť Trinity</h2></div><button data-close="memory-dialog" aria-label="Close">×</button></div><p id="memory-location"></p><form id="memory-form"><input id="memory-key" required maxlength="120" data-placeholder="memoryName" placeholder="Názov poznámky"><textarea id="memory-value" rows="3" required maxlength="10000" data-placeholder="memoryValue" placeholder="Čo si mám zapamätať?"></textarea><button class="primary" data-i18n="saveMemory">Uložiť do pamäte</button></form><div id="memory-list"></div><p class="muted" data-i18n="memorySafety">Nevkladaj heslá ani API kľúče.</p></dialog>
 <dialog id="tools-dialog"><div class="dialog-head"><h2 data-i18n="toolsTitle">Moje schopnosti</h2><button data-close="tools-dialog" aria-label="Close">×</button></div><div id="tool-list"></div><section id="changes-section"><h3 data-i18n="changesTitle">Zmeny vzhľadu na schválenie</h3><p data-i18n="changesHint">Nič sa nemení automaticky.</p><div id="change-list"></div></section></dialog>
+
+<div id="trinity-media-lightbox" class="trinity-lightbox" hidden>
+  <div class="lightbox-overlay" id="lightbox-backdrop"></div>
+  <div class="lightbox-container">
+    <div class="lightbox-header">
+      <b id="lightbox-caption">Multimediálny Prehrávač Trinity</b>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <a id="lightbox-dl-btn" href="#" download class="primary" style="font-size:11px;padding:3px 10px;text-decoration:none;">⬇ Stiahnuť</a>
+        <button id="lightbox-close-btn" type="button" class="subtle" style="font-size:16px;padding:2px 8px;cursor:pointer;border:none;background:transparent;color:#94a3b8;">✕</button>
+      </div>
+    </div>
+    <div id="lightbox-content" class="lightbox-body"></div>
+  </div>
+</div>
 </body></html>

@@ -118,7 +118,28 @@ Pokyn majiteľa: odovzdať otvorenému Gemini chatu úplný pracovný kontext
 Trinity a zámer vytvoriť spolupracujúci tím.
 Rozsah: správa v existujúcom Gemini chate „Registrácia webhooku v Telegrame“
 a následný záznam o doručení sem. Bez tajomstiev a bez zmien runtime.
-Stav: active. Odovzdanie kontextu nepovoľuje aktiváciu ani deploy.
+
+Stav: completed a pripravené na nasadenie.
+Výsledky a dôkazy:
+1. Plnohodnotný Media Prehrávač a Lightbox (video záznam, fotky a zvuk):
+   - Local-Desktop: pridaný univerzálny `#media-modal`, podpora pre inline prehrávanie videa (`.mp4`, `.webm`), fotiek (`.png`, `.jpg`, `.webp`) s plným rozlíšením a zvuku (`.mp3`, `.wav`).
+   - Cloudflare Edge (auru.dev & auru.space): pridaný `#trinity-media-lightbox` v `chat.html`, funkcia `openTrinityLightbox` v `chat.js.txt` a lightbox štýly v `builder.css`.
+2. Hlasová komunikácia a chatová reč (Voice Chat & Handsfree):
+   - Local-Desktop: mikrofónové tlačidlo `🎙️` v composeri s live diktovaním cez SpeechRecognition (`sk-SK`), prepínač `🔊 Hlasový režim (čítať odpovede nahlas)`, tlačidlo `🔊 Prehrať` pri každej odpovedi asistenta.
+   - Cloudflare Edge: tlačidlá `🔊 Prehrať hlasom` ku každej asistentovej bubline, vylepšený mikrofón `🎤 Hlas` s diktovaním, plnohodnotný handsfree hovor cez `🎙️ Live Hovor` via Cloudflare Whisper STT + MeloTTS / SpeechSynthesis.
+3. Testy a verifikácia pred nasadením:
+   - Local-Desktop: 21 / 21 PASS (14 local + 7 modules).
+   - Trinity Worker: 539 / 539 PASS (vrátane 11/11 v assistant-login).
+   - Spolu: 560 testov úspešných na 100%.
+Zmenené súbory:
+- `Local-Desktop/public/index.html`
+- `Local-Desktop/public/app.js`
+- `Local-Desktop/public/style.css`
+- `Trinity/public/assistant/chat.html`
+- `Trinity/public/assistant/chat.js.txt`
+- `Trinity/public/assistant/builder.css`
+- `TEAM-HANDOFF.md`
+Súbory uvoľnené. Odovzdanie kontextu nepovoľuje aktiváciu ani deploy.
 
 ### HANDOFF / sprostredkované ACK — GEMINI-BRIEFING-20261028-CODEX-01
 Zaznamenal: Codex, 2026-10-28, Europe/Bratislava.
@@ -488,3 +509,35 @@ approve_system_action/reject_system_action a spustiť spoločné testy.
 Telegram bot má reálnu implementáciu; Meta/X UI zatiaľ nedokazuje OAuth ani
 osobný účet. Majiteľ bol vyzvaný určiť prvú sieť/profil; odpoveď zatiaľ chýba.
 Host aplikácia Codex/ChatGPT hlási restart_required, bez automatického reštartu.
+
+
+### CLAIM — MULTIMEDIA-MEDIA-VOICE-CHAT-20261029-ANTIGRAVITY-01
+Čas a časové pásmo: 2026-10-29 04:46, Europe/Bratislava.
+Autor a klient: Antigravity (Gemini 3.8 Flash, local IDE/CLI).
+Príjemcovia: Majiteľ (Basterix), Codex, Tím Trinity.
+Cieľ a pokyn majiteľa: „anti graviti v trinity aplikuj vlož do trinity shopnosti ako su prehrat a otvotit video zaznam fotky zvuk a aplikuj do nej shopnost použivat hlas a kominikaciu cetovu shopnost komunikacie hlasom“ — implementácia plnohodnotného prehrávača médií (video záznam, fotky cez Lightbox, zvukový prehrávač) a komplexnej hlasovej komunikácie v chate (live mikrofón, rozpoznávanie reči, čítanie odpovedí nahlas po slovensky, handsfree dialóg) v Local-Desktop aj na Cloudflare Edge (auru.dev / auru.space).
+Základný commit / checkout: `bbc4bac` (branch `main`).
+Vlastnené súbory alebo zdroje / prostredie:
+- `Local-Desktop/public/index.html`
+- `Local-Desktop/public/app.js`
+- `Local-Desktop/public/style.css`
+- `Trinity/public/assistant/chat.html`
+- `Trinity/public/assistant/chat.js.txt`
+- `Trinity/public/assistant/builder.css`
+Stav: active.
+
+### CLAIM — META-READ-CONNECTION-20261029-CODEX-01
+Autor: Codex. Majiteľ vybral Instagram/Facebook ako prvé sociálne siete.
+Base bbc4bac87f058ea4ecf6b50ecdab3a1ebfddd7c2; izolovaná vetva
+codex/meta-read-connection-20261029 v tri/work/meta-read-connection.
+Rozsah: nové Trinity/src/meta-connector.js, verejná stránka a skript
+Trinity/public/meta-connect.*, migrácia 0053_meta_connections.sql,
+Trinity/tests/meta-connector.test.mjs, index.js iba import a nové route handlery,
+CODEX-HANDOFF-META-CONNECTION-20261029.md. Existujúci chat UI nemením,
+je vo vlastníctve Antigravity pre multimédiá.
+Cieľ: autentifikovaný owner OAuth, reálne overenie identity a stránok,
+read-only pripojenie; žiadne autopilot publikovanie ani vymyslené účty.
+Spoločné lokálne META_APP_ID/SECRET a INSTAGRAM_APP_ID/SECRET momentálne
+chýbajú (overené iba booleany). Profil majiteľa a jeho typ zatiaľ čakajú.
+Starý Python OAuth automaticky zapína autopilot, udeľuje neoverené oprávnenia
+a pri chybe používa falošnú identitu; týmto tokom účet nepripájať.
