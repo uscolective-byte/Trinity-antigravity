@@ -3902,3 +3902,188 @@ window.addEventListener('keydown', (e)=>{
     $('trinity-media-lightbox').hidden=true;
   }
 });
+
+
+// ChatGPT-Style Plus Menu & Attachments Controller
+let activeAttachments = [];
+
+function renderAttachmentTray(){
+  const tray = $('composer-attachment-tray');
+  if(!tray) return;
+  if(!activeAttachments.length){
+    tray.hidden = true;
+    tray.innerHTML = '';
+    return;
+  }
+  tray.hidden = false;
+  tray.innerHTML = '';
+  activeAttachments.forEach((att, idx) => {
+    const chip = document.createElement('div');
+    chip.className = 'attachment-chip';
+    if(att.type === 'photo' && att.dataUrl){
+      chip.innerHTML = `<img src="${att.dataUrl}" alt="Náhľad"><span class="attachment-chip-name">${att.name}</span><button type="button" class="attachment-chip-remove" title="Odstrániť prílohu">✕</button>`;
+    } else if(att.type === 'video'){
+      chip.innerHTML = `<span>🎬</span><span class="attachment-chip-name">${att.name}</span><button type="button" class="attachment-chip-remove" title="Odstrániť">✕</button>`;
+    } else if(att.type === 'audio'){
+      chip.innerHTML = `<span>🎵</span><span class="attachment-chip-name">${att.name}</span><button type="button" class="attachment-chip-remove" title="Odstrániť">✕</button>`;
+    } else {
+      chip.innerHTML = `<span>📄</span><span class="attachment-chip-name">${att.name}</span><button type="button" class="attachment-chip-remove" title="Odstrániť">✕</button>`;
+    }
+    chip.querySelector('.attachment-chip-remove').onclick = () => {
+      activeAttachments.splice(idx, 1);
+      renderAttachmentTray();
+    };
+    tray.append(chip);
+  });
+}
+
+function initChatPlusMenu(){
+  const btn = $('chat-plus-btn');
+  const menu = $('chat-plus-menu');
+  if(!btn || !menu) return;
+
+  function toggleMenu(force){
+    const show = typeof force === 'boolean' ? force : menu.hidden;
+    menu.hidden = !show;
+    btn.classList.toggle('open', show);
+  }
+
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    toggleMenu();
+  };
+
+  // Close when clicking outside
+  document.addEventListener('click', (e) => {
+    if(!menu.hidden && !menu.contains(e.target) && e.target !== btn){
+      toggleMenu(false);
+    }
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && !menu.hidden){
+      toggleMenu(false);
+    }
+  });
+
+  // 1. Pridať súbor / dokument
+  $('plus-opt-file')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const fi = $('file-doc-input');
+    if(fi){ fi.value = ''; fi.click(); }
+  });
+
+  $('file-doc-input')?.addEventListener('change', async () => {
+    const file = $('file-doc-input').files[0];
+    if(!file) return;
+    if(file.size > 10_000_000){
+      notice('Súbor je príliš veľký (max 10 MB).');
+      return;
+    }
+    notice(`Načítavam súbor ${file.name}…`);
+    try {
+      const reader = new FileReader();
+      reader.onload = () => {
+        activeAttachments.push({
+          type: 'file',
+          name: file.name,
+          size: file.size,
+          content: typeof reader.result === 'string' ? reader.result : ''
+        });
+        renderAttachmentTray();
+        notice(`Súbor ${file.name} bol pripojený do kontextu.`, true);
+      };
+      if(file.type.includes('text') || /\.(txt|md|json|js|mjs|py|csv|html|css|yaml|yml|xml|sql)$/i.test(file.name)){
+        reader.readAsText(file);
+      } else {
+        reader.readAsDataURL(file);
+      }
+    } catch(err){
+      notice('Chyba pri čítaní súboru: ' + err.message);
+    }
+  });
+
+  // 2. Pridať fotku / obrázok
+  $('plus-opt-photo')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const ii = $('image-input');
+    if(ii){ ii.value = ''; ii.click(); }
+  });
+
+  // 3. Pridať video
+  $('plus-opt-video')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const vi = $('file-video-input');
+    if(vi){ vi.value = ''; vi.click(); }
+  });
+
+  $('file-video-input')?.addEventListener('change', async () => {
+    const file = $('file-video-input').files[0];
+    if(!file) return;
+    if(file.size > 30_000_000){
+      notice('Video môže mať najviac 30 MB.');
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    activeAttachments.push({
+      type: 'video',
+      name: file.name,
+      size: file.size,
+      src: url
+    });
+    renderAttachmentTray();
+    notice(`Video záznam ${file.name} priložený.`, true);
+  });
+
+  // 4. Pridať zvuk / audio
+  $('plus-opt-audio')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const ai = $('audio-input');
+    if(ai){ ai.value = ''; ai.click(); }
+  });
+
+  // 5. Nástroje & Pluginy
+  $('plus-opt-tool-web')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const msg = $('message');
+    if(msg){
+      msg.value = 'Vyhľadaj na internete najnovšie overené informácie a fakty o: ' + (msg.value || '');
+      msg.focus();
+    }
+    notice('Nástroj Web Search aktivovaný.');
+  });
+
+  $('plus-opt-tool-imagegen')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const msg = $('message');
+    if(msg){
+      msg.value = 'Vytvor fotku / obrázok vo vysokej kvalite: ' + (msg.value || '');
+      msg.focus();
+    }
+    notice('Generátor obrázkov (Flux) aktivovaný.');
+  });
+
+  $('plus-opt-tool-videogen')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const msg = $('message');
+    if(msg){
+      msg.value = 'Vytvor 16:9 animované video s titulkami na tému: ' + (msg.value || '');
+      msg.focus();
+    }
+    notice('Filmové video štúdio pripravené.');
+  });
+
+  $('plus-opt-tool-pc')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const eng = $('engine');
+    if(eng) eng.value = 'local';
+    const msg = $('message');
+    if(msg){
+      msg.value = 'Spusti na hostiteľskom PC príkaz: ' + (msg.value || '');
+      msg.focus();
+    }
+    notice('Režim PC Bridge aktivovaný.');
+  });
+}
+
+initChatPlusMenu();

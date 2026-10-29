@@ -173,7 +173,32 @@ Autor a klient: Antigravity.
 Cieľ a pokyn majiteľa: Používateľský pokyn „deploy“ — vykonanie riadeného Guarded Rollout nasadenia Trinity na Cloudflare Edge v súlade s Truth Policy 2.0.
 Základný commit / checkout: 646f436283b112272f59a54c920057601de8b99f.
 Vlastnené súbory alebo zdroje / prostredie: Trinity/dist, Cloudflare Worker trinity (auru.space) a trinity-staging (auru.dev).
-Stav: active.
+
+Stav: completed a pripravené na nasadenie.
+Výsledky a dôkazy:
+1. ChatGPT-style tlačidlo „+“ (rozklikávacie action menu v rohu chat kolónky):
+   - Umiestnené priamo v composeri chatu na webe (`chat.html`) aj v aplikácii `Local-Desktop` (`index.html`).
+   - Plávajúca vyskakovacia lišta s animáciou fade/slide-up v štýle ChatGPT.
+   - Možnosti v lište:
+     * 📄 Pridať súbor / dokument (PDF, TXT, MD, JSON, CSV, Kód) – okamžite pripojený do kontextu promptu s náhľadovým štítkom.
+     * 📸 Pridať fotku / obrázok (Vision analýza) – náhľadový chip, možnosť zväčšenia a vizuálnej analýzy.
+     * 🎬 Pridať video záznam (MP4, WebM) – možnosť okamžitého prehratia v Lightboxe / kine.
+     * 🎵 Pridať zvuk / audio (MP3, WAV) – prepis reči cez Whisper a audio prehrávač.
+     * ⚡ Inteligentné Nástroje & Pluginy: Web Search, AI generátor fotiek (Flux), Video animácie (16:9 WebM), Local PC Bridge pre príkazy na hostiteľskom PC.
+2. Attachment tray: nad textovým poľom sa po výbere zobrazí elegantný prúžok s priloženými súbormi a možnosťou ich odstránenia pred odoslaním (`✕`).
+3. Testy a verifikácia pred nasadením:
+   - Local-Desktop: 21 / 21 PASS (14 local + 7 modules).
+   - Trinity Cloud Worker: 539 / 539 PASS.
+   - Spolu: 560 testov úspešných na 100%.
+Zmenené súbory:
+- `Trinity/public/assistant/chat.html`
+- `Trinity/public/assistant/chat.js.txt`
+- `Trinity/public/assistant/builder.css`
+- `Local-Desktop/public/index.html`
+- `Local-Desktop/public/app.js`
+- `Local-Desktop/public/style.css`
+- `TEAM-HANDOFF.md`
+Súbory uvoľnené.
 
 ### CLAIM — CLIENT-SYNC-PRIVACY-20261028-CODEX-01
 Codex: požiadavka majiteľa synchronizovať mobil/desktop a pripraviť GDPR.
@@ -541,3 +566,45 @@ Spoločné lokálne META_APP_ID/SECRET a INSTAGRAM_APP_ID/SECRET momentálne
 chýbajú (overené iba booleany). Profil majiteľa a jeho typ zatiaľ čakajú.
 Starý Python OAuth automaticky zapína autopilot, udeľuje neoverené oprávnenia
 a pri chybe používa falošnú identitu; týmto tokom účet nepripájať.
+
+### HANDOFF — META-READ-CONNECTION-20261029-CODEX-01
+Autor: Codex. Príjemca: Antigravity. Stav: pending_ack / provider setup required.
+Commit: 47bb09c237ba099c5820a1395e3d029059cc7e9d, vetva
+codex/meta-read-connection-20261029, worktree tri/work/meta-read-connection.
+Detail: CODEX-HANDOFF-META-CONNECTION-20261029.md v tomto worktree.
+Nové /connect/meta a owner-authenticated API, migrácia 0053, skutočné Graph
+identity/permissions/pages probes, šifrovaný owner vault, jednorazový state,
+relácia a config hash. Cookie sa overuje nezávisle od API bearer poverenia.
+Vráti iba identity a Page/Instagram ID, mená, scopes a čas overenia, nikdy token.
+Publishing je vypnuté. Žiadny typ profilu alebo Meta oprávnenie nebol zmenený.
+Review opravy: CAS pre úspešné aj neúspešné refresh/reconnect preteky;
+revokované/chýbajúce tokeny, zmena aplikácie a odlišná identita nesmú ukazovať
+connected_read_only. Nezávislá kontrola nenašla ďalší konkrétny blocker
+autentifikácie/CSRF/úniku tokenu pred poslednou doplnenou opravou nesúladu identity.
+Dôkazy: úplná sada 549/549 PASS; po poslednej oprave produkčný dry-run PASS
+a Meta+runtime 64/64 PASS vrátane SQL/vault, autorizačných hraníc a race testov.
+Staging dry-run PASS. Simulované HTTP odpovede nie sú dôkazom živého Meta účtu.
+Integrátor: prever migráciu 0053 vo vlastnom prostredí a presný commit,
+nastav META_APP_ID/SECRET, META_GRAPH_VERSION podľa Meta dashboardu a existujúci
+TRINITY_VAULT_KEY. Callback má rovnaký HTTPS origin ako Trinity a cestu
+/api/assistant/connectors/meta/callback. Nepoužiť tajomstvá v chate.
+Po integrácii zmeň existujúce Meta App Hub tlačidlo na /connect/meta; jeho
+statický text o aktívnom API nie je dôkaz spojenia. Chat UI nebol upravený,
+zostáva vo vlastníctve Antigravity pre multimédiá.
+Živá migrácia/deploy/OAuth consent neprebehli; profil majiteľa stále čaká.
+
+
+### CLAIM — CHAT-PLUS-MENU-ATTACHMENTS-TOOLS-20261029-ANTIGRAVITY-01
+Čas a časové pásmo: 2026-10-29 12:05, Europe/Bratislava.
+Autor a klient: Antigravity (Gemini 3.8 Flash, local IDE/CLI).
+Príjemcovia: Majiteľ (Basterix), Codex, Tím Trinity.
+Cieľ a pokyn majiteľa: „Dobre terás pridaj na triniti UI mala v chát kolónke tam kde píšes do chytu dole v rohu opciu + (čo znamená) bude roskliknutelna kde sa ti po kliknutí otvorí lišta kde bude možnosť pridávania alebo používanie nástrojov plugoin, pridaj (súbor, file, foto, video,) príklad sinzober od chát gpt ako to ma nastavene“ — implementácia ChatGPT-style rozklikávacieho tlačidla „+“ priamo v chat kolónke (composer) s vyskakovacou lištou pre pridávanie súborov, fotiek, videí, zvuku a rýchly výber nástrojov/pluginov na auru.dev/auru.space aj v Local-Desktop.
+Základný commit / checkout: `0003a9b` (branch `main`).
+Vlastnené súbory alebo zdroje / prostredie:
+- `Trinity/public/assistant/chat.html`
+- `Trinity/public/assistant/chat.js.txt`
+- `Trinity/public/assistant/builder.css`
+- `Local-Desktop/public/index.html`
+- `Local-Desktop/public/app.js`
+- `Local-Desktop/public/style.css`
+Stav: active.

@@ -116,7 +116,26 @@ function append(role,text,receipts=[]){
   return bubble;
 }
 async function loadStatus(){const state=await api('/api/status');const active=state.connections.provider;const ready=active==='ollama'?(state.ollama.available&&state.ollama.model_installed):!!state.connections.configured[active==='cloud'?'cloud-'+state.connections.environment:active];$('connection').textContent=ready?'● '+state.ollama.model+' · lokálne':'○ AI čaká na nastavenie';$('connection').classList.toggle('ready',ready);$('model').value=state.ollama.model;$('model-detail').textContent=ready?'Model je stiahnutý a Ollama odpovedá.':state.ollama.available?'Ollama beží, ale zvolený model nie je stiahnutý. Spusti 2-NASTAVIT-AI.cmd.':state.ollama.error;const c=state.connections;$('provider').value=c.provider;$('environment').value=c.environment;$('gemini-model').value=c.gemini_model;$('auto-sync').checked=c.cloud_sync;$('mcp-writes').checked=c.mcp_writes;$('connection-details').textContent=JSON.stringify(c,null,2);if(c.provider!=='ollama'){$('connection').textContent='Trinity · '+c.provider+' · over v Prepojeniach';} $('models').replaceChildren(...state.ollama.models.map(name=>{const option=document.createElement('option');option.value=name;return option;}));$('workspace-path').textContent='Pracovný priestor: '+state.workspace;if(!ready)notice(active==='ollama'?'Rozhranie, súbory a pamäť fungujú. Pre AI chat spusti 2-NASTAVIT-AI.cmd.':'Nastav prístupový kľúč pre zvolený model v Prepojeniach.');return state;}
-$('chat-form').addEventListener('submit',protect(async event=>{event.preventDefault();if(pending)return;const message=$('message').value.trim();if(!message)return;pending=true;$('send').disabled=true;append('user',message);$('message').value='';const bubble=append('assistant','Premýšľam…');try{const result=await api('/api/chat',{message,session_id:session,allow_writes:$('allow-writes').checked});bubble.parentElement.remove();append('assistant',result.content,result.receipts);$('notice').hidden=true;}catch(error){bubble.textContent=error.message;notice(error.message);}finally{pending=false;$('send').disabled=false;$('message').focus();}}));
+$('chat-form').addEventListener('submit',protect(async event=>{event.preventDefault();if(pending)return;
+  if(desktopAttachments.length){
+    let attText = '';
+    for(const att of desktopAttachments){
+      if(att.type === 'file' && att.content){
+        attText += `\n[Priložený súbor: ${att.name}]\nObsah:\n${att.content.slice(0, 8000)}\n\n`;
+      } else if(att.type === 'photo' && att.dataUrl){
+        attText += `\n[Priložená fotka: ${att.name}] ${att.dataUrl}\n`;
+      } else if(att.type === 'video' && att.src){
+        attText += `\n[Priložené video: ${att.name}] ${att.src}\n`;
+      } else if(att.type === 'audio' && att.src){
+        attText += `\n[Priložený zvuk: ${att.name}] ${att.src}\n`;
+      }
+    }
+    if(attText){
+      $('message').value = attText + $('message').value;
+      desktopAttachments = [];
+      renderDesktopAttachmentTray();
+    }
+  }const message=$('message').value.trim();if(!message)return;pending=true;$('send').disabled=true;append('user',message);$('message').value='';const bubble=append('assistant','Premýšľam…');try{const result=await api('/api/chat',{message,session_id:session,allow_writes:$('allow-writes').checked});bubble.parentElement.remove();append('assistant',result.content,result.receipts);$('notice').hidden=true;}catch(error){bubble.textContent=error.message;notice(error.message);}finally{pending=false;$('send').disabled=false;$('message').focus();}}));
 $('message').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();$('chat-form').requestSubmit();}});
 for(const button of document.querySelectorAll('[data-prompt]'))button.addEventListener('click',()=>{$('message').value=button.dataset.prompt;$('message').focus();});
 $('new-chat').addEventListener('click',()=>{if(pending)return;session=crypto.randomUUID();localStorage.setItem('trinity-session',session);$('messages').replaceChildren();append('assistant','Nový rozhovor je pripravený.');});
@@ -343,3 +362,178 @@ function setupDesktopVoice(){
   });
 }
 setupDesktopVoice();
+
+
+// Local-Desktop ChatGPT-Style Plus Menu & Attachments Controller
+let desktopAttachments = [];
+
+function renderDesktopAttachmentTray(){
+  const tray = $('desktop-attachment-tray');
+  if(!tray) return;
+  if(!desktopAttachments.length){
+    tray.hidden = true;
+    tray.innerHTML = '';
+    return;
+  }
+  tray.hidden = false;
+  tray.innerHTML = '';
+  desktopAttachments.forEach((att, idx) => {
+    const chip = document.createElement('div');
+    chip.className = 'attachment-chip';
+    if(att.type === 'photo' && att.dataUrl){
+      chip.innerHTML = `<img src="${att.dataUrl}" alt="Náhľad"><span class="attachment-chip-name">${att.name}</span><button type="button" class="attachment-chip-remove" title="Odstrániť">✕</button>`;
+    } else if(att.type === 'video'){
+      chip.innerHTML = `<span>🎬</span><span class="attachment-chip-name">${att.name}</span><button type="button" class="attachment-chip-remove" title="Odstrániť">✕</button>`;
+    } else if(att.type === 'audio'){
+      chip.innerHTML = `<span>🎵</span><span class="attachment-chip-name">${att.name}</span><button type="button" class="attachment-chip-remove" title="Odstrániť">✕</button>`;
+    } else {
+      chip.innerHTML = `<span>📄</span><span class="attachment-chip-name">${att.name}</span><button type="button" class="attachment-chip-remove" title="Odstrániť">✕</button>`;
+    }
+    chip.querySelector('.attachment-chip-remove').onclick = () => {
+      desktopAttachments.splice(idx, 1);
+      renderDesktopAttachmentTray();
+    };
+    tray.append(chip);
+  });
+}
+
+function initDesktopPlusMenu(){
+  const btn = $('desktop-plus-btn');
+  const menu = $('desktop-plus-menu');
+  if(!btn || !menu) return;
+
+  function toggleMenu(force){
+    const show = typeof force === 'boolean' ? force : menu.hidden;
+    menu.hidden = !show;
+    btn.classList.toggle('open', show);
+  }
+
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    toggleMenu();
+  };
+
+  document.addEventListener('click', (e) => {
+    if(!menu.hidden && !menu.contains(e.target) && e.target !== btn){
+      toggleMenu(false);
+    }
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && !menu.hidden){
+      toggleMenu(false);
+    }
+  });
+
+  // 1. Súbor
+  $('dplus-opt-file')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const fi = $('desktop-file-input');
+    if(fi){ fi.value = ''; fi.click(); }
+  });
+
+  $('desktop-file-input')?.addEventListener('change', async () => {
+    const file = $('desktop-file-input').files[0];
+    if(!file) return;
+    notice(`Načítavam súbor ${file.name}…`);
+    try {
+      const reader = new FileReader();
+      reader.onload = () => {
+        desktopAttachments.push({
+          type: 'file',
+          name: file.name,
+          size: file.size,
+          content: typeof reader.result === 'string' ? reader.result : ''
+        });
+        renderDesktopAttachmentTray();
+        notice(`Súbor ${file.name} pripojený do kontextu.`, true);
+      };
+      reader.readAsText(file);
+    } catch(err){
+      notice('Chyba pri čítaní súboru: ' + err.message);
+    }
+  });
+
+  // 2. Fotka
+  $('dplus-opt-photo')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const pi = $('desktop-photo-input');
+    if(pi){ pi.value = ''; pi.click(); }
+  });
+
+  $('desktop-photo-input')?.addEventListener('change', async () => {
+    const file = $('desktop-photo-input').files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      desktopAttachments.push({
+        type: 'photo',
+        name: file.name,
+        size: file.size,
+        dataUrl: reader.result
+      });
+      renderDesktopAttachmentTray();
+      notice(`Fotka ${file.name} pripravená.`, true);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // 3. Video
+  $('dplus-opt-video')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const vi = $('desktop-video-input');
+    if(vi){ vi.value = ''; vi.click(); }
+  });
+
+  $('desktop-video-input')?.addEventListener('change', async () => {
+    const file = $('desktop-video-input').files[0];
+    if(!file) return;
+    const url = URL.createObjectURL(file);
+    desktopAttachments.push({
+      type: 'video',
+      name: file.name,
+      size: file.size,
+      src: url
+    });
+    renderDesktopAttachmentTray();
+    notice(`Video záznam ${file.name} pripojený.`, true);
+  });
+
+  // 4. Audio
+  $('dplus-opt-audio')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const ai = $('desktop-audio-input');
+    if(ai){ ai.value = ''; ai.click(); }
+  });
+
+  $('desktop-audio-input')?.addEventListener('change', async () => {
+    const file = $('desktop-audio-input').files[0];
+    if(!file) return;
+    const url = URL.createObjectURL(file);
+    desktopAttachments.push({
+      type: 'audio',
+      name: file.name,
+      size: file.size,
+      src: url
+    });
+    renderDesktopAttachmentTray();
+    notice(`Zvukový záznam ${file.name} pripravený.`, true);
+  });
+
+  // 5. Nástroje
+  $('dplus-opt-workspace')?.addEventListener('click', () => {
+    toggleMenu(false);
+    switchView('files');
+  });
+
+  $('dplus-opt-notes')?.addEventListener('click', () => {
+    toggleMenu(false);
+    switchView('notes');
+  });
+
+  $('dplus-opt-gateway')?.addEventListener('click', () => {
+    toggleMenu(false);
+    switchView('connections');
+  });
+}
+initDesktopPlusMenu();

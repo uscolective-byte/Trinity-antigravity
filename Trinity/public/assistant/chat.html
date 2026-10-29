@@ -321,7 +321,78 @@ Pripravené na spustenie príkazu na hostiteľskom PC...</div>
           <button type="button" data-open-chat data-prompt="Vygeneruj platobný odkaz a SEPA EPC QR kód pre klienta.">💳 Pripraviť platbu</button>
           <button type="button" data-open-chat data-prompt="Spusti diagnostiku cez PC Bridge a skontroluj stav systému.">💻 Spustiť PC akciu</button>
         </div>
-      </section><section id="messages" aria-live="polite" aria-label="Conversation"></section></div><section class="composer-wrap"><div id="activity" role="status"></div><form id="chat-form"><label class="sr-only" for="message" data-i18n="message">Správa pre Trinity</label><textarea id="message" rows="2" maxlength="12000" required data-placeholder="placeholder" placeholder="Zadaj úlohu pre Trinity (napr. Vytvor web, Spravuj domény, Priprav platbu, PC akcia)…"></textarea><div id="media-preview" class="media-preview" hidden></div><div class="compose-bottom"><div class="compose-settings"><select id="engine" aria-label="AI engine">
+      </section><section id="messages" aria-live="polite" aria-label="Conversation"></section></div><section class="composer-wrap"><div id="activity" role="status"></div><form id="chat-form"><label class="sr-only" for="message" data-i18n="message">Správa pre Trinity</label><div id="composer-attachment-tray" class="composer-attachment-tray" hidden></div>
+<textarea id="message" rows="2" maxlength="12000" required data-placeholder="placeholder" placeholder="Zadaj úlohu pre Trinity (napr. Vytvor web, Spravuj domény, Priprav platbu, PC akcia)…"></textarea><div id="media-preview" class="media-preview" hidden></div><div class="compose-bottom"><div class="compose-settings">
+<div class="chat-plus-container">
+  <button id="chat-plus-btn" type="button" class="chat-plus-btn" aria-label="Pridať prílohu alebo nástroj" title="Pridať súbor, fotku, video, zvuk alebo nástroj">+</button>
+  <div id="chat-plus-menu" class="chat-plus-menu" hidden>
+    <div class="plus-menu-header">
+      <span class="plus-menu-title">Pridať do rozhovoru</span>
+      <span class="plus-menu-subtitle">Nástroje & Prílohy Trinity</span>
+    </div>
+    <div class="plus-menu-items">
+      <button type="button" class="plus-item" id="plus-opt-file">
+        <span class="plus-item-icon">📄</span>
+        <div class="plus-item-text">
+          <b>Pridať súbor / dokument</b>
+          <small>PDF, TXT, MD, JSON, CSV, Kód</small>
+        </div>
+      </button>
+      <button type="button" class="plus-item" id="plus-opt-photo">
+        <span class="plus-item-icon">📸</span>
+        <div class="plus-item-text">
+          <b>Pridať fotku / obrázok</b>
+          <small>PNG, JPG, WebP · Vision analýza</small>
+        </div>
+      </button>
+      <button type="button" class="plus-item" id="plus-opt-video">
+        <span class="plus-item-icon">🎬</span>
+        <div class="plus-item-text">
+          <b>Pridať video záznam</b>
+          <small>MP4, WebM · Prehratie a rozbor</small>
+        </div>
+      </button>
+      <button type="button" class="plus-item" id="plus-opt-audio">
+        <span class="plus-item-icon">🎵</span>
+        <div class="plus-item-text">
+          <b>Pridať zvuk / nahrávku</b>
+          <small>MP3, WAV · Prepis reči Whisper</small>
+        </div>
+      </button>
+      <div class="plus-menu-divider"></div>
+      <div class="plus-menu-section-title">⚡ Inteligentné Nástroje & Pluginy</div>
+      <button type="button" class="plus-item" id="plus-opt-tool-web">
+        <span class="plus-item-icon">🌐</span>
+        <div class="plus-item-text">
+          <b>Web Search & Prieskum</b>
+          <small>Živé internetové hľadanie zdrojov</small>
+        </div>
+      </button>
+      <button type="button" class="plus-item" id="plus-opt-tool-imagegen">
+        <span class="plus-item-icon">🎨</span>
+        <div class="plus-item-text">
+          <b>Generovať AI fotku / obrázok</b>
+          <small>Black Forest Flux 1 Schnell</small>
+        </div>
+      </button>
+      <button type="button" class="plus-item" id="plus-opt-tool-videogen">
+        <span class="plus-item-icon">🎥</span>
+        <div class="plus-item-text">
+          <b>Generovať AI video (16:9 WebM)</b>
+          <small>Multimediálne filmové štúdio</small>
+        </div>
+      </button>
+      <button type="button" class="plus-item" id="plus-opt-tool-pc">
+        <span class="plus-item-icon">💻</span>
+        <div class="plus-item-text">
+          <b>Local PC Bridge (Hostiteľ)</b>
+          <small>Príkazy, skripty a súbory na PC</small>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<select id="engine" aria-label="AI engine">
 <option value="auto" selected>⚪ Auto Pentad Router (Blesková inteligentná voľba)</option>
 <option value="cloud">🟢 Edge AI (Cloudflare Workers AI)</option>
 <option value="gemini">🔵 Google Gemini API</option>
@@ -336,7 +407,7 @@ Pripravené na spustenie príkazu na hostiteľskom PC...</div>
 <option value="mistral">🔴 Mistral AI (Large / Codestral)</option>
 <option value="openrouter">🪐 OpenRouter (100+ Free & Pro Modely)</option>
 <option value="local">💻 Môj počítač · PC Bridge (Lokálne akcie)</option>
-</select><button id="attach-image" type="button" title="Analyzovať obrázok">📎 Obrázok</button><button id="record-voice" type="button" title="Nahrať hlas">🎤 Hlas</button><button id="read-answer" type="button" title="Prečítať poslednú odpoveď">🔊 Čítať</button><button id="voice-dialogue-btn" type="button" title="Obojsmerný handsfree hovor s Trinity" class="voice-live-btn">🎙️ Live Hovor</button><button id="memory-graph-open-btn" type="button" title="Kontextový pamäťový graf">🕸️ Graf</button><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><input id="audio-input" type="file" accept="audio/*" hidden><label><input type="checkbox" id="remember"><span data-i18n="remember">Pamäť</span></label><label id="allow-files-setting"><input type="checkbox" id="allow-files"><span data-i18n="allowFiles">Súbory</span></label></div><button id="stop" type="button" hidden data-i18n="stop">Zastaviť</button><button id="send" class="primary" data-i18n="send">Odoslať ↑</button></div></form><audio id="speech-player" controls hidden></audio><small class="footnote" data-i18n="footnote">Trinity 11.0 · Pokojný priestor pre tvorbu a prácu</small></section></section>
+</select><button id="attach-image" type="button" title="Analyzovať obrázok">📎 Obrázok</button><button id="record-voice" type="button" title="Nahrať hlas">🎤 Hlas</button><button id="read-answer" type="button" title="Prečítať poslednú odpoveď">🔊 Čítať</button><button id="voice-dialogue-btn" type="button" title="Obojsmerný handsfree hovor s Trinity" class="voice-live-btn">🎙️ Live Hovor</button><button id="memory-graph-open-btn" type="button" title="Kontextový pamäťový graf">🕸️ Graf</button><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><input id="audio-input" type="file" accept="audio/*" hidden><input id="file-doc-input" type="file" accept=".pdf,.doc,.docx,.txt,.md,.json,.js,.py,.csv,.zip,.html,.css" hidden><input id="file-video-input" type="file" accept="video/mp4,video/webm,video/quicktime" hidden><label><input type="checkbox" id="remember"><span data-i18n="remember">Pamäť</span></label><label id="allow-files-setting"><input type="checkbox" id="allow-files"><span data-i18n="allowFiles">Súbory</span></label></div><button id="stop" type="button" hidden data-i18n="stop">Zastaviť</button><button id="send" class="primary" data-i18n="send">Odoslať ↑</button></div></form><audio id="speech-player" controls hidden></audio><small class="footnote" data-i18n="footnote">Trinity 11.0 · Pokojný priestor pre tvorbu a prácu</small></section></section>
     <section id="studio-view" class="view studio-view" hidden>
       <div class="studio-top"><div><span class="eyebrow">TRINITY AI & MULTIMEDIÁLNE ŠTÚDIO</span><h1 data-i18n="builderTitle">Tvorba Videí, Hudby, Fotiek, Prezentácií a Webov</h1><p data-i18n="builderIntro">Generuj 16:9 animované videá so zvukom a WebM exportom, polyfonickú WAV hudbu, AI fotky, interaktívne prezentácie (HTML5 + PDF), kreatívne balíky aj živé weby.</p></div><button id="studio-new" class="primary" data-i18n="newStudioProject">＋ Nový webový projekt</button></div>
       <section id="multimedia-studio-panel" class="panel domain-env-panel" style="margin-bottom:18px">
