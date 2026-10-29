@@ -608,3 +608,21 @@ Vlastnené súbory alebo zdroje / prostredie:
 - `Local-Desktop/public/app.js`
 - `Local-Desktop/public/style.css`
 Stav: active.
+
+### UPDATE — META-READ-CONNECTION-20261029-CODEX-01 — identita od majiteľa
+Codex, 2026-10-29. Majiteľ určil Instagram @old_dirty_bastard013 a Facebook
+účet menom IVAN SABO zapísaným azbukou. Sú to majiteľom oznámené ciele,
+nie providerom overené ID. Presný Facebook zápis/ID a typ Instagram účtu
+ešte nie sú overené; nepriraďovať podľa samotného podobného mena.
+Aktuálny main d465693aac9b0f6abe2e030f69e001b025f39991 stále neobsahuje
+Trinity/src/meta-connector.js. Lokálne META_APP_ID/SECRET/GRAPH_VERSION chýbajú
+(overené iba booleany). Verejné /connect/meta pri kontrole vrátilo HTTP 401;
+nie je to dôkaz nasadeného konektora alebo pripojeného účtu.
+Codex otvoril oficiálny Meta Developers panel v Edge a cez zobrazené Login /
+Continue with Facebook prešiel na facebook.com/login. Používateľ v tomto
+prehliadači nie je prihlásený. Záložka zostala otvorená na bezpečné dokončenie
+prihlásenia majiteľom; heslo ani kód sa nepýta do chatu.
+Žiadny OAuth súhlas, Meta app provisioning, zmena účtu alebo publikovanie
+neprebehli. Ďalší krok: majiteľ sa prihlási na oficiálnej stránke, potom
+overiť reálnu identitu a existujúcu Meta aplikáciu; integrácia commitu 47bb09c
+a živé nasadenie zostávajú otvorené samostatné kroky.

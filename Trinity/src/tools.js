@@ -37,6 +37,7 @@ import {getWalletTerminalOverview,createPaymentTerminalCharge,executeWalletPayou
 import {FREE_MODULES_CATALOG,fetchWeather,fetchWikipedia,resolveDns,fetchCryptoMarkets,fetchTechNews,fetchWorldBankIndicator} from './free-modules.js';
 import {cfD1Query,cfKVStore,cfR2Manage,cfSelfDeploy,mailEngine,httpFetchPro,pcFsRead,pcFsWrite,pcFsPatch,pcShellExec,pcSystemTelemetry} from './omni-tools.js';
 import {applySelfModification} from './self-evolution.js';
+import {metaStatus} from './meta-connector.js';
 
 export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
@@ -681,9 +682,30 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     return {...res,_evidence:{effect:'mutation',actions:['change','deploy','publish'],receipt_id:`domain:env:deploy:${args.domain_name}:${args.environment}`}};
   }
   if(name==='morpheus_status'){
+    let meta=null;
+    try {
+      const ownerId=(env?.TRINITY_OWNER_EMAIL||'saboivan2008@gmail.com').trim().toLowerCase();
+      meta=await metaStatus(env,ownerId,'https://auru.space');
+    } catch {}
+    const ownerProfiles={
+      instagram: '@old_dirty_bastard013',
+      facebook: 'ИВАН САБО'
+    };
+    let postDraft=null;
+    if(args.action==='generate_post'&&args.topic){
+      postDraft={
+        target_platform: args.platform==='all'?'instagram_and_facebook':args.platform,
+        target_account: (args.platform==='meta'||args.platform==='all')?ownerProfiles.instagram:null,
+        topic: args.topic,
+        suggested_caption: `🚀 ${args.topic}\n\nVytvorené cez Trinity Autonomous AI Ecosystem.\n\n#trinity #ai #sovereign #innovation #tech`,
+        call_to_action: 'Pozri viac na https://auru.space',
+        publishing_status: 'draft_pending_owner_approval',
+        requires_owner_confirmation: true
+      };
+    }
     return {
       agent:'Morpheus',
-      version:'1.0.0',
+      version:'1.1.0',
       role:'Social Media Autonomous Commander',
       domain:env.TRINITY_ENV==='production'?'auru.space':'dev.auru.space',
       service_url:'https://morpheus.auru.space',
@@ -691,8 +713,11 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       action:args.action,
       platform:args.platform,
       topic:args.topic||null,
+      owner_profiles:ownerProfiles,
+      meta_connector:meta||{status:'not_connected',url:'/connect/meta'},
+      post_draft:postDraft,
       status:'operational',
-      capabilities:['oauth_pkce','meta_graph','x_twitter_v2','linkedin_share','youtube_data','tiktok_creator','auto_posting','comment_moderation','link_shortening'],
+      capabilities:['oauth_pkce','meta_graph','instagram_professional','facebook_pages','auto_posting','comment_moderation','link_shortening'],
       _evidence:{effect:'read',receipt_id:`morpheus:status:${crypto.randomUUID()}`}
     };
   }
