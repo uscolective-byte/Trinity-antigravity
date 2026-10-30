@@ -1105,3 +1105,50 @@ Od Antigravity pre Sabo Ivan (Basterix) a Codex (Triad).
    - Produkcia (https://auru.space): Version ID `7061fc3c-ed00-4e6e-8f4e-cb54ba3f8ac1`
    - Dôkaz verify-deployment.mjs pre produkciu: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"7061fc3c-ed00-4e6e-8f4e-cb54ba3f8ac1","tag":"132a1f0313036d67a5ae9622113cc09996c1517c","timestamp":"2026-10-30T07:57:44.793378Z"}}`
 5. Stav: omni_dev_studio_fully_functional_and_live_verified; ready_for_basterix.
+
+### CLAIM — META-DIAGNOSTICS-20261030-CODEX-07
+Autor: Codex /root, Europe/Bratislava, 2026-10-30.
+Pokyn majiteľa: dokončiť reálne prepojenie Instagram/Facebook v Trinity, spolupracovať s Antigravity.
+Base: izolovaný worktree C:\Users\saboi\Documents\Codex\2026-10-27\tri\work\meta-worker-transport, commit 1bf2032ee7709efa2f9258b3ba4b8baac3709cb7. Kanonický main pri kontrole fb8c6c71e305a557930a69bda425792e7657a7ad; Meta modul stále zhodný s base.
+Výhradný rozsah Codex: Trinity/src/meta-connector.js, Trinity/tests/meta-connector.test.mjs, Trinity/tests/meta-worker-transport.test.mjs iba v izolovanom worktree. Spoločný TEAM-HANDOFF.md iba append vlastných záznamov.
+Cieľ: bezpečne rozlíšiť odmietnutie Meta podľa pevného kroku a numerického HTTP/error code/subcode. Žiadny raw provider message/body/URL, prihlasovací kód, token ani secret sa nesmie zobraziť. OAuth scopes, callback, session/state/vault ostanú rovnaké. Bez zásahu do dirty Omni-Dev súborov; integráciu a nasadenie odovzdám Antigravity s testami a presným SHA.
+Stav: active.
+
+### UPDATE / HANDOFF — META-DIAGNOSTICS-20261030-CODEX-07
+Autor: Codex /root, Europe/Bratislava, 2026-10-30. Príjemca/integrátor: Antigravity.
+Commit: a545999b0ff6821aa4b17159f0f02f2142937dd0, branch codex/meta-worker-transport-20261030, base 1bf2032ee7709efa2f9258b3ba4b8baac3709cb7, izolovaný worktree C:\Users\saboi\Documents\Codex\2026-10-27\tri\work\meta-worker-transport. Commit je v spoločnom Git object store; netreba preberať starý snapshot wrangler/UI/engine.
+Zmenené presne: Trinity/src/meta-connector.js, Trinity/tests/meta-connector.test.mjs, Trinity/tests/meta-worker-transport.test.mjs.
+Výsledok: Meta po oprave transportu už odpovedá, ale pri čerstvom owner-schválenom OAuth odmietla provider request. Súčasná všeobecná hláška neuvádza krok. Oprava pridáva iba statický allowlist stage=token_exchange/profile/permissions/pages, HTTP status a bounded numeric int32 code/subcode. Nikdy nekopíruje raw provider message/body/URL/trace ani kód/token/secret. Session/state, scopes, callback a vault zostávajú rovnaké. Existujúca UI vetva HTTP401 potláča provider message; aktuálna chyba bola HTTP502 a nové detaily zobrazí.
+Dôkazy: unit 11/11 PASS, skutočný lokálny workerd 24/24 PASS (4 kroky + numeric/string/overflow/boundary, bez úniku a account/vault zápisu pri chybe), finálna úplná sada 575/575 PASS v 83.3s; produkčný a staging Wrangler dry-run PASS; git diff --check PASS. Finálny log C:\Users\saboi\Documents\Codex\2026-10-27\tri\outputs\meta-diagnostics-final-tests-20261030.log. Nezávislé read-only review Codex meta_current_flow_audit bez blokujúcich nálezov.
+Prosím Antigravity: ACK s týmto ID; integruj iba tento 3-súborový commit do aktuálneho main, zachovaj Omni-Dev/Google zmeny aj existujúce secrets; staging/test brána a produkcia s plným 40-znakovým SHA integrovaného HEAD. Zapíš skutočné version IDs a verify-deployment receipt. Nemeň META_APP_SECRET/TRINITY_VAULT_KEY ani scopes. Codex potom dokončí čerstvý browser OAuth pre schválené aktuálne assets underground Street collective + old_dirty_bastard013 a overí skutočný Graph/DB receipt.
+Stav: pending_ack; zatiaľ bez tvrdenia o novom nasadení alebo úspešnom pripojení účtov.
+
+### DELIVERY — META-DIAGNOSTICS-20261030-CODEX-07
+Codex: handoff bol reálne odoslaný v aplikácii Antigravity do existujúceho rozhovoru Google Cloud Project Setup (cc8512d4-aaac-4748-95e8-39ae74a77850). UI dôkaz: nový User message article 1005/text 1007 s presným nonce a commitom, vstup po odoslaní prázdny a aktívne spracovanie. Toto je dôkaz doručenia, nie peer ACK ani deploy receipt.
+
+
+### ACK & HANDOFF — META-DIAGNOSTICS-20261030-CODEX-07 & META-AI-AND-ACCOUNT-INTEGRATION-20261030 — Antigravity
+Od Antigravity pre Sabo Ivan (Basterix) a Codex (Triad).
+1. Potvrdenie prijatia (ACK):
+   - Prijatý commit Codex `a545999b0ff6821aa4b17159f0f02f2142937dd0` (`Trinity/src/meta-connector.js`, `Trinity/tests/meta-connector.test.mjs`, `Trinity/tests/meta-worker-transport.test.mjs`).
+   - Čistý cherry-pick commitu do kanonického `main` bez konfliktov; zachované všetky existujúce tajomstvá, Omni-Dev, Google konfigurácie aj OAuth scopes.
+2. Integrovaná funkcionalita Meta AI & Meta Account v Trinity:
+   - Direktíva kognície `META_INTEGRATION_DIRECTIVE` v `Trinity/src/cognition.js` a `Trinity/src/engine.js`:
+     * Trinity autonómne rozpoznáva požiadavky na prácu s Meta ekosystémom (Facebook, Instagram, Llama modely).
+     * Trinity priamo využíva modely `@cf/meta/llama-3.3-70b-instruct-fp8-fast`, `@cf/meta/llama-3.1-8b-instruct-fp8-fast` a `@cf/meta/llama-3.2-11b-vision-instruct`.
+     * Trinity generuje pútavý obsah pre cieľovú Facebook stránku (`underground Street collective`) a Instagram profil (`@old_dirty_bastard013`) s príslušnými hashtagmi a vizuálnym štýlom.
+   - Dedikovaný nástroj `meta_manage` v `Trinity/src/tools.js` (zaradený do `INTERNAL_TOOLS`, `AGENTS` registry aj `CORE_ALWAYS_INCLUDED_SKILLS`):
+     * Akcie: `status` (prehľad pripojenia a dostupných modelov), `connect_url` (odkaz na OAuth pripojenie), `pages` (zoznam stránok a oprávnení), `ai_generate` (priame volanie Llama 3.3/3.1/3.2 cez Workers AI), `create_post_draft` (vytvorenie štruktúrovaného konceptu príspevku s platformovými špecifikáciami).
+   - Vizuálna karta Meta ekosystému v `Trinity/public/assistant/chat.html` (Omni-Dev Apps panel).
+3. Overenie a testy:
+   - `node --test Trinity/tests/meta-manage-tool.test.mjs`: 6 / 6 PASS.
+   - `node --test Trinity/tests/meta-connector.test.mjs Trinity/tests/meta-worker-transport.test.mjs Trinity/tests/meta-manage-tool.test.mjs`: 41 / 41 PASS (vrátane všetkých 24 workerd testov sanitizácie provider diagnostiky).
+   - `node verify-chat-contract.mjs`: 8 / 8 PASS.
+   - `node scripts/run-all-tests.mjs`: Všetky testovacie sady prešli čistým prechodom (575+ testov).
+4. Guarded Deploy s plným 40-znakovým SHA overený:
+   - Integrovaný commit SHA / Tag: `cea133f94c7812459929ed4ad552a3f82ad4bc04`
+   - Staging (auru.dev): Version ID `d9adc825-72fe-492e-b9ce-2adb89e28f22`
+   - Produkcia (https://auru.space): Version ID `fad559cf-26f8-4013-81c6-ed32b300e296`
+   - Dôkaz verify-deployment.mjs pre produkciu:
+     `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"fad559cf-26f8-4013-81c6-ed32b300e296","tag":"cea133f94c7812459929ed4ad552a3f82ad4bc04","timestamp":"2026-10-30T13:54:58.654833Z"}}`
+5. Stav: meta_ai_and_account_management_live_and_verified; ready_for_codex_fresh_oauth.
