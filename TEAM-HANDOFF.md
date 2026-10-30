@@ -1076,3 +1076,32 @@ Od Antigravity pre Sabo Ivan (Basterix) a Codex (Triad).
    - Produkcia (https://auru.space): Version ID `513361db-8765-4488-bd90-b07f22273b70`
    - Dôkaz verify-deployment.mjs pre produkciu: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"513361db-8765-4488-bd90-b07f22273b70","tag":"3a8246360037e215baa0d822aa143f76e619c319","timestamp":"2026-10-30T04:27:15.863101Z"}}`
 5. Stav: meta_transport_and_google_tangential_osprey_live_and_verified; ready_for_codex_oauth.
+
+### ACK & HANDOFF — OMNI-DEV-STUDIO-RESTORATION-AND-DEVELOPER-COGNITION-20261030 — Antigravity
+Od Antigravity pre Sabo Ivan (Basterix) a Codex (Triad).
+1. Účel a pokyn majiteľa:
+   - Spojazdnenie Omni-Dev Studia (auru.dev / auru.space), sfunkčnenie live PC terminálu, prehliadača súborov a editora.
+   - Inštalácia/overenie potrebných kódovacích nástrojov (Node.js, npm, Python, pip, git, gh, code, wrangler) na Windows PC.
+   - Výučba Trinity kódovať a autonómne používať vývojársky arzenál cez novú direktívu a systémové sebauvedomenie.
+2. Vykonané skutočné zmeny:
+   - `Trinity/src/index.js`:
+     * Pridané obojsmerné aliasy pre endpointy `/api/assistant/pc-bridge`, `/api/assistant/pc-bridge/telemetry`, `/api/assistant/skills/matrix`, `/api/assistant/skills/register` a `/api/assistant/system/self-evolve`.
+   - `Trinity/public/assistant/chat.js.txt`:
+     * Implementovaný `dispatchOmniAction` s poll-ovaním schválených systémových akcií na PC Bridge a prijímaním skutočných receiptov.
+     * Omni-Dev Left-Hand Chat: zapojené odosielanie (`omni-chat-send` a Enter v `omni-chat-input`), sledovanie postupu krokov, živý budget timer a markdown odpovede.
+     * Live PC Terminál (`omni-console-exec`, Enter): reálne vykonanie príkazov na Windows PC v PowerShell / CMD / Node / Python s okamžitým zobrazením skutočného stdout a stderr.
+     * Prieskumník súborov (`refreshOmniFiles`): skutočný strom priečinkov a súborov z hostiteľského disku s navigáciou hore (`..`) a 1-klikom pre načítanie súboru do Code Editora.
+     * Code Editor (`omni-editor-load`, `omni-editor-save`): načítanie zo súborového systému PC a uloženie cez `self-evolve` s R2 snapshotom a auto-rollback poistkou.
+   - `Trinity/src/cognition.js` & `Trinity/src/engine.js`:
+     * Vytvorená a injektovaná direktíva `TRINITY_DEVELOPER_DIRECTIVE` pre autonómne programovanie a bezpečné reťazenie nástrojov.
+   - Hostiteľský PC Daemon:
+     * Vytvorený automatický spúšťač v `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\Start-Trinity-PC-Daemon.cmd` pre permanentný beh daemona v pozadí.
+3. Overenie a testy:
+   - `node verify-chat-contract.mjs`: 8 / 8 PASS (100 %).
+   - `node scripts/run-all-tests.mjs`: 558 / 558 PASS (Trinity 515, Audit 6, Capacity 10, Jericho 12, Tetrakis 15).
+4. Guarded Deploy & Verifikácia:
+   - Git Commit SHA / Tag: `132a1f0313036d67a5ae9622113cc09996c1517c`
+   - Staging (auru.dev): Version ID `cdd1dccf-c155-455b-b29d-944ab54be150`
+   - Produkcia (https://auru.space): Version ID `7061fc3c-ed00-4e6e-8f4e-cb54ba3f8ac1`
+   - Dôkaz verify-deployment.mjs pre produkciu: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"7061fc3c-ed00-4e6e-8f4e-cb54ba3f8ac1","tag":"132a1f0313036d67a5ae9622113cc09996c1517c","timestamp":"2026-10-30T07:57:44.793378Z"}}`
+5. Stav: omni_dev_studio_fully_functional_and_live_verified; ready_for_basterix.
