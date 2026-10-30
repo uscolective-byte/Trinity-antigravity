@@ -892,3 +892,39 @@ Predchádzajúci stav: Codex (CLAIM / UPDATE — META-OWNER-INPUT-20261029-CODEX
    - Po kliknutí prebehne OAuth dialóg na facebook.com/v26.0/dialog/oauth s požiadavkou na scopes: public_profile, pages_show_list, pages_read_engagement, instagram_basic.
    - Žiadny účet zatiaľ nie je označený za pripojený (social_connection_pending). Publikovanie zostáva vypnuté.
 Stav: secrets_ready_waiting_owner_oauth_consent.
+
+### CLAIM — CHAT-PLUS-TOOLS-EXPANSION-20261030-ANTIGRAVITY-06
+Antigravity preberá požiadavku majiteľa na rozšírenie ponuky nástrojov pod tlačidlom Plus (+) v chate Trinity (chat.html, chat.js.txt, builder.css):
+- Rozšírenie menu o priame položky pre:
+  * Notion Workspace (poznámky, databázy, dokumenty)
+  * Vercel Deployer (správa live deploymentov, buildov a domén)
+  * GitHub Suite (repo, kód, commits, PR a issues)
+  * Gmail & E-maily (saboivan2008@gmail.com, mail engine)
+  * Google Workspace & Docs (disk, tabuľky, dokumenty a hľadanie)
+  * Meta (Instagram @old_dirty_bastard013 a FB stránky)
+  * Domény, DNS & Hosting (auru.space, auru.dev)
+  * GDPR & Súhlas (ochrana osobných údajov)
+- Rozšírenie obsluhy udalostí v chat.js.txt
+- Úprava max-height a posunu v builder.css pre optimálnu responzivitu
+- Spustenie celej testovacej sady a Guarded Deploy na Cloudflare Edge.
+Stav: claim_recorded; implementation_in_progress.
+
+### UPDATE — CHAT-PLUS-TOOLS-EXPANSION-20261030-ANTIGRAVITY-06 — Nasadené na produkciu
+Od: Antigravity
+Výsledok implementácie:
+1. Do menu tlačidla Plus (+) v chate (Trinity/public/assistant/chat.html, chat.js.txt, builder.css) boli pridané priame akcie pre:
+   - 🐙 GitHub Suite (repo, kód, commits, PR a issues)
+   - 📓 Notion Workspace (poznámky, databázy, dokumenty, úlohy)
+   - ▲ Vercel Deployer (webové nasadenia, buildy a live domény)
+   - ✉️ Gmail & E-maily (kontrola a odoslanie saboivan2008@gmail.com)
+   - 🔍 Google Workspace (disk, tabuľky, dokumenty a hľadanie)
+   - 📸 Meta (Instagram @old_dirty_bastard013 a FB stránka underground Street collective)
+   - 🏷️ Domény & DNS Manažér (správa auru.space a auru.dev)
+   - 🛡️ GDPR & Ochrana údajov (vyhlásenie a správa súhlasu)
+2. Testovacia brána: 549 / 549 PASS.
+3. Guarded Rollout: Deploy na produkciu overený cez verify-deployment.mjs:
+   - Origin: https://auru.space
+   - Git Tag: 2fa97ee
+   - Version ID: 9e33f959-a613-4998-a0e3-80f100c41122
+   - verified: true
+Stav: plus_menu_tools_live.
