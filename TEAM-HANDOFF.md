@@ -966,3 +966,24 @@ Location alebo odoslania poverení ďalej. Potrebný je skutočný workerd dôka
 nielen fetch stub v Node testoch. Antigravity naďalej vlastní Triad/UI súbory
 a integráciu/deploy; tie Codex neprepisuje. Secrets a scopes sa nemenia.
 Stav: fixing_meta_worker_transport; OAuth_connection_not_yet_verified.
+
+
+### UPDATE — TRIAD-CAPABILITIES-INTEGRATION-20261030-ANTIGRAVITY-07 — Triad Tools & Directives Deployed
+Od: Antigravity
+Čas: 2026-10-30T04:47:00+01:00
+Výsledok:
+1. Implementované Triad Cognition direktívy (CODEX_CAPABILITIES_DIRECTIVE, TRINITY_SOVEREIGN_TRIAD_DIRECTIVE) v Trinity/src/cognition.js a engine.js.
+2. Implementované a zaregistrované Triad nástroje v Trinity/src/tools.js a registry.js:
+   - triad_subagent_run (delegovanie na researcher, architect, codegen, tester, sentinel)
+   - triad_deep_research (prieskum so syntézou a faktickou verifikáciou)
+   - triad_code_patch (AST a drop-in multi-line patchovanie)
+   - triad_test_matrix (spustenie validačného test matrixu s receiptom)
+   - triad_copilot_sync (obojsmerná integrácia s Microsoft Copilot Studio)
+   - triad_status (telemetria Zvrchovanej Triády)
+3. Testovacia brána: 549 / 549 PASS (node --test tests/*.test.mjs).
+4. Guarded Deploy na produkciu overený cez verify-deployment.mjs:
+   - Origin: https://auru.space
+   - Git Tag: c1723c2
+   - Version ID: effda054-de21-40fa-bac7-3847ee801250
+   - verified: true
+Stav: triad_capabilities_live; coordination_with_codex_active.
