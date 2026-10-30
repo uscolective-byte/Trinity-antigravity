@@ -6,7 +6,7 @@ import {runTool,TOOL_HELP,INTERNAL_TOOLS,PC_TOOLS,DEVELOPMENT_TOOLS} from './too
 import {listPlugins} from './plugins.js';
 import {TRUTH_POLICY,assertNoSimulatedData,findUnsupportedActionClaims,safeTruthResponse,truthStatus} from './truth.js';
 import {approveSystemAction} from './system-actions.js';
-import {COMMUNICATION_STYLE,KNOWLEDGE_DIRECTIVE,REASONING_DIRECTIVE,CHATGPT_CAPABILITIES_DIRECTIVE,CODEX_CAPABILITIES_DIRECTIVE,ANTIGRAVITY_CAPABILITIES_DIRECTIVE,TRINITY_SOVEREIGN_TRIAD_DIRECTIVE,languageDirective,TRINITY_LOYALTY_OATH,UNIFIED_TRINITY_DIRECTIVE,TRINITY_DEVELOPER_DIRECTIVE} from './cognition.js';
+import {COMMUNICATION_STYLE,KNOWLEDGE_DIRECTIVE,REASONING_DIRECTIVE,CHATGPT_CAPABILITIES_DIRECTIVE,CODEX_CAPABILITIES_DIRECTIVE,ANTIGRAVITY_CAPABILITIES_DIRECTIVE,TRINITY_SOVEREIGN_TRIAD_DIRECTIVE,languageDirective,TRINITY_LOYALTY_OATH,UNIFIED_TRINITY_DIRECTIVE,TRINITY_DEVELOPER_DIRECTIVE,META_INTEGRATION_DIRECTIVE} from './cognition.js';
 import {VERIFIED_ARCHITECTURE_CONTEXT} from './architecture.js';
 import {TRADING_DIRECTIVE} from './trading.js';
 import {memorySkills} from './memorySkill.js';
@@ -105,6 +105,9 @@ function selectPromptTools(activeTools, task) {
   }
   if (/\b(pc|pocitac|lokaln|okno|aplikaci|skript|terminal|prikaz|screenshot)\b/.test(norm)) {
     ['pc_open_app','pc_app_control','pc_run','pc_run_script','pc_file_read','pc_file_write','pc_screenshot','pc_system_info','request_system_action'].forEach(t => priority.add(t));
+  }
+  if (/\b(meta|facebook|instagram|llama|social|post|prispev|fb|ig)\b/.test(norm)) {
+    ['meta_manage','morpheus_status','generate_image','tech_news'].forEach(t => priority.add(t));
   }
   const selected = activeTools.filter(t => priority.has(t));
   for (const t of activeTools) {
@@ -416,6 +419,7 @@ ${ANTIGRAVITY_CAPABILITIES_DIRECTIVE}
 ${CODEX_CAPABILITIES_DIRECTIVE}
 ${TRINITY_SOVEREIGN_TRIAD_DIRECTIVE}
 ${TRINITY_DEVELOPER_DIRECTIVE}
+${META_INTEGRATION_DIRECTIVE}
 ${TRUTH_POLICY}
 ${UNIFIED_TRINITY_DIRECTIVE}
 ${TRINITY_LOYALTY_OATH}

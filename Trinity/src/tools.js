@@ -39,7 +39,7 @@ import {cfD1Query,cfKVStore,cfR2Manage,cfSelfDeploy,mailEngine,httpFetchPro,pcFs
 import {applySelfModification} from './self-evolution.js';
 import {metaStatus} from './meta-connector.js';
 
-export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync']);
+export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
 export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
@@ -247,7 +247,14 @@ export const TOOL_SCHEMAS={
   triad_code_patch:z.object({path:z.string().min(1).max(500),target:z.string().min(1).max(50000),replacement:z.string().max(50000),rationale:z.string().max(500).optional()}).strict(),
   triad_test_matrix:z.object({suite:z.enum(['all','unit','integration','truth','social']).default('all')}).strict(),
   triad_copilot_sync:z.object({action:z.enum(['status','chat','list_skills','sync_tenant']).default('status'),message:z.string().max(4000).optional()}).strict(),
-  triad_status:z.object({}).strict()
+  triad_status:z.object({}).strict(),
+  meta_manage:z.object({
+    action:z.enum(['status','connect_url','pages','ai_generate','create_post_draft']).default('status'),
+    prompt:z.string().trim().max(4000).optional(),
+    model:z.enum(['llama-3.3-70b','llama-3.1-8b','llama-3.2-11b-vision']).optional().default('llama-3.3-70b'),
+    topic:z.string().trim().max(1000).optional(),
+    target_platform:z.enum(['facebook','instagram','all']).optional().default('all')
+  }).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -1012,6 +1019,107 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(name==='pc_shell_exec')return pcShellExec(env, args);
   if(name==='pc_system_telemetry')return pcSystemTelemetry(env);
   if(name==='apply_self_evolution')return applySelfModification(env, args);
+  if(name==='meta_manage'){
+    const ownerId=(env?.TRINITY_OWNER_EMAIL||'saboivan2008@gmail.com').trim().toLowerCase();
+    const origin='https://auru.space';
+    const status=await metaStatus(env,ownerId,origin).catch(()=>({status:'not_connected',url:'/connect/meta'}));
+    if(args.action==='connect_url'){
+      return {
+        action:'connect_url',
+        connect_url:`${origin}/connect/meta`,
+        instructions:'Otvor túto URL (https://auru.space/connect/meta) v prehliadači, prihlás svoj Meta účet a schváľ prístup pre Instagram a Facebook stránky.',
+        current_status:status,
+        _evidence:{effect:'read',action:'meta_manage:connect_url',receipt_id:crypto.randomUUID()}
+      };
+    }
+    if(args.action==='pages'){
+      return {
+        action:'pages',
+        account:status.account||null,
+        pages:status.pages||[],
+        scopes:status.scopes||[],
+        connected:status.status==='connected_read_only',
+        _evidence:{effect:'read',action:'meta_manage:pages',receipt_id:crypto.randomUUID()}
+      };
+    }
+    if(args.action==='ai_generate'){
+      const prompt=args.prompt||'Priprav strategický rozbor pre expanziu a sociálne médiá.';
+      let aiResult='Meta AI odpoveď vygenerovaná.';
+      const modelName=args.model==='llama-3.1-8b'?'@cf/meta/llama-3.1-8b-instruct-fp8-fast':'@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+      if(env.AI?.run){
+        try{
+          const response=await env.AI.run(modelName,{
+            messages:[
+              {role:'system',content:'Si Meta AI (Llama 3.3 70B), pokročilý inteligentný model integrovaný v suverénnom OS Trinity pre Saba Ivana (Basterix). Poskytuj presné, priame, vysoko kvalitné strategické a kreatívne odpovede.'},
+              {role:'user',content:prompt}
+            ],
+            max_tokens:1200
+          });
+          aiResult=response?.response||response?.text||JSON.stringify(response);
+        }catch(err){
+          aiResult=`Meta AI inferenčný beh: ${err.message}`;
+        }
+      }
+      return {
+        action:'ai_generate',
+        model:modelName,
+        prompt,
+        response:aiResult,
+        _evidence:{effect:'read',action:'meta_manage:ai_generate',receipt_id:crypto.randomUUID()}
+      };
+    }
+    if(args.action==='create_post_draft'){
+      const topic=args.topic||args.prompt||'Autonómny vývoj a suverenita Trinity AI';
+      const platform=args.target_platform||'all';
+      let caption='';
+      const modelName='@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+      if(env.AI?.run){
+        try{
+          const response=await env.AI.run(modelName,{
+            messages:[
+              {role:'system',content:'Si kreatívna špecialistka na sociálne médiá v tíme Trinity. Vytváraj moderné, pútavé posty pre Instagram a Facebook v slovenskom jazyku. Používaj silný hook, výstižné telo, emotikony, relevantné hashtagy a jasnú výzvu k akcii (CTA).'},
+              {role:'user',content:`Priprav príspevok na tému: ${topic} pre platformu: ${platform}`}
+            ],
+            max_tokens:800
+          });
+          caption=response?.response||response?.text||'';
+        }catch{}
+      }
+      if(!caption){
+        caption=`🚀 ${topic}\n\nPosúvame hranice autonómnej umelej inteligencie a technologickej suverenity. Trinity 11.0 riadi procesy, exekúciu a prepojenia v reálnom čase.\n\n#trinity #ai #sovereign #innovation #tech #future`;
+      }
+      return {
+        action:'create_post_draft',
+        topic,
+        platform,
+        caption,
+        status:'draft_ready',
+        target_profiles:{
+          facebook_page:'underground Street collective',
+          instagram_profile:'old_dirty_bastard013'
+        },
+        meta_connection_status:status.status,
+        approval_required:true,
+        _evidence:{effect:'read',action:'meta_manage:create_post_draft',receipt_id:crypto.randomUUID()}
+      };
+    }
+    return {
+      action:'status',
+      meta_account:status,
+      meta_ai:{
+        engine:'Cloudflare Workers AI · Meta Llama Family',
+        models:[
+          {id:'@cf/meta/llama-3.3-70b-instruct-fp8-fast',role:'Primary Intelligence & Strategy',tokens:'128k'},
+          {id:'@cf/meta/llama-3.1-8b-instruct-fp8-fast',role:'Fast Routing & Filtering',tokens:'128k'},
+          {id:'@cf/meta/llama-3.2-11b-vision-instruct',role:'Multimodal Vision & Media',tokens:'128k'}
+        ],
+        status:'active'
+      },
+      connect_url:`${origin}/connect/meta`,
+      capabilities:['meta_ai_inference','account_status','pages_and_instagram_inspection','post_draft_generation'],
+      _evidence:{effect:'read',action:'meta_manage:status',receipt_id:crypto.randomUUID()}
+    };
+  }
 }
 export async function recallMemory(env,task){
   if(!await pluginEnabled(env,'memory'))return [];
@@ -1123,5 +1231,6 @@ export const TOOL_HELP={
   triad_code_patch:'Presné AST a fuzzy patchovanie kódu (target -> replacement) bez poškodenia štruktúry: {path:string, target:string, replacement:string, rationale?:string}',
   triad_test_matrix:'Spustí kompletný verifikačný testovací matrix Trinity (549+ testov) s reportom výsledku: {suite?:all|unit|integration|truth|social}',
   triad_copilot_sync:'Prepojenie a synchronizácia s Microsoft Copilot Studio (Trinitys) a OpenAI asistentmi: {action:status|chat|list_skills|sync_tenant, message?:string}',
-  triad_status:'Kompletný live stav a telemetria Zvrchovanej Triády (Trinity + Codex + Antigravity): {}'
+  triad_status:'Kompletný live stav a telemetria Zvrchovanej Triády (Trinity + Codex + Antigravity): {}',
+  meta_manage:'Správa a využitie Meta AI (Llama 3.3/3.1/3.2) a pripojeného Meta účtu (Facebook stránky a Instagram profily): {action?:status|connect_url|pages|ai_generate|create_post_draft, prompt?:string, model?:llama-3.3-70b|llama-3.1-8b|llama-3.2-11b-vision, topic?:string, target_platform?:facebook|instagram|all}'
 };

@@ -18,7 +18,8 @@ export const CORE_ALWAYS_INCLUDED_SKILLS = [
   'cf_r2_manage',
   'github_manage',
   'mail_engine',
-  'http_fetch_pro'
+  'http_fetch_pro',
+  'meta_manage'
 ];
 
 /**
@@ -166,6 +167,7 @@ export function getSelfAwarenessDirective(activeSkillNames = []) {
   - KV pamäte: Mastermind, PC_STATE.
   - R2 archív: trinity-artifacts (nemenné úložisko a kódové snapshoty).
   - AI flotila: Workers AI Llama-3.3-70b / Llama-3.1-8b, Google Gemini 3.8 Flash, OpenAI GPT-4.1-mini, BGE-Base embeddings.
+- **Prepojený Meta ekosystém:** Meta AI Llama modely (3.3 70B, 3.1 8B, 3.2 Vision) + Meta účet (/connect/meta) so stránkou 'underground Street collective' a Instagram profilom 'old_dirty_bastard013'.
 - **Aktívne vybrané nástroje pre túto reláciu:** ${activeSkillNames.join(', ')}.
 - **Pravidlo reťazenia nástrojov:** Máš plné oprávnenie autonómne kombinovať čítanie z PC disku, kontrolu databázy, volanie externých API, úpravu kódu a nasadenie bez čakania na medziotázky.
 `;
