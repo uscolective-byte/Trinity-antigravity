@@ -57,6 +57,31 @@ test('missing setup is explicit and no fake account is connected',async t=>{
  assert.equal(sqlite.prepare('SELECT count(*) AS n FROM meta_connections').get().n,0);
 });
 
+test('provider rejection diagnostics contain only static stages and bounded numeric codes',async t=>{
+ const {env,context,sqlite}=fixture(t);
+ const endpoints={token_exchange:'/oauth/access_token',profile:'/me',permissions:'/me/permissions',pages:'/me/accounts'};
+ for(const [stage,endpoint] of Object.entries(endpoints)){
+  const valid=provider();
+  const rejected=async(url,options)=>new URL(url).pathname.endsWith(endpoint)
+   ?Response.json({error:{code:100,error_subcode:463,message:token+env.META_APP_SECRET+'test-only-code',fbtrace_id:token,error_data:{url:'https://secret.invalid/'+token}}},{status:400})
+   :valid.fetcher(url,options);
+  await assert.rejects(()=>authorize(env,context).then(input=>completeMetaConnection(env,input,rejected)),error=>{
+   assert.equal(error.status,502);
+   assert.equal(error.message,'Meta odmietla požiadavku; skontroluj prihlásenie a oprávnenia. [stage='+stage+'; http=400; code=100; subcode=463]');
+   return true;
+  });
+ }
+ for(const unsafe of [token,'190',-1,1.5,2147483648,{message:token},[190]]){
+  await assert.rejects(()=>authorize(env,context).then(input=>completeMetaConnection(env,input,async()=>Response.json({error:{code:unsafe,error_subcode:unsafe,message:env.META_APP_SECRET}},{status:400}))),error=>{
+   assert.equal(error.status,502);
+   assert.equal(error.message,'Meta odmietla požiadavku; skontroluj prihlásenie a oprávnenia. [stage=token_exchange; http=400]');
+   return true;
+  });
+ }
+ assert.equal(sqlite.prepare('SELECT count(*) AS n FROM meta_connections').get().n,0);
+ assert.equal(sqlite.prepare('SELECT count(*) AS n FROM ops_secret_vault').get().n,0);
+});
+
 test('provider redirects never expose credentials, read redirect bodies or persist a connection',async t=>{
  const {env,context,sqlite}=fixture(t);
  for(const phase of ['exchange','profile'])for(const status of [301,302,303,307,308,0]){

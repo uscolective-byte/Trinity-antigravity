@@ -20,7 +20,7 @@ function configuration(env,origin){
  return {missing:[],appId:env.META_APP_ID,secret:env.META_APP_SECRET,version:env.META_GRAPH_VERSION,redirect:redirect.href};
 }
 const configDigest=config=>hash(config.appId+':'+config.version+':'+config.redirect);
-async function providerJSON(fetcher,url,options={}){
+async function providerJSON(fetcher,url,options={},stage='provider_request'){
  let response;
  // Workers supports manual/follow only. Never forward credentials across redirects.
  try{response=await fetcher(url,{...options,redirect:'manual',signal:AbortSignal.timeout(15000)});}catch{fail(502,'Meta je momentálne nedostupná.');}
@@ -35,18 +35,26 @@ async function providerJSON(fetcher,url,options={}){
   data=JSON.parse(text+decoder.decode());
  }catch{fail(502,'Meta nevrátila platnú obmedzenú JSON odpoveď.');}
  if(!data||typeof data!=='object'||Array.isArray(data))fail(502,'Meta nevrátila objekt JSON.');
- if(!response.ok||data.error)fail(response.status===401||data.error?.code===190?401:502,'Meta odmietla požiadavku; skontroluj prihlásenie a oprávnenia.');
+ if(!response.ok||data.error){
+  // Only static stages and bounded numeric codes may leave this boundary.
+  // Provider messages, URLs, bodies and traces can contain credentials.
+  const details=['stage='+(['token_exchange','profile','permissions','pages'].includes(stage)?stage:'provider_request'),'http='+response.status];
+  for(const [label,value] of [['code',data.error?.code],['subcode',data.error?.error_subcode]]){
+   if(Number.isSafeInteger(value)&&value>=0&&value<=2147483647)details.push(label+'='+value);
+  }
+  fail(response.status===401||data.error?.code===190?401:502,'Meta odmietla požiadavku; skontroluj prihlásenie a oprávnenia. ['+details.join('; ')+']');
+ }
  return data;
 }
 async function identityProbe(config,token,fetcher){
- const get=(endpoint,fields)=>providerJSON(fetcher,'https://graph.facebook.com/'+config.version+'/'+endpoint+(fields?'?'+new URLSearchParams(fields):''),{headers:{Authorization:'Bearer '+token}});
- const profile=await get('me',{fields:'id,name'});
+ const get=(endpoint,fields,stage)=>providerJSON(fetcher,'https://graph.facebook.com/'+config.version+'/'+endpoint+(fields?'?'+new URLSearchParams(fields):''),{headers:{Authorization:'Bearer '+token}},stage);
+ const profile=await get('me',{fields:'id,name'},'profile');
  if(!/^\d+$/.test(profile.id||'')||typeof profile.name!=='string'||!profile.name.trim())fail(502,'Meta nepotvrdila identitu účtu.');
- const permissions=await get('me/permissions');
+ const permissions=await get('me/permissions',undefined,'permissions');
  if(!Array.isArray(permissions.data))fail(502,'Meta nepotvrdila oprávnenia účtu.');
  const scopes=permissions.data.filter(item=>item.status==='granted'&&typeof item.permission==='string').map(item=>item.permission);
  if(META_READ_SCOPES.some(scope=>!scopes.includes(scope)))fail(403,'Neboli udelené potrebné oprávnenia na čítanie účtu a stránok.');
- const result=await get('me/accounts',{fields:'id,name,instagram_business_account{id,username}',limit:'50'});
+ const result=await get('me/accounts',{fields:'id,name,instagram_business_account{id,username}',limit:'50'},'pages');
  if(!Array.isArray(result.data))fail(502,'Meta nepotvrdila zoznam stránok.');
  const pages=result.data.map(page=>{
   if(!/^\d+$/.test(page.id||'')||typeof page.name!=='string')fail(502,'Meta vrátila neplatnú stránku.');
@@ -88,7 +96,7 @@ export async function completeMetaConnection(env,{ownerId,session,origin,code,st
  .bind(await hash(state),ownerId,await hash(session),Date.now()).first();
  if(!transaction||transaction.redirect_uri!==config.redirect||transaction.config_hash!==await configDigest(config))fail(400,'Prihlásenie Meta vypršalo alebo patrí inej relácii. Začni ho znova.');
  const tokens=await providerJSON(fetcher,'https://graph.facebook.com/'+config.version+'/oauth/access_token',{
- method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:config.appId,client_secret:config.secret,redirect_uri:config.redirect,code}).toString()});
+ method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:config.appId,client_secret:config.secret,redirect_uri:config.redirect,code}).toString()},'token_exchange');
  if(typeof tokens.access_token!=='string'||tokens.access_token.length<8||tokens.access_token.length>4096)fail(502,'Meta nevrátila platné poverenie.');
  const evidence=await identityProbe(config,tokens.access_token,fetcher);
  const stored=await storeSecret(env,ownerId,{provider:'custom',name:'meta-read-only-'+crypto.randomUUID(),secret:tokens.access_token});

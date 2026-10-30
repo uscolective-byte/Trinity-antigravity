@@ -11,6 +11,12 @@ const secret='fixture-only-meta-app-secret';
 const code='fixture-only-authorization-code';
 const redirectBody='fixture-only-redirect-body';
 const redirectLocation='https://must-not-be-called.invalid/leak?token='+token+'&code='+code;
+const diagnosticCases=[
+ {name:'numeric',code:190,subcode:463,http:401,details:'; code=190; subcode=463'},
+ {name:'string',code:'UNTRUSTED_CODE_'+token,subcode:'UNTRUSTED_SUBCODE_'+secret,http:502,details:''},
+ {name:'overflow',code:2147483648,subcode:-1,http:502,details:''},
+ {name:'max',code:2147483647,subcode:0,http:502,details:'; code=2147483647; subcode=0'}
+];
 const calls=[];
 let mf,db;
 
@@ -47,6 +53,21 @@ before(async()=>{
   assert.equal(url.hostname,'graph.facebook.com','redirects must never send credentials to another host');
   const mode=request.headers.get('X-Meta-Fixture-Mode');
   const tokenExchange=url.pathname.endsWith('/oauth/access_token');
+  const rejected=/^reject-(token_exchange|profile|permissions|pages)-(numeric|string|overflow|max)$/.exec(mode||'');
+  const rejectionFor=stage=>{
+   if(!rejected||rejected[1]!==stage)return null;
+   const diagnostic=diagnosticCases.find(item=>item.name===rejected[2]);
+   return Response.json({error:{
+    code:diagnostic.code,
+    error_subcode:diagnostic.subcode,
+    message:'UNTRUSTED_MESSAGE '+token+' '+secret+' '+code,
+    type:'UNTRUSTED_TYPE_'+code,
+    error_user_title:'UNTRUSTED_TITLE_'+secret,
+    error_user_msg:'UNTRUSTED_USER_MESSAGE_'+token,
+    error_data:{access_token:token,app_secret:secret,authorization_code:code,url:redirectLocation,body:redirectBody},
+    fbtrace_id:'UNTRUSTED_TRACE_'+token
+   }},{status:400});
+  };
   if(mode?.startsWith('redirect-')&&(tokenExchange||mode==='redirect-profile')){
    if(mode!=='redirect-profile'||!tokenExchange){
     const status=mode==='redirect-profile'?307:Number(mode.slice('redirect-'.length));
@@ -58,17 +79,17 @@ before(async()=>{
    const body=new URLSearchParams(await request.text());
    assert.equal(body.get('client_secret'),secret);
    assert.equal(body.get('code'),code);
-   return Response.json({access_token:token,expires_in:3600});
+   return rejectionFor('token_exchange')||Response.json({access_token:token,expires_in:3600});
   }
   assert.equal(request.headers.get('Authorization'),'Bearer '+token);
-  if(url.pathname.endsWith('/me/permissions'))return Response.json({data:[
+  if(url.pathname.endsWith('/me/permissions'))return rejectionFor('permissions')||Response.json({data:[
    'public_profile','pages_show_list','pages_read_engagement','instagram_basic'
   ].map(permission=>({permission,status:'granted'}))});
-  if(url.pathname.endsWith('/me/accounts'))return Response.json({data:[{
+  if(url.pathname.endsWith('/me/accounts'))return rejectionFor('pages')||Response.json({data:[{
    id:'456',name:'Fixture Page',access_token:'fixture-page-token-must-not-escape',
    instagram_business_account:{id:'789',username:'fixture_creator'}
   }]});
-  if(url.pathname.endsWith('/me'))return Response.json({id:'123',name:'Fixture Owner'});
+  if(url.pathname.endsWith('/me'))return rejectionFor('profile')||Response.json({id:'123',name:'Fixture Owner'});
   throw Error('Unexpected local Meta fixture endpoint');
  };
  mf=new Miniflare(convertV4MiniflareOptions({
@@ -141,3 +162,19 @@ test('workerd also rejects a redirect after token exchange without storing an ac
  for(const sensitive of [token,secret,code,redirectBody,redirectLocation])assert.equal(body.includes(sensitive),false);
  assert.equal(await db.prepare('SELECT count(*) AS n FROM meta_connections WHERE owner_id=?').bind('redirect-profile@fixture.test').first('n'),0);
 });
+
+for(const [stage,expectedCalls] of [['token_exchange',1],['profile',2],['permissions',3],['pages',4]]){
+ for(const diagnostic of diagnosticCases)test('workerd sanitizes '+diagnostic.name+' provider diagnostics at '+stage,async()=>{
+  const mode='reject-'+stage+'-'+diagnostic.name,beforeCalls=calls.length;
+  const response=await mf.dispatchFetch('https://trinity.test/'+mode);
+  const body=await response.text();
+  assert.equal(response.status,diagnostic.http,body);
+  const result=JSON.parse(body);
+  assert.deepEqual(result,{error:'Meta odmietla požiadavku; skontroluj prihlásenie a oprávnenia. [stage='+stage+'; http=400'+diagnostic.details+']'});
+  for(const sensitive of [token,secret,code,redirectLocation,redirectBody,'UNTRUSTED_','error_data','fbtrace_id'])assert.equal(body.includes(sensitive),false);
+  assert.equal(calls.length-beforeCalls,expectedCalls,'no request may continue after its provider stage failed');
+  for(const table of ['meta_connections','ops_secret_vault']){
+   assert.equal(await db.prepare('SELECT count(*) AS n FROM '+table+' WHERE owner_id=?').bind(mode+'@fixture.test').first('n'),0);
+  }
+ });
+}
