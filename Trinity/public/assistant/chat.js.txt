@@ -3645,6 +3645,39 @@ if(typeof window!=='undefined'&&'serviceWorker' in navigator && location.protoco
 }
 
 // ── TRINITY OMNI-DEV STUDIO HANDLERS ──────────────────────────────────
+
+async function dispatchOmniAction(actionName, payload, rationale = 'Omni-Dev operácia'){
+  const res = await fetch('/api/system/actions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: actionName, payload, rationale })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || ('Chyba ' + res.status));
+  }
+  const data = await res.json();
+  const actionId = data.action?.id;
+  if (!actionId) throw new Error('Server nevrátil ID systémovej akcie.');
+
+  // Pollovanie výsledku (timeout 25 sekúnd)
+  const pollStart = Date.now();
+  while (Date.now() - pollStart < 25000) {
+    await new Promise(r => setTimeout(r, 600));
+    const chk = await fetch('/api/system/actions/' + actionId);
+    if (!chk.ok) continue;
+    const item = await chk.json();
+    const act = item.action || {};
+    if (act.status === 'completed') {
+      return act.result || { success: true };
+    }
+    if (act.status === 'failed') {
+      throw new Error(act.result?.error || act.result?.stderr || 'Akcia zlyhala.');
+    }
+  }
+  throw new Error('Časový limit vypršal: PC daemon neodpovedal včas. Uisti sa, že PC daemon beží na PC.');
+}
+
 async function loadOmniDev(){
   await refreshOmniTelemetry();
   await refreshOmniSkills();
@@ -3686,16 +3719,64 @@ async function refreshOmniFiles(){
   const pathInput=$('omni-fs-path');
   const tree=$('omni-file-tree');
   if(!pathInput||!tree)return;
-  tree.textContent='Načítavam súbory cez PC Bridge...';
+  const targetPath = pathInput.value.trim() || 'C:\\Users\\saboi\\Trinity-antigravity';
+  tree.textContent='Načítavam súbory z PC...';
   try{
-    const r=await fetch('/api/assistant/chat',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({message:`Spusti pc_fs_read pre cestu: ${pathInput.value}`,engine:'fast',session})
-    });
-    const d=await r.json().catch(()=>({}));
-    tree.textContent=d.text||d.result?.text||'Prehliadač pripravený. Zadaj cestu a stlač Obnoviť.';
+    const res = await dispatchOmniAction('read', { path: targetPath }, 'Omni-Dev file browser');
+    if(res.is_directory && Array.isArray(res.files)){
+      tree.innerHTML = '';
+      const list = document.createElement('div');
+      list.style.cssText = 'display:flex;flex-direction:column;gap:3px;font-family:monospace;font-size:11px;';
+      
+      const parentDir = targetPath.replace(/[\\/][^\\/]+[\\/]?$/, '');
+      if(parentDir && parentDir !== targetPath){
+        const up = document.createElement('div');
+        up.style.cssText = 'cursor:pointer;color:#38bdf8;padding:2px 4px;border-radius:4px;';
+        up.textContent = '📁 .. (Hore)';
+        up.onclick = () => { pathInput.value = parentDir; refreshOmniFiles(); };
+        list.appendChild(up);
+      }
+
+      const sorted = [...res.files].sort((a,b) => (b.isDirectory ? 1 : 0) - (a.isDirectory ? 1 : 0) || a.name.localeCompare(b.name));
+      for(const f of sorted){
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;cursor:pointer;padding:2px 4px;border-radius:4px;';
+        row.onmouseover = () => row.style.background = '#1e293b';
+        row.onmouseout = () => row.style.background = 'transparent';
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = (f.isDirectory ? '📁 ' : '📄 ') + f.name;
+        nameSpan.style.color = f.isDirectory ? '#38bdf8' : '#e2e8f0';
+
+        const sizeSpan = document.createElement('span');
+        sizeSpan.style.color = '#64748b';
+        sizeSpan.style.fontSize = '10px';
+        sizeSpan.textContent = f.isDirectory ? '<DIR>' : (Math.round(f.size/1024) + ' KB');
+
+        row.appendChild(nameSpan);
+        row.appendChild(sizeSpan);
+
+        row.onclick = () => {
+          const full = targetPath.replace(/[\\/]$/, '') + '\\' + f.name;
+          if(f.isDirectory){
+            pathInput.value = full;
+            refreshOmniFiles();
+          } else {
+            if($('omni-editor-file')) $('omni-editor-file').value = full;
+            document.querySelector('[data-omni-tab=editor]')?.click();
+            $('omni-editor-load')?.click();
+          }
+        };
+        list.appendChild(row);
+      }
+      tree.appendChild(list);
+    } else if(res.content !== undefined){
+      tree.textContent = res.content.slice(0, 3000) + (res.content.length > 3000 ? '\n... (zobrazená časť súboru)' : '');
+    } else {
+      tree.textContent = JSON.stringify(res, null, 2);
+    }
   }catch(e){
-    tree.textContent='Chyba pri čítaní súborov: '+e.message;
+    tree.textContent = 'Chyba: ' + e.message;
   }
 }
 
@@ -3715,48 +3796,155 @@ function initOmniDevEvents(){
     };
   });
 
-  // Shell execution
+  // Omni-Dev Left-Hand Chat
+  if($('omni-chat-send')){
+    const sendOmniDevChat = async () => {
+      const input = $('omni-chat-input');
+      const text = input?.value.trim();
+      const messagesBox = $('omni-chat-messages');
+      if(!text || !messagesBox) return;
+
+      const userMsg = document.createElement('div');
+      userMsg.style.cssText = 'padding:8px 12px;background:#0284c7;color:#fff;border-radius:10px;font-size:12px;align-self:flex-end;max-width:85%;';
+      userMsg.textContent = text;
+      messagesBox.appendChild(userMsg);
+      input.value = '';
+
+      const astMsg = document.createElement('div');
+      astMsg.style.cssText = 'padding:10px;background:#1e293b;border-radius:10px;font-size:12px;max-width:95%;border:1px solid #334155;';
+      astMsg.innerHTML = '<b>Trinity Omni-Dev:</b> <span class="omni-chat-spin" style="color:#38bdf8;">Premýšľam a plánujem kroky...</span>';
+      messagesBox.appendChild(astMsg);
+      messagesBox.scrollTop = messagesBox.scrollHeight;
+
+      const engine = $('omni-pentad-select')?.value || 'auto';
+      const timerPill = $('omni-live-timer');
+      const startTime = Date.now();
+
+      const timerInterval = setInterval(() => {
+        const elapsed = Math.round((Date.now() - startTime) / 1000);
+        if(timerPill) timerPill.textContent = `⏱ ČAS: ${elapsed} s | ENGINE: ${engine.toUpperCase()}`;
+      }, 1000);
+
+      try {
+        const r = await fetch('/api/assistant/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            session,
+            language: language || 'auto',
+            engine,
+            remember: true,
+            allow_files: true
+          })
+        });
+
+        if(!r.ok){
+          const d = await r.json().catch(() => ({}));
+          throw new Error(d.error || ('HTTP ' + r.status));
+        }
+
+        const job = await r.json();
+        if(!job.id) throw new Error('Server nevrátil ID úlohy.');
+
+        let completed = false;
+        for(let i=0; i<120; i++){
+          await new Promise(res => setTimeout(res, i < 6 ? 500 : i < 15 ? 800 : 1200));
+          const chk = await fetch('/api/ops/jobs/' + job.id);
+          if(!chk.ok) continue;
+          const j = await chk.json();
+          const finished = (j.steps || []).filter(s => s.status === 'completed').length;
+          const statusSpan = astMsg.querySelector('.omni-chat-spin');
+          if(statusSpan) {
+            statusSpan.textContent = `Vykonávam kroky: ${finished}/${(j.steps || []).length}...`;
+          }
+          if(j.status === 'completed'){
+            clearInterval(timerInterval);
+            astMsg.innerHTML = `<b>Trinity Omni-Dev:</b><div class="markdown-body" style="margin-top:6px;">${formatMarkdown(j.result || 'Úloha dokončená.')}</div>`;
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+            completed = true;
+            break;
+          }
+          if(j.status === 'failed'){
+            clearInterval(timerInterval);
+            astMsg.innerHTML = `<b>Trinity Omni-Dev:</b> <span style="color:#ef4444;">Chyba: ${j.error || 'Úloha zlyhala.'}</span>`;
+            completed = true;
+            break;
+          }
+        }
+        if(!completed){
+          clearInterval(timerInterval);
+          astMsg.innerHTML = `<b>Trinity Omni-Dev:</b> <span style="color:#f59e0b;">Úloha stále beží na pozadí (ID: ${job.id}).</span>`;
+        }
+      } catch(e) {
+        clearInterval(timerInterval);
+        astMsg.innerHTML = `<b>Trinity Omni-Dev:</b> <span style="color:#ef4444;">Chyba: ${e.message}</span>`;
+      }
+      messagesBox.scrollTop = messagesBox.scrollHeight;
+    };
+
+    $('omni-chat-send').onclick = sendOmniDevChat;
+    if($('omni-chat-input')){
+      $('omni-chat-input').onkeydown = e => {
+        if(e.key === 'Enter' && !e.shiftKey){
+          e.preventDefault();
+          sendOmniDevChat();
+        }
+      };
+    }
+  }
+
+  // Shell execution in live terminal
   if($('omni-console-exec'))$('omni-console-exec').onclick=async()=>{
     const cmd=$('omni-console-cmd')?.value.trim();
     const shell=$('omni-shell-type')?.value||'powershell';
     const screen=$('omni-console-log');
     if(!cmd||!screen)return;
-    screen.textContent+=`\n> [${shell}] ${cmd}\nVykonávam cez Local PC Execution Bridge...\n`;
+    screen.textContent+=`\n> [${shell}] ${cmd}\nVykonávam na hostiteľskom PC...\n`;
+    screen.scrollTop=screen.scrollHeight;
     try{
-      const r=await fetch('/api/assistant/chat',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({message:`Spusti príkaz na PC cez pc_shell_exec: ${cmd}`,engine:'fast',session})
-      });
-      const d=await r.json().catch(()=>({}));
-      screen.textContent+=(d.text||d.result?.text||JSON.stringify(d,null,2))+'\n';
+      const res = await dispatchOmniAction('run', {
+        command: cmd,
+        shell,
+        cwd: 'C:\\Users\\saboi\\Trinity-antigravity',
+        timeout: 45000
+      }, `Omni-Dev terminál: ${cmd}`);
+      const out = res.stdout || res.output || '';
+      const err = res.stderr || '';
+      if(out) screen.textContent += out + '\n';
+      if(err) screen.textContent += '[STDERR] ' + err + '\n';
+      if(!out && !err) screen.textContent += `(Príkaz dokončený s kódom ${res.exit_code ?? 0})\n`;
       screen.scrollTop=screen.scrollHeight;
+      if($('omni-console-cmd')) $('omni-console-cmd').value = '';
     }catch(e){
       screen.textContent+='Chyba: '+e.message+'\n';
+      screen.scrollTop=screen.scrollHeight;
     }
   };
+  if($('omni-console-cmd')){
+    $('omni-console-cmd').onkeydown = e => {
+      if(e.key === 'Enter'){ e.preventDefault(); $('omni-console-exec')?.click(); }
+    };
+  }
 
   // Editor load and save
   if($('omni-editor-load'))$('omni-editor-load').onclick=async()=>{
-    const file=$('omni-editor-file')?.value;
+    const file=$('omni-editor-file')?.value.trim();
     const txt=$('omni-code-textarea');
     const st=$('omni-editor-status');
     if(!file||!txt)return;
     st.textContent='Načítavam súbor cez PC Bridge...';
     try{
-      const r=await fetch('/api/assistant/chat',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({message:`Prečítaj súbor ${file} cez pc_fs_read`,engine:'fast',session})
-      });
-      const d=await r.json().catch(()=>({}));
-      txt.value=d.text||d.result?.text||'';
-      st.textContent='Súbor načítaný úspešne.';
+      const res = await dispatchOmniAction('read', { path: file }, 'Omni-Dev editor načítanie');
+      txt.value = res.content ?? '';
+      st.textContent = `Súbor načítaný úspešne (${res.size || (txt.value.length)} B, ${res.duration_ms || 0} ms).`;
     }catch(e){
       st.textContent='Chyba: '+e.message;
     }
   };
 
   if($('omni-editor-save'))$('omni-editor-save').onclick=async()=>{
-    const file=$('omni-editor-file')?.value;
+    const file=$('omni-editor-file')?.value.trim();
     const newContent=$('omni-code-textarea')?.value;
     const st=$('omni-editor-status');
     if(!file||!newContent)return;
@@ -3784,14 +3972,13 @@ function initOmniDevEvents(){
   if($('omni-audit-refresh'))$('omni-audit-refresh').onclick=async()=>{
     await refreshOmniTelemetry();
     try{
-      const r=await api('/assistant/history');
+      const r=await api('/history');
       if(r.items&&$('omni-receipts-table')){
         $('omni-receipts-table').textContent=JSON.stringify(r.items.slice(0,5),null,2);
       }
     }catch(_){}
   };
 }
-
 
 async function loadPendingApprovals(){
   const list = $('pending-approvals-list');

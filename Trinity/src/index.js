@@ -290,7 +290,7 @@ async function route(request,env,ctx){
     const gateway=await authenticateGateway(request,env);await rateLimit(env,`gateway-claim:${gateway}`,120);
     return json({action:await claimSystemAction(env,gateway)});
   }
-  if(path==='/api/pc-bridge'&&request.method==='GET'){
+  if(['/api/pc-bridge', '/api/assistant/pc-bridge'].includes(path)&&request.method==='GET'){
     const status = await getPCBridgeStatus(env);
     let kvTelemetry = null;
     if(env.PC_STATE){
@@ -298,7 +298,7 @@ async function route(request,env,ctx){
     }
     return json({ ok: true, status, telemetry: kvTelemetry });
   }
-  if(path==='/api/pc-bridge/telemetry'&&request.method==='POST'){
+  if(['/api/pc-bridge/telemetry', '/api/assistant/pc-bridge/telemetry'].includes(path)&&request.method==='POST'){
     const body = await readJSON(request, 64000);
     if(env.PC_STATE){
       await env.PC_STATE.put('telemetry:latest', JSON.stringify(body), { expirationTtl: 300 });
@@ -368,16 +368,16 @@ async function route(request,env,ctx){
       return json({ ok: true, synchronized: true, at: Date.now() });
     }
   }
-  if(path==='/api/skills/matrix'&&request.method==='GET'){
+  if(['/api/skills/matrix', '/api/assistant/skills/matrix'].includes(path)&&request.method==='GET'){
     const dynamicSkills = await loadDynamicSkills(env);
     return json({ ok: true, count: dynamicSkills.length, skills: dynamicSkills });
   }
-  if(path==='/api/skills/register'&&request.method==='POST'){
+  if(['/api/skills/register', '/api/assistant/skills/register'].includes(path)&&request.method==='POST'){
     const skillData = await readJSON(request, 32000);
     const regResult = await registerDynamicSkill(env, skillData);
     return json(regResult);
   }
-  if(path==='/api/system/self-evolve'&&request.method==='POST'){
+  if(['/api/system/self-evolve', '/api/assistant/system/self-evolve'].includes(path)&&request.method==='POST'){
     const evolveData = await readJSON(request, 128000);
     const evolveResult = await applySelfModification(env, evolveData);
     return json(evolveResult);
