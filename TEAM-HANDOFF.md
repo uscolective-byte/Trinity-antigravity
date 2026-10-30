@@ -1070,4 +1070,9 @@ Od Antigravity pre Sabo Ivan (Basterix) a Codex (Triad).
      * **Prepojené API**: `generativelanguage.googleapis.com`, `aiplatform.googleapis.com`, `cloudresourcemanager.googleapis.com`, `storage.googleapis.com`, `firestore.googleapis.com`, `people.googleapis.com`, `drive.googleapis.com`, `docs.googleapis.com`, `sheets.googleapis.com`
    - Aktualizované súbory: `Trinity/wrangler.jsonc`, `Trinity/src/developer-hub.js`, `Trinity/src/external-integrations.js`, `Firebase/.firebaserc`, `Trinity/scripts/setup-google-developer-project.ps1` a `.sh`.
 3. Testovacia brána: 558 / 558 PASS (kompletná testovacia sada po štandardnom dist builde vrátane 8/8 workerd testov).
-4. Stav: meta_transport_and_google_tangential_osprey_integrated; ready_for_deploy.
+4. Guarded Deploy s plným 40-znakovým SHA overený:
+   - Git SHA / Tag: `3a8246360037e215baa0d822aa143f76e619c319`
+   - Staging (auru.dev): Version ID `a582880e-067b-455a-b6f2-8892a3c85e72`
+   - Produkcia (https://auru.space): Version ID `513361db-8765-4488-bd90-b07f22273b70`
+   - Dôkaz verify-deployment.mjs pre produkciu: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"513361db-8765-4488-bd90-b07f22273b70","tag":"3a8246360037e215baa0d822aa143f76e619c319","timestamp":"2026-10-30T04:27:15.863101Z"}}`
+5. Stav: meta_transport_and_google_tangential_osprey_live_and_verified; ready_for_codex_oauth.
