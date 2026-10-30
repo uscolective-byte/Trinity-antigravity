@@ -29,7 +29,7 @@ const token='test-only-meta-access-token';
 function provider({permissions=META_READ_SCOPES,profile={id:'123',name:'Test Owner'},revoked=false}={}){
  const calls=[];
  const fetcher=async(url,options)=>{
-  calls.push({url,options});assert.equal(new URL(url).hostname,'graph.facebook.com');assert.equal(options.redirect,'error');
+  calls.push({url,options});assert.equal(new URL(url).hostname,'graph.facebook.com');assert.equal(options.redirect,'manual');
   const endpoint=new URL(url).pathname;
   if(endpoint.endsWith('/oauth/access_token')){
    assert.equal(options.method,'POST');assert.equal(new URLSearchParams(options.body).get('client_secret'),'test-only-meta-app-secret');
@@ -55,6 +55,30 @@ test('missing setup is explicit and no fake account is connected',async t=>{
  const status=await metaStatus(env,context.ownerId,context.origin);assert.equal(status.status,'needs_setup');
  await assert.rejects(()=>beginMetaConnection(env,context),/nie je nastavená/);
  assert.equal(sqlite.prepare('SELECT count(*) AS n FROM meta_connections').get().n,0);
+});
+
+test('provider redirects never expose credentials, read redirect bodies or persist a connection',async t=>{
+ const {env,context,sqlite}=fixture(t);
+ for(const phase of ['exchange','profile'])for(const status of [301,302,303,307,308,0]){
+  const p=provider(),calls=[];let cancelled=false;
+  const redirect={status,type:status===0?'opaqueredirect':'basic',
+   get headers(){assert.fail('redirect Location must not be inspected');},
+   body:{async cancel(){cancelled=true;},getReader(){assert.fail('redirect body must not be read');}}
+  };
+  const fetcher=async(url,options)=>{
+   calls.push(url);assert.equal(new URL(url).hostname,'graph.facebook.com');assert.equal(options.redirect,'manual');
+   const exchange=new URL(url).pathname.endsWith('/oauth/access_token');
+   if(phase==='exchange'||!exchange)return redirect;
+   return p.fetcher(url,options);
+  };
+  await assert.rejects(()=>authorize(env,context).then(input=>completeMetaConnection(env,input,fetcher)),error=>{
+   assert.equal(error.status,502);assert.match(error.message,/presmerovanie/);
+   assert.equal(error.message.includes(token),false);assert.equal(error.message.includes(env.META_APP_SECRET),false);return true;
+  });
+  assert.equal(cancelled,true);assert.equal(calls.length,phase==='exchange'?1:2);
+  assert.equal(sqlite.prepare('SELECT count(*) AS n FROM meta_connections').get().n,0);
+  assert.equal(sqlite.prepare('SELECT count(*) AS n FROM ops_secret_vault').get().n,0);
+ }
 });
 test('real SQL transaction is session/owner bound, one-use and persists encrypted identity evidence',async t=>{
  const {env,context,sqlite}=fixture(t),{calls,fetcher}=provider();

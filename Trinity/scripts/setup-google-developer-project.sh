@@ -4,8 +4,8 @@
 
 set -euo pipefail
 
-PROJECT_ID="trinity-sovereign-2026"
-PROJECT_NAME="Trinity Sovereign Core"
+PROJECT_ID="tangential-osprey-dl7cp"
+PROJECT_NAME="tangential-osprey-dl7cp (Trinity Sovereign Core)"
 OWNER_EMAIL="saboivan2008@gmail.com"
 
 echo "=== Trinity Google Developer & Pro Environment Setup ==="

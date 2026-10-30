@@ -532,7 +532,7 @@ export async function listAllIntegrations(env) {
       name: 'Google Cloud & Gemini Developer Platform',
       category: 'AI & Cloud Infrastructure',
       status: env.GOOGLE_PROJECT_ID ? 'configured' : 'ready',
-      description: 'Projekt trinity-sovereign-2026: Gemini 3.8 Flash & Pro, Vertex AI, Cloud Storage, Firestore a Google Workspace APIs.'
+      description: 'Projekt tangential-osprey-dl7cp: Gemini 3.8 Flash & Pro, Vertex AI / Agent Platform, Cloud Storage, Firestore a Google Workspace APIs.'
     }
   ];
 }

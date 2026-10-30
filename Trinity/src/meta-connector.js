@@ -22,7 +22,12 @@ function configuration(env,origin){
 const configDigest=config=>hash(config.appId+':'+config.version+':'+config.redirect);
 async function providerJSON(fetcher,url,options={}){
  let response;
- try{response=await fetcher(url,{...options,redirect:'error',signal:AbortSignal.timeout(15000)});}catch{fail(502,'Meta je momentálne nedostupná.');}
+ // Workers supports manual/follow only. Never forward credentials across redirects.
+ try{response=await fetcher(url,{...options,redirect:'manual',signal:AbortSignal.timeout(15000)});}catch{fail(502,'Meta je momentálne nedostupná.');}
+ if(response.type==='opaqueredirect'||response.status>=300&&response.status<400){
+  try{await response.body?.cancel();}catch{}
+  fail(502,'Meta vrátila nepovolené presmerovanie.');
+ }
  let data;try{
   const reader=response.body?.getReader();if(!reader)throw Error('empty');
   let size=0,text='';const decoder=new TextDecoder();

@@ -25,8 +25,8 @@
 
 [CmdletBinding()]
 param(
-  [string]$ProjectId = 'trinity-sovereign-2026',
-  [string]$ProjectName = 'Trinity Sovereign Core',
+  [string]$ProjectId = 'tangential-osprey-dl7cp',
+  [string]$ProjectName = 'tangential-osprey-dl7cp (Trinity Sovereign Core)',
   [string]$OwnerEmail = 'saboivan2008@gmail.com'
 )
 

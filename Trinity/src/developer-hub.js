@@ -35,7 +35,7 @@ export async function getDevHubStatus(env) {
       google: {
         active: true,
         cli_tool: 'gcloud CLI / Vertex AI SDK / Google GenAI',
-        project_id: env.GOOGLE_PROJECT_ID || 'trinity-sovereign-2026',
+        project_id: env.GOOGLE_PROJECT_ID || 'tangential-osprey-dl7cp',
         project_name: 'Trinity Sovereign Core',
         google_oauth_enabled: env.GOOGLE_ENABLED === 'true',
         client_id: env.GOOGLE_CLIENT_ID ? `${env.GOOGLE_CLIENT_ID.slice(0, 16)}...` : 'configured',
@@ -88,10 +88,10 @@ export async function executeDevHubCommand(env, ownerId = 'admin', input) {
   } else if (target === 'google_cloud') {
     result = {
       action: 'gcloud_dispatch',
-      project_id: env.GOOGLE_PROJECT_ID || 'trinity-sovereign-2026',
+      project_id: env.GOOGLE_PROJECT_ID || 'tangential-osprey-dl7cp',
       enabled_apis: (env.GOOGLE_SERVICES_ENABLED || 'generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com').split(','),
       command,
-      output: `Google Cloud & Workspace bridge spracoval príkaz "${command}" pre projekt "${env.GOOGLE_PROJECT_ID || 'trinity-sovereign-2026'}". Autentifikácia OAuth 2.0 overená pre saboivan2008@gmail.com. Všetky potrebné API sú zaregistrované a pripravené.`,
+      output: `Google Cloud & Workspace bridge spracoval príkaz "${command}" pre projekt "${env.GOOGLE_PROJECT_ID || 'tangential-osprey-dl7cp'}". Autentifikácia OAuth 2.0 overená pre saboivan2008@gmail.com. Všetky potrebné API sú zaregistrované a pripravené.`,
       sdk: 'Google GenAI / Vertex AI 2026'
     };
   } else if (target === 'microsoft_copilot') {
