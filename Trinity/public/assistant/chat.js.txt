@@ -4084,6 +4084,87 @@ function initChatPlusMenu(){
     }
     notice('Režim PC Bridge aktivovaný.');
   });
+
+  // 6. Prepojenia & Integrácie (GitHub, Notion, Vercel, Gmail, Google, Meta, Domény, GDPR)
+  $('plus-opt-tool-github')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const msg = $('message');
+    if(msg){
+      msg.value = 'Spravuj GitHub repozitár uscolective-byte/Trinity-antigravity (prečítaj súbory, commits, issues alebo PR): ' + (msg.value || '');
+      msg.focus();
+    }
+    notice('Nástroj GitHub Suite pripravený.');
+  });
+
+  $('plus-opt-tool-notion')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const msg = $('message');
+    if(msg){
+      msg.value = 'Prepoj a synchronizuj Notion workspace (poznámky, úlohy, databázy): ' + (msg.value || '');
+      msg.focus();
+    }
+    notice('Nástroj Notion Workspace pripravený.');
+  });
+
+  $('plus-opt-tool-vercel')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const msg = $('message');
+    if(msg){
+      msg.value = 'Spravuj Vercel nasadenia, buildy a live domény: ' + (msg.value || '');
+      msg.focus();
+    }
+    notice('Nástroj Vercel Deployer pripravený.');
+  });
+
+  $('plus-opt-tool-gmail')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const msg = $('message');
+    if(msg){
+      msg.value = 'Skontroluj e-maily a priprav správu pre saboivan2008@gmail.com: ' + (msg.value || '');
+      msg.focus();
+    }
+    notice('Nástroj Gmail pripravený.');
+  });
+
+  $('plus-opt-tool-google')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const msg = $('message');
+    if(msg){
+      msg.value = 'Pracuj s Google Workspace (Drive, Docs, Tabuľky a hľadanie): ' + (msg.value || '');
+      msg.focus();
+    }
+    notice('Nástroj Google Workspace pripravený.');
+  });
+
+  $('plus-opt-tool-meta')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const msg = $('message');
+    if(msg){
+      msg.value = 'Spravuj sociálne siete Meta (Instagram @old_dirty_bastard013 a FB stránka underground Street collective): ' + (msg.value || '');
+      msg.focus();
+    }
+    notice('Nástroj Meta (Instagram & FB) pripravený.');
+  });
+
+  $('plus-opt-tool-domains')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const msg = $('message');
+    if(msg){
+      msg.value = 'Skontroluj stav domén a Cloudflare DNS záznamov pre auru.space a auru.dev: ' + (msg.value || '');
+      msg.focus();
+    }
+    notice('Nástroj Domény & DNS aktivovaný.');
+  });
+
+  $('plus-opt-tool-gdpr')?.addEventListener('click', () => {
+    toggleMenu(false);
+    const msg = $('message');
+    if(msg){
+      msg.value = 'Zobraz vyhlásenie a stav súhlasu so spracovaním údajov GDPR: ' + (msg.value || '');
+      msg.focus();
+    }
+    notice('GDPR & Ochrana údajov aktivovaná.');
+  });
 }
 
 initChatPlusMenu();

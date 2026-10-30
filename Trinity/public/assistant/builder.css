@@ -340,7 +340,7 @@
 .chat-plus-btn:hover{background:#334155!important;border-color:#38bdf8!important;color:#38bdf8!important;transform:scale(1.06)}
 .chat-plus-btn.open{transform:rotate(45deg);background:#38bdf8!important;color:#020617!important;border-color:#38bdf8!important}
 
-.chat-plus-menu{position:absolute;bottom:calc(100% + 10px);left:0;min-width:285px;max-width:320px;background:#0f172a;border:1px solid #334155;border-radius:16px;padding:8px;z-index:99999;box-shadow:0 20px 45px rgba(0,0,0,.75),0 0 1px 1px rgba(255,255,255,.08);backdrop-filter:blur(14px);animation:plusMenuSlideUp .18s cubic-bezier(.16,1,.3,1)}
+.chat-plus-menu{position:absolute;bottom:calc(100% + 10px);left:0;min-width:285px;max-width:345px;background:#0f172a;border:1px solid #334155;border-radius:16px;padding:8px;z-index:99999;box-shadow:0 20px 45px rgba(0,0,0,.75),0 0 1px 1px rgba(255,255,255,.08);backdrop-filter:blur(14px);animation:plusMenuSlideUp .18s cubic-bezier(.16,1,.3,1)}
 @keyframes plusMenuSlideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .chat-plus-menu[hidden]{display:none!important}
 
@@ -348,7 +348,7 @@
 .plus-menu-title{font-size:12px;font-weight:700;color:#f8fafc;letter-spacing:.3px}
 .plus-menu-subtitle{font-size:10px;color:#94a3b8}
 
-.plus-menu-items{display:flex;flex-direction:column;gap:3px;margin-top:6px;max-height:360px;overflow-y:auto}
+.plus-menu-items{display:flex;flex-direction:column;gap:3px;margin-top:6px;max-height:450px;overflow-y:auto}
 .plus-item{display:flex;align-items:center;gap:10px;width:100%;padding:7px 10px;border-radius:10px;border:none!important;background:transparent!important;color:#f8fafc!important;cursor:pointer;text-align:left;transition:all .15s ease}
 .plus-item:hover{background:#1e293b!important;color:#38bdf8!important;transform:translateX(2px)}
 .plus-item-icon{font-size:16px;min-width:22px;display:flex;align-items:center;justify-content:center}
