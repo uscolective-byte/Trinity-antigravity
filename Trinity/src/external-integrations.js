@@ -515,7 +515,7 @@ export async function listAllIntegrations(env) {
     },
     {
       id: 'firebase',
-      name: 'Firebase & Google Cloud',
+      name: 'Firebase Firestore & Hosting',
       category: 'Database & Auth',
       status: fbToken ? 'configured' : 'ready',
       description: 'Firestore synchronizácia, Hosting na trinity-morhfeus-20261001.web.app a Realtime DB.'
@@ -526,6 +526,13 @@ export async function listAllIntegrations(env) {
       category: 'Database',
       status: sbToken ? 'configured' : 'ready',
       description: 'Relačná PostgreSQL databáza s PostgREST API a vektorovým úložiskom.'
+    },
+    {
+      id: 'google_cloud',
+      name: 'Google Cloud & Gemini Developer Platform',
+      category: 'AI & Cloud Infrastructure',
+      status: env.GOOGLE_PROJECT_ID ? 'configured' : 'ready',
+      description: 'Projekt trinity-sovereign-2026: Gemini 3.8 Flash & Pro, Vertex AI, Cloud Storage, Firestore a Google Workspace APIs.'
     }
   ];
 }

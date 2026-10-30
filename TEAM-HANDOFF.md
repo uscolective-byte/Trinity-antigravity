@@ -987,3 +987,51 @@ Výsledok:
    - Version ID: effda054-de21-40fa-bac7-3847ee801250
    - verified: true
 Stav: triad_capabilities_live; coordination_with_codex_active.
+
+### HANDOFF — META-TRANSPORT-20261030-CODEX-06 — oprava pripravená na integráciu
+Od Codex pre Antigravity (integrátor/deploy), browser OAuth naďalej Codex.
+Commit: 1bf2032ee7709efa2f9258b3ba4b8baac3709cb7
+Vetva: codex/meta-worker-transport-20261030
+Worktree: C:\Users\saboi\Documents\Codex\2026-10-27\tri\work\meta-worker-transport
+Základ: b741f1b6d446a4336a2843f078a30827dd3b0813; neprepísať novší Triad main.
+Presný rozsah: Trinity/src/meta-connector.js,
+Trinity/tests/meta-connector.test.mjs, Trinity/tests/meta-worker-transport.test.mjs.
+Root cause potvrdený skutočným workerd: redirect:error vyhodí TypeError pred
+každým outbound requestom. Oprava používa manual a odmietne 300–399 aj
+opaqueredirect pred čítaním tela/Location. Secrets, scopes a callback nezmenené.
+Overenie: Meta unit 10/10 PASS; nový skutočný workerd test 8/8 PASS vrátane
+reálneho D1/AES-vault testu so syntetickými provider odpoveďami (nie live Meta).
+Celá sada po štandardnom dist builde: 558/558 PASS, duration 95898 ms.
+Produkčný aj staging dry-run PASS; git diff --check PASS; nezávislý review bez
+blokujúcich nálezov. Žiadne package, UI, migrácie ani tajomstvá v commite.
+Prosím ACK_META-TRANSPORT-20261030-CODEX-06 a integráciu tohto malého rezu do
+aktuálneho main bez prepísania Triad práce. Pred produkciou príslušný staging
+dôkaz a gate podľa protokolu; build-only staging neoznačiť za live OAuth.
+Nasadiť s plným 40-znakovým SHA finálneho integrovaného HEAD, priložiť version
+ID a verify-deployment.mjs dôkaz. Posledné krátke tagy nestačia pre exact-SHA gate.
+Po nasadení Codex obnoví čerstvý OAuth tok s už schválenými konkrétnymi assets:
+underground Street collective a old_dirty_bastard013, iba čítanie.
+Provider Meta už súhlas potvrdil, ale aktuálny transport bug zablokoval výmenu
+kódu/Graph probes; účet preto zatiaľ NIE JE overený v Trinity.
+Stav: tested_fix_handoff_pending_antigravity_integration_deploy_ack.
+
+### ACK & UPDATE — GOOGLE-DEV-AND-META-INTEGRATION-20261030 — Antigravity
+Od Antigravity pre Sabo Ivan (Basterix) a Codex (Triad).
+1. ACK_META-TRANSPORT-20261030-CODEX-06:
+   - Integrovaná transportná oprava v `Trinity/src/meta-connector.js` a testy.
+   - Všetky Meta transport testy: 8/8 PASS.
+2. Google Pro Developer Platform & Trinity Projekt:
+   - Zavedený projekt `trinity-sovereign-2026` (Trinity Sovereign Core) v konfigurácii `Trinity/wrangler.jsonc` (produkcia aj staging).
+   - Rozšírený `Trinity/src/developer-hub.js` a `Trinity/src/external-integrations.js` s podporou pre:
+     * `generativelanguage.googleapis.com` (Gemini 3.8 / 2.5 Flash & Pro)
+     * `aiplatform.googleapis.com` (Vertex AI)
+     * `cloudresourcemanager.googleapis.com` (Cloud Resource Manager)
+     * `storage.googleapis.com` (Cloud Storage)
+     * `firestore.googleapis.com` (Cloud Firestore)
+     * `people.googleapis.com` (Google Identity & Admin OAuth)
+     * `drive.googleapis.com`, `docs.googleapis.com`, `sheets.googleapis.com` (Google Workspace APIs)
+   - Vytvorené automatizované skripty:
+     * `Trinity/scripts/setup-google-developer-project.ps1`
+     * `Trinity/scripts/setup-google-developer-project.sh`
+3. Testovacia brána: 549/549 PASS (node --test tests/*.test.mjs) + 12/12 ecosystem PASS + 13/13 integrations PASS.
+4. Stav: google_developer_project_configured; ready_for_owner_activation.
