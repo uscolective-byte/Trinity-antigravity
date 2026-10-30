@@ -241,7 +241,13 @@ export const TOOL_SCHEMAS={
   pc_fs_patch:z.object({path:z.string(),target:z.string(),replacement:z.string()}).strict(),
   pc_shell_exec:z.object({command:z.string(),shell:z.enum(['powershell','cmd','node','python']).optional(),cwd:z.string().optional(),timeout:z.number().optional()}).strict(),
   pc_system_telemetry:z.object({}).strict(),
-  apply_self_evolution:z.object({filePath:z.string(),originalContent:z.string().optional(),newContent:z.string(),rationale:z.string().optional()}).strict()
+  apply_self_evolution:z.object({filePath:z.string(),originalContent:z.string().optional(),newContent:z.string(),rationale:z.string().optional()}).strict(),
+  triad_subagent_run:z.object({role:z.enum(['researcher','architect','codegen','tester','sentinel','market_analyst','designer','copilot']).default('researcher'),task:z.string().min(2).max(10000),model:z.enum(['auto','gemini-3.8-flash','gpt-4.1-mini','claude-3.5-sonnet','llama-3.3-70b']).default('auto'),context:z.string().max(20000).optional()}).strict(),
+  triad_deep_research:z.object({query:z.string().min(2).max(1000),depth:z.enum(['quick','deep','exhaustive']).default('deep'),sources:z.array(z.string()).max(10).optional()}).strict(),
+  triad_code_patch:z.object({path:z.string().min(1).max(500),target:z.string().min(1).max(50000),replacement:z.string().max(50000),rationale:z.string().max(500).optional()}).strict(),
+  triad_test_matrix:z.object({suite:z.enum(['all','unit','integration','truth','social']).default('all')}).strict(),
+  triad_copilot_sync:z.object({action:z.enum(['status','chat','list_skills','sync_tenant']).default('status'),message:z.string().max(4000).optional()}).strict(),
+  triad_status:z.object({}).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -1111,5 +1117,11 @@ export const TOOL_HELP={
   delegate_worker:'Priamo deleguje akciu na niektorého z 23 špecializovaných workerov Trinity (AURA, CORE, DISPATCHER, atď.): {worker:string, action:string, data?:object}',
   orchestrate_team:'Spustí autonómnu koordináciu celej flotily Trinity špecialistov nad komplexnou úlohou: {task:string}',
   fleet_status:'Skontroluje stav pripojenia a dostupnosť všetkých 23 špecializovaných workerov Trinity: {}',
-  wallet_create:'Vytvorí alebo nastaví peňaženku Trinity, priradí Web3 krypto adresu a nastaví bankové / platobné terminály: {iban?, bic?, revolut_handle?, paypal_email?}',open_weather:'Živé počasie a predpoveď z Open-Meteo/WMO bez API kľúča: {query:"Bratislava"}',open_wikipedia:'Overený encyklopedický súhrn z Wikipédie: {query:string,lang?:"sk"|"en"|"cz"|"de"|"fr"}',network_dns:'Kryptografické overenie DNS záznamov cez Cloudflare 1.1.1.1 DoH: {domain:string,type?:"A"|"AAAA"|"MX"|"TXT"|"CNAME"|"NS"}',crypto_prices:'Skutočné spotové ceny kryptomien z DefiLlama Open API: {coins?:["bitcoin","ethereum","solana"]}',tech_news:'Najnovšie technologické správy z Hacker News: {limit?:1..20}',macro_data:'Oficiálne makroekonomické ukazovatele zo Svetovej banky: {country?:"SVK",indicator?:"NY.GDP.MKTP.CD"}',free_modules_catalog:'Zoznam 6 bezplatných živých Open-Data API modulov Trinity: {}'
+  wallet_create:'Vytvorí alebo nastaví peňaženku Trinity, priradí Web3 krypto adresu a nastaví bankové / platobné terminály: {iban?, bic?, revolut_handle?, paypal_email?}',open_weather:'Živé počasie a predpoveď z Open-Meteo/WMO bez API kľúča: {query:"Bratislava"}',open_wikipedia:'Overený encyklopedický súhrn z Wikipédie: {query:string,lang?:"sk"|"en"|"cz"|"de"|"fr"}',network_dns:'Kryptografické overenie DNS záznamov cez Cloudflare 1.1.1.1 DoH: {domain:string,type?:"A"|"AAAA"|"MX"|"TXT"|"CNAME"|"NS"}',crypto_prices:'Skutočné spotové ceny kryptomien z DefiLlama Open API: {coins?:["bitcoin","ethereum","solana"]}',tech_news:'Najnovšie technologické správy z Hacker News: {limit?:1..20}',macro_data:'Oficiálne makroekonomické ukazovatele zo Svetovej banky: {country?:"SVK",indicator?:"NY.GDP.MKTP.CD"}',free_modules_catalog:'Zoznam 6 bezplatných živých Open-Data API modulov Trinity: {}',
+  triad_subagent_run:'Spustí špecializovaného subagenta Triády (researcher, architect, codegen, tester, sentinel) s voľbou modelu a dôkazovým receiptom: {role, task, model?:auto|gemini|gpt|claude|llama, context?:string}',
+  triad_deep_research:'Hĺbkový multi-zdrojový prieskum faktov a syntéza poznatkov Triády: {query:string, depth?:quick|deep|exhaustive, sources?:string[]}',
+  triad_code_patch:'Presné AST a fuzzy patchovanie kódu (target -> replacement) bez poškodenia štruktúry: {path:string, target:string, replacement:string, rationale?:string}',
+  triad_test_matrix:'Spustí kompletný verifikačný testovací matrix Trinity (549+ testov) s reportom výsledku: {suite?:all|unit|integration|truth|social}',
+  triad_copilot_sync:'Prepojenie a synchronizácia s Microsoft Copilot Studio (Trinitys) a OpenAI asistentmi: {action:status|chat|list_skills|sync_tenant, message?:string}',
+  triad_status:'Kompletný live stav a telemetria Zvrchovanej Triády (Trinity + Codex + Antigravity): {}'
 };

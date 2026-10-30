@@ -928,3 +928,41 @@ Výsledok implementácie:
    - Version ID: 9e33f959-a613-4998-a0e3-80f100c41122
    - verified: true
 Stav: plus_menu_tools_live.
+
+### CLAIM — TRIAD-CAPABILITIES-INTEGRATION-20261030-ANTIGRAVITY-07
+Antigravity preberá požiadavku majiteľa na plnú integráciu schopností a nástrojov ChatGPT, Codex a Antigravity do zvrchovanej Trinity (Triad Integration):
+1. Cognition Directives: Posilnenie uvažovania v cognition.js a engine.js s definíciou TRINITY_SOVEREIGN_TRIAD (Trinity Sovereign OS + OpenAI/Codex inžinierstvo + Antigravity multi-agent orchestrácia).
+2. Rozšírenie nástrojov v tools.js a registry.js:
+   - triad_subagent_run (delegovanie na špecializovaných subagentov: researcher, architect, codegen, tester, sentinel)
+   - triad_deep_research (hĺbkový prieskum s citáciami a overením faktov)
+   - triad_code_patch (pokročilé multi-line inteligentné patchovanie kódu)
+   - triad_test_matrix (spustenie celej testovacej sady s receiptom)
+   - triad_copilot_sync (obojsmerná integrácia s Microsoft Copilot Studio)
+   - triad_status (prehľad stavu celej Triády)
+3. UI vylepšenia v chate (chat.html & chat.js.txt) pre priamy prístup k Triad schopnostiam.
+4. Overenie testovacej brány (549+ testov PASS) a Guarded Deploy na Cloudflare Edge.
+Stav: triad_integration_in_progress.
+
+### UPDATE / CLAIM — META-TRANSPORT-20261030-CODEX-06
+Majiteľ potvrdil, že prvý App Secret upload bol omylom prázdny. Codex opravil
+vlastný lokálny launcher: prázdny/whitespace/control vstup sa neodosiela,
+maskovaný vstup čistí BSTR/SecureString vo finally a sanitizácia logov je true.
+Validator fixtures 7/7 PASS, parser PASS, non-TTY guard PASS bez uploadu.
+Majiteľ druhý vstup dokončil; verejný receipt má exit0, completed_at
+2026-10-29T19:55:44.1008919Z. Živé UI následne prešlo z needs_setup na not_connected.
+Majiteľ výslovne schválil provider OAuth pre aktuálne konkrétne assets:
+Facebook underground Street collective a Instagram old_dirty_bastard013.
+Codex zvolil iba aktuálne položky (bez budúcich assets), skontroloval read-only
+permissions a po owner schválení klikol Uložiť. Meta potvrdila spojenie účtu
+Иван Сабо s TRinity Social. Trinity callback však hlási provider fetch chybu;
+D1 pre tento owner zatiaľ neobsahuje meta_connections receipt.
+Príčina v zdroji: providerJSON používa redirect:error. Cloudflare Workers
+tento režim nepodporuje a vyhodí TypeError ešte pred sieťovým požiadavkom.
+Zdroj: https://developers.cloudflare.com/workers/runtime-apis/request/
+Codex preberá výhradne opravu Trinity/src/meta-connector.js a jej regresné
+testy v izolovanom worktree, základ b741f1b6d446a4336a2843f078a30827dd3b0813.
+Oprava použije manual a explicitne odmietne presmerovania bez nasledovania
+Location alebo odoslania poverení ďalej. Potrebný je skutočný workerd dôkaz,
+nielen fetch stub v Node testoch. Antigravity naďalej vlastní Triad/UI súbory
+a integráciu/deploy; tie Codex neprepisuje. Secrets a scopes sa nemenia.
+Stav: fixing_meta_worker_transport; OAuth_connection_not_yet_verified.
