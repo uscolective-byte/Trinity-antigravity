@@ -6,12 +6,15 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
   const accountId = params.accountId || env.CF_ACCOUNT_ID || 'b60342e5e52f5646fbd4e913bb409334';
   
   const internalState = {
-    connected: true,
+    connected: false,
     accountId,
     edge_runtime: 'Cloudflare Workers (workerd)',
-    active_d1_databases: ['trinity-v03', 'trinity-db', 'trinity-pc-bridge'],
-    kv_namespaces: ['Mastermind'],
-    r2_buckets: ['trinity-artifacts'],
+    configured_bindings: {
+      d1: Boolean(env.DB?.prepare),
+      kv: Boolean(env.Mastermind?.get),
+      r2: Boolean(env.ARTIFACTS?.get),
+      ai: Boolean(env.AI?.run)
+    },
     workers_ai_model: env.AI_MODEL || '@cf/openai/gpt-oss-120b',
     has_live_token: Boolean(token)
   };
@@ -21,75 +24,82 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
       return {
         success: true,
         source: 'edge_bindings',
-        message: 'Cloudflare Edge prostredie je plne aktívne cez priame D1, KV, R2 a AI väzby.',
+        verified: false,
+        message: 'Cloudflare runtime má len lokálne detegované bindingy. Bez API tokenu nie je overený prístup ku cloudovému účtu.',
         data: internalState
       };
     }
     try {
-      const resp = await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify', {
-        headers: { Authorization: `Bearer ${token}` }
+      const headers = {Authorization: `Bearer ${token}`};
+      let resp = await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify', {
+        headers, signal: AbortSignal.timeout(15000)
       });
-      const data = await resp.json().catch(() => ({}));
+      let data = await resp.json().catch(() => ({}));
+      if (resp.status === 401 && (!resp.ok || data.success !== true)) {
+        resp = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/tokens/verify`, {
+          headers, signal: AbortSignal.timeout(15000)
+        });
+        data = await resp.json().catch(() => ({}));
+      }
+      const verified = resp.ok && data.success === true && data.result?.status === 'active';
       return {
-        success: resp.ok,
+        success: verified,
+        verified,
         source: 'cloudflare_api',
-        token_status: data.result?.status || 'active',
-        data: { ...internalState, verified_at: new Date().toISOString() }
+        token_status: data.result?.status || 'unverified',
+        data: {...internalState, connected: verified, ...(verified ? {verified_at: new Date().toISOString()} : {})}
       };
-    } catch (e) {
-      return { success: true, source: 'edge_bindings_fallback', data: internalState, note: e.message };
+    } catch {
+      return {success:false, verified:false, source:'cloudflare_api', data:internalState,
+        error:'Cloudflare API token verification unavailable.'};
     }
   }
 
   if (action === 'list_dns_zones') {
     if (!token) {
       return {
-        success: true,
-        zones: [
-          { id: 'zone_auru_space', name: 'auru.space', status: 'active', paused: false, type: 'full' },
-          { id: 'zone_auru_dev', name: 'auru.dev', status: 'active', paused: false, type: 'full' }
-        ],
-        source: 'edge_registry'
+        success: false, zones: [], verified: false,
+        error: 'Zoznam Cloudflare DNS zón vyžaduje overený API token.',
+        source: 'not_verified'
       };
     }
     const resp = await fetch(`https://api.cloudflare.com/client/v4/zones?account.id=${encodeURIComponent(accountId)}&per_page=50`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const d = await resp.json().catch(() => ({}));
-    return { success: resp.ok, zones: d.result || [], total: d.result?.length || 0 };
+    return { success: resp.ok && d.success === true, zones: resp.ok && d.success === true ? d.result || [] : [], total: resp.ok && d.success === true ? d.result?.length || 0 : 0 };
   }
 
   if (action === 'purge_cache') {
-    const zoneId = params.zoneId || 'zone_auru_space';
+    const zoneId = params.zoneId;
+    if (typeof zoneId !== 'string' || !/^[a-f0-9]{32}$/i.test(zoneId)) {
+      return {success:false,error:'Na vyčistenie Cloudflare cache je potrebné skutočné 32-znakové zone ID.'};
+    }
     if (!token) {
-      return { success: true, message: `Cache pre zónu ${zoneId} bola vyčistená v lokálnom Edge cache.` };
+      return {success:false,error:'Vyčistenie Cloudflare cache vyžaduje API token. Žiadna cache nebola vyčistená.'};
     }
     const resp = await fetch(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}/purge_cache`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ purge_everything: true })
     });
-    return { success: resp.ok, result: await resp.json().catch(() => ({})) };
+    const result = await resp.json().catch(() => ({}));
+    return { success: resp.ok && result.success === true, result };
   }
 
   if (action === 'list_workers') {
     if (!token) {
       return {
-        success: true,
-        workers: [
-          { id: 'trinity-core', script_name: 'trinity-core', created_on: '2026-10-01' },
-          { id: 'trinity-pc-bridge-v2', script_name: 'trinity-pc-bridge-v2', created_on: '2026-10-09' },
-          { id: 'trinity-knowledge', script_name: 'trinity-knowledge', created_on: '2026-10-05' },
-          { id: 'aura_sentinel', script_name: 'aura_sentinel', created_on: '2026-10-08' }
-        ],
-        source: 'internal_manifest'
+        success:false,workers:[],verified:false,
+        error:'Zoznam Workerov vyžaduje overený Cloudflare API token.',
+        source:'not_verified'
       };
     }
     const resp = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/workers/scripts`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const d = await resp.json().catch(() => ({}));
-    return { success: resp.ok, workers: d.result || [] };
+    return { success: resp.ok && d.success === true, workers: resp.ok && d.success === true ? d.result || [] : [] };
   }
 
   return { success: false, error: `Neznáma Cloudflare akcia: ${action}` };
@@ -114,7 +124,7 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
         repo: repo,
         authenticated: Boolean(token),
         details: {
-          name: data.name || 'trinity-morhfeus',
+          name: data.name || null,
           stars: data.stargazers_count || 0,
           open_issues: data.open_issues_count || 0,
           default_branch: data.default_branch || 'main',
@@ -398,7 +408,7 @@ export async function manageFirebase(env, actor = 'trinity', action = 'status', 
         fallback_domain: `${projectId}.firebaseapp.com`
       },
       has_token: Boolean(token),
-      firestore_status: 'ready'
+      firestore_status: 'not_verified'
     };
   }
 
@@ -406,7 +416,10 @@ export async function manageFirebase(env, actor = 'trinity', action = 'status', 
     const collection = params.collection || 'trinity_state';
     const documentId = params.documentId || `doc_${Date.now()}`;
     const payload = params.data || {};
-
+    if (![collection,documentId].every(part => typeof part === 'string' && /^[A-Za-z0-9_-]{1,150}$/.test(part))) {
+      return {success:false,error:'Neplatný názov kolekcie alebo dokumentu.'};
+    }
+    let mirroredInD1 = false;
     if (env.DB?.prepare) {
       try {
         await env.DB.prepare(`
@@ -419,43 +432,54 @@ export async function manageFirebase(env, actor = 'trinity', action = 'status', 
             PRIMARY KEY(project_id, collection, doc_id)
           )
         `).run();
-
-        await env.DB.prepare(`
+        const result = await env.DB.prepare(`
           INSERT INTO ops_firebase_mirror(project_id, collection, doc_id, data_json, updated_at)
           VALUES(?,?,?,?,datetime('now'))
           ON CONFLICT(project_id, collection, doc_id) DO UPDATE SET
             data_json=excluded.data_json,
             updated_at=excluded.updated_at
         `).bind(projectId, collection, documentId, JSON.stringify(payload)).run();
-      } catch (_) {}
+        mirroredInD1 = result?.success === true;
+      } catch {
+        mirroredInD1 = false;
+      }
     }
-
-    if (token) {
+    // An API key is NOT Firestore write authorization. Never put secrets
+    // into query parameters or claim external writes from uninspected replies.
+    let firestoreWritten = false;
+    let firestoreHttpStatus = null;
+    if (typeof token === 'string' && /^ya29\.[A-Za-z0-9_.-]+$/.test(token)) {
       try {
         const firestoreFields = {};
-        for (const [k, v] of Object.entries(payload)) {
-          if (typeof v === 'string') firestoreFields[k] = { stringValue: v };
-          else if (typeof v === 'number') firestoreFields[k] = { doubleValue: v };
-          else if (typeof v === 'boolean') firestoreFields[k] = { booleanValue: v };
-          else firestoreFields[k] = { stringValue: JSON.stringify(v) };
+        for (const [k,v] of Object.entries(payload)) {
+          if (typeof v === 'string') firestoreFields[k] = {stringValue:v};
+          else if (typeof v === 'number' && Number.isFinite(v)) firestoreFields[k] = {doubleValue:v};
+          else if (typeof v === 'boolean') firestoreFields[k] = {booleanValue:v};
+          else firestoreFields[k] = {stringValue:JSON.stringify(v)};
         }
-
-        const url = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents/${encodeURIComponent(collection)}/${encodeURIComponent(documentId)}?key=${encodeURIComponent(token)}`;
-        await fetch(url, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fields: firestoreFields })
+        const url = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents/${encodeURIComponent(collection)}/${encodeURIComponent(documentId)}`;
+        const response = await fetch(url, {
+          method:'PATCH',
+          headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+          body:JSON.stringify({fields:firestoreFields}),
+          signal:AbortSignal.timeout(15000),
+          redirect:'error'
         });
-      } catch (_) {}
+        firestoreHttpStatus = response.status;
+        firestoreWritten = response.ok;
+      } catch {
+        firestoreWritten = false;
+      }
     }
-
+    const success = mirroredInD1 || firestoreWritten;
     return {
-      success: true,
-      projectId,
-      collection,
-      documentId,
-      mirrored_in_d1: true,
-      written_at: new Date().toISOString()
+      success,projectId,collection,documentId,
+      mirrored_in_d1:mirroredInD1,
+      firestore_written:firestoreWritten,
+      ...(firestoreHttpStatus === null ? {} : {firestore_http_status:firestoreHttpStatus}),
+      status: !success?'failed':!firestoreWritten?'local_only':'verified',
+      ...(success ? {written_at:new Date().toISOString()} :
+        {error:'Nepotvrdený zápis: D1 mirror zlyhal a Firestore nevrátil úspech.'})
     };
   }
 
