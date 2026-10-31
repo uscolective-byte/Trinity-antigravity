@@ -130,3 +130,20 @@ test('GitHub dispatch defaults to real CI workflow, never an invented deploy wor
   assert.ok(target.endsWith('/actions/workflows/webpack.yml/dispatches'));
  }finally{globalThis.fetch=previous;}
 });
+
+test('PC and generic tool proposals cannot be reported as executed from generated metadata',()=>{
+  for(const status of ['proposed','approved','queued','claimed','running']){
+    const result={id:'queued-action',status,_evidence:{receipt_id:'not-a-completion',effect:'mutation',actions:['execute']}};
+    const pc=pcActionReceipt(result);
+    const tool=toolReceiptForOutcome('pc_open_app',result);
+    assert.notEqual(pc.status,'completed');
+    assert.notEqual(tool.status,'completed');
+    assert.equal(pc.receipt_id,'queued-action');
+    assert.equal(tool.receipt_id,'queued-action');
+  }
+  const completed=pcActionReceipt({status:'completed',_evidence:{receipt_id:'actual-gateway-receipt'}});
+  assert.equal(completed.status,'completed');
+  assert.equal(completed.receipt_id,'actual-gateway-receipt');
+  const ambiguous=pcActionReceipt({_evidence:{receipt_id:'not-proof'}});
+  assert.equal(ambiguous.status,'pending');
+});
