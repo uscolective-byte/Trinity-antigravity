@@ -84,3 +84,24 @@ Dashboardu nie sú priamo prístupné v lokálnom `wrangler dev`.
 **Ďalší krok:** overiť GitHub CI runner, staging dry-run a cloudové
 bindingy; následne zvážiť oddelený privileged `TRINITY_MASTER` Worker pre
 GitHub/PC admin akcie, nie pridávať široké tokeny k verejnému chatu.
+
+## Cloudflare AI diagnostický agent a ovládací prehľad
+
+Pracovná vetva PR #22 obsahuje pridané interné rozhrania:
+
+- `GET /api/assistant/master/status` — **vyžaduje autorizovaného admina**, vracia iba pravdivý stav konfigurácie (Workers AI / D1 / R2, ChatGPT API, Claude API, Gemini, Copilot, Codex workflow, GitHub, PC bridge). Vždy rozlišuje `configured`, `provider_verified`, `oauth_linked` a `execution_verified`; nečíta nijaké hodnoty Secrets Store.
+- `POST /api/assistant/master/advise` s JSON `{"task":"Skontroluj prepojenia Trinity"}` — **admin-only**, rate limit, max. 2000 znakov; Cloudflare Workers AI dostane iba neprivilegované metadata a vráti odporúčania s `status:advice_only`, `execution_performed:false`. Nemá nástroje na reálny deploy, GitHub push, shell, PC ani čítanie secretov.
+
+Ak chýba Workers AI binding, endpoint odpovie `not_configured`; ak model zlyhá alebo nevráti odpoveď, nehlási úspech. Výstup modelu nie je doklad o tom, že akcia bola vykonaná.
+
+Serverová cesta Gemini teraz rozlišuje uložené Worker Secret a Secrets Store binding `TRINITY_MASTER_GOOGLE`. Pri nedostupnom alebo neplatnom kľúči skončí s chybou, nie s falošným pripojením. Záložný Gemini model sa zisťuje z dostupných modelov Google API a autentifikácia používa `x-goog-api-key` HTTP header — nie URL query parameter.
+
+**Nezamieňať API prístup za prepojenie spotrebiteľského účtu:** ChatGPT API kľúč neprepojí históriu ChatGPT účtu; Copilot Studio vyžaduje samostatné nakonfigurovanie agenta a vlastný prístup; Codex potrebuje oprávnené GitHub workflow alebo iné schválené rozhranie; Claude používa vlastnú Anthropic API autorizáciu; miestny Windows PC ostáva nepripojený bez bežiacej brány.
+
+Regresné testy:
+```bash
+cd Trinity
+node --test tests/trinity-master-secrets.test.mjs tests/trinity-master-wrangler.test.mjs tests/trinity-master-provider-resolution.test.mjs tests/trinity-master-status.test.mjs tests/trinity-master-agent.test.mjs tests/trinity-master-gemini-runtime.test.mjs
+```
+
+**Dôkazový stav:** vykonaná izolovaná syntaktická kontrola modulov, test výstupu pomocou syntetického Cloudflare AI bindingu a kontrola, že nebol prečítaný žiaden secret. Kompletné `npm test`, živé Cloudflare AI, Google API a staging deploy sa ešte nepodarilo overiť. Neaktivovať novú funkcionalitu v produkcii pred zeleným CI, kontrolou oprávnení a staging testom.
