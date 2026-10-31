@@ -31,3 +31,26 @@ node --test tests/morpheus-sync-policy.test.mjs
 GitHub Actions v kanonickom repozitári musí zobrazovať úspešný job `Morpheus to canonical Trinity sync` a vytvorené `mirror/morpheus/main`, `mirror/morpheus/<...>` a `morpheus/v11.0.0`. Bez týchto dôkazov nehovorte, že systém už automaticky synchronizuje dáta.
 
 Cieľ: nemať dve nezávislé produkčné vetvy; `Trinity-antigravity/main` zostáva jediný zdroj produkčného nasadenia.
+
+## Overenie prvého automatického behu — 31.10.2026
+
+Synchronizačný workflow má teraz aj úzky `push` trigger pri zmene
+vlastných skriptov a workflow súboru. GitHub ho skutočne vytvoril:
+[run #41222912897](https://github.com/uscolective-byte/Trinity-antigravity/actions/runs/41222912897).
+
+**Result: failure ešte pred spustením.** GitHub API pri jobe `124601005929`
+vrátilo `runner_id=0`, `runner_name=""`, `steps=[]`. 
+Žiadny fetch, Git mirror push, PR ani test neprebehol. Znova: nový GitHub
+token nedokáže napraviť chýbajúci GitHub-hosted runner.
+
+Konkrétny zoznam administrátorských kontrol a súvis s historickou
+Actions policy `7283` (iba podozrenie, nie potvrdená príčina):
+[GitHub issue #24](https://github.com/uscolective-byte/Trinity-antigravity/issues/24).
+Skontrolovať Actions policy a oprávnenia, billing a Runner Smoke.
+Po obnovení runnerov spustiť workflow manuálne cez GitHub Actions.
+
+**Zmeny kódu:** aby sa detegovali a archívovali všetky zdrojové vetvy
+vrátane force-rewrite, workflow zachová odlišné SHA pod osobitným
+menom `mirror/morpheus-rewrites/*` a pozastaví automatický merge
+pri prepísanej histórii. GitHub token nikdy nesmie force-pushnúť
+kanonický `main`.
