@@ -26,6 +26,8 @@ test('secret report never exposes secret values or unallowlisted names',()=>{
  assert.equal(report.groups.integrations.META_APP_SECRET,'secret-present');
  assert.equal(report.groups.google.GOOGLE_CLIENT_ID,'configured-variable');
  assert.equal(report.groups.integrations.TELEGRAM_BOT_TOKEN,'not-present');
+ assert.equal(report.groups.operations.CLOUDFLARE_API_TOKEN,'not-present');
+ assert.equal(report.groups.operations.TRINITY_CF_TOKEN,'not-present');
  assert.equal(output.includes(fakeValue),false);
  assert.equal(output.includes('CUSTOM_UNLISTED_SECRET'),false);
 });
