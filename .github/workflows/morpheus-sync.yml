@@ -4,6 +4,13 @@ on:
   schedule:
     - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/morpheus-sync.yml'
+      - 'scripts/morpheus-sync-runner.mjs'
+      - 'scripts/morpheus-sync-policy.mjs'
+      - 'tests/morpheus-sync-policy.test.mjs'
 
 # Public source is read-only; never force-push or update canonical main
 # directly. Open a reviewable PR, run security checks, merge only docs
@@ -14,6 +21,7 @@ permissions:
   issues: write
   actions: write
   checks: read
+  statuses: read
 
 concurrency:
   group: trinity-morpheus-sync
