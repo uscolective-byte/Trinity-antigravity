@@ -2,8 +2,14 @@
   "inputs": [
     {
       "type": "promptString",
-      "id": "trinity-mcp-token",
-      "description": "Trinity MCP Bearer token (trn_live_...)",
+      "id": "trinity-prod-mcp-token",
+      "description": "Production Trinity MCP key (trn_live_...), read only preferred",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "trinity-staging-mcp-token",
+      "description": "Staging Trinity MCP key (trn_live_...), separate D1 account key",
       "password": true
     }
   ],
@@ -12,14 +18,14 @@
       "type": "http",
       "url": "https://auru.space/mcp",
       "headers": {
-        "Authorization": "Bearer ${input:trinity-mcp-token}"
+        "Authorization": "Bearer ${input:trinity-prod-mcp-token}"
       }
     },
     "trinity-development": {
       "type": "http",
       "url": "https://auru.dev/mcp",
       "headers": {
-        "Authorization": "Bearer ${input:trinity-mcp-token}"
+        "Authorization": "Bearer ${input:trinity-staging-mcp-token}"
       }
     },
     "cloudflare-api": {
