@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "wrangler dev --ip 127.0.0.1",
     "build": "node scripts/build-mcp-app.mjs && wrangler deploy --dry-run --env=\"\" --outdir dist",
-    "deploy": "node scripts/build-mcp-app.mjs && wrangler deploy --env=\"\"",
+    "deploy": "npm run d1:doctor:production && node scripts/build-mcp-app.mjs && wrangler deploy --env=\"\"",
     "types": "wrangler types",
     "test": "npm run build && node --test tests/*.test.mjs",
     "test:truth-live": "node scripts/live-truth-test.mjs",
@@ -22,7 +22,8 @@
     "secrets:doctor": "node scripts/secrets-store-doctor.mjs",
     "secrets:test": "node --test tests/secrets-store-doctor.test.mjs tests/trinity-master-secrets.test.mjs tests/trinity-master-wrangler.test.mjs tests/trinity-master-provider-resolution.test.mjs",
     "d1:doctor": "node scripts/d1-binding-doctor.mjs --live --env staging",
-    "d1:test": "node --test tests/d1-binding-doctor.test.mjs"
+    "d1:test": "node --test tests/d1-binding-doctor.test.mjs",
+    "d1:doctor:production": "node scripts/d1-binding-doctor.mjs --live --env production"
   },
   "dependencies": {
     "@cloudflare/puppeteer": "^1.4.0",
