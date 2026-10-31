@@ -1193,4 +1193,18 @@ Branch: `fix/secrets-readiness-and-release-docs-20261031`; bez zmeny vlastníka 
 Súbory: `Trinity/src/engine.js`, `Trinity/src/secret-vault.js`, `Trinity/src/external-integrations.js`, `Trinity/wrangler.jsonc`, `.github/workflows/webpack.yml`, `.github/workflows/self-deploy.yml` a súvisiace testy/dokumentácia.
 Cieľ: opraviť falošné vykonané receipts, overovanie Firebase/AI provider tokenov, GitHub identity a bezpečnostné prepínače; zachovať kompatibilitu a testové kontrolné brány.
 Dôkazy pred zmenou: GitHub CI jobs PR #22 zlyhávajú bez krokov a logs 404 BlobNotFound; 30.10.2026 oficiálny GitHub incident Actions, aktuálne resolved, nemožno tvrdiť kauzalitu. Desktop Commander BASTERIX offline. Bez nasadenia, mazania, transferu secrets alebo zrušenia ochranných kontrol.
-Stav: IN PROGRESS, funkčné zmeny iba cez PR #22. 
+Stav: IN PROGRESS, funkčné zmeny iba cez PR #22.
+
+### UPDATE / HANDOFF — FIX-TRINITY-RELEASE-20261031-CHATGPT-02
+Pracovná vetva: `fix/secrets-readiness-and-release-docs-20261031`, PR #22, **bez merge a deploy**.
+Implementované:
+- `Trinity/src/engine.js`: rozpracovaná, proposed, approved, claimed a queued akcia sa nesmie označiť completed ani pri syntetickom `_evidence.receipt_id`.
+- `Trinity/src/secret-vault.js`: Firestore OAuth 401/403/5xx alebo API key nie je verified, AI providers vyžadujú úspešné API volanie, Telegram `getMe` overuje len bota (nie webhook).
+- `Trinity/src/external-integrations.js`: GitHub operácie validujú názov repo, mutácie iba do kanonického repo, `/user` overenie pre authenticated, CI dispatch je queued a nesmie nasadzovať `self-deploy`.
+- `Trinity/src/tools.js`: mutácie Cloudflare cache / GitHub / Firebase vyžadujú serverom overený owner/admin kontext. Bežné reads bez tohto gate.
+- Regresné testy: `Trinity/tests/provider-secret-verification.test.mjs`, `Trinity/tests/integration-truth-gates.test.mjs`, `Trinity/tests/integration-mutation-auth.test.mjs`.
+- `package.json` a `package-lock.json`: koreňový názov zosúladený na `trinity-antigravity-workspace`, verzia aplikácie zostáva 11.0.0; JSON kontrola zhody oboch súborov vykonaná.
+- `Trinity/docs/CI_RUNNER_BLOCKER_20261031.md`: dôkazy, rozsah problému a obnovovací postup.
+
+GitHub Actions diagnostika: run `41219016766`, retry attempt 2, job `124589570877`, `runner_id=0`, `runner_name=""`, `steps=[]`; log API 404 BlobNotFound. Rerun failed jobs prijatý, znova failure. Dôkaz o runner allocation probléme, nie dôkaz zlyhaného testu kódu.
+Stav: zmeny commitnuté do PR. Plný lokálny npm/Node test a živý Cloudflare verification nevykonateľné (Desktop Commander BASTERIX offline, GitHub-hosted runner nepridelený). Secrets, OAuth účty, main a produkcia bez zmien. CI gating neobchádzať. ACK sa vytvára iba skutočným prijímateľom.
