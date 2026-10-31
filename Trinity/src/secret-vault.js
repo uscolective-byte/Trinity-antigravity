@@ -53,23 +53,28 @@ async function verifyFirecrawl(secret){
   if(!response.ok&&response.status!==402)throw new Error(`Firecrawl odmietol API kľúč (HTTP ${response.status}): ${String(data.error||'neplatný kľúč').slice(0,180)}`);
   return {connected:true,provider:'firecrawl',status:response.status===402?'verified-quota-limit':'active'};
 }
-async function verifyFirebase(secret){
+export async function verifyFirebase(secret,{fetcher=fetch}={}){
   let projectId='trinity-morhfeus-20261001';
   let token=secret;
-  try{
+  try {
     const parsed=JSON.parse(secret);
     if(parsed.project_id||parsed.projectId)projectId=parsed.project_id||parsed.projectId;
-    if(parsed.apiKey||parsed.token)token=parsed.apiKey||parsed.token;
-  }catch{}
-  const url=`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents?pageSize=1${token&&!token.startsWith('ya29.')?`&key=${encodeURIComponent(token)}`:''}`;
-  const headers=token&&token.startsWith('ya29.')?{Authorization:`Bearer ${token}`}:{};
-  const response=await fetch(url,{headers,signal:AbortSignal.timeout(15000)});
-  if(response.status===401||response.status===403){
-    return {connected:true,project_id:projectId,status:'configured-auth-required'};
-  }
-  return {connected:true,project_id:projectId,status:response.ok?'verified':'reachable'};
+    token=parsed.access_token||parsed.token||parsed.apiKey||'';
+  } catch {}
+  // An API key can identify a Google Cloud project, but it is not proof of
+  // Firestore read or write authorization. Never append secrets to URLs.
+  if(typeof projectId!=='string'||!/^[a-z][a-z0-9-]{4,80}$/.test(projectId))
+    throw new Error('Firebase project_id má neplatný formát.');
+  if(typeof token!=='string'||!/^ya29\.[a-zA-Z0-9_.-]{5,}$/.test(token))
+    throw new Error('Firebase prístup nie je overený. Vyžaduje sa platný OAuth access token; API key ani service-account JSON samy nedokazujú autorizáciu Firestore.');
+  const url=`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents?pageSize=1`;
+  const response=await fetcher(url,{
+    headers:{Authorization:`Bearer ${token}`},
+    signal:AbortSignal.timeout(15000),redirect:'error'
+  });
+  if(!response.ok)throw new Error(`Firebase odmietol Firestore prístup (HTTP ${response.status}).`);
+  return {connected:true,project_id:projectId,status:'verified',permission_verified:'read'};
 }
-
 async function verifyOpenAICompatible(url,secret,provider){
   try{
     const response=await fetch(url,{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(10000)});
