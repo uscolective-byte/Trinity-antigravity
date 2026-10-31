@@ -6,6 +6,8 @@ import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,genera
 import {createTrinityDocument,listTrinityDocuments,getTrinityDocument,deleteTrinityDocument,exportTrinityDocument} from './trinity-documents.js';
 import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk,listBankConnections,configureBankConnection,deleteBankConnection,syncLiveMarketFeeds,getCommodityChart} from './commodities-engine.js';
 import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,listAllIntegrations} from './external-integrations.js';
+import {trinityMasterStatus} from './trinity-master-status.js';
+import {adviseTrinityMaster} from './trinity-master-agent.js';
 import {scanForImprovements} from './maintenance-scan.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
 import {searchDomainNames,refreshDomainRegistration,createSubdomain,syncCloudflareDomains} from './domains.js';
@@ -35,6 +37,7 @@ import {mediaStatus} from './media.js';
 import {readControl,assertRunning} from './control.js';
 import {listApis,createApi,invokeApi,invokeApiBySlug} from './api-builder.js';
 import {listApiKeys,createApiKey,revokeApiKey,authenticateApiKey} from './api-keys.js';
+import {handleAssistantBridge} from './assistant-bridge.js';
 import {listSecrets,storeSecret,verifySecret,revokeSecret,promoteCustomSecretToGemini} from './secret-vault.js';
 import {listAIProviders,configureAIProvider,recordAIProviderCheck} from './ai-providers.js';
 import {getGraphVisualization,syncGraphFromEcosystem,queryGraphContext} from './graph-memory.js';
@@ -393,6 +396,14 @@ async function route(request,env,ctx){
   if(gatewayReceipt&&request.method==='POST'){
     const gateway=await authenticateGateway(request,env);await rateLimit(env,`gateway-receipt:${gateway}`,120);
     return json({action:await finishSystemAction(env,uuid.parse(gatewayReceipt[1]),gateway,await readJSON(request,180000))});
+  }
+  // API keys for ChatGPT and Copilot Studio have their own narrow scopes.
+  // This path never falls back to a browser session, admin token, or MCP key.
+  if(path.startsWith('/api/assistant-bridge/')){
+    if(env.TRINITY_ASSISTANT_BRIDGE_ENABLED!=='true')
+      throw new HttpError(503,'Assistant Bridge nie je aktivovaný. Najprv over D1 migráciu a rozsah API kľúčov.');
+    if(typeof env.DB?.prepare!=='function')throw new HttpError(503,'Assistant Bridge nemá D1 databázu.');
+    return handleAssistantBridge(request,env);
   }
   const bearer=request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||request.headers.get('X-Trinity-API-Key')||'';
   if(path==='/mcp'&&bearer.startsWith('trn_live_'))return handleScopedMcp(request,env,ctx);
@@ -1369,6 +1380,19 @@ async function route(request,env,ctx){
   if(path==='/api/assistant/devhub/execute'&&request.method==='POST'){
     requireAdmin(user);
     return json(await executeDevHubCommand(env,ownerId,await readJSON(request,16000)));
+  }
+  if(path==='/api/assistant/master/advise'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`trinity-master-advise:${user.id}`,10,300);
+    const task=await readJSON(request,3000);
+    const pcBridge=await getPCBridgeStatus(env).catch(()=>null);
+    return json(await adviseTrinityMaster(env,task,pcBridge));
+  }
+  if(path==='/api/assistant/master/status'&&request.method==='GET'){
+    requireAdmin(user);
+    // A heartbeat indicates availability, never successful command execution.
+    const pcBridge=await getPCBridgeStatus(env).catch(()=>null);
+    return json(trinityMasterStatus(env,pcBridge));
   }
   if(path==='/api/assistant/integrations/status'&&request.method==='GET'){
     return json({items:await listAllIntegrations(env)});

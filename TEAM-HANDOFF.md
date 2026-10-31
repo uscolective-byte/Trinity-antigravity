@@ -1152,3 +1152,90 @@ Od Antigravity pre Sabo Ivan (Basterix) a Codex (Triad).
    - Dôkaz verify-deployment.mjs pre produkciu:
      `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"fad559cf-26f8-4013-81c6-ed32b300e296","tag":"cea133f94c7812459929ed4ad552a3f82ad4bc04","timestamp":"2026-10-30T13:54:58.654833Z"}}`
 5. Stav: meta_ai_and_account_management_live_and_verified; ready_for_codex_fresh_oauth.
+
+### CLAIM — CONSOLIDATE-REPOS-AGENT-ACCESS-20261031-CHATGPT-01
+Autor: ChatGPT, GitHub connector; povolenie vlastníka v konverzácii 31.10.2026.
+Base: `910204984d9e82945811bd3142850f2fab11be2e`.
+Vetva: `fix/secrets-readiness-and-release-docs-20261031` (draft PR #22).
+Rozsah: `scripts/source-policy.mjs`, `tests/source-policy.test.mjs`, `Trinity/src/project-evolution.js`, `Trinity/tests/project-evolution.test.mjs`, `package.json`, `.github/workflows/self-deploy.yml`, `scripts/sync-release-docs.mjs`, dokumentácia oprávnení a bezpečné pokyny klientov. Žiadne zásahy do sekretných hodnôt alebo živých cloudových účtov.
+Overenie: starý `trinity-morhfeus/main` je predkom `Trinity-antigravity/main` (GitHub compare: 40 ahead / 0 behind); nevyžaduje wholesale merge hlavnej vetvy. Rozpracované PR staršieho repozitára sa nesmú bez testov presúvať alebo mazať.
+Zámer: jediný kanonický repo, pravdivý staging, CI release gate a autonómne bežné developer operácie cez autorizované účty (nie otvorený admin prístup modelom).
+Stav: active; práce na izolovanej vetve. Produkčné nasadenie, merge a secrets unchanged.
+
+### CLAIM ADDENDUM — CONSOLIDATE-REPOS-AGENT-ACCESS-20261031-CHATGPT-01
+Rozšírenie rozsahu na `Trinity/src/secret-vault.js` a `Trinity/tests/github-secret-validation.test.mjs`: overenie GitHub kľúča používa nesprávny legacy repo a nevyžaduje skutočný prístup do aktuálneho kanonického repozitára. Iba kód a syntetický regresný test; žiadne hodnoty poverení.
+
+### UPDATE / HANDOFF — CONSOLIDATE-REPOS-AGENT-ACCESS-20261031-CHATGPT-01
+Autor: ChatGPT, GitHub connector. Integrátor: vlastník Trinity / Codex / Antigravity.
+Vetva: `fix/secrets-readiness-and-release-docs-20261031`, PR #22, všetky zmeny izolované mimo main.
+Vykonané: zdokumentovaná skutočná ancestry (stará main je ancestor), opravená kanonická kontrola originu v source-policy a testoch, fallback Evolution Engine a test, nasadzovací workflow (jediný kanonický repo, staging DB binding a produkčný DB binding), doplnené npm docs:check/docs:sync, generovanie README pre obe domény, aktualizované pokyny AGENTS/GEMINI/Copilot, pridaná politika oprávnení šiestich modelových klientov, opravené overovanie GitHub secretu len voči kanonickému repo s fail-closed testom; predchádzajúci secret-audit, security policy a deployment docs z PR #22 zachované.
+Overenie: read-only GitHub compare 40 ahead/0 behind; statická kontrola dokumentácie a workflow 9/9 požadovaných vlastností vyhovuje. Plné Node testy NESPUSŤENÉ — Desktop Commander Basterix offline; náhradné Git clone blokované DNS. GitHub Actions PR #22 vracia failure bez krokov/job logov (napr. run 41211768869). Branch protection endpoint GitHub App vracia 403 (neznáme vynucovanie pravidiel). Nemenili sa secrety, Cloudflare IAM, GitHub collaborators/rulesets, zdrojové účty, deploymenty, merge ani staré vetvy.
+Rozhodnutie: draft PR otvorený, nezlučovať pred dôveryhodným CI, code review a overením kompatibility. Zásadné práva poskytovať iba autentifikovaným účtom a scoped tool gateway; model/provider key nie je identita.
+Stav: handoff; integračné opravy pripravené na kontrolu. Produkcia a main nezmenené.
+
+### UPDATE / HANDOFF — CF-TOKEN-REPAIR-20261031
+Vlastník práce: ChatGPT via GitHub connector, autorizovaný požiadavkou používateľa.
+Kanonický branch: `fix/secrets-readiness-and-release-docs-20261031` / draft PR #22. Žiadny merge alebo deploy.
+Súbory:
+- `Trinity/src/cloudflare-token.js`: nový read-only sanitizovaný verifier user/account Cloudflare tokenu; iba `status=active` je verified.
+- `Trinity/src/secret-vault.js` a `Trinity/src/external-integrations.js`: spoločná tokenová politika, žiadna falošná aktivácia či prenesenie secrets.
+- `Trinity/tests/cloudflare-token.test.mjs`, `Trinity/tests/integration-truth-gates.test.mjs`: regresné scenáre.
+- `scripts/cloudflare-doctor.mjs`, `tests/cloudflare-doctor.test.mjs`, `package.json`: read-only diagnostika cez `npm run cloudflare:doctor`.
+- `scripts/audit-worker-secrets.mjs`, `Trinity/tests/secret-audit.test.mjs`: doplnené Cloudflare secret aliasy.
+- `Trinity/docs/CLOUDFLARE_RECOVERY_20261031.md`: bezpečné obnovenie relácie a kritériá rotácie tokenu.
+Overené: Cloudflare oficiálne API rozlišuje user `/user/tokens/verify` a account `/accounts/{account_id}/tokens/verify`. Wrangler D1 migration môže použiť binding `DB` alebo názov databázy. Nezávislé živé /health a /ready sa nedali overiť; GitHub Actions PR #22 nemajú dostupné job kroky ani logy, príčina zlyhania CI neznáma.
+Neoverené: lokálny runtime/testy, tokeny Cloudflare, skutočné API oprávnenia, Worker deploy. Zariadenie Basterix v Desktop Commander offline. Nespustené žiadne DB migrácie, deploy, rotácie ani merge.
+Nasledujúci postup: skontrolovať zelené CI po oprave GitHub Actions runner/billing, spustiť doctor na autorizovanom PC, overiť staging a až potom produkciu. Nový API token nevydávať pred potvrdením neplatnosti alebo chýbajúcich scope. ACK za iného agenta nebol vytvorený.
+
+### CLAIM ADDENDUM — FIX-TRINITY-RELEASE-20261031-CHATGPT-02
+Vlastník: ChatGPT via GitHub connector, pokračovanie na výslovnú požiadavku používateľa „vykonaj oprav všetko“ z 31.10.2026.
+Branch: `fix/secrets-readiness-and-release-docs-20261031`; bez zmeny vlastníka iných otvorených vetiev.
+Súbory: `Trinity/src/engine.js`, `Trinity/src/secret-vault.js`, `Trinity/src/external-integrations.js`, `Trinity/wrangler.jsonc`, `.github/workflows/webpack.yml`, `.github/workflows/self-deploy.yml` a súvisiace testy/dokumentácia.
+Cieľ: opraviť falošné vykonané receipts, overovanie Firebase/AI provider tokenov, GitHub identity a bezpečnostné prepínače; zachovať kompatibilitu a testové kontrolné brány.
+Dôkazy pred zmenou: GitHub CI jobs PR #22 zlyhávajú bez krokov a logs 404 BlobNotFound; 30.10.2026 oficiálny GitHub incident Actions, aktuálne resolved, nemožno tvrdiť kauzalitu. Desktop Commander BASTERIX offline. Bez nasadenia, mazania, transferu secrets alebo zrušenia ochranných kontrol.
+Stav: IN PROGRESS, funkčné zmeny iba cez PR #22.
+
+### UPDATE / HANDOFF — FIX-TRINITY-RELEASE-20261031-CHATGPT-02
+Pracovná vetva: `fix/secrets-readiness-and-release-docs-20261031`, PR #22, **bez merge a deploy**.
+Implementované:
+- `Trinity/src/engine.js`: rozpracovaná, proposed, approved, claimed a queued akcia sa nesmie označiť completed ani pri syntetickom `_evidence.receipt_id`.
+- `Trinity/src/secret-vault.js`: Firestore OAuth 401/403/5xx alebo API key nie je verified, AI providers vyžadujú úspešné API volanie, Telegram `getMe` overuje len bota (nie webhook).
+- `Trinity/src/external-integrations.js`: GitHub operácie validujú názov repo, mutácie iba do kanonického repo, `/user` overenie pre authenticated, CI dispatch je queued a nesmie nasadzovať `self-deploy`.
+- `Trinity/src/tools.js`: mutácie Cloudflare cache / GitHub / Firebase vyžadujú serverom overený owner/admin kontext. Bežné reads bez tohto gate.
+- Regresné testy: `Trinity/tests/provider-secret-verification.test.mjs`, `Trinity/tests/integration-truth-gates.test.mjs`, `Trinity/tests/integration-mutation-auth.test.mjs`.
+- `package.json` a `package-lock.json`: koreňový názov zosúladený na `trinity-antigravity-workspace`, verzia aplikácie zostáva 11.0.0; JSON kontrola zhody oboch súborov vykonaná.
+- `Trinity/docs/CI_RUNNER_BLOCKER_20261031.md`: dôkazy, rozsah problému a obnovovací postup.
+
+GitHub Actions diagnostika: run `41219016766`, retry attempt 2, job `124589570877`, `runner_id=0`, `runner_name=""`, `steps=[]`; log API 404 BlobNotFound. Rerun failed jobs prijatý, znova failure. Dôkaz o runner allocation probléme, nie dôkaz zlyhaného testu kódu.
+Stav: zmeny commitnuté do PR. Plný lokálny npm/Node test a živý Cloudflare verification nevykonateľné (Desktop Commander BASTERIX offline, GitHub-hosted runner nepridelený). Secrets, OAuth účty, main a produkcia bez zmien. CI gating neobchádzať. ACK sa vytvára iba skutočným prijímateľom.
+
+### CLAIM / UPDATE / HANDOFF — MORPHEUS-CONSOLIDATION-20261031-CHATGPT-01
+Autor: ChatGPT cez GitHub connector, zadanie používateľa explicitne preniesť potrebné dáta a následne zmazať legacy repozitár.
+Zdroj: `uscolective-byte/trinity-morhfeus`; hlavný commit `3f99d95ecefb7a56c66683983dcff6d58d0af1d7`.
+Cieľ: `uscolective-byte/Trinity-antigravity`, výhradne pracovná vetva `fix/secrets-readiness-and-release-docs-20261031`, PR #22.
+Rozsah (vykonané): originálne súbory WordPress read-only klienta/testov/docs zo starého PR #68, pomocný ChatGPT/Copilot shared-notes modul/test/SQL/OpenAPI/docs zo starého PR #51 (vypnuté, bez endpoint wiring), `Trinity/package.json` a `Trinity/package-lock.json` Wrangler 4.154.0 zo starého merged PR #76.
+Inventár: `Trinity/docs/MORPHEUS_MIGRATION_MANIFEST_20261031.json` (25 vetiev so SHA, 73 PR s head SHA, 3 issues, 2 Git tagy); `Trinity/docs/REPOSITORY_CONSOLIDATION_20261031.md` aktualizované.
+GitHub issue: #23, zoznam blokérov pred bezpečným zmazaním.
+Kontrola: 667 súborov starého main → v kanonickom main chýba 0 ciest, 53 rozdielnych blob SHA. Na PR vetve existujú všetky prenesené cesty; `Trinity/package*.json` ukazujú Wrangler 4.154.0. Neznamená to úplné presunutie commit histórie ani GitHub komunikácie.
+Nevykonané: neboli prenesené source-only git objekty, všetky 25 vetiev, 73 PR recenzie/komentáre, osobitné nastavenia a cloudové dáta/secrets. Vývojové staré PR #64/#53/#46 a 6 Dependabot PR ostávajú na review. Žiadne zmazanie, archivácia, nasadenie, migrácia Cloudflare dát, PR merge alebo zmena main.
+Dôvod zastavenia mazania: nie je úplná overená obnoviteľná záloha; GitHub Actions runner neštartuje; pripojená GitHub sada nemá operáciu delete repo.
+HANDOFF: pokračovať podľa issue #23, po nezávislom mirror/bundle restore teste a prechode CI kontrol posúdiť bezpečné odstránenie starého repozitára. ACK nesmie byť vymyslené.
+
+### CLAIM / UPDATE / HANDOFF — TRINITY-MASTER-SECRETS-20261031
+Cieľ: použiť existujúci Cloudflare account Secrets Store pod interným názvom `TRINITY_MASTER`, bez čítania hodnôt.
+Autor: ChatGPT; vychádza z deklarovaných názvov Secrets Store položiek.
+Zdroj: `Trinity/wrangler.jsonc`, existujúce `OLLAMA_SECRET` store ID; Cloudflare živý stav nie je overený.
+Rozsah: staging `auru.dev` pridáva `TRINITY_MASTER_GOOGLE` (`apigoogle`) a `TRINITY_MASTER_COPILOT` (`copilot`). Produkčné `secrets_store_secrets` zostáva nezmenené. `Trinity/src/trinity-master-secrets.js` vracia len metadata v diagnostike, raw secret číta výlučne povolený interný adapter; serverové `resolveProviderSecret` má bezpečný fallback.
+Testy: `Trinity/tests/trinity-master-secrets.test.mjs`, `Trinity/tests/trinity-master-wrangler.test.mjs`, `Trinity/tests/trinity-master-provider-resolution.test.mjs`. V izolovanej JavaScript kontrole bolo overené mapovanie/bezpečné fungovanie resolvera, ale **Node test suite ani Cloudflare Wrangler build neboli vykonané** (GitHub runners sú blokované a PC connector offline).
+Neprepájať bez review: `GITHUBE_FINE_TOKEN` má údajne plný prístup; `BASTERIX` PC autentifikácia patrí oddelenému Workeru; `Secret`, `R2`, `snowy-wave-03db`, duplicitný Ollama a AI Gateway-only Grok sa nemajú naslepo viazať.
+Handoff: `Trinity/docs/TRINITY_MASTER_SECRETS_STORE.md`, overiť cloudové scopes `workers`, cez skutočný deploy credential Secrets Store Edit a pre staging suchý build. Až následne deploy na staging, provider auth, a samostatné approval pre produkciu.
+
+### UPDATE — TRINITY-MASTER-CLOUDFLARE-AI-AND-ASSISTANT-BRIDGE-20261031
+Owner: ChatGPT GitHub connector; changes are only on PR #22 (not deployed).
+- `src/ai-providers.js`: Gemini model routing now resolves the approved staging `TRINITY_MASTER_GOOGLE` account Secrets Store binding. Provider status shows `secrets-store` as configuration, not connected proof. `src/services.js` Gemini fallback uses catalog discovery and header `x-goog-api-key` rather than URL query; `src/secret-vault.js` verification fallback also uses header.
+- `src/trinity-master-status.js`, `src/trinity-master-agent.js`: admin-only `GET /api/assistant/master/status`, `POST /api/assistant/master/advise`. Cloudflare Workers AI provides bounded, read-only diagnostic advice without GitHub, PC, shell, API key disclosure, or deployment capabilities. Reject known API key forms before inference; no simulated execution receipts.
+- `src/api-keys.js` supports separately scoped assistant:read/assistant:write API keys, and `src/index.js` routes `/api/assistant-bridge/*` to the isolated shared-notes handler only if `TRINITY_ASSISTANT_BRIDGE_ENABLED=true`; current staging config intentionally `false`, production unset/off. D1 `0054_assistant_bridge.sql` replaces the overlapping `0047_assistant_bridge.sql` filename. No actual ChatGPT/Copilot OAuth handshake or real data sync occurred.
+- `scripts/cloudflare-env-audit.mjs`: detected staging/production sharing the D1 `rea`, D1 `trinity_basterix`, KV `Mastermind`, R2 `ARTIFACTS` resources. This is a real staging isolation blocker; do not run mutation tests against shared resources. `--strict` returns failure while shared. No resources were deleted, copied or migrated.
+- Added regression tests `trinity-master-status.test.mjs`, `trinity-master-agent.test.mjs`, `trinity-master-gemini-runtime.test.mjs`, `cloudflare-env-isolation.test.mjs`, `assistant-bridge-wiring.test.mjs`. Code inspections and synthetic V8 checks do NOT replace the complete Node/CI/Wrangler runs.
+- No Cloudflare API token from chat was used. Exposed credentials must be revoked immediately. GitHub Actions runners remain blocked; Desktop Commander Basterix PC offline.
+- Remaining: restore CI runner; create properly isolated staging storage, verify Secrets Store scopes and deploy credential with Cloudflare admin, run dry-run and Node suite, deploy staging, verify Gemini, configure two independently revocable ChatGPT/Copilot Studio API keys and OAuth/account-side actions, connect PC Gateway, then handle production release separately.

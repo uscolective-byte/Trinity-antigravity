@@ -173,11 +173,29 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
       const contents=[];
       if(system)contents.push({role:'user',parts:[{text:`Systémové inštrukcie:\n${system}`}]},{role:'model',parts:[{text:'Rozumiem inštrukciám.'}]});
       contents.push({role:'user',parts:[{text:input}]});
-      for(const candidateModel of [...new Set([interactionModel,'gemini-3.8-flash','gemini-3.5-flash'])]){
-        const fallbackUrl=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidateModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      // Discover supported Gemini models instead of guessing model names.
+      // The API key is sent only through the x-goog-api-key header.
+      let models=[];
+      try{
+        const catalog=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000',{
+          headers:{'x-goog-api-key':apiKey},signal:AbortSignal.timeout(10000),redirect:'error'
+        });
+        if(catalog.ok){
+          const listing=await catalog.json();
+          models=Array.isArray(listing.models)?listing.models
+            .filter(m=>Array.isArray(m.supportedGenerationMethods)&&m.supportedGenerationMethods.includes('generateContent'))
+            .map(m=>String(m.name||'').replace(/^models\//,''))
+            .filter(m=>/^gemini-[a-zA-Z0-9_.-]+$/.test(m)):[];
+        }
+      }catch{
+        // Catalog failure cannot justify claiming a working fallback.
+      }
+      const fallbackCandidates=[...new Set([interactionModel,...models.filter(m=>/flash/i.test(m)),...models])];
+      for(const candidateModel of fallbackCandidates.slice(0,4)){
+        const fallbackUrl=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidateModel)}:generateContent`;
         const fallbackResponse=await fetch(fallbackUrl,{
           method:'POST',
-          headers:{'Content-Type':'application/json'},
+          headers:{'Content-Type':'application/json','x-goog-api-key':apiKey},
           body:JSON.stringify({
             contents,
             generationConfig:{maxOutputTokens:Math.min(maxTokens,8192),temperature:0.25}

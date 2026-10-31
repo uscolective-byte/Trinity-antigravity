@@ -2,7 +2,7 @@ import {z} from 'zod';
 import {HttpError} from './security.js';
 import {boundedText,callModel} from './services.js';
 
-export const PROJECT_REPOSITORY='uscolective-byte/trinity-morhfeus';
+export const PROJECT_REPOSITORY='uscolective-byte/Trinity-antigravity';
 const root=env=>`https://api.github.com/repos/${env.TRINITY_GITHUB_REPO||PROJECT_REPOSITORY}`;
 export async function githubRequest(env,path,method='GET',body){
   const token=env.TRINITY_GITHUB_TOKEN||env.GITHUB_TOKEN||env.GITHUBE_API_KEY||env.GTH||env.GITHUBE_FINE_TOKEN;

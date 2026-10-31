@@ -343,6 +343,7 @@
         "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
         "TRINITY_ENV": "staging",
         "TRINITY_PREVIEW_MODE": "build-only",
+        "TRINITY_ASSISTANT_BRIDGE_ENABLED": "false",
         "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
         "TRINITY_GITHUB_BRANCH": "main",
         "TRINITY_AUTO_IMPROVE": "false",
@@ -435,6 +436,16 @@
           "binding": "OLLAMA_SECRET",
           "store_id": "5ba06ba934c343fa8c0dc5454ce67038",
           "secret_name": "ollama"
+        },
+        {
+          "binding": "TRINITY_MASTER_GOOGLE",
+          "store_id": "5ba06ba934c343fa8c0dc5454ce67038",
+          "secret_name": "apigoogle"
+        },
+        {
+          "binding": "TRINITY_MASTER_COPILOT",
+          "store_id": "5ba06ba934c343fa8c0dc5454ce67038",
+          "secret_name": "copilot"
         }
       ],
       "version_metadata": {

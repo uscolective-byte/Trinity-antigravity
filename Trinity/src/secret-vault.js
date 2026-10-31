@@ -1,3 +1,5 @@
+import {verifyCloudflareToken} from './cloudflare-token.js';
+import {readTrinityMasterSecret} from './trinity-master-secrets.js';
 import {z} from 'zod';
 import {HttpError} from './security.js';
 
@@ -21,17 +23,25 @@ async function decrypt(env,row){const aad=new TextEncoder().encode(`${row.owner_
 const present=row=>({id:row.id,provider:row.provider,name:row.name,secret_hint:row.secret_hint,status:row.status,verification:row.verification_json?JSON.parse(row.verification_json):null,created_at:row.created_at,updated_at:row.updated_at,last_verified_at:row.last_verified_at,revoked_at:row.revoked_at});
 export async function listSecrets(env,ownerId){const rows=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE owner_id=? AND status!='revoked' ORDER BY created_at DESC LIMIT 100").bind(ownerId).all();return rows.results.map(present);}
 export async function storeSecret(env,ownerId,input){const data=secretInputSchema.parse(input),encrypted=await encrypt(env,ownerId,data.provider,data.name,data.secret),hint=`••••${data.secret.slice(-4)}`,id=crypto.randomUUID();const row=await env.DB.prepare(`INSERT INTO ops_secret_vault(id,owner_id,provider,name,secret_ciphertext,secret_iv,secret_hint) VALUES(?,?,?,?,?,?,?) ON CONFLICT(owner_id,provider,name) DO UPDATE SET secret_ciphertext=excluded.secret_ciphertext,secret_iv=excluded.secret_iv,secret_hint=excluded.secret_hint,status='stored',verification_json=NULL,updated_at=datetime('now'),last_verified_at=NULL,revoked_at=NULL RETURNING *`).bind(id,ownerId,data.provider,data.name,encrypted.ciphertext,encrypted.iv,hint).first();await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('secret_stored',?)").bind(JSON.stringify({id:row.id,provider:data.provider,name:data.name,owner_id:ownerId})).run();return present(row);}
-async function verifyGitHub(secret){const headers={Authorization:`Bearer ${secret}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'Trinity-Integration-Hub'};const [user,repo]=await Promise.all([fetch('https://api.github.com/user',{headers,signal:AbortSignal.timeout(15000)}),fetch('https://api.github.com/repos/uscolective-byte/trinity-morhfeus',{headers,signal:AbortSignal.timeout(15000)})]);if(!user.ok)throw new Error(`GitHub odmietol poverenie (HTTP ${user.status}).`);const account=await user.json();return {connected:true,account:account.login,repository_access:repo.ok,repository:'uscolective-byte/trinity-morhfeus'};}
-async function verifyCloudflare(secret){
-  let response=await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(15000)});
-  let data=await response.json().catch(()=>({}));
-  if((!response.ok||!data.success)&&response.status===401){
-    const acctResp=await fetch('https://api.cloudflare.com/client/v4/accounts/b60342e5e52f5646fbd4e913bb409334/tokens/verify',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(15000)});
-    const acctData=await acctResp.json().catch(()=>({}));
-    if(acctResp.ok&&acctData.success){response=acctResp;data=acctData;}
-  }
-  if(!response.ok||!data.success)throw new Error(`Cloudflare odmietol token (HTTP ${response.status}).`);
-  return {connected:true,token_status:data.result?.status||'active'};
+export async function verifyGitHub(secret){
+  const repository='uscolective-byte/Trinity-antigravity';
+  const headers={Authorization:`Bearer ${secret}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'Trinity-Integration-Hub'};
+  const options={headers,redirect:'error',signal:AbortSignal.timeout(15000)};
+  const [user,repo]=await Promise.all([
+    fetch('https://api.github.com/user',options),
+    fetch(`https://api.github.com/repos/${repository}`,options)
+  ]);
+  if(!user.ok)throw new Error(`GitHub odmietol poverenie (HTTP ${user.status}).`);
+  if(!repo.ok)throw new Error(`GitHub token nemá overený prístup ku kanonickému repozitáru Trinity (HTTP ${repo.status}).`);
+  const account=await user.json();
+  if(typeof account.login!=='string'||!account.login)throw new Error('GitHub nevrátil platnú identitu účtu.');
+  // A readable repository is not proof of write or merge permissions.
+  return {connected:true,account:account.login,repository_access:true,repository,permission_verified:'read'};
+}
+async function verifyCloudflare(secret,accountId){
+  const verification=await verifyCloudflareToken(secret,accountId);
+  if(!verification.verified)throw new Error(`Cloudflare token nebol overený (${verification.status}, HTTP ${verification.http_status ?? 'unavailable'}).`);
+  return {connected:true,token_status:'active',token_scope:verification.scope};
 }
 async function verifyFirecrawl(secret){
   const response=await fetch('https://api.firecrawl.dev/v1/scrape',{
@@ -44,49 +54,77 @@ async function verifyFirecrawl(secret){
   if(!response.ok&&response.status!==402)throw new Error(`Firecrawl odmietol API kľúč (HTTP ${response.status}): ${String(data.error||'neplatný kľúč').slice(0,180)}`);
   return {connected:true,provider:'firecrawl',status:response.status===402?'verified-quota-limit':'active'};
 }
-async function verifyFirebase(secret){
+export async function verifyFirebase(secret,{fetcher=fetch}={}){
   let projectId='trinity-morhfeus-20261001';
   let token=secret;
-  try{
+  try {
     const parsed=JSON.parse(secret);
     if(parsed.project_id||parsed.projectId)projectId=parsed.project_id||parsed.projectId;
-    if(parsed.apiKey||parsed.token)token=parsed.apiKey||parsed.token;
-  }catch{}
-  const url=`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents?pageSize=1${token&&!token.startsWith('ya29.')?`&key=${encodeURIComponent(token)}`:''}`;
-  const headers=token&&token.startsWith('ya29.')?{Authorization:`Bearer ${token}`}:{};
-  const response=await fetch(url,{headers,signal:AbortSignal.timeout(15000)});
-  if(response.status===401||response.status===403){
-    return {connected:true,project_id:projectId,status:'configured-auth-required'};
+    token=parsed.access_token||parsed.token||parsed.apiKey||'';
+  } catch {}
+  // An API key can identify a Google Cloud project, but it is not proof of
+  // Firestore read or write authorization. Never append secrets to URLs.
+  if(typeof projectId!=='string'||!/^[a-z][a-z0-9-]{4,80}$/.test(projectId))
+    throw new Error('Firebase project_id má neplatný formát.');
+  if(typeof token!=='string'||!/^ya29\.[a-zA-Z0-9_.-]{5,}$/.test(token))
+    throw new Error('Firebase prístup nie je overený. Vyžaduje sa platný OAuth access token; API key ani service-account JSON samy nedokazujú autorizáciu Firestore.');
+  const url=`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents?pageSize=1`;
+  const response=await fetcher(url,{
+    headers:{Authorization:`Bearer ${token}`},
+    signal:AbortSignal.timeout(15000),redirect:'error'
+  });
+  if(!response.ok)throw new Error(`Firebase odmietol Firestore prístup (HTTP ${response.status}).`);
+  return {connected:true,project_id:projectId,status:'verified',permission_verified:'read'};
+}
+export async function verifyOpenAICompatible(url,secret,provider,{fetcher=fetch}={}){
+  let response;
+  try {
+    response=await fetcher(url,{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(10000),redirect:'error'});
+  } catch {
+    throw new Error(`${provider.toUpperCase()} pripojenie sa nepodarilo overiť. Token zostáva neoverený.`);
   }
-  return {connected:true,project_id:projectId,status:response.ok?'verified':'reachable'};
+  if(!response.ok)throw new Error(`${provider.toUpperCase()} overenie zlyhalo (HTTP ${response.status}).`);
+  const data=await response.json().catch(()=>null);
+  if(!data||!Array.isArray(data.data))
+    throw new Error(`${provider.toUpperCase()} vrátil neplatný modelový katalóg.`);
+  const models=data.data.filter(item=>typeof item?.id==='string').map(item=>item.id).slice(0,30);
+  return {connected:true,provider,models,status:'verified',permission_verified:'models:read'};
+}
+export async function verifyAnthropic(secret,{fetcher=fetch}={}){
+  let response;
+  try{
+    response=await fetcher('https://api.anthropic.com/v1/models',{
+      headers:{'x-api-key':secret,'anthropic-version':'2023-06-01'},
+      signal:AbortSignal.timeout(10000),redirect:'error'
+    });
+  }catch{throw new Error('Anthropic pripojenie sa nepodarilo overiť.');}
+  if(!response.ok)throw new Error(`Anthropic odmietol overenie (HTTP ${response.status}).`);
+  const data=await response.json().catch(()=>null);
+  if(!data||!Array.isArray(data.data))throw new Error('Anthropic nevrátil platný katalóg modelov.');
+  const models=data.data.filter(item=>typeof item?.id==='string').map(item=>item.id);
+  return {connected:true,provider:'anthropic',models,status:'verified',permission_verified:'models:read'};
 }
 
-async function verifyOpenAICompatible(url,secret,provider){
+export async function verifyTelegramBot(secret,{fetcher=fetch}={}){
+  // Telegram Bot API embeds the bot token in the URL path. Keep the URL
+  // strictly internal and never include raw provider error bodies in replies.
+  if(typeof secret!=='string'||!/^\d{5,15}:[A-Za-z0-9_-]{20,}$/.test(secret))
+    throw new Error('Telegram Bot token má neplatný formát.');
+  let response;
   try{
-    const response=await fetch(url,{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(10000)});
-    if(response.status===401||response.status===403)throw new HttpError(401,`Neplatný ${provider.toUpperCase()} API kľúč.`);
-    const data=await response.json().catch(()=>({}));
-    const models=Array.isArray(data.data)?data.data.map(m=>m.id).slice(0,30):[];
-    return {connected:true,provider,models:models.length?models:undefined,status:'verified'};
-  }catch(e){
-    if(e instanceof HttpError)throw e;
-    return {connected:true,provider,status:'stored-untested'};
-  }
+    response=await fetcher(`https://api.telegram.org/bot${secret}/getMe`,{
+      signal:AbortSignal.timeout(12000),redirect:'error'
+    });
+  }catch{throw new Error('Telegram Bot API je nedostupné; poverenie zostáva neoverené.');}
+  const data=await response.json().catch(()=>null);
+  if(!response.ok||data?.ok!==true||!Number.isSafeInteger(data.result?.id)||data.result.id<1)
+    throw new Error(`Telegram bot nebol overený (HTTP ${response.status}).`);
+  return {connected:true,provider:'telegram',bot_id:data.result.id,
+    bot_username:typeof data.result.username==='string'?data.result.username:null,
+    status:'verified',permission_verified:'bot:getMe',webhook_verified:false};
 }
-async function verifyAnthropic(secret){
-  try{
-    const response=await fetch('https://api.anthropic.com/v1/models',{headers:{'x-api-key':secret,'anthropic-version':'2023-06-01'},signal:AbortSignal.timeout(10000)});
-    if(response.status===401||response.status===403)throw new HttpError(401,'Neplatný Anthropic Claude API kľúč.');
-    const data=await response.json().catch(()=>({}));
-    const models=Array.isArray(data.data)?data.data.map(m=>m.id):[];
-    return {connected:true,provider:'anthropic',models,status:'verified'};
-  }catch(e){
-    if(e instanceof HttpError)throw e;
-    return {connected:true,provider:'anthropic',status:'stored-untested'};
-  }
-}
-
 async function verifyGenericProvider(provider,secret){
+  if(provider==='telegram')return verifyTelegramBot(secret);
   if(provider==='vercel'){
     const r=await fetch('https://api.vercel.com/v2/user',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(12000)});
     if(!r.ok)throw new Error(`Vercel odmietol token (HTTP ${r.status}).`);
@@ -97,7 +135,7 @@ async function verifyGenericProvider(provider,secret){
     if(!r.ok)throw new Error(`Notion odmietol token (HTTP ${r.status}).`);
     return {connected:true,provider:'notion'};
   }
-  return {connected:true,provider,status:'stored-and-ready'};
+  throw new Error(`Poskytovateľ ${provider} nemá implementovaný živý test oprávnenia. Uložené poverenie samo nie je pripojenie.`);
 }
 async function verifyGemini(secret){
   const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models',{headers:{'x-goog-api-key':secret},signal:AbortSignal.timeout(15000)});
@@ -115,8 +153,8 @@ async function verifyGemini(secret){
   let outputText=String(liveData.output_text||'').trim();
   if(!live.ok || !outputText){
     const cleanModel=model.replace(/^models\//,'');
-    const genResp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cleanModel)}:generateContent?key=${encodeURIComponent(secret)}`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const genResp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cleanModel)}:generateContent`,{
+      method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':secret},
       body:JSON.stringify({contents:[{role:'user',parts:[{text:'Reply exactly OK.'}]}],generationConfig:{maxOutputTokens:8,temperature:0}}),
       signal:AbortSignal.timeout(30000),redirect:'manual'
     });
@@ -230,6 +268,7 @@ export async function resolveProviderSecret(env,provider){
     ollama:env?.OLLAMA_API_KEY||env?.OLLAMA_SECRET,
     openai:env?.OPENAI_API_KEY,
     gemini:env?.GEMINI_API_KEY||env?.apigoogle,
+    copilot:env?.COPILOT_API_TOKEN,
     groq:env?.GROQ_API_KEY||env?.default_grok_default,
     deepseek:env?.DEEPSEEK_API_KEY,
     anthropic:env?.ANTHROPIC_API_KEY,
@@ -240,6 +279,10 @@ export async function resolveProviderSecret(env,provider){
     try{const val=await envMap[provider].get();if(val&&typeof val==='string')return val.trim();}catch{}
   }
   if(typeof envMap[provider]==='string'&&envMap[provider].trim())return envMap[provider].trim();
+  // Account-level Secrets Store is opt-in and staging-only initially.
+  // This resolver is not exposed as an arbitrary read-secret API.
+  const masterSecret=await readTrinityMasterSecret(env,provider);
+  if(masterSecret)return masterSecret;
   if(env?.DB?.prepare&&typeof env.TRINITY_VAULT_KEY==='string'){
     try{
       let row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider=? AND status!='revoked' ORDER BY CASE WHEN status='verified' THEN 0 ELSE 1 END, updated_at DESC LIMIT 1").bind(provider).first();
@@ -280,7 +323,7 @@ export async function verifySecret(env,ownerId,id){
   try{
     const secret=await decrypt(env,row);
     const verification=row.provider==='github'?await verifyGitHub(secret)
-      :row.provider==='cloudflare'?await verifyCloudflare(secret)
+      :row.provider==='cloudflare'?await verifyCloudflare(secret,env.CF_ACCOUNT_ID||'b60342e5e52f5646fbd4e913bb409334')
       :row.provider==='openai'?await verifyOpenAI(secret)
       :row.provider==='firecrawl'?await verifyFirecrawl(secret)
       :row.provider==='firebase'?await verifyFirebase(secret)

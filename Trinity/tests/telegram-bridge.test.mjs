@@ -228,7 +228,8 @@ test('Telegram handles /status, /pc, /crypto, /fleet and /clear commands', async
     const ctxFleet = t.context();
     await handleTelegramWebhook(t.createRequest(fleetUpdate), t.env, ctxFleet.ctx);
     await ctxFleet.done();
-    assert.match(t.sent[t.sent.length - 1].text, /FLOTILA 35 CLOUDFLARE WORKEROV/);
+    assert.match(t.sent[t.sent.length - 1].text, /KATALÓG CLOUDFLARE SERVICE BINDINGS/);
+    assert.match(t.sent[t.sent.length - 1].text, /živý stav|Aktuálny stav|dostupnosť/i);
 
     // 2. /pc
     const pcUpdate = t.message('/pc', 12345);
@@ -370,4 +371,18 @@ test('buildSystemGroundingContext dynamically injects system, PC and crypto cont
   const cryptoContext = await buildSystemGroundingContext(mockEnv, 'Koľko stojí BTC a čo Tetrakis?');
   assert.match(cryptoContext, /Živé krypto ceny/);
   assert.match(cryptoContext, /Tetrakis \(\$TTK\)/);
+});
+
+test('Telegram configuration cannot claim an active webhook from env variables alone',()=>{
+  const status=telegramIntegrationStatus({TELEGRAM_BOT_TOKEN:'synthetic',TELEGRAM_WEBHOOK_SECRET:'synthetic',TELEGRAM_ALLOWED_USER_IDS:'123'});
+  assert.equal(status.bot_token,true);
+  assert.equal(status.live_verified,false);
+  assert.match(status.verification_note,/getWebhookInfo/);
+});
+
+test('Telegram crypto without Jericho receipts never claims live prices or treasury address',async()=>{
+  const output=await executeCrypto({});
+  assert.match(output,/nepodarilo sa načítať overené ceny/);
+  assert.match(output,/neoverená/);
+  assert.doesNotMatch(output,/prepojenie aktívne|BIP-39 \/ EVM peňaženka pripravená/);
 });
