@@ -61,37 +61,37 @@
       "notes": "Separate Astro website; inspect hosting and DNS integrations."
     },
     {
-      "repository": "uscolective-byte/chanfana-openapi-templat",
+      "repository": "private-repo-01",
       "group": "starter_templates",
       "visibility": "private",
-      "default_branch": "main",
-      "size_kb_reported_by_github": 121,
+      "default_branch": null,
+      "size_kb_reported_by_github": null,
       "archived": false,
       "origin_parent": null,
       "decision": "retain_until_backup_and_reconciliation",
-      "notes": "Review source modifications and current deployments; reusable starter only; do not blindly import."
+      "notes": "Private repository metadata redacted in public audit; review using authorized private GitHub access."
     },
     {
-      "repository": "uscolective-byte/domenafixer",
+      "repository": "private-repo-02",
       "group": "separate_user_projects",
       "visibility": "private",
-      "default_branch": "main",
-      "size_kb_reported_by_github": 503,
+      "default_branch": null,
+      "size_kb_reported_by_github": null,
       "archived": false,
       "origin_parent": null,
       "decision": "retain_until_backup_and_reconciliation",
-      "notes": "PRIVATE domain-management application; inspect Cloudflare bindings and production dependencies."
+      "notes": "Private repository metadata redacted in public audit; review using authorized private GitHub access."
     },
     {
-      "repository": "uscolective-byte/Tenebris",
+      "repository": "private-repo-03",
       "group": "trinity_migration_candidates",
       "visibility": "private",
-      "default_branch": "main",
-      "size_kb_reported_by_github": 102,
+      "default_branch": null,
+      "size_kb_reported_by_github": null,
       "archived": false,
       "origin_parent": null,
       "decision": "retain_until_backup_and_reconciliation",
-      "notes": "Review unique features, history, deployments, open PRs before migrating; no content-migration proof yet."
+      "notes": "Private repository metadata redacted in public audit; review using authorized private GitHub access."
     },
     {
       "repository": "uscolective-byte/Trinity",
@@ -171,15 +171,15 @@
       "notes": "FORK of google/adk-python; retain upstream dependency reference, not wholesale copy."
     },
     {
-      "repository": "uscolective-byte/trinity-omni-core",
+      "repository": "private-repo-04",
       "group": "trinity_migration_candidates",
       "visibility": "private",
-      "default_branch": "main",
-      "size_kb_reported_by_github": 0,
+      "default_branch": null,
+      "size_kb_reported_by_github": null,
       "archived": false,
       "origin_parent": null,
       "decision": "retain_until_backup_and_reconciliation",
-      "notes": "Empty repository as of inventory (size 0); check any hidden external deployment reference before deletion."
+      "notes": "Private repository metadata redacted in public audit; review using authorized private GitHub access."
     },
     {
       "repository": "uscolective-byte/Trinityprot",
@@ -215,48 +215,48 @@
       "notes": "Review unique features, history, deployments, open PRs before migrating; no content-migration proof yet."
     },
     {
-      "repository": "uscolective-byte/v8",
+      "repository": "private-repo-05",
       "group": "trinity_migration_candidates",
       "visibility": "private",
-      "default_branch": "main",
-      "size_kb_reported_by_github": 158,
+      "default_branch": null,
+      "size_kb_reported_by_github": null,
       "archived": false,
       "origin_parent": null,
       "decision": "retain_until_backup_and_reconciliation",
-      "notes": "Review unique features, history, deployments, open PRs before migrating; no content-migration proof yet."
+      "notes": "Private repository metadata redacted in public audit; review using authorized private GitHub access."
     },
     {
-      "repository": "uscolective-byte/trini-agent",
+      "repository": "private-repo-06",
       "group": "trinity_migration_candidates",
       "visibility": "private",
-      "default_branch": "main",
-      "size_kb_reported_by_github": 118,
+      "default_branch": null,
+      "size_kb_reported_by_github": null,
       "archived": false,
       "origin_parent": null,
       "decision": "retain_until_backup_and_reconciliation",
-      "notes": "Review unique features, history, deployments, open PRs before migrating; no content-migration proof yet."
+      "notes": "Private repository metadata redacted in public audit; review using authorized private GitHub access."
     },
     {
-      "repository": "uscolective-byte/Trinity1",
+      "repository": "private-repo-07",
       "group": "trinity_migration_candidates",
       "visibility": "private",
-      "default_branch": "main",
-      "size_kb_reported_by_github": 12,
+      "default_branch": null,
+      "size_kb_reported_by_github": null,
       "archived": false,
       "origin_parent": null,
       "decision": "retain_until_backup_and_reconciliation",
-      "notes": "Review unique features, history, deployments, open PRs before migrating; no content-migration proof yet."
+      "notes": "Private repository metadata redacted in public audit; review using authorized private GitHub access."
     },
     {
-      "repository": "uscolective-byte/terni",
+      "repository": "private-repo-08",
       "group": "trinity_migration_candidates",
       "visibility": "private",
-      "default_branch": "main",
-      "size_kb_reported_by_github": 160,
+      "default_branch": null,
+      "size_kb_reported_by_github": null,
       "archived": false,
       "origin_parent": null,
       "decision": "retain_until_backup_and_reconciliation",
-      "notes": "Review unique features, history, deployments, open PRs before migrating; no content-migration proof yet."
+      "notes": "Private repository metadata redacted in public audit; review using authorized private GitHub access."
     },
     {
       "repository": "uscolective-byte/next-starter-template",
@@ -314,15 +314,15 @@
       "notes": "Review source modifications and current deployments; reusable starter only; do not blindly import."
     },
     {
-      "repository": "uscolective-byte/kv-get-started",
+      "repository": "private-repo-09",
       "group": "starter_templates",
       "visibility": "private",
-      "default_branch": "main",
-      "size_kb_reported_by_github": 2,
+      "default_branch": null,
+      "size_kb_reported_by_github": null,
       "archived": false,
       "origin_parent": null,
       "decision": "retain_until_backup_and_reconciliation",
-      "notes": "Review source modifications and current deployments; reusable starter only; do not blindly import."
+      "notes": "Private repository metadata redacted in public audit; review using authorized private GitHub access."
     },
     {
       "repository": "uscolective-byte/react-router-starter-templates",
@@ -358,15 +358,15 @@
       "notes": "Review source modifications and current deployments; reusable starter only; do not blindly import."
     },
     {
-      "repository": "uscolective-byte/Trinity-test",
+      "repository": "private-repo-10",
       "group": "trinity_migration_candidates",
       "visibility": "private",
-      "default_branch": "master",
-      "size_kb_reported_by_github": 1353,
+      "default_branch": null,
+      "size_kb_reported_by_github": null,
       "archived": false,
       "origin_parent": null,
       "decision": "retain_until_backup_and_reconciliation",
-      "notes": "PRIVATE experimental environment; review secrets, branch/history, Actions before deletion."
+      "notes": "Private repository metadata redacted in public audit; review using authorized private GitHub access."
     },
     {
       "repository": "uscolective-byte/workerd",
@@ -500,5 +500,7 @@
       "decision": "retain_until_backup_and_reconciliation",
       "notes": "Review source modifications and current deployments; reusable starter only; do not blindly import."
     }
-  ]
+  ],
+  "private_repository_metadata_redacted": true,
+  "private_repository_count": 10
 }
