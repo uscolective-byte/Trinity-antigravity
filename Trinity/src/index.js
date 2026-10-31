@@ -37,6 +37,7 @@ import {mediaStatus} from './media.js';
 import {readControl,assertRunning} from './control.js';
 import {listApis,createApi,invokeApi,invokeApiBySlug} from './api-builder.js';
 import {listApiKeys,createApiKey,revokeApiKey,authenticateApiKey} from './api-keys.js';
+import {handleAssistantBridge} from './assistant-bridge.js';
 import {listSecrets,storeSecret,verifySecret,revokeSecret,promoteCustomSecretToGemini} from './secret-vault.js';
 import {listAIProviders,configureAIProvider,recordAIProviderCheck} from './ai-providers.js';
 import {getGraphVisualization,syncGraphFromEcosystem,queryGraphContext} from './graph-memory.js';
@@ -395,6 +396,14 @@ async function route(request,env,ctx){
   if(gatewayReceipt&&request.method==='POST'){
     const gateway=await authenticateGateway(request,env);await rateLimit(env,`gateway-receipt:${gateway}`,120);
     return json({action:await finishSystemAction(env,uuid.parse(gatewayReceipt[1]),gateway,await readJSON(request,180000))});
+  }
+  // API keys for ChatGPT and Copilot Studio have their own narrow scopes.
+  // This path never falls back to a browser session, admin token, or MCP key.
+  if(path.startsWith('/api/assistant-bridge/')){
+    if(env.TRINITY_ASSISTANT_BRIDGE_ENABLED!=='true')
+      throw new HttpError(503,'Assistant Bridge nie je aktivovaný. Najprv over D1 migráciu a rozsah API kľúčov.');
+    if(typeof env.DB?.prepare!=='function')throw new HttpError(503,'Assistant Bridge nemá D1 databázu.');
+    return handleAssistantBridge(request,env);
   }
   const bearer=request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||request.headers.get('X-Trinity-API-Key')||'';
   if(path==='/mcp'&&bearer.startsWith('trn_live_'))return handleScopedMcp(request,env,ctx);
