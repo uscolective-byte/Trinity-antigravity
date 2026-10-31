@@ -74,18 +74,29 @@ function archiveBranches(){
   console.log(`Morpheus branch archive: new=${created}, updated=${advanced}, rewritten=${rewrites}`);
 }
 function archiveTags(){
-  const src=refs('refs/tags/morpheus/');
+  const src=refs('refs/remotes/morpheus-tags/');
   const remote=git('ls-remote','--tags','--refs','origin');
-  const present=new Set(remote.split('\n').filter(Boolean).map(line=>line.split('\t')[1]));
-  let created=0;
+  const existing=new Map(remote.split('\n').filter(Boolean).map(line=>{
+    const parts=line.split('\t');
+    return [parts[1],parts[0]];
+  }));
+  let created=0,retargeted=0;
   for(const [ref,sha] of src){
-    const name=ref.replace(/^refs\/tags\/morpheus\//,'');
+    const name=ref.replace(/^refs\/remotes\/morpheus-tags\//,'');
     const dest=`refs/tags/morpheus/${name}`;
-    if(present.has(dest))continue;
+    const previous=existing.get(dest);
+    if(previous===sha)continue;
+    if(previous&&previous!==sha){
+      const snapshot=`refs/tags/morpheus-rewrites/${name}/${sha.slice(0,12)}`;
+      if(!existing.has(snapshot))git('push','origin',`${sha}:${snapshot}`);
+      conflict(`retargeted tag ${name}`,[name],sha);
+      retargeted++;
+      continue;
+    }
     git('push','origin',`${sha}:${dest}`);
     created++;
   }
-  console.log(`Morpheus tag archive: new=${created}`);
+  console.log(`Morpheus tag archive: new=${created}, retargeted=${retargeted}`);
 }
 function dispatchChecks(){
   for(const name of CHECK_WORKFLOWS)
@@ -178,7 +189,7 @@ function main(){
   git('remote','add','morpheus',`https://github.com/${SOURCE}.git`);
   git('fetch','--no-tags','origin','+refs/heads/*:refs/remotes/origin/*');
   git('fetch','--no-tags','morpheus','+refs/heads/*:refs/remotes/morpheus/*');
-  git('fetch','--no-tags','morpheus','+refs/tags/*:refs/tags/morpheus/*');
+  git('fetch','--no-tags','morpheus','+refs/tags/*:refs/remotes/morpheus-tags/*');
   archiveBranches();
   archiveTags();
   syncMain();
