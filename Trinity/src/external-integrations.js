@@ -1,3 +1,4 @@
+import {verifyCloudflareToken} from './cloudflare-token.js';
 import {resolveProviderSecret} from './secret-vault.js';
 import {createTrinityDocument} from './trinity-documents.js';
 
@@ -29,30 +30,16 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
         data: internalState
       };
     }
-    try {
-      const headers = {Authorization: `Bearer ${token}`};
-      let resp = await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify', {
-        headers, signal: AbortSignal.timeout(15000)
-      });
-      let data = await resp.json().catch(() => ({}));
-      if (resp.status === 401 && (!resp.ok || data.success !== true)) {
-        resp = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/tokens/verify`, {
-          headers, signal: AbortSignal.timeout(15000)
-        });
-        data = await resp.json().catch(() => ({}));
-      }
-      const verified = resp.ok && data.success === true && data.result?.status === 'active';
-      return {
-        success: verified,
-        verified,
-        source: 'cloudflare_api',
-        token_status: data.result?.status || 'unverified',
-        data: {...internalState, connected: verified, ...(verified ? {verified_at: new Date().toISOString()} : {})}
-      };
-    } catch {
-      return {success:false, verified:false, source:'cloudflare_api', data:internalState,
-        error:'Cloudflare API token verification unavailable.'};
-    }
+    const verification = await verifyCloudflareToken(token, accountId);
+    return {
+      success: verification.verified,
+      verified: verification.verified,
+      source: 'cloudflare_api',
+      token_status: verification.status,
+      token_scope: verification.scope,
+      data: {...internalState, connected: verification.verified,
+        ...(verification.verified ? {verified_at: new Date().toISOString()} : {})}
+    };
   }
 
   if (action === 'list_dns_zones') {
