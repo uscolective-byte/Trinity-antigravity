@@ -4,6 +4,7 @@ import {infrastructureStatus} from './infrastructure.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
 import {createSelfImprovementProposal,approveSelfImprovementProposal,applySelfImprovementProposal,listSelfImprovementProposals} from './self-improvement.js';
 import {capabilityStatus} from './capability-status.js';
+import {agentConnectionMatrix} from './agent-connection-matrix.js';
 import {McpServer} from '@modelcontextprotocol/server';
 import {TRINITY_VERSION,releaseMetadata} from './version.js';
 import {dailyPlanShape,createDailyPlan} from './daily-planner.js';
@@ -15,7 +16,7 @@ import {searchMemory} from './tools.js';
 import {callModel,serviceStatus,readiness} from './services.js';
 import {skillRegistry} from './skillRegistry.js';
 import {listPlugins} from './plugins.js';
-import {createSystemAction,getSystemAction,listSystemActions,approveSystemAction,rejectSystemAction} from './system-actions.js';
+import {createSystemAction,getSystemAction,listSystemActions,approveSystemAction,rejectSystemAction,getPCBridgeStatus} from './system-actions.js';
 import {geminiProjectControlEnabled} from './ai-providers.js';
 import {TrinityCopilotAgent} from './copilot-agent.js';
 import {universalEcosystem} from './universal-ecosystem.js';
@@ -31,6 +32,14 @@ export function handleMcp(request,env,ctx,access={}){
   const server=new McpServer({name:'trinity',version:TRINITY_VERSION});
     const requireProjectAccess=()=>{if(access.projectControl!==true)throw new Error('Tento MCP klient nemá projektové oprávnenie.');};
     server.registerTool('infrastructure_status',{description:'Stav konfigurácie domén, hostingu a vývoja Trinity.',inputSchema:{}},async()=>result(infrastructureStatus(env)));
+    server.registerTool('agent_connections',{
+      description:'Čisto metadátový prehľad Cloudflare, Trinity, PC, Codex, ChatGPT, Antigravity, Gemini a Copilot. Nie je to dôkaz OAuth ani vykonania akcie.',
+      inputSchema:{}
+    },async()=>{
+      const pc=await getPCBridgeStatus(env).catch(()=>null);
+      return result(agentConnectionMatrix(env,pc));
+    });
+
     server.registerTool('project_inspect',{description:'Nájde relevantné zdrojové súbory a presný commit Trinity.',inputSchema:{query:z.string().max(2000).default('')}},async({query})=>{requireProjectAccess();return result(await inspectProject(env,query));});
     server.registerTool('project_read',{description:'Číta zdroj z GitHubu bez zapnutého PC.',inputSchema:{path:z.string().max(500),ref:z.string().regex(/^[a-f0-9]{40}$/).optional()}},async({path,ref})=>{requireProjectAccess();return result(await readProjectSource(env,path,ref));});
     server.registerTool('list_improvements',{description:'Zoznam návrhov, stav ich integrácie a odkazy na PR.',inputSchema:{}},async()=>{requireProjectAccess();return result({items:await listSelfImprovementProposals(env)});});
