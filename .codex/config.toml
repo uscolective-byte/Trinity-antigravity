@@ -1,0 +1,10 @@
+# Project-scoped MCP clients; no secret values are stored in this file.
+# First provision the 'codex-mcp' key on the authorized local Windows PC.
+# Do not claim it is connected until the MCP initialize/tools/list call succeeds.
+
+[mcp_servers.trinity]
+command = "powershell.exe"
+args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:\\Users\\saboi\\Trinity-antigravity\\Trinity\\scripts\\start-trinity-codex-mcp.ps1", "-CredentialName", "codex-mcp"]
+
+[mcp_servers.cloudflare-api]
+url = "https://mcp.cloudflare.com/mcp"
