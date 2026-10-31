@@ -1271,3 +1271,14 @@ Rozsah: Trinity/src/skill-matrix.js, Trinity/src/ai-providers.js, Trinity/tests/
 Dôvod: nezávislé lokálne testy našli 3 zlyhania z 653; opraviť skutočnú validáciu Gemini credential, odstrániť zastarané očakávanie vykonaného PC receipt a zachovať historický kontext bezpečne.
 Bezpečnostná brána: nepushovať secrets, nenasadzovať produkciu či staging pri neexistujúcej D1 a zdieľanom staging storage a zlyhanom CI.
 Stav: active.
+
+
+### UPDATE / HANDOFF — RELEASE-REGRESSIONS-20261031-CHATGPT-01
+Autor: ChatGPT cez Desktop Commander; 2026-10-31 Europe/Bratislava.
+Vetva: codex/trinity-release-readiness-20261031; prvý commit: 4a5eb4a.
+Zmeny: oprava validačnej logiky Gemini kľúča v ai-providers.js, bezpečná historická zmienka v skill-matrix.js, opravený regresný test PC vykonania, nezávislý report Trinity/docs/RELEASE_READINESS_AUDIT_20261031.md.
+Overenie: 12/12 cielených testov PASS, kompletný Trinity npm test a produkčný Wrangler dry-run PASS (653/653). Git diff --check PASS.
+Live read-only diagnostika: Cloudflare D1 zoznam nemá trinity-pc-bridge; staging zdieľa D1/KV/R2; auru.space health 11.0.0 a ready true; staging chránený Access, živá pripravenosť neoverená. GitHub CI pre PR #26 neúspešné.
+Pôvodný checkout C:\Users\saboi\Trinity-antigravity má 483 CRLF-only staged zmien a skutočné štyri unstaged súbory; nebol prepísaný ani resetovaný.
+Stav: code and tests complete, release blocked. Neuskutočnený žiadny live Cloudflare deploy, D1 migrácia, GitHub merge alebo rotácia secrets.
+Príjemca: integrátor GitHub/Cloudflare pre review a staging isolation; ACK nesmie byť vymyslené.
