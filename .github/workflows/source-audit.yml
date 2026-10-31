@@ -1,0 +1,39 @@
+name: Trinity 12 tracked source syntax and duplicates audit
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/code-audit.mjs'
+      - 'tests/code-audit.test.mjs'
+      - '.github/workflows/source-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  code-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Validate the audit implementation itself
+        run: node --test tests/code-audit.test.mjs
+      - name: Check every tracked JavaScript and JSON source file
+        run: node scripts/code-audit.mjs --strict --json > code-audit.json
+      - name: Save machine-readable audit; never delete duplicates automatically
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trinity-code-inventory
+          path: code-audit.json
+          if-no-files-found: ignore
+          retention-days: 30
