@@ -39,7 +39,7 @@ const CLAIM_RULES=[
   {
     id:'deploy',
     patterns:[
-      /\b(?:nasadil[ao]?|nasadila)\s+som\b/iu,
+      /\b(?:(?:nasadil[ao]?|nasadila)\s+som|som\s+(?:úspešne\s+)?nasadil[ao]?)\b/iu,
       /\b(?:i\s+(?:have\s+)?deployed)\b/iu,
       /\b(?:bolo|bola|bol|je)\s+(?:úspešne\s+)?nasaden[éáý]\b/iu
     ]
@@ -55,7 +55,7 @@ const CLAIM_RULES=[
   {
     id:'delete',
     patterns:[
-      /\b(?:vymazal[ao]?|vymazala|odstránil[ao]?|odstránila)\s+som\b/iu,
+      /\b(?:(?:vymazal[ao]?|vymazala|odstránil[ao]?|odstránila)\s+som|som\s+(?:úspešne\s+)?(?:vymazal[ao]?|odstránil[ao]?))\b/iu,
       /\b(?:i\s+(?:have\s+)?(?:deleted|removed))\b/iu,
       /\b(?:bolo|bola|bol|je)\s+(?:úspešne\s+)?(?:vymazan[éáý]|odstránen[éáý])\b/iu
     ]
@@ -89,14 +89,14 @@ const CLAIM_RULES=[
   {
     id:'execute',
     patterns:[
-      /\b(?:spustil[ao]?|spustila)\s+som\s+(?:príkaz|prikaz|skript|program|server|testy|deploy)\b/iu,
+      /\b(?:(?:spustil[ao]?|spustila)\s+som|som\s+(?:úspešne\s+)?spustil[ao]?)\s+(?:príkaz|prikaz|skript|program|server|testy|deploy)\b/iu,
       /\b(?:i\s+(?:have\s+)?(?:ran|executed)\s+(?:the\s+)?(?:command|script|program|server|tests|deploy))\b/iu
     ]
   },
   {
     id:'create_file',
     patterns:[
-      /\b(?:vytvoril[ao]?|vytvorila)\s+som\s+(?:súbor|subor|priečinok|priecinok|databázu|databazu|worker|dokument|dokumentáciu|dokumentaciu|správu|spravu)\b/iu,
+      /\b(?:(?:vytvoril[ao]?|vytvorila)\s+som|som\s+(?:úspešne\s+)?vytvoril[ao]?)\s+(?:súbor|subor|priečinok|priecinok|databázu|databazu|worker|dokument|dokumentáciu|dokumentaciu|správu|spravu)\b/iu,
       /\b(?:vygeneroval[ao]?|vygenerovala|uložil[ao]?|uložila)\s+som\s+(?:súbor|subor|dokument|dokumentáciu|dokumentaciu)\b/iu,
       /\b(?:dokumentácia|dokumentacia|dokument|správa|sprava|súbor|subor)\s+(?:bol[ao]?|je)\s+(?:úspešne\s+)?(?:vygenerovan[áaý]|uložen[áaý]|vytvoren[áaý])\b/iu,
       /\b(?:uložen[áa]|vygenerovan[áa]|vytvoren[áa])\s+v\s+systéme\s+Trinity\s+Documents\b/iu,
