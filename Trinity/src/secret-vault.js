@@ -1,3 +1,4 @@
+import {verifyCloudflareToken} from './cloudflare-token.js';
 import {z} from 'zod';
 import {HttpError} from './security.js';
 
@@ -36,16 +37,10 @@ export async function verifyGitHub(secret){
   // A readable repository is not proof of write or merge permissions.
   return {connected:true,account:account.login,repository_access:true,repository,permission_verified:'read'};
 }
-async function verifyCloudflare(secret){
-  let response=await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(15000)});
-  let data=await response.json().catch(()=>({}));
-  if((!response.ok||!data.success)&&response.status===401){
-    const acctResp=await fetch('https://api.cloudflare.com/client/v4/accounts/b60342e5e52f5646fbd4e913bb409334/tokens/verify',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(15000)});
-    const acctData=await acctResp.json().catch(()=>({}));
-    if(acctResp.ok&&acctData.success){response=acctResp;data=acctData;}
-  }
-  if(!response.ok||!data.success)throw new Error(`Cloudflare odmietol token (HTTP ${response.status}).`);
-  return {connected:true,token_status:data.result?.status||'active'};
+async function verifyCloudflare(secret,accountId){
+  const verification=await verifyCloudflareToken(secret,accountId);
+  if(!verification.verified)throw new Error(`Cloudflare token nebol overený (${verification.status}, HTTP ${verification.http_status ?? 'unavailable'}).`);
+  return {connected:true,token_status:'active',token_scope:verification.scope};
 }
 async function verifyFirecrawl(secret){
   const response=await fetch('https://api.firecrawl.dev/v1/scrape',{
@@ -294,7 +289,7 @@ export async function verifySecret(env,ownerId,id){
   try{
     const secret=await decrypt(env,row);
     const verification=row.provider==='github'?await verifyGitHub(secret)
-      :row.provider==='cloudflare'?await verifyCloudflare(secret)
+      :row.provider==='cloudflare'?await verifyCloudflare(secret,env.CF_ACCOUNT_ID||'b60342e5e52f5646fbd4e913bb409334')
       :row.provider==='openai'?await verifyOpenAI(secret)
       :row.provider==='firecrawl'?await verifyFirecrawl(secret)
       :row.provider==='firebase'?await verifyFirebase(secret)
