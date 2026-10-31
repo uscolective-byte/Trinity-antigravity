@@ -36,7 +36,7 @@ export function agentConnectionMatrix(env={},pcBridge=null){
     item('pc-local','execution-bridge','heartbeat-and-action-receipts',
       !!env.PC_BRIDGE_V2||configuredString(env,'TRINITY_GATEWAY_KEY'),{
       heartbeat_connected:isPC,
-      client_authenticated:isPC, // Only a reported bridge session, not execution.
+      client_authenticated:false, // A reported heartbeat is not a fresh auth or action receipt.
       last_action_verified:false,
       note:'PC bridge heartbeat is not evidence that a file or shell action ran.'
     }),
