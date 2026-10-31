@@ -63,7 +63,8 @@ function archiveBranches(){
     if(old===sha)continue;
     if(old&&!gitOk('merge-base','--is-ancestor',old,sha)){
       const snap=`refs/heads/mirror/morpheus-rewrites/${name}/${sha.slice(0,12)}`;
-      git('push','origin',`${sha}:${snap}`);
+      const snapshotExists=gitOk('ls-remote','--exit-code','origin',snap);
+      if(!snapshotExists)git('push','origin',`${sha}:${snap}`);
       conflict(`rewritten branch ${name}`,[name],sha);
       rewrites++;
       continue;
@@ -72,6 +73,7 @@ function archiveBranches(){
     old?advanced++:created++;
   }
   console.log(`Morpheus branch archive: new=${created}, updated=${advanced}, rewritten=${rewrites}`);
+  return {created,advanced,rewrites};
 }
 function archiveTags(){
   const src=refs('refs/remotes/morpheus-tags/');
@@ -190,8 +192,14 @@ function main(){
   git('fetch','--no-tags','origin','+refs/heads/*:refs/remotes/origin/*');
   git('fetch','--no-tags','morpheus','+refs/heads/*:refs/remotes/morpheus/*');
   git('fetch','--no-tags','morpheus','+refs/tags/*:refs/remotes/morpheus-tags/*');
-  archiveBranches();
+  const archive=archiveBranches();
   archiveTags();
+  // A source history rewrite needs human review even when only markdown files
+  // changed. Preserve snapshots, but never reconcile rewritten main blindly.
+  if(archive.rewrites>0){
+    console.log('Source history was rewritten; canonical main sync is paused for review.');
+    return;
+  }
   syncMain();
 }
 try{main();}catch(error){
