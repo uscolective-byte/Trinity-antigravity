@@ -103,8 +103,8 @@ Pozri `.agents/skills/cloudflare-secrets-store/SKILL.md`.
    neexistuje dôkaz lokálneho vykonania ani nainštalovanej konfigurácie.
 2. GitHub Actions predtým nepridelil runner (`runner_id=0`,
    `steps=[]`). Zdroj v Gite nie je úspešný CI ani Cloudflare deploy.
-3. Staging a produkcia zdieľajú D1 `rea`, D1 `trinity_basterix`,
-   KV `Mastermind` a R2 `ARTIFACTS`. Staging mutačné testy
+3. Staging a produkcia zdieľajú D1 `rea`, KV `Mastermind`
+   a R2 `ARTIFACTS`. Staging mutačné testy
    nesmú meniť zdieľané dáta pred izoláciou.
 4. Vlastník musí zvlášť schváliť prístup v ChatGPT, Codex,
    Google Antigravity a Microsoft Copilot Studio a potvrdiť OAuth
@@ -155,11 +155,15 @@ reálne vykonanom KV put alebo D1 run. Oddelené staging KV vyžaduje
 vytvorenie v autorizovanom Cloudflare účte a uvedenie skutočného ID
 v `env.staging.kv_namespaces`; žiadne UUID sa nevymýšľa.
 
-**Produkcia zostala nedotknutá**, ale produkčný `d1_databases`
-stále obsahuje rovnakú neexistujúcu D1 referenciu. Pred ďalším
-produkčným deployom potrebuje osobitné rozhodnutie: buď ju úplne
-odstrániť po audite historických spotrebiteľov, alebo zriadiť
-a migrovať samostatnú produkčnú PC D1.
+**Produkčná konfigurácia v tomto PR:** neexistujúci voliteľný
+`trinity_basterix` D1 binding bol odstránený aj z produkčného
+`d1_databases`. Skutočná databáza nebola zmazaná. PC telemetria
+má v produkcii samostatný KV `PC_STATE`; jej úspech sa potvrdzuje
+len vykonaným zápisom. Ak sa stará PC D1 v budúcnosti vytvorí,
+vyžaduje to samostatné overenie migrácií a cieľového UUID.
+Produkčný deploy pred uploadom kontroluje skutočný inventár D1.
+To **nepotvrdzuje** úspešný deploy, kompatibilitu všetkých volajúcich
+ani existenciu starých PC dát.
 
 Read-only kontrola na autorizovanom PC:
 
@@ -187,3 +191,12 @@ Nespúšťať mutačné staging testy proti zdieľaným zdrojom.
 zoznamom D1 v GitHube, bez živého Wrangler deployu. PC konektor
 je offline a GitHub runner predtým neštartoval; nemožno tvrdiť, že
 staging je už funkčne nasadený.
+
+## Bezpečnostná zábrana pred staging migráciami
+
+V `.github/workflows/self-deploy.yml` teraz staging deployment job
+spúšťa `node scripts/cloudflare-env-audit.mjs --strict` **pred**
+D1 migráciami. Keďže `rea`, `Mastermind` a `ARTIFACTS` sú stále
+zdieľané, check momentálne zámerne zlyhá a staging sa nesmie
+nasadiť cez tento workflow, kým izolácia nie je skutočne dokončená.
+Nikto nemá vypínať tento gate na obídenie ochrany.
