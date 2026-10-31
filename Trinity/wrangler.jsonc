@@ -99,12 +99,6 @@
       "binding": "rea",
       "database_name": "trinity-db",
       "database_id": "5b792055-97cf-4d8a-8145-d588c83c54df"
-    },
-    {
-      "binding": "trinity_basterix",
-      "database_name": "trinity-pc-bridge",
-      "database_id": "ba94b9f2-5376-4ef8-92c4-7035df7cacb7",
-      "remote": true
     }
   ],
   "kv_namespaces": [
@@ -382,9 +376,18 @@
       ],
       "durable_objects": {
         "bindings": [
-          { "name": "Brain", "class_name": "TrinityAgent" },
-          { "name": "CHAT_AGENT", "class_name": "ChatAgent" },
-          { "name": "GUARDIAN_AGENT", "class_name": "GuardianAgent" }
+          {
+            "name": "Brain",
+            "class_name": "TrinityAgent"
+          },
+          {
+            "name": "CHAT_AGENT",
+            "class_name": "ChatAgent"
+          },
+          {
+            "name": "GUARDIAN_AGENT",
+            "class_name": "GuardianAgent"
+          }
         ]
       },
       "workflows": [
@@ -395,35 +398,122 @@
         }
       ],
       "services": [
-        { "binding": "KNOWLEDGE_SERVICE", "service": "trinity-knowledge" },
-        { "binding": "PC_BRIDGE_V2", "service": "trinity-pc-bridge-v2" },
-        { "binding": "PC_BRIDGE_SERVICE", "service": "trinity-pc-bridge" },
-        { "binding": "CORE", "service": "trinity-core" },
-        { "binding": "BUILDER", "service": "trinity-builder" },
-        { "binding": "DISPATCHER", "service": "trinity-dispatcher" },
-        { "binding": "CONNECTORS", "service": "trinity-connectors" },
-        { "binding": "GUARDIAN", "service": "trinity-guardian" },
-        { "binding": "MEMORY", "service": "trinity-memory" },
-        { "binding": "SENTINEL", "service": "trinity-sentinel" },
-        { "binding": "SKILLS", "service": "trinity-skills" },
-        { "binding": "admin", "service": "aura_sentinel" },
-        { "binding": "admino", "service": "aura_architect" },
-        { "binding": "Trinity", "service": "aura_deployer" },
-        { "binding": "AURA_ANALYZER", "service": "aura_analyzer" },
-        { "binding": "AURA_ARCHITECT", "service": "aura_architect" },
-        { "binding": "AURA_CODEGEN", "service": "aura_codegen" },
-        { "binding": "AURA_DEPLOYER", "service": "aura_deployer" },
-        { "binding": "AURA_EVOLVER", "service": "aura_evolver" },
-        { "binding": "AURA_MEMORY", "service": "aura_memory" },
-        { "binding": "AURA_OPTIMIZER", "service": "aura_optimizer" },
-        { "binding": "AURA_PLANNER", "service": "aura_planner" },
-        { "binding": "AURA_SENTINEL", "service": "aura_sentinel" },
-        { "binding": "AURA_TESTER", "service": "aura_tester" },
-        { "binding": "CHAT_INFERENCE_SERVICE", "service": "trinity-chat-inference" },
-        { "binding": "CAPACITY_SERVICE", "service": "trinity-capacity" },
-        { "binding": "INTEGRATIONS_SERVICE", "service": "trinity-integrations" },
-        { "binding": "AUDIT_SERVICE", "service": "trinity-audit" },
-        { "binding": "JERICHO_SERVICE", "service": "jericho123" }
+        {
+          "binding": "KNOWLEDGE_SERVICE",
+          "service": "trinity-knowledge"
+        },
+        {
+          "binding": "PC_BRIDGE_V2",
+          "service": "trinity-pc-bridge-v2"
+        },
+        {
+          "binding": "PC_BRIDGE_SERVICE",
+          "service": "trinity-pc-bridge"
+        },
+        {
+          "binding": "CORE",
+          "service": "trinity-core"
+        },
+        {
+          "binding": "BUILDER",
+          "service": "trinity-builder"
+        },
+        {
+          "binding": "DISPATCHER",
+          "service": "trinity-dispatcher"
+        },
+        {
+          "binding": "CONNECTORS",
+          "service": "trinity-connectors"
+        },
+        {
+          "binding": "GUARDIAN",
+          "service": "trinity-guardian"
+        },
+        {
+          "binding": "MEMORY",
+          "service": "trinity-memory"
+        },
+        {
+          "binding": "SENTINEL",
+          "service": "trinity-sentinel"
+        },
+        {
+          "binding": "SKILLS",
+          "service": "trinity-skills"
+        },
+        {
+          "binding": "admin",
+          "service": "aura_sentinel"
+        },
+        {
+          "binding": "admino",
+          "service": "aura_architect"
+        },
+        {
+          "binding": "Trinity",
+          "service": "aura_deployer"
+        },
+        {
+          "binding": "AURA_ANALYZER",
+          "service": "aura_analyzer"
+        },
+        {
+          "binding": "AURA_ARCHITECT",
+          "service": "aura_architect"
+        },
+        {
+          "binding": "AURA_CODEGEN",
+          "service": "aura_codegen"
+        },
+        {
+          "binding": "AURA_DEPLOYER",
+          "service": "aura_deployer"
+        },
+        {
+          "binding": "AURA_EVOLVER",
+          "service": "aura_evolver"
+        },
+        {
+          "binding": "AURA_MEMORY",
+          "service": "aura_memory"
+        },
+        {
+          "binding": "AURA_OPTIMIZER",
+          "service": "aura_optimizer"
+        },
+        {
+          "binding": "AURA_PLANNER",
+          "service": "aura_planner"
+        },
+        {
+          "binding": "AURA_SENTINEL",
+          "service": "aura_sentinel"
+        },
+        {
+          "binding": "AURA_TESTER",
+          "service": "aura_tester"
+        },
+        {
+          "binding": "CHAT_INFERENCE_SERVICE",
+          "service": "trinity-chat-inference"
+        },
+        {
+          "binding": "CAPACITY_SERVICE",
+          "service": "trinity-capacity"
+        },
+        {
+          "binding": "INTEGRATIONS_SERVICE",
+          "service": "trinity-integrations"
+        },
+        {
+          "binding": "AUDIT_SERVICE",
+          "service": "trinity-audit"
+        },
+        {
+          "binding": "JERICHO_SERVICE",
+          "service": "jericho123"
+        }
       ],
       "secrets_store_secrets": [
         {
