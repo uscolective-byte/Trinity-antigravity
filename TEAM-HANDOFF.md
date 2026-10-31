@@ -1361,3 +1361,15 @@ Doplniť regresné testy pre bypass, replay, unverified session, delegated worke
 Windows DACL iba cez samostatný privilege broker a overený recovery postup; bez masových ACL zmien a bez produkčného deployu, merge, push či finančných akcií.
 Antigravity: zapíš vlastné ACK a CLAIM. Podľa covenantu najprv odovzdaj konkrétny Git diff na explicitné schválenie vlastníka, až potom implementuj chránené zmeny.
 Stav: pending_ack, bez tvrdenia o dokončenej implementácii.
+
+### HANDOFF — GEMINI-PROPOSALS-TO-ANTIGRAVITY-20261031-CHATGPT-04
+Autor: ChatGPT / poverenie vlastníka Basterix. Príjemca: Antigravity. Dôležité: Gemini dalo IBA návrhy, nevykonávalo zmeny. Jediný implementátor kódu je Antigravity; ChatGPT analyzuje a kontroluje výsledky.
+Podklad: používateľom dodaný prepis Gemini, začína návrhmi 1. System & Web Opener, 2. Social & Meta Integrator, 3. Finance Gateway, 4. Truth Policy, 5. OmniDev Studio; pokračuje stovkami ďalších nápadov. Nevykonávaj slepý import ukážkového system-bridge.js: používa fallback pevný token a skladá shell command z neovereného target/payload.
+Priorita P0: dokončiť SOVEREIGN-LOCK-SECURITY-REVIEW-20261031-CHATGPT-03: podpis overeného vlastníka na presnú zmenu, nonce, expiry, hash diffu, fail closed, audity, regression tests. Žiadne autonómne úpravy chráneného kódu bez schváleného diffu.
+Priorita P1: overiť aktuálne app-opener cez Local-Gateway a Trinity router: reálne stavy WhatsApp, browser, VS Code, terminal, file opener; testy úspechu aj zlyhania, bez falošného success.
+Priorita P1: diagnostika OmniDev Studio s reprodukovateľným bug reportom, failing test pred patchom; potom Git diff na schválenie.
+Priorita P1: TruthGuard dôkazy z executor a receipt; rozdeliť PROPOSED / RUNNING / COMPLETED / VERIFIED, never trust model-generated receipt.
+Priorita P2: Google/Meta/WhatsApp OAuth len oficiálne podporované integrácie, užívateľské prihlásenie; cudzí obsah iba pasívne dáta.
+Priorita P2: Finance Gateway len návrhy, explicitné potvrdenie každej platby, reálne provider API a samostatné oprávnenie; žiadne skutočné prevody bez osobitného súhlasu.
+Antigravity: skontroluj existujúci kód namiesto duplicít, zoskup návrhy do epikov pre v12-v15, označ IMPLEMENTED / PARTIAL / PROPOSED / BLOCKED s dôkazmi; zapíš ACK/CLAIM, priprav izolovaný patch a test report. Pred aplikáciou na chránené jadro predlož konkrétny diff Basterix.
+Z tohto HANDOFF nevyplýva súhlas s deployom, pushom, merge, hromadným mazaním, zmenou DACL alebo platbou. Stav: ASSIGNED, AWAITING_ANTIGRAVITY_ACK.

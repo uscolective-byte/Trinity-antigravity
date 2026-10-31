@@ -11,6 +11,29 @@
  */
 
 import { SovereignLedgerV3 } from './sovereign-core-v3.js';
+import {
+  ROOT_REGISTRY,
+  UserRole,
+  SOVEREIGN_LEGAL_CHARTER_20,
+  normalizePhone,
+  normalizeEmail,
+  inspectWindowsSession,
+  verifyTrinityIdentity,
+  executePrivileged,
+  validateSovereignCharterCompliance
+} from './trinity-auth-core.js';
+
+export {
+  ROOT_REGISTRY,
+  UserRole,
+  SOVEREIGN_LEGAL_CHARTER_20,
+  normalizePhone,
+  normalizeEmail,
+  inspectWindowsSession,
+  verifyTrinityIdentity,
+  executePrivileged,
+  validateSovereignCharterCompliance
+};
 
 export const SOVEREIGN_IDENTITY = Object.freeze({
   sovereign_identity: Object.freeze({
@@ -25,11 +48,17 @@ export const SOVEREIGN_IDENTITY = Object.freeze({
 
 export const AUTHORIZED_ROOT_OPERATORS = Object.freeze(new Set([
   'basterix',
+  'saboi',
   'owner:basterix',
   'sabo ivan',
   'ivan sabo',
   'saboivan2008@gmail.com',
-  'uscolective@gmail.com'
+  'uscolective@gmail.com',
+  'cadjavadvocecka013@gmail.com',
+  '+421949009722',
+  '0949009722',
+  '+421949515777',
+  '0949515777'
 ]));
 
 export const PROTECTED_RING0_FILES = Object.freeze([

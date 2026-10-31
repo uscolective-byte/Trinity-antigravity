@@ -108,7 +108,7 @@ export class SovereignLedgerV3 {
 
   async verifyIntegrity(limit = 100) {
     if (!this.env?.DB) {
-      return { verified: true, chain_length: 0, note: 'In-memory verification only' };
+      return { verified: true, chain_length: this.inMemoryBlocks.length, note: 'In-memory verification only' };
     }
     try {
       const rows = await this.env.DB.prepare(
