@@ -1,5 +1,22 @@
 # Trinity
 
+## Priorita: najnovší zdroj z GitHubu bez zničenia lokálnej práce
+
+Ak pracuješ v Google Antigravity, najprv prečítaj
+`ANTIGRAVITY-HANDOFF-2026-10-31.md` z vetvy
+`feat/unified-agent-connection-bridge-20261031` a over najnovšie SHA cez
+`git ls-remote origin main refs/heads/feat/unified-agent-connection-bridge-20261031`.
+`main` je publikovaný zdroj; PR #26 je najnovšia **nezlúčená pracovná
+vetva**, nie automaticky nasadená produkcia.
+
+Pôvodný lokálny repozitár obsahuje stovky rozpracovaných a staged zmien
+a `.git/index.lock` môže blokovať `git switch`. **Neprerábaj ho
+nasilu.** Najnovšiu vetvu otvor v samostatnej čistej clone
+(`C:\\Users\\saboi\\Trinity-bridge-test`), nikdy nepouži
+`git reset --hard`, `git clean -fd` ani nepovolené mazanie locku.
+Chýbajúce npm skripty v pôvodnom checkout-e nie sú dôkaz, že skripty
+chýbajú na GitHube.
+
 Before every task, read TEAM-HANDOFF.md in the repository root. Before every
 command check for updated coordination state. Claim exact files before editing,
 preserve other agents' changes, record UPDATE after changes and HANDOFF on
