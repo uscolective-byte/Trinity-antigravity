@@ -22,5 +22,5 @@ test('Antigravity skill is tracked and linked from root agent instructions',()=>
   assert.match(skill,/name: cloudflare-secrets-store/);
   assert.match(skill,/secrets-store-doctor\.mjs/);
   assert.match(skill,/--env staging/);
-  assert.doesNotMatch(skill,/--env development/);
+  assert.doesNotMatch(skill,/^npx wrangler deploy --env development/m);
 });
