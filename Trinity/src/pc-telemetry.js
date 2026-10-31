@@ -12,7 +12,7 @@ export async function persistPCTelemetry(env,body){
   }
   if(typeof env?.trinity_basterix?.prepare==='function'){
     try{
-      await env.trinity_basterix.prepare(
+      const receipt=await env.trinity_basterix.prepare(
         "INSERT INTO pc_telemetry (id, gateway_id, hostname, platform, uptime, cpu_percent, memory_used_mb, memory_total_mb, disks_json, prislub_verified, last_seen, updated_at) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now')) ON CONFLICT (id) DO UPDATE SET gateway_id=excluded.gateway_id, hostname=excluded.hostname, platform=excluded.platform, uptime=excluded.uptime, cpu_percent=excluded.cpu_percent, memory_used_mb=excluded.memory_used_mb, memory_total_mb=excluded.memory_total_mb, disks_json=excluded.disks_json, prislub_verified=excluded.prislub_verified, last_seen=excluded.last_seen, updated_at=datetime('now')"
       ).bind(
         body.gateway_id||'gateway:pc',body.hostname||'PC',body.platform||'win32',
@@ -21,7 +21,7 @@ export async function persistPCTelemetry(env,body){
         JSON.stringify(body.disks||{}),body.prislub_verified?1:0,
         body.timestamp||Date.now()
       ).run();
-      backends.push('trinity_basterix');
+      if(receipt?.success===true)backends.push('trinity_basterix');
     }catch{
       // Missing tables or unavailable D1 do not count as successful persistence.
     }
