@@ -1220,3 +1220,12 @@ Kontrola: 667 súborov starého main → v kanonickom main chýba 0 ciest, 53 ro
 Nevykonané: neboli prenesené source-only git objekty, všetky 25 vetiev, 73 PR recenzie/komentáre, osobitné nastavenia a cloudové dáta/secrets. Vývojové staré PR #64/#53/#46 a 6 Dependabot PR ostávajú na review. Žiadne zmazanie, archivácia, nasadenie, migrácia Cloudflare dát, PR merge alebo zmena main.
 Dôvod zastavenia mazania: nie je úplná overená obnoviteľná záloha; GitHub Actions runner neštartuje; pripojená GitHub sada nemá operáciu delete repo.
 HANDOFF: pokračovať podľa issue #23, po nezávislom mirror/bundle restore teste a prechode CI kontrol posúdiť bezpečné odstránenie starého repozitára. ACK nesmie byť vymyslené.
+
+### CLAIM / UPDATE / HANDOFF — TRINITY-MASTER-SECRETS-20261031
+Cieľ: použiť existujúci Cloudflare account Secrets Store pod interným názvom `TRINITY_MASTER`, bez čítania hodnôt.
+Autor: ChatGPT; vychádza z deklarovaných názvov Secrets Store položiek.
+Zdroj: `Trinity/wrangler.jsonc`, existujúce `OLLAMA_SECRET` store ID; Cloudflare živý stav nie je overený.
+Rozsah: staging `auru.dev` pridáva `TRINITY_MASTER_GOOGLE` (`apigoogle`) a `TRINITY_MASTER_COPILOT` (`copilot`). Produkčné `secrets_store_secrets` zostáva nezmenené. `Trinity/src/trinity-master-secrets.js` vracia len metadata v diagnostike, raw secret číta výlučne povolený interný adapter; serverové `resolveProviderSecret` má bezpečný fallback.
+Testy: `Trinity/tests/trinity-master-secrets.test.mjs`, `Trinity/tests/trinity-master-wrangler.test.mjs`, `Trinity/tests/trinity-master-provider-resolution.test.mjs`. V izolovanej JavaScript kontrole bolo overené mapovanie/bezpečné fungovanie resolvera, ale **Node test suite ani Cloudflare Wrangler build neboli vykonané** (GitHub runners sú blokované a PC connector offline).
+Neprepájať bez review: `GITHUBE_FINE_TOKEN` má údajne plný prístup; `BASTERIX` PC autentifikácia patrí oddelenému Workeru; `Secret`, `R2`, `snowy-wave-03db`, duplicitný Ollama a AI Gateway-only Grok sa nemajú naslepo viazať.
+Handoff: `Trinity/docs/TRINITY_MASTER_SECRETS_STORE.md`, overiť cloudové scopes `workers`, cez skutočný deploy credential Secrets Store Edit a pre staging suchý build. Až následne deploy na staging, provider auth, a samostatné approval pre produkciu.
