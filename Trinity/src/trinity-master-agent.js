@@ -6,6 +6,10 @@ export async function adviseTrinityMaster(env,input,pcBridge=null){
   const task=typeof input?.task==='string'?input.task.trim():'';
   if(!task||task.length>2000)
     return {success:false,status:'invalid_request',error:'Úloha musí mať 1 až 2000 znakov.',execution_performed:false};
+  // Reject credentials even when supplied by an authenticated admin.
+  // These requests must never be forwarded to model inference.
+  if(/(?:cfat_[A-Za-z0-9]{12,}|gh[pousr]_[A-Za-z0-9]{12,}|github_pat_[A-Za-z0-9_]{12,}|sk-(?:proj-)?[A-Za-z0-9_-]{12,}|AIza[A-Za-z0-9_-]{20,}|ya29\\.[A-Za-z0-9_.-]{10,}|-----BEGIN PRIVATE KEY-----|(?:api[_-]?key|token)\\s*[:=]\\s*[A-Za-z0-9_-]{12,})/i.test(task))
+    return {success:false,status:'sensitive_input_rejected',error:'Do AI diagnostiky nevkladaj API kľúče ani iné poverenia.',execution_performed:false};
   if(typeof env?.AI?.run!=='function')
     return {success:false,status:'not_configured',error:'Cloudflare Workers AI binding nie je dostupný.',execution_performed:false};
   const diagnostics=trinityMasterStatus(env,pcBridge);
