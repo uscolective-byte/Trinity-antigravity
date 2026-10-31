@@ -1172,3 +1172,17 @@ Vykonané: zdokumentovaná skutočná ancestry (stará main je ancestor), oprave
 Overenie: read-only GitHub compare 40 ahead/0 behind; statická kontrola dokumentácie a workflow 9/9 požadovaných vlastností vyhovuje. Plné Node testy NESPUSŤENÉ — Desktop Commander Basterix offline; náhradné Git clone blokované DNS. GitHub Actions PR #22 vracia failure bez krokov/job logov (napr. run 41211768869). Branch protection endpoint GitHub App vracia 403 (neznáme vynucovanie pravidiel). Nemenili sa secrety, Cloudflare IAM, GitHub collaborators/rulesets, zdrojové účty, deploymenty, merge ani staré vetvy.
 Rozhodnutie: draft PR otvorený, nezlučovať pred dôveryhodným CI, code review a overením kompatibility. Zásadné práva poskytovať iba autentifikovaným účtom a scoped tool gateway; model/provider key nie je identita.
 Stav: handoff; integračné opravy pripravené na kontrolu. Produkcia a main nezmenené.
+
+### UPDATE / HANDOFF — CF-TOKEN-REPAIR-20261031
+Vlastník práce: ChatGPT via GitHub connector, autorizovaný požiadavkou používateľa.
+Kanonický branch: `fix/secrets-readiness-and-release-docs-20261031` / draft PR #22. Žiadny merge alebo deploy.
+Súbory:
+- `Trinity/src/cloudflare-token.js`: nový read-only sanitizovaný verifier user/account Cloudflare tokenu; iba `status=active` je verified.
+- `Trinity/src/secret-vault.js` a `Trinity/src/external-integrations.js`: spoločná tokenová politika, žiadna falošná aktivácia či prenesenie secrets.
+- `Trinity/tests/cloudflare-token.test.mjs`, `Trinity/tests/integration-truth-gates.test.mjs`: regresné scenáre.
+- `scripts/cloudflare-doctor.mjs`, `tests/cloudflare-doctor.test.mjs`, `package.json`: read-only diagnostika cez `npm run cloudflare:doctor`.
+- `scripts/audit-worker-secrets.mjs`, `Trinity/tests/secret-audit.test.mjs`: doplnené Cloudflare secret aliasy.
+- `Trinity/docs/CLOUDFLARE_RECOVERY_20261031.md`: bezpečné obnovenie relácie a kritériá rotácie tokenu.
+Overené: Cloudflare oficiálne API rozlišuje user `/user/tokens/verify` a account `/accounts/{account_id}/tokens/verify`. Wrangler D1 migration môže použiť binding `DB` alebo názov databázy. Nezávislé živé /health a /ready sa nedali overiť; GitHub Actions PR #22 nemajú dostupné job kroky ani logy, príčina zlyhania CI neznáma.
+Neoverené: lokálny runtime/testy, tokeny Cloudflare, skutočné API oprávnenia, Worker deploy. Zariadenie Basterix v Desktop Commander offline. Nespustené žiadne DB migrácie, deploy, rotácie ani merge.
+Nasledujúci postup: skontrolovať zelené CI po oprave GitHub Actions runner/billing, spustiť doctor na autorizovanom PC, overiť staging a až potom produkciu. Nový API token nevydávať pred potvrdením neplatnosti alebo chýbajúcich scope. ACK za iného agenta nebol vytvorený.
