@@ -1208,3 +1208,15 @@ Implementované:
 
 GitHub Actions diagnostika: run `41219016766`, retry attempt 2, job `124589570877`, `runner_id=0`, `runner_name=""`, `steps=[]`; log API 404 BlobNotFound. Rerun failed jobs prijatý, znova failure. Dôkaz o runner allocation probléme, nie dôkaz zlyhaného testu kódu.
 Stav: zmeny commitnuté do PR. Plný lokálny npm/Node test a živý Cloudflare verification nevykonateľné (Desktop Commander BASTERIX offline, GitHub-hosted runner nepridelený). Secrets, OAuth účty, main a produkcia bez zmien. CI gating neobchádzať. ACK sa vytvára iba skutočným prijímateľom.
+
+### CLAIM / UPDATE / HANDOFF — MORPHEUS-CONSOLIDATION-20261031-CHATGPT-01
+Autor: ChatGPT cez GitHub connector, zadanie používateľa explicitne preniesť potrebné dáta a následne zmazať legacy repozitár.
+Zdroj: `uscolective-byte/trinity-morhfeus`; hlavný commit `3f99d95ecefb7a56c66683983dcff6d58d0af1d7`.
+Cieľ: `uscolective-byte/Trinity-antigravity`, výhradne pracovná vetva `fix/secrets-readiness-and-release-docs-20261031`, PR #22.
+Rozsah (vykonané): originálne súbory WordPress read-only klienta/testov/docs zo starého PR #68, pomocný ChatGPT/Copilot shared-notes modul/test/SQL/OpenAPI/docs zo starého PR #51 (vypnuté, bez endpoint wiring), `Trinity/package.json` a `Trinity/package-lock.json` Wrangler 4.154.0 zo starého merged PR #76.
+Inventár: `Trinity/docs/MORPHEUS_MIGRATION_MANIFEST_20261031.json` (25 vetiev so SHA, 73 PR s head SHA, 3 issues, 2 Git tagy); `Trinity/docs/REPOSITORY_CONSOLIDATION_20261031.md` aktualizované.
+GitHub issue: #23, zoznam blokérov pred bezpečným zmazaním.
+Kontrola: 667 súborov starého main → v kanonickom main chýba 0 ciest, 53 rozdielnych blob SHA. Na PR vetve existujú všetky prenesené cesty; `Trinity/package*.json` ukazujú Wrangler 4.154.0. Neznamená to úplné presunutie commit histórie ani GitHub komunikácie.
+Nevykonané: neboli prenesené source-only git objekty, všetky 25 vetiev, 73 PR recenzie/komentáre, osobitné nastavenia a cloudové dáta/secrets. Vývojové staré PR #64/#53/#46 a 6 Dependabot PR ostávajú na review. Žiadne zmazanie, archivácia, nasadenie, migrácia Cloudflare dát, PR merge alebo zmena main.
+Dôvod zastavenia mazania: nie je úplná overená obnoviteľná záloha; GitHub Actions runner neštartuje; pripojená GitHub sada nemá operáciu delete repo.
+HANDOFF: pokračovať podľa issue #23, po nezávislom mirror/bundle restore teste a prechode CI kontrol posúdiť bezpečné odstránenie starého repozitára. ACK nesmie byť vymyslené.
