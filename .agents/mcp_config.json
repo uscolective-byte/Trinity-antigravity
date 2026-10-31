@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "trinity": {
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\saboi\\Trinity-antigravity\\Trinity\\scripts\\start-trinity-codex-mcp.ps1",
+        "-CredentialName",
+        "antigravity-mcp"
+      ]
+    },
+    "cloudflare-api": {
+      "serverUrl": "https://mcp.cloudflare.com/mcp"
+    }
+  }
+}
