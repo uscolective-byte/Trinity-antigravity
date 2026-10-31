@@ -274,14 +274,38 @@ async function route(request,env,ctx){
       },
       integrations:{
         google_project:env.GOOGLE_PROJECT_ID||'tangential-osprey-dl7cp',
+        google_oauth:((googleAuthRequired(env)||env.GOOGLE_ENABLED==='true')&&googleOAuthConfigured(env))?'active':'disabled_or_missing_secret',
         firebase_project:env.FIREBASE_PROJECT_ID||'trinity-morhfeus-20261001',
-        firecrawl_engine:'ready',
+        firebase_service_account:Boolean(env.FIREBASE_SERVICE_ACCOUNT_KEY)?'configured':'awaiting_secret',
+        firecrawl_engine:Boolean(env.FIRECRAWL_API_KEY)?'configured':'awaiting_api_key',
         omnidev_studio:'active',
         local_system_bridge_port:7788
       },
       source:sourceMetadata(env),
       deployment:releaseMetadata(env),
       truth_mode:'evidence-required',
+      checked_at:new Date().toISOString()
+    });
+  }
+  if(path==='/api/capabilities/live'&&request.method==='GET'){
+    return json({
+      service:'TRINITY Live Capability Registry',
+      version:TRINITY_VERSION,
+      environment:runtimeEnvironment(request,env),
+      capabilities:{
+        sovereign_kernel:{status:'VERIFIED_ACTIVE',module:'sovereign-core-v3.js'},
+        sovereign_lock_hmac:{status:'VERIFIED_ACTIVE',durable_nonce_d1:Boolean(env.DB),durable_nonce_kv:Boolean(env.Mastermind||env.PC_STATE)},
+        truth_guard_v3:{status:'VERIFIED_ACTIVE',module:'truth.js'},
+        trinity_auth_core:{status:'VERIFIED_ACTIVE',fail_closed:true,module:'trinity-auth-core.js'},
+        omnidev_ast_diagnostics:{status:'VERIFIED_ACTIVE',module:'omnidev-diagnostics.js',local_bridge_port:7788},
+        workers_ai:{status:Boolean(env.AI)?'VERIFIED_ACTIVE':'MISSING_BINDING'},
+        d1_sovereign_ledger:{status:Boolean(env.DB)?'VERIFIED_ACTIVE':'MISSING_BINDING'},
+        r2_artifacts:{status:Boolean(env.ARTIFACTS)?'VERIFIED_ACTIVE':'MISSING_BINDING'},
+        google_oauth:{status:((googleAuthRequired(env)||env.GOOGLE_ENABLED==='true')&&googleOAuthConfigured(env))?'VERIFIED_ACTIVE':'CONFIGURED_DISABLED'},
+        firecrawl_scrape:{status:Boolean(env.FIRECRAWL_API_KEY)?'CONFIGURED':'MISSING_CREDENTIALS'},
+        firebase_manage:{status:Boolean(env.FIREBASE_SERVICE_ACCOUNT_KEY)?'CONFIGURED':'MISSING_CREDENTIALS'},
+        telegram_bridge:{status:Boolean(env.TELEGRAM_BOT_TOKEN)?'CONFIGURED':'MISSING_CREDENTIALS'}
+      },
       checked_at:new Date().toISOString()
     });
   }

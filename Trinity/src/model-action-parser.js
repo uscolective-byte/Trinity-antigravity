@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul model-action-parser.js (Trinity/src/model-action-parser.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 // Normalize one explicit model action. Mixed prose is not proof that a tool ran.
 function invalid(message){throw new Error('Neplatné volanie nástroja od modelu: '+message);}
 function argumentsObject(value){

@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul trinity-unified-local.mjs (scripts/trinity-unified-local.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';

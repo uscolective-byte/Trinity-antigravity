@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul chat-routing.js (Trinity/src/chat-routing.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {planTask} from './planner.js';
 import {getConfiguredAIProvider} from './ai-providers.js';
 export const CHAT_ENGINE_VALUES=['auto','cloud','fast','gemini','openai','ollama','local','deepseek-r1','llama','qwen','groq','deepseek','anthropic','mistral','openrouter'];

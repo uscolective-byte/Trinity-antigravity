@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_DESKTOP_UI
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul http.mjs (Local-Desktop/modules/http.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 export async function boundedJSON(response,limit=6_000_000){
  let size=0;const chunks=[];if(!response.body)throw new Error('Prázdna odpoveď služby.');
  for await(const chunk of response.body){size+=chunk.length;if(size>limit)throw new Error('Odpoveď služby prekročila limit.');chunks.push(chunk);}

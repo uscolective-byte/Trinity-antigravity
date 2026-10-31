@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul jobs.js (Trinity/src/jobs.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {z} from 'zod';
 import {agentById,selectTeam} from './registry.js';
 import {HttpError} from './security.js';

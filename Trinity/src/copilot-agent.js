@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul copilot-agent.js (Trinity/src/copilot-agent.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * TrinityCopilotAgent - Hlavný agent s podporou skill-registry a pluginov
  */
 

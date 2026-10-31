@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul os-registry.js (Trinity/src/os-registry.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * TRINITY 12.0 SOVEREIGN AI OPERATING SYSTEM REGISTRY & SCHEDULER
  * Riadiaca vrstva pre Agent Registry, Capability-First Scheduler, Policy Engine a Knowledge Graph.
  */

@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_DESKTOP_UI
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul modules.test.mjs (Local-Desktop/tests/modules.test.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {TrinityCloud} from '../modules/cloud.mjs';

@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul voice-agent.js (Trinity/src/voice-agent.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { HttpError } from './security.js';
 import { queryGraphContext } from './graph-memory.js';
 import { callModel } from './services.js';

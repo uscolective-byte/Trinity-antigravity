@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul project-inventory.mjs (scripts/project-inventory.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {execFileSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';

@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTH_AND_SECURITY_GATE
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul security.js (Trinity/src/security.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { timingSafeEqual } from 'node:crypto';
 export class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }

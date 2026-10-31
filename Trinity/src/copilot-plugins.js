@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul copilot-plugins.js (Trinity/src/copilot-plugins.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Copilot Plugin Ecosystem
  * Poskytuje správu pluginov pre Trinity Copilot:
  * - Registrácia pluginov s metadátami, závislosťami a zoznamom skillov

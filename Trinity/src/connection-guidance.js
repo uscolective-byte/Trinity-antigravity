@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul connection-guidance.js (Trinity/src/connection-guidance.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {googleOAuthConfigured} from './google-auth.js';
 
 // Informational only. A prompt cannot prove an external identity or authorize a role grant.

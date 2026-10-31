@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul free-modules.js (Trinity/src/free-modules.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Free Internet Modules & Open-Data Engine
  * Poskytuje overené, živé a 100% pravdivé dáta z bezplatných verejných internetových zdrojov.
  * Žiadne simulácie ani fiktívne čísla v súlade s Truth Policy 2.0.

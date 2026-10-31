@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul registry.js (Trinity/src/registry.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {EXTENDED_SKILLS} from './extended-catalog.js';
 import {PRACTICAL_TOOL_NAMES} from './practical-skills.js';
 

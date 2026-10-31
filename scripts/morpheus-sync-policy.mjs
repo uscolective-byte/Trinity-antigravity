@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul morpheus-sync-policy.mjs (scripts/morpheus-sync-policy.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 // Conservative release gate for automated Morpheus -> Trinity sync.
 // Mirror refs preserve source history; only low-risk text documentation
 // may merge automatically after the exact source merge passes security CI.

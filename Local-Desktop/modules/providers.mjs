@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_DESKTOP_UI
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul providers.mjs (Local-Desktop/modules/providers.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {boundedJSON} from './http.mjs';
 const GOOGLE='https://generativelanguage.googleapis.com/v1beta';
 export async function geminiModels(key,fetcher=fetch){

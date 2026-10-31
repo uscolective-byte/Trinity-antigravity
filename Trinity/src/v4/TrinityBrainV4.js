@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul TrinityBrainV4.js (Trinity/src/v4/TrinityBrainV4.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * TRINITY BRAIN V4 — AUTONOMOUS EVOLUTIONARY META-ORCHESTRATOR
  * Architektúra: Cloudflare Durable Object + Hybrid Bridge Sync
  * Sub-systémy: MetaBrain, QuantumCoreEngine (QCE-Fusion), EvoEngineV3, SkillForge, HybridBrain

@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem MEMORY_AND_KNOWLEDGE_ENGINE
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul teleological_memory.js (Trinity/src/teleological_memory.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Teleological Memory Engine
  * Bezpečné a robustné vyhľadávanie teleologických invariantov a existenčných cieľov Trinity.
  */

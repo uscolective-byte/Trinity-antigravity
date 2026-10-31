@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul pentad-circuit-breaker.js (Trinity/src/pentad-circuit-breaker.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 const DEFAULTS = Object.freeze({
   failureThreshold: 3,
   openMs: 60_000,

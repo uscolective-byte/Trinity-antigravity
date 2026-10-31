@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul assistant-bridge.js (Trinity/src/assistant-bridge.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {z} from 'zod';
 import {authenticateApiKey} from './api-keys.js';
 import {HttpError,readJSON} from './security.js';

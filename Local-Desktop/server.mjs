@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_DESKTOP_UI
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul server.mjs (Local-Desktop/server.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import http from 'node:http';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';

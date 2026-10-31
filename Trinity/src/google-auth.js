@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTH_AND_SECURITY_GATE
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul google-auth.js (Trinity/src/google-auth.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {equal,hash,HttpError,isOwnerEmail,issueSession} from './security.js';
 
 let cachedJwks=null,cachedJwksUntil=0;

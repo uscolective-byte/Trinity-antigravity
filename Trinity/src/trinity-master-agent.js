@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul trinity-master-agent.js (Trinity/src/trinity-master-agent.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {trinityMasterStatus} from './trinity-master-status.js';
 
 // A restricted Cloudflare Workers AI diagnostics assistant. No tools, deployment,

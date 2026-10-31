@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul followup.js (Trinity/src/followup.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Follow-Up Generator v1.0
  * Bezpečné ohraničené generovanie nadväzujúcich krokov bez rizika zacyklenia.
  */

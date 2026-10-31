@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul MetaBrain.js (Trinity/src/v4/MetaBrain.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity MetaBrain v10.4
  * Kognitívna percepcia, metafyzická interpretácia a archetypálny aparát.
  * Archetypy: Creator (tvorba), Ruler (štruktúra), Sage (múdrosť), Magician (transformácia), Rebel (disrupcia).

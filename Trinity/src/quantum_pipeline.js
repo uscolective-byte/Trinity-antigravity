@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul quantum_pipeline.js (Trinity/src/quantum_pipeline.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Quantum-Metaphysical Pipeline Orchestrator
  * Integrates Workers AI, local bridge verification, and ontological collapse into a unified execution flow.
  */

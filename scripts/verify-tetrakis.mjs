@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul verify-tetrakis.mjs (scripts/verify-tetrakis.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 // Read-only independent chain verification. No signer, private keys, or broadcasts.
 import { Contract, JsonRpcProvider, getAddress, keccak256 } from 'ethers';
 import { readFileSync } from 'node:fs';

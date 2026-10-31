@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul omni-tools.js (Trinity/src/omni-tools.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * TRINITY OMNI-TOOLS ARSENAL
  * 
  * Produkčný súbor overených nástrojov pre Cloudflare, GitHub, Mail, Universal API

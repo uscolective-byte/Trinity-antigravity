@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_BRIDGE_GATEWAY
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul bridge-heartbeat.mjs (Local-Gateway/src/bridge-heartbeat.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import os from 'node:os';
 
 async function postHeartbeat(baseUrl,key,body){

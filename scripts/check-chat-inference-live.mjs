@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul check-chat-inference-live.mjs (scripts/check-chat-inference-live.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {spawn,spawnSync} from 'node:child_process';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';

@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul capability-status.js (Trinity/src/capability-status.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {getPCBridgeStatus} from './system-actions.js';
 
 // Configuration, heartbeat and completed execution are deliberately separate.

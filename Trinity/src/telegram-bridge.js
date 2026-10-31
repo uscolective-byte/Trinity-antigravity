@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem EXTERNAL_CONNECTORS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul telegram-bridge.js (Trinity/src/telegram-bridge.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {callModel} from './services.js';
 import {equal,rateLimit,readJSON} from './security.js';
 import {getPCBridgeStatus} from './system-actions.js';

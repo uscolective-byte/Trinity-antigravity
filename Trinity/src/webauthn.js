@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTH_AND_SECURITY_GATE
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul webauthn.js (Trinity/src/webauthn.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 // src/webauthn.js: Passkey / Biometric WebAuthn Authentication & Credential Management
 
 import { hash, HttpError, issueSession, isOwnerEmail } from './security.js';

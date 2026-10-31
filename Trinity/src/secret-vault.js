@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul secret-vault.js (Trinity/src/secret-vault.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {verifyCloudflareToken} from './cloudflare-token.js';
 import {readTrinityMasterSecret} from './trinity-master-secrets.js';
 import {z} from 'zod';

@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem MCP_PROTOCOL_BRIDGE
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul mcp.js (Trinity/src/mcp.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {registerAppResource,registerAppTool,RESOURCE_MIME_TYPE} from '@modelcontextprotocol/ext-apps/server';
 import controlAppHtml from '../dist-mcp/control.html';
 import {infrastructureStatus} from './infrastructure.js';

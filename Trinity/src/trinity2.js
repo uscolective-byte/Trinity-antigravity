@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul trinity2.js (Trinity/src/trinity2.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {z} from 'zod';
 import {HttpError} from './security.js';
 import {extractModelText} from './services.js';

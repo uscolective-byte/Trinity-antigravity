@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul universal-ecosystem.js (Trinity/src/universal-ecosystem.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Universal Ecosystem Engine
  * Poskytuje nekonečný (on-demand syntetizovaný) ekosystém pre:
  * 1️⃣ Aplikácie (Web Studio, REST API, interaktívne nástroje a dashboardy)

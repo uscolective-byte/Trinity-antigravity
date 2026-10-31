@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_BRIDGE_GATEWAY
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul process-command.mjs (Local-Gateway/src/process-command.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import path from 'node:path';
 import fs from 'node:fs';
 

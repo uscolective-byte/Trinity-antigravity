@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul architecture.js (Trinity/src/architecture.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {TRINITY_VERSION} from './version.js';
 export const VERIFIED_ARCHITECTURE_CONTEXT = `
 ZDROJ PRAVDY ARCHITEKTÚRY TRINITY — používaj iba tieto údaje:

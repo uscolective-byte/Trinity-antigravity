@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul wallet-terminals.js (Trinity/src/wallet-terminals.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { z } from 'zod';
 import qrcode from 'qrcode-generator';
 import { secp256k1 } from '@noble/curves/secp256k1.js';

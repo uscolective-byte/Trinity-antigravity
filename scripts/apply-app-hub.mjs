@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul apply-app-hub.mjs (scripts/apply-app-hub.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import fs from 'node:fs';
 
 // 1. Update Trinity/src/mcp.js

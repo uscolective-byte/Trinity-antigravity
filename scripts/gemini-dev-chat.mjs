@@ -1,5 +1,12 @@
 #!/usr/bin/env node
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul gemini-dev-chat.mjs (scripts/gemini-dev-chat.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * ✦ TRINITY GEMINI LOCAL DEVELOPER CHAT
  * 
  * Interaktívny terminálový agent pre vývoj a správu ekosystému TRINITY

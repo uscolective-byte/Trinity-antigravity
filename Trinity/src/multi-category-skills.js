@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul multi-category-skills.js (Trinity/src/multi-category-skills.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Multi-Category Skills & Tool Suite
  * Poskytuje skutočné, overiteľné a vysoko kvalitné nástroje pre:
  * - Vývojárov (Regex tester, JSON Schema validácia, Analýza kódu)

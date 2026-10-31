@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul web-access.js (Trinity/src/web-access.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {HttpError} from './security.js';
 import {boundedText} from './services.js';
 

@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul cloudflare-doctor.mjs (scripts/cloudflare-doctor.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 // Read-only Cloudflare diagnostic. Never prints token values, arbitrary
 // environment variables, raw CLI output, or provider error bodies.
 import {readFileSync,existsSync} from 'node:fs';

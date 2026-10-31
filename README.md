@@ -47,11 +47,30 @@ Verzia, domény a vetva v oboch README sa generujú z aplikácie a Wrangler
 konfigurácie. Po zmene vydania spusti `node scripts/sync-release-docs.mjs`; CI kontroluje
 `node scripts/sync-release-docs.mjs --check`.
 
-## Dokumentácia a Špecifikácia 2026
+## Dokumentácia a Špecifikácia 2026 (TRINITY OMNI-CORE)
 
+- [ARCHITECTURE.md](ARCHITECTURE.md): Detailný rozpad 7 systémových vrstiev (Kernel, Orchestration, Memory, Sovereign Ledger v3, Execution, TruthGuard, Interface) a dátových tokov.
+- [API_REFERENCE.md](API_REFERENCE.md): Kompletná dokumentácia REST/RPC/MCP endpointov na Cloudflare Edge (`auru.space`, `auru.dev`) a lokálnom System Bridge (port `7788` a `3333`).
+- [SOVEREIGN_CHARTER.md](SOVEREIGN_CHARTER.md): Ústavná charta (5 základných neporušiteľných bodov + 20 právnych doložiek legality) a kryptografický Sovereign Lock.
+- [CHANGELOG.md](CHANGELOG.md): Záznam bezpečnostných záplat (P0/P1 audit remediations), integrácií a aktualizácií.
+- [DEPLOYMENT_RECEIPT.json](DEPLOYMENT_RECEIPT.json): Kryptografický a verifikačný doklad o nasadení na Cloudflare Edge a lokálnom moste.
 - [Kompletná systémová špecifikácia Trinity 2026](Trinity/docs/TRINITY_SOVEREIGN_SYSTEM_SPEC_2026.md): Detailný prehľad architektúry, 29 viazaných služieb, Truth Policy 2.0, nástrojov, modelov a nasadenia.
 - [Príručka používania nástrojov](Trinity/docs/TRINITY_NASTROJE_A_POUZIVANIE.md): Pravidlá pre Truth Policy, Puppeteer browser, GitHub Engine a Domain Engine.
 - [Postup jedného repozitára pre obe domény](Trinity/docs/SINGLE_REPOSITORY.md): Nasadenie, tagovanie a overenie produkcie a stagingu.
+
+## Architektúra OMNI-CORE, Porty a Bezpečnosť
+
+- **Cloudflare Edge (`https://auru.space` — Produkcia / `https://auru.dev` — Staging & Antigravity Omni-Dev Workspace):**
+  - 7-vrstvové jadro (`Trinity/src/sovereign-core-v3.js`), nemenná účtovná kniha `SovereignLedgerV3` (`Trinity/migrations/0055_sovereign_ledger_v3.sql`), `SovereignTruthGuard` (`Trinity/src/truth.js`) a `OmniDev Studio` AST diagnostika (`Trinity/src/omnidev-diagnostics.js`).
+- **Lokálny System Bridge (`http://127.0.0.1:7788` — `system-bridge.js` / `Local-Gateway/src/system-bridge.mjs`):**
+  - Lokálny most pre Ring 0 operácie, AST diagnostiku `OmniDev Studio` (`/api/omnidev/diagnose`) a privilegované vykonávanie (`/api/execute-privileged`).
+- **Autorizačné Jadro (`Trinity/src/trinity-auth-core.js` & `Local-Gateway/src/trinity-auth-core.mjs`):**
+  - Striktné **fail-closed** overenie identity vlastníka **Basterix (Sabo Ivan)**:
+    - Windows účty `saboi` / `basterix` vyžadujú autentický OS prístupový token (`osTokenVerified === true`) a platné Windows SID (`/^S-1-5-21-\d+-\d+-\d+-\d+$/`) zo `[System.Security.Principal.WindowsIdentity]::GetCurrent()`.
+    - Google účty (`saboivan2008@gmail.com`, `uscolective@gmail.com`, `cadjavadvocecka013@gmail.com`) vyžadujú `verifiedGoogleToken === true`.
+    - Mobilné čísla (`+421949009722`, `0949009722`, `+421949515777`, `0949515777`) vyžadujú `verifiedWebhookSignature === true`.
+- **Sovereign Lock & Durable Nonce Vault (`Trinity/src/sovereign-lock.js`):**
+  - HMAC-SHA256 `ConsentEnvelope` viazaný na SHA-256 hash `git diff` a trvalé atomické úložisko spotrebovaných `nonce` v D1 (`ops_consumed_nonces`), KV (`Mastermind` / `PC_STATE`) a lokálnom Disk Vaulte.
 
 ## Moduly
 

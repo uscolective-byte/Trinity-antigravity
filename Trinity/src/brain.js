@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul brain.js (Trinity/src/brain.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Autonomous Quantum Brain v2.0
  * Kvantový mozog pre Trinity: superpozícia myšlienok, teleologická pamäť,
  * fázová interferencia a ontologický kolaps do overenej pravdy.

@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul quantum_core.js (Trinity/src/quantum_core.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { QCA } from './qca.js';
 export { QCA };
 

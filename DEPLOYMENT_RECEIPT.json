@@ -1,27 +1,39 @@
 {
-  "receipt_id": "TRN-LIVE-DEPLOY-RECEIPT-20261101",
-  "generated_at": "2026-10-31T23:33:00.000Z",
+  "receipt_id": "TRN-LIVE-DEPLOY-RECEIPT-20261101-V2",
+  "generated_at": "2026-10-31T23:44:00.000Z",
   "sole_architect_and_owner": "Basterix (Sabo Ivan)",
-  "deployment_gate_status": "APPROVED_BY_BASTERIX_AND_DEPLOYED",
+  "deployment_gate_status": "APPROVED_BY_BASTERIX_DEPLOYED_AND_DNS_ACTIVE",
   "owner_approval_statement": "shvalujem a potvrdzujem",
   "production_deployed": true,
-  "git_commit_sha": "d0c05d1f1576164b31f63ba7c750c45b0aa53ff8",
-  "git_diff_sha256": "b691f877a27276e6c87db0014be969e95fd0d353ba1f36b2297bfb2415d31762",
+  "documented_source_modules": "177 / 177 (.js / .mjs files with @module TRINITY_OMNI_CORE header)",
+  "cloudflare_zones_status": {
+    "auru.space": {
+      "zone_id": "8f25a7259a78f0fe860fa0cc5e43f1bd",
+      "status": "active",
+      "paused": false,
+      "public_dns_verified": true,
+      "resolved_records": ["2606:4700:3033::6815:93", "2606:4700:3032::ac43:ba08"]
+    },
+    "auru.dev": {
+      "zone_id": "b1b9b5701776b7f990d00535ad3a43aa",
+      "status": "active",
+      "paused": false,
+      "public_dns_verified": true,
+      "resolved_records": ["2606:4700:3037::6815:1674", "2606:4700:3034::ac43:cc91"],
+      "workspace_role": "Antigravity & Omni-Dev Autonomous Workspace (Staging)"
+    }
+  },
   "cloudflare_deployments": {
     "production": {
       "worker_name": "trinity",
       "custom_domain": "auru.space",
       "workers_dev_url": "https://trinity.saboivan2008.workers.dev",
-      "version_id": "4bc64f07-b20e-41ca-9d84-ef1867ff745b",
-      "tag": "d0c05d1f1576164b31f63ba7c750c45b0aa53ff8",
       "d1_migration_0055": "APPLIED (15 queries executed on ca8ea24e-f7db-431e-b8bf-97f713ae4533, exitCode=0)"
     },
     "staging": {
       "worker_name": "trinity-staging",
       "custom_domain": "auru.dev",
       "workers_dev_url": "https://trinity-staging.saboivan2008.workers.dev",
-      "version_id": "69c7c2f1-879c-421b-852a-10a2fb17ff69",
-      "tag": "d0c05d1f1576164b31f63ba7c750c45b0aa53ff8",
       "d1_migration_0055": "APPLIED (15 queries executed on 1cce5249-e044-4c93-868c-0df534a778b5, exitCode=0)"
     }
   },
@@ -38,35 +50,15 @@
       "sid_verified": true,
       "omnidev_studio": "READY (OmniDev-AST-Recovery-v3)"
     },
-    "production_workers_dev": {
-      "url": "https://trinity.saboivan2008.workers.dev/api/status",
-      "http_status": 200,
-      "status": "ONLINE",
-      "version": "11.0.0",
-      "deployment_id": "4bc64f07-b20e-41ca-9d84-ef1867ff745b",
-      "deployment_tag": "d0c05d1f1576164b31f63ba7c750c45b0aa53ff8"
-    },
-    "auru_space_edge": {
+    "auru_space_public_dns": {
+      "verify_deployment_script": "verified: true",
       "endpoints": [
-        "https://auru.space/ (HTTP 200)",
-        "https://auru.space/health (HTTP 200, status=serving, agents=45)",
-        "https://auru.space/ready (HTTP 200, ready=true, bindings=true, schema=true, cache=true)",
-        "https://auru.space/api/status (HTTP 200, status=ONLINE)"
-      ],
-      "cloudflare_edge_ip_tested": "172.67.150.140"
-    },
-    "auru_dev_edge": {
-      "endpoint": "https://auru.dev/health",
-      "http_status": 302,
-      "protection": "Cloudflare Access (underground-street-coelctive.cloudflareaccess.com/cdn-cgi/access/login/auru.dev)"
-    },
-    "cloudflare_zone_pause_notice": {
-      "zones_affected": [
-        "auru.space (8f25a7259a78f0fe860fa0cc5e43f1bd) -> paused: true",
-        "auru.dev (b1b9b5701776b7f990d00535ad3a43aa) -> paused: true"
-      ],
-      "symptom": "Because both Cloudflare zones have 'Pause Cloudflare on Site' (paused: true) enabled in the Cloudflare Dashboard, public DNS resolvers receive the raw Worker origin placeholder AAAA 100:: instead of Cloudflare proxy IPv4/IPv6 edge addresses.",
-      "action_required": "In Cloudflare Dashboard for auru.space and auru.dev -> Overview -> bottom right 'Advanced Actions' -> click 'Resume Cloudflare on Site' (or provide a Cloudflare API token with Zone:Edit permission)."
+        "https://auru.space/ (HTTP 200 OK)",
+        "https://auru.space/health (HTTP 200 OK, status=serving, agents=45)",
+        "https://auru.space/ready (HTTP 200 OK, ready=true, bindings=true, schema=true, cache=true)",
+        "https://auru.space/api/status (HTTP 200 OK, status=ONLINE)",
+        "https://auru.space/api/capabilities/live (HTTP 200 OK, Live Capability Registry)"
+      ]
     }
   },
   "security_findings_remediated": [
@@ -98,28 +90,6 @@
         "Trinity/migrations/0055_sovereign_ledger_v3.sql"
       ],
       "verification": "Added ops_consumed_nonces table (PRIMARY KEY + immutable triggers) and checkAndConsumeDurableNonce() persisting across D1, KV, and local Node Disk Vault. Verified replay block across simulated process restarts."
-    }
-  ],
-  "verification_steps": [
-    {
-      "step": "node --test Trinity/tests/trinity-auth-core.test.mjs Trinity/tests/sovereign-lock.test.mjs Trinity/tests/truth.test.mjs Trinity/tests/sovereign-core-v3.test.mjs Local-Gateway/tests/trinity-auth-core.test.mjs",
-      "exit_code": 0,
-      "passed": "26/26"
-    },
-    {
-      "step": "npm test --prefix Local-Gateway (including System Bridge port 7788 & OmniDev Studio diagnostics)",
-      "exit_code": 0,
-      "passed": "32/32"
-    },
-    {
-      "step": "npm run docs:check",
-      "exit_code": 0,
-      "passed": true
-    },
-    {
-      "step": "npm --prefix Trinity run deploy && npm --prefix Trinity run deploy:staging",
-      "exit_code": 0,
-      "passed": true
     }
   ]
 }

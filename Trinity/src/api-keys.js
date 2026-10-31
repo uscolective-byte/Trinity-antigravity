@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul api-keys.js (Trinity/src/api-keys.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {z} from 'zod';
 import {hash,HttpError} from './security.js';
 

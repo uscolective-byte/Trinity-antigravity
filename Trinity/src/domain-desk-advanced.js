@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul domain-desk-advanced.js (Trinity/src/domain-desk-advanced.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { z } from 'zod';
 import { HttpError } from './security.js';
 import { getDomain, updateDomain, addDnsRecord, deleteDnsRecord, listDnsRecords } from './domains.js';

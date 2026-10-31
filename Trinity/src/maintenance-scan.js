@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul maintenance-scan.js (Trinity/src/maintenance-scan.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {callModel} from './services.js';
 import {githubRequest,rankProjectFiles,readProjectSource} from './project-evolution.js';
 import {createSelfImprovementProposal,approveSelfImprovementProposal,applySelfImprovementProposal} from './self-improvement.js';

@@ -1,5 +1,12 @@
 #!/usr/bin/env node
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul deploy-all-workers.mjs (scripts/deploy-all-workers.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Autonomous Fleet - Deploy All Workers Script
  * Deploys all 23 specialized workers + Trinity main worker to Cloudflare Edge.
  */

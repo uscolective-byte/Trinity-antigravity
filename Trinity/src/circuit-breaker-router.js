@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul circuit-breaker-router.js (Trinity/src/circuit-breaker-router.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {skillRegistry} from './skillRegistry.js';
 
 /**

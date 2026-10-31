@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul source-policy.mjs (scripts/source-policy.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {TRINITY_VERSION, TRINITY_SOURCE} from '../Trinity/src/version.js';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';

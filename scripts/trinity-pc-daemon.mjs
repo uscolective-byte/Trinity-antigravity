@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul trinity-pc-daemon.mjs (scripts/trinity-pc-daemon.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { runDaemonCycle, gatherTelemetry, executeShell, executeFileSystem, checkPrislubDeed } from '../Trinity/scripts/trinity-pc-daemon.mjs';
 
 export { runDaemonCycle, gatherTelemetry, executeShell, executeFileSystem, checkPrislubDeed };

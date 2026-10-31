@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_BRIDGE_GATEWAY
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul executor.mjs (Local-Gateway/src/executor.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {mkdir,readFile,rename,writeFile,copyFile,stat} from 'node:fs/promises';
 import path from 'node:path';
 import {spawn} from 'node:child_process';

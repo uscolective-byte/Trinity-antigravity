@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul neural_brain.js (Trinity/src/neural_brain.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Neural Brain v11.0
  * Neurálne pamäťové vrstvy (STM, LTM, CTM, ETM), dynamické prepínanie režimov myslenia
  * a integrovaný self-reflection cyklus pre Durable Object.

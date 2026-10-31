@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul practical-skills.js (Trinity/src/practical-skills.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {z} from 'zod';
 
 const isoDate=z.string().regex(/^\d{4}-\d{2}-\d{2}$/,'Použi dátum YYYY-MM-DD.');

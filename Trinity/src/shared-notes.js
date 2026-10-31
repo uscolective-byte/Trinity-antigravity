@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul shared-notes.js (Trinity/src/shared-notes.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {z} from 'zod';
 export const sharedNotesInput=z.object({changes:z.array(z.object({id:z.string().uuid(),text:z.string().max(8000),deleted:z.boolean().default(false),base_revision:z.number().int().min(0)}).strict()).max(5).default([]),cursor:z.string().uuid().optional()}).strict();
 export async function syncSharedNotes(env,input){

@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul register-plus-menu-claim.mjs (scripts/register-plus-menu-claim.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import fs from 'node:fs';
 
 const path = 'TEAM-HANDOFF.md';

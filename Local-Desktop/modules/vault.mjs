@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_DESKTOP_UI
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul vault.mjs (Local-Desktop/modules/vault.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {execFile} from 'node:child_process';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';

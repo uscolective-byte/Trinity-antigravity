@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul qca.js (Trinity/src/qca.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Quantum Cognitive Accelerator (QCA)
  * Trinity / Aura Meta-Layer
  * Autor: Sabo & Trinity

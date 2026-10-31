@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul workflow.js (Trinity/src/workflow.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {WorkflowEntrypoint} from 'cloudflare:workers';
 import {runAgent} from './engine.js';
 import {recallMemory} from './tools.js';

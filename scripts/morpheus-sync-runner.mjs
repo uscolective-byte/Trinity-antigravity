@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul morpheus-sync-runner.mjs (scripts/morpheus-sync-runner.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 // One-way Morpheus -> canonical Trinity synchronization. The legacy
 // repository is always read-only; never force-push, rewrite main or
 // bypass checks. GitHub Actions GITHUB_TOKEN handles archival and PRs.

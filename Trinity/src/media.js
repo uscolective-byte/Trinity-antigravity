@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul media.js (Trinity/src/media.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 export function mediaStatus(env) {
   return {
     images: {status:env.AI&&env.ARTIFACTS?'verified':env.ARTIFACTS?'configured':'not_configured',provider:env.IMAGE_MODEL||'@cf/black-forest-labs/flux-1-schnell',output:'private R2 artifact'},

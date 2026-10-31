@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul orchestrator.js (Trinity/src/orchestrator.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Active Orchestration Layer (src/orchestrator.js)
  * 
  * Provides unified, real-time coordination across all 23 specialized workers in the Trinity ecosystem

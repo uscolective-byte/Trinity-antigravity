@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_BRIDGE_GATEWAY
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul local-action-dispatcher.mjs (Local-Gateway/src/local-action-dispatcher.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Local Action Dispatcher (Hardened)
  * Bezpečné vykonávanie lokálnych operácií na počítači.
  * Eliminuje shell injection cez spawn(), ohraničuje prácu so súbormi a vynucuje whitelist.

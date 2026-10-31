@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul EvoEngineV3.js (Trinity/src/v4/EvoEngineV3.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity EvoEngine v3.0
  * Evolučné riadenie mozgu: fitness scoring, genetické mutácie archetypov a váh agentov,
  * selekcia a auto-rollback pri zlyhaní.

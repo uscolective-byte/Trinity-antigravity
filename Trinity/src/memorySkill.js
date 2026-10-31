@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem MEMORY_AND_KNOWLEDGE_ENGINE
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul memorySkill.js (Trinity/src/memorySkill.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 // src/memorySkill.js
 
 export const memorySkills = {

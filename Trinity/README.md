@@ -67,6 +67,10 @@ k Workspace, Drive ani Google Cloud; tie potrebujú samostatné oprávnenia.
 
 ## Dokumentácia
 
+- [Architektúra 7 vrstiev OMNI-CORE](../ARCHITECTURE.md) – Kernel, Orchestration, Memory, Sovereign Ledger v3, Execution, TruthGuard a Interface.
+- [API Referencia (Edge & Port 7788)](../API_REFERENCE.md) – REST/RPC/MCP endpointy na `auru.space`, `auru.dev` a lokálnom System Bridge (`127.0.0.1:7788`).
+- [Sovereign Charter (Ústavná charta)](../SOVEREIGN_CHARTER.md) – 5 základných neporušiteľných bodov, 20 právnych doložiek a pravidlá Sovereign Lock.
+- [Changelog & Bezpečnostné záplaty](../CHANGELOG.md) – prehľad P0/P1 opráv (fail-closed OAuth/SID overenie, trvalé D1/KV/Disk nonce úložisko, OmniDev AST diagnostika).
 - [Kompletná systémová špecifikácia Trinity 2026](docs/TRINITY_SOVEREIGN_SYSTEM_SPEC_2026.md) – architektúra triády, 29 viazaných služieb, Truth Policy 2.0, modely a nástroje.
 - [Používanie nástrojov a pravidlá správania](docs/TRINITY_NASTROJE_A_POUZIVANIE.md) – príručka pre prácu s Puppeteer prehliadačom, GitHubom a doménami.
 - [Postup jedného repozitára pre obe domény](docs/SINGLE_REPOSITORY.md) – nasadenie vývoja a produkcie.

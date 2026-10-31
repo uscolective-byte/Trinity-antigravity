@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul commodities-engine.js (Trinity/src/commodities-engine.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { z } from 'zod';
 import { HttpError } from './security.js';
 import { createPortfolio, listPortfolios, getPortfolio, recordTrade, setQuote } from './trading.js';

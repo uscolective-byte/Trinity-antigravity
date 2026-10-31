@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul finance-gateway.js (Trinity/src/finance-gateway.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { z } from 'zod';
 import { HttpError, hash } from './security.js';
 import { resolveProviderSecret } from './secret-vault.js';

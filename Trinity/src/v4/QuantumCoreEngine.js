@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul QuantumCoreEngine.js (Trinity/src/v4/QuantumCoreEngine.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Quantum Core Engine v10.4 (QCE-Fusion Wrapper)
  * Paralelný reasoning, vážená multi-agent fúzia (Guardian, Sentinel, Planner, Optimizer, Analyzer)
  * a generovanie rozhodovacieho plánu pre TrinityBrainV4.

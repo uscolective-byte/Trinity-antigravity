@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul trinity-master-status.js (Trinity/src/trinity-master-status.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {trinityMasterBindingStatus} from './trinity-master-secrets.js';
 
 // Metadata-only control-plane inventory. Do not read secret values here.

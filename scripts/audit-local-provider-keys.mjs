@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul audit-local-provider-keys.mjs (scripts/audit-local-provider-keys.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 // Explicitly scoped audit of the owner's known Trinity configuration.
 // Never print values, fingerprints, raw provider responses or request headers.
 import {readFile,writeFile} from 'node:fs/promises';

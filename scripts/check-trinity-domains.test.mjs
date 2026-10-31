@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul check-trinity-domains.test.mjs (scripts/check-trinity-domains.test.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { assessDomainResponse as assess } from './check-trinity-domains.mjs';

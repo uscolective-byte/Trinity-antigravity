@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_DESKTOP_UI
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul notes-sync.mjs (Local-Desktop/modules/notes-sync.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 // Content conflicts remain local and visible. No last-writer-wins overwrites.
 export async function syncNotes(cloud,notes){
  const merged=structuredClone(notes),conflicts=[];

@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_BRIDGE_GATEWAY
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul desktop.mjs (Local-Gateway/src/desktop.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {spawn} from 'node:child_process';
 
 const APPS=Object.freeze({

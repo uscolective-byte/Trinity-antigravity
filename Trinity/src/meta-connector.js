@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem EXTERNAL_CONNECTORS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul meta-connector.js (Trinity/src/meta-connector.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {HttpError,hash,readJSON,checkOrigin,authenticate} from './security.js';
 import {storeSecret,getSecretMaterial} from './secret-vault.js';
 

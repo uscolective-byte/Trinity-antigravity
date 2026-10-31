@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul revolut.js (Trinity/src/revolut.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {resolveProviderSecret} from './secret-vault.js';
 import bundledCatalog from '../config/revolut-pro-products.json' with {type:'json'};
 import {z} from 'zod';

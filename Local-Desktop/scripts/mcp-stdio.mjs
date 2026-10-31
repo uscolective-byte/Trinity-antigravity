@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_DESKTOP_UI
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul mcp-stdio.mjs (Local-Desktop/scripts/mcp-stdio.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {readFile} from 'node:fs/promises';
 import {createInterface} from 'node:readline';
 import {boundedJSON} from '../modules/http.mjs';

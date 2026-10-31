@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul SkillForge.js (Trinity/src/v4/SkillForge.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity SkillForge v10.4
  * Autonómna syntéza, registrácia, overovanie a exekúcia nových schopností Trinity.
  */

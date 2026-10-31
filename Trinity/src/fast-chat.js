@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul fast-chat.js (Trinity/src/fast-chat.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {languageDirective} from './cognition.js';
 export const FAST_TOOLS=new Set([
   'calculate','current_time','analyze_text','convert_units','statistics','infrastructure_status','project_snapshot',

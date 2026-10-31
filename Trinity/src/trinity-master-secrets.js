@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul trinity-master-secrets.js (Trinity/src/trinity-master-secrets.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * TRINITY_MASTER — named, least-privilege Secrets Store integration.
  *
  * Store metadata is public deployment configuration; secret values are never

@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul services.js (Trinity/src/services.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {createSystemAction,getSystemAction} from './system-actions.js';
 import {getConfiguredAIProvider,sanitizeApiKey} from './ai-providers.js';
 import {resolveProviderSecret} from './secret-vault.js';

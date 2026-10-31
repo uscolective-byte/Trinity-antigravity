@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul audit-log.js (Trinity/src/audit-log.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { sendTelegramAlert } from './domain-desk-advanced.js';
 // src/audit-log.js: Operational Audit Trail & Comprehensive Event Timeline
 

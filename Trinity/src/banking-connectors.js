@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem EXTERNAL_CONNECTORS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul banking-connectors.js (Trinity/src/banking-connectors.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Banking & Multi-Wallet Connectors Registry for Trinity
  * Adheres strictly to Hardcore Truth Policy 2.1.
  * Supports personal accounts, Open Banking, PayPal, Telegram Wallet, and on-chain crypto.

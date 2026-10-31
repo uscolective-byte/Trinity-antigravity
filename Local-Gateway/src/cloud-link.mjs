@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_BRIDGE_GATEWAY
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul cloud-link.mjs (Local-Gateway/src/cloud-link.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {executeProposal} from './executor.mjs';
 
 async function request(url,key,options={}){

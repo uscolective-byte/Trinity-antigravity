@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul sovereign-ai-os.js (Trinity/src/sovereign-ai-os.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * TRINITY 12.0 SOVEREIGN AI OPERATING SYSTEM CORE RUNTIME
  * Zjednocujúce jadro AI OS:
  * 1. Policy Engine & Compliance

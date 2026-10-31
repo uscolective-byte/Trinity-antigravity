@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul enable-chat-tools.mjs (scripts/enable-chat-tools.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {spawnSync} from 'node:child_process';
 import {readFileSync,writeFileSync,unlinkSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';

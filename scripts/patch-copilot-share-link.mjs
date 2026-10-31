@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul patch-copilot-share-link.mjs (scripts/patch-copilot-share-link.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import fs from 'node:fs';
 
 // 1. Update Trinity/public/assistant/chat.html

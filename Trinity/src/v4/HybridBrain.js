@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul HybridBrain.js (Trinity/src/v4/HybridBrain.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity HybridBrain v10.4
  * Inteligentné smerovanie výpočtov: Cloudflare Workers / Durable Object vs lokálny PC Bridge.
  */

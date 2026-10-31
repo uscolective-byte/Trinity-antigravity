@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_DESKTOP_UI
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul app.js (Local-Desktop/public/app.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 const $=id=>document.getElementById(id);
 const fragment=new URLSearchParams(location.hash.slice(1));
 if(fragment.get('token')){sessionStorage.setItem('trinity-token',fragment.get('token'));history.replaceState(null,'',location.pathname);}

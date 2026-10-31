@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul check-trinity-domains.mjs (scripts/check-trinity-domains.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 // Public, read-only domain checks. No credentials, DNS mutations or deployments.
 import dns from 'node:dns/promises';
 import { resolve } from 'node:path';

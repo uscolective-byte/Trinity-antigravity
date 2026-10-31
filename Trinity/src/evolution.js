@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul evolution.js (Trinity/src/evolution.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Trinity Evolution Engine v1.0
  * Automatická analýza chýb a kontinuálne seba-zdokonaľovanie Trinity.
  */

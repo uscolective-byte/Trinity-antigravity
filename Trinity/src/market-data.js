@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul market-data.js (Trinity/src/market-data.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 // Reálne trhové dáta pre komoditný desk. ŽIADNE vymyslené, simulované ani "predvolené" ceny.
 // Zdroj kotácií a sviečok: Yahoo Finance chart endpoint (bez kľúča, dáta sú oneskorené / neoficiálne).
 // Kurz USD→EUR: ECB cez frankfurter.app. Ak zdroj zlyhá, vraciame available:false s dôvodom – nikdy odhad.

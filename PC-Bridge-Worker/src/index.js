@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem PC_BRIDGE_EDGE_WORKER
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul index.js (PC-Bridge-Worker/src/index.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {DurableObject,WorkerEntrypoint} from 'cloudflare:workers';
 import {sanitizeActionEvent,sanitizeHeartbeat} from './policy.js';
 

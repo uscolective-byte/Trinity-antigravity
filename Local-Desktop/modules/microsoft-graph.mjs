@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_DESKTOP_UI
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul microsoft-graph.mjs (Local-Desktop/modules/microsoft-graph.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { boundedJSON } from './http.mjs';
 
 export const MICROSOFT_PROFILES = Object.freeze({

@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_DESKTOP_UI
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul cloud.mjs (Local-Desktop/modules/cloud.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {boundedJSON} from './http.mjs';
 export class TrinityCloud{
  constructor({environment='production',getToken,fetcher=fetch}){

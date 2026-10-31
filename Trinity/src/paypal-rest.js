@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul paypal-rest.js (Trinity/src/paypal-rest.js) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * PayPal REST API v2 Live Engine for Trinity
  * Implements production PayPal checkout, order creation, and capture.
  * Credentials (PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET) are read exclusively on the backend.

@@ -1,5 +1,12 @@
 #!/usr/bin/env node
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem AUTOMATION_AND_OPS_SCRIPTS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul create-tetrakis-wallet.mjs (scripts/create-tetrakis-wallet.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
+/**
  * Tetrakis ($TTK) - Official Treasury & Deployer Wallet Generator
  * Generates standard BIP-39 mnemonic phrase and deterministic EVM / Web3 keys
  * for the deployment and treasury of the Tetrakis cryptocurrency.

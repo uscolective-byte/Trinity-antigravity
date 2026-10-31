@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul planner.js (Trinity/src/planner.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 const normalize=(text)=>text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('sk');
 const has=(text,patterns)=>patterns.some(pattern=>text.includes(pattern));
 

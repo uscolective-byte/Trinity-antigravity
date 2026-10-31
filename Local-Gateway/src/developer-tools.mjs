@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_BRIDGE_GATEWAY
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul developer-tools.mjs (Local-Gateway/src/developer-tools.mjs) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {mkdir,writeFile,readFile,realpath} from 'node:fs/promises';
 import path from 'node:path';
 import {resolveSafePath,validatePackage,isInside} from './policy.mjs';

@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul plugins.js (Trinity/src/plugins.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import {EXTENDED_PLUGINS} from './extended-catalog.js';
 const CORE_PLUGINS=[
  {id:'task-planner',name:'Pracovný plánovač',icon:'◇',description:'Vytvorí ohraničený plán, riziká a podmienky dokončenia. Plán nie je vykonaná akcia ani oprávnenie.',tools:['plan_work'],dependency:'Zabudovaný plánovač Trinity',version:'1.0.0'},

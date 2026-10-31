@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul cognition.js (Trinity/src/cognition.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 const LANGUAGE_TAG=/^(?:auto|[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*)$/;
 
 export function normalizeLanguage(value='auto') {

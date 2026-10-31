@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem MEMORY_AND_KNOWLEDGE_ENGINE
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Modul graph-memory.js (Trinity/src/graph-memory.js) v ekosystéme TRINITY OMNI-CORE.
+ */
 import { z } from 'zod';
 import { HttpError } from './security.js';
 
