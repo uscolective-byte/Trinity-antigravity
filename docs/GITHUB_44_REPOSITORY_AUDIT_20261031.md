@@ -2,6 +2,8 @@
 
 **Kanonický jediný repozitár Trinity:** https://github.com/uscolective-byte/Trinity-antigravity. **Žiadne odstránenie zdrojových repozitárov sa v tomto audite nevykonalo.**
 
+**Súkromie:** Verejný audit maskuje názvy a technické metadáta 10 súkromných repo. Ich podrobnosti ostávajú dostupné iba v autorizovanom GitHub účte.
+
 Metóda: live výpis všetkých 44 vlastníckych repozitárov cez GitHub; kontrola základných metadát (veľkosť, hlavná vetva, viditeľnosť, fork/proveniencia) a názvov položiek v koreňovom strome každého repozitára. **Toto nie je audit všetkých commitov či súborov**, ani záloha. Stavy sú platné pre moment kontroly, súkromné cesty a tajomstvá sa nekopírujú.
 
 ## Záver
@@ -29,22 +31,22 @@ Metóda: live výpis všetkých 44 vlastníckych repozitárov cez GitHub; kontro
 | Repozitár | Viditeľnosť | Hlavná vetva | Veľkosť podľa GitHubu (KB) | Stav |
 | --- | --- | --- | ---: | --- |
 | [Auru_trinity](https://github.com/uscolective-byte/Auru_trinity) | public | main | 58 | nevymazávať bez migrácie/zálohy |
-| [Tenebris](https://github.com/uscolective-byte/Tenebris) | private | main | 102 | nevymazávať bez migrácie/zálohy |
+| private-repo-03 (redacted) | private | — | — | preskúmať iba v súkromnom prístupe |
 | [Trinity](https://github.com/uscolective-byte/Trinity) | public | main | 372 | nevymazávať bez migrácie/zálohy |
 | [trinityceo](https://github.com/uscolective-byte/trinityceo) | public | main | 505 | nevymazávať bez migrácie/zálohy |
 | [Trinitypro](https://github.com/uscolective-byte/Trinitypro) | public | main | 5 | nevymazávať bez migrácie/zálohy |
 | [Trinity-AI-asistent](https://github.com/uscolective-byte/Trinity-AI-asistent) | public | main | 0 | nevymazávať bez migrácie/zálohy |
-| [trinity-omni-core](https://github.com/uscolective-byte/trinity-omni-core) | private | main | 0 | nevymazávať bez migrácie/zálohy |
+| private-repo-04 (redacted) | private | — | — | preskúmať iba v súkromnom prístupe |
 | [Trinityprot](https://github.com/uscolective-byte/Trinityprot) | public | main | 79 | nevymazávať bez migrácie/zálohy |
 | [OMNITRINI](https://github.com/uscolective-byte/OMNITRINI) | public | main | 162 | nevymazávať bez migrácie/zálohy |
 | [AURU-BOT](https://github.com/uscolective-byte/AURU-BOT) | public | main | 21 | nevymazávať bez migrácie/zálohy |
-| [v8](https://github.com/uscolective-byte/v8) | private | main | 158 | nevymazávať bez migrácie/zálohy |
-| [trini-agent](https://github.com/uscolective-byte/trini-agent) | private | main | 118 | nevymazávať bez migrácie/zálohy |
-| [Trinity1](https://github.com/uscolective-byte/Trinity1) | private | main | 12 | nevymazávať bez migrácie/zálohy |
-| [terni](https://github.com/uscolective-byte/terni) | private | main | 160 | nevymazávať bez migrácie/zálohy |
+| private-repo-05 (redacted) | private | — | — | preskúmať iba v súkromnom prístupe |
+| private-repo-06 (redacted) | private | — | — | preskúmať iba v súkromnom prístupe |
+| private-repo-07 (redacted) | private | — | — | preskúmať iba v súkromnom prístupe |
+| private-repo-08 (redacted) | private | — | — | preskúmať iba v súkromnom prístupe |
 | [trinityprotoypv1](https://github.com/uscolective-byte/trinityprotoypv1) | public | main | 518 | nevymazávať bez migrácie/zálohy |
 | [trinity-morhfeus](https://github.com/uscolective-byte/trinity-morhfeus) | public | main | 5187 | nevymazávať bez migrácie/zálohy |
-| [Trinity-test](https://github.com/uscolective-byte/Trinity-test) | private | master | 1353 | nevymazávať bez migrácie/zálohy |
+| private-repo-10 (redacted) | private | — | — | preskúmať iba v súkromnom prístupe |
 | [TrinityV1](https://github.com/uscolective-byte/TrinityV1) | public | master | 1408 | nevymazávať bez migrácie/zálohy |
 | [trinitis](https://github.com/uscolective-byte/trinitis) | public | main | 1 | nevymazávať bez migrácie/zálohy |
 | [trinity-morfheus](https://github.com/uscolective-byte/trinity-morfheus) | public | main | 401 | nevymazávať bez migrácie/zálohy |
@@ -58,7 +60,7 @@ Metóda: live výpis všetkých 44 vlastníckych repozitárov cez GitHub; kontro
 | [Underground-Street-Collectivum](https://github.com/uscolective-byte/Underground-Street-Collectivum) | public | main | 14 | nevymazávať bez migrácie/zálohy |
 | [usc-project](https://github.com/uscolective-byte/usc-project) | public | main | 9 | nevymazávať bez migrácie/zálohy |
 | [vebsitem](https://github.com/uscolective-byte/vebsitem) | public | main | 391 | nevymazávať bez migrácie/zálohy |
-| [domenafixer](https://github.com/uscolective-byte/domenafixer) | private | main | 503 | nevymazávať bez migrácie/zálohy |
+| private-repo-02 (redacted) | private | — | — | preskúmať iba v súkromnom prístupe |
 | [Tenebris-qqq](https://github.com/uscolective-byte/Tenebris-qqq) | public | main | 126785 | nevymazávať bez migrácie/zálohy |
 
 
@@ -78,12 +80,12 @@ Metóda: live výpis všetkých 44 vlastníckych repozitárov cez GitHub; kontro
 
 | Repozitár | Viditeľnosť | Hlavná vetva | Veľkosť podľa GitHubu (KB) | Stav |
 | --- | --- | --- | ---: | --- |
-| [chanfana-openapi-templat](https://github.com/uscolective-byte/chanfana-openapi-templat) | private | main | 121 | nevymazávať bez migrácie/zálohy |
+| private-repo-01 (redacted) | private | — | — | preskúmať iba v súkromnom prístupe |
 | [next-starter-template](https://github.com/uscolective-byte/next-starter-template) | public | main | 217 | nevymazávať bez migrácie/zálohy |
 | [workflows-starter-template](https://github.com/uscolective-byte/workflows-starter-template) | public | main | 518 | nevymazávať bez migrácie/zálohy |
 | [openauth-template](https://github.com/uscolective-byte/openauth-template) | public | main | 124 | nevymazávať bez migrácie/zálohy |
 | [workflows-starter-templatex](https://github.com/uscolective-byte/workflows-starter-templatex) | public | main | 518 | nevymazávať bez migrácie/zálohy |
-| [kv-get-started](https://github.com/uscolective-byte/kv-get-started) | private | main | 2 | nevymazávať bez migrácie/zálohy |
+| private-repo-09 (redacted) | private | — | — | preskúmať iba v súkromnom prístupe |
 | [react-router-starter-templates](https://github.com/uscolective-byte/react-router-starter-templates) | public | main | 165 | nevymazávať bez migrácie/zálohy |
 | [vite-react-template](https://github.com/uscolective-byte/vite-react-template) | public | main | 160 | nevymazávať bez migrácie/zálohy |
 | [chanfana-openapi-template](https://github.com/uscolective-byte/chanfana-openapi-template) | public | main | 140 | nevymazávať bez migrácie/zálohy |
