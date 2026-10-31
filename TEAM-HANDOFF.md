@@ -1494,3 +1494,41 @@ Stav: WAITING_ANTIGRAVITY_ACK_AND_DIFF. Produkčný redeploy NEVYKONANÝ.
 - `npm test --prefix Local-Gateway` (including `tests/system-bridge.test.mjs` on Port 7788) -> **32 / 32 PASS** (`exitCode: 0`).
 - `npm run docs:check` -> **PASS** (`exitCode: 0`).
 - `npm --prefix Trinity run build` (`wrangler deploy --dry-run`) -> **PASS** (`exitCode: 0`, `4447.03 KiB / gzip: 1203.92 KiB`).
+
+
+---
+
+## UPDATE / HANDOFF — SOVEREIGN-AUDIT-REMEDIATION-DEPLOYED-20261101-ANTIGRAVITY-07
+
+- **Agent**: Antigravity
+- **Date**: 2026-11-01T00:33:00+01:00
+- **Task ID**: `SOVEREIGN-AUDIT-REMEDIATION-DEPLOYED-20261101-ANTIGRAVITY-07`
+- **Owner Approval**: `"shvalujem a potvrdzujem"` (Basterix)
+- **Git Commit on `origin/main`**: `d0c05d1f1576164b31f63ba7c750c45b0aa53ff8`
+- **Status**: `COMPLETED_AND_DEPLOYED`
+
+### 1. Remote D1 Migrations & Cloudflare Edge Deployments (`exitCode === 0`)
+- **Production D1 (`trinity-v03` / `ca8ea24e-f7db-431e-b8bf-97f713ae4533`)**: Applied `0055_sovereign_ledger_v3.sql` (`ops_consumed_nonces` + immutability triggers) — 15 queries executed (`exitCode: 0`).
+- **Staging D1 (`trinity-development` / `1cce5249-e044-4c93-868c-0df534a778b5`)**: Applied `0055_sovereign_ledger_v3.sql` — 15 queries executed (`exitCode: 0`).
+- **Production Worker `trinity` (`auru.space`, `trinity.saboivan2008.workers.dev`)**:
+  - **Version ID**: `4bc64f07-b20e-41ca-9d84-ef1867ff745b`
+  - **Tag**: `d0c05d1f1576164b31f63ba7c750c45b0aa53ff8`
+- **Staging Worker `trinity-staging` (`auru.dev`, `trinity-staging.saboivan2008.workers.dev`)**:
+  - **Version ID**: `69c7c2f1-879c-421b-852a-10a2fb17ff69`
+  - **Tag**: `d0c05d1f1576164b31f63ba7c750c45b0aa53ff8`
+
+### 2. Live HTTP & DNS Verification Receipts
+- **Local System Bridge (`GET http://127.0.0.1:7788/api/status`)**: `HTTP 200 OK` — `status: "ONLINE"`, `active_operator: "saboi"`, `domain: "basterix"`, `is_root_authorized: true`, `system_role: "BASTERIX_ROOT"`, `os_token_verified: true`, `sid_verified: true`, `omnidev_studio.status: "READY"`.
+- **Production Worker (`GET https://trinity.saboivan2008.workers.dev/api/status`)**: `HTTP 200 OK` — `status: "ONLINE"`, `version: "11.0.0"`, `deployment.id: "4bc64f07-b20e-41ca-9d84-ef1867ff745b"`, `deployment.tag: "d0c05d1f1576164b31f63ba7c750c45b0aa53ff8"`.
+- **Custom Domain `auru.space` via Cloudflare Edge (`172.67.150.140`)**:
+  - `GET https://auru.space/` -> `HTTP 200 OK`
+  - `GET https://auru.space/health` -> `HTTP 200 OK` (`status: "serving"`, `agents: 45`, `deployment.id: "4bc64f07-b20e-41ca-9d84-ef1867ff745b"`)
+  - `GET https://auru.space/ready` -> `HTTP 200 OK` (`ready: true`, `bindings: true, schema: true, cache: true`)
+  - `GET https://auru.space/api/status` -> `HTTP 200 OK` (`status: "ONLINE"`)
+- **Custom Domain `auru.dev` via Cloudflare Edge (`172.67.150.140`)**:
+  - `GET https://auru.dev/health` -> `HTTP 302 Found` redirect to Cloudflare Access (`underground-street-coelctive.cloudflareaccess.com/cdn-cgi/access/login/auru.dev`).
+- **Root Cause of Public DNS Failure (`DNS name could not be resolved` reported in ChatGPT-05)**:
+  - Verified directly via Cloudflare API (`GET /client/v4/zones`): both zones `auru.space` (`8f25a7259a78f0fe860fa0cc5e43f1bd`) and `auru.dev` (`b1b9b5701776b7f990d00535ad3a43aa`) have `"paused": true` ("Pause Cloudflare on Site") enabled in the Cloudflare Dashboard.
+  - When a Cloudflare zone is paused, Cloudflare disables orange-cloud proxying and returns the raw Worker placeholder record (`AAAA 100::`, RFC 6666 discard prefix) with no `A` record.
+  - Attempting `PATCH /client/v4/zones/{id}` with `{"paused": false}` using the local Wrangler OAuth token returned `HTTP 403 (code 9109: Unauthorized to access requested resource)`.
+  - **Action for Basterix**: Unpause both zones in Cloudflare Dashboard (`auru.space` and `auru.dev` -> Overview -> right sidebar -> **Resume Cloudflare on Site**) so Cloudflare's authoritative nameservers immediately resume serving proxy `A`/`AAAA` edge IPs.
