@@ -1186,3 +1186,11 @@ Súbory:
 Overené: Cloudflare oficiálne API rozlišuje user `/user/tokens/verify` a account `/accounts/{account_id}/tokens/verify`. Wrangler D1 migration môže použiť binding `DB` alebo názov databázy. Nezávislé živé /health a /ready sa nedali overiť; GitHub Actions PR #22 nemajú dostupné job kroky ani logy, príčina zlyhania CI neznáma.
 Neoverené: lokálny runtime/testy, tokeny Cloudflare, skutočné API oprávnenia, Worker deploy. Zariadenie Basterix v Desktop Commander offline. Nespustené žiadne DB migrácie, deploy, rotácie ani merge.
 Nasledujúci postup: skontrolovať zelené CI po oprave GitHub Actions runner/billing, spustiť doctor na autorizovanom PC, overiť staging a až potom produkciu. Nový API token nevydávať pred potvrdením neplatnosti alebo chýbajúcich scope. ACK za iného agenta nebol vytvorený.
+
+### CLAIM ADDENDUM — FIX-TRINITY-RELEASE-20261031-CHATGPT-02
+Vlastník: ChatGPT via GitHub connector, pokračovanie na výslovnú požiadavku používateľa „vykonaj oprav všetko“ z 31.10.2026.
+Branch: `fix/secrets-readiness-and-release-docs-20261031`; bez zmeny vlastníka iných otvorených vetiev.
+Súbory: `Trinity/src/engine.js`, `Trinity/src/secret-vault.js`, `Trinity/src/external-integrations.js`, `Trinity/wrangler.jsonc`, `.github/workflows/webpack.yml`, `.github/workflows/self-deploy.yml` a súvisiace testy/dokumentácia.
+Cieľ: opraviť falošné vykonané receipts, overovanie Firebase/AI provider tokenov, GitHub identity a bezpečnostné prepínače; zachovať kompatibilitu a testové kontrolné brány.
+Dôkazy pred zmenou: GitHub CI jobs PR #22 zlyhávajú bez krokov a logs 404 BlobNotFound; 30.10.2026 oficiálny GitHub incident Actions, aktuálne resolved, nemožno tvrdiť kauzalitu. Desktop Commander BASTERIX offline. Bez nasadenia, mazania, transferu secrets alebo zrušenia ochranných kontrol.
+Stav: IN PROGRESS, funkčné zmeny iba cez PR #22. 
