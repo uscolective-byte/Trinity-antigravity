@@ -25,11 +25,23 @@ test('KV successful put is actual persistence evidence',async()=>{
 test('D1 successful run is actual persistence evidence',async()=>{
   let saved=[];
   const r=await persistPCTelemetry({trinity_basterix:{
-    prepare:sql=>({bind:(...params)=>({run:async()=>{saved=[sql,params];}})})
+    prepare:sql=>({bind:(...params)=>({run:async()=>{saved=[sql,params];return {success:true};}})})
   }},body);
   assert.deepEqual(r.backends,['trinity_basterix']);
   assert.match(saved[0],/INSERT INTO pc_telemetry/);
   assert.equal(saved[1][0],'pc');
+});
+
+test('D1 result success:false must not be counted as persistence',async()=>{
+  const r=await persistPCTelemetry({trinity_basterix:{prepare:()=>({bind:()=>({run:async()=>({success:false})})})}},body);
+  assert.deepEqual(r.backends,[]);
+  assert.equal(r.stored,false);
+});
+
+test('D1 missing success receipt must not be counted as persistence',async()=>{
+  const r=await persistPCTelemetry({trinity_basterix:{prepare:()=>({bind:()=>({run:async()=>({})})})}},body);
+  assert.deepEqual(r.backends,[]);
+  assert.equal(r.stored,false);
 });
 
 test('failed KV and D1 writes must never be described as stored',async()=>{
