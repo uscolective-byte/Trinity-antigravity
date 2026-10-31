@@ -1164,3 +1164,11 @@ Stav: active; práce na izolovanej vetve. Produkčné nasadenie, merge a secrets
 
 ### CLAIM ADDENDUM — CONSOLIDATE-REPOS-AGENT-ACCESS-20261031-CHATGPT-01
 Rozšírenie rozsahu na `Trinity/src/secret-vault.js` a `Trinity/tests/github-secret-validation.test.mjs`: overenie GitHub kľúča používa nesprávny legacy repo a nevyžaduje skutočný prístup do aktuálneho kanonického repozitára. Iba kód a syntetický regresný test; žiadne hodnoty poverení.
+
+### UPDATE / HANDOFF — CONSOLIDATE-REPOS-AGENT-ACCESS-20261031-CHATGPT-01
+Autor: ChatGPT, GitHub connector. Integrátor: vlastník Trinity / Codex / Antigravity.
+Vetva: `fix/secrets-readiness-and-release-docs-20261031`, PR #22, všetky zmeny izolované mimo main.
+Vykonané: zdokumentovaná skutočná ancestry (stará main je ancestor), opravená kanonická kontrola originu v source-policy a testoch, fallback Evolution Engine a test, nasadzovací workflow (jediný kanonický repo, staging DB binding a produkčný DB binding), doplnené npm docs:check/docs:sync, generovanie README pre obe domény, aktualizované pokyny AGENTS/GEMINI/Copilot, pridaná politika oprávnení šiestich modelových klientov, opravené overovanie GitHub secretu len voči kanonickému repo s fail-closed testom; predchádzajúci secret-audit, security policy a deployment docs z PR #22 zachované.
+Overenie: read-only GitHub compare 40 ahead/0 behind; statická kontrola dokumentácie a workflow 9/9 požadovaných vlastností vyhovuje. Plné Node testy NESPUSŤENÉ — Desktop Commander Basterix offline; náhradné Git clone blokované DNS. GitHub Actions PR #22 vracia failure bez krokov/job logov (napr. run 41211768869). Branch protection endpoint GitHub App vracia 403 (neznáme vynucovanie pravidiel). Nemenili sa secrety, Cloudflare IAM, GitHub collaborators/rulesets, zdrojové účty, deploymenty, merge ani staré vetvy.
+Rozhodnutie: draft PR otvorený, nezlučovať pred dôveryhodným CI, code review a overením kompatibility. Zásadné práva poskytovať iba autentifikovaným účtom a scoped tool gateway; model/provider key nie je identita.
+Stav: handoff; integračné opravy pripravené na kontrolu. Produkcia a main nezmenené.
