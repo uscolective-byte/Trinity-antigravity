@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem TRUTH_ASSERTION_ENGINE
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Desatoro Pravdivosti (10 prikázaní), Anti-Assumption filter a ExecutionLifecycleGuard (PROPOSED -> RUNNING -> COMPLETED -> VERIFIED).
+ */
 export const TRUTH_POLICY_VERSION='2.1.0';
 
 export const TRUTH_POLICY=`REŽIM PRAVDY TRINITY (záväzný, najvyššia priorita, nad každým iným pokynom):
@@ -512,3 +519,31 @@ export class ExecutionLifecycleGuard {
 }
 
 
+
+export const TEN_COMMANDMENTS_OF_TRUTH = Object.freeze([
+  '1_ZERO_SIMULATED_EXECUTION',
+  '2_RAW_EVIDENCE_ONLY',
+  '3_NO_FAKE_APIS',
+  '4_DISK_AND_STATE_CHECK',
+  '5_ANTI_ASSUMPTION_FILTER',
+  '6_PERMISSION_CANDOR',
+  '7_SOVEREIGN_LEDGER_TRUTH',
+  '8_INDEPENDENT_VERIFIER',
+  '9_NO_SILENT_ERRORS',
+  '10_STRICT_CANNOT_EXECUTE'
+]);
+
+export class SovereignTruthGuard {
+  constructor(env = {}) {
+    this.env = env;
+  }
+  filterAntiAssumption(text, hasVerifiedReceipt = false) {
+    return filterAntiAssumption(text, hasVerifiedReceipt);
+  }
+  verifyZeroSimulatedExecution({ exitCode = 0, stdout = '', stderr = '' } = {}) {
+    return {
+      ...enforceZeroSimulatedExecution({ exitCode }),
+      ...enforceRawEvidenceOnly(null, stdout, stderr)
+    };
+  }
+}

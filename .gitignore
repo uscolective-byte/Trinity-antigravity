@@ -42,3 +42,8 @@ trinity-mcp-bridge/logs/
 .claude/
 opencode.json
 
+
+**/.env
+**/.env.*
+*service-account*.json
+.trinity-consumed-nonces.json

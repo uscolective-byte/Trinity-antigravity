@@ -70,3 +70,18 @@ CREATE TABLE IF NOT EXISTS ops_state_replay (
 );
 
 CREATE INDEX IF NOT EXISTS idx_replay_exec ON ops_state_replay(execution_id);
+
+-- 5. Durable Atomic Nonce Store (Anti-Replay for Ring 0 Consent Envelopes)
+CREATE TABLE IF NOT EXISTS ops_consumed_nonces (
+  nonce TEXT PRIMARY KEY,
+  actor TEXT NOT NULL,
+  operation TEXT NOT NULL,
+  diff_sha256 TEXT NOT NULL,
+  consumed_at TEXT NOT NULL,
+  created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+CREATE TRIGGER IF NOT EXISTS nonces_no_update BEFORE UPDATE ON ops_consumed_nonces BEGIN SELECT RAISE(ABORT, 'ops_consumed_nonces is strictly immutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS nonces_no_delete BEFORE DELETE ON ops_consumed_nonces BEGIN SELECT RAISE(ABORT, 'ops_consumed_nonces is strictly append-only'); END;
+

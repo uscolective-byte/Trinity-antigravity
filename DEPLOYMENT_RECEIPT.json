@@ -1,0 +1,120 @@
+{
+  "receipt_id": "TRN-PREP-RECEIPT-1793488828361",
+  "generated_at": "2026-10-31T23:20:28.361Z",
+  "sole_architect_and_owner": "Basterix (Sabo Ivan)",
+  "deployment_gate_status": "AWAITING_BASTERIX_CRYPTOGRAPHIC_SOVEREIGN_LOCK_APPROVAL",
+  "production_deployed": false,
+  "reason_not_deployed_yet": "Rule 1 of Sovereign Lock: Production deployment awaits explicit cryptographic approval of the prepared changes by Basterix.",
+  "git_diff_sha256": "b691f877a27276e6c87db0014be969e95fd0d353ba1f36b2297bfb2415d31762",
+  "git_diff_bytes": 101528,
+  "security_findings_remediated": [
+    {
+      "id": "FINDING_1_CRITICAL_PLAIN_TEXT_IDENTITY_SPOOFING",
+      "status": "FIXED_AND_TESTED",
+      "files": [
+        "Trinity/src/trinity-auth-core.js",
+        "Local-Gateway/src/trinity-auth-core.mjs",
+        "Local-Gateway/src/server.mjs",
+        "Local-Gateway/src/system-bridge.mjs"
+      ],
+      "verification": "verifyTrinityIdentity() now fails closed (SPOOFED_UNVERIFIED_*_INPUT / 403 ACCESS DENIED) unless verifiedGoogleToken === true, verifiedWebhookSignature === true, or osTokenVerified === true + valid real Windows SID."
+    },
+    {
+      "id": "FINDING_2_HIGH_SYNTHETIC_WINDOWS_SID",
+      "status": "FIXED_AND_TESTED",
+      "files": [
+        "Trinity/src/trinity-auth-core.js",
+        "Local-Gateway/src/trinity-auth-core.mjs"
+      ],
+      "verification": "Removed synthetic S-1-5-21-BASTERIX-* fallback and env USERNAME trust. Requires authentic SID matching /^S-1-5-21-\\d+-\\d+-\\d+-\\d+$/ from [System.Security.Principal.WindowsIdentity]::GetCurrent() with osTokenVerified === true."
+    },
+    {
+      "id": "FINDING_3_HIGH_DURABLE_ATOMIC_NONCE_STORAGE",
+      "status": "FIXED_AND_TESTED",
+      "files": [
+        "Trinity/src/sovereign-lock.js",
+        "Trinity/migrations/0055_sovereign_ledger_v3.sql"
+      ],
+      "verification": "Added ops_consumed_nonces table (PRIMARY KEY + immutable triggers) and checkAndConsumeDurableNonce() persisting across D1, KV, and local Node Disk Vault. Verified replay block across simulated process restarts (clearInMemoryNoncesOnlyForRestartSimulation)."
+    }
+  ],
+  "updated_and_documented_files": [
+    "M .gitignore",
+    "M Local-Gateway/src/server.mjs",
+    "M Local-Gateway/src/trinity-auth-core.mjs",
+    "M Local-Gateway/tests/trinity-auth-core.test.mjs",
+    "M TEAM-HANDOFF.md",
+    "M Trinity/migrations/0055_sovereign_ledger_v3.sql",
+    "M Trinity/src/engine.js",
+    "M Trinity/src/external-integrations.js",
+    "M Trinity/src/index.js",
+    "M Trinity/src/omnidev-diagnostics.js",
+    "M Trinity/src/plugins.js",
+    "M Trinity/src/registry.js",
+    "M Trinity/src/skill-matrix.js",
+    "M Trinity/src/sovereign-core-v3.js",
+    "M Trinity/src/sovereign-lock.js",
+    "M Trinity/src/studio.js",
+    "M Trinity/src/tools.js",
+    "M Trinity/src/trinity-auth-core.js",
+    "M Trinity/src/truth.js",
+    "M Trinity/tests/sovereign-lock.test.mjs",
+    "M Trinity/tests/trinity-auth-core.test.mjs",
+    "?? API_REFERENCE.md",
+    "?? ARCHITECTURE.md",
+    "?? CHANGELOG.md",
+    "?? Local-Gateway/src/system-bridge.mjs",
+    "?? Local-Gateway/tests/system-bridge.test.mjs",
+    "?? system-bridge.js"
+  ],
+  "active_bindings_configured": {
+    "d1_databases": [
+      "DB (trinity-v03)",
+      "rea (trinity-db)",
+      "trinity_basterix (trinity-pc-bridge)"
+    ],
+    "kv_namespaces": [
+      "Mastermind",
+      "PC_STATE"
+    ],
+    "r2_buckets": [
+      "ARTIFACTS (trinity-artifacts)"
+    ],
+    "durable_objects": [
+      "Brain (TrinityAgent)",
+      "CHAT_AGENT",
+      "GUARDIAN_AGENT"
+    ],
+    "workflows": [
+      "OPS_WORKFLOW (trinity-operations)"
+    ],
+    "service_bindings_count": 29,
+    "domains": [
+      "auru.space (production)",
+      "auru.dev (staging / omni-dev)"
+    ],
+    "local_system_bridge_port": 7788
+  },
+  "verification_steps": [
+    {
+      "step": "node --test Trinity/tests/trinity-auth-core.test.mjs Trinity/tests/sovereign-lock.test.mjs Trinity/tests/truth.test.mjs Trinity/tests/sovereign-core-v3.test.mjs Local-Gateway/tests/trinity-auth-core.test.mjs",
+      "exit_code": 0,
+      "passed": "26/26"
+    },
+    {
+      "step": "npm test --prefix Local-Gateway (including System Bridge port 7788 & OmniDev Studio diagnostics)",
+      "exit_code": 0,
+      "passed": "32/32"
+    },
+    {
+      "step": "npm run docs:check",
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "step": "npm --prefix Trinity run build (wrangler deploy --dry-run)",
+      "exit_code": 0,
+      "bundle_size_kib": 4447.03
+    }
+  ]
+}

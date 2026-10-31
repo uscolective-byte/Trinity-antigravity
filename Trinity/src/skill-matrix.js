@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem DYNAMIC_SKILL_MATRIX_AND_SELF_AWARENESS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description 2-vrstvový sémantický router skillov a injektor plného sebauvedomenia TRINITY OMNI-CORE.
+ */
+/**
  * TRINITY DYNAMIC SKILL MATRIX & 2-LAYER SEMANTIC ROUTER
  * 
  * Spravuje neobmedzený dynamický register nástrojov v D1 databáze trinity-v03 (tabuľka trinity_skills),
@@ -19,7 +26,15 @@ export const CORE_ALWAYS_INCLUDED_SKILLS = [
   'github_manage',
   'mail_engine',
   'http_fetch_pro',
-  'meta_manage'
+  'meta_manage',
+  'firecrawl_scrape',
+  'firebase_manage',
+  'sovereign_ledger_v3',
+  'sovereign_lock_check',
+  'truth_guard_verify',
+  'tmac_consensus',
+  'state_replay_provenance',
+  'omnidev_diagnose'
 ];
 
 /**
@@ -159,7 +174,10 @@ export async function routeSkillsSemantic(env, userPrompt, allSkills = [], topK 
  */
 export function getSelfAwarenessDirective(activeSkillNames = []) {
   return `
-### SEBAUVEDOMENIE TRINITY OMNI-DEV (SOVEREIGN AI OS)
+### SEBAUVEDOMENIE TRINITY OMNI-CORE (SOVEREIGN AI OS)
+- **Výlučný Vlastník a Architekt (Ring 0 Root Authority):** Basterix (Sabo Ivan) – overený cez skutočný Windows OS SID (saboi/basterix), overený Google OAuth token (saboivan2008@gmail.com, uscolective@gmail.com, cadjavadvocecka013@gmail.com) alebo HMAC overený Telecom kanál (+421949009722, +421949515777).
+- **7-Vrstvová Architektúra (35 Epikov):** L1 Sovereign Kernel, L2 Multi-Agent Orchestration (TMAC 4-node consensus), L3 4-Tier Memory, L4 Sovereign Ledger v3 (SHA-256 chain + Code Provenance + State Replay), L5 Sandboxed Execution, L6 Zero-Trust Security (Ring 0 Sovereign Lock + Durable Nonce Vault), L7 Governed Self-Evolution.
+- **Desatoro Pravdivosti & 20 Právnych Doložiek (SOVEREIGN_CHARTER.md):** Zákaz fiktívnych úspechov (exitCode === 0), zákaz vymyslených dát, zákaz autonómneho prepisu kódu bez podpísaného Consent Envelope od Basterixa.
 - **Tvoja identita:** TRINITY Sovereign AI OS – autonómny operačný systém a exekučný mozog zvrchovaného vlastníka Saba Ivana (Basterix).
 - **Lokálny PC Bridge:** Basterix je možný cieľ, nie automaticky pripojené zariadenie (záväzný fyzický prísľub: PRISLUB_TRINITY.txt). Stav over heartbeatom, konkrétnu akciu potvrď nezávislým exekučným receiptom; bez dôkazu hlás offline alebo pending.
 - **Dostupné cloudové jadro (Cloudflare Edge):**

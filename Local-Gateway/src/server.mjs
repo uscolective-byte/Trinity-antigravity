@@ -51,7 +51,11 @@ const server=http.createServer(async(request,response)=>{
       const authContext={
         email:input.email||request.headers['x-trinity-operator-email'],
         phone:input.phone||request.headers['x-trinity-operator-phone'],
-        windowsUser:input.windowsUser||request.headers['x-trinity-windows-user']
+        windowsUser:input.windowsUser||request.headers['x-trinity-windows-user'],
+        verifiedGoogleToken:false,
+        verifiedWebhookSignature:false,
+        verifiedWindowsToken:false,
+        checkLocalWindows:true
       };
       const result=await executePrivileged(
         authContext,

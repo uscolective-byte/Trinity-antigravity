@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem SOVEREIGN_LEDGER_V3
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Sedemvrstvová architektúra (35 epikov), kryptografický reťazený Sovereign Ledger v3, TMAC konsenzus, Code Provenance a State Replay.
+ */
+/**
  * TRINITY OMNI-CORE & SOVEREIGN LEDGER V3
  * Autonomous Core, Runtime Orchestration, Multi-Agent Consensus (TMAC),
  * Truth-Assertion Protocol, Compute Budgeting, and Hardware/System Safeguards.
@@ -554,3 +561,36 @@ export class ZeroTrustSecurityCore {
   }
 }
 
+
+export const SOVEREIGN_ARCHITECTURE = Object.freeze({
+  version: '11.0.0',
+  layers: Object.freeze({
+    L1_KERNEL: ['EP-01', 'EP-02', 'EP-03', 'EP-04'],
+    L2_ORCHESTRATION: ['EP-05', 'EP-06', 'EP-07', 'EP-08'],
+    L3_MEMORY: ['EP-09', 'EP-10', 'EP-11', 'EP-12', 'EP-13'],
+    L4_LEDGER: ['EP-14', 'EP-15', 'EP-16', 'EP-17', 'EP-18', 'EP-19'],
+    L5_EXECUTION: ['EP-20', 'EP-21', 'EP-22', 'EP-23', 'EP-24', 'EP-25'],
+    L6_SECURITY: ['EP-26', 'EP-27', 'EP-28', 'EP-29', 'EP-30'],
+    L7_EVOLUTION: ['EP-31', 'EP-32', 'EP-33', 'EP-34', 'EP-35']
+  }),
+  total_epics: 35
+});
+
+export class TMACConsensusEngine {
+  evaluateConsensus({ proposalId, votes = {} } = {}) {
+    const vetoed = Boolean(votes?.sentinel?.veto);
+    const approvedCount = [
+      Boolean(votes.planner),
+      Boolean(votes.builder),
+      Boolean(votes.auditor),
+      Boolean(votes?.sentinel?.approved ?? true)
+    ].filter(Boolean).length;
+    return {
+      proposal_id: proposalId,
+      approved: !vetoed && approvedCount >= 3,
+      vetoed,
+      approved_nodes: approvedCount,
+      evaluated_at: new Date().toISOString()
+    };
+  }
+}

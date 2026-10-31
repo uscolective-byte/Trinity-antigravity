@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem EDGE_KERNEL_AND_HTTP_ROUTER
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Hlavný Cloudflare Edge Worker router pre domény auru.space (production) a auru.dev (staging / omni-dev), MCP bránu, D1/KV/R2 bindingy a Ring 0 autorizáciu.
+ */
 import {revolutProStatus,configureRevolutPro,handleRevolutProPublic,paypalStatus,configurePaypal,commerceStatus,configureCommerceAccounts,upsertCommerceProduct,deleteCommerceProduct,handleCommercePublic} from './revolut.js';
 import {paypalDiagnostics,createPayPalOrder,capturePayPalOrder,getPayPalOrderStatus,handlePayPalCheckoutApi} from './paypal-rest.js';
 import {getUiEvolutionState,applyUiEvolution,handleUiChangeAction,renderDynamicThemeCss} from './ui-evolution.js';
@@ -29,6 +36,7 @@ import {searchMemory,runTool} from './tools.js';
 import {PLUGINS,listPlugins,pluginEnabled,installPlugin,installAllPlugins} from './plugins.js';
 import {handleMcp} from './mcp.js';
 import {TRUTH_POLICY_VERSION} from './truth.js';
+import {SOVEREIGN_IDENTITY,ROOT_REGISTRY,SOVEREIGN_LEGAL_CHARTER_20} from './sovereign-lock.js';
 import {SYSTEM_CAPABILITIES,createSystemAction,listSystemActions,getSystemAction,approveSystemAction,rejectSystemAction,claimSystemAction,finishSystemAction,authenticateGateway,getPCBridgeStatus} from './system-actions.js';
 import {createStudioCheckoutOffer,listStudioProjects,getStudioProject,createStudioProject,reviseStudioProject} from './studio.js';
 import {beginGoogleLogin,finishGoogleLogin,googleAuthRequired,googleOAuthConfigured} from './google-auth.js';
@@ -238,6 +246,44 @@ async function route(request,env,ctx){
   if(path==='/ready'&&request.method==='GET'){
     const state=await readiness(env);
     return json({service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),source:sourceMetadata(env),...state},state.ready?200:503);
+  }
+  if(path==='/api/status'&&request.method==='GET'){
+    return json({
+      status:'ONLINE',
+      service:'TRINITY OMNI-CORE',
+      version:TRINITY_VERSION,
+      environment:runtimeEnvironment(request,env),
+      host:reqHostname,
+      mode:isOmniDevHost?'omni-dev':'production',
+      root_authority:{
+        sole_owner:SOVEREIGN_IDENTITY.sovereign_identity.sole_owner,
+        role:SOVEREIGN_IDENTITY.sovereign_identity.role,
+        code_modification_policy:SOVEREIGN_IDENTITY.sovereign_identity.code_modification_policy,
+        windows_users:ROOT_REGISTRY.windows_users,
+        google_accounts:ROOT_REGISTRY.google_accounts,
+        phone_channels:ROOT_REGISTRY.phone_numbers.length,
+        legal_clauses_count:SOVEREIGN_LEGAL_CHARTER_20.length
+      },
+      bindings:{
+        d1_sovereign_ledger:Boolean(env.DB),
+        kv_mastermind:Boolean(env.Mastermind),
+        kv_pc_state:Boolean(env.PC_STATE),
+        r2_artifacts:Boolean(env.ARTIFACTS),
+        workers_ai:Boolean(env.AI),
+        memory_service:Boolean(env.MEMORY)
+      },
+      integrations:{
+        google_project:env.GOOGLE_PROJECT_ID||'tangential-osprey-dl7cp',
+        firebase_project:env.FIREBASE_PROJECT_ID||'trinity-morhfeus-20261001',
+        firecrawl_engine:'ready',
+        omnidev_studio:'active',
+        local_system_bridge_port:7788
+      },
+      source:sourceMetadata(env),
+      deployment:releaseMetadata(env),
+      truth_mode:'evidence-required',
+      checked_at:new Date().toISOString()
+    });
   }
   if(path==='/api/ecosystem/stats'&&request.method==='GET')return json(universalEcosystem.getStats());
   if(path==='/api/ecosystem/domains'&&request.method==='GET')return json({domains:UNIVERSAL_DOMAINS,templates:APPLICATION_TEMPLATES});

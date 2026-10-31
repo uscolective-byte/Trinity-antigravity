@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem TOOL_REGISTRY_AND_EXECUTION_DISPATCHER
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Centrálny register nástrojov, schém (Zod), oprávnení a exekučných adaptérov pre TRINITY OMNI-CORE (Cloudflare Edge + Local PC Bridge + Sovereign Ledger v3 + Ring 0 Lock).
+ */
 import { delegateWorker, orchestratePipeline, inspectFleet } from './orchestrator.js';
 import {fetchPublicWeb} from './web-access.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
@@ -39,8 +46,12 @@ import {cfD1Query,cfKVStore,cfR2Manage,cfSelfDeploy,mailEngine,httpFetchPro,pcFs
 import {applySelfModification} from './self-evolution.js';
 import {metaStatus} from './meta-connector.js';
 import {proposeTransfer,confirmTransfer,getFinanceAuditLedger,transferProposalSchema,transferConfirmSchema} from './finance-gateway.js';
+import {SovereignLedgerV3,TMACConsensusEngine,StateReplayEngine,CodeProvenanceTracker,SOVEREIGN_ARCHITECTURE} from './sovereign-core-v3.js';
+import {SOVEREIGN_IDENTITY,ROOT_REGISTRY,SOVEREIGN_LEGAL_CHARTER_20,validateSovereignCharterCompliance,SovereignLockMiddleware,enforceDataCommandBoundary} from './sovereign-lock.js';
+import {SovereignTruthGuard,ExecutionLifecycleGuard,TEN_COMMANDMENTS_OF_TRUTH} from './truth.js';
+import {diagnoseOmniDevStackTrace,proposeOmniDevRecoveryPatch} from './omnidev-diagnostics.js';
 
-export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage']);
+export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
 export const OWNER_BUSINESS_TOOLS=new Set(['finance_propose_transfer','finance_confirm_transfer','finance_audit_ledger','prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
@@ -262,6 +273,41 @@ export const TOOL_SCHEMAS={
     model:z.enum(['llama-3.3-70b','llama-3.1-8b','llama-3.2-11b-vision']).optional().default('llama-3.3-70b'),
     topic:z.string().trim().max(1000).optional(),
     target_platform:z.enum(['facebook','instagram','all']).optional().default('all')
+  }).strict(),
+  sovereign_ledger_v3:z.object({
+    action:z.enum(['status','append','verify_chain','architecture']).default('status'),
+    actor:z.string().max(120).optional().default('Basterix'),
+    operation:z.string().max(200).optional().default('SYSTEM_AUDIT'),
+    payload:z.record(z.string(),z.unknown()).optional().default({})
+  }).strict(),
+  sovereign_lock_check:z.object({
+    action:z.enum(['status','charter_compliance','boundary_check']).default('status'),
+    source:z.string().max(100).optional().default('basterix_direct_console'),
+    content:z.string().max(4000).optional().default('')
+  }).strict(),
+  truth_guard_verify:z.object({
+    action:z.enum(['commandments','validate_response','verify_exit']).default('commandments'),
+    response_text:z.string().max(8000).optional().default(''),
+    exit_code:z.number().int().optional().default(0),
+    stdout:z.string().max(4000).optional().default(''),
+    stderr:z.string().max(4000).optional().default('')
+  }).strict(),
+  tmac_consensus:z.object({
+    proposal:z.string().min(1).max(2000).default('System architecture verification'),
+    planner_vote:z.boolean().default(true),
+    builder_vote:z.boolean().default(true),
+    auditor_vote:z.boolean().default(true),
+    sentinel_veto:z.boolean().default(false)
+  }).strict(),
+  state_replay_provenance:z.object({
+    action:z.enum(['record_provenance','capture_snapshot']).default('record_provenance'),
+    file_path:z.string().max(300).optional().default('Trinity/src/index.js'),
+    reason:z.string().max(500).optional().default('Architect verified update')
+  }).strict(),
+  omnidev_diagnose:z.object({
+    error_text:z.string().min(1).max(8000),
+    file_path:z.string().max(300).optional().default('Trinity/src/studio.js'),
+    source_code:z.string().max(30000).optional().default('')
   }).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
@@ -1043,6 +1089,56 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(name==='pc_shell_exec')return pcShellExec(env, args);
   if(name==='pc_system_telemetry')return pcSystemTelemetry(env);
   if(name==='apply_self_evolution')return applySelfModification(env, args);
+  if(name==='sovereign_ledger_v3'){
+    const ledger=new SovereignLedgerV3(env);
+    if(args.action==='architecture')return {architecture:SOVEREIGN_ARCHITECTURE,_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
+    if(args.action==='append'){
+      const block=await ledger.appendBlock(args.actor||'Basterix',args.operation||'SYSTEM_AUDIT',args.payload||{},'tool:sovereign_ledger_v3');
+      return {status:'completed',block,_evidence:{effect:'mutation',actions:['record'],receipt_id:block.receipt}};
+    }
+    const integrity=await ledger.verifyIntegrity();
+    return {status:'completed',integrity,layers:Object.keys(SOVEREIGN_ARCHITECTURE.layers).length,epics:35,_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
+  }
+  if(name==='sovereign_lock_check'){
+    if(args.action==='boundary_check'){
+      return {...enforceDataCommandBoundary({source:args.source,content:args.content}),_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
+    }
+    const compliance=await validateSovereignCharterCompliance({});
+    return {identity:SOVEREIGN_IDENTITY.sovereign_identity,root_registry:ROOT_REGISTRY,charter_clauses:SOVEREIGN_LEGAL_CHARTER_20.length,compliance,_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
+  }
+  if(name==='truth_guard_verify'){
+    const guard=new SovereignTruthGuard(env);
+    if(args.action==='validate_response'){
+      return {...guard.filterAntiAssumption(args.response_text,true),_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
+    }
+    if(args.action==='verify_exit'){
+      return {...guard.verifyZeroSimulatedExecution({action:'tool_check',exitCode:args.exit_code,stdout:args.stdout,stderr:args.stderr}),_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
+    }
+    return {commandments:TEN_COMMANDMENTS_OF_TRUTH,count:TEN_COMMANDMENTS_OF_TRUTH.length,_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
+  }
+  if(name==='tmac_consensus'){
+    const tmac=new TMACConsensusEngine();
+    const res=tmac.evaluateConsensus({
+      proposalId:crypto.randomUUID(),
+      votes:{planner:args.planner_vote,builder:args.builder_vote,auditor:args.auditor_vote,sentinel:{approved:!args.sentinel_veto,veto:args.sentinel_veto}}
+    });
+    return {...res,proposal:args.proposal,_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
+  }
+  if(name==='state_replay_provenance'){
+    if(args.action==='capture_snapshot'){
+      const replay=new StateReplayEngine(env);
+      const snap=await replay.captureSnapshot(crypto.randomUUID(),{file:args.file_path},{reason:args.reason},{status:'ok'});
+      return {...snap,_evidence:{effect:'read',receipt_id:snap.receipt}};
+    }
+    const tracker=new CodeProvenanceTracker(env);
+    const prov=await tracker.recordProvenance({filePath:args.file_path,gitCommitSha:'HEAD',authorDid:'did:trinity:basterix',reason:args.reason,inputPayload:args.file_path});
+    return {...prov,_evidence:{effect:'read',receipt_id:prov.provenance_hash}};
+  }
+  if(name==='omnidev_diagnose'){
+    const diagnosis=diagnoseOmniDevStackTrace(args.error_text,{filePath:args.file_path,sourceSnippet:args.source_code});
+    const recovery=args.source_code?proposeOmniDevRecoveryPatch({filePath:args.file_path,sourceCode:args.source_code,errorText:args.error_text}):null;
+    return {diagnosis,recovery,_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
+  }
   if(name==='meta_manage'){
     const ownerId=(env?.TRINITY_OWNER_EMAIL||'saboivan2008@gmail.com').trim().toLowerCase();
     const origin='https://auru.space';

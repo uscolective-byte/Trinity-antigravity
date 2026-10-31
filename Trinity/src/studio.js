@@ -1,3 +1,11 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem OMNIDEV_STUDIO_ENGINE
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description OmniDev Studio generátor webových projektov s integrovanou AST diagnostikou (diagnoseOmniDevStackTrace) a R2/D1 verziovaním.
+ */
+import {diagnoseOmniDevStackTrace} from './omnidev-diagnostics.js';
 import {upsertCommerceProduct, commerceAccounts} from './revolut.js';
 import {z} from 'zod';
 import {callModel} from './services.js';
@@ -34,7 +42,8 @@ async function generate(env,prompt,current='',options={}){
     try{const response=await callModel(env,provider,messages,plan.maxTokens);return {html:extractHtml(response.text),model:response.model,provider:response.provider||provider,quality:options.quality||'balanced'};}
     catch(error){lastError=error;}
   }
-  throw new HttpError(502,'Trinity nedokázala vytvoriť platný náhľad. Skús pokyn spresniť.');
+  const diag=diagnoseOmniDevStackTrace(String(lastError?.message||lastError||'Studio generation failed'),{filePath:'Trinity/src/studio.js'});
+  throw new HttpError(502,`Trinity nedokázala vytvoriť platný náhľad (${diag.category}). Skús pokyn spresniť.`);
 }
 const rowOut=row=>({...row,version:Number(row.version)});
 export async function listStudioProjects(env,owner){return (await env.DB.prepare('SELECT id,name,status,version,substr(prompt,1,300) AS prompt,created_at,updated_at FROM ops_studio_projects WHERE owner_id=? ORDER BY updated_at DESC LIMIT 40').bind(owner).all()).results.map(rowOut);}

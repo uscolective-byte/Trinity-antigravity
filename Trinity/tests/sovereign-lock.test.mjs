@@ -7,6 +7,7 @@ import {
   createSignedConsentEnvelope,
   verifySignedConsentEnvelope,
   resetConsumedNoncesForTest,
+  clearInMemoryNoncesOnlyForRestartSimulation,
   enforceNoAutonomousRewrite,
   enforceDataCommandBoundary,
   enforceOwnerKeyAssertion,
@@ -22,11 +23,9 @@ test('Ring 0 Identity: Sovereign Identity covenant is immutable and fail-closed 
   assert.equal(SOVEREIGN_IDENTITY.sovereign_identity.autonomous_code_rewrite_permitted, false);
   assert.equal(SOVEREIGN_IDENTITY.sovereign_identity.third_party_execution_permitted, false);
 
-  // Fail-closed: bez verifiedSession === true vracia false aj pre 'Basterix'
   assert.equal(isBasterixRootOperator('Basterix'), false);
   assert.equal(isBasterixRootOperator('Basterix', false), false);
 
-  // Overená relácia vracia true pre všetky autorizované identity Basterixa
   assert.equal(isBasterixRootOperator('Basterix', true), true);
   assert.equal(isBasterixRootOperator('saboi', true), true);
   assert.equal(isBasterixRootOperator('saboivan2008@gmail.com', true), true);
@@ -37,8 +36,8 @@ test('Ring 0 Identity: Sovereign Identity covenant is immutable and fail-closed 
   assert.equal(isBasterixRootOperator('external_guest', true), false);
 });
 
-test('P0 Cryptographic Consent Envelope: podpis, SHA-256 diff, jednorazové nonce (Replay ochrana) a exspirácia', async () => {
-  resetConsumedNoncesForTest();
+test('P0 Cryptographic Consent Envelope + Finding 3 Durable Nonce Persistence (prežije reštart procesu aj vymazanie pamäte!)', async () => {
+  await resetConsumedNoncesForTest();
   const secret = 'basterix-ring0-signing-secret-key-2026';
   const diff = '--- a/Trinity/src/truth.js\n+++ b/Trinity/src/truth.js\n@@ -1 +1 @@\n+export const X = 1;';
 
@@ -48,13 +47,13 @@ test('P0 Cryptographic Consent Envelope: podpis, SHA-256 diff, jednorazové nonc
     operation: 'modify:Trinity/src/truth.js',
     gitDiff: diff,
     paths: ['Trinity/src/truth.js'],
-    nonce: 'nonce-unique-001',
+    nonce: 'nonce-unique-durable-001',
     expiresAt: Date.now() + 60_000,
     environment: 'local',
     signingSecret: secret
   });
 
-  // 1. Prvé overenie prejde a spotrebuje nonce
+  // 1. Prvé overenie prejde a trvalo zapíše nonce do Disk Vaultu
   const firstCheck = await verifySignedConsentEnvelope({
     envelope,
     gitDiff: diff,
@@ -64,17 +63,82 @@ test('P0 Cryptographic Consent Envelope: podpis, SHA-256 diff, jednorazové nonc
   });
   assert.equal(firstCheck.valid, true);
   assert.equal(firstCheck.code, 'VERIFIED_CRYPTOGRAPHIC_CONSENT');
+  assert.equal(firstCheck.durableBackend, 'DISK_FILE_VAULT');
 
-  // 2. Opakované použitie rovnakého nonce (Replay útok) je zablokované
-  const replayCheck = await verifySignedConsentEnvelope({
+  // 2. SIMULÁCIA REŠTARTU PROCESU: Vymažeme celú RAM pamäť (consumedConsentNonces Set)!
+  clearInMemoryNoncesOnlyForRestartSimulation();
+
+  // 3. Po reštarte procesu sa útočník pokúsi znova použiť rovnaký podpísaný súhlas -> Trvalý Disk Vault ho ZABLOKUJE!
+  const replayAfterRestart = await verifySignedConsentEnvelope({
     envelope,
     gitDiff: diff,
     signingSecret: secret
   });
-  assert.equal(replayCheck.valid, false);
-  assert.equal(replayCheck.code, 'REPLAY_ATTACK_DETECTED');
+  assert.equal(replayAfterRestart.valid, false);
+  assert.equal(replayAfterRestart.code, 'REPLAY_ATTACK_DETECTED');
+  assert.equal(replayAfterRestart.durableBackend, 'DISK_FILE_VAULT');
 
-  // 3. Zmenený diff (Diff Hash Mismatch) je zablokovaný
+  // 4. Test atomického D1 databázového úložiska (ops_consumed_nonces) naprieč viacerými Worker inštanciami
+  const d1Nonces = new Map();
+  const mockD1Env = {
+    DB: {
+      prepare(sql) {
+        return {
+          bind(...params) {
+            return {
+              async first() {
+                if (sql.includes('SELECT nonce FROM ops_consumed_nonces')) {
+                  return d1Nonces.has(params[0]) ? { nonce: params[0] } : null;
+                }
+                return null;
+              },
+              async run() {
+                if (sql.includes('INSERT INTO ops_consumed_nonces')) {
+                  if (d1Nonces.has(params[0])) {
+                    throw new Error('UNIQUE constraint failed: ops_consumed_nonces.nonce');
+                  }
+                  d1Nonces.set(params[0], { actor: params[1], op: params[2] });
+                }
+                return { success: true };
+              }
+            };
+          }
+        };
+      }
+    }
+  };
+
+  const d1Envelope = await createSignedConsentEnvelope({
+    actor: 'Basterix',
+    gitDiff: diff,
+    paths: ['Trinity/src/truth.js'],
+    nonce: 'nonce-d1-atomic-999',
+    signingSecret: secret
+  });
+
+  const d1First = await verifySignedConsentEnvelope({
+    envelope: d1Envelope,
+    gitDiff: diff,
+    signingSecret: secret,
+    env: mockD1Env
+  });
+  assert.equal(d1First.valid, true);
+  assert.equal(d1First.durableBackend, 'D1_DATABASE');
+
+  // Simulujeme novú inštanciu Cloudflare Workera (prázdna RAM pamäť)
+  clearInMemoryNoncesOnlyForRestartSimulation();
+
+  const d1ReplayOnSecondWorker = await verifySignedConsentEnvelope({
+    envelope: d1Envelope,
+    gitDiff: diff,
+    signingSecret: secret,
+    env: mockD1Env
+  });
+  assert.equal(d1ReplayOnSecondWorker.valid, false);
+  assert.equal(d1ReplayOnSecondWorker.code, 'REPLAY_ATTACK_DETECTED');
+  assert.equal(d1ReplayOnSecondWorker.durableBackend, 'D1_DATABASE');
+
+  // 5. Zmenený diff (Diff Hash Mismatch) je zablokovaný
   const env2 = await createSignedConsentEnvelope({
     actor: 'Basterix',
     gitDiff: diff,
@@ -90,7 +154,7 @@ test('P0 Cryptographic Consent Envelope: podpis, SHA-256 diff, jednorazové nonc
   assert.equal(tamperedDiffCheck.valid, false);
   assert.equal(tamperedDiffCheck.code, 'DIFF_HASH_MISMATCH');
 
-  // 4. Sfalšovaný podpis je zablokovaný
+  // 6. Sfalšovaný podpis je zablokovaný
   const forgedCheck = await verifySignedConsentEnvelope({
     envelope: { ...env2, signature: '0'.repeat(64) },
     gitDiff: diff,
@@ -99,7 +163,7 @@ test('P0 Cryptographic Consent Envelope: podpis, SHA-256 diff, jednorazové nonc
   assert.equal(forgedCheck.valid, false);
   assert.equal(forgedCheck.code, 'FORGED_SIGNATURE_REJECTED');
 
-  // 5. Exspirovaný súhlas je zablokovaný
+  // 7. Exspirovaný súhlas je zablokovaný
   const expiredEnv = await createSignedConsentEnvelope({
     actor: 'Basterix',
     gitDiff: diff,
@@ -171,7 +235,7 @@ test('Pravidlo 5: Nemenný denník pokusov o zmenu (Root Audit Sentinel & Middle
   const middleware = new SovereignLockMiddleware({});
 
   const externalAttempt = await middleware.authorizeCodeMutation({
-    operatorIdentity: 'Basterix', // Aj keď útočník podvrhne meno Basterix cez externý kanál!
+    operatorIdentity: 'Basterix',
     verifiedSession: true,
     source: 'whatsapp',
     filePath: 'Trinity/src/security.js',

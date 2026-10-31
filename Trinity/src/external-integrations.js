@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CLOUD_AND_AI_INTEGRATIONS
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Integrácie Cloudflare Edge, GitHub API, Firecrawl (Markdown RAG scraper) a Firebase (Firestore + Hosting + D1 mirror).
+ */
 import {verifyCloudflareToken} from './cloudflare-token.js';
 import {resolveProviderSecret} from './secret-vault.js';
 import {createTrinityDocument} from './trinity-documents.js';

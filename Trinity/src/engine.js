@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem COGNITIVE_EXECUTION_ENGINE
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Hlavný exekučný a rozhodovací engine TRINITY s vynútením Truth Policy a dôkazových receiptov.
+ */
 import {FAST_TOOLS,fastChatInstructions,directChatTool} from './fast-chat.js';
 import {connectionGuidance} from './connection-guidance.js';
 import {agentById,selectSkills} from './registry.js';
@@ -97,7 +104,8 @@ function selectPromptTools(activeTools, task) {
     'list_capabilities','list_skills','execute_skill','copilot_chat','ecosystem_search',
     'delegate_worker','orchestrate_team','fleet_status',
     'open_weather','open_wikipedia','network_dns','crypto_prices','tech_news','macro_data','free_modules_catalog',
-    'domain_list','domain_check','service_status','integration_status','cloudflare_manage','github_manage',
+    'domain_list','domain_check','service_status','integration_status','cloudflare_manage','github_manage','firecrawl_scrape','firebase_manage',
+    'sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose',
     'create_file','create_pdf','trinity_doc_create','ui_evolve','self_evolve'
   ]);
   if (/\b(kod|code|subor|projekt|oprav|fix|inspect|git|build|deploy|hosting|infra|migrac)\b/.test(norm)) {

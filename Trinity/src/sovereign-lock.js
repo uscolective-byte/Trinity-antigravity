@@ -1,4 +1,11 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem RING0_SOVEREIGN_LOCK
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Ring 0 ochrana kódu, kryptografický Consent Envelope (HMAC-SHA256 + Diff SHA-256 + Durable Nonce Vault) a Data-Command Boundary.
+ */
+/**
  * TRINITY SOVEREIGN LOCK & ROOT-AUTHORITY COVENANT (Ring 0 Middleware)
  * Sole Architectural Root Authority: Basterix (Sabo Ivan)
  *
@@ -89,11 +96,137 @@ export const EXTERNAL_DATA_SOURCES = Object.freeze(new Set([
 
 export const ACCESS_DENIED_MESSAGE = 'ACCESS DENIED: Unauthorized operator. Action reserved strictly for Basterix.';
 
-// Atomický register jednorazových nonce (ochrana proti Replay útokom)
+// Pamäťová cache jednorazových nonce + Trvalé atomické úložisko (D1 / KV / Disk Vault)
 const consumedConsentNonces = new Set();
 
-export function resetConsumedNoncesForTest() {
+async function getNodeFsVault() {
+  if (typeof process === 'undefined' || !process.versions?.node) return null;
+  try {
+    const fsMod = 'node:' + 'fs';
+    const pathMod = 'node:' + 'path';
+    const osMod = 'node:' + 'os';
+    const fs = await import(fsMod);
+    const path = await import(pathMod);
+    const os = await import(osMod);
+    const vaultPath = process.env.TRINITY_NONCE_VAULT_PATH || path.join(os.tmpdir(), 'trinity-ring0-consumed-nonces.json');
+    return { fs, vaultPath };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Vymaže iba pamäťový Set (simulácia reštartu procesu alebo novej inštancie Workera).
+ * Trvalé úložisko (D1 / KV / Disk súbor) zostáva nedotknuté!
+ */
+export function clearInMemoryNoncesOnlyForRestartSimulation() {
   consumedConsentNonces.clear();
+}
+
+/**
+ * Úplný reset pre štart čistých testov (vymaže pamäť aj lokálny testovací súbor).
+ */
+export async function resetConsumedNoncesForTest() {
+  consumedConsentNonces.clear();
+  const nodeVault = await getNodeFsVault();
+  if (nodeVault && nodeVault.fs.existsSync(nodeVault.vaultPath)) {
+    try {
+      nodeVault.fs.unlinkSync(nodeVault.vaultPath);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+/**
+ * Atomická kontrola a trvalý zápis spotrebovaného nonce (D1 -> KV -> Custom Store -> Node Disk File -> Memory).
+ */
+async function checkAndConsumeDurableNonce({ nonce, actor, operation, diffSha256, env, nonceStore }) {
+  const consumedAt = new Date().toISOString();
+
+  // 1. Rýchla kontrola v pamäti aktuálnej inštancie
+  if (consumedConsentNonces.has(nonce)) {
+    return { alreadyUsed: true, backend: 'MEMORY_SET' };
+  }
+
+  // 2. Kontrola a atomický zápis do Cloudflare D1 (ops_consumed_nonces PRIMARY KEY)
+  if (env?.DB && typeof env.DB.prepare === 'function') {
+    try {
+      const existing = await env.DB
+        .prepare('SELECT nonce FROM ops_consumed_nonces WHERE nonce = ?')
+        .bind(nonce)
+        .first();
+      if (existing) {
+        consumedConsentNonces.add(nonce);
+        return { alreadyUsed: true, backend: 'D1_DATABASE' };
+      }
+      await env.DB
+        .prepare('INSERT INTO ops_consumed_nonces (nonce, actor, operation, diff_sha256, consumed_at) VALUES (?, ?, ?, ?, ?)')
+        .bind(nonce, actor, operation, diffSha256, consumedAt)
+        .run();
+      consumedConsentNonces.add(nonce);
+      return { alreadyUsed: false, backend: 'D1_DATABASE' };
+    } catch (err) {
+      if (String(err?.message || '').toLowerCase().includes('unique') || String(err?.message || '').toLowerCase().includes('constraint')) {
+        consumedConsentNonces.add(nonce);
+        return { alreadyUsed: true, backend: 'D1_DATABASE_UNIQUE_CONSTRAINT' };
+      }
+      throw err;
+    }
+  }
+
+  // 3. Kontrola a zápis do Cloudflare KV (Mastermind / PC_STATE)
+  const kv = env?.Mastermind || env?.PC_STATE;
+  if (kv && typeof kv.get === 'function' && typeof kv.put === 'function') {
+    const key = `ring0:consumed_nonce:${nonce}`;
+    const existing = await kv.get(key);
+    if (existing) {
+      consumedConsentNonces.add(nonce);
+      return { alreadyUsed: true, backend: 'CLOUDFLARE_KV' };
+    }
+    await kv.put(key, JSON.stringify({ nonce, actor, operation, diffSha256, consumedAt }));
+    consumedConsentNonces.add(nonce);
+    return { alreadyUsed: false, backend: 'CLOUDFLARE_KV' };
+  }
+
+  // 4. Vlastné externé úložisko (nonceStore adaptér)
+  if (nonceStore) {
+    if (typeof nonceStore.has === 'function' && (await nonceStore.has(nonce))) {
+      consumedConsentNonces.add(nonce);
+      return { alreadyUsed: true, backend: 'CUSTOM_NONCE_STORE' };
+    }
+    if (typeof nonceStore.add === 'function') {
+      await nonceStore.add(nonce, { actor, operation, diffSha256, consumedAt });
+      consumedConsentNonces.add(nonce);
+      return { alreadyUsed: false, backend: 'CUSTOM_NONCE_STORE' };
+    }
+  }
+
+  // 5. Trvalé diskové úložisko pre lokálny Node.js / Windows runtime (prežije reštart procesu!)
+  const nodeVault = await getNodeFsVault();
+  if (nodeVault) {
+    const { fs, vaultPath } = nodeVault;
+    let records = {};
+    if (fs.existsSync(vaultPath)) {
+      try {
+        records = JSON.parse(fs.readFileSync(vaultPath, 'utf8') || '{}');
+      } catch {
+        records = {};
+      }
+    }
+    if (records[nonce]) {
+      consumedConsentNonces.add(nonce);
+      return { alreadyUsed: true, backend: 'DISK_FILE_VAULT' };
+    }
+    records[nonce] = { actor, operation, diffSha256, consumedAt };
+    fs.writeFileSync(vaultPath, JSON.stringify(records, null, 2), 'utf8');
+    consumedConsentNonces.add(nonce);
+    return { alreadyUsed: false, backend: 'DISK_FILE_VAULT' };
+  }
+
+  // 6. Fallback v izolovanom prostredí bez D1/KV/FS
+  consumedConsentNonces.add(nonce);
+  return { alreadyUsed: false, backend: 'MEMORY_SET' };
 }
 
 async function sha256Hex(input) {
@@ -204,14 +337,17 @@ export async function createSignedConsentEnvelope({
 }
 
 /**
- * Overí kryptografický podpis súhlasu, platnosť, zhodu SHA-256 diffu a jednorazovo spotrebuje nonce.
+ * Overí kryptografický podpis súhlasu, platnosť, zhodu SHA-256 diffu a jednorazovo spotrebuje nonce
+ * v trvalom atomickom úložisku (D1 / KV / Disk Vault + Memory Set).
  */
 export async function verifySignedConsentEnvelope({
   envelope,
   gitDiff = '',
   expectedOperation = null,
   expectedPath = null,
-  signingSecret
+  signingSecret,
+  env = null,
+  nonceStore = null
 } = {}) {
   if (!envelope || typeof envelope !== 'object') {
     return { valid: false, code: 'MISSING_CONSENT_ENVELOPE', message: 'Chýba kryptografická obálka súhlasu (Consent Envelope).' };
@@ -224,9 +360,6 @@ export async function verifySignedConsentEnvelope({
   }
   if (!envelope.nonce || typeof envelope.nonce !== 'string') {
     return { valid: false, code: 'INVALID_NONCE', message: 'Chýba jednorazové nonce v súhlase.' };
-  }
-  if (consumedConsentNonces.has(envelope.nonce)) {
-    return { valid: false, code: 'REPLAY_ATTACK_DETECTED', message: `SECURITY BLOCK (Ring 0): Nonce '${envelope.nonce}' už bolo použité (Replay útok zablokovaný).` };
   }
   const expiresMs = typeof envelope.expiresAt === 'number' ? envelope.expiresAt : Date.parse(envelope.expiresAt);
   if (!Number.isFinite(expiresMs) || Date.now() > expiresMs) {
@@ -265,15 +398,31 @@ export async function verifySignedConsentEnvelope({
     return { valid: false, code: 'FORGED_SIGNATURE_REJECTED', message: 'SECURITY BLOCK (Ring 0): Neplatný alebo sfalšovaný kryptografický podpis súhlasu.' };
   }
 
-  // Atomické jednorazové spotrebovanie nonce
-  consumedConsentNonces.add(envelope.nonce);
+  // Atomické jednorazové spotrebovanie nonce v trvalom úložisku (D1 / KV / Disk Vault)
+  const nonceOutcome = await checkAndConsumeDurableNonce({
+    nonce: envelope.nonce,
+    actor: String(envelope.actor).trim(),
+    operation: String(envelope.operation || 'code_mutation').trim(),
+    diffSha256: actualDiffSha256,
+    env,
+    nonceStore
+  });
+  if (nonceOutcome.alreadyUsed) {
+    return {
+      valid: false,
+      code: 'REPLAY_ATTACK_DETECTED',
+      durableBackend: nonceOutcome.backend,
+      message: `SECURITY BLOCK (Ring 0): Nonce '${envelope.nonce}' už bolo použité [Backend: ${nonceOutcome.backend}] (Replay útok zablokovaný).`
+    };
+  }
 
   return {
     valid: true,
     code: 'VERIFIED_CRYPTOGRAPHIC_CONSENT',
     actor: 'Basterix',
     diffSha256: actualDiffSha256,
-    nonce: envelope.nonce
+    nonce: envelope.nonce,
+    durableBackend: nonceOutcome.backend
   };
 }
 
@@ -560,7 +709,8 @@ export class SovereignLockMiddleware {
         envelope: consentEnvelope,
         gitDiff,
         expectedPath: filePath || null,
-        signingSecret: signingSecret || this.env?.TRINITY_ROOT_SIGNING_SECRET
+        signingSecret: signingSecret || this.env?.TRINITY_ROOT_SIGNING_SECRET,
+        env: this.env
       });
       if (!envCheck.valid) {
         const tamper = await this.recordUnauthorizedTamper({

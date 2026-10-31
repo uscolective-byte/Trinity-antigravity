@@ -1,16 +1,25 @@
 /**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem LOCAL_WINDOWS_AUTH_GATE
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Lokálne Windows autorizačné jadro overujúce autentický Windows SID zo systémového tokenu WindowsIdentity::GetCurrent().
+ */
+/**
  * TRINITY UNIFIED AUTHORIZATION CORE (Local-Gateway / Windows Host)
- * Zjednotené autorizačné jadro pre lokálny systémový most vo Windows:
- * 1. Windows Auth Gate (účet 'saboi' / 'basterix' + unikátne Windows SID cez PowerShell)
- * 2. Google Identity Verifier ('saboivan2008@gmail.com', 'uscolective@gmail.com', 'cadjavadvocecka013@gmail.com')
- * 3. Telecom / WhatsApp / SMS Channel ('+421949009722', '0949009722', '+421949515777', '0949515777')
- * 4. Keď je operátor overený Basterix: koná okamžite a bez otázok.
- *    Keď je to obyčajný používateľ (GUEST_USER): okamžitý HARD-LOCK (403 ACCESS DENIED).
+ * Zjednotené autorizačné jadro pre lokálny systémový most vo Windows (P0 Hardened):
+ * 1. Windows Auth Gate (účet 'saboi' / 'basterix' + autentický Windows SID zo systémového tokenu WindowsIdentity::GetCurrent())
+ * 2. Google Identity Verifier ('saboivan2008@gmail.com', 'uscolective@gmail.com', 'cadjavadvocecka013@gmail.com' + verifiedGoogleToken)
+ * 3. Telecom / WhatsApp / SMS Channel ('+421949009722', '0949009722', '+421949515777', '0949515777' + verifiedWebhookSignature)
+ * 4. Keď je operátor kryptograficky/OS overený Basterix: koná okamžite a bez otázok.
+ *    Keď je to neoverený textový vstup alebo cudzí používateľ (GUEST_USER): okamžitý HARD-LOCK (403 ACCESS DENIED).
  */
 
 import os from 'node:os';
 import { execSync } from 'node:child_process';
 import crypto from 'node:crypto';
+
+export const VALID_WINDOWS_SID_REGEX = /^S-1-5-21-\d+-\d+-\d+-\d+$/;
 
 export const ROOT_REGISTRY = Object.freeze({
   architect_alias: 'Basterix',
@@ -53,62 +62,91 @@ export function normalizeEmail(email) {
   return email.toLowerCase().trim();
 }
 
-let cachedWindowsSid = undefined;
+export function isValidWindowsSid(sid) {
+  return typeof sid === 'string' && VALID_WINDOWS_SID_REGEX.test(sid.trim());
+}
 
-export function getActiveWindowsSID() {
-  if (cachedWindowsSid !== undefined) return cachedWindowsSid;
+let cachedWindowsIdentity = undefined;
+
+/**
+ * Získa autentickú Windows identitu (doména\meno + SID) priamo z kernelového prístupového tokenu
+ * cez [System.Security.Principal.WindowsIdentity]::GetCurrent() — NIKDY nie z podvrhnuteľného process.env.USERNAME!
+ */
+export function getActiveWindowsIdentity() {
+  if (cachedWindowsIdentity !== undefined) return cachedWindowsIdentity;
   if (os.platform() !== 'win32') {
-    cachedWindowsSid = null;
+    cachedWindowsIdentity = null;
     return null;
   }
   try {
-    const rawSid = execSync(
-      'powershell.exe -NoProfile -NonInteractive -Command "[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value"',
-      { encoding: 'utf8', timeout: 2500 }
+    const rawOut = execSync(
+      'powershell.exe -NoProfile -NonInteractive -Command "$id = [System.Security.Principal.WindowsIdentity]::GetCurrent(); Write-Output ($id.Name + \'|\' + $id.User.Value)"',
+      { encoding: 'utf8', timeout: 3000 }
     ).trim();
-    cachedWindowsSid = rawSid || null;
-    return cachedWindowsSid;
+    const [fullName = '', sid = ''] = rawOut.split('|');
+    const parts = fullName.split('\\');
+    const username = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase().trim();
+    const domain = (parts.length > 1 ? parts[0] : os.hostname()).toLowerCase().trim();
+    if (username && isValidWindowsSid(sid)) {
+      cachedWindowsIdentity = {
+        username,
+        domain,
+        sid: sid.trim(),
+        osTokenVerified: true
+      };
+      return cachedWindowsIdentity;
+    }
+    cachedWindowsIdentity = null;
+    return null;
   } catch {
-    cachedWindowsSid = null;
+    cachedWindowsIdentity = null;
     return null;
   }
 }
 
+export function getActiveWindowsSID() {
+  const id = getActiveWindowsIdentity();
+  return id ? id.sid : null;
+}
+
 /**
- * 1. Lokálna Windows inšpekcia
- * Zisťuje, či aktuálny proces beží pod prihláseným kontom Basterixa ('saboi' / 'basterix') a overuje SID.
+ * 1. Lokálna Windows inšpekcia (Zero Synthetic SID, Zero Env Spoofing)
+ * Zisťuje, či aktuálny proces beží pod prihláseným kontom Basterixa ('saboi' / 'basterix')
+ * a overuje skutočný Windows SID zo systémového tokenu.
  */
-export function inspectWindowsSession(overrides = {}) {
-  const envUser = String(
-    overrides.username ??
-    process.env.USERNAME ??
-    os.userInfo().username ??
-    ''
-  ).toLowerCase().trim();
-  const domain = String(
-    overrides.domain ??
-    process.env.USERDOMAIN ??
-    os.hostname() ??
-    ''
-  ).toLowerCase().trim();
-  const sid = overrides.sid !== undefined ? overrides.sid : getActiveWindowsSID();
+export function inspectWindowsSession(overrides = null) {
+  const source = overrides && typeof overrides === 'object' && Object.keys(overrides).length > 0
+    ? {
+        username: String(overrides.username ?? overrides.windowsUser ?? '').toLowerCase().trim(),
+        domain: String(overrides.domain ?? 'localhost').toLowerCase().trim(),
+        sid: typeof overrides.sid === 'string' ? overrides.sid.trim() : null,
+        osTokenVerified: overrides.osTokenVerified === true
+      }
+    : (getActiveWindowsIdentity() || {
+        username: '',
+        domain: 'localhost',
+        sid: null,
+        osTokenVerified: false
+      });
 
-  const isMatchedUser = ROOT_REGISTRY.windows_users.includes(envUser);
+  const isMatchedUser = ROOT_REGISTRY.windows_users.includes(source.username);
+  const hasRealSid = isValidWindowsSid(source.sid);
 
-  if (isMatchedUser && sid) {
+  if (isMatchedUser && hasRealSid && source.osTokenVerified === true) {
     const sessionToken = crypto
       .createHash('sha256')
-      .update(`${envUser}:${sid}:${domain}`)
+      .update(`${source.username}:${source.sid}:${source.domain}`)
       .digest('hex');
 
     return {
       authenticated: true,
       role: 'BASTERIX_ROOT',
       channel: 'WINDOWS_SESSION',
-      username: envUser,
-      domain,
-      identifier: `${domain}\\${envUser}`,
-      sid,
+      username: source.username,
+      domain: source.domain,
+      identifier: `${source.domain}\\${source.username}`,
+      sid: source.sid,
+      osTokenVerified: true,
       sessionToken
     };
   }
@@ -117,75 +155,160 @@ export function inspectWindowsSession(overrides = {}) {
     authenticated: false,
     role: 'GUEST_USER',
     channel: 'WINDOWS_SESSION',
-    username: envUser || 'unknown',
-    domain,
-    identifier: envUser || 'unknown',
+    reason: !source.osTokenVerified
+      ? 'UNVERIFIED_WINDOWS_OS_TOKEN'
+      : (!hasRealSid ? 'INVALID_OR_SYNTHETIC_WINDOWS_SID' : 'UNAUTHORIZED_WINDOWS_USER'),
+    username: source.username || 'unknown',
+    domain: source.domain,
+    identifier: source.username || 'unknown',
     sid: null,
+    osTokenVerified: false,
     sessionToken: null
   };
 }
 
 /**
- * 2. Univerzálny overovač prichádzajúcich požiadaviek (Omnichannel)
+ * 2. Univerzálny overovač prichádzajúcich požiadaviek (Omnichannel — Fail-Closed)
  */
 export function verifyTrinityIdentity(context = {}) {
   const timestamp = new Date().toISOString();
 
-  // A. Kontrola podľa Google účtu
+  // A. Kontrola podľa Google účtu (vyžaduje verifiedGoogleToken === true)
   const email = normalizeEmail(context.email);
-  if (email && ROOT_REGISTRY.google_accounts.includes(email)) {
+  if (email) {
+    if (!ROOT_REGISTRY.google_accounts.includes(email)) {
+      return {
+        isRoot: false,
+        role: 'GUEST_USER',
+        operator: 'UNAUTHORIZED_GUEST',
+        channel: 'REJECTED_INPUT',
+        reason: 'UNAUTHORIZED_GOOGLE_ACCOUNT',
+        identifier: email,
+        immediateExecution: false,
+        askNoQuestions: false,
+        timestamp
+      };
+    }
+    if (context.verifiedGoogleToken !== true) {
+      return {
+        isRoot: false,
+        role: 'GUEST_USER',
+        operator: 'UNAUTHORIZED_GUEST',
+        channel: 'SPOOFED_UNVERIFIED_GOOGLE_INPUT',
+        reason: 'UNVERIFIED_GOOGLE_OAUTH_TOKEN',
+        identifier: email,
+        immediateExecution: false,
+        askNoQuestions: false,
+        timestamp
+      };
+    }
     return {
       isRoot: true,
       role: 'BASTERIX_ROOT',
       operator: ROOT_REGISTRY.architect_alias,
       channel: 'GOOGLE_ACCOUNT',
       identifier: email,
+      verifiedProof: 'GOOGLE_OAUTH_TOKEN',
       immediateExecution: true,
       askNoQuestions: true,
       timestamp
     };
   }
 
-  // B. Kontrola podľa telefónneho čísla (WhatsApp / SMS brána)
+  // B. Kontrola podľa telefónneho čísla (vyžaduje verifiedWebhookSignature === true)
   const phone = normalizePhone(context.phone);
   if (phone) {
     const incomingVariants = canonicalPhoneVariants(phone);
     const isPhoneMatch = ROOT_REGISTRY.phone_numbers.some(entry =>
       incomingVariants.includes(normalizePhone(entry))
     );
-    if (isPhoneMatch) {
+    if (!isPhoneMatch) {
       return {
-        isRoot: true,
-        role: 'BASTERIX_ROOT',
-        operator: ROOT_REGISTRY.architect_alias,
-        channel: 'TELECOM_CHANNEL',
+        isRoot: false,
+        role: 'GUEST_USER',
+        operator: 'UNAUTHORIZED_GUEST',
+        channel: 'REJECTED_INPUT',
+        reason: 'UNAUTHORIZED_PHONE_NUMBER',
         identifier: phone,
-        immediateExecution: true,
-        askNoQuestions: true,
+        immediateExecution: false,
+        askNoQuestions: false,
         timestamp
       };
     }
-  }
-
-  // C. Kontrola podľa explicitného lokálneho Windows používateľa
-  const winUser = String(context.windowsUser || '').toLowerCase().trim();
-  if (winUser && ROOT_REGISTRY.windows_users.includes(winUser)) {
+    if (context.verifiedWebhookSignature !== true) {
+      return {
+        isRoot: false,
+        role: 'GUEST_USER',
+        operator: 'UNAUTHORIZED_GUEST',
+        channel: 'SPOOFED_UNVERIFIED_TELECOM_INPUT',
+        reason: 'UNVERIFIED_TELECOM_WEBHOOK_SIGNATURE',
+        identifier: phone,
+        immediateExecution: false,
+        askNoQuestions: false,
+        timestamp
+      };
+    }
     return {
       isRoot: true,
       role: 'BASTERIX_ROOT',
       operator: ROOT_REGISTRY.architect_alias,
-      channel: 'WINDOWS_LOCAL_EXPLICIT',
-      identifier: winUser,
+      channel: 'TELECOM_CHANNEL',
+      identifier: phone,
+      verifiedProof: 'TELECOM_WEBHOOK_HMAC',
       immediateExecution: true,
       askNoQuestions: true,
       timestamp
     };
   }
 
-  // D. Ak nie je zadaný externý identifikátor, over aktívnu Windows reláciu
-  const hasExplicitExternalId = Boolean(email || phone || winUser);
-  if (!hasExplicitExternalId && context.checkLocalWindows !== false) {
-    const localWin = inspectWindowsSession(context.windowsSession || {});
+  // C. Kontrola podľa explicitného lokálneho Windows používateľa (vyžaduje osTokenVerified + platný SID)
+  const winUser = String(context.windowsUser || '').toLowerCase().trim();
+  if (winUser) {
+    if (!ROOT_REGISTRY.windows_users.includes(winUser)) {
+      return {
+        isRoot: false,
+        role: 'GUEST_USER',
+        operator: 'UNAUTHORIZED_GUEST',
+        channel: 'REJECTED_INPUT',
+        reason: 'UNAUTHORIZED_WINDOWS_USER',
+        identifier: winUser,
+        immediateExecution: false,
+        askNoQuestions: false,
+        timestamp
+      };
+    }
+    const candidateSid = context.sid || context.windowsSession?.sid || null;
+    const osTokenVerified = context.verifiedWindowsToken === true || context.windowsSession?.osTokenVerified === true;
+    if (!osTokenVerified || !isValidWindowsSid(candidateSid)) {
+      return {
+        isRoot: false,
+        role: 'GUEST_USER',
+        operator: 'UNAUTHORIZED_GUEST',
+        channel: 'SPOOFED_UNVERIFIED_WINDOWS_INPUT',
+        reason: 'UNVERIFIED_WINDOWS_TOKEN_OR_SID',
+        identifier: winUser,
+        immediateExecution: false,
+        askNoQuestions: false,
+        timestamp
+      };
+    }
+    return {
+      isRoot: true,
+      role: 'BASTERIX_ROOT',
+      operator: ROOT_REGISTRY.architect_alias,
+      channel: 'WINDOWS_LOCAL_EXPLICIT',
+      identifier: winUser,
+      sid: candidateSid,
+      verifiedProof: 'WINDOWS_OS_TOKEN_SID',
+      immediateExecution: true,
+      askNoQuestions: true,
+      timestamp
+    };
+  }
+
+  // D. Ak nie je zadaný externý identifikátor, over aktívnu Windows reláciu zo systémového tokenu
+  if (context.checkLocalWindows !== false) {
+    const localWin = inspectWindowsSession(context.windowsSession || null);
     if (localWin.authenticated) {
       return {
         isRoot: true,
@@ -194,6 +317,7 @@ export function verifyTrinityIdentity(context = {}) {
         channel: localWin.channel,
         identifier: localWin.identifier,
         sid: localWin.sid,
+        verifiedProof: 'WINDOWS_OS_TOKEN_SID',
         immediateExecution: true,
         askNoQuestions: true,
         timestamp
@@ -207,6 +331,7 @@ export function verifyTrinityIdentity(context = {}) {
     role: 'GUEST_USER',
     operator: 'UNAUTHORIZED_GUEST',
     channel: 'REJECTED_INPUT',
+    reason: 'NO_VERIFIED_ROOT_IDENTITY',
     identifier: email || phone || winUser || 'unknown',
     immediateExecution: false,
     askNoQuestions: false,
@@ -227,7 +352,7 @@ export async function executePrivileged(context = {}, actionMetadata = {}, actio
   const securityIncident = {
     status: 'SECURITY_BLOCKED',
     policy: 'TRINITY_ROOT_LOCK_V1',
-    reason: 'UNAUTHORIZED_OPERATOR',
+    reason: auth.reason || 'UNAUTHORIZED_OPERATOR',
     attempted_action: actionMetadata?.action || 'UNKNOWN_ACTION',
     target: actionMetadata?.target || null,
     rejected_source: auth.identifier,
@@ -238,7 +363,7 @@ export async function executePrivileged(context = {}, actionMetadata = {}, actio
   console.error('[TRINITY SOVEREIGN LOCKOUT]', JSON.stringify(securityIncident));
 
   const err = new Error(
-    `ACCESS DENIED: Identita '${auth.identifier}' cez kanál '${auth.channel}' nie je autorizovaný administrátor. Modifikovať systém a spúšťať príkazy môže výlučne overený Basterix.`
+    `ACCESS DENIED: Identita '${auth.identifier}' cez kanál '${auth.channel}' (${securityIncident.reason}) nie je autorizovaný administrátor. Modifikovať systém a spúšťať príkazy môže výlučne kryptograficky overený Basterix.`
   );
   err.status = 403;
   err.securityIncident = securityIncident;
