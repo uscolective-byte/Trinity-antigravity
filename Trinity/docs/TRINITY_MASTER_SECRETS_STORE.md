@@ -105,3 +105,32 @@ node --test tests/trinity-master-secrets.test.mjs tests/trinity-master-wrangler.
 ```
 
 **Dôkazový stav:** vykonaná izolovaná syntaktická kontrola modulov, test výstupu pomocou syntetického Cloudflare AI bindingu a kontrola, že nebol prečítaný žiaden secret. Kompletné `npm test`, živé Cloudflare AI, Google API a staging deploy sa ešte nepodarilo overiť. Neaktivovať novú funkcionalitu v produkcii pred zeleným CI, kontrolou oprávnení a staging testom.
+
+## Nový Cloudflare staging isolation audit
+
+`Trinity/scripts/cloudflare-env-audit.mjs` porovnáva priamo
+`wrangler.jsonc` D1, KV a R2 identifikátory produkcie/stagingu.
+Kontrola 31.10.2026 detegovala zdieľané **D1 `rea`,
+D1 `trinity_basterix`, KV `Mastermind` a R2 `ARTIFACTS`**.
+Hlavná D1 `DB` má samostatné identifikátory, ale celé staging
+prostredie ešte nie je izolované.
+
+```bash
+cd Trinity
+node scripts/cloudflare-env-audit.mjs
+# exit code 2, ak sa vyžaduje striktne oddelené staging úložisko:
+node scripts/cloudflare-env-audit.mjs --strict
+```
+
+Nástroj je **iba read-only** a nemá Cloudflare API oprávnenia,
+nevytvára ani nemaže zdroje a nezapisuje tajomstvá.
+Pred staging mutačnými testami treba vytvoriť samostatné D1, KV,
+R2 zdroje, migrovať výlučne povolené testovacie dáta a
+aktualizovať identifikátory konfigurácie. Nevsúvať náhodné
+falošné ID: do produkcie by to mohlo smerovať na neexistujúci
+resource a prerušiť služby.
+
+Bez samostatných úložísk sa môžu staging testy dotknúť
+produkčných dát; staging deploy preto vyžaduje osobitnú
+kontrolu očakávaných zápisov. Tvrdenie, že staging je
+úplne izolovaný, **nie je aktuálne pravdivé**.
