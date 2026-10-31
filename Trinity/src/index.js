@@ -446,14 +446,22 @@ async function route(request,env,ctx){
     return json({ ok: true, count: dynamicSkills.length, skills: dynamicSkills });
   }
   if(['/api/skills/register', '/api/assistant/skills/register'].includes(path)&&request.method==='POST'){
+    const admin = await authenticate(request, env);
+    requireAdmin(admin);
     const skillData = await readJSON(request, 32000);
     const regResult = await registerDynamicSkill(env, skillData);
     return json(regResult);
   }
   if(['/api/system/self-evolve', '/api/assistant/system/self-evolve'].includes(path)&&request.method==='POST'){
+    const admin = await authenticate(request, env);
+    requireAdmin(admin);
     const evolveData = await readJSON(request, 128000);
-    const evolveResult = await applySelfModification(env, evolveData);
-    return json(evolveResult);
+    const evolveResult = await applySelfModification(env, {
+      ...evolveData,
+      operatorIdentity: admin.email || admin.id || 'Basterix',
+      verifiedSession: true
+    });
+    return json(evolveResult, evolveResult.ok ? 200 : 403);
   }
   if(path==='/api/system/pc-bridge/v1/heartbeat'&&request.method==='POST'){
     const gateway=await authenticateGateway(request,env);await rateLimit(env,`gateway-heartbeat:${gateway}`,120);

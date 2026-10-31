@@ -1,26 +1,26 @@
 {
   "receipt_id": "TRN-LIVE-DEPLOY-RECEIPT-20261101-V2",
-  "generated_at": "2026-10-31T23:44:00.000Z",
+  "generated_at": "2026-10-31T23:52:00.000Z",
   "sole_architect_and_owner": "Basterix (Sabo Ivan)",
-  "deployment_gate_status": "APPROVED_BY_BASTERIX_DEPLOYED_AND_DNS_ACTIVE",
+  "deployment_gate_status": "APPROVED_BY_BASTERIX_AND_LIVE_VERIFIED",
   "owner_approval_statement": "shvalujem a potvrdzujem",
   "production_deployed": true,
-  "documented_source_modules": "177 / 177 (.js / .mjs files with @module TRINITY_OMNI_CORE header)",
+  "uncommitted_files_remaining": 0,
+  "documented_modules_total": 177,
   "cloudflare_zones_status": {
     "auru.space": {
       "zone_id": "8f25a7259a78f0fe860fa0cc5e43f1bd",
       "status": "active",
       "paused": false,
       "public_dns_verified": true,
-      "resolved_records": ["2606:4700:3033::6815:93", "2606:4700:3032::ac43:ba08"]
+      "http_status": 200
     },
     "auru.dev": {
       "zone_id": "b1b9b5701776b7f990d00535ad3a43aa",
       "status": "active",
       "paused": false,
       "public_dns_verified": true,
-      "resolved_records": ["2606:4700:3037::6815:1674", "2606:4700:3034::ac43:cc91"],
-      "workspace_role": "Antigravity & Omni-Dev Autonomous Workspace (Staging)"
+      "protection": "Cloudflare Access (302 redirect to login for unauthenticated requests)"
     }
   },
   "cloudflare_deployments": {
@@ -51,13 +51,12 @@
       "omnidev_studio": "READY (OmniDev-AST-Recovery-v3)"
     },
     "auru_space_public_dns": {
-      "verify_deployment_script": "verified: true",
       "endpoints": [
-        "https://auru.space/ (HTTP 200 OK)",
-        "https://auru.space/health (HTTP 200 OK, status=serving, agents=45)",
-        "https://auru.space/ready (HTTP 200 OK, ready=true, bindings=true, schema=true, cache=true)",
-        "https://auru.space/api/status (HTTP 200 OK, status=ONLINE)",
-        "https://auru.space/api/capabilities/live (HTTP 200 OK, Live Capability Registry)"
+        "https://auru.space/ (HTTP 200)",
+        "https://auru.space/health (HTTP 200, status=serving, agents=45)",
+        "https://auru.space/ready (HTTP 200, ready=true, bindings=true, schema=true, cache=true)",
+        "https://auru.space/api/status (HTTP 200, status=ONLINE)",
+        "https://auru.space/api/capabilities/live (HTTP 200, Live Capability Registry)"
       ]
     }
   },
@@ -90,6 +89,33 @@
         "Trinity/migrations/0055_sovereign_ledger_v3.sql"
       ],
       "verification": "Added ops_consumed_nonces table (PRIMARY KEY + immutable triggers) and checkAndConsumeDurableNonce() persisting across D1, KV, and local Node Disk Vault. Verified replay block across simulated process restarts."
+    },
+    {
+      "id": "FINDING_4_P0_SELF_EVOLUTION_FAIL_CLOSED_AND_ADMIN_GATE",
+      "status": "FIXED_TESTED_AND_DEPLOYED",
+      "files": [
+        "Trinity/src/self-evolution.js",
+        "Trinity/src/index.js",
+        "Trinity/tests/omni-tools.test.mjs"
+      ],
+      "verification": "applySelfModification() now defaults to fail-closed (verifiedSession=false, basterixManualConsent=false) and POST /api/system/self-evolve + POST /api/skills/register enforce authenticate() + requireAdmin()."
+    }
+  ],
+  "verification_steps": [
+    {
+      "step": "node --test Trinity/tests/omni-tools.test.mjs Trinity/tests/trinity-auth-core.test.mjs Trinity/tests/sovereign-lock.test.mjs Trinity/tests/truth.test.mjs Trinity/tests/sovereign-core-v3.test.mjs Local-Gateway/tests/trinity-auth-core.test.mjs Local-Gateway/tests/system-bridge.test.mjs",
+      "exit_code": 0,
+      "passed": "35/35"
+    },
+    {
+      "step": "npm test --prefix Local-Gateway",
+      "exit_code": 0,
+      "passed": "32/32"
+    },
+    {
+      "step": "npm run docs:check",
+      "exit_code": 0,
+      "passed": true
     }
   ]
 }

@@ -74,19 +74,22 @@ export async function applySelfModification(env, {
   filePath,
   originalContent,
   newContent,
-  rationale = 'Architektonická úprava schválená Basterixom',
-  operatorIdentity = 'Basterix',
-  verifiedSession = true,
+  rationale = 'Architektonická úprava vyžadujúca schválenie Basterixom',
+  operatorIdentity = '',
+  verifiedSession = false,
   isAutonomousSubagent = false,
-  basterixManualConsent = true,
-  basterixEscalationApproved = true,
-  gitDiff = 'diff --git'
-}) {
+  basterixManualConsent = false,
+  basterixEscalationApproved = false,
+  consentEnvelope = null,
+  signingSecret = null,
+  gitDiff = 'diff --git',
+  source = 'internal'
+} = {}) {
   if (!filePath || newContent === undefined) {
     return { ok: false, error: 'Chýba cesta k súboru alebo nový obsah.' };
   }
 
-  // 0. Ring 0 Sovereign Lock Middleware kontrola
+  // 0. Ring 0 Sovereign Lock Middleware kontrola (fail-closed)
   const lock = new SovereignLockMiddleware(env);
   const auth = await lock.authorizeCodeMutation({
     operatorIdentity,
@@ -94,8 +97,11 @@ export async function applySelfModification(env, {
     isAutonomousSubagent,
     basterixManualConsent,
     basterixEscalationApproved,
+    consentEnvelope,
+    signingSecret,
     gitDiff,
-    filePath
+    filePath,
+    source
   });
 
   if (!auth.authorized) {

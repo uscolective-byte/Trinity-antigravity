@@ -114,3 +114,28 @@ test('Self-Evolution: syntax validation catches critical syntax errors', () => {
   const invalid = validateScriptSyntax('const a = ;');
   assert.equal(invalid.ok, false);
 });
+
+test('Self-Evolution: applySelfModification fails closed without verified Basterix consent and succeeds when authorized', async () => {
+  const env = { DB: null, Mastermind: null, ARTIFACTS: null };
+  const blocked = await applySelfModification(env, {
+    filePath: 'Trinity/src/studio.js',
+    originalContent: 'export const x = 1;',
+    newContent: 'export const x = 2;'
+  });
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.status, 'blocked');
+
+  const allowed = await applySelfModification(env, {
+    filePath: 'Trinity/src/studio.js',
+    originalContent: 'export const x = 1;',
+    newContent: 'export const x = 2;',
+    operatorIdentity: 'Basterix',
+    verifiedSession: true,
+    basterixManualConsent: true,
+    basterixEscalationApproved: true,
+    gitDiff: '--- a/Trinity/src/studio.js\n+++ b/Trinity/src/studio.js\n@@ -1 +1 @@\n-export const x = 1;\n+export const x = 2;'
+  });
+  assert.equal(allowed.ok, true);
+  assert.equal(allowed.status, 'completed');
+  assert.ok(allowed.receipt_id);
+});
