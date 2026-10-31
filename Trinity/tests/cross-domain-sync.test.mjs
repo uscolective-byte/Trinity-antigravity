@@ -1,24 +1,34 @@
-import { test } from 'node:test';
+import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import { getPCBridgeStatus } from '../src/system-actions.js';
+import {readFileSync} from 'node:fs';
+import {TRINITY_SOURCE} from '../src/version.js';
+import {reportEnvironmentIsolation} from '../scripts/cloudflare-env-audit.mjs';
 
-test('Cross-domain synchronization: Shared storage and domains verification', () => {
-  const domains = ['auru.dev', 'auru.space'];
-  assert.equal(domains.length, 2);
-  assert.ok(domains.includes('auru.dev'));
-  assert.ok(domains.includes('auru.space'));
+const config=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
+
+test('production and staging use one source and different primary D1 databases',()=>{
+  assert.equal(TRINITY_SOURCE.repository,'uscolective-byte/Trinity-antigravity');
+  assert.deepEqual(config.routes.map(x=>x.pattern),['auru.space']);
+  assert.deepEqual(config.env.staging.routes.map(x=>x.pattern),['auru.dev']);
+  assert.equal(config.vars.TRINITY_GITHUB_REPO,TRINITY_SOURCE.repository);
+  assert.equal(config.env.staging.vars.TRINITY_GITHUB_REPO,TRINITY_SOURCE.repository);
+  const primary=bindings=>bindings.find(x=>x.binding==='DB')?.database_id;
+  assert.ok(primary(config.d1_databases));
+  assert.ok(primary(config.env.staging.d1_databases));
+  assert.notEqual(primary(config.d1_databases),primary(config.env.staging.d1_databases));
 });
-
-test('Cross-domain synchronization: State payload preserves session and preferences', () => {
-  const sampleState = {
-    session_id: 'test-session-123',
-    active_view: 'omnidev',
-    theme: 'dark',
-    updated_at: Date.now(),
-    updated_from: 'auru.dev'
-  };
-
-  assert.equal(sampleState.session_id, 'test-session-123');
-  assert.equal(sampleState.active_view, 'omnidev');
-  assert.equal(sampleState.updated_from, 'auru.dev');
+test('shared mutable resources are reported as unsafe rather than called domain sync',()=>{
+  const isolation=reportEnvironmentIsolation(config);
+  assert.equal(isolation.checked,'configuration-only');
+  if(!isolation.isolated){
+    assert.ok(isolation.shared_mutable_resources.length>0);
+    for(const resource of isolation.shared_mutable_resources){
+      assert.equal(resource.isolation_verified,false);
+      assert.equal(resource.shared_resource,true);
+      assert.ok(['D1','KV','R2'].includes(resource.type));
+    }
+  }
+});
+test('staging has no cron triggers; no invented cross-domain session receipt',()=>{
+  assert.deepEqual(config.env.staging.triggers,{crons:[]});
 });
