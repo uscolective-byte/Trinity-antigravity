@@ -1152,3 +1152,12 @@ Od Antigravity pre Sabo Ivan (Basterix) a Codex (Triad).
    - Dôkaz verify-deployment.mjs pre produkciu:
      `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"fad559cf-26f8-4013-81c6-ed32b300e296","tag":"cea133f94c7812459929ed4ad552a3f82ad4bc04","timestamp":"2026-10-30T13:54:58.654833Z"}}`
 5. Stav: meta_ai_and_account_management_live_and_verified; ready_for_codex_fresh_oauth.
+
+### CLAIM — CONSOLIDATE-REPOS-AGENT-ACCESS-20261031-CHATGPT-01
+Autor: ChatGPT, GitHub connector; povolenie vlastníka v konverzácii 31.10.2026.
+Base: `910204984d9e82945811bd3142850f2fab11be2e`.
+Vetva: `fix/secrets-readiness-and-release-docs-20261031` (draft PR #22).
+Rozsah: `scripts/source-policy.mjs`, `tests/source-policy.test.mjs`, `Trinity/src/project-evolution.js`, `Trinity/tests/project-evolution.test.mjs`, `package.json`, `.github/workflows/self-deploy.yml`, `scripts/sync-release-docs.mjs`, dokumentácia oprávnení a bezpečné pokyny klientov. Žiadne zásahy do sekretných hodnôt alebo živých cloudových účtov.
+Overenie: starý `trinity-morhfeus/main` je predkom `Trinity-antigravity/main` (GitHub compare: 40 ahead / 0 behind); nevyžaduje wholesale merge hlavnej vetvy. Rozpracované PR staršieho repozitára sa nesmú bez testov presúvať alebo mazať.
+Zámer: jediný kanonický repo, pravdivý staging, CI release gate a autonómne bežné developer operácie cez autorizované účty (nie otvorený admin prístup modelom).
+Stav: active; práce na izolovanej vetve. Produkčné nasadenie, merge a secrets unchanged.
