@@ -103,7 +103,7 @@
     {
       "binding": "trinity_basterix",
       "database_name": "trinity-pc-bridge",
-      "database_id": "ba94b9f2-5376-4ef8-92c4-7035df7cacb7",
+      "database_id": "39be1f38-f710-4df4-9202-5bdbb8febf57",
       "remote": true
     }
   ],
@@ -370,7 +370,7 @@
         {
           "binding": "trinity_basterix",
           "database_name": "trinity-pc-bridge",
-          "database_id": "ba94b9f2-5376-4ef8-92c4-7035df7cacb7",
+          "database_id": "39be1f38-f710-4df4-9202-5bdbb8febf57",
           "remote": true
         }
       ],
