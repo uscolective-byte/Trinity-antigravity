@@ -1,4 +1,5 @@
 import {verifyCloudflareToken} from './cloudflare-token.js';
+import {readTrinityMasterSecret} from './trinity-master-secrets.js';
 import {z} from 'zod';
 import {HttpError} from './security.js';
 
@@ -267,6 +268,7 @@ export async function resolveProviderSecret(env,provider){
     ollama:env?.OLLAMA_API_KEY||env?.OLLAMA_SECRET,
     openai:env?.OPENAI_API_KEY,
     gemini:env?.GEMINI_API_KEY||env?.apigoogle,
+    copilot:env?.COPILOT_API_TOKEN,
     groq:env?.GROQ_API_KEY||env?.default_grok_default,
     deepseek:env?.DEEPSEEK_API_KEY,
     anthropic:env?.ANTHROPIC_API_KEY,
@@ -277,6 +279,10 @@ export async function resolveProviderSecret(env,provider){
     try{const val=await envMap[provider].get();if(val&&typeof val==='string')return val.trim();}catch{}
   }
   if(typeof envMap[provider]==='string'&&envMap[provider].trim())return envMap[provider].trim();
+  // Account-level Secrets Store is opt-in and staging-only initially.
+  // This resolver is not exposed as an arbitrary read-secret API.
+  const masterSecret=await readTrinityMasterSecret(env,provider);
+  if(masterSecret)return masterSecret;
   if(env?.DB?.prepare&&typeof env.TRINITY_VAULT_KEY==='string'){
     try{
       let row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider=? AND status!='revoked' ORDER BY CASE WHEN status='verified' THEN 0 ELSE 1 END, updated_at DESC LIMIT 1").bind(provider).first();
