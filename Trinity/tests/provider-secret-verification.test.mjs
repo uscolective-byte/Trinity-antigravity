@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {verifyFirebase,verifyOpenAICompatible,verifyAnthropic} from '../src/secret-vault.js';
+import {verifyFirebase,verifyOpenAICompatible,verifyAnthropic,verifyTelegramBot} from '../src/secret-vault.js';
 
 test('Firebase API keys and service account JSON cannot impersonate verified Firestore access',async()=>{
   let calls=0;
@@ -69,4 +69,31 @@ test('Anthropic 5xx and malformed API response do not verify a secret',async()=>
   assert.equal(ok.connected,true);
   assert.equal(ok.permission_verified,'models:read');
   assert.deepEqual(ok.models,['claude-model']);
+});
+
+test('Telegram bot authentication verifies getMe but never asserts webhook activation',async()=>{
+  const token='123456789:'+('a'.repeat(28));
+  let called=0;
+  const fetcher=async(url)=>{
+    called++;
+    assert.match(String(url),/^https:\/\/api\.telegram\.org\/bot/);
+    return Response.json({ok:true,result:{id:123456789,username:'synthetic_bot'}});
+  };
+  const result=await verifyTelegramBot(token,{fetcher});
+  assert.equal(called,1);
+  assert.equal(result.connected,true);
+  assert.equal(result.webhook_verified,false);
+  assert.equal(result.permission_verified,'bot:getMe');
+  assert.doesNotMatch(JSON.stringify(result),new RegExp(token));
+});
+
+test('Telegram token or provider denial cannot be represented as connected',async()=>{
+  const token='123456789:'+('a'.repeat(28));
+  await assert.rejects(()=>verifyTelegramBot('invalid-token',{fetcher:()=>{throw Error('not called')}}),/formát/);
+  await assert.rejects(()=>verifyTelegramBot(token,{
+    fetcher:async()=>Response.json({ok:false,description:'synthetic invalid bot'},{status:401})
+  }),/HTTP 401/);
+  await assert.rejects(()=>verifyTelegramBot(token,{
+    fetcher:async()=>{throw Error('transport failure')}
+  }),/nedostupné/);
 });
