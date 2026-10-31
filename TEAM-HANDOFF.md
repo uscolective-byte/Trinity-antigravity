@@ -1152,3 +1152,23 @@ Od Antigravity pre Sabo Ivan (Basterix) a Codex (Triad).
    - Dôkaz verify-deployment.mjs pre produkciu:
      `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"fad559cf-26f8-4013-81c6-ed32b300e296","tag":"cea133f94c7812459929ed4ad552a3f82ad4bc04","timestamp":"2026-10-30T13:54:58.654833Z"}}`
 5. Stav: meta_ai_and_account_management_live_and_verified; ready_for_codex_fresh_oauth.
+
+### CLAIM — CONSOLIDATE-REPOS-AGENT-ACCESS-20261031-CHATGPT-01
+Autor: ChatGPT, GitHub connector; povolenie vlastníka v konverzácii 31.10.2026.
+Base: `910204984d9e82945811bd3142850f2fab11be2e`.
+Vetva: `fix/secrets-readiness-and-release-docs-20261031` (draft PR #22).
+Rozsah: `scripts/source-policy.mjs`, `tests/source-policy.test.mjs`, `Trinity/src/project-evolution.js`, `Trinity/tests/project-evolution.test.mjs`, `package.json`, `.github/workflows/self-deploy.yml`, `scripts/sync-release-docs.mjs`, dokumentácia oprávnení a bezpečné pokyny klientov. Žiadne zásahy do sekretných hodnôt alebo živých cloudových účtov.
+Overenie: starý `trinity-morhfeus/main` je predkom `Trinity-antigravity/main` (GitHub compare: 40 ahead / 0 behind); nevyžaduje wholesale merge hlavnej vetvy. Rozpracované PR staršieho repozitára sa nesmú bez testov presúvať alebo mazať.
+Zámer: jediný kanonický repo, pravdivý staging, CI release gate a autonómne bežné developer operácie cez autorizované účty (nie otvorený admin prístup modelom).
+Stav: active; práce na izolovanej vetve. Produkčné nasadenie, merge a secrets unchanged.
+
+### CLAIM ADDENDUM — CONSOLIDATE-REPOS-AGENT-ACCESS-20261031-CHATGPT-01
+Rozšírenie rozsahu na `Trinity/src/secret-vault.js` a `Trinity/tests/github-secret-validation.test.mjs`: overenie GitHub kľúča používa nesprávny legacy repo a nevyžaduje skutočný prístup do aktuálneho kanonického repozitára. Iba kód a syntetický regresný test; žiadne hodnoty poverení.
+
+### UPDATE / HANDOFF — CONSOLIDATE-REPOS-AGENT-ACCESS-20261031-CHATGPT-01
+Autor: ChatGPT, GitHub connector. Integrátor: vlastník Trinity / Codex / Antigravity.
+Vetva: `fix/secrets-readiness-and-release-docs-20261031`, PR #22, všetky zmeny izolované mimo main.
+Vykonané: zdokumentovaná skutočná ancestry (stará main je ancestor), opravená kanonická kontrola originu v source-policy a testoch, fallback Evolution Engine a test, nasadzovací workflow (jediný kanonický repo, staging DB binding a produkčný DB binding), doplnené npm docs:check/docs:sync, generovanie README pre obe domény, aktualizované pokyny AGENTS/GEMINI/Copilot, pridaná politika oprávnení šiestich modelových klientov, opravené overovanie GitHub secretu len voči kanonickému repo s fail-closed testom; predchádzajúci secret-audit, security policy a deployment docs z PR #22 zachované.
+Overenie: read-only GitHub compare 40 ahead/0 behind; statická kontrola dokumentácie a workflow 9/9 požadovaných vlastností vyhovuje. Plné Node testy NESPUSŤENÉ — Desktop Commander Basterix offline; náhradné Git clone blokované DNS. GitHub Actions PR #22 vracia failure bez krokov/job logov (napr. run 41211768869). Branch protection endpoint GitHub App vracia 403 (neznáme vynucovanie pravidiel). Nemenili sa secrety, Cloudflare IAM, GitHub collaborators/rulesets, zdrojové účty, deploymenty, merge ani staré vetvy.
+Rozhodnutie: draft PR otvorený, nezlučovať pred dôveryhodným CI, code review a overením kompatibility. Zásadné práva poskytovať iba autentifikovaným účtom a scoped tool gateway; model/provider key nie je identita.
+Stav: handoff; integračné opravy pripravené na kontrolu. Produkcia a main nezmenené.

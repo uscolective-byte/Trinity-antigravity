@@ -21,7 +21,21 @@ async function decrypt(env,row){const aad=new TextEncoder().encode(`${row.owner_
 const present=row=>({id:row.id,provider:row.provider,name:row.name,secret_hint:row.secret_hint,status:row.status,verification:row.verification_json?JSON.parse(row.verification_json):null,created_at:row.created_at,updated_at:row.updated_at,last_verified_at:row.last_verified_at,revoked_at:row.revoked_at});
 export async function listSecrets(env,ownerId){const rows=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE owner_id=? AND status!='revoked' ORDER BY created_at DESC LIMIT 100").bind(ownerId).all();return rows.results.map(present);}
 export async function storeSecret(env,ownerId,input){const data=secretInputSchema.parse(input),encrypted=await encrypt(env,ownerId,data.provider,data.name,data.secret),hint=`••••${data.secret.slice(-4)}`,id=crypto.randomUUID();const row=await env.DB.prepare(`INSERT INTO ops_secret_vault(id,owner_id,provider,name,secret_ciphertext,secret_iv,secret_hint) VALUES(?,?,?,?,?,?,?) ON CONFLICT(owner_id,provider,name) DO UPDATE SET secret_ciphertext=excluded.secret_ciphertext,secret_iv=excluded.secret_iv,secret_hint=excluded.secret_hint,status='stored',verification_json=NULL,updated_at=datetime('now'),last_verified_at=NULL,revoked_at=NULL RETURNING *`).bind(id,ownerId,data.provider,data.name,encrypted.ciphertext,encrypted.iv,hint).first();await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('secret_stored',?)").bind(JSON.stringify({id:row.id,provider:data.provider,name:data.name,owner_id:ownerId})).run();return present(row);}
-async function verifyGitHub(secret){const headers={Authorization:`Bearer ${secret}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'Trinity-Integration-Hub'};const [user,repo]=await Promise.all([fetch('https://api.github.com/user',{headers,signal:AbortSignal.timeout(15000)}),fetch('https://api.github.com/repos/uscolective-byte/trinity-morhfeus',{headers,signal:AbortSignal.timeout(15000)})]);if(!user.ok)throw new Error(`GitHub odmietol poverenie (HTTP ${user.status}).`);const account=await user.json();return {connected:true,account:account.login,repository_access:repo.ok,repository:'uscolective-byte/trinity-morhfeus'};}
+export async function verifyGitHub(secret){
+  const repository='uscolective-byte/Trinity-antigravity';
+  const headers={Authorization:`Bearer ${secret}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'Trinity-Integration-Hub'};
+  const options={headers,redirect:'error',signal:AbortSignal.timeout(15000)};
+  const [user,repo]=await Promise.all([
+    fetch('https://api.github.com/user',options),
+    fetch(`https://api.github.com/repos/${repository}`,options)
+  ]);
+  if(!user.ok)throw new Error(`GitHub odmietol poverenie (HTTP ${user.status}).`);
+  if(!repo.ok)throw new Error(`GitHub token nemá overený prístup ku kanonickému repozitáru Trinity (HTTP ${repo.status}).`);
+  const account=await user.json();
+  if(typeof account.login!=='string'||!account.login)throw new Error('GitHub nevrátil platnú identitu účtu.');
+  // A readable repository is not proof of write or merge permissions.
+  return {connected:true,account:account.login,repository_access:true,repository,permission_verified:'read'};
+}
 async function verifyCloudflare(secret){
   let response=await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(15000)});
   let data=await response.json().catch(()=>({}));

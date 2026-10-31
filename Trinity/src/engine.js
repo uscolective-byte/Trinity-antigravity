@@ -22,6 +22,8 @@ export function executionPolicyForProvider(provider,ownerMode=false){
   return {geminiOperator:provider==='gemini'&&directAdmin,directAdmin,allowInternal:directAdmin,allowDirectPC:directAdmin,approvalRequired:false};
 }
 export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
+  if(outcome?.ok===false||outcome?.success===false||outcome?.status==='failed')
+    return {tool:'pc_open_app',status:'failed',effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
   if(outcome?._evidence?.receipt_id){
     return {tool:'pc_open_app',status:'completed',effect:'mutation',actions:['execute'],receipt_id:outcome._evidence.receipt_id,verified_at:verifiedAt};
   }
@@ -29,13 +31,15 @@ export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
   return {tool:'pc_open_app',status,effect:'proposal',receipt_id:outcome?.id||crypto.randomUUID(),verified_at:verifiedAt};
 }
 export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOString()){
+  // Failure/partial outcomes take precedence over generated _evidence metadata.
+  // A receipt id by itself cannot prove a provider-side mutation succeeded.
+  if(outcome?.ok===false||outcome?.success===false||['failed','partial','not_configured'].includes(outcome?.status)){
+    const status=outcome?.status==='partial'?'partial':'failed';
+    return {tool,status,effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
+  }
   const evidence=outcome?._evidence;
   if(evidence?.receipt_id){
     return {tool,status:'completed',effect:evidence.effect||'read',actions:evidence.actions,receipt_id:evidence.receipt_id,verified_at:verifiedAt,document_id:evidence.document_id||outcome?.document?.id||outcome?.id,issue_number:evidence.issue_number||outcome?.issue?.number||outcome?.number,url:evidence.url||outcome?.issue?.html_url||outcome?.url};
-  }
-  if(outcome?.ok===false||['failed','partial','not_configured'].includes(outcome?.status)){
-    const status=outcome?.status==='partial'?'partial':'failed';
-    return {tool,status,effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
   }
   if(['pending','queued','approved','claimed','running'].includes(outcome?.status)){
     const status=['approved','claimed','running'].includes(outcome.status)?'running':'pending';

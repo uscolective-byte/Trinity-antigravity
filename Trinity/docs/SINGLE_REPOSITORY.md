@@ -1,52 +1,65 @@
-# Jeden zdroj pre obe domény
+# Jeden kanonický zdroj pre produkciu a staging
 
-Jediným zdrojovým repozitárom pre obe nasadenia je
-`uscolective-byte/trinity-morhfeus`, vetva `main`, aplikácia `Trinity/`.
+Kanonický zdroj aplikácie Trinity 11 je
+https://github.com/uscolective-byte/Trinity-antigravity, vetva **main**,
+aplikácia **Trinity/**. Repozitár trinity-morhfeus je historický/zrkadlený.
+Nemaž ho ani z neho nezapínaj ďalší automatický deploy bez porovnania
+unikátnych zmien a externých väzieb.
 
-| Doména | Prostredie | Worker | Zdroj |
+| Doména | Prostredie Wrangler | Worker | Zdroj |
 |---|---|---|---|
-| `auru.space` | produkcia | `trinity` | `main` |
-| `auru.dev` | vývoj a testovanie | `trinity-development` | `main` |
+| auru.space | produkcia (bez pomenovaného env) | trinity | kanonický main |
+| auru.dev | staging | trinity-staging | kanonický main |
 
-Samostatný vývojový repozitár ani vetva nie sú potrebné. Prostredia určuje
-`Trinity/wrangler.jsonc`. D1, KV, R2 a operations workflow majú oddelené
-prostriedky; prihlásenia, dáta ani platby sa týmto postupom nekopírujú.
-Niektoré pomocné Workers služby zostávajú spoločné podľa konfigurácie.
+Zdrojom názvov a väzieb je súbor Trinity/wrangler.jsonc. Staršie návody
+môžu používať development či trinity-development; nepoužívaj ich namiesto
+staging bez overenia. Zdieľanie alebo oddelenie D1/KV/R2 určujú bindingy,
+nie názvy domén. OAuth identity a secrets sa nikdy nemigrujú automaticky.
 
-## Nasadzovanie
+## Bezpečné overenie pred nasadením
 
-Workflow `Trinity self-deploy` odmietne spustenie mimo hlavného repozitára
-a vetvy `main`. Po testoch nasadí vývoj a overí doménu `auru.dev` proti
-presnému commitu. Produkcia sa následne nasadí pri ručnom spustení s
-`deploy_production=true`, alebo pri pushi, ak je existujúca repository variable
-`TRINITY_AUTO_DEPLOY_PRODUCTION=true`. Pravidlá GitHub environment `production`
-sa naďalej uplatňujú. GitHub potrebuje secret `CF_API_TOKEN`.
+1. Over čistý git status, HEAD main a rozdiel oproti poslednému vydaniu.
+2. Spusti lokálne testy, kontrolu závislostí, CodeQL a integračné testy.
+3. Ak GitHub Actions hlási failure (aj pri blokácii billing/runner), zastav
+   automatický produkčný release. Lokálne testy nie sú náhradou za CI gate.
+4. V koreňovom adresári spusti node scripts/audit-worker-secrets.mjs.
+   Skript kontroluje produkciu aj staging, číta len zoznam názvov secrets
+   a nečíta, nepresúva ani nevypisuje ich hodnoty.
+5. Neprenášaj produkčné poverenia do stagingu len kvôli úspešnému testu.
+   Kľúče musí vydať ich poskytovateľ a bezpečne nastaviť autorizovaný účet.
+   Hodnoty uložených Wrangler Secrets nie je možné spätne stiahnuť.
+6. Nasad staging a over /health, /ready a presný 40-znakový commit SHA.
+7. Až po zelenom stagingu a release gate vykonaj potrebné produkčné migrácie
+   a over produkčný deployment proti totožnému commit SHA.
 
-Pri priamom nasadení zo synchronizovaného a čistého `main`:
+## Príkazy (iba v autorizovanom prostredí)
 
-```powershell
-cd Trinity
+Z koreňového adresára čistého checkoutu:
+
+~~~powershell
+npm.cmd ci
+npm.cmd run check
+node scripts/audit-worker-secrets.mjs
+~~~
+
+Zo zložky Trinity/:
+
+~~~powershell
 $releaseCommit = git rev-parse HEAD
 npm.cmd ci
 npm.cmd test
-npm.cmd run build:development
-npm.cmd run migrate:development
-npm.cmd run deploy:development -- --tag $releaseCommit
+npm.cmd run build:staging
+npx.cmd wrangler d1 migrations apply DB --remote --env staging
+npm.cmd run deploy:staging -- --tag $releaseCommit
 node scripts/verify-deployment.mjs https://auru.dev $releaseCommit
-# Až po úspešnom overení vývoja:
-npx.cmd wrangler d1 migrations apply trinity-v03 --remote --env=""
+
+# Iba po schválenom a úspešnom stagingu:
+npx.cmd wrangler d1 migrations apply DB --remote --env=""
 npm.cmd run deploy -- --tag $releaseCommit
 node scripts/verify-deployment.mjs https://auru.space $releaseCommit
-```
+~~~
 
-`/health` a `/ready` uvádzajú `source.repository` a `source.branch`.
-Samotné tieto polia sú deklarovaná konfigurácia. Dôkaz vydania tvorí aj
-zhoda `deployment.tag` s overeným commitom, verzia, prostredie a úspešný
-`/ready`; skript `verify-deployment.mjs` kontroluje tieto údaje spoločne.
-
-Staršie repozitáre sa týmto postupom nemažú. Pred ich prípadným archivovaním
-treba skontrolovať unikátny kód a externé nasadzovacie prepojenia. Tento
-dokument nepotvrdzuje odpojenie prípadných starých CI alebo Workers Builds.
-
-OAuth, bankové účty, SMS a webhooky sa autorizujú samostatne pre požadované
-prostredie. Zjednotenie repozitára ich samo neaktivuje.
+Health a ready nepotvrdzujú funkčnosť všetkých externých integrácií.
+Bankové účty, Google/Microsoft/Meta OAuth a Telegram webhook vyžadujú
+samostatné živé overenie. Každé nasadenie eviduje celý SHA, Worker
+version ID, prostredie, výsledky testov a čas overenia.

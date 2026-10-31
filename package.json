@@ -11,7 +11,9 @@
     "test": "npm --prefix Trinity test",
     "check": "node scripts/run-all-tests.mjs",
     "deploy:all": "node scripts/deploy-all-workers.mjs",
-    "gemini:chat": "node scripts/gemini-dev-chat.mjs"
+    "gemini:chat": "node scripts/gemini-dev-chat.mjs",
+    "docs:check": "node scripts/sync-release-docs.mjs --check",
+    "docs:sync": "node scripts/sync-release-docs.mjs"
   },
   "dependencies": {
     "ethers": "^6.17.0",
