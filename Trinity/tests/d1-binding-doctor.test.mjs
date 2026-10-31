@@ -23,27 +23,32 @@ test('staging D1 references match the four known Cloudflare account databases',(
   assert.ok(report.resources.every(x=>x.status==='matched'));
 });
 
-test('staging deliberately drops only the absent legacy PC telemetry D1 binding',()=>{
+test('both environments omit unavailable optional PC D1 without losing PC service bindings',()=>{
   assert.equal(config.env.staging.d1_databases.some(x=>x.binding==='trinity_basterix'),false);
   assert.ok(config.env.staging.services.some(x=>x.binding==='PC_BRIDGE_V2'));
   assert.ok(config.env.staging.services.some(x=>x.binding==='PC_BRIDGE_SERVICE'));
-  assert.ok(config.env.staging.kv_namespaces.some(x=>x.binding==='PC_STATE'));
-  assert.ok(config.d1_databases.some(x=>x.binding==='trinity_basterix'));
+  assert.equal(config.env.staging.kv_namespaces.some(x=>x.binding==='PC_STATE'),false);
+  assert.equal(config.d1_databases.some(x=>x.binding==='trinity_basterix'),false);
+  assert.ok(config.kv_namespaces.some(x=>x.binding==='PC_STATE'));
 });
 
-test('production still has missing database and requires a separate repair',()=>{
+test('production D1 binding IDs also match the known account inventory',()=>{
   const report=diagnoseD1Bindings(config,inventory,{environment:'production'});
-  assert.equal(report.safe_to_deploy_by_inventory,false);
-  assert.equal(report.resources.find(x=>x.binding==='trinity_basterix').status,'database_id_not_visible');
+  assert.equal(report.safe_to_deploy_by_inventory,true);
+  assert.deepEqual(report.resources.map(x=>x.binding),['DB','rea']);
+  assert.ok(report.resources.every(x=>x.status==='matched'));
 });
 
 test('reintroducing missing D1 UUID triggers pre-deploy failure 10181 guard',()=>{
   const cloned=structuredClone(config);
-  const old=config.d1_databases.find(x=>x.binding==='trinity_basterix');
-  cloned.env.staging.d1_databases.push(old);
-  const report=diagnoseD1Bindings(cloned,inventory,{environment:'staging'});
-  assert.equal(report.safe_to_deploy_by_inventory,false);
-  assert.equal(report.resources.find(x=>x.binding==='trinity_basterix').status,'database_id_not_visible');
+  const absent={binding:'trinity_basterix',database_name:'trinity-pc-bridge',database_id:'ba94b9f2-5376-4ef8-92c4-7035df7cacb7'};
+  cloned.env.staging.d1_databases.push(absent);
+  cloned.d1_databases.push(absent);
+  for(const environment of ['staging','production']){
+    const report=diagnoseD1Bindings(cloned,inventory,{environment});
+    assert.equal(report.safe_to_deploy_by_inventory,false);
+    assert.equal(report.resources.find(x=>x.binding==='trinity_basterix').status,'database_id_not_visible');
+  }
 });
 
 test('same D1 name with changed UUID is flagged, never silently remapped',()=>{
