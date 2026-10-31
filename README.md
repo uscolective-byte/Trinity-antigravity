@@ -6,7 +6,7 @@ Hlavná aplikácia a konfigurácia sú v `Trinity/`. Koreňové `src/` a `tests/
 obsahujú kompatibilné vstupy; zdrojové zmeny smerujú do kanonických modulov.
 
 <!-- trinity-release:start -->
-Verzia zdroja: **11.0.0**. Repozitár: [uscolective-byte/Trinity-antigravity](https://github.com/uscolective-byte/Trinity-antigravity), vetva **`main`**.
+Verzia zdroja: **12.0.0**. Repozitár: [uscolective-byte/Trinity-antigravity](https://github.com/uscolective-byte/Trinity-antigravity), vetva **`main`**.
 
 | Doména | Prostredie | Worker |
 |---|---|---|
