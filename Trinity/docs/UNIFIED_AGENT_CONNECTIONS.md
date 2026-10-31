@@ -125,3 +125,56 @@ minimálne potrebné oprávnenia.
 - https://antigravity.google/docs/mcp
 - https://learn.microsoft.com/en-us/microsoft-copilot-studio/agents-experience/copilot-studio-mcp
 - https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt
+
+## Oprava Cloudflare D1 chyby 10181 (31.10.2026)
+
+Zobrazený inventár účtu obsahuje D1: `admin-db`, `trinity-development`,
+`trinity-v03` a `trinity-db`. **Neobsahuje** `trinity-pc-bridge`
+s historickým UUID `ba94b9f2-5376-4ef8-92c4-7035df7cacb7`.
+
+**V tejto vetve bola vykonaná bezpečná staging konfigurácia:**
+`Trinity/wrangler.jsonc` pre `env.staging.d1_databases` má len
+`DB` = `trinity-development` a `rea` = `trinity-db`.
+Neexistujúci voliteľný `trinity_basterix` D1 binding bol odstránený
+**iba zo staging**. Nebola zmazaná ani vytvorená žiadna DB.
+`PC_BRIDGE_V2` a `PC_BRIDGE_SERVICE` Cloudflare service bindingy
+a KV `PC_STATE` zostali zachované.
+
+**Dopad:** endpoint PC telemetrie naďalej zapisuje dostupnú telemetriu
+do KV `PC_STATE`, ale bez tohto bindingu nebude robiť
+voliteľný zápis do starej tabuľky `pc_telemetry` na neexistujúcej D1.
+Explicitné `cf_d1_query` s voľbou `pc_bridge` v stagingu
+bude vracať nedostupnosť, čo je korektný výsledok.
+
+**Produkcia zostala nedotknutá**, ale produkčný `d1_databases`
+stále obsahuje rovnakú neexistujúcu D1 referenciu. Pred ďalším
+produkčným deployom potrebuje osobitné rozhodnutie: buď ju úplne
+odstrániť po audite historických spotrebiteľov, alebo zriadiť
+a migrovať samostatnú produkčnú PC D1.
+
+Read-only kontrola na autorizovanom PC:
+
+```powershell
+cd C:\Users\saboi\Trinity-antigravity\Trinity
+npx wrangler whoami
+npx wrangler d1 list --json
+npm run d1:doctor
+npm run d1:test
+npm run secrets:doctor
+node scripts/cloudflare-env-audit.mjs --strict
+```
+
+`npm run d1:doctor` vyžiada zo správneho účtu zoznam D1 cez
+`wrangler d1 list --json`, porovná skutočné ID, ale **nič nevytvorí,
+nezmení ani nezmaže**. `npm run deploy:staging` teraz má D1
+inventárnu kontrolu ako predpodmienku.
+
+Zostáva **nezávislý problém staging izolácie**: D1 `rea`
+(`trinity-db`), KV `Mastermind` a R2 `ARTIFACTS` sú v stagingu
+a produkcii stále zdieľané. Tento PR nerieši ich rozdelenie.
+Nespúšťať mutačné staging testy proti zdieľaným zdrojom.
+
+**Aktuálny dôkazový stav:** porovnanie s používateľom dodaným
+zoznamom D1 v GitHube, bez živého Wrangler deployu. PC konektor
+je offline a GitHub runner predtým neštartoval; nemožno tvrdiť, že
+staging je už funkčne nasadený.
