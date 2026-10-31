@@ -75,29 +75,33 @@ export async function verifyFirebase(secret,{fetcher=fetch}={}){
   if(!response.ok)throw new Error(`Firebase odmietol Firestore prístup (HTTP ${response.status}).`);
   return {connected:true,project_id:projectId,status:'verified',permission_verified:'read'};
 }
-async function verifyOpenAICompatible(url,secret,provider){
-  try{
-    const response=await fetch(url,{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(10000)});
-    if(response.status===401||response.status===403)throw new HttpError(401,`Neplatný ${provider.toUpperCase()} API kľúč.`);
-    const data=await response.json().catch(()=>({}));
-    const models=Array.isArray(data.data)?data.data.map(m=>m.id).slice(0,30):[];
-    return {connected:true,provider,models:models.length?models:undefined,status:'verified'};
-  }catch(e){
-    if(e instanceof HttpError)throw e;
-    return {connected:true,provider,status:'stored-untested'};
+export async function verifyOpenAICompatible(url,secret,provider,{fetcher=fetch}={}){
+  let response;
+  try {
+    response=await fetcher(url,{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(10000),redirect:'error'});
+  } catch {
+    throw new Error(`${provider.toUpperCase()} pripojenie sa nepodarilo overiť. Token zostáva neoverený.`);
   }
+  if(!response.ok)throw new Error(`${provider.toUpperCase()} overenie zlyhalo (HTTP ${response.status}).`);
+  const data=await response.json().catch(()=>null);
+  if(!data||!Array.isArray(data.data))
+    throw new Error(`${provider.toUpperCase()} vrátil neplatný modelový katalóg.`);
+  const models=data.data.filter(item=>typeof item?.id==='string').map(item=>item.id).slice(0,30);
+  return {connected:true,provider,models,status:'verified',permission_verified:'models:read'};
 }
-async function verifyAnthropic(secret){
+export async function verifyAnthropic(secret,{fetcher=fetch}={}){
+  let response;
   try{
-    const response=await fetch('https://api.anthropic.com/v1/models',{headers:{'x-api-key':secret,'anthropic-version':'2023-06-01'},signal:AbortSignal.timeout(10000)});
-    if(response.status===401||response.status===403)throw new HttpError(401,'Neplatný Anthropic Claude API kľúč.');
-    const data=await response.json().catch(()=>({}));
-    const models=Array.isArray(data.data)?data.data.map(m=>m.id):[];
-    return {connected:true,provider:'anthropic',models,status:'verified'};
-  }catch(e){
-    if(e instanceof HttpError)throw e;
-    return {connected:true,provider:'anthropic',status:'stored-untested'};
-  }
+    response=await fetcher('https://api.anthropic.com/v1/models',{
+      headers:{'x-api-key':secret,'anthropic-version':'2023-06-01'},
+      signal:AbortSignal.timeout(10000),redirect:'error'
+    });
+  }catch{throw new Error('Anthropic pripojenie sa nepodarilo overiť.');}
+  if(!response.ok)throw new Error(`Anthropic odmietol overenie (HTTP ${response.status}).`);
+  const data=await response.json().catch(()=>null);
+  if(!data||!Array.isArray(data.data))throw new Error('Anthropic nevrátil platný katalóg modelov.');
+  const models=data.data.filter(item=>typeof item?.id==='string').map(item=>item.id);
+  return {connected:true,provider:'anthropic',models,status:'verified',permission_verified:'models:read'};
 }
 
 async function verifyGenericProvider(provider,secret){
@@ -111,7 +115,7 @@ async function verifyGenericProvider(provider,secret){
     if(!r.ok)throw new Error(`Notion odmietol token (HTTP ${r.status}).`);
     return {connected:true,provider:'notion'};
   }
-  return {connected:true,provider,status:'stored-and-ready'};
+  throw new Error(`Poskytovateľ ${provider} nemá implementovaný živý test oprávnenia. Uložené poverenie samo nie je pripojenie.`);
 }
 async function verifyGemini(secret){
   const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models',{headers:{'x-goog-api-key':secret},signal:AbortSignal.timeout(15000)});
