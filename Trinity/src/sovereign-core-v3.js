@@ -37,7 +37,7 @@ export class SovereignLedgerV3 {
     if (this.env?.DB) {
       try {
         const stmt = this.env.DB.prepare(
-          "SELECT block_index, block_hash FROM ops_sovereign_ledger ORDER BY block_index DESC LIMIT 1"
+          "SELECT block_index, block_hash FROM ops_sovereign_ledger_v3 ORDER BY block_index DESC LIMIT 1"
         );
         const lastRow = typeof stmt.first === 'function' ? await stmt.first() : (stmt.bind ? await stmt.bind().first() : null);
         if (lastRow) {
@@ -81,8 +81,8 @@ export class SovereignLedgerV3 {
     if (this.env?.DB) {
       try {
         await this.env.DB.prepare(
-          `INSERT INTO ops_sovereign_ledger(block_index, timestamp, actor, action, payload_hash, prev_hash, block_hash, rollback_ref, payload_json)
-           VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          `INSERT INTO ops_sovereign_ledger_v3(block_index, timestamp, actor, action, payload_hash, prev_hash, block_hash, rollback_ref, receipt, payload_json)
+           VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         ).bind(
           block.block_index,
           block.timestamp,
@@ -92,10 +92,11 @@ export class SovereignLedgerV3 {
           block.prev_hash,
           block.block_hash,
           block.rollback_ref,
+          block.receipt,
           payloadStr
         ).run();
       } catch {
-        // Fallback to ops_events if ops_sovereign_ledger table is pending migration
+        // Fallback to ops_events if ops_sovereign_ledger_v3 table is pending migration
         await this.env.DB.prepare(
           "INSERT INTO ops_events(action, details) VALUES('sovereign_ledger_v3_block', ?)"
         ).bind(JSON.stringify(block)).run().catch(() => {});
@@ -111,7 +112,7 @@ export class SovereignLedgerV3 {
     }
     try {
       const rows = await this.env.DB.prepare(
-        "SELECT block_index, timestamp, actor, action, payload_hash, prev_hash, block_hash, rollback_ref FROM ops_sovereign_ledger ORDER BY block_index ASC LIMIT ?"
+        "SELECT block_index, timestamp, actor, action, payload_hash, prev_hash, block_hash, rollback_ref FROM ops_sovereign_ledger_v3 ORDER BY block_index ASC LIMIT ?"
       ).bind(limit).all();
       const blocks = rows.results || [];
       if (blocks.length === 0) return { verified: true, chain_length: 0 };
