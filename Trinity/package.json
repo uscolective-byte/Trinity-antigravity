@@ -14,13 +14,15 @@
     "test:truth-live": "node scripts/live-truth-test.mjs",
     "telegram:setup": "node scripts/setup-telegram-bot.mjs",
     "build:staging": "node scripts/build-mcp-app.mjs && wrangler deploy --dry-run --env staging --outdir dist-staging",
-    "deploy:staging": "node scripts/build-mcp-app.mjs && wrangler deploy --env staging",
+    "deploy:staging": "npm run d1:doctor && node scripts/build-mcp-app.mjs && wrangler deploy --env staging",
     "migrate:staging": "wrangler d1 migrations apply DB --remote --env staging",
     "build:development": "npm run build:staging",
     "deploy:development": "npm run deploy:staging",
     "migrate:development": "npm run migrate:staging",
     "secrets:doctor": "node scripts/secrets-store-doctor.mjs",
-    "secrets:test": "node --test tests/secrets-store-doctor.test.mjs tests/trinity-master-secrets.test.mjs tests/trinity-master-wrangler.test.mjs tests/trinity-master-provider-resolution.test.mjs"
+    "secrets:test": "node --test tests/secrets-store-doctor.test.mjs tests/trinity-master-secrets.test.mjs tests/trinity-master-wrangler.test.mjs tests/trinity-master-provider-resolution.test.mjs",
+    "d1:doctor": "node scripts/d1-binding-doctor.mjs --live --env staging",
+    "d1:test": "node --test tests/d1-binding-doctor.test.mjs"
   },
   "dependencies": {
     "@cloudflare/puppeteer": "^1.4.0",
