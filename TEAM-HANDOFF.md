@@ -1278,3 +1278,6 @@ HANDOFF: preskúmať scope-gate v `src/index.js` a `src/mcp.js`; opraviť Action
 
 ### CLAIM UPDATE — D1-10181-PREFLIGHT-20261031
 V nadväznosti na používateľský log Wrangler staging zlyhal s Cloudflare 10181 pre D1 binding `trinity_basterix` na konfigurované ID. Do pracovnej vetvy patrí nový čisto čítací `Trinity/scripts/d1-binding-doctor.mjs`, testy `Trinity/tests/d1-binding-doctor.test.mjs`, skript `Trinity/package.json` a dokumentácia `Trinity/docs/UNIFIED_AGENT_CONNECTIONS.md`. Bez živého `wrangler d1 list` z autorizovaného účtu **nemažeme ani nemeníme žiadne D1 ID**, lebo 10181 môže byť aj problém Cloudflare verzie/jurisdikcie. Pred každým deployom preflight; PC Basterix je stále offline.
+
+### CLAIM UPDATE — PC-TELEMETRY-TRUTH-20261031
+Následok D1 10181 fixu: staging zároveň nemá KV `PC_STATE`. Pridať `Trinity/src/pc-telemetry.js` a `Trinity/tests/pc-telemetry.test.mjs` a upraviť len route `/api/pc-bridge/telemetry` v `Trinity/src/index.js` tak, aby bez úspešného backend persist receipt nehlásil `stored:true`; bez tajomstiev, bez vytvorenia DB/KV.
