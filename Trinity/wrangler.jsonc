@@ -435,6 +435,16 @@
           "binding": "OLLAMA_SECRET",
           "store_id": "5ba06ba934c343fa8c0dc5454ce67038",
           "secret_name": "ollama"
+        },
+        {
+          "binding": "TRINITY_MASTER_GOOGLE",
+          "store_id": "5ba06ba934c343fa8c0dc5454ce67038",
+          "secret_name": "apigoogle"
+        },
+        {
+          "binding": "TRINITY_MASTER_COPILOT",
+          "store_id": "5ba06ba934c343fa8c0dc5454ce67038",
+          "secret_name": "copilot"
         }
       ],
       "version_metadata": {
