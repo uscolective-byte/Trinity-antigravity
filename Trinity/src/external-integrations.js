@@ -95,6 +95,11 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
 export async function manageGitHub(env, actor = 'trinity', action = 'status', params = {}) {
   const token = await resolveProviderSecret(env, 'github');
   const repo = params.repo || env.TRINITY_GITHUB_REPO || 'uscolective-byte/Trinity-antigravity';
+  const isMutation=['create_issue','update_issue','dispatch_workflow'].includes(action);
+  if(typeof repo!=='string'||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)||repo.includes('..'))
+    return {success:false,error:'Neplatný GitHub repozitár.'};
+  if(isMutation&&repo!=='uscolective-byte/Trinity-antigravity')
+    return {success:false,error:'Zápisy a workflow dispatch sú povolené iba v kanonickom repozitári Trinity.'};
   const headers = {
     Accept: 'application/vnd.github+json',
     'User-Agent': 'Trinity-AI-Agent-Hub/11.0',
@@ -106,10 +111,18 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
     try {
       const resp = await fetch(`https://api.github.com/repos/${repo}`, { headers });
       const data = await resp.json().catch(() => ({}));
+      // Public repository read succeeds even if a supplied token is invalid.
+      let authenticated=false;
+      if(token&&resp.ok){
+        try{
+          const identity=await fetch('https://api.github.com/user',{headers,redirect:'error',signal:AbortSignal.timeout(12000)});
+          authenticated=identity.ok;
+        }catch{authenticated=false;}
+      }
       return {
         success: resp.ok,
         repo: repo,
-        authenticated: Boolean(token) && resp.ok,
+        authenticated,
         details: {
           name: resp.ok ? data.name || null : null,
           stars: data.stargazers_count || 0,
@@ -175,13 +188,14 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
       })
     });
     const d = await resp.json().catch(() => ({}));
-    return { success: resp.ok, issue: d };
+    return {success:resp.status===201&&Number.isInteger(d.number),issue:resp.status===201&&Number.isInteger(d.number)?d:null,
+      ...(!resp.ok?{error:`GitHub odmietol vytvorenie issue (HTTP ${resp.status}).`}:{})};
   }
 
   if (action === 'update_issue') {
     if (!token) return { success: false, error: 'Úprava GitHub issue vyžaduje token v Trezore tajomstiev.' };
     const issueNumber = params.issue_number || params.number;
-    if (!issueNumber) return { success: false, error: 'Chýba číslo issue (issue_number).' };
+    if (!Number.isInteger(issueNumber)||issueNumber<1) return { success: false, error: 'Neplatné číslo issue (issue_number).' };
     const payload = {};
     if (params.title) payload.title = params.title;
     if (params.body) {
@@ -198,18 +212,25 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
       body: JSON.stringify(payload)
     });
     const d = await resp.json().catch(() => ({}));
-    return { success: resp.ok, issue: d };
+    return {success:resp.ok&&d.number===issueNumber,issue:resp.ok&&d.number===issueNumber?d:null,
+      ...(!resp.ok?{error:`GitHub odmietol úpravu issue (HTTP ${resp.status}).`}:{})};
   }
 
   if (action === 'dispatch_workflow') {
     if (!token) return { success: false, error: 'Spustenie GitHub Actions vyžaduje token v Trezore.' };
     const workflowId = params.workflowId || 'webpack.yml';
+    const approvedWorkflows=new Set(['webpack.yml','integrations-check.yml','dependency-security.yml','codeql.yml','runner-smoke.yml']);
+    if(!approvedWorkflows.has(workflowId))return {success:false,error:'Workflow nie je na zozname bezpečných kontrolných úloh (deploy vyžaduje release gate).'};
+    const ref=params.ref||'main';
+    if(typeof ref!=='string'||!/^[-A-Za-z0-9_./]{1,160}$/.test(ref)||ref.includes('..')||ref.startsWith('/'))
+      return {success:false,error:'Neplatná Git referencia.'};
     const resp = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/${workflowId}/dispatches`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ ref: params.ref || 'main', inputs: params.inputs || {} })
+      body: JSON.stringify({ ref, inputs: params.inputs || {} })
     });
-    return { success: resp.ok, status: resp.status, message: resp.ok ? 'Workflow bol úspešne odoslaný.' : 'Chyba pri spúšťaní.' };
+    return { success: resp.status===204, status: resp.status===204?'queued':'failed',
+      http_status:resp.status, message: resp.status===204?'GitHub prijal workflow dispatch; dokončenie testov treba overiť zvlášť.':'GitHub neprevzal workflow dispatch.' };
   }
 
     if (action === 'get_file' || action === 'read_file') {
