@@ -1,4 +1,4 @@
-export const TRINITY_VERSION='11.0.0';
+export const TRINITY_VERSION='12.0.0';
 
 export const TRINITY_SOURCE={repository:'uscolective-byte/Trinity-antigravity',branch:'main'};
 
