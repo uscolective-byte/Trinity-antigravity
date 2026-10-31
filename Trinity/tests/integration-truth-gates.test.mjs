@@ -35,12 +35,13 @@ test('Cloudflare token verifies only after actual API success, with account toke
    if(String(url).endsWith('/user/tokens/verify'))return Response.json({success:false},{status:401});
    return Response.json({success:true,result:{status:'active'}});
   };
-  const result=await manageCloudflare({CF_API_TOKEN:'synthetic-token',CF_ACCOUNT_ID:'account123'},'test','status');
+  const accountId='a'.repeat(32);
+  const result=await manageCloudflare({CF_API_TOKEN:'synthetic-token',CF_ACCOUNT_ID:accountId},'test','status');
   assert.equal(result.success,true);
   assert.equal(result.verified,true);
   assert.equal(result.data.connected,true);
   assert.equal(calls.length,2);
-  assert.ok(calls[1].includes('/accounts/account123/tokens/verify'));
+  assert.ok(calls[1].includes('/accounts/'+accountId+'/tokens/verify'));
  } finally {globalThis.fetch=previous;}
 });
 
