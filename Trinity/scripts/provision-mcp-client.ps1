@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
-  [Parameter(Mandatory)][ValidateSet('copilot','gemini','ollama')][string]$Client
+  [Parameter(Mandatory)][ValidateSet('copilot','gemini','ollama','codex','antigravity')][string]$Client,
+  [ValidateSet('read','write')][string]$Access = 'read'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -24,7 +25,8 @@ $prefix = $secret.Substring(0,17)
 $owner = 'saboivan2008@gmail.com'
 $expires = [DateTimeOffset]::UtcNow.AddDays(90).ToString('yyyy-MM-dd HH:mm:ss')
 $safeName = $displayName.Replace("'","''")
-$sql = "INSERT INTO ops_api_access_keys(id,owner_id,name,key_hash,key_prefix,scopes_json,rate_limit_per_minute,status,expires_at) VALUES('$id','$owner','$safeName','$hash','$prefix',json_array('mcp:read','mcp:write'),60,'active','$expires');"
+$scopes = if ($Access -eq 'write') { "json_array('mcp:read','mcp:write')" } else { "json_array('mcp:read')" }
+$sql = "INSERT INTO ops_api_access_keys(id,owner_id,name,key_hash,key_prefix,scopes_json,rate_limit_per_minute,status,expires_at) VALUES('$id','$owner','$safeName','$hash','$prefix',$scopes,60,'active','$expires');"
 
 Push-Location $root
 try {
@@ -37,7 +39,7 @@ try {
   New-Item -ItemType Directory -Path $credentialDir -Force | Out-Null
   $protected = ConvertFrom-SecureString (ConvertTo-SecureString $secret -AsPlainText -Force)
   Set-Content -LiteralPath $credentialPath -Value $protected -NoNewline
-  Write-Host "$displayName is active in D1 and protected locally with Windows DPAPI. Its value was not printed."
+  Write-Host "$displayName MCP access: $Access. Credential registered in D1 and protected locally with Windows DPAPI. No token value printed."
 } finally {
   Pop-Location
   $secret = $null
