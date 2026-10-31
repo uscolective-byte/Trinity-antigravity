@@ -23,7 +23,8 @@ export function telegramIntegrationStatus(env) {
       'help', 'status', 'pc', 'crypto', 'fleet', 'research',
       'multi-turn-memory', 'system-grounding', 'clear'
     ],
-    live_verified: true
+    live_verified: false,
+    verification_note: 'Konfigurácia nie je dôkazom aktívneho webhooku. Over cez Telegram getWebhookInfo.'
   };
 }
 
@@ -192,8 +193,8 @@ export async function executeStatus(env) {
     '🛡️ TRINITY 11.0 SOVEREIGN ECOSYSTEM\n' +
     '• Verzia: 11.0.0 Sovereign Edition\n' +
     '• Produkčné domény: https://auru.space | https://auru.dev\n' +
-    '• Flotila: 35 prepojených Cloudflare Workerov\n' +
-    '• Databázy: D1 trinity-v03, KV Mastermind, R2 trinity-artifacts\n' +
+    '• Flotila: deklarované Service Bindings (živé pripojenie neoverené)\n' +
+    '• Úložiská: D1, KV a R2 podľa konfigurácie (dostupnosť sa tu netestuje)\n' +
     `• Lokálne PC: ${pcDesc}\n` +
     `• Predvolený AI model: ${status.provider.toUpperCase()}\n` +
     '• Režim pravdy: Truth Policy 2.0 Hardcore'
@@ -255,23 +256,23 @@ export async function executeCrypto(env) {
     }
     msg += '\n';
   } else {
-    msg += '• Trhové dáta: Jericho Engine inicializovaný (prepojenie aktívne)\n\n';
+    msg += '• Trhové dáta: nepodarilo sa načítať overené ceny z Jericho Engine\n\n';
   }
   const treasuryAddr = ttkInfo?.treasury_address
     ? `${ttkInfo.treasury_address.slice(0, 10)}...${ttkInfo.treasury_address.slice(-6)}`
-    : 'BIP-39 / EVM peňaženka pripravená';
+    : 'neoverená (nebola vrátená adresa)';
   msg +=
     '🪙 Tetrakis ($TTK) Token:\n' +
     '• Celková ponuka: 1,000,000,000 TTK (Fixná zásoba)\n' +
     '• Štandard: ERC-20 (OpenZeppelin v5.1.0, Shanghai EVM)\n' +
     `• Treasury adresa: ${treasuryAddr}\n` +
-    '• Stav: Pripravené na smart contract deploy';
+    '• Stav: nasadenie smart kontraktu nebolo týmto príkazom overené';
   return msg;
 }
 
 export function executeFleet() {
   return (
-    '⚡ FLOTILA 35 CLOUDFLARE WORKEROV TRINITY\n\n' +
+    '⚡ KATALÓG CLOUDFLARE SERVICE BINDINGS TRINITY\n\n' +
     '🎯 10× AURA Špecialisti:\n' +
     '• AURA_ANALYZER, AURA_ARCHITECT, AURA_CODEGEN, AURA_DEPLOYER, AURA_EVOLVER\n' +
     '• AURA_MEMORY, AURA_OPTIMIZER, AURA_PLANNER, AURA_SENTINEL, AURA_TESTER\n\n' +
@@ -286,7 +287,7 @@ export function executeFleet() {
     '• CHAT_MAINTAINER_SERVICE (Autonomous Chat Healing)\n' +
     '• DEPLOYER_SERVICE (KV Code Deployer)\n' +
     '• SEEDER_SERVICE (D1 Database Seeder)\n\n' +
-    'Všetky služby sú zviazané cez Cloudflare Service Bindings na https://auru.space.'
+    'Zoznam je deklarovaný katalóg. Aktuálny stav Workerov ani ich dostupnosť tento príkaz netestuje.'
   );
 }
 
