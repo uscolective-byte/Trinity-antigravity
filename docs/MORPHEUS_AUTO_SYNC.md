@@ -54,3 +54,27 @@ vrátane force-rewrite, workflow zachová odlišné SHA pod osobitným
 menom `mirror/morpheus-rewrites/*` a pozastaví automatický merge
 pri prepísanej histórii. GitHub token nikdy nesmie force-pushnúť
 kanonický `main`.
+
+## Trinity 12 — zrkadlenie v opačnom smere
+
+Historické repo `uscolective-byte/trinity-morhfeus` má workflow
+[`canonical-main-mirror.yml`](https://github.com/uscolective-byte/trinity-morhfeus/blob/main/.github/workflows/canonical-main-mirror.yml).
+Na harmonograme (dvakrát za hodinu) alebo manuálnym spustením prenáša
+**iba fast-forward** `Trinity-antigravity/main` do
+`trinity-morhfeus/mirror/canonical-main`. Nezapisuje do historického
+`main`, nenasadzuje Worker a nenahrádza pôvodné vetvy/PR.
+
+Opačný smer existuje v hlavnom repo ako `morpheus-sync.yml`: archívne
+vetvy z historického repa a **review PR** na unikátne zmeny.
+Nie je to automatický obojstranný konfliktový merge; produkčný
+`main` má jediného vlastníka.
+
+**Deployment gate:** historický `.github/workflows/self-deploy.yml`
+bol 31.10.2026 upravený tak, že verify job na starom repo
+nemôže autorizovať deploy. Overenie zatiaľ GitHub commitom, nie
+úspešným Actions behom.
+
+**Nevyriešené:** GitHub Actions runner allocation, oprávnenia
+`GITHUB_TOKEN` pre mirror vetvu, úspešný prvý mirror, migrácia
+source-only PR/issues/reviews a obnoviteľný Git backup.
+Bez týchto dôkazov netvrdiť live synchronizáciu ani nezmazať starý repo.
