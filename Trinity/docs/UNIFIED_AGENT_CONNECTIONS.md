@@ -138,13 +138,22 @@ s historickým UUID `ba94b9f2-5376-4ef8-92c4-7035df7cacb7`.
 Neexistujúci voliteľný `trinity_basterix` D1 binding bol odstránený
 **iba zo staging**. Nebola zmazaná ani vytvorená žiadna DB.
 `PC_BRIDGE_V2` a `PC_BRIDGE_SERVICE` Cloudflare service bindingy
-a KV `PC_STATE` zostali zachované.
+zostali zachované. **KV `PC_STATE` je v produkcii, ale staging ho
+nemá**. Nie je správne tvrdiť, že staging telemetriu ukladá do KV.
 
 **Dopad:** endpoint PC telemetrie naďalej zapisuje dostupnú telemetriu
 do KV `PC_STATE`, ale bez tohto bindingu nebude robiť
 voliteľný zápis do starej tabuľky `pc_telemetry` na neexistujúcej D1.
 Explicitné `cf_d1_query` s voľbou `pc_bridge` v stagingu
 bude vracať nedostupnosť, čo je korektný výsledok.
+
+**Staging PC telemetria:** kým staging nemá vlastné KV `PC_STATE`
+ani samostatnú PC D1, endpoint `POST /api/pc-bridge/telemetry`
+vracia `HTTP 503`, `stored:false` namiesto nepravdivého úspechu.
+`Trinity/src/pc-telemetry.js` vracia `stored:true` až po
+reálne vykonanom KV put alebo D1 run. Oddelené staging KV vyžaduje
+vytvorenie v autorizovanom Cloudflare účte a uvedenie skutočného ID
+v `env.staging.kv_namespaces`; žiadne UUID sa nevymýšľa.
 
 **Produkcia zostala nedotknutá**, ale produkčný `d1_databases`
 stále obsahuje rovnakú neexistujúcu D1 referenciu. Pred ďalším
