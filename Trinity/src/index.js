@@ -7,6 +7,7 @@ import {createTrinityDocument,listTrinityDocuments,getTrinityDocument,deleteTrin
 import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk,listBankConnections,configureBankConnection,deleteBankConnection,syncLiveMarketFeeds,getCommodityChart} from './commodities-engine.js';
 import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,listAllIntegrations} from './external-integrations.js';
 import {trinityMasterStatus} from './trinity-master-status.js';
+import {adviseTrinityMaster} from './trinity-master-agent.js';
 import {scanForImprovements} from './maintenance-scan.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
 import {searchDomainNames,refreshDomainRegistration,createSubdomain,syncCloudflareDomains} from './domains.js';
@@ -1370,6 +1371,13 @@ async function route(request,env,ctx){
   if(path==='/api/assistant/devhub/execute'&&request.method==='POST'){
     requireAdmin(user);
     return json(await executeDevHubCommand(env,ownerId,await readJSON(request,16000)));
+  }
+  if(path==='/api/assistant/master/advise'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`trinity-master-advise:${user.id}`,10,300);
+    const task=await readJSON(request,3000);
+    const pcBridge=await getPCBridgeStatus(env).catch(()=>null);
+    return json(await adviseTrinityMaster(env,task,pcBridge));
   }
   if(path==='/api/assistant/master/status'&&request.method==='GET'){
     requireAdmin(user);
