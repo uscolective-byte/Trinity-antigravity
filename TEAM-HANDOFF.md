@@ -1244,3 +1244,20 @@ Owner: ChatGPT GitHub connector; changes are only on PR #22 (not deployed).
 Autor: ChatGPT cez pripojený GitHub; používateľ žiada okamžité zlepšenie Cloudflare Secrets Store a naučenie Trinity/Antigravity.
 Vetva: `feat/secrets-store-agent-skills-20261031` (od kanonického main `babf4c01`); pracovný rozsah: `.agents/skills/cloudflare-secrets-store/**`, `.agents/skills/trinity-fleet-ops/SKILL.md`, `AGENTS.md`, `Trinity/scripts/secrets-store-doctor.mjs`, `Trinity/tests/secrets-store-doctor.test.mjs`, `Trinity/docs/TRINITY_SECRETS_STORE_PLAYBOOK.md`, `Trinity/package.json`, `.agents/rules/AGENTS.md`.
 Obmedzenia: žiadne hodnoty tokenov, nula zmien v cloudovom účte a produkcii bez overeného oprávnenia; `TRINITY_MASTER_GOOGLE/COPILOT` ostávajú staging-only. PC Antigravity hlási Offline; návod v Gite nie je jeho lokálna inštalácia. Existujúce Secrets Store body a zálohy nemeniť ani nemazať.
+
+### UPDATE / HANDOFF — CF-SECRETS-STORE-AGENT-SKILL-20261031
+Autor: ChatGPT cez pripojený GitHub; pracovná vetva `feat/secrets-store-agent-skills-20261031` od už zlúčeného PR #22 / main `babf4c01`.
+Vykonané:
+- `.agents/skills/cloudflare-secrets-store/SKILL.md`: nový praktický Cloudflare Secrets Store skill pre Antigravity a Codex, oficiálne scope a Wrangler metadata príkazy; nijaké hodnoty secretov.
+- `.agents/skills/trinity-fleet-ops/SKILL.md` a `.agents/rules/AGENTS.md`: opravený historický názov development -> aktuálne staging (Worker trinity-staging); vyznačený problém zdieľanej D1/KV/R2 izolácie.
+- `AGENTS.md`: každý agent musí čítať Secrets Store skill; lokálna .env konfigurácia nie je vzdialený Secrets Store.
+- `Trinity/scripts/secrets-store-doctor.mjs`: read-only kontrola naming, store ID metadata, scope-unknown, staging-only Gemini/Copilot, duplicity, nelegitímne široké GitHub/PC bindingy a tokenový materiál vo vars. Hodnoty sa nikdy nevypisujú.
+- `Trinity/package.json`: dostupné `npm run secrets:doctor` a `npm run secrets:test`.
+- `Trinity/src/skill-matrix.js`: runtime inštrukcia pre Trinity používať await env.BINDING.get(), nepredstierať PC online a neobmedzené admin práva.
+- `Trinity/tests/secrets-store-doctor.test.mjs`, `Trinity/tests/secrets-store-agent-guidance.test.mjs`: regresné overenia zmeneného správania.
+- `Trinity/docs/TRINITY_MASTER_SECRETS_STORE.md`: odkaz na praktický skill a pravdivý status už zlúčeného PR #22.
+
+Overenie: 12 z 12 izolovaných čistých JavaScript/V8 kontrol prešlo, vrátane odmietnutia širokého GitHub bindingu, duplikátu, nezodpovedajúceho názvu a tokenu vo vars. Žiadny nový Cloudflare secret sa nečítal, nezapisoval alebo nemenil.
+Nevykonané: Node npm run check, kompletné Node testy, Wrangler dry-run a Cloudflare deploy (GitHub Actions runner v poslednom audite zlyhával pred spustením, Windows PC Basterix stále offline). Cloudflare remote scopes/permissions a plná izolácia stagingu nie sú potvrdené.
+Bezpečnosť: historický zverejnený Cloudflare token z chatu nie je použitý; majiteľ musí bezodkladne zrušiť každý ešte aktívny exponovaný token. Zhodnotenie produkcie po staging testoch a dôkaze rollbacku.
+HANDOFF: PR na kontrolu, obnoviť Actions runner a PC spojenie, overiť remote metadata/scope workers a Secrets Store Edit deploy právo, získať separované staging D1/KV/R2, spustiť test suite a až potom staging nasadenie. ACK lokálneho Antigravity nebolo obdržané a nemožno ho predstierať.
