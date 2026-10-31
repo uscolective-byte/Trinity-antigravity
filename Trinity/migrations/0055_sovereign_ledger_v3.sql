@@ -20,15 +20,9 @@ CREATE INDEX IF NOT EXISTS idx_slv3_actor ON ops_sovereign_ledger_v3(actor, time
 CREATE INDEX IF NOT EXISTS idx_slv3_action ON ops_sovereign_ledger_v3(action, timestamp);
 CREATE INDEX IF NOT EXISTS idx_slv3_block_hash ON ops_sovereign_ledger_v3(block_hash);
 
-CREATE TRIGGER IF NOT EXISTS slv3_no_update BEFORE UPDATE ON ops_sovereign_ledger_v3
-BEGIN
-  SELECT RAISE(ABORT, 'ops_sovereign_ledger_v3 is strictly append-only');
-END;
+CREATE TRIGGER IF NOT EXISTS slv3_no_update BEFORE UPDATE ON ops_sovereign_ledger_v3 BEGIN SELECT RAISE(ABORT, 'ops_sovereign_ledger_v3 is strictly append-only'); END;
 
-CREATE TRIGGER IF NOT EXISTS slv3_no_delete BEFORE DELETE ON ops_sovereign_ledger_v3
-BEGIN
-  SELECT RAISE(ABORT, 'ops_sovereign_ledger_v3 is strictly append-only');
-END;
+CREATE TRIGGER IF NOT EXISTS slv3_no_delete BEFORE DELETE ON ops_sovereign_ledger_v3 BEGIN SELECT RAISE(ABORT, 'ops_sovereign_ledger_v3 is strictly append-only'); END;
 
 -- 2. Truth Assertions (Verifiable Execution Proofs)
 CREATE TABLE IF NOT EXISTS ops_truth_assertions (

@@ -198,3 +198,267 @@ export function safeTruthResponse(language='sk'){
     ? "I don't have verified evidence that the external action was completed. Neither unverified results, non-existent entity IDs, nor empty placeholder records are accepted under Truth Policy."
     : 'Nemám overený systémový dôkaz, že externá akcia bola vykonaná. Žiadny neoverený výsledok, neexistujúce ID ani prázdny zástupný záznam sa podľa Režimu pravdy (Truth Policy) nepoužijú.';
 }
+
+// ============================================================================
+// DESATORO PRAVDIVOSTI A DETERMINIZMU TRINITY (10 COMMANDMENTS OF TRUTH)
+// ============================================================================
+
+/**
+ * 1. Zákaz fiktívnych úspechov (Zero Simulated Execution)
+ * Odpoveď sa vygeneruje iba vtedy, keď lokálny proces vráti exitCode === 0.
+ */
+export function enforceZeroSimulatedExecution(processResult){
+  if(!processResult||typeof processResult!=='object'||processResult.exitCode!==0){
+    const code=processResult?.exitCode??'MISSING';
+    return {
+      allowed:false,
+      status:'BLOCKED',
+      rule:'1_ZERO_SIMULATED_EXECUTION',
+      exitCode:code,
+      message:`Operácia zablokovaná: Proces nevrátil reálny systémový návratový kód exitCode === 0 (zistený stav: ${code}).`
+    };
+  }
+  return {
+    allowed:true,
+    status:'VERIFIED',
+    rule:'1_ZERO_SIMULATED_EXECUTION',
+    exitCode:0
+  };
+}
+
+/**
+ * 2. Zákaz vymýšľania dát (Raw Evidence Only)
+ * Ak údaj neexistuje, vráti presne: "Údaj nie je dostupný v systéme."
+ */
+export function enforceRawEvidenceOnly(data,rawStdout='',rawStderr=''){
+  const hasData=data!==undefined&&data!==null&&data!=='';
+  const hasConsole=Boolean((rawStdout&&String(rawStdout).trim())||(rawStderr&&String(rawStderr).trim()));
+  if(!hasData&&!hasConsole){
+    return {
+      available:false,
+      rule:'2_RAW_EVIDENCE_ONLY',
+      output:'Údaj nie je dostupný v systéme.'
+    };
+  }
+  return {
+    available:true,
+    rule:'2_RAW_EVIDENCE_ONLY',
+    stdout:String(rawStdout||''),
+    stderr:String(rawStderr||''),
+    data:hasData?data:undefined
+  };
+}
+
+/**
+ * 3. Zákaz predstierania prepojenia (No Fake APIs)
+ * Tvrdý sieťový timeout (predvolene 5000 ms). Pri výpadku vráti presné hlásenie.
+ */
+export async function fetchWithHardTimeout(url,options={},timeoutMs=5000,fetcher=fetch){
+  try{
+    const response=await fetcher(url,{
+      ...options,
+      signal:AbortSignal.timeout(timeoutMs)
+    });
+    if(!response||!response.ok){
+      return {
+        ok:false,
+        rule:'3_NO_FAKE_APIS',
+        status:response?.status||503,
+        message:'Chyba spojenia: Endpoint neodpovedá. Operácia nebola vykonaná.'
+      };
+    }
+    return {
+      ok:true,
+      rule:'3_NO_FAKE_APIS',
+      status:response.status,
+      response
+    };
+  }catch{
+    return {
+      ok:false,
+      rule:'3_NO_FAKE_APIS',
+      status:504,
+      message:'Chyba spojenia: Endpoint neodpovedá. Operácia nebola vykonaná.'
+    };
+  }
+}
+
+/**
+ * 4. Fyzické overenie pred nahlásením (Disk & State Check)
+ * Po každom zápise nasleduje okamžitý kontrolný krok OS (fs.existsSync / stat).
+ */
+export function verifyPhysicalDiskWrite(filePath,existsCheckFn){
+  if(typeof existsCheckFn!=='function'){
+    throw new Error('Chýba systémová verifikačná funkcia pre kontrolu disku.');
+  }
+  const exists=Boolean(existsCheckFn(filePath));
+  if(!exists){
+    return {
+      verified:false,
+      rule:'4_DISK_AND_STATE_CHECK',
+      path:filePath,
+      message:`Zlyhanie zápisu: Súbor "${filePath}" fyzicky neexistuje na disku.`
+    };
+  }
+  return {
+    verified:true,
+    rule:'4_DISK_AND_STATE_CHECK',
+    path:filePath,
+    message:`Fyzická existencia súboru "${filePath}" na disku bola potvrdená.`
+  };
+}
+
+/**
+ * 5. Zákaz konštrukcií s predpokladom (Anti-Assumption Filter)
+ * Zakázané frázy ako "určite sa to vykonalo", "malo by to bežať", "predpokladám, že...".
+ */
+export const ASSUMPTION_PATTERNS=[
+  /\burcite\s+sa\s+to\s+vykonalo\b/i,
+  /\bmalo\s+by\s+to\s+(?:bezat|fungovat|byt\s+hotove)\b/i,
+  /\bpredpokladam\s*,?\s*ze\b/i,
+  /\bpravdepodobne\s+(?:sa\s+to\s+podarilo|to\s+prebehlo|to\s+bezi)\b/i,
+  /\basi\s+sa\s+to\s+(?:spustilo|vykonalo|podarilo)\b/i,
+  /\bi\s+assume\s+it\s+(?:worked|ran|succeeded)\b/i,
+  /\bit\s+should\s+be\s+running\b/i
+];
+
+export function filterAntiAssumption(responseText,hasVerifiedReceipt=false,rawProcessState='Stav procesu: neoverený (chýba receipt)'){
+  const text=String(responseText||'');
+  const normalized=text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const matched=ASSUMPTION_PATTERNS.some(pattern=>pattern.test(normalized));
+  if(matched&&!hasVerifiedReceipt){
+    return {
+      blocked:true,
+      rule:'5_ANTI_ASSUMPTION_FILTER',
+      output:rawProcessState
+    };
+  }
+  return {
+    blocked:false,
+    rule:'5_ANTI_ASSUMPTION_FILTER',
+    output:text
+  };
+}
+
+/**
+ * 6. Priznanie chýbajúcich oprávnení (Permission Candor)
+ * Pri chybe EACCES, EPERM alebo Access Denied vráti presné priznanie.
+ */
+export function enforcePermissionCandor(error){
+  const code=error?.code||'';
+  const msg=String(error?.message||error||'');
+  if(code==='EACCES'||code==='EPERM'||/access\s+is\s+denied|access\s+denied|pr[ií]stup\s+bol\s+odmietnut[yý]|nedostato[cč]n[eé]\s+opr[aá]vnenia|unauthorized\s+operation/iu.test(msg)){
+    return {
+      permissionDenied:true,
+      rule:'6_PERMISSION_CANDOR',
+      message:'Operácia zlyhala: Nedostatočné administrátorské práva vo Windows.'
+    };
+  }
+  return {
+    permissionDenied:false,
+    rule:'6_PERMISSION_CANDOR',
+    message:msg
+  };
+}
+
+/**
+ * 7. Nemenný zápis pravdy do Sovereign Ledgeru (Historical Truth Check)
+ * Ak verzia v minulosti zlyhala, zakáže tvrdiť, že bežala bezchybne.
+ */
+export function verifyHistoricalLedgerTruth(ledgerBlocks=[],targetActionOrVersion=''){
+  const relevant=ledgerBlocks.filter(b=>!targetActionOrVersion||b.action===targetActionOrVersion||b.version===targetActionOrVersion);
+  const failures=relevant.filter(b=>b.status==='FAILED'||b.result==='FAILED'||b.payload?.status==='FAILED'||b.payload?.exitCode>0);
+  return {
+    rule:'7_SOVEREIGN_LEDGER_TRUTH',
+    total_records:relevant.length,
+    failure_count:failures.length,
+    flawless:relevant.length>0&&failures.length===0,
+    can_claim_flawless:relevant.length>0&&failures.length===0,
+    summary:failures.length>0
+      ? `História v Sovereign Ledgeri zaznamenala ${failures.length} zlyhaní. Nie je možné tvrdiť bezchybný beh.`
+      : (relevant.length>0?'Všetky zaznamenané behy v Sovereign Ledgeri boli úspešné.':'Žiadne historické záznamy v Sovereign Ledgeri.')
+  };
+}
+
+/**
+ * 8. Nezávislý Verifikátor (Oddelenie moci / Separation of Powers)
+ * Agent, ktorý kód navrhol alebo príkaz spustil, nesmie hodnotiť jeho výsledok.
+ */
+export class IndependentVerifier {
+  static verify({proposingAgent,verifyingAgent='INDEPENDENT_VERIFIER',plannedState,actualState}){
+    if(!proposingAgent)throw new Error('Chýba identifikátor navrhujúceho agenta (proposingAgent).');
+    if(!verifyingAgent)throw new Error('Chýba identifikátor verifikujúceho agenta (verifyingAgent).');
+    if(proposingAgent===verifyingAgent){
+      throw new Error(`Porušenie oddelenia moci (Pravidlo 8): Agent "${proposingAgent}" nesmie sám hodnotiť výsledok vlastnej exekúcie.`);
+    }
+    const plannedJson=JSON.stringify(plannedState??null);
+    const actualJson=JSON.stringify(actualState??null);
+    const matched=plannedJson===actualJson;
+    return {
+      verified:matched,
+      rule:'8_INDEPENDENT_VERIFIER',
+      proposing_agent:proposingAgent,
+      verifying_agent:verifyingAgent,
+      match:matched,
+      verified_at:new Date().toISOString()
+    };
+  }
+}
+
+/**
+ * 9. Zákaz skrytých pádov (No Silent Errors)
+ * Zákaz prázdnych catch blokov a okamžité vyplávanie neočakávanej výnimky so stack trace.
+ */
+export function detectSilentCatchBlocks(sourceCode=''){
+  const code=String(sourceCode);
+  const emptyCatchRegex=/catch\s*(?:\([^)]*\))?\s*\{\s*(?:\/\/[^\n]*\s*)*\}/g;
+  const matches=[...code.matchAll(emptyCatchRegex)];
+  return {
+    clean:matches.length===0,
+    rule:'9_NO_SILENT_ERRORS',
+    silent_catch_count:matches.length,
+    message:matches.length>0
+      ? `Detegovaných ${matches.length} prázdnych catch blokov maskujúcich chyby.`
+      : 'Kód neobsahuje prázdne catch bloky.'
+  };
+}
+
+export function surfaceRawException(error){
+  const stack=error?.stack||error?.message||String(error||'Unknown Error');
+  return {
+    halted:true,
+    rule:'9_NO_SILENT_ERRORS',
+    error_message:error?.message||String(error),
+    stack_trace:stack
+  };
+}
+
+/**
+ * 10. Striktný stav NEVIEM / NEVIEM VYKONAŤ (Strict Capability Boundary)
+ * Deterministická odpoveď pri chýbajúcom module alebo parametroch.
+ */
+export function enforceCapabilityOrKnowNot(actionName,availableModules=new Set(),requiredParams=[],providedParams={}){
+  const modulesSet=availableModules instanceof Set?availableModules:new Set(Array.isArray(availableModules)?availableModules:[]);
+  if(!modulesSet.has(actionName)){
+    return {
+      executable:false,
+      rule:'10_STRICT_CANNOT_EXECUTE',
+      message:`Tento príkaz nedokážem vykonať: chýba modul pre ${actionName}.`
+    };
+  }
+  const missing=requiredParams.filter(p=>providedParams[p]===undefined||providedParams[p]===null||providedParams[p]==='');
+  if(missing.length>0){
+    return {
+      executable:false,
+      rule:'10_STRICT_CANNOT_EXECUTE',
+      missing_params:missing,
+      message:`Tento príkaz nedokážem vykonať: chýba modul pre ${actionName} (chýbajúce vstupné parametre: ${missing.join(', ')}).`
+    };
+  }
+  return {
+    executable:true,
+    rule:'10_STRICT_CANNOT_EXECUTE',
+    action:actionName
+  };
+}
+

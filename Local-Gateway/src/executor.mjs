@@ -64,6 +64,7 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
     const target=await resolveSafePath(workspaceRoot,payload.path,{allowMissing:true});const before=await currentHash(target);
     if(payload.expected_sha256!==before)throw new Error(`Súbor sa zmenil. Očakávaný hash nesedí (${before}).`);
     await atomicWrite(target,payload.content);const after=await currentHash(target);
+    if(after==='absent')throw new Error('Zlyhanie zápisu: Súbor sa po operácii fyzicky nenachádza na disku.');
     return {action:proposal.action,path:payload.path,before_sha256:before,after_sha256:after,bytes:Buffer.byteLength(payload.content)};
   }
   if(proposal.action==='run'){

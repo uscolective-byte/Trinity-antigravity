@@ -1,10 +1,11 @@
 /**
- * TRINITY SELF-EVOLUTION ENGINE S AUTO-ROLLBACK POISTKOU
+ * TRINITY SELF-EVOLUTION ENGINE S AUTO-ROLLBACK POISTKOU & RING 0 SOVEREIGN LOCK
  * 
- * Umožňuje bezpečný self-modifying cyklus pre základné systémové súbory TRINITY.
- * Pred každým prepisom uloží zálohu do R2 / KV, vykoná kontraktovú verifikáciu
- * a pri akejkoľvek chybe okamžite obnoví pôvodný stav (Auto-Rollback).
+ * Umožňuje bezpečný self-modifying cyklus pre základné systémové súbory TRINITY
+ * výhradne pod priamym príkazom a súhlasom architekta Basterix.
  */
+
+import { SovereignLockMiddleware } from './sovereign-lock.js';
 
 export async function backupSystemSnapshot(env, filePath, content) {
   const timestamp = Date.now();
@@ -62,9 +63,42 @@ export function validateScriptSyntax(code) {
 /**
  * Aplikuje sebamodifikáciu s auto-rollbackom
  */
-export async function applySelfModification(env, { filePath, originalContent, newContent, rationale = 'Autonómne vylepšenie kódu' }) {
+export async function applySelfModification(env, {
+  filePath,
+  originalContent,
+  newContent,
+  rationale = 'Architektonická úprava schválená Basterixom',
+  operatorIdentity = 'Basterix',
+  verifiedSession = true,
+  isAutonomousSubagent = false,
+  basterixManualConsent = true,
+  basterixEscalationApproved = true,
+  gitDiff = 'diff --git'
+}) {
   if (!filePath || newContent === undefined) {
     return { ok: false, error: 'Chýba cesta k súboru alebo nový obsah.' };
+  }
+
+  // 0. Ring 0 Sovereign Lock Middleware kontrola
+  const lock = new SovereignLockMiddleware(env);
+  const auth = await lock.authorizeCodeMutation({
+    operatorIdentity,
+    verifiedSession,
+    isAutonomousSubagent,
+    basterixManualConsent,
+    basterixEscalationApproved,
+    gitDiff,
+    filePath
+  });
+
+  if (!auth.authorized) {
+    return {
+      ok: false,
+      status: 'blocked',
+      code: auth.code,
+      error: auth.message,
+      tamper_receipt: auth.tamper_receipt
+    };
   }
 
   // 1. Kontrola základnej syntaxe

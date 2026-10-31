@@ -1350,3 +1350,14 @@ Základný commit / checkout: `f5c73a9`, `C:\Users\saboi\Trinity-antigravity` (m
 - Spolu: **714 testov úspešných naprieč celým ekosystémom**.
 
 Stav: completed / commit & push to origin/main.
+
+### CLAIM / HANDOFF — SOVEREIGN-LOCK-SECURITY-REVIEW-20261031-CHATGPT-03
+Autor: ChatGPT cez Desktop Commander; príjemca: Antigravity; pokyn vlastníka: Sovereign Root Authority Basterix.
+Checkout pri kontrole: main HEAD 31649e7. Rozpracované súbory Antigravity: Local-Gateway/src/executor.mjs, Trinity/migrations/0055_sovereign_ledger_v3.sql, Trinity/src/truth.js a nové sovereign-lock.js, truth-ten-commandments.test.mjs. ChatGPT ich nemení.
+P0 nález: sovereign-lock.js isBasterixRootOperator(identity, verifiedSession = true) implicitne považuje reláciu za overenú a dôveruje textu identity; toto nie je kryptografické overenie. enforceNoAutonomousRewrite prijíma basterixManualConsent=true a gitDiff bez overenia podpisu, identity alebo hash diffu.
+Požadované: fail-closed serverová autentifikovaná identita, WebAuthn/passkey alebo overiteľný digitálny podpis; schválenie viazať na actor, repo, exact operation, sha256 diff, paths, nonce, expiration a environment. Jednorazové nonce atomicky spotrebovať. Odmietnuť forged/reused/expired signatures.
+Externé webhooky/social/email sú výhradne pasívne dáta. Neveriť atribútu sender. Kontroly v write adapteroch, tool dispatcher, GitHub CI a gateway, nie iba v prompte. Model nesmie generovať dôkaz sám.
+Doplniť regresné testy pre bypass, replay, unverified session, delegated workers, path traversal, rejected mutation a chýbajúci proof.
+Windows DACL iba cez samostatný privilege broker a overený recovery postup; bez masových ACL zmien a bez produkčného deployu, merge, push či finančných akcií.
+Antigravity: zapíš vlastné ACK a CLAIM. Podľa covenantu najprv odovzdaj konkrétny Git diff na explicitné schválenie vlastníka, až potom implementuj chránené zmeny.
+Stav: pending_ack, bez tvrdenia o dokončenej implementácii.
