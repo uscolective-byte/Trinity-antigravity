@@ -122,9 +122,9 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
       return {
         success: resp.ok,
         repo: repo,
-        authenticated: Boolean(token),
+        authenticated: Boolean(token) && resp.ok,
         details: {
-          name: data.name || null,
+          name: resp.ok ? data.name || null : null,
           stars: data.stargazers_count || 0,
           open_issues: data.open_issues_count || 0,
           default_branch: data.default_branch || 'main',
@@ -216,7 +216,7 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
 
   if (action === 'dispatch_workflow') {
     if (!token) return { success: false, error: 'Spustenie GitHub Actions vyžaduje token v Trezore.' };
-    const workflowId = params.workflowId || 'deploy.yml';
+    const workflowId = params.workflowId || 'webpack.yml';
     const resp = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/${workflowId}/dispatches`, {
       method: 'POST',
       headers,
@@ -477,7 +477,7 @@ export async function manageFirebase(env, actor = 'trinity', action = 'status', 
       mirrored_in_d1:mirroredInD1,
       firestore_written:firestoreWritten,
       ...(firestoreHttpStatus === null ? {} : {firestore_http_status:firestoreHttpStatus}),
-      status: !success?'failed':!firestoreWritten?'local_only':'verified',
+      status: !success?'failed':!firestoreWritten?'partial':'verified',
       ...(success ? {written_at:new Date().toISOString()} :
         {error:'Nepotvrdený zápis: D1 mirror zlyhal a Firestore nevrátil úspech.'})
     };
