@@ -231,17 +231,8 @@ export function handleMcp(request,env,ctx,access={}){
         return result(await rejectSystemAction(env,id,actor));
       });
 
-    server.registerTool('pc_status',{description:'Stav PC Bridge — či je pripojený, capabilities, integrácie.',inputSchema:{}},
-      async()=>{
-        const action=await createSystemAction(env,{action:'system_info',payload:{detail:false},rationale:'MCP: PC status'},'mcp:trinity');
-        for(let i=0;i<30;i++){
-          await new Promise(r=>setTimeout(r,1000));
-          const cur=await getSystemAction(env,action.id);
-          if(cur?.status==='completed')return result({connected:true,...cur.receipt});
-          if(cur?.status==='failed')return result({connected:false,error:cur.error});
-        }
-        return result({connected:false,error:'PC Bridge neodpovedal.'});
-      });
+    server.registerTool('pc_status',{description:'Čisto read-only stav PC Bridge podľa heartbeat; nie dôkaz vykonania PC akcie.',inputSchema:{}},
+      async()=>result(await getPCBridgeStatus(env).catch(()=>({connected:false,status:'unknown'}))));
 
     server.registerTool('pc_run_command',{description:'Spustí príkaz na lokálnom PC (vyžaduje schválenie).',
       inputSchema:{command:z.string().min(1).max(2000),cwd:z.string().max(500).optional(),rationale:z.string().min(5).max(300)}},
