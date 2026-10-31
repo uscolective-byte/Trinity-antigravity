@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {HttpError} from './security.js';
-import {getSecretMaterial,listSecrets} from './secret-vault.js';
+import {getSecretMaterial,listSecrets,resolveProviderSecret} from './secret-vault.js';
 
 export const aiProviderInputSchema=z.object({
   secret_id:z.string().uuid(),
@@ -48,6 +48,7 @@ export async function listAIProviders(env,ownerId){
   const openaiSetting=settings.results.find(item=>item.provider==='openai')||null;
   const openaiSecrets=secrets.filter(item=>item.provider==='openai');
   const environmentGemini=typeof env.GEMINI_API_KEY==='string'&&sanitizeApiKey(env.GEMINI_API_KEY,/(?:AIza[A-Za-z0-9_-]{25,}|AQ\.[A-Za-z0-9_.-]{25,})/).length>=8;
+  const storeGemini=typeof env.TRINITY_MASTER_GOOGLE?.get==='function';
   const environmentOpenAI=typeof env.OPENAI_API_KEY==='string'&&sanitizeApiKey(env.OPENAI_API_KEY,/sk-[A-Za-z0-9_-]{16,}/).length>=20;
   const environmentOllama=!!(env.OLLAMA_SECRET||typeof env.OLLAMA_API_KEY==='string'&&sanitizeApiKey(env.OLLAMA_API_KEY).length>=8);
   const resolvedOpenAIModel=openaiSetting?.model||(env.OPENAI_MODEL&&!/luna/i.test(env.OPENAI_MODEL)?env.OPENAI_MODEL.trim():'gpt-4.1-mini');
@@ -55,7 +56,7 @@ export async function listAIProviders(env,ownerId){
     {id:'workers-ai',name:'Cloudflare Workers AI',configured:!!env.AI,enabled:true,model:env.AI_MODEL||'@cf/meta/llama-3.3-70b-instruct-fp8-fast',managed_by:'cloudflare',last_check:checks.get('workers-ai')||null},
     {id:'openai',name:'OpenAI / ChatGPT API',configured:!!openaiSetting||environmentOpenAI,enabled:openaiSetting?openaiSetting.enabled===1:environmentOpenAI,model:resolvedOpenAIModel,managed_by:openaiSetting?'encrypted-vault':'worker-secret',secret_source:openaiSetting?'encrypted-vault':environmentOpenAI?'worker-secret':'bez poverenia',credentials:openaiSecrets,last_check:checks.get('openai')||null},
     {id:'ollama',name:'Ollama Cloud',configured:environmentOllama,enabled:environmentOllama,model:env.OLLAMA_MODEL||'gemma4:31b',managed_by:env.OLLAMA_SECRET?'secrets-store':'worker-secret',secret_source:env.OLLAMA_SECRET?'secrets-store':'worker-secret',last_check:checks.get('ollama')||null},
-    {id:'gemini',name:'Google Gemini',configured:!!geminiSetting||environmentGemini,enabled:geminiSetting?geminiSetting.enabled===1:environmentGemini,project_control:geminiSetting?.project_control===1,approval_policy:'authenticated-admin-request',operator_policy:GEMINI_OPERATOR_POLICY,allowed_actions:GEMINI_OPERATOR_ACTIONS,model:geminiSetting?.model||env.GEMINI_MODEL||null,secret_id:geminiSetting?.secret_id||null,secret_source:geminiSetting?'encrypted-vault':environmentGemini?'worker-secret':null,credentials:geminiSecrets,updated_at:geminiSetting?.updated_at||null,last_check:checks.get('gemini')||null}
+    {id:'gemini',name:'Google Gemini',configured:!!geminiSetting||environmentGemini||storeGemini,enabled:geminiSetting?geminiSetting.enabled===1:environmentGemini||storeGemini,project_control:geminiSetting?.project_control===1,approval_policy:'authenticated-admin-request',operator_policy:GEMINI_OPERATOR_POLICY,allowed_actions:GEMINI_OPERATOR_ACTIONS,model:geminiSetting?.model||env.GEMINI_MODEL||null,secret_id:geminiSetting?.secret_id||null,secret_source:geminiSetting?'encrypted-vault':environmentGemini?'worker-secret':storeGemini?'secrets-store':null,credentials:geminiSecrets,updated_at:geminiSetting?.updated_at||null,last_check:checks.get('gemini')||null}
   ]};
 }
 
@@ -85,8 +86,13 @@ export async function getConfiguredAIProvider(env,provider){
   const row=await env.DB.prepare(`SELECT s.owner_id,s.provider,s.secret_id,s.model,v.status,v.verification_json
     FROM ops_ai_provider_settings s JOIN ops_secret_vault v ON v.id=s.secret_id AND v.owner_id=s.owner_id
     WHERE s.provider=? AND s.enabled=1 AND v.status='verified' ORDER BY s.updated_at DESC LIMIT 1`).bind(provider).first();
-  if(!row&&provider==='gemini'&&typeof env.GEMINI_API_KEY==='string'&&sanitizeApiKey(env.GEMINI_API_KEY,/(?:AIza[A-Za-z0-9_-]{25,}|AQ\.[A-Za-z0-9_.-]{25,})/).length>=8){
-    const geminiKey=sanitizeApiKey(env.GEMINI_API_KEY,/(?:AIza[A-Za-z0-9_-]{25,}|AQ\.[A-Za-z0-9_.-]{25,})/);
+  if(!row&&provider==='gemini'){
+    // Use an explicitly bound Secrets Store credential before deciding that
+    // Gemini is unavailable. A binding is configuration, never live proof.
+    const resolved=await resolveProviderSecret(env,'gemini');
+    const geminiKey=sanitizeApiKey(resolved,/(?:AIza[A-Za-z0-9_-]{25,}|AQ\.[A-Za-z0-9_.-]{25,})/);
+    if(!geminiKey||geminiKey.length<8)
+      throw new HttpError(503,'Gemini nemá dostupný platný API kľúč v serverovom prostredí.');
     let model=env.GEMINI_MODEL?String(env.GEMINI_MODEL).trim().replace(/^models\//,''):'';
     if(!model&&env.Mastermind)model=await env.Mastermind.get('ai:gemini:default-model')||'';
     if(!model){
