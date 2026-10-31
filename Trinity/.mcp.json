@@ -10,7 +10,7 @@
         "-File",
         "${workspaceFolder}/scripts/start-trinity-codex-mcp.ps1",
         "-CredentialName",
-        "copilot-mcp"
+        "gemini-mcp"
       ]
     }
   }
