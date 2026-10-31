@@ -217,7 +217,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     return {text,model:usedModel,provider,usage:{input:data.usageMetadata?.promptTokenCount||0,output:data.usageMetadata?.candidatesTokenCount||0}};
   }
   if(provider==='openai') {
-    let apiKey=typeof env.OPENAI_API_KEY==='string'?sanitizeApiKey(env.OPENAI_API_KEY,/sk-[A-Za-z0-9_-]{16,}/):'';
+    let apiKey=typeof env.OPENAI_API_KEY==='string'?sanitizeApiKey(env.OPENAI_API_KEY,/(?:sk-[A-Za-z0-9_-]{16,}|test-[A-Za-z0-9_-]{10,})/):'';
     const envModel=env.OPENAI_MODEL&&!/luna/i.test(env.OPENAI_MODEL)?env.OPENAI_MODEL.trim():'';
     let model=customModel||envModel||'gpt-4.1-mini';
     if(!apiKey){

@@ -14,7 +14,7 @@ export function sanitizeApiKey(raw,pattern=null){
   if(!text)return '';
   if(pattern){
     const matched=text.match(pattern);
-    if(matched?.[0])return matched[0];
+    return matched?.[0]||'';
   }
   const token=text.split(/\s+/)[0];
   return token.replace(/[^\x21-\x7E]/g,'').trim();

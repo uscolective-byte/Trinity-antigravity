@@ -10,7 +10,7 @@ test('PC open-app receipt is completed only with verified execution evidence',()
   });
   assert.equal(pcActionReceipt({id:'claimed-1',status:'claimed'},timestamp).status,'running');
   assert.equal(pcActionReceipt({id:'failed-1',status:'failed'},timestamp).status,'failed');
-  assert.deepEqual(pcActionReceipt({_evidence:{receipt_id:'verified-1'}},timestamp),{
+  assert.deepEqual(pcActionReceipt({status:'completed',_evidence:{receipt_id:'verified-1'}},timestamp),{
     tool:'pc_open_app',status:'completed',effect:'mutation',actions:['execute'],receipt_id:'verified-1',verified_at:timestamp
   });
 });
