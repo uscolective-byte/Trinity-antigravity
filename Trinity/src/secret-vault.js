@@ -153,8 +153,8 @@ async function verifyGemini(secret){
   let outputText=String(liveData.output_text||'').trim();
   if(!live.ok || !outputText){
     const cleanModel=model.replace(/^models\//,'');
-    const genResp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cleanModel)}:generateContent?key=${encodeURIComponent(secret)}`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const genResp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cleanModel)}:generateContent`,{
+      method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':secret},
       body:JSON.stringify({contents:[{role:'user',parts:[{text:'Reply exactly OK.'}]}],generationConfig:{maxOutputTokens:8,temperature:0}}),
       signal:AbortSignal.timeout(30000),redirect:'manual'
     });
