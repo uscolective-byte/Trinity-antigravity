@@ -1,8 +1,8 @@
 # Jeden kanonický zdroj pre produkciu a staging
 
-Kanonický zdroj aplikácie Trinity 11 je
+Kanonický zdroj plánovaného vydania Trinity 12 je
 https://github.com/uscolective-byte/Trinity-antigravity, vetva **main**,
-aplikácia **Trinity/**. Repozitár trinity-morhfeus je historický/zrkadlený.
+aplikácia **Trinity/**. Toto označenie je verziou zdrojového kódu v PR, nie potvrdením produkčného deploymentu. Repozitár trinity-morhfeus je historický/zrkadlený.
 Nemaž ho ani z neho nezapínaj ďalší automatický deploy bez porovnania
 unikátnych zmien a externých väzieb.
 
