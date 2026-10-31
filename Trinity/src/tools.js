@@ -44,9 +44,9 @@ export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_su
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
 export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
 export const requiresVerifiedAdminForIntegrationTool=(name,args={})=>
-  name==='cloudflare_manage'&&args.action==='purge_cache'
-  ||name==='github_manage'&&['create_issue','update_issue','dispatch_workflow'].includes(args.action)
-  ||name==='firebase_manage'&&args.action==='set_document';
+  name==='cloudflare_manage'&&args?.action==='purge_cache'
+  ||name==='github_manage'&&['create_issue','update_issue','dispatch_workflow'].includes(args?.action)
+  ||name==='firebase_manage'&&args?.action==='set_document';
 export const TOOL_SCHEMAS={
   web_fetch:z.object({url:z.string().url()}).strict(),
   project_inspect:z.object({query:z.string().max(2000).default('')}).strict(),
