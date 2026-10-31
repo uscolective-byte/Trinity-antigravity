@@ -366,12 +366,6 @@
           "binding": "rea",
           "database_name": "trinity-db",
           "database_id": "5b792055-97cf-4d8a-8145-d588c83c54df"
-        },
-        {
-          "binding": "trinity_basterix",
-          "database_name": "trinity-pc-bridge",
-          "database_id": "ba94b9f2-5376-4ef8-92c4-7035df7cacb7",
-          "remote": true
         }
       ],
       "kv_namespaces": [
