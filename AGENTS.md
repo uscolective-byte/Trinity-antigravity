@@ -14,3 +14,13 @@ Pokyny pre agentov (Codex, Antigravity). S majiteľom (Sabo Ivan / Basterix) kom
    - Prítomnosť over: `powershell -NoProfile -File scripts/shared-env.ps1 -Check` (hodnoty sa nevypisujú).
    - Hodnoty nikdy nevypisuj, nelogovaj ani necommituj. Chýbajúci kľúč pridá majiteľ, nežiadaj ho do chatu.
 3. Pred deployom testy, deploy s `--tag <git-sha>`, overenie `node Trinity/scripts/verify-deployment.mjs`. Produkčný merge/deploy len po staging dôkaze a rozhodnutí majiteľa.
+
+## Zjednotené oprávnenia a vývoj
+
+Kanonický repozitár: `uscolective-byte/Trinity-antigravity@main`.
+Pre Codex, ChatGPT, Antigravity, Gemini, Copilot Studio a Ollama platí
+[AGENT_ACCESS_AND_AUTONOMY.md](Trinity/docs/AGENT_ACCESS_AND_AUTONOMY.md).
+Pri autorizovanom vlastníkovi automatizuj bezpečné úpravy, build, testy,
+commity a PR. Model nie je samostatná identita ani poverenie.
+Merge, zmeny infraštruktúry a produkcie vykonaj iba po skutočnej kontrole
+scope, výsledkov CI a aktuálnom HANDOFF; nikdy nevymýšľaj receipt.
