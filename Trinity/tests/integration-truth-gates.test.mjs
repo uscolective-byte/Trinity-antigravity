@@ -147,3 +147,54 @@ test('PC and generic tool proposals cannot be reported as executed from generate
   const ambiguous=pcActionReceipt({_evidence:{receipt_id:'not-proof'}});
   assert.equal(ambiguous.status,'pending');
 });
+
+test('GitHub public repo reachability is not proof of valid token authorization',async()=>{
+  const old=globalThis.fetch;
+  try {
+    const urls=[];
+    globalThis.fetch=async url=>{
+      urls.push(String(url));
+      return String(url).endsWith('/user')?Response.json({message:'Bad credentials'},{status:401}):
+        Response.json({name:'Trinity-antigravity',default_branch:'main'});
+    };
+    const result=await manageGitHub({TRINITY_GITHUB_TOKEN:'invalid-synthetic'},'test','status');
+    assert.equal(result.success,true);
+    assert.equal(result.authenticated,false);
+    assert.equal(urls.length,2);
+    assert.ok(urls[1].endsWith('/user'));
+  }finally{globalThis.fetch=old;}
+});
+
+test('GitHub mutations reject foreign and legacy repositories before any API call',async()=>{
+  const old=globalThis.fetch;
+  try{
+    globalThis.fetch=async()=>{throw Error('no mutation must be sent');};
+    for(const repo of ['uscolective-byte/trinity-morhfeus','other/account','bad/repo/../unsafe']){
+      for(const action of ['create_issue','update_issue','dispatch_workflow']){
+        const result=await manageGitHub({TRINITY_GITHUB_TOKEN:'synthetic'},'test',action,{repo});
+        assert.equal(result.success,false,repo+'/'+action);
+      }
+    }
+    const forbidden=await manageGitHub({TRINITY_GITHUB_TOKEN:'synthetic'},'test','dispatch_workflow',{
+      workflowId:'self-deploy.yml'
+    });
+    assert.equal(forbidden.success,false);
+  }finally{globalThis.fetch=old;}
+});
+
+test('GitHub workflow dispatch is queued, not a completed workflow',async()=>{
+  const old=globalThis.fetch;
+  try{
+    let target=null;
+    globalThis.fetch=async url=>{
+      target=String(url);
+      return new Response(null,{status:204});
+    };
+    const result=await manageGitHub({TRINITY_GITHUB_TOKEN:'synthetic'},'test','dispatch_workflow',{workflowId:'runner-smoke.yml'});
+    assert.equal(result.success,true);
+    assert.equal(result.status,'queued');
+    assert.match(target,/runner-smoke\.yml\/dispatches$/);
+    const receipt=toolReceiptForOutcome('github_manage',{...result,_evidence:{effect:'mutation',receipt_id:'generated'}});
+    assert.equal(receipt.status,'pending');
+  }finally{globalThis.fetch=old;}
+});
