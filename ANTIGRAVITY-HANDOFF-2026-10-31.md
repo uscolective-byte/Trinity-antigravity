@@ -7,7 +7,7 @@
 Kanonický GitHub: https://github.com/uscolective-byte/Trinity-antigravity
 
 - Aktuálny **main**: `df655686ece1f1048a0b63807aeee88c3a8dc6f2` (merged PR #25; schválené len Git merge, **nie doložený cloud deploy**).
-- Najnovšia **rozpracovaná opravná vetva**: `feat/unified-agent-connection-bridge-20261031`, commit `052408c7740a01d7ebc611201d13bbb1100a8b94`; PR **#26 je stále DRAFT, OPEN, NOT MERGED**, 22 zmenených súborov.
+- Najnovšia **rozpracovaná opravná vetva**: `feat/unified-agent-connection-bridge-20261031`, východiskový commit `052408c7740a01d7ebc611201d13bbb1100a8b94` (presný HEAD sa mení pri doplnení handoffu, preto ho vždy over cez `git ls-remote origin refs/heads/feat/unified-agent-connection-bridge-20261031`); PR **#26 je stále DRAFT, OPEN, NOT MERGED**, 22 zmenených súborov.
 - PR #26 opravuje Cloudflare staging chybu D1 10181, pripravuje Trinity/Cloudflare/PC/Codex/ChatGPT/Antigravity/Gemini/Copilot MCP a korektné hlásenie PC telemetrie. To je **najnovšia pracovná verzia**, nie schválené vydanie.
 - **GitHub CI runner zlyháva bez pridelenia runnera**, nie sú potvrdené úspešné Node/Cloudflare tests.
 - Produkčné a staging nasadenie nie je overené a nesmie byť odvodzované iba zo SHA.
