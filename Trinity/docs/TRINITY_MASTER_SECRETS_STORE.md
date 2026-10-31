@@ -1,6 +1,6 @@
 # TRINITY_MASTER — Secrets Store integration
 
-**Stav:** kód pripravený v PR #22; **nie je nasadený ani live-overený**.
+**Stav (31.10.2026):** PR #22 už bol **zlúčený do main**, ale aktuálne nasadenie a živé scope/credential overenie nebolo v tomto audite nezávisle potvrdené.
 **Interný názov:** `TRINITY_MASTER`. Nie je to premenovanie Cloudflare
 Secrets Store a nie je to nový Cloudflare API token.
 
@@ -87,7 +87,7 @@ GitHub/PC admin akcie, nie pridávať široké tokeny k verejnému chatu.
 
 ## Cloudflare AI diagnostický agent a ovládací prehľad
 
-Pracovná vetva PR #22 obsahuje pridané interné rozhrania:
+Kanonický repozitár po zlúčení PR #22 obsahuje interné rozhrania:
 
 - `GET /api/assistant/master/status` — **vyžaduje autorizovaného admina**, vracia iba pravdivý stav konfigurácie (Workers AI / D1 / R2, ChatGPT API, Claude API, Gemini, Copilot, Codex workflow, GitHub, PC bridge). Vždy rozlišuje `configured`, `provider_verified`, `oauth_linked` a `execution_verified`; nečíta nijaké hodnoty Secrets Store.
 - `POST /api/assistant/master/advise` s JSON `{"task":"Skontroluj prepojenia Trinity"}` — **admin-only**, rate limit, max. 2000 znakov; Cloudflare Workers AI dostane iba neprivilegované metadata a vráti odporúčania s `status:advice_only`, `execution_performed:false`. Nemá nástroje na reálny deploy, GitHub push, shell, PC ani čítanie secretov.
@@ -134,3 +134,37 @@ Bez samostatných úložísk sa môžu staging testy dotknúť
 produkčných dát; staging deploy preto vyžaduje osobitnú
 kontrolu očakávaných zápisov. Tvrdenie, že staging je
 úplne izolovaný, **nie je aktuálne pravdivé**.
+
+## Akčný skill pre Trinity, Codex a Google Antigravity
+
+Nový zdroj pravdy pre agentov:
+`.agents/skills/cloudflare-secrets-store/SKILL.md`. Tento skill bol
+pridaný do repozitára a prepojený z koreňového `AGENTS.md`;
+**nebol nainštalovaný na offline Windows PC** ani vykonaný v živom
+Cloudflare účte.
+
+Kontrola bez čítania hodnoty secretu:
+
+```bash
+cd Trinity
+npm run secrets:doctor
+npm run secrets:test
+node scripts/cloudflare-env-audit.mjs --strict
+```
+
+Príkaz `secrets:doctor` kontroluje metadáta `wrangler.jsonc`:
+povolené názvy a store ID, duplicity, staging-only Gemini/Copilot,
+nezamieňanie store za provider a nedovolený administrátorský/PC key
+v široko dostupnom Workeru. Nečíta ani neloguje hodnoty tajomstiev;
+neoveruje vzdialený Cloudflare status, existenciu ani scopes.
+
+Po prihlásení majiteľa môže Antigravity lokálne použiť iba
+metadátové Wrangler príkazy `secrets-store store list --remote`
+a `secrets-store secret list STORE_ID --remote` na overenie
+scope `workers`. Netreba sťahovať žiadne hodnoty kľúčov ani používať
+`secret get`. Pri nedostupnom PC alebo Cloudflare relácii treba
+označiť overenie `blocked`, nie `verified`.
+
+Cloudflare vyžaduje `Account Secrets Store Edit` pre CI token,
+ktorým sa nasadzuje nový binding. Samotný `Read` nestačí.
+Ide o iné oprávnenie než API token pre bežné GitHub Actions.
