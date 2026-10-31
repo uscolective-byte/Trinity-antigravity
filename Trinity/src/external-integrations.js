@@ -536,7 +536,7 @@ export async function listAllIntegrations(env) {
       name: 'GitHub Repository & Actions',
       category: 'Code & CI/CD',
       status: ghToken ? 'configured' : 'public-read-ready',
-      description: 'Prepojenie s repozitárom uscolective-byte/trinity-morhfeus a spúšťanie GitHub Actions.'
+      description: 'Správa kanonického repozitára uscolective-byte/Trinity-antigravity; starý Morpheus je iba synchronizovaný zdroj.'
     },
     {
       id: 'firecrawl',
