@@ -17,7 +17,7 @@ import {callModel,serviceStatus,readiness} from './services.js';
 import {skillRegistry} from './skillRegistry.js';
 import {listPlugins} from './plugins.js';
 import {createSystemAction,getSystemAction,listSystemActions,approveSystemAction,rejectSystemAction,getPCBridgeStatus} from './system-actions.js';
-import {geminiProjectControlEnabled} from './ai-providers.js';
+// Project control comes only from the authenticated MCP caller's scopes.
 import {TrinityCopilotAgent} from './copilot-agent.js';
 import {universalEcosystem} from './universal-ecosystem.js';
 import {runBrainCycle} from './brain.js';
@@ -58,7 +58,7 @@ export function handleMcp(request,env,ctx,access={}){
         }
         return result(await queryLedger(env,query||{}));
       });
-    const projectControlAllowed=()=>access.projectControl?Promise.resolve(true):geminiProjectControlEnabled(env,env.TRINITY_OWNER_EMAIL||'');
+    const projectControlAllowed=()=>Promise.resolve(access.projectControl===true);
 
     server.registerTool('trinity_status',{description:'Overí aktuálnu pripravenosť jadra a stav registra pluginov. Netvrdí prístup k PC ani ROOT_ADMIN.',inputSchema:{}},
       async()=>{
