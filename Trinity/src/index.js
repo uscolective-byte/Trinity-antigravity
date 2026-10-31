@@ -29,6 +29,7 @@ import {searchMemory,runTool} from './tools.js';
 import {PLUGINS,listPlugins,pluginEnabled,installPlugin,installAllPlugins} from './plugins.js';
 import {handleMcp} from './mcp.js';
 import {agentConnectionMatrix} from './agent-connection-matrix.js';
+import {persistPCTelemetry} from './pc-telemetry.js';
 import {TRUTH_POLICY_VERSION} from './truth.js';
 import {SYSTEM_CAPABILITIES,createSystemAction,listSystemActions,getSystemAction,approveSystemAction,rejectSystemAction,claimSystemAction,finishSystemAction,authenticateGateway,getPCBridgeStatus} from './system-actions.js';
 import {createStudioCheckoutOffer,listStudioProjects,getStudioProject,createStudioProject,reviseStudioProject} from './studio.js';
@@ -303,27 +304,10 @@ async function route(request,env,ctx){
     return json({ ok: true, status, telemetry: kvTelemetry });
   }
   if(['/api/pc-bridge/telemetry', '/api/assistant/pc-bridge/telemetry'].includes(path)&&request.method==='POST'){
-    const body = await readJSON(request, 64000);
-    if(env.PC_STATE){
-      await env.PC_STATE.put('telemetry:latest', JSON.stringify(body), { expirationTtl: 300 });
-    }
-    if(env.trinity_basterix){
-      await env.trinity_basterix.prepare(
-        "INSERT INTO pc_telemetry (id, gateway_id, hostname, platform, uptime, cpu_percent, memory_used_mb, memory_total_mb, disks_json, prislub_verified, last_seen, updated_at) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now')) ON CONFLICT (id) DO UPDATE SET gateway_id=excluded.gateway_id, hostname=excluded.hostname, platform=excluded.platform, uptime=excluded.uptime, cpu_percent=excluded.cpu_percent, memory_used_mb=excluded.memory_used_mb, memory_total_mb=excluded.memory_total_mb, disks_json=excluded.disks_json, prislub_verified=excluded.prislub_verified, last_seen=excluded.last_seen, updated_at=datetime('now')"
-      ).bind(
-        body.gateway_id || 'gateway:pc',
-        body.hostname || 'PC',
-        body.platform || 'win32',
-        body.uptime_seconds || 0,
-        body.cpu?.cores || 0,
-        body.memory?.used_mb || 0,
-        body.memory?.total_mb || 0,
-        JSON.stringify(body.disks || {}),
-        body.prislub_verified ? 1 : 0,
-        body.timestamp || Date.now()
-      ).run().catch(()=>{});
-    }
-    return json({ ok: true, stored: true, at: Date.now() });
+    const body=await readJSON(request,64000);
+    const stored=await persistPCTelemetry(env,body);
+    if(!stored.ok)return json({...stored,error:'Nie je dostupné žiadne funkčné úložisko PC telemetrie.',at:Date.now()},503);
+    return json({...stored,at:Date.now()});
   }
   if(path==='/api/sync/state'){
     if(request.method==='GET'){
