@@ -43,6 +43,10 @@ export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_stat
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
 export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
+export const requiresVerifiedAdminForIntegrationTool=(name,args={})=>
+  name==='cloudflare_manage'&&args.action==='purge_cache'
+  ||name==='github_manage'&&['create_issue','update_issue','dispatch_workflow'].includes(args.action)
+  ||name==='firebase_manage'&&args.action==='set_document';
 export const TOOL_SCHEMAS={
   web_fetch:z.object({url:z.string().url()}).strict(),
   project_inspect:z.object({query:z.string().max(2000).default('')}).strict(),
@@ -285,6 +289,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if((DEVELOPMENT_TOOLS.includes(name)||name==='domain_register'&&input?.live_register===true)&&!isAdminOrOwner)throw new Error('Táto schopnosť vyžaduje serverom overeného správcu.');
   if(OWNER_BUSINESS_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('Obchodné a vývojové schopnosti Trinity sú dostupné iba overenému ownerovi.');
   if(PC_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('PC nástroje sú dostupné iba v serverom overenom admin režime.');
+  if(requiresVerifiedAdminForIntegrationTool(name,input)&&!isAdminOrOwner)throw new Error('Cloudflare/GitHub/Firebase zápisy vyžadujú serverom overeného vlastníka.');
   if(['execute_skill','ecosystem_synthesize'].includes(name)&&!isAdminOrOwner)throw new Error('Spúšťanie skillov a registrácia rozšírení vyžaduje serverom overeného administrátora.');
   if(!INTERNAL_TOOLS.has(name)&&name!=='install_plugin')await ensureToolEnabled(env,name);
   if(name==='request_system_action'&&input&&typeof input==='object')input={action:input.action,payload:input.payload||(typeof input.resource==='string'?{path:input.resource}:{}),rationale:input.rationale||input.reason};
