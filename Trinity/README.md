@@ -8,7 +8,7 @@ Jedna asistentka so spoločným zdrojom, dvoma prostrediami a samostatnou
 konfiguráciou prihlásenia a externých služieb.
 
 <!-- trinity-release:start -->
-Verzia zdroja: **11.0.0**. Repozitár: [uscolective-byte/Trinity-antigravity](https://github.com/uscolective-byte/Trinity-antigravity), vetva **`main`**.
+Verzia zdroja: **12.0.0**. Repozitár: [uscolective-byte/Trinity-antigravity](https://github.com/uscolective-byte/Trinity-antigravity), vetva **`main`**.
 
 | Doména | Prostredie | Worker |
 |---|---|---|
