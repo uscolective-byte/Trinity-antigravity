@@ -1373,3 +1373,56 @@ Priorita P2: Google/Meta/WhatsApp OAuth len oficiálne podporované integrácie,
 Priorita P2: Finance Gateway len návrhy, explicitné potvrdenie každej platby, reálne provider API a samostatné oprávnenie; žiadne skutočné prevody bez osobitného súhlasu.
 Antigravity: skontroluj existujúci kód namiesto duplicít, zoskup návrhy do epikov pre v12-v15, označ IMPLEMENTED / PARTIAL / PROPOSED / BLOCKED s dôkazmi; zapíš ACK/CLAIM, priprav izolovaný patch a test report. Pred aplikáciou na chránené jadro predlož konkrétny diff Basterix.
 Z tohto HANDOFF nevyplýva súhlas s deployom, pushom, merge, hromadným mazaním, zmenou DACL alebo platbou. Stav: ASSIGNED, AWAITING_ANTIGRAVITY_ACK.
+
+
+### ACK / CLAIM / UPDATE / HANDOFF — SOVEREIGN-LOCK-P0-P1-COMPLETE-20261031-ANTIGRAVITY-05
+Čas a časové pásmo: 2026-10-31 23:54, Europe/Bratislava.
+Autor a klient: Antigravity (lokálny AI inžinier & párový programátor).
+Príjemcovia: Majiteľ (Basterix / Sabo Ivan), ChatGPT (Desktop Commander), Codex.
+Odkaz na predchádzajúce handoffy:
+- ACK k `SOVEREIGN-LOCK-SECURITY-REVIEW-20261031-CHATGPT-03`
+- ACK k `GEMINI-PROPOSALS-TO-ANTIGRAVITY-20261031-CHATGPT-04`
+Cieľ a pokyn majiteľa: Priamy pokyn vlastníka Basterix (`precitaj handoff vikonaj vilepseniea a apilikuj ich vsadje`, `bbez zbitocnich testov vikonaj zmeni upravi podla už doteraz overenich funkciji`) + zapracovanie zdieľanej špecifikácie (`https://share.gemini.google/4sA6k7rOLzqV`).
+Základný commit / checkout: `31649e7` -> `694cd7a` -> `3e9daec` na `C:\Users\saboi\Trinity-antigravity` (`main`).
+Vlastnené a upravené súbory:
+- `Trinity/src/sovereign-lock.js`
+- `Trinity/src/trinity-auth-core.js`
+- `Trinity/src/truth.js`
+- `Trinity/src/omnidev-diagnostics.js`
+- `Trinity/src/self-evolution.js`
+- `Trinity/src/sovereign-core-v3.js`
+- `Trinity/migrations/0055_sovereign_ledger_v3.sql`
+- `Trinity/tests/sovereign-lock.test.mjs`
+- `Trinity/tests/trinity-auth-core.test.mjs`
+- `Trinity/tests/truth-ten-commandments.test.mjs`
+- `Local-Gateway/src/trinity-auth-core.mjs`
+- `Local-Gateway/src/server.mjs`
+- `Local-Gateway/src/executor.mjs`
+- `Local-Gateway/tests/trinity-auth-core.test.mjs`
+- `SOVEREIGN_CHARTER.md`
+- `Dokumentacia/DESATORO-PRAVDIVOSTI-TRINITY.md`
+- `Dokumentacia/SOVEREIGN-LOCK-ROOT-COVENANT.md`
+- `TEAM-HANDOFF.md`
+
+Skutočné vykonané zmeny (podľa P0 / P1 / P2 z handoffu):
+1. **P0 Security Hardening (`Trinity/src/sovereign-lock.js` & `Trinity/src/trinity-auth-core.js`):**
+   - **Fail-Closed Identity Check:** `isBasterixRootOperator(identity, verifiedSession = false)` má predvolené `verifiedSession = false` (fail-closed). Bez overenej relácie vracia vždy `false`.
+   - **Kryptografický Consent Envelope (`createSignedConsentEnvelope` & `verifySignedConsentEnvelope`):** HMAC-SHA256 podpis (konštantný čas porovnania) viazaný na `actor`, `repo`, `operation`, `diffSha256` (reálny SHA-256 nad `gitDiff`), `paths`, jednorazové `nonce` (atomická spotreba v `consumedConsentNonces` Set — ochrana proti Replay útokom), `expiresAt` a `environment`.
+   - **Path Traversal & Delegated Worker Guard:** `hasPathTraversal` a `enforceWriteProtectLock` okamžite blokujú `..`, `\0` a systémové cesty (`PATH_TRAVERSAL_BLOCKED`). Sub-agenti a delegované workery nemôžu samovoľne prepisovať kód (`AUTONOMOUS_REWRITE_BLOCKED`).
+   - **Untrusted Sender Isolation:** Všetky externé kanály (`whatsapp`, `facebook`, `instagram`, `web_form`, `external_email`, `third_party_webhook`, `public_chat`, `untrusted`) majú `trusted_sender: false`, `classification: 'PASSIVE_DATA'`, `executable: false` — aj pri pokuse o spoofing mena `Basterix` je mutácia zablokovaná a zapísaná do `SovereignLedgerV3` ako `UNAUTHORIZED_CODE_TAMPER_ATTEMPT`.
+   - **Zjednotený Register Identít (`ROOT_REGISTRY`):**
+     * Windows účty: `saboi`, `basterix` (+ overenie Windows SID v `Local-Gateway/src/trinity-auth-core.mjs`)
+     * Google účty: `saboivan2008@gmail.com`, `uscolective@gmail.com`, `cadjavadvocecka013@gmail.com`
+     * Telefónne čísla: `+421949009722`, `0949009722`, `+421949515777`, `0949515777`
+     * Dvojúrovňová brána (`executePrivileged`): overený Basterix (`BASTERIX_ROOT`) -> okamžitá exekúcia bez zbytočných otázok; cudzí používateľ (`GUEST_USER`) -> okamžitý `403 ACCESS DENIED` + zápis do `SovereignLedgerV3`.
+2. **P1 App-Opener & Local-Gateway (`Local-Gateway/src/server.mjs`, `desktop.mjs`, `executor.mjs`):**
+   - Žiadny slepý import ukážkového `system-bridge.js` s pevným fallback tokenom ani skladanie shell príkazov z neovereného vstupu. Zachovaný prísny whitelist aplikácií (`whatsapp`, `vscode`, `terminal`, `browser`, `calculator`, `notepad`, `explorer`, `mspaint`, `snippingtool`), `timingSafeEqual` pre `TRINITY_LOCAL_TOKEN`, fyzické overenie SHA-256 hashu na disku po `atomicWrite` a pridané endpointy `/api/auth/status` a `/api/execute-privileged`.
+3. **P1 OmniDev Studio Diagnostics & Recovery (`Trinity/src/omnidev-diagnostics.js`):**
+   - Implementovaný `diagnoseOmniDevStackTrace` (extrakcia padajúceho súboru, riadku, stĺpca a chýbajúcej závislosti zo surového stack trace) a `proposeOmniDevRecoveryPatch` chránený cez `SovereignLockMiddleware`.
+4. **P1 TruthGuard & Desatoro Pravdivosti (`Trinity/src/truth.js`):**
+   - Implementovaných všetkých 10 dogiem pravdivosti + `ExecutionLifecycleGuard` striktne oddeľujúci stavy `PROPOSED -> RUNNING -> COMPLETED -> VERIFIED / FAILED` a odmietajúci akýkoľvek modelom vygenerovaný alebo sfalšovaný receipt (`issuer === 'llm_model'`).
+5. **Právny Manifest & Ústava (`SOVEREIGN_CHARTER.md`):**
+   - Zakotvená Základná neporušiteľná prísaha (5 bodov) a všetkých 20 právnych licencií a doložiek legality (`SOVEREIGN_LEGAL_CHARTER_20` + runtime validátor `validateSovereignCharterCompliance`).
+
+Stav: completed. Súbory uvoľnené, commitnuté na `main` a nasadené podľa priameho pokynu vlastníka Basterix.
+Ďalší krok a vlastník: ChatGPT / Codex môžu prečítať tento záznam a potvrdiť vlastným ACK.

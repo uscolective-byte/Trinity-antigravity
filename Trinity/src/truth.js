@@ -462,3 +462,53 @@ export function enforceCapabilityOrKnowNot(actionName,availableModules=new Set()
   };
 }
 
+/**
+ * 11. Striktný životný cyklus exekúcie (TruthGuard State Separation)
+ * Oddeľuje stavy PROPOSED -> RUNNING -> COMPLETED -> VERIFIED / FAILED
+ * a odmieta akýkoľvek receipt vygenerovaný samotným jazykovým modelom (forged/model receipt).
+ */
+export const EXECUTION_STATES = Object.freeze({
+  PROPOSED: 'PROPOSED',
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED',
+  VERIFIED: 'VERIFIED',
+  FAILED: 'FAILED'
+});
+
+export class ExecutionLifecycleGuard {
+  static validateTransition(currentState, nextState, receipt = null) {
+    const allowedTransitions = {
+      PROPOSED: new Set(['RUNNING', 'FAILED']),
+      RUNNING: new Set(['COMPLETED', 'FAILED']),
+      COMPLETED: new Set(['VERIFIED', 'FAILED']),
+      VERIFIED: new Set([]),
+      FAILED: new Set([])
+    };
+
+    const allowed = allowedTransitions[currentState];
+    if (!allowed || !allowed.has(nextState)) {
+      throw new Error(`Invalid execution state transition: ${currentState} -> ${nextState}`);
+    }
+
+    if (nextState === 'VERIFIED') {
+      if (!receipt || typeof receipt !== 'object') {
+        throw new Error('Cannot transition to VERIFIED without a real executor receipt.');
+      }
+      if (receipt.issuer === 'llm_model' || receipt.forged === true || !receipt.executorId) {
+        throw new Error('SECURITY BLOCK: Model-generated or forged receipts are rejected. Only OS/Runtime executor receipts are accepted.');
+      }
+      if (receipt.exitCode !== 0) {
+        throw new Error(`Cannot transition to VERIFIED with non-zero exitCode (${receipt.exitCode}).`);
+      }
+    }
+
+    return {
+      previous_state: currentState,
+      state: nextState,
+      executor_id: receipt?.executorId || null,
+      verified_at: nextState === 'VERIFIED' ? new Date().toISOString() : null
+    };
+  }
+}
+
+

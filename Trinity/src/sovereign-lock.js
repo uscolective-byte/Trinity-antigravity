@@ -2,11 +2,11 @@
  * TRINITY SOVEREIGN LOCK & ROOT-AUTHORITY COVENANT (Ring 0 Middleware)
  * Sole Architectural Root Authority: Basterix (Sabo Ivan)
  *
- * Enforces the 5 Iron Rules of Code Protection and Root Governance:
- * 1. No Self-Rewrite Without Basterix (Strict Manual Consent + Git Diff Required)
- * 2. Data-Command Boundary (External inputs are strictly PASSIVE_DATA, never executable)
- * 3. Owner Key Assertion (Strictly reserved for Basterix)
- * 4. Hardware / OS Write-Protect Lock (Ring 0 Core files Read-Only by default)
+ * Enforces the 5 Iron Rules of Code Protection and Root Governance + P0 Cryptographic Hardening:
+ * 1. No Self-Rewrite Without Basterix (Strict Manual Consent + SHA-256 Git Diff + Nonce + Expiry)
+ * 2. Data-Command Boundary (External inputs are strictly PASSIVE_DATA, never trust unverified sender)
+ * 3. Owner Key Assertion (Fail-closed verifiedSession = false by default; strictly reserved for Basterix)
+ * 4. Hardware / OS Write-Protect Lock & Path Traversal Guard (Ring 0 Core files Read-Only by default)
  * 5. Root Audit Sentinel (Logs UNAUTHORIZED_CODE_TAMPER_ATTEMPT to Sovereign Ledger v3)
  */
 
@@ -63,6 +63,7 @@ export const AUTHORIZED_ROOT_OPERATORS = Object.freeze(new Set([
 
 export const PROTECTED_RING0_FILES = Object.freeze([
   'sovereign-lock.js',
+  'trinity-auth-core.js',
   'sovereign-core-v3.js',
   'truth.js',
   'security.js',
@@ -88,15 +89,192 @@ export const EXTERNAL_DATA_SOURCES = Object.freeze(new Set([
 
 export const ACCESS_DENIED_MESSAGE = 'ACCESS DENIED: Unauthorized operator. Action reserved strictly for Basterix.';
 
+// Atomický register jednorazových nonce (ochrana proti Replay útokom)
+const consumedConsentNonces = new Set();
+
+export function resetConsumedNoncesForTest() {
+  consumedConsentNonces.clear();
+}
+
+async function sha256Hex(input) {
+  const bytes = new TextEncoder().encode(String(input ?? ''));
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+async function hmacSha256Hex(secret, message) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(String(secret)),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(String(message)));
+  return Array.from(new Uint8Array(sig))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function constantTimeEqualHex(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length || a.length === 0) {
+    return false;
+  }
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
 /**
- * Overí, či je daný identifikátor výlučným vlastníkom Basterix
+ * Overí, či cesta neobsahuje Path Traversal (.., nulové bajty, únik mimo koreňa)
  */
-export function isBasterixRootOperator(identity, verifiedSession = true) {
-  if (!verifiedSession || !identity || typeof identity !== 'string') {
+export function hasPathTraversal(filePath) {
+  if (!filePath || typeof filePath !== 'string') return false;
+  if (filePath.includes('\0')) return true;
+  const normalized = filePath.replace(/\\/g, '/');
+  const segments = normalized.split('/');
+  if (segments.includes('..')) return true;
+  if (/^[a-zA-Z]:\/windows\b/i.test(normalized) || normalized.startsWith('/etc/') || normalized.startsWith('/root/')) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Overí, či je daný identifikátor výlučným vlastníkom Basterix.
+ * P0 HARDENING: verifiedSession je predvolene FALSE (fail-closed).
+ */
+export function isBasterixRootOperator(identity, verifiedSession = false) {
+  if (verifiedSession !== true || !identity || typeof identity !== 'string') {
     return false;
   }
   const clean = identity.trim().toLowerCase();
   return AUTHORIZED_ROOT_OPERATORS.has(clean);
+}
+
+/**
+ * Vytvorí kryptograficky podpísanú obálku súhlasu (Consent Envelope) viazanú na:
+ * actor, repo, operation, diffSha256, paths, nonce, expiresAt, environment.
+ */
+export async function createSignedConsentEnvelope({
+  actor = 'Basterix',
+  repo = 'uscolective-byte/Trinity-antigravity',
+  operation = 'code_mutation',
+  gitDiff = '',
+  paths = [],
+  nonce = crypto.randomUUID(),
+  expiresAt = Date.now() + 300_000,
+  environment = 'local',
+  signingSecret
+} = {}) {
+  if (!signingSecret || typeof signingSecret !== 'string' || signingSecret.length < 8) {
+    throw new Error('CONSENT_SIGNING_ERROR: Signing secret is required to issue a cryptographic consent envelope.');
+  }
+  const diffSha256 = await sha256Hex(gitDiff);
+  const normalizedPaths = (Array.isArray(paths) ? paths : [paths]).map(p => String(p).replace(/\\/g, '/')).sort();
+  const canonicalPayload = [
+    String(actor).trim().toLowerCase(),
+    String(repo).trim(),
+    String(operation).trim(),
+    diffSha256,
+    normalizedPaths.join(','),
+    String(nonce).trim(),
+    String(expiresAt),
+    String(environment).trim()
+  ].join('|');
+
+  const signature = await hmacSha256Hex(signingSecret, canonicalPayload);
+
+  return {
+    actor,
+    repo,
+    operation,
+    diffSha256,
+    paths: normalizedPaths,
+    nonce,
+    expiresAt,
+    environment,
+    signature
+  };
+}
+
+/**
+ * Overí kryptografický podpis súhlasu, platnosť, zhodu SHA-256 diffu a jednorazovo spotrebuje nonce.
+ */
+export async function verifySignedConsentEnvelope({
+  envelope,
+  gitDiff = '',
+  expectedOperation = null,
+  expectedPath = null,
+  signingSecret
+} = {}) {
+  if (!envelope || typeof envelope !== 'object') {
+    return { valid: false, code: 'MISSING_CONSENT_ENVELOPE', message: 'Chýba kryptografická obálka súhlasu (Consent Envelope).' };
+  }
+  if (!signingSecret || typeof signingSecret !== 'string') {
+    return { valid: false, code: 'MISSING_VERIFICATION_KEY', message: 'Chýba overovací kľúč pre Consent Envelope.' };
+  }
+  if (!isBasterixRootOperator(envelope.actor, true)) {
+    return { valid: false, code: 'UNAUTHORIZED_CONSENT_ACTOR', message: ACCESS_DENIED_MESSAGE };
+  }
+  if (!envelope.nonce || typeof envelope.nonce !== 'string') {
+    return { valid: false, code: 'INVALID_NONCE', message: 'Chýba jednorazové nonce v súhlase.' };
+  }
+  if (consumedConsentNonces.has(envelope.nonce)) {
+    return { valid: false, code: 'REPLAY_ATTACK_DETECTED', message: `SECURITY BLOCK (Ring 0): Nonce '${envelope.nonce}' už bolo použité (Replay útok zablokovaný).` };
+  }
+  const expiresMs = typeof envelope.expiresAt === 'number' ? envelope.expiresAt : Date.parse(envelope.expiresAt);
+  if (!Number.isFinite(expiresMs) || Date.now() > expiresMs) {
+    return { valid: false, code: 'CONSENT_EXPIRED', message: 'SECURITY BLOCK (Ring 0): Platnosť podpísaného súhlasu vypršala.' };
+  }
+
+  const actualDiffSha256 = await sha256Hex(gitDiff);
+  if (!constantTimeEqualHex(actualDiffSha256, String(envelope.diffSha256 || ''))) {
+    return { valid: false, code: 'DIFF_HASH_MISMATCH', message: 'SECURITY BLOCK (Ring 0): SHA-256 hash Git diffu sa nezhoduje s podpísaným súhlasom.' };
+  }
+
+  const normalizedPaths = (Array.isArray(envelope.paths) ? envelope.paths : []).map(p => String(p).replace(/\\/g, '/')).sort();
+  if (expectedPath) {
+    const cleanExpected = String(expectedPath).replace(/\\/g, '/');
+    if (!normalizedPaths.includes(cleanExpected)) {
+      return { valid: false, code: 'PATH_SCOPE_MISMATCH', message: `SECURITY BLOCK (Ring 0): Súbor '${cleanExpected}' nie je v podpísanom zozname ciest.` };
+    }
+  }
+  if (expectedOperation && envelope.operation !== expectedOperation) {
+    return { valid: false, code: 'OPERATION_SCOPE_MISMATCH', message: `SECURITY BLOCK (Ring 0): Operácia '${expectedOperation}' nezodpovedá podpísanej operácii '${envelope.operation}'.` };
+  }
+
+  const canonicalPayload = [
+    String(envelope.actor).trim().toLowerCase(),
+    String(envelope.repo || '').trim(),
+    String(envelope.operation || '').trim(),
+    envelope.diffSha256,
+    normalizedPaths.join(','),
+    String(envelope.nonce).trim(),
+    String(envelope.expiresAt),
+    String(envelope.environment || '').trim()
+  ].join('|');
+
+  const expectedSignature = await hmacSha256Hex(signingSecret, canonicalPayload);
+  if (!constantTimeEqualHex(expectedSignature, String(envelope.signature || ''))) {
+    return { valid: false, code: 'FORGED_SIGNATURE_REJECTED', message: 'SECURITY BLOCK (Ring 0): Neplatný alebo sfalšovaný kryptografický podpis súhlasu.' };
+  }
+
+  // Atomické jednorazové spotrebovanie nonce
+  consumedConsentNonces.add(envelope.nonce);
+
+  return {
+    valid: true,
+    code: 'VERIFIED_CRYPTOGRAPHIC_CONSENT',
+    actor: 'Basterix',
+    diffSha256: actualDiffSha256,
+    nonce: envelope.nonce
+  };
 }
 
 /**
@@ -105,10 +283,11 @@ export function isBasterixRootOperator(identity, verifiedSession = true) {
 export function enforceNoAutonomousRewrite({
   actor,
   isAutonomousSubagent = false,
+  delegatedWorker = false,
   basterixManualConsent = false,
   gitDiff = ''
 } = {}) {
-  if (isAutonomousSubagent && !basterixManualConsent) {
+  if ((isAutonomousSubagent || delegatedWorker) && !basterixManualConsent) {
     return {
       allowed: false,
       rule: '1_NO_SELF_REWRITE_WITHOUT_BASTERIX',
@@ -159,6 +338,7 @@ export function enforceDataCommandBoundary({ source = 'untrusted', content = '',
       rule: '2_DATA_COMMAND_BOUNDARY',
       source: cleanSource,
       sender,
+      trusted_sender: false,
       injection_detected: injectionMatch,
       alert_basterix: injectionMatch,
       security_notice: injectionMatch
@@ -200,20 +380,37 @@ export function enforceOwnerKeyAssertion({ operatorIdentity, verifiedSession = f
 }
 
 /**
- * Pravidlo 4: Hardvérová ochrana repozitára (Write-Protect Lock / DACL)
+ * Pravidlo 4: Hardvérová ochrana repozitára (Write-Protect Lock / DACL & Path Traversal Guard)
  */
-export function enforceWriteProtectLock({ filePath = '', basterixEscalationApproved = false, operatorIdentity = '' } = {}) {
+export function enforceWriteProtectLock({
+  filePath = '',
+  basterixEscalationApproved = false,
+  operatorIdentity = '',
+  verifiedSession = true
+} = {}) {
+  if (hasPathTraversal(filePath)) {
+    return {
+      writePermitted: false,
+      daclMode: 'PATH_TRAVERSAL_BLOCKED',
+      code: 'PATH_TRAVERSAL_BLOCKED',
+      rule: '4_WRITE_PROTECT_LOCK',
+      path: filePath,
+      message: `SECURITY BLOCK (Ring 0): Detegovaný pokus o Path Traversal v ceste "${filePath}".`
+    };
+  }
+
   const normalizedPath = String(filePath).replace(/\\/g, '/').toLowerCase();
   const isRing0Protected = PROTECTED_RING0_FILES.some(f => normalizedPath.endsWith(f.toLowerCase())) ||
     normalizedPath.includes('trinity/src/') ||
     normalizedPath.includes('local-gateway/src/');
 
-  const isOwner = isBasterixRootOperator(operatorIdentity, true);
+  const isOwner = isBasterixRootOperator(operatorIdentity, verifiedSession);
 
   if (isRing0Protected && (!isOwner || !basterixEscalationApproved)) {
     return {
       writePermitted: false,
       daclMode: 'READ_ONLY',
+      code: 'WRITE_PROTECT_READ_ONLY',
       rule: '4_WRITE_PROTECT_LOCK',
       path: filePath,
       message: `${ACCESS_DENIED_MESSAGE} Súbor "${filePath}" je chránený zámkom Ring 0 Write-Protect Lock (Read-Only).`
@@ -285,14 +482,36 @@ export class SovereignLockMiddleware {
     operatorIdentity,
     verifiedSession = false,
     isAutonomousSubagent = false,
+    delegatedWorker = false,
     basterixManualConsent = false,
     basterixEscalationApproved = false,
+    consentEnvelope = null,
+    signingSecret = null,
     gitDiff = '',
     filePath = '',
     source = 'internal',
     processTree = ['trinity-worker']
   } = {}) {
-    // 1. Kontrola Data-Command Boundary (ak prichádza z externého kanála)
+    // 0. Kontrola Path Traversal
+    if (hasPathTraversal(filePath)) {
+      const tamper = await this.recordUnauthorizedTamper({
+        actor: operatorIdentity || 'unknown',
+        source,
+        targetFile: filePath,
+        operation: 'path_traversal_attempt',
+        processTree,
+        reason: `Path traversal rejected: ${filePath}`
+      });
+      return {
+        authorized: false,
+        status: 'BLOCKED',
+        code: 'PATH_TRAVERSAL_BLOCKED',
+        message: `SECURITY BLOCK (Ring 0): Path traversal zablokovaný pre "${filePath}".`,
+        tamper_receipt: tamper
+      };
+    }
+
+    // 1. Kontrola Data-Command Boundary (ak prichádza z externého kanála — nikdy nedôverovať atribútu sender!)
     if (EXTERNAL_DATA_SOURCES.has(String(source).toLowerCase())) {
       const tamper = await this.recordUnauthorizedTamper({
         actor: operatorIdentity || 'external_entity',
@@ -311,7 +530,7 @@ export class SovereignLockMiddleware {
       };
     }
 
-    // 2. Kontrola Owner Key Assertion (Výlučne Basterix)
+    // 2. Kontrola Owner Key Assertion (Výlučne Basterix s verifiedSession === true)
     const ownerCheck = enforceOwnerKeyAssertion({
       operatorIdentity,
       verifiedSession,
@@ -335,16 +554,44 @@ export class SovereignLockMiddleware {
       };
     }
 
-    // 3. Kontrola zákazu autonómneho prepisu bez diffu a súhlasu
+    // 3. Ak je poskytnutá kryptografická obálka súhlasu (alebo vyžadovaný signingSecret), over podpis, diff hash, expiry a jednorazové nonce
+    if (consentEnvelope || signingSecret) {
+      const envCheck = await verifySignedConsentEnvelope({
+        envelope: consentEnvelope,
+        gitDiff,
+        expectedPath: filePath || null,
+        signingSecret: signingSecret || this.env?.TRINITY_ROOT_SIGNING_SECRET
+      });
+      if (!envCheck.valid) {
+        const tamper = await this.recordUnauthorizedTamper({
+          actor: operatorIdentity,
+          source,
+          targetFile: filePath,
+          operation: envCheck.code,
+          processTree,
+          reason: envCheck.message
+        });
+        return {
+          authorized: false,
+          status: 'BLOCKED',
+          code: envCheck.code,
+          message: envCheck.message,
+          tamper_receipt: tamper
+        };
+      }
+    }
+
+    // 4. Kontrola zákazu autonómneho prepisu bez diffu a súhlasu
     const rewriteCheck = enforceNoAutonomousRewrite({
       actor: operatorIdentity,
       isAutonomousSubagent,
+      delegatedWorker,
       basterixManualConsent,
       gitDiff
     });
     if (!rewriteCheck.allowed) {
       const tamper = await this.recordUnauthorizedTamper({
-        actor: isAutonomousSubagent ? `subagent:${operatorIdentity}` : operatorIdentity,
+        actor: isAutonomousSubagent || delegatedWorker ? `subagent:${operatorIdentity}` : operatorIdentity,
         source,
         targetFile: filePath,
         operation: 'autonomous_self_rewrite',
@@ -360,11 +607,12 @@ export class SovereignLockMiddleware {
       };
     }
 
-    // 4. Kontrola Write-Protect Lock (DACL)
+    // 5. Kontrola Write-Protect Lock (DACL)
     const lockCheck = enforceWriteProtectLock({
       filePath,
       basterixEscalationApproved,
-      operatorIdentity
+      operatorIdentity,
+      verifiedSession
     });
     if (!lockCheck.writePermitted) {
       const tamper = await this.recordUnauthorizedTamper({
@@ -378,18 +626,20 @@ export class SovereignLockMiddleware {
       return {
         authorized: false,
         status: 'BLOCKED',
-        code: 'UNAUTHORIZED_CODE_TAMPER_ATTEMPT',
+        code: lockCheck.code || 'UNAUTHORIZED_CODE_TAMPER_ATTEMPT',
         message: lockCheck.message,
         tamper_receipt: tamper
       };
     }
 
-    // Všetky 4 zámky prešli – akcia je autorizovaná priamo Basterixom
+    const diffHash = await sha256Hex(gitDiff);
+
+    // Všetky zámky prešli – akcia je autorizovaná priamo Basterixom
     const authorizedBlock = await this.ledger.appendBlock(
       'Basterix',
       'AUTHORIZED_ARCHITECT_CODE_MUTATION',
-      { filePath, diff_length: gitDiff.length, policy: 'STRICT_MANUAL_CONSENT_ONLY' },
-      `git_diff:${filePath}`
+      { filePath, diff_length: gitDiff.length, diff_sha256: diffHash, policy: 'STRICT_MANUAL_CONSENT_ONLY' },
+      `git_diff:${filePath}:${diffHash.slice(0, 12)}`
     );
 
     return {
@@ -397,6 +647,7 @@ export class SovereignLockMiddleware {
       status: 'APPROVED_BY_BASTERIX',
       sovereign_identity: SOVEREIGN_IDENTITY.sovereign_identity,
       filePath,
+      diff_sha256: diffHash,
       ledger_receipt: authorizedBlock.receipt,
       block_hash: authorizedBlock.block_hash
     };
