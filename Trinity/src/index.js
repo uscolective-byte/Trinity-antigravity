@@ -28,6 +28,7 @@ import {handleTelegramWebhook,activateTelegramWebhook,telegramIntegrationStatus}
 import {searchMemory,runTool} from './tools.js';
 import {PLUGINS,listPlugins,pluginEnabled,installPlugin,installAllPlugins} from './plugins.js';
 import {handleMcp} from './mcp.js';
+import {agentConnectionMatrix} from './agent-connection-matrix.js';
 import {TRUTH_POLICY_VERSION} from './truth.js';
 import {SYSTEM_CAPABILITIES,createSystemAction,listSystemActions,getSystemAction,approveSystemAction,rejectSystemAction,claimSystemAction,finishSystemAction,authenticateGateway,getPCBridgeStatus} from './system-actions.js';
 import {createStudioCheckoutOffer,listStudioProjects,getStudioProject,createStudioProject,reviseStudioProject} from './studio.js';
@@ -93,7 +94,7 @@ export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
 const json=(data,status=200)=>Response.json(data,{status});
 const runtimeEnvironment=(request,env)=>['localhost','127.0.0.1','::1'].includes(new URL(request.url).hostname)?'local':env.TRINITY_ENV||'local';
 const uuid=z.string().uuid();
-const MCP_READ_TOOLS=new Set(['trinity_control_panel','infrastructure_status','project_inspect','project_read','list_improvements','get_capability_status','trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status','ecosystem_stats','search_ecosystem']);
+const MCP_READ_TOOLS=new Set(['trinity_control_panel','infrastructure_status','project_inspect','project_read','list_improvements','get_capability_status','trinity_status','list_agents','get_task','list_tasks','search_memory','check_services','get_source_file','list_project_files','get_project_action','list_system_actions','pc_status','ecosystem_stats','search_ecosystem','agent_connections']);
 async function readMcpEnvelope(response){
   const raw=await response.text();
   const dataLines=raw.split(/\r?\n/).filter(line=>line.startsWith('data:')).map(line=>line.slice(5).trim()).filter(Boolean);
@@ -125,7 +126,7 @@ async function handleScopedMcp(request,env,ctx){
   if(!await pluginEnabled(env,'mcp'))throw new HttpError(503,'MCP rozšírenie je vypnuté.');
   if(body.method==='tools/call'&&['dispatch_task','create_daily_plan'].includes(body.params?.name))await rateLimit(env,`job:api:${client.id}`,12);
   const forwarded=new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify(body)});
-  return handleMcp(forwarded,env,ctx,{projectControl:true,principal:`api-key:${client.id}`,ownerId:client.owner_id});
+  return handleMcp(forwarded,env,ctx,{projectControl:scope==='mcp:write',principal:`api-key:${client.id}`,ownerId:client.owner_id,scopes:client.scopes});
 }
 async function route(request,env,ctx){
   const previewResponse=buildOnlyPreviewResponse(request,env,{version:TRINITY_VERSION,agents:AGENTS.length});
@@ -1387,6 +1388,11 @@ async function route(request,env,ctx){
     const task=await readJSON(request,3000);
     const pcBridge=await getPCBridgeStatus(env).catch(()=>null);
     return json(await adviseTrinityMaster(env,task,pcBridge));
+  }
+  if(path==='/api/assistant/master/connections'&&request.method==='GET'){
+    requireAdmin(user);
+    const pcBridge=await getPCBridgeStatus(env).catch(()=>null);
+    return json(agentConnectionMatrix(env,pcBridge));
   }
   if(path==='/api/assistant/master/status'&&request.method==='GET'){
     requireAdmin(user);
