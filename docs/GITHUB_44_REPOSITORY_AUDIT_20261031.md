@@ -16,16 +16,18 @@ Metóda: live výpis všetkých 44 vlastníckych repozitárov cez GitHub; kontro
 
 ## Inventár
 
-| Repozitár | Viditeľnosť | Hlavná vetva | Veľkosť podľa GitHubu (KB) | Stav |
-| --- | --- | --- | ---: | --- |
 
 ### Jediný hlavný repozitár Trinity
 
+| Repozitár | Viditeľnosť | Hlavná vetva | Veľkosť podľa GitHubu (KB) | Stav |
+| --- | --- | --- | ---: | --- |
 | [Trinity-antigravity](https://github.com/uscolective-byte/Trinity-antigravity) | public | main | 5007 | JEDINÝ HLAVNÝ |
 
 
 ### Historické verzie a kandidáti na selektívnu migráciu
 
+| Repozitár | Viditeľnosť | Hlavná vetva | Veľkosť podľa GitHubu (KB) | Stav |
+| --- | --- | --- | ---: | --- |
 | [Auru_trinity](https://github.com/uscolective-byte/Auru_trinity) | public | main | 58 | nevymazávať bez migrácie/zálohy |
 | [Tenebris](https://github.com/uscolective-byte/Tenebris) | private | main | 102 | nevymazávať bez migrácie/zálohy |
 | [Trinity](https://github.com/uscolective-byte/Trinity) | public | main | 372 | nevymazávať bez migrácie/zálohy |
@@ -51,6 +53,8 @@ Metóda: live výpis všetkých 44 vlastníckych repozitárov cez GitHub; kontro
 
 ### Samostatné projekty — preveriť funkčnú závislosť
 
+| Repozitár | Viditeľnosť | Hlavná vetva | Veľkosť podľa GitHubu (KB) | Stav |
+| --- | --- | --- | ---: | --- |
 | [Underground-Street-Collectivum](https://github.com/uscolective-byte/Underground-Street-Collectivum) | public | main | 14 | nevymazávať bez migrácie/zálohy |
 | [usc-project](https://github.com/uscolective-byte/usc-project) | public | main | 9 | nevymazávať bez migrácie/zálohy |
 | [vebsitem](https://github.com/uscolective-byte/vebsitem) | public | main | 391 | nevymazávať bez migrácie/zálohy |
@@ -60,6 +64,8 @@ Metóda: live výpis všetkých 44 vlastníckych repozitárov cez GitHub; kontro
 
 ### Forky tretích strán — neimportovať celý upstream
 
+| Repozitár | Viditeľnosť | Hlavná vetva | Veľkosť podľa GitHubu (KB) | Stav |
+| --- | --- | --- | ---: | --- |
 | [docs](https://github.com/uscolective-byte/docs) | public | main | 2342196 | nevymazávať bez migrácie/zálohy |
 | [adk-python](https://github.com/uscolective-byte/adk-python) | public | main | 81379 | nevymazávať bez migrácie/zálohy |
 | [workerd](https://github.com/uscolective-byte/workerd) | public | main | 51653 | nevymazávať bez migrácie/zálohy |
@@ -70,6 +76,8 @@ Metóda: live výpis všetkých 44 vlastníckych repozitárov cez GitHub; kontro
 
 ### Šablóny, príklady a pokusy — preveriť použitie
 
+| Repozitár | Viditeľnosť | Hlavná vetva | Veľkosť podľa GitHubu (KB) | Stav |
+| --- | --- | --- | ---: | --- |
 | [chanfana-openapi-templat](https://github.com/uscolective-byte/chanfana-openapi-templat) | private | main | 121 | nevymazávať bez migrácie/zálohy |
 | [next-starter-template](https://github.com/uscolective-byte/next-starter-template) | public | main | 217 | nevymazávať bez migrácie/zálohy |
 | [workflows-starter-template](https://github.com/uscolective-byte/workflows-starter-template) | public | main | 518 | nevymazávať bez migrácie/zálohy |
