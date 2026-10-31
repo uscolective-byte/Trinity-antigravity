@@ -1,42 +1,60 @@
 ---
 name: trinity-fleet-ops
 description: >-
-  Manage, inspect, test, and deploy the Trinity 11.0 Cloudflare Worker fleet (29 bound workers, 150 trusted plugins, D1 databases, and Sovereign UI) across development (auru.dev) and production (auru.space). Use whenever working on Trinity chat, workers, bindings, skills, plugins, or deployments.
+  Inspect and safely operate Trinity 11 Cloudflare Workers, Secrets Store,
+  D1, KV, R2, AI and integrations. Use for staging and production work.
+  Prefer proof of runner, permissions, isolation and deployment receipts.
 ---
 
-# Trinity Fleet Operations & Guarded Rollout
+# Trinity Fleet Operations — safe rollout
 
-Use this skill when inspecting, testing, or deploying Trinity and her 29 Cloudflare Worker bindings.
+Use the dedicated Cloudflare Secrets Store skill in
+.agents/skills/cloudflare-secrets-store/SKILL.md before binding credentials.
+Source of truth: Trinity/wrangler.jsonc, not historical development screenshots.
 
-## 1. Pre-Flight Verification & Full Test Suite
+## Preflight (PowerShell 7 / Antigravity / Codex)
 
-Run all 4 test suites from `C:\Users\saboi\Trinity-antigravity`:
-
-```powershell
+~~~powershell
 Set-Location C:\Users\saboi\Trinity-antigravity
+git status --short
+node Trinity/scripts/secrets-store-doctor.mjs
+node Trinity/scripts/cloudflare-env-audit.mjs --strict
 npm run check
-```
+~~~
 
-## 2. Enabling All 150 Trusted Plugins in D1
+A failing isolation audit is a genuine blocker. Currently some D1/KV/R2
+identifiers are shared between staging and production. Do not run state-
+changing staging tests against those until separate resources are verified.
 
-To ensure all 150 plugins (`CORE_PLUGINS` + `EXTENDED_PLUGINS`) are installed and enabled in both `trinity-development` and `trinity-v03`:
+## Wrangler environments
 
-```powershell
-Set-Location C:\Users\saboi\Trinity-antigravity
-node scripts/enable-chat-tools.mjs development --apply
-node scripts/enable-chat-tools.mjs production --apply
-```
+- Production auru.space: default config, Worker trinity.
+- Staging auru.dev: Wrangler environment **staging**, Worker trinity-staging.
+- Older docs mention development or trinity-development; these are historical,
+  **not instructions to invent or deploy an environment**.
+- Do not infer live version or external connection from configuration.
 
-## 3. Guarded Rollout (`auru.dev` -> `auru.space`)
+After successful checks and authorization:
 
-Always tag deployments with the exact 40-character Git commit SHA and verify `auru.dev` before `auru.space`:
-
-```powershell
+~~~powershell
 Set-Location C:\Users\saboi\Trinity-antigravity\Trinity
-$sha = (git rev-parse HEAD).Trim()
 node scripts/build-mcp-app.mjs
-npx wrangler deploy --env development --tag $sha
-node scripts/verify-deployment.mjs https://auru.dev --version-id <DEV_VERSION_ID>
-npx wrangler deploy --env="" --tag $sha
-node scripts/verify-deployment.mjs https://auru.space --version-id <PROD_VERSION_ID>
-```
+npx wrangler deploy --env staging --dry-run
+~~~
+
+Actual staging deploy requires explicit approved access and verified
+storage isolation, then post-deploy health/readiness and commit metadata.
+Production deployment is a separate, later action after staging evidence.
+Do not run deploy:all, enable all plugins, apply D1 migrations, alter secrets
+or force-push simply because the owner asked for a general repair.
+
+## Evidence
+
+Record confirmed tests, deployment ID, git SHA, environment and actual
+service-health results in TEAM-HANDOFF.md (CLAIM → UPDATE → HANDOFF).
+CI run created is not CI run succeeded. Runner 0 and steps 0 is not tested.
+PC offline means no Antigravity local install or command execution occurred.
+
+References:
+https://developers.cloudflare.com/workers/wrangler/configuration/
+https://developers.cloudflare.com/secrets-store/integrations/workers/
