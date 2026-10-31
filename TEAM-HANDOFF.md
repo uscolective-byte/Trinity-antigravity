@@ -1261,3 +1261,13 @@ Overenie: 12 z 12 izolovaných čistých JavaScript/V8 kontrol prešlo, vrátane
 Nevykonané: Node npm run check, kompletné Node testy, Wrangler dry-run a Cloudflare deploy (GitHub Actions runner v poslednom audite zlyhával pred spustením, Windows PC Basterix stále offline). Cloudflare remote scopes/permissions a plná izolácia stagingu nie sú potvrdené.
 Bezpečnosť: historický zverejnený Cloudflare token z chatu nie je použitý; majiteľ musí bezodkladne zrušiť každý ešte aktívny exponovaný token. Zhodnotenie produkcie po staging testoch a dôkaze rollbacku.
 HANDOFF: PR na kontrolu, obnoviť Actions runner a PC spojenie, overiť remote metadata/scope workers a Secrets Store Edit deploy právo, získať separované staging D1/KV/R2, spustiť test suite a až potom staging nasadenie. ACK lokálneho Antigravity nebolo obdržané a nemožno ho predstierať.
+
+
+### CLAIM — RELEASE-REGRESSIONS-20261031-CHATGPT-01
+Čas: 2026-10-31, Europe/Bratislava.
+Autor: ChatGPT cez Desktop Commander, výslovná požiadavka majiteľa aktualizovať commity a nasadenie.
+Vetva: codex/trinity-release-readiness-20261031; základ: df655686ece1f1048a0b63807aeee88c3a8dc6f2; izolovaný worktree: C:\Users\saboi\Trinity-update-20261031.
+Rozsah: Trinity/src/skill-matrix.js, Trinity/src/ai-providers.js, Trinity/tests/pc-tool-adapter.test.mjs, TEAM-HANDOFF.md. Pôvodný main, ďalšie PR, Cloudflare D1/KV/R2 a produkcia sú mimo rozsahu zápisu.
+Dôvod: nezávislé lokálne testy našli 3 zlyhania z 653; opraviť skutočnú validáciu Gemini credential, odstrániť zastarané očakávanie vykonaného PC receipt a zachovať historický kontext bezpečne.
+Bezpečnostná brána: nepushovať secrets, nenasadzovať produkciu či staging pri neexistujúcej D1 a zdieľanom staging storage a zlyhanom CI.
+Stav: active.

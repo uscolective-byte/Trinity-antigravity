@@ -90,8 +90,9 @@ export async function getConfiguredAIProvider(env,provider){
     // Use an explicitly bound Secrets Store credential before deciding that
     // Gemini is unavailable. A binding is configuration, never live proof.
     const resolved=await resolveProviderSecret(env,'gemini');
-    const geminiKey=sanitizeApiKey(resolved,/(?:AIza[A-Za-z0-9_-]{25,}|AQ\.[A-Za-z0-9_.-]{25,})/);
-    if(!geminiKey||geminiKey.length<8)
+    // Do not accept an arbitrary non-empty string when a provider-specific pattern fails.
+    const geminiKey=typeof resolved==='string'&&/^(?:AIza[A-Za-z0-9_-]{25,}|AQ\.[A-Za-z0-9_.-]{25,})$/.test(resolved.trim())?resolved.trim():'';
+    if(!geminiKey)
       throw new HttpError(503,'Gemini nemá dostupný platný API kľúč v serverovom prostredí.');
     let model=env.GEMINI_MODEL?String(env.GEMINI_MODEL).trim().replace(/^models\//,''):'';
     if(!model&&env.Mastermind)model=await env.Mastermind.get('ai:gemini:default-model')||'';
