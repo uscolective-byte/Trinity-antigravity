@@ -55,3 +55,29 @@ ktorý si vedome vytvorí a uloží kľúče.
 Oficiálne návody:
 - https://help.openai.com/en/articles/9442513-gpt-actions-domain-settings-chatgpt-enterprise
 - https://learn.microsoft.com/en-us/microsoft-copilot-studio/advanced-plugin-actions
+
+## Aktualizácia v Trinity-antigravity (31.10.2026)
+
+Tento súbor bol prenesený z historického Morpheus PR #51 a upravený:
+- modul `src/assistant-bridge.js` je teraz pripojený k routingu
+  `/api/assistant-bridge/status` a `/api/assistant-bridge/notes`,
+  ale **aktivuje sa iba pri** `TRINITY_ASSISTANT_BRIDGE_ENABLED=true`.
+- predvolená hodnota na stagingu v `wrangler.jsonc` je `false`.
+  Produkcia tento flag nemá nastavený (teda je tiež vypnutá).
+- API key vytváranie teraz pozná oddelené scopes
+  `assistant:read` / `assistant:write`.
+- D1 migrácia po konzolidácii je
+  `migrations/0054_assistant_bridge.sql` (nie `0047_assistant_bridge.sql`,
+  ktorý sa prekrýval s ďalšou existujúcou migráciou).
+
+**Poradie aktivácie:** dokončiť CI; skontrolovať samostatnosť staging
+D1/KV/R2; aplikovať migrácie **len na staging**; overiť
+`GET /api/assistant-bridge/status` s odmietnutými a povolenými scopes;
+vytvoriť osobitné krátkodobé ChatGPT/Copilot Studio kľúče
+s `assistant:read` a `assistant:write`; až potom explicitne
+nastaviť staging flag `true` a vykonať zabezpečený rollout.
+Aktivácia **neprepojí osobné ChatGPT/Copilot účty sama od seba**.
+
+Kľúče sa nesmú vkladať do Gitu, chatu ani do verejnej OpenAPI schémy.
+Kód a testy boli pripravené v PR, ale nie je doložené spustenie D1
+migrácií, OAuth klientov ani živá komunikácia oboch asistentov.
