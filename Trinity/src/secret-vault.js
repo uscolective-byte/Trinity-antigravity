@@ -104,7 +104,26 @@ export async function verifyAnthropic(secret,{fetcher=fetch}={}){
   return {connected:true,provider:'anthropic',models,status:'verified',permission_verified:'models:read'};
 }
 
+export async function verifyTelegramBot(secret,{fetcher=fetch}={}){
+  // Telegram Bot API embeds the bot token in the URL path. Keep the URL
+  // strictly internal and never include raw provider error bodies in replies.
+  if(typeof secret!=='string'||!/^\d{5,15}:[A-Za-z0-9_-]{20,}$/.test(secret))
+    throw new Error('Telegram Bot token má neplatný formát.');
+  let response;
+  try{
+    response=await fetcher(`https://api.telegram.org/bot${secret}/getMe`,{
+      signal:AbortSignal.timeout(12000),redirect:'error'
+    });
+  }catch{throw new Error('Telegram Bot API je nedostupné; poverenie zostáva neoverené.');}
+  const data=await response.json().catch(()=>null);
+  if(!response.ok||data?.ok!==true||!Number.isSafeInteger(data.result?.id)||data.result.id<1)
+    throw new Error(`Telegram bot nebol overený (HTTP ${response.status}).`);
+  return {connected:true,provider:'telegram',bot_id:data.result.id,
+    bot_username:typeof data.result.username==='string'?data.result.username:null,
+    status:'verified',permission_verified:'bot:getMe',webhook_verified:false};
+}
 async function verifyGenericProvider(provider,secret){
+  if(provider==='telegram')return verifyTelegramBot(secret);
   if(provider==='vercel'){
     const r=await fetch('https://api.vercel.com/v2/user',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(12000)});
     if(!r.ok)throw new Error(`Vercel odmietol token (HTTP ${r.status}).`);
