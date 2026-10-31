@@ -6,6 +6,7 @@ import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,genera
 import {createTrinityDocument,listTrinityDocuments,getTrinityDocument,deleteTrinityDocument,exportTrinityDocument} from './trinity-documents.js';
 import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk,listBankConnections,configureBankConnection,deleteBankConnection,syncLiveMarketFeeds,getCommodityChart} from './commodities-engine.js';
 import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,listAllIntegrations} from './external-integrations.js';
+import {trinityMasterStatus} from './trinity-master-status.js';
 import {scanForImprovements} from './maintenance-scan.js';
 import {inspectProject,readProjectSource} from './project-evolution.js';
 import {searchDomainNames,refreshDomainRegistration,createSubdomain,syncCloudflareDomains} from './domains.js';
@@ -1369,6 +1370,12 @@ async function route(request,env,ctx){
   if(path==='/api/assistant/devhub/execute'&&request.method==='POST'){
     requireAdmin(user);
     return json(await executeDevHubCommand(env,ownerId,await readJSON(request,16000)));
+  }
+  if(path==='/api/assistant/master/status'&&request.method==='GET'){
+    requireAdmin(user);
+    // A heartbeat indicates availability, never successful command execution.
+    const pcBridge=await getPCBridgeStatus(env).catch(()=>null);
+    return json(trinityMasterStatus(env,pcBridge));
   }
   if(path==='/api/assistant/integrations/status'&&request.method==='GET'){
     return json({items:await listAllIntegrations(env)});
