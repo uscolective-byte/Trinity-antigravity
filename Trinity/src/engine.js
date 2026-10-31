@@ -24,11 +24,16 @@ export function executionPolicyForProvider(provider,ownerMode=false){
 export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
   if(outcome?.ok===false||outcome?.success===false||outcome?.status==='failed')
     return {tool:'pc_open_app',status:'failed',effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
-  if(outcome?._evidence?.receipt_id){
+  const state=outcome?.status;
+  if(['pending','proposed','queued','approved','claimed','running'].includes(state)){
+    const status=['approved','claimed','running'].includes(state)?'running':'pending';
+    return {tool:'pc_open_app',status,effect:'proposal',receipt_id:outcome?.id,verified_at:verifiedAt};
+  }
+  if(state==='completed'&&outcome?._evidence?.receipt_id){
     return {tool:'pc_open_app',status:'completed',effect:'mutation',actions:['execute'],receipt_id:outcome._evidence.receipt_id,verified_at:verifiedAt};
   }
-  const status=outcome?.status==='failed'?'failed':outcome?.status==='claimed'||outcome?.status==='approved'?'running':'pending';
-  return {tool:'pc_open_app',status,effect:'proposal',receipt_id:outcome?.id||crypto.randomUUID(),verified_at:verifiedAt};
+  // A generated identifier is not evidence that a program was launched.
+  return {tool:'pc_open_app',status:'pending',effect:'proposal',receipt_id:outcome?.id,verified_at:verifiedAt};
 }
 export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOString()){
   // Failure/partial outcomes take precedence over generated _evidence metadata.
@@ -37,13 +42,13 @@ export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOSt
     const status=outcome?.status==='partial'?'partial':'failed';
     return {tool,status,effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
   }
+  if(['pending','proposed','queued','approved','claimed','running'].includes(outcome?.status)){
+    const status=['approved','claimed','running'].includes(outcome.status)?'running':'pending';
+    return {tool,status,effect:'proposal',receipt_id:outcome?.id,verified_at:verifiedAt};
+  }
   const evidence=outcome?._evidence;
   if(evidence?.receipt_id){
     return {tool,status:'completed',effect:evidence.effect||'read',actions:evidence.actions,receipt_id:evidence.receipt_id,verified_at:verifiedAt,document_id:evidence.document_id||outcome?.document?.id||outcome?.id,issue_number:evidence.issue_number||outcome?.issue?.number||outcome?.number,url:evidence.url||outcome?.issue?.html_url||outcome?.url};
-  }
-  if(['pending','queued','approved','claimed','running'].includes(outcome?.status)){
-    const status=['approved','claimed','running'].includes(outcome.status)?'running':'pending';
-    return {tool,status,effect:'proposal',receipt_id:outcome?.id,verified_at:verifiedAt};
   }
   return {tool,status:'completed',effect:'read',receipt_id:crypto.randomUUID(),verified_at:verifiedAt};
 }
