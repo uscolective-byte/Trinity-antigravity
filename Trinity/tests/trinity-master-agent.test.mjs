@@ -44,3 +44,22 @@ test('Master rejects invalid requests and missing AI binding without claiming su
   assert.equal(outage.status,'provider_error');
   assert.doesNotMatch(JSON.stringify(outage),/synthetic-private-value/);
 });
+
+test('Cloudflare AI diagnostic rejects pasted API tokens before model invocation',async()=>{
+  let attempts=0;
+  const env={AI:{run:async()=>{attempts++;return {response:'should not run'};}}};
+  for(const unsafe of [
+    'api_key=syntheticlongsecretvalue123456789',
+    'ghp_'+('x'.repeat(30)),
+    'sk-proj-'+('a'.repeat(30)),
+    'AIza'+('b'.repeat(35)),
+    'cfat_'+('c'.repeat(48))
+  ]){
+    const result=await adviseTrinityMaster(env,{task:unsafe});
+    assert.equal(result.status,'sensitive_input_rejected');
+    assert.equal(result.success,false);
+    assert.equal(result.execution_performed,false);
+    assert.doesNotMatch(JSON.stringify(result),/syntheticlongsecretvalue123456789/);
+  }
+  assert.equal(attempts,0);
+});
