@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {getConfiguredAIProvider,listAIProviders} from '../src/ai-providers.js';
 
 const fakeDB={prepare(){return {
+  first:async()=>null,all:async()=>({results:[]}),
   bind(){return {first:async()=>null,all:async()=>({results:[]})};}
 };}};
 const fakeGeminiKey='AIza'+('a'.repeat(32));
