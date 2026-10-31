@@ -28,10 +28,10 @@
         "Trinity/src/assistant-bridge.js",
         "Trinity/tests/assistant-bridge.test.mjs",
         "Trinity/openapi/assistant-bridge.yaml",
-        "Trinity/migrations/0047_assistant_bridge.sql",
+        "Trinity/migrations/0054_assistant_bridge.sql",
         "Trinity/docs/CHATGPT_COPILOT_BRIDGE.md"
       ],
-      "status": "copied_inactive_unverified"
+      "status": "copied_and_scoped_api_wired_disabled_pending_migration_and_oauth"
     },
     {
       "source_pr": 76,
