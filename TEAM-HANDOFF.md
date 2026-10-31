@@ -1161,3 +1161,6 @@ Rozsah: `scripts/source-policy.mjs`, `tests/source-policy.test.mjs`, `Trinity/sr
 Overenie: starý `trinity-morhfeus/main` je predkom `Trinity-antigravity/main` (GitHub compare: 40 ahead / 0 behind); nevyžaduje wholesale merge hlavnej vetvy. Rozpracované PR staršieho repozitára sa nesmú bez testov presúvať alebo mazať.
 Zámer: jediný kanonický repo, pravdivý staging, CI release gate a autonómne bežné developer operácie cez autorizované účty (nie otvorený admin prístup modelom).
 Stav: active; práce na izolovanej vetve. Produkčné nasadenie, merge a secrets unchanged.
+
+### CLAIM ADDENDUM — CONSOLIDATE-REPOS-AGENT-ACCESS-20261031-CHATGPT-01
+Rozšírenie rozsahu na `Trinity/src/secret-vault.js` a `Trinity/tests/github-secret-validation.test.mjs`: overenie GitHub kľúča používa nesprávny legacy repo a nevyžaduje skutočný prístup do aktuálneho kanonického repozitára. Iba kód a syntetický regresný test; žiadne hodnoty poverení.
