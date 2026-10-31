@@ -19,7 +19,10 @@ export const ALLOWED_APPS = [
   "calc",
   "chrome",
   "code",
-  "explorer"
+  "explorer",
+  "whatsapp",
+  "terminal",
+  "browser"
 ];
 
 // Zoznam striktne povolených vývojárskych príkazov
@@ -101,6 +104,15 @@ export const actions = {
     }
 
     if (IS_WIN) {
+      if (app === "whatsapp") {
+        return await safeSpawn("cmd", ["/c", "start", "", "whatsapp:"]);
+      }
+      if (app === "terminal") {
+        return await safeSpawn("cmd", ["/c", "start", "", "wt.exe"]);
+      }
+      if (app === "browser") {
+        return await safeSpawn("cmd", ["/c", "start", "", "https://google.com"]);
+      }
       // Windows: bezpečné spustenie cez cmd /c start bez reťazenia
       return await safeSpawn("cmd", ["/c", "start", "", `${app}.exe`]);
     } else if (process.platform === "darwin") {
@@ -109,7 +121,10 @@ export const actions = {
         calc: "Calculator",
         chrome: "Google Chrome",
         code: "Visual Studio Code",
-        explorer: "Finder"
+        explorer: "Finder",
+        whatsapp: "WhatsApp",
+        terminal: "Terminal",
+        browser: "Google Chrome"
       };
       const appName = macMap[app] || app;
       return await safeSpawn("open", ["-a", appName]);

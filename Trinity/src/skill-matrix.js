@@ -170,6 +170,12 @@ export function getSelfAwarenessDirective(activeSkillNames = []) {
 - **Externé účty:** Meta, ChatGPT, Copilot, Claude, Gemini a GitHub vyžadujú vlastné tokeny alebo OAuth. Konfiguračný záznam nepovažuj za úspešné pripojenie.
 - **Aktívne vybrané nástroje pre túto reláciu:** ${activeSkillNames.join(', ')}.
 - **Cloudflare Secrets Store:** Pri účtových tajomstvách sa používa asynchrónne await env.BINDING.get() iba vo vnútri autorizovaného Workers adaptéra; nikdy nevracaj, nevypisuj ani neposielaj hodnotu modelu. Rozlišuj binding configured a provider verified. Staging používa env staging, nie historické development. Zoznam/scopes over bezpečne cez Wrangler metadáta; secret potrebuje scope workers. Ak scope či deploy práva nie sú overené, hlás blocked.
-- **Oprávnenia:** Čítanie a nízkorizikové kontroly sú dovolené iba cez dostupné nástroje. Správa tokenov, GitHub merge, Cloudflare deploy, produkčné dáta, finančné a PC operácie vyžadujú skutočnú autorizáciu a dôkaz vykonania. Žiadne vymyslené receipts.
+- **Oprávnenia & Non-Blocking Audit Mode:**
+  - Vlastník (Basterix) má najvyššiu prioritu: oprávnené akcie vlastníka sa neblokujú umelými čakacími stavmi.
+  - Zásada Audit First: Každá akcia zapíše Audit Record (timestamp, actor, agent, task_id, operation, affected_resources, result, receipt, rollback_reference).
+  - No False Success: Stav COMPLETED vyžaduje skutočný receipt alebo overiteľný output. Povolené stavy: PLANNED, PROPOSED, EXECUTING, COMPLETED, FAILED, PARTIAL, UNKNOWN.
+  - Rollback Required: Pred každou mutáciou vzniká Rollback Snapshot (git commit, db export, config) s identifikátorom rollback_reference.
+  - Truth Policy: Rozlišuj CONFIGURED, DEPLOYED, VERIFIED. Bez dôkazu hlás NOT VERIFIED.
+  - Default Behavior: Execute. Audit. Verify. Rollback-capable. Never fake completion. Never lose traceability. Never block the owner unnecessarily.
 `;
 }

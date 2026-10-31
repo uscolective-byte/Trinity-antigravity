@@ -147,16 +147,20 @@ function isJerichoRequest(task) {
 }
 function isOpenAppRequest(task, context = '') {
   const norm = (context.slice(-600) + ' ' + task).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  const directApp = /\b(otvor|spust|spusti|zapni|launch|open)\b.*\b(kalkulack|calc|calculator|notepad|poznamkov|paint|skicar|kreslen|chrome|prehliadac|explorer|priecinok)\b/i.test(norm);
+  const directApp = /\b(otvor|spust|spusti|zapni|launch|open)\b.*\b(kalkulack|calc|calculator|notepad|poznamkov|paint|skicar|kreslen|chrome|prehliadac|explorer|priecinok|whatsapp|watsap|vatsap|vscode|vs code|terminal|powershell|cmd|konzola|browser)\b/i.test(norm);
   const followUp = /\b(iba|len)\s+mi\s+ju\s+(otvor|spust|spusti)\b/i.test(norm);
   return directApp || followUp;
 }
 function resolveAppTarget(task, context = '') {
   const norm = (context.slice(-600) + ' ' + task).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (/\b(whatsapp|watsap|vatsap)\b/i.test(norm)) return 'whatsapp';
+  if (/\b(vscode|vs code|visual studio code|kod|editor)\b/i.test(norm)) return 'vscode';
+  if (/\b(terminal|powershell|cmd|prikazovy riadok|konzola)\b/i.test(norm)) return 'terminal';
   if (/\b(kalkulack|calc|calculator|vypocitat|vypocet)\b/i.test(norm)) return 'calculator';
   if (/\b(notepad|poznamkov|poznámky)\b/i.test(norm)) return 'notepad';
   if (/\b(paint|skicar|kreslen)\b/i.test(norm)) return 'paint';
-  if (/\b(chrome|prehliadac)\b/i.test(norm)) return 'chrome';
+  if (/\b(chrome)\b/i.test(norm)) return 'chrome';
+  if (/\b(prehliadac|browser|web)\b/i.test(norm)) return 'browser';
   if (/\b(explorer|priecinok|subory)\b/i.test(norm)) return 'explorer';
   return 'calculator';
 }
@@ -272,7 +276,7 @@ export async function runAgent(env, id, task, context='', provider='workers-ai',
   }
   if(id==='orchestrator'&&activeTools.includes('pc_open_app')&&isOpenAppRequest(task,context)){
     const target=resolveAppTarget(task,context);
-    const appNames={calculator:'Kalkulačka',notepad:'Poznámkový blok',paint:'Skicár',chrome:'Google Chrome',explorer:'Prieskumník',edge:'Microsoft Edge'};
+    const appNames={calculator:'Kalkulačka',notepad:'Poznámkový blok',paint:'Skicár',chrome:'Google Chrome',explorer:'Prieskumník',edge:'Microsoft Edge',whatsapp:'WhatsApp',vscode:'Visual Studio Code',terminal:'Terminál (PowerShell)',browser:'Webový prehliadač'};
     const appName=appNames[target]||target;
     const started=Date.now();
     const outcome=await runTool(env,agent,'pc_open_app',{target},{adminAuthorized:executionPolicy.directAdmin});

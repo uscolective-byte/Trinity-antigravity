@@ -38,11 +38,12 @@ import {FREE_MODULES_CATALOG,fetchWeather,fetchWikipedia,resolveDns,fetchCryptoM
 import {cfD1Query,cfKVStore,cfR2Manage,cfSelfDeploy,mailEngine,httpFetchPro,pcFsRead,pcFsWrite,pcFsPatch,pcShellExec,pcSystemTelemetry} from './omni-tools.js';
 import {applySelfModification} from './self-evolution.js';
 import {metaStatus} from './meta-connector.js';
+import {proposeTransfer,confirmTransfer,getFinanceAuditLedger,transferProposalSchema,transferConfirmSchema} from './finance-gateway.js';
 
 export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
-export const OWNER_BUSINESS_TOOLS=new Set(['prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
+export const OWNER_BUSINESS_TOOLS=new Set(['finance_propose_transfer','finance_confirm_transfer','finance_audit_ledger','prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
 export const requiresVerifiedAdminForIntegrationTool=(name,args={})=>
   name==='cloudflare_manage'&&args?.action==='purge_cache'
   ||name==='github_manage'&&['create_issue','update_issue','dispatch_workflow'].includes(args?.action)
@@ -252,6 +253,9 @@ export const TOOL_SCHEMAS={
   triad_test_matrix:z.object({suite:z.enum(['all','unit','integration','truth','social']).default('all')}).strict(),
   triad_copilot_sync:z.object({action:z.enum(['status','chat','list_skills','sync_tenant']).default('status'),message:z.string().max(4000).optional()}).strict(),
   triad_status:z.object({}).strict(),
+  finance_propose_transfer:transferProposalSchema,
+  finance_confirm_transfer:transferConfirmSchema,
+  finance_audit_ledger:z.object({limit:z.number().int().min(1).max(100).default(50)}).strict(),
   meta_manage:z.object({
     action:z.enum(['status','connect_url','pages','ai_generate','create_post_draft']).default('status'),
     prompt:z.string().trim().max(4000).optional(),
@@ -882,6 +886,21 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       _evidence:{effect:'read',receipt_id:`quantum:${crypto.randomUUID()}`}
     };
   }
+  if(name==='finance_propose_transfer'){
+    const owner=executionContext.owner||'owner';
+    const res=await proposeTransfer(env,owner,args);
+    return {...res,_evidence:{effect:'proposal',receipt_id:res.proposal_id}};
+  }
+  if(name==='finance_confirm_transfer'){
+    const owner=executionContext.owner||'owner';
+    const res=await confirmTransfer(env,owner,args);
+    return res;
+  }
+  if(name==='finance_audit_ledger'){
+    const owner=executionContext.owner||'owner';
+    const res=await getFinanceAuditLedger(env,owner,args.limit);
+    return {...res,_evidence:{effect:'read',receipt_id:`finance:ledger:${crypto.randomUUID()}`}};
+  }
   if(name==='quantum_accelerate'){
     const { QCA } = await import('./qca.js');
     const result = await QCA(args.query, args.context || {}, env);
@@ -908,8 +927,8 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       pc_file_append:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000)}).strict(),
       pc_file_edit:z.object({path:z.string().min(1).max(2000),find:z.string().min(1).max(200000),replace:z.string().max(200000)}).strict(),
       pc_directory_create:z.object({path:z.string().min(1).max(2000)}).strict(),
-      pc_open_app:z.object({target:z.enum(['notepad','calculator','paint','explorer','chrome','edge'])}).strict(),
-      pc_app_control:z.object({operation:z.enum(['list','launch','type']),app:z.enum(['notepad','calculator','paint','explorer','chrome','edge']).optional(),text:z.string().min(1).max(500).optional()}).strict(),
+      pc_open_app:z.object({target:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser'])}).strict(),
+      pc_app_control:z.object({operation:z.enum(['list','launch','type']),app:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser']).optional(),text:z.string().min(1).max(500).optional()}).strict(),
       pc_notify:z.object({message:z.string().min(1).max(256),title:z.string().max(80).optional(),duration:z.number().int().min(1).max(30).optional()}).strict(),
       pc_system_info:z.object({detail:z.boolean().optional()}).strict(),
       pc_scrape:z.object({url:z.string().url(),formats:z.array(z.string()).optional(),onlyMainContent:z.boolean().optional()}).strict(),
@@ -1163,7 +1182,7 @@ export const TOOL_HELP={
   pc_file_append:'Pridá obsah na koniec súboru v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string,content:string}',
   pc_file_edit:'Nahradí text v súbore v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string,find:string,replace:string}',
   pc_directory_create:'Vytvorí adresár v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string}',
-  pc_open_app:'Otvorí povolenú aplikáciu na PC (vyžaduje schválenie): {target:notepad|calculator|paint|explorer|chrome|edge}',
+  pc_open_app:'Otvorí povolenú aplikáciu na PC (vyžaduje schválenie): {target:notepad|calculator|paint|explorer|chrome|edge|whatsapp|vscode|terminal|browser}',
   pc_app_control:'Vypíše okná alebo po schválení otvorí aplikáciu či napíše text do aktívneho okna: {operation:list|launch|type,app?:alias,text?:string}',
   pc_notify:'Zobrazí Windows toast notifikáciu: {title?:string,message:string,duration?:sek}',
   pc_system_info:'Vráti CPU/RAM/disk/procesy z PC: {detail?:bool}',
@@ -1237,5 +1256,8 @@ export const TOOL_HELP={
   triad_test_matrix:'Spustí kompletný verifikačný testovací matrix Trinity (549+ testov) s reportom výsledku: {suite?:all|unit|integration|truth|social}',
   triad_copilot_sync:'Prepojenie a synchronizácia s Microsoft Copilot Studio (Trinitys) a OpenAI asistentmi: {action:status|chat|list_skills|sync_tenant, message?:string}',
   triad_status:'Kompletný live stav a telemetria Zvrchovanej Triády (Trinity + Codex + Antigravity): {}',
+  finance_propose_transfer:'Pripraví autorizovaný finančný príkaz s limitom 50€/200€ denne: {amount_eur:number,recipient:string,provider?:revolut|paypal|sepa,note?:string}',
+  finance_confirm_transfer:'Potvrdí a kryptograficky zapíše prevod do auditného ledgera: {proposal_id:string,confirmation_token?:string}',
+  finance_audit_ledger:'Zobrazí nemennú auditnú knihu finančných transakcií: {limit?:number}',
   meta_manage:'Správa a využitie Meta AI (Llama 3.3/3.1/3.2) a pripojeného Meta účtu (Facebook stránky a Instagram profily): {action?:status|connect_url|pages|ai_generate|create_post_draft, prompt?:string, model?:llama-3.3-70b|llama-3.1-8b|llama-3.2-11b-vision, topic?:string, target_platform?:facebook|instagram|all}'
 };

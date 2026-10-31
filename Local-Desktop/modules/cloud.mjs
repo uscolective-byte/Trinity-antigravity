@@ -1,7 +1,7 @@
 import {boundedJSON} from './http.mjs';
 export class TrinityCloud{
  constructor({environment='production',getToken,fetcher=fetch}){
-  if(!['production','development','dual-sync'].includes(environment))throw new Error('Neplatné prostredie.');
+  if(!['production','staging','development','dual-sync'].includes(environment))throw new Error('Neplatné prostredie.');
   this.environment=environment;
   this.base=environment==='production'?'https://auru.space':'https://auru.dev';
   this.secondaryBase=environment==='production'?'https://auru.dev':'https://auru.space';

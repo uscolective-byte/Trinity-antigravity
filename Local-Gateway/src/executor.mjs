@@ -117,6 +117,11 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
       success:true
     };
   }
+  if(proposal.action==='screenshot'){
+    const {captureScreenshot}=await import('./desktop.mjs');
+    const shot=await captureScreenshot();
+    return {action:'screenshot',...shot,success:true};
+  }
   if(proposal.action==='open_app'){
     const appTarget=payload.target||payload.app||'calculator';
     const appMap={
@@ -124,7 +129,11 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
       notepad:'notepad',poznamkovyblok:'notepad',
       paint:'paint',skicar:'paint',
       explorer:'explorer',prieskumnik:'explorer',
-      chrome:'chrome',edge:'edge'
+      chrome:'chrome',edge:'edge',
+      whatsapp:'whatsapp',watsap:'whatsapp',
+      vscode:'vscode',code:'vscode',
+      terminal:'terminal',powershell:'terminal',cmd:'terminal',
+      browser:'browser',prehliadac:'browser'
     };
     const clean=String(appTarget).toLowerCase().replace(/[^a-z]/g,'');
     const target=appMap[clean]||'calculator';

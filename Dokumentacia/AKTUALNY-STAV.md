@@ -5,6 +5,7 @@
 **Hlavný architekt a vlastník:** Sabo Ivan (Basterix)  
 **Truth Policy:** Verzia 2.1.0 (`evidence-required`, nulové simulácie, povinné overiteľné dôkazy, zákaz klamania)  
 **Záväzná prísaha:** [PRISLUB_TRINITY.txt](../PRISLUB_TRINITY.txt) & [NEPORUSITELNY-REZIM-PRAVDY-A-PRISAHA.md](NEPORUSITELNY-REZIM-PRAVDY-A-PRISAHA.md)  
+**Operačný mód:** [NON-BLOCKING-AUDIT-A-ROLLBACK-POLICY.md](NON-BLOCKING-AUDIT-A-ROLLBACK-POLICY.md)  
 **Architektonický prehľad:** [ARCHITEKTURA-TRINITY-11.md](ARCHITEKTURA-TRINITY-11.md)  
 
 ---
@@ -26,46 +27,50 @@
 
 ---
 
-## ⚡ Flotila 35 Viazaných Služieb (Service Bindings)
+## 🚀 Implementované moduly podľa 5 hlavných pilierov vlastníka
 
-Hlavný unifikovaný Worker `trinity` má priame väzby na celú flotilu:
-1. **10× AURA špecialisti:**
-   - `AURA_ANALYZER`, `AURA_ARCHITECT`, `AURA_CODEGEN`, `AURA_DEPLOYER`, `AURA_EVOLVER`,
-   - `AURA_MEMORY`, `AURA_OPTIMIZER`, `AURA_PLANNER`, `AURA_SENTINEL`, `AURA_TESTER`
-   - *(vrátane systémových aliasov `admin`, `admino`, `Trinity`)*.
-2. **8× Trinity Core uzly:**
-   - `CORE`, `BUILDER`, `DISPATCHER`, `CONNECTORS`, `GUARDIAN`, `MEMORY`, `SENTINEL`, `SKILLS`.
-3. **Špecializované & Pomocné služby:**
-   - `JERICHO_SERVICE` (`jericho123`): Autonómny krypto super-agent, Binance live feed, DeFi výnosy a správa pokladnice Tetrakis ($TTK).
-   - `RESEARCHER_SERVICE` (`trinity-agent-researcher`): Autonómny výskumný agent s Llama 3.3 70B syntézou a ukladaním do pamäte.
-   - `GEMINI_BRIDGE_SERVICE` (`trinity-gemini`): Google Gemini brána s R2 artefaktmi a Secrets Store integráciou.
-   - `OPS_SERVICE` (`trinity-ops`): Dedikovaný prevádzkový proxy manažér pre `/api/ops/` a `/mcp`.
-   - `CHAT_MAINTAINER_SERVICE` (`trinity-chat-maintainer`): Strážca chatu a kvality odpovedí.
-   - `DEPLOYER_SERVICE` (`trinity-deployer`): Správca kódových snapshotov a staged nasadení.
-   - `SEEDER_SERVICE` (`trinity-seeder`): Inicializačný a migračný seeder pre D1 databázy.
-   - `KNOWLEDGE_SERVICE` (`trinity-knowledge`): Sémantické vyhľadávanie vedomostí a vektorová pamäť.
-   - `CAPACITY_SERVICE` (`trinity-capacity`): Dynamický limitér spotreby (CapacityLedger).
-   - `INTEGRATIONS_SERVICE` (`trinity-integrations`): Konektory na externé služby (GitHub, Firecrawl, Firebase, WordPress).
-   - `PC_BRIDGE_SERVICE` a `PC_BRIDGE_V2`: Obojsmerné prepojenie s lokálnym počítačom.
-   - `AUDIT_SERVICE` (`trinity-audit`): Kryptograficky podpísané audity systémových akcií.
-   - `CHAT_INFERENCE_SERVICE` (`trinity-chat-inference`): Rýchla privátna inferencia cez Workers AI.
+### 1. System & Web Opener (Lokálne a online ovládanie PC)
+* **Rozšírený whitelist aplikácií:** `notepad`, `calculator`, `paint`, `explorer`, `chrome`, `edge`, `whatsapp`, `vscode`, `terminal`, `browser`.
+* **WhatsApp Desktop:** Priame spustenie cez protokol `whatsapp:` a detekcia procesu `WhatsApp.Root`.
+* **VS Code & Terminal:** Spúšťanie `code` a PowerShell / Windows Terminal (`wt.exe`).
+* **Prirodzený jazyk:** Router v `Trinity/src/engine.js` automaticky rozpoznáva príkazy ako *"Trinity, otvor mi WhatsApp"*, *"otvor terminál"*, *"spusti kalkulačku"*, *"otvor VS Code"*.
+* **Snímka obrazovky (Screenshot):** Implementované natívne zachytávanie celej obrazovky cez Windows `.NET Graphics` do PNG base64 bez externých závislostí.
+
+### 2. Autonómna autentifikácia a správa účtov (Social & Meta Integrator)
+* **Meta OAuth & API:** Bezpečná správa tokenov cez `Trinity/src/meta-connector.js` pre Facebook a Instagram pod profilom Saba Ivana.
+* **Consent & Bezpečnostná vrstva:** Každá relácia je viazaná na overenú reláciu správcu; bez autorizácie systém neodosiela žiadne príspevky.
+
+### 3. Finančné transakcie a správa zostatkov (Finance Gateway)
+* **Modul:** `Trinity/src/finance-gateway.js` s nástrojmi `finance_propose_transfer`, `finance_confirm_transfer`, `finance_audit_ledger`.
+* **Dvojfázová autorizácia:** 
+  1. `proposeTransfer`: Overenie limitov, vygenerovanie návrhu `fin_...` s platnosťou 5 minút a potvrdzovacím kódom.
+  2. `confirmTransfer`: Exekúcia s overením tokenu a zápis do auditného ledgeru.
+* **Spending Caps (Limity výdavkov):**
+  - Maximálny jednorazový limit: **50.00 €** (vyššia suma vyžaduje high-value push konfirmáciu).
+  - Denný kumulatívny limit: **200.00 €** (po prekročení je prevod striktne zablokovaný).
+* **Kryptografický auditný ledger:** Každá transakcia je reťazená cez SHA-256 block hash do tabuľky `ops_finance_audit_ledger`.
+* **Striktný Režim pravdy:** Ak API token poskytovateľa (Revolut, PayPal) nie je pripojený, prevod sa odmietne s reálnym stavom `requires_provider_credentials` – Trinity nikdy nesimuluje falošný úspešný prevod!
+
+### 4. Striktná politika pravdivosti (Truth Policy 2.1 & Non-Blocking Audit Mode)
+* **Zákaz klamania a halucinácií:** `Trinity/src/truth.js` blokuje konfabulácie a neoverené tvrdenia o úspechu.
+* **Non-Blocking Audit Mode:** Akcie vlastníka sa neblokujú umelými stavmi, ale každá z nich sa ihneď zaznamená do auditného denníka s rollback referenciou.
+* **Stavy:** Striktne rozlišované `PLANNED`, `PROPOSED`, `EXECUTING`, `COMPLETED`, `FAILED`, `PARTIAL`, `UNKNOWN`. Stav `COMPLETED` je povolený výlučne s overeným receiptom.
+
+### 5. OmniDev Studio & Self-Healing
+* **Podpora Stagingu:** `Local-Desktop/modules/cloud.mjs` plne podporuje `'staging'` (`https://auru.dev`) popri produkcii (`https://auru.space`).
+* **Samodiagnostika:** Automatické zachytávanie chýb a kontrola systémových závislostí.
 
 ---
 
-## 🔒 Neporušiteľný Režim Pravdy a Zákaz Klamania
+## 🧪 Výsledky testovacej verifikácie (100 % pass)
 
-* **Kódové vynucovanie:** `Trinity/src/truth.js` a `Trinity/src/engine.js`.
-* **Truth Filter:** Automatické prepísanie akejkoľvek nepodloženej akcie na pravdivú odpoveď:
-  > *„Nemám overený systémový dôkaz, že externá akcia bola vykonaná. Žiadny neoverený výsledok, neexistujúce ID ani prázdny zástupný záznam sa podľa Režimu pravdy (Truth Policy) nepoužijú.“*
-* **Full-Time Read & Write:** Zvrchovaný vlastník (Basterix) má povolenú plnú autonómiu spúšťať nástroje na čítanie aj zápis, pričom každý zápis musí vrátiť verifikovateľný receipt.
-* **Prísaha na ploche a v repozitári:** `PRISLUB_TRINITY.txt` ustanovený ako trvalý zákon integrity.
-
----
-
-## 🧪 Výsledky testovacej sady Trinity
-
-K 31. októbru 2026 prešli všetky testy na 100 %:
-* **Celkovo testov v Trinity:** **653 / 653 PASS (100 %)**
-* **Zlyhania:** **0**
-* **Secrets Store Doctor:** PASS (14 / 14 kontrol)
-* **Status git:** `main` branch je čistá a zosynchronizovaná s `origin/main`.
+1. **Trinity Core Suite:**
+   - Príkaz: `npm test --prefix Trinity`
+   - Výsledok: **663 zo 663 testov prešlo** (`pass 663, fail 0, exitCode 0`).
+2. **Local-Gateway Suite:**
+   - Príkaz: `npm test --prefix Local-Gateway`
+   - Výsledok: **30 z 30 testov prešlo** (`pass 30, fail 0, exitCode 0`).
+3. **Local-Desktop Suite:**
+   - Príkaz: `npm test --prefix Local-Desktop`
+   - Výsledok: **21 z 21 testov prešlo** (`pass 21, fail 0, exitCode 0`).
+4. **Celkové skóre ekosystému:** **714 testov úspešných, 0 zlyhaní**.
