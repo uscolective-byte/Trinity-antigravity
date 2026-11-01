@@ -82,10 +82,12 @@
     "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
     "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
     "TRINITY_ENV": "production",
+    "TRINITY_TAP_ENABLED": "true",
+    "TRINITY_TAP_PRODUCTION": "diagnostic-only",
     "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
     "TRINITY_GITHUB_BRANCH": "main",
     "TRINITY_AUTO_IMPROVE": "true",
-    "TRINITY_AUTO_MERGE": "true",
+    "TRINITY_AUTO_MERGE": "false",
     "AI_FAST_FALLBACK_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     "META_APP_ID": "1105151122389213",
     "META_GRAPH_VERSION": "v26.0"
@@ -116,6 +118,11 @@
       "database_name": "trinity-pc-bridge",
       "database_id": "39be1f38-f710-4df4-9202-5bdbb8febf57",
       "remote": true
+    },
+    {
+      "binding": "TAP_DB",
+      "database_name": "trinity-tap-production",
+      "database_id": "9baf0ec8-63fc-4a55-a837-bcb8c8b4f141"
     }
   ],
   "kv_namespaces": [
@@ -144,6 +151,10 @@
     {
       "binding": "R2",
       "bucket_name": "trinity-artifacts"
+    },
+    {
+      "binding": "TAP_ARTIFACTS",
+      "bucket_name": "trinity-tap-evidence-production"
     }
   ],
   "vectorize": [
@@ -275,10 +286,12 @@
         "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
         "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
         "TRINITY_ENV": "production",
+        "TRINITY_TAP_ENABLED": "true",
+        "TRINITY_TAP_PRODUCTION": "diagnostic-only",
         "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
         "TRINITY_GITHUB_BRANCH": "main",
         "TRINITY_AUTO_IMPROVE": "true",
-        "TRINITY_AUTO_MERGE": "true",
+        "TRINITY_AUTO_MERGE": "false",
         "AI_FAST_FALLBACK_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
         "META_APP_ID": "1105151122389213",
         "META_GRAPH_VERSION": "v26.0"
@@ -309,6 +322,11 @@
           "database_name": "trinity-pc-bridge",
           "database_id": "39be1f38-f710-4df4-9202-5bdbb8febf57",
           "remote": true
+        },
+        {
+          "binding": "TAP_DB",
+          "database_name": "trinity-tap-production",
+          "database_id": "9baf0ec8-63fc-4a55-a837-bcb8c8b4f141"
         }
       ],
       "kv_namespaces": [
@@ -319,7 +337,11 @@
       "r2_buckets": [
         { "binding": "ARTIFACTS", "bucket_name": "trinity-artifacts" },
         { "binding": "TRINITY_STORAGE", "bucket_name": "trinity-artifacts" },
-        { "binding": "R2", "bucket_name": "trinity-artifacts" }
+        { "binding": "R2", "bucket_name": "trinity-artifacts" },
+        {
+          "binding": "TAP_ARTIFACTS",
+          "bucket_name": "trinity-tap-evidence-production"
+        }
       ],
       "vectorize": [
         { "binding": "VECTORIZE", "index_name": "trinity-vector-index" },
@@ -415,6 +437,8 @@
         "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
         "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
         "TRINITY_ENV": "staging",
+        "TRINITY_TAP_ENABLED": "true",
+        "TRINITY_TAP_PRODUCTION": "disabled",
         "TRINITY_PREVIEW_MODE": "build-only",
         "TRINITY_ASSISTANT_BRIDGE_ENABLED": "false",
         "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
@@ -450,6 +474,11 @@
           "binding": "trinity_basterix",
           "database_name": "trinity-pc-bridge-staging",
           "database_id": "54d1f8c0-c40b-4fb3-93cf-966a94273e31"
+        },
+        {
+          "binding": "TAP_DB",
+          "database_name": "trinity-tap-staging",
+          "database_id": "1b7dc157-b717-4aa3-9dbe-1fb155fbb7e2"
         }
       ],
       "kv_namespaces": [
@@ -460,7 +489,11 @@
       "r2_buckets": [
         { "binding": "ARTIFACTS", "bucket_name": "trinity-development-artifacts" },
         { "binding": "TRINITY_STORAGE", "bucket_name": "trinity-development-artifacts" },
-        { "binding": "R2", "bucket_name": "trinity-development-artifacts" }
+        { "binding": "R2", "bucket_name": "trinity-development-artifacts" },
+        {
+          "binding": "TAP_ARTIFACTS",
+          "bucket_name": "trinity-tap-evidence-staging"
+        }
       ],
       "vectorize": [
         { "binding": "VECTORIZE", "index_name": "trinity-vector-index" },
