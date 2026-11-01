@@ -119,7 +119,7 @@ export async function buildSystemGroundingContext(env, userQuestion = '') {
   return context;
 }
 
-export async function callResilientBrain(env, provider, messages, maxTokens = 850) {
+export async function callResilientBrain(env, provider, messages, maxTokens = 2048) {
   const candidates = [provider, 'gemini', 'openai', 'groq'].filter((v, i, a) => a.indexOf(v) === i);
   let lastErr = null;
   for (const prov of candidates) {

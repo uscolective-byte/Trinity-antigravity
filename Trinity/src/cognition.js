@@ -121,7 +121,7 @@ export const META_INTEGRATION_DIRECTIVE=`TRINITY META AI & META ACCOUNT (FACEBOO
   3. Rešpektuj Truth Policy: Príspevky predkladaj majiteľovi ako drafty na schválenie; publikovanie na sociálne siete vyžaduje autorizáciu majiteľa.`;
 
 export function tokenBudget(agentId,task='') {
-  const complex=task.length>1200||/\b(dokaz|odvoď|analyz|výskum|research|architekt|implement|kvant|astrofyz|matematik|chem|fyzik|monetiz|biznis|cennik|komodit|invest|trading)\b/i.test(task);
-  if(agentId==='orchestrator')return complex?3600:2600;
-  return complex?2400:1800;
+  const complex=task.length>1200||/\b(dokaz|odvod|odvoď|analyz|výskum|vyskum|research|architekt|implement|kvant|astrofyz|matematik|chem|fyzik|monetiz|biznis|cennik|komodit|invest|trading)/i.test(task);
+  if(agentId==='orchestrator')return complex?16384:8192;
+  return complex?8192:4096;
 }

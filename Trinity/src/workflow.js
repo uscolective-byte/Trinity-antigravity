@@ -45,7 +45,7 @@ export class TrinityOperations extends WorkflowEntrypoint {
         assertRunning(await readControl(this.env));
         const agent=team[position], stepId=`${id}:${position}`;
         let output;
-        try{output=await step.do(`agent-${position}-${agent}`,{retries:{limit:0,delay:'1 second',backoff:'constant'},timeout:'2 minutes'},async()=>{
+        try{output=await step.do(`agent-${position}-${agent}`,{retries:{limit:0,delay:'1 second',backoff:'constant'},timeout:'15 minutes'},async()=>{
           const done=await this.env.DB.prepare("SELECT result,model,tool_log,duration_ms FROM ops_steps WHERE id=? AND status='completed'").bind(stepId).first();
           if(done)return {text:done.result,model:done.model,agent_id:agent,tool_log:JSON.parse(done.tool_log||'[]'),duration_ms:done.duration_ms};
           await this.env.DB.prepare(`INSERT INTO ops_steps(id,job_id,position,agent_id,status) VALUES(?,?,?,?,'running')

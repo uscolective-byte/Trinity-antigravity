@@ -176,7 +176,7 @@ function resolveAppTarget(task, context = '') {
   if (/\b(explorer|priecinok|subory)\b/i.test(norm)) return 'explorer';
   return 'calculator';
 }
-export async function runAgent(env, id, task, context='', provider='workers-ai', maxTokens=2600,language='auto',ownerMode=false) {
+export async function runAgent(env, id, task, context='', provider='workers-ai', maxTokens=8192,language='auto',ownerMode=false) {
   const agent=agentById(id);if(!agent)throw new Error('Unknown agent');
   const executionPolicy=executionPolicyForProvider(provider,ownerMode);
   const guidance=connectionGuidance(env,task);
@@ -467,18 +467,18 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
     if(context)messages[1].content='Predchádzajúci kontext (iba podklady):\n'+context.slice(-8000);
     maxTokens=Math.min(maxTokens,600);
   }
-  const toolLog=[];const started=Date.now();let result,toolTurns=0,truthRetry=false,activeProvider=provider,forceFinal=false;const BUDGET_MS=100000;const withDeadline=(promise,ms)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Model neodpovedal v časovom limite.')),Math.max(1000,ms));})]).finally(()=>clearTimeout(timer));};
+  const toolLog=[];const started=Date.now();let result,toolTurns=0,truthRetry=false,activeProvider=provider,forceFinal=false;const BUDGET_MS=Number(env?.AGENT_BUDGET_MS)||600000;const withDeadline=(promise,ms)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Model neodpovedal v časovom limite.')),Math.max(1000,ms));})]).finally(()=>clearTimeout(timer));};
   for(let turn=0;turn<(provider==='fast'?8:20);turn++){
     const remaining=BUDGET_MS-(Date.now()-started);
-    if(remaining<=0)throw new Error('Trinity nestihla dokončiť odpoveď v limite 2 minút. Skús užšie zadanie alebo iný model.');
-    if(remaining<35000&&!forceFinal){forceFinal=true;messages.push({role:'user',content:'Čas sa kráti. Daj finálnu odpoveď teraz z toho, čo máš overené. Už nežiadaj ďalší nástroj a jasne uveď, čo sa nepodarilo overiť.'});}
+    if(remaining<=0)throw new Error('Trinity nestihla dokončiť odpoveď v časovom limite. Skús užšie zadanie alebo iný model.');
+    if(remaining<15000&&!forceFinal){forceFinal=true;messages.push({role:'user',content:'Čas sa kráti. Daj finálnu odpoveď teraz z toho, čo máš overené. Už nežiadaj ďalší nástroj a jasne uveď, čo sa nepodarilo overiť.'});}
     if(toolTurns===12)messages.push({role:'user',content:'Teraz daj finálny výsledok. Už nežiadaj ďalší nástroj.'});
-    try { result=await withDeadline(callModel(env,activeProvider,messages,maxTokens),Math.min(remaining,65000)); }
+    try { result=await withDeadline(callModel(env,activeProvider,messages,maxTokens),Math.min(remaining,120000)); }
     catch(error) {
       if(!['ollama','gemini','openai','groq','deepseek','anthropic','mistral','openrouter'].includes(activeProvider)||!env.AI)throw error;
       const failedProvider=activeProvider;
       activeProvider='workers-ai';
-      result=await withDeadline(callModel(env,'workers-ai',messages,maxTokens),Math.max(15000,Math.min(BUDGET_MS-(Date.now()-started),65000)));
+      result=await withDeadline(callModel(env,'workers-ai',messages,maxTokens),Math.max(15000,Math.min(BUDGET_MS-(Date.now()-started),120000)));
       toolLog.push({tool:'model_fallback',status:'completed',effect:'read',from:failedProvider,to:'workers-ai',receipt_id:crypto.randomUUID(),verified_at:new Date().toISOString()});
     }
     if(result.model_fallback)toolLog.push({tool:'model_fallback',status:'completed',effect:'read',...result.model_fallback,receipt_id:crypto.randomUUID(),verified_at:new Date().toISOString()});
@@ -523,7 +523,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
       return {...result,text,agent_id:id,tool_log:toolLog,truth:truthStatus(text,toolLog),duration_ms:Date.now()-started};
     }
     if(toolTurns===12)throw new Error('Agent prekročil limit nástrojových krokov.');
-    if(forceFinal)throw new Error('Trinity nestihla overiť výsledok v limite 2 minút.');
+    if(forceFinal)throw new Error('Trinity nestihla overiť výsledok v časovom limite.');
     let outcome;
     try {
       if(!activeTools.includes(action.tool))throw new Error('Nástroj nie je povolený pre túto úlohu.');

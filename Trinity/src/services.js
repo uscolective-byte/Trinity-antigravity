@@ -136,12 +136,12 @@ export function usableModelText(text) {
   const repeated = compact.match(/(.)\1{79,}/gu) || [];
   return repeated.reduce((size, run) => size + run.length, 0) < compact.length * 0.8;
 }
-export async function callModel(env, provider, messages, maxTokens = 1200, customModel = null) {
+export async function callModel(env, provider, messages, maxTokens = 8192, customModel = null) {
   if(provider==='local'){
     if(!env.TRINITY_GATEWAY_KEY)throw new Error('Lokálna brána nie je nakonfigurovaná.');
     const recent=messages.filter(message=>message.role!=='system').slice(-6).map(message=>({role:message.role,content:message.content.slice(0,5000)}));
     const localMessages=[{role:'system',content:'Si Trinity, súkromná lokálna AI asistentka. Odpovedaj prirodzene v jazyku používateľa. Nevymýšľaj vykonané akcie, prístup k súborom ani internet. Ak treba aktuálne dáta alebo externú akciu, jasne povedz, že sa má použiť cloudový režim Trinity.'},...recent];
-    const action=await createSystemAction(env,{action:'read',payload:{task:'local-inference',messages:localMessages,max_tokens:Math.min(maxTokens,320)},rationale:'Lokálna AI odpoveď na používateľovu požiadavku'},'provider:local');
+    const action=await createSystemAction(env,{action:'read',payload:{task:'local-inference',messages:localMessages,max_tokens:Math.min(maxTokens,4096)},rationale:'Lokálna AI odpoveď na používateľovu požiadavku'},'provider:local');
     for(let attempt=0;attempt<180;attempt++){
       await new Promise(resolve=>setTimeout(resolve,1000));const current=await getSystemAction(env,action.id);
       if(current?.status==='completed')return {text:current.receipt.response,model:current.receipt.model,provider:'local',usage:current.receipt.usage||null};
@@ -175,7 +175,7 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
       const response=await fetch('https://ollama.com/api/chat',{
         method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},
         body:JSON.stringify({model,messages,stream:false,options:{num_predict:maxTokens,temperature:0.25}}),
-        signal:AbortSignal.timeout(65000),redirect:'manual'
+        signal:AbortSignal.timeout(120000),redirect:'manual'
       });
       if(response.ok){
         const data=JSON.parse(await boundedText(response,100000));
@@ -194,8 +194,8 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     let response=await fetch('https://generativelanguage.googleapis.com/v1beta/interactions',{
       method:'POST',headers:{'x-goog-api-key':apiKey,'Content-Type':'application/json'},
       body:JSON.stringify({model:interactionModel,input,system_instruction:system||undefined,store:false,
-        generation_config:{max_output_tokens:Math.min(maxTokens,8192),temperature:0.25}}),
-      signal:AbortSignal.timeout(65000),redirect:'manual'
+        generation_config:{max_output_tokens:Math.min(maxTokens,16384),temperature:0.25}}),
+      signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     let usedModel=model;
     if(!response.ok && (response.status===404 || response.status===400)){
@@ -227,9 +227,9 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
           headers:{'Content-Type':'application/json','x-goog-api-key':apiKey},
           body:JSON.stringify({
             contents,
-            generationConfig:{maxOutputTokens:Math.min(maxTokens,8192),temperature:0.25}
+            generationConfig:{maxOutputTokens:Math.min(maxTokens,16384),temperature:0.25}
           }),
-          signal:AbortSignal.timeout(65000),
+          signal:AbortSignal.timeout(120000),
           redirect:'manual'
         });
         if(fallbackResponse.ok){
@@ -265,8 +265,8 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     }));
     let response=await fetch('https://api.openai.com/v1/chat/completions',{
       method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,4096),temperature:0.7}),
-      signal:AbortSignal.timeout(65000),redirect:'manual'
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:0.7}),
+      signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     if(response.status===404){
       const responsesInput=messages.slice(-16).map(message=>({
@@ -275,8 +275,8 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
       }));
       response=await fetch('https://api.openai.com/v1/responses',{
         method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-        body:JSON.stringify({model,input:responsesInput,store:false,max_output_tokens:Math.min(maxTokens,8192)}),
-        signal:AbortSignal.timeout(65000),redirect:'manual'
+        body:JSON.stringify({model,input:responsesInput,store:false,max_output_tokens:Math.min(maxTokens,16384)}),
+        signal:AbortSignal.timeout(120000),redirect:'manual'
       });
     }
     const data=JSON.parse(await boundedText(response,250000));
@@ -295,8 +295,8 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,4096),temperature:0.3}),
-      signal:AbortSignal.timeout(65000),redirect:'manual'
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:0.3}),
+      signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     const data=JSON.parse(await boundedText(response,250000));
     if(!response.ok)throw new Error(`Groq HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
@@ -313,8 +313,8 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://api.deepseek.com/chat/completions',{
       method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,4096),temperature:0.3}),
-      signal:AbortSignal.timeout(65000),redirect:'manual'
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:0.3}),
+      signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     const data=JSON.parse(await boundedText(response,250000));
     if(!response.ok)throw new Error(`DeepSeek HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
@@ -332,8 +332,8 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     const chatMessages=messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'assistant':'user',content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01','Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:chatMessages,system:system||undefined,max_tokens:Math.min(maxTokens,4096),temperature:0.3}),
-      signal:AbortSignal.timeout(65000),redirect:'manual'
+      body:JSON.stringify({model,messages:chatMessages,system:system||undefined,max_tokens:Math.min(maxTokens,8192),temperature:0.3}),
+      signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     const data=JSON.parse(await boundedText(response,250000));
     if(!response.ok)throw new Error(`Anthropic HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
@@ -350,8 +350,8 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://api.mistral.ai/v1/chat/completions',{
       method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,4096),temperature:0.3}),
-      signal:AbortSignal.timeout(65000),redirect:'manual'
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:0.3}),
+      signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     const data=JSON.parse(await boundedText(response,250000));
     if(!response.ok)throw new Error(`Mistral HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
@@ -368,8 +368,8 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
     const response=await fetch('https://openrouter.ai/api/v1/chat/completions',{
       method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'HTTP-Referer':'https://auru.space','X-Title':'Trinity AI','Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,4096),temperature:0.3}),
-      signal:AbortSignal.timeout(65000),redirect:'manual'
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:0.3}),
+      signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     const data=JSON.parse(await boundedText(response,250000));
     if(!response.ok)throw new Error(`OpenRouter HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
@@ -395,8 +395,8 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
         // Binding failure falls back to the already authorized Workers AI binding.
       }
       let timer;
-      try { return await Promise.race([env.AI.run(selectedModel,{messages,max_tokens:Math.min(maxTokens,2048),temperature:0.2}),
-        new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),provider==='fast'?20000:65000);})]); }
+      try { return await Promise.race([env.AI.run(selectedModel,{messages,max_tokens:Math.min(maxTokens,8192),temperature:0.2}),
+        new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),provider==='fast'?30000:120000);})]); }
       finally {clearTimeout(timer);}
     };
     let result,fallbackReason='invalid-output';
