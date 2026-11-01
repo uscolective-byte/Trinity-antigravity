@@ -52,10 +52,13 @@ export class TrinityOperations extends WorkflowEntrypoint {
             ON CONFLICT(id) DO UPDATE SET status='running',error=NULL,updated_at=datetime('now')`).bind(stepId,id,position,agent).run();
           try {
             const result=await runAgent(this.env,agent,job.task,[history,...outputs.map(o=>`${o.agent_id}: ${o.text}`)].join('\n'),job.provider,tokenBudget(agent,job.task),job.language||'auto',job.owner_mode===1);
+            if(result.execution_status==='failed'){
+              const error=new Error(result.text);error.tool_log=result.tool_log;throw error;
+            }
             await this.env.DB.prepare("UPDATE ops_steps SET status='completed',result=?,model=?,tool_log=?,duration_ms=?,updated_at=datetime('now') WHERE id=?")
               .bind(result.text,result.model,JSON.stringify(result.tool_log),result.duration_ms,stepId).run();
             return result;
-          }catch(e){await this.env.DB.prepare("UPDATE ops_steps SET status='failed',error=?,updated_at=datetime('now') WHERE id=?").bind(e.message,stepId).run();throw e;}
+          }catch(e){await this.env.DB.prepare("UPDATE ops_steps SET status='failed',error=?,tool_log=?,updated_at=datetime('now') WHERE id=?").bind(e.message,JSON.stringify(e.tool_log||[]),stepId).run();throw e;}
         });outputs.push(output);}
         catch(error){
           const failure={agent_id:agent,status:'failed',error:(error?.message||'Neznáma chyba').slice(0,1000)};
@@ -65,8 +68,8 @@ export class TrinityOperations extends WorkflowEntrypoint {
           });
         }
       }
+      if(!outputs.length)throw new Error('Všetky kroky workflow zlyhali; neexistuje overiteľný výsledok.');
       return await step.do('save-result',async()=>{
-        if(!outputs.length)throw new Error('Všetky kroky workflow zlyhali; neexistuje overiteľný výsledok.');
         const finalStatus=skipped.length?'partial':'completed';
         const text=outputs.at(-1).text;
         const key=`operations/${id}/result.md`;

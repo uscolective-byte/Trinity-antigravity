@@ -1197,7 +1197,7 @@ document.querySelectorAll('[data-comm-tab]').forEach(btn=>btn.addEventListener('
 
 function switchDocTab(tabId){
   document.querySelectorAll('[data-doc-tab]').forEach(b=>b.classList.toggle('active',b.dataset.docTab===tabId));
-  ['guide','oath','architecture','banking','licenses','gdpr','archive'].forEach(id=>{
+  ['guide','oath','architecture','banking','licenses','gdpr','archive','omnidev','meta','truth'].forEach(id=>{
     const pane=$('doc-pane-'+id);
     if(pane)pane.hidden=id!==tabId;
   });

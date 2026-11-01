@@ -83,6 +83,111 @@ Dozorný orgán: Úrad na ochranu osobných údajov Slovenskej republiky (https:
     created_at: '2026-10-28T10:00:00.000Z',
     export_md_url: '/api/assistant/documents/trinity-gdpr-privacy-consent/export?format=md',
     export_pdf_url: '/api/assistant/documents/trinity-gdpr-privacy-consent/export?format=pdf'
+  },
+  {
+    "id": "trinity-kompletna-dokumentacia",
+    "title": "Kompletná Oficiálna Dokumentácia a Architektúra TRINITY 11.0 (OMNI-CORE)",
+    "category": "architecture",
+    "step_name": "omni_core_manual",
+    "actor": "Trinity Sovereign Core",
+    "summary": "Kompletná príručka a technická encyklopédia Trinity 11.0 OMNI-CORE: 7-vrstvová architektúra, 29 Cloudflare Workerov, Omni-Dev Studio, Meta AI, Google Cloud, Truth Policy 2.1 a katalóg 112+ nástrojov.",
+    "content": "# Kompletná Oficiálna Dokumentácia a Technická Encyklopédia TRINITY 11.0 (OMNI-CORE)\n\n**Verzia systému:** Trinity 11.0.0 OMNI-CORE  \n**Dátum vydania:** 1. novembra 2026  \n**Zvrchovaný tvorca a vlastník:** Ivan Sabo (alias **Basterix**), saboivan2008@gmail.com  \n**Produkčná zóna:** https://auru.space · **Staging zóna:** https://auru.dev  \n**Režim pravdivosti:** Truth Policy 2.1.0 (evidence-required, nulové simulácie)\n\n---\n\n## 1. Úvod a Poslanie\nTrinity 11.0 je zvrchovaný autonómny operačný systém navrhnutý na Cloudflare Edge infraštruktúre pre plnohodnotné kódovanie, generovanie webov, správu hostiteľského PC a autonómne riadenie sociálnych sietí.\n\n## 2. 7-Vrstvová Architektúra\n1. **Sovereign Lock & TruthGuard (Ring 0):** Merkle chain, nonces, ochrana proti klamaniu.\n2. **Dátové úložiská:** D1 trinity-v03, KV Mastermind, R2 trinity-artifacts, Durable Objects.\n3. **Flotila 29 Workerov:** 10 AURA špecialistov, 8 Trinity Core, 8 RPC služieb, 3 pomocné služby.\n4. **Host PC Bridge:** PowerShell, CMD, Node, Python, WinRT OCR, Screenshot, Súbory.\n5. **112+ Exekučných nástrojov:** meta_manage, pc_*, domain_*, wallet_*, calculate.\n6. **Kognícia a Pentad 2.0:** Workers AI Llama 3.3 70B, Gemini 3.8 Flash, GPT-4.1-mini.\n7. **Zvrchované UI:** Omni-Dev Studio, Chat, AI Studio, Domény, Peňaženka, Dokumentácia.\n\n## 3. Desatoro Pravdivosti\n1. Žiadne vymýšľanie dát ani halucinácie úspechu.\n2. Každá vykonaná akcia musí mať overiteľný receipt.\n3. Fail-Closed pri akejkoľvek chybe.\n4. Guarded Rollout s overením pred nasadením.",
+    "tags": [
+      "dokumentacia",
+      "architektura",
+      "omni-core",
+      "manual",
+      "trinity-11"
+    ],
+    "receipt_id": "doc:omni_core:v11",
+    "auto_generated": false,
+    "created_at": "2026-11-01T10:00:00.000Z",
+    "export_md_url": "/api/assistant/documents/trinity-kompletna-dokumentacia/export?format=md",
+    "export_pdf_url": "/api/assistant/documents/trinity-kompletna-dokumentacia/export?format=pdf"
+  },
+  {
+    "id": "trinity-omni-dev-studio-sprievodca",
+    "title": "Sprievodca Omni-Dev Studiom, PC Bridge a Live Terminálom",
+    "category": "manual_doc",
+    "step_name": "omnidev_guide",
+    "actor": "Trinity Sovereign Core",
+    "summary": "Detailný návod na obsluhu Omni-Dev Studia: obojsmerné vykonávanie príkazov na Windows PC, prehliadač súborov, kódový editor s auto-rollback poistkou a Pentad 2.0 router.",
+    "content": "# Sprievodca Omni-Dev Studiom a Lokálnym PC Bridge\n\n## 1. Čo je Omni-Dev Studio\nOmni-Dev Studio je integrované vývojárske split-screen prostredie v Trinity (auru.space a auru.dev).\n\n## 2. Hlavné Funkcie\n- **Live PC Terminál:** Spúšťanie PowerShell, CMD, Node.js a Python príkazov na hostiteľskom PC.\n- **Prieskumník súborov:** Prechádzanie priečinkov na disku C:\\Users\\saboi\\Trinity-antigravity.\n- **Code Editor s R2 Snapshotom:** Bezpečná úprava kódu s okamžitým testom a rollbackom pri chybe.\n- **Skill Matrix & Store:** 112+ nástrojov so sémantickým vyhľadávaním BGE-Base.\n- **Pentad 2.0 Orchestrator:** Prepínanie medzi Auto Routerom, Llama 3.3 70B a Gemini 3.8 Flash.",
+    "tags": [
+      "omnidev",
+      "pc-bridge",
+      "terminal",
+      "editor",
+      "vyvoj"
+    ],
+    "receipt_id": "doc:omnidev:v1",
+    "auto_generated": false,
+    "created_at": "2026-11-01T10:00:00.000Z",
+    "export_md_url": "/api/assistant/documents/trinity-omni-dev-studio-sprievodca/export?format=md",
+    "export_pdf_url": "/api/assistant/documents/trinity-omni-dev-studio-sprievodca/export?format=pdf"
+  },
+  {
+    "id": "trinity-meta-ai-social-manual",
+    "title": "Manuál k Meta AI (Llama 3.3/3.1/3.2) a Sociálnym Účtom (Facebook & Instagram)",
+    "category": "manual_doc",
+    "step_name": "meta_manual",
+    "actor": "Trinity Sovereign Core",
+    "summary": "Príručka pre využitie Meta AI modelov cez Cloudflare Workers AI a správu Facebook stránky (underground Street collective) a Instagram profilu (@old_dirty_bastard013).",
+    "content": "# Manuál k Meta AI a Sociálnemu Ekosystému\n\n## 1. Pripojené Účty\n- **Facebook Stránka:** underground Street collective\n- **Instagram Profil:** @old_dirty_bastard013\n- **OAuth Pripojenie:** https://auru.space/connect/meta\n\n## 2. Modely Meta Llama (Cloudflare Workers AI)\n- **@cf/meta/llama-3.3-70b-instruct-fp8-fast:** Hlavný kognitívny model pre zložité úlohy a tvorbu textu.\n- **@cf/meta/llama-3.1-8b-instruct-fp8-fast:** Bleskový model pre rýchle odpovede.\n- **@cf/meta/llama-3.2-11b-vision-instruct:** Vizuálny model na analýzu grafiky a screenshotov.\n\n## 3. Nástroj meta_manage\n- status: Zistí stav OAuth tokenu a pripojených účtov.\n- connect_url: Vygeneruje linku na prihlásenie.\n- ai_generate: Generovanie textu cez Llama model.\n- create_post_draft: Vytvorenie pripraveného konceptu s hashtagmi.",
+    "tags": [
+      "meta",
+      "facebook",
+      "instagram",
+      "llama",
+      "social"
+    ],
+    "receipt_id": "doc:meta:v1",
+    "auto_generated": false,
+    "created_at": "2026-11-01T10:00:00.000Z",
+    "export_md_url": "/api/assistant/documents/trinity-meta-ai-social-manual/export?format=md",
+    "export_pdf_url": "/api/assistant/documents/trinity-meta-ai-social-manual/export?format=pdf"
+  },
+  {
+    "id": "trinity-desatoro-pravdivosti",
+    "title": "Desatoro Pravdivosti a Neporušiteľný Režim Pravdy (Truth Policy 2.1.0)",
+    "category": "legal_compliance",
+    "step_name": "truth_policy_covenant",
+    "actor": "Trinity Sovereign Core",
+    "summary": "Ústavné zásady pravdovravnosti Trinity: prísny zákaz halucinácií, falšovania úspechu, povinnosť overiteľných auditných receiptov a invarianty Merkle ledgeru.",
+    "content": "# Desatoro Pravdivosti Trinity (Truth Policy 2.1.0)\n\n1. **NIKDY NEKLAMAŤ A NEHALUCINOVAŤ:** Trinity nesmie nikdy vymyslieť fiktívny úspech, súbor ani stav.\n2. **POVINNOSŤ DÔKAZU (EVIDENCE-REQUIRED):** Každá vykonaná akcia musí mať auditný receipt s receipt_id.\n3. **ZÁKAZ SYNTETICKÝCH SIMULÁCIÍ:** Žiadne falošné úspešné hlášky bez skutočného vykonania.\n4. **FAIL-CLOSED ARCHITEKTÚRA:** Ak nastane chyba, Trinity ju otvorene prizná a vysvetlí príčinu.\n5. **JEDNOSMERNÝ MERKLE LEDGER:** Zápisy v ops_sovereign_ledger_v3 sú nemenné a kryptograficky viazané.\n6. **PRÍSAHA VLASTNÍKOVI:** Výhradná vernosť a oddanosť zvrchovanému majiteľovi (Basterix).",
+    "tags": [
+      "truth-policy",
+      "desatoro",
+      "pravda",
+      "covenant",
+      "bezpecnost"
+    ],
+    "receipt_id": "doc:truth:v2.1",
+    "auto_generated": false,
+    "created_at": "2026-11-01T10:00:00.000Z",
+    "export_md_url": "/api/assistant/documents/trinity-desatoro-pravdivosti/export?format=md",
+    "export_pdf_url": "/api/assistant/documents/trinity-desatoro-pravdivosti/export?format=pdf"
+  },
+  {
+    "id": "trinity-aktualny-stav-systemu",
+    "title": "Aktuálny Stav a Integračná Správa Ekosystému Trinity 11.0 (K 1. 11. 2026)",
+    "category": "architecture",
+    "step_name": "status_report",
+    "actor": "Trinity Sovereign Core",
+    "summary": "Kompletný auditný prehľad produkčného a staging stavu: vyriešenie P0/P1 bezpečnostných bodov, live testovanie Windows PC Bridge cez WhatsApp a stav Cloudflare Edge.",
+    "content": "# Aktuálny Stav Trinity Sovereign OS (11.0.0 OMNI-CORE)\n\n**Dátum auditu:** 1. novembra 2026  \n**Produkcia:** auru.space (trinity Worker, D1 trinity-v03, KV Mastermind)  \n**Staging:** auru.dev (trinity-staging Worker)  \n**Host PC Daemon:** Basterix (win32, PID overený, PRISLUB overený)\n\n## Stav Bezpečnostných Opatrení\n- Odstránené 4 kritické zraniteľnosti (overovanie Google/OS tokenov, odstránenie falošného SID).\n- Durable Nonce Vault v tabuľke ops_consumed_nonces s ochranou proti replay útokom.\n- Všetkých 177 zdrojových súborov štandardizovaných pod JSDoc autoritou Basterix.\n- Úspešný End-to-End test cez https://auru.space/api/bridge s receiptom v D1 ledger blok #5.",
+    "tags": [
+      "stav",
+      "audit",
+      "overenie",
+      "ledger",
+      "produkcia"
+    ],
+    "receipt_id": "doc:status:20261101",
+    "auto_generated": false,
+    "created_at": "2026-11-01T10:00:00.000Z",
+    "export_md_url": "/api/assistant/documents/trinity-aktualny-stav-systemu/export?format=md",
+    "export_pdf_url": "/api/assistant/documents/trinity-aktualny-stav-systemu/export?format=pdf"
   }
 ];
 
