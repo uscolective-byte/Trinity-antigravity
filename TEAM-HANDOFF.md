@@ -1601,3 +1601,39 @@ Antigravity: zapíš ACK a vlastníctvo súborov, potom test evidence. Stav PEND
   - **Cloudflare D1 Ledger Block Index 11**: `9fb71855dedea4df7b64fb29e1a59f5622747332c76a139df649e1032c7340b4`
 
 
+
+---
+
+## OPERATIONAL HANDOFF: OLLAMA LOCAL ENGINE EDGE INTEGRATION (2026-11-01)
+- **Task ID**: `OLLAMA-EDGE-INTEGRATION-20261101-ANTIGRAVITY-11`
+- **Owner Command**: `vikonaj prepojenie ollama z projektomä` / `ollma už pracuje jednoduhconzapoj aj ju` (Basterix)
+- **Status**: `CONNECTED_AND_VERIFIED_END_TO_END`
+- **Verified Exit Code**: `0` | **HTTP Status**: `200 OK`
+
+### 1. Ollama Detection & Architecture Alignment
+- **Local Engine**: Ollama running locally on `http://127.0.0.1:11434`.
+- **Installed Models**: `qwen3.5:4b` (4.2B params, GGUF Q4_K_M) and `qwen3:4b` (4.0B params, GGUF Q4_K_M).
+- **Thinking Models Optimization**: Handled thinking/reasoning model responses extracting `message.content` or falling back to `message.thinking` when thinking tokens dominate. Added bounded `num_ctx: 2048` to avoid llama.cpp 256k buffer OOM on 16GB host RAM.
+
+### 2. Implementation Across Layers
+- **Local System Bridge (`Local-Gateway/src/system-bridge.mjs`)**:
+  - Implemented `GET /api/ollama/status` returning running status and model list.
+  - Implemented `POST /api/ollama/chat` with sovereign ledger logging and timingSafeEqual bridge token auth.
+- **Cloudflare Edge Engine (`Trinity/src/index.js`)**:
+  - Added public edge proxy routes:
+    - `GET https://auru.space/api/ollama/status` -> forwards to local Ollama via Cloudflare Tunnel.
+    - `POST https://auru.space/api/ollama/chat` -> forwards chat requests to local Ollama via Cloudflare Tunnel.
+- **Trinity AI Services (`Trinity/src/services.js`)**:
+  - Enhanced `callModel(env, 'ollama', ...)` to automatically route through the active Cloudflare Tunnel to the local Ollama instance before falling back to Ollama Cloud.
+
+### 3. Verification & Truth Policy Proofs (`HTTP 200 OK`, `Exit Code: 0`)
+- **Unit & Integration Tests**:
+  - Local-Gateway test suite: `32 / 32 PASS` (`exitCode: 0`).
+  - Trinity Core test suite: `701 / 701 PASS` (`exitCode: 0`).
+- **Edge Deployment**:
+  - Cloudflare Worker `trinity` version `1aa59ff0-ea92-4f46-bf7b-fb79e61553da` deployed to production (`auru.space`).
+- **Live Status Check (`GET https://auru.space/api/ollama/status`)**:
+  - Returned `HTTP 200 OK` with `edge_gateway: "auru.space"`, `tunnel_proxied: true`, `status: "ONLINE"`, models `qwen3.5:4b` and `qwen3:4b`.
+- **Live Inference Check (`POST https://auru.space/api/ollama/chat`)**:
+  - Returned `HTTP 200 OK` (`ok: true`, `provider: "ollama-local"`, `model: "qwen3:4b"`).
+  - Recorded in Sovereign Ledger: Receipt `TRN-LCL-V3-5-416C2892AEF6` (block hash `416c2892aef6f734d52ddffba5b76e7195e7c59515a9aa8595f6ab4f052ddcd5`).
