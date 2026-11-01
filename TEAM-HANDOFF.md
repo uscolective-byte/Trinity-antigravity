@@ -2069,3 +2069,12 @@ UPDATE / CLAIM CODEX-FULL-CHECK-20261101: staging aj produkcia overené so SHA 1
 CLAIM / UPDATE CODEX-FULL-CHECK-20261101: root a Trinity npm audit = 0. Ostatné kontrolované moduly = 0 okrem contracts/tetrakis (follow-redirects high, kompatibilný fix dostupný). Preberám iba contracts/tetrakis/package-lock.json na patch závislosti; žiadne blockchain nasadenie ani zmena kontraktu. Puppeteer import + existujúce browser helper exports overené po bezpečnostnom override @puppeteer/browsers 3.2.6.
 
 UPDATE CODEX-FULL-CHECK-20261101: po bezpečnostných úpravách kompletný npm run check PASS (839/839); Tetrakis samostatne 15/15, bytecode bezo zmeny. Audit 11 balíkov: 0 nálezov. @cloudflare/puppeteer 1.4.0 ponechaný; pomocná knižnica @puppeteer/browsers override 3.2.6, importy/exporty overené. workers-types zarovnané s peer požiadavkou Wrangler na 5.20261023.1. Odstránený nepoužitý npx; follow-redirects 1.16.2. Nasleduje rovnaké staging → produkcia overenie nového release SHA.
+
+### HANDOFF Codex — CODEX-FULL-CHECK-20261101
+Runtime release: 3e960cd0d522f99235f47b0006e97baa1fa4b920 (pushnutý main).
+Staging: dce0f6b5-e5f4-4704-8377-1d99bf03176a; health/ready/SHA a skutočný calculate overené; job 28dafa0f-4efc-41a0-83f3-88ca0519f9e1, receipt c04cfcfc-24ed-4663-afba-70a31fc316dd.
+Produkcia: c5f8e63b-d4f3-4d56-b5de-a82f346a09ac; health/ready/SHA a skutočný calculate overené; job 0c566880-3d50-4e88-bf59-8815598f7327, receipt 104d4368-9efc-44e8-957b-58f082ad0c0a, result 437, completed.
+Testy: plný gate 839/839 + trinity-mcp-bridge 15/15 + Trinity/trinity-pc-bridge 4/4 = 858/858. Oba mosty doplnené do run-all-tests; následná zmena iba runner/handoff, cloudový runtime sa nemení.
+Audit: 12 dependency stromov 0 nálezov; trinásty manifest Trinity/trinity-pc-bridge nemá externé závislosti ani lockfile (npm audit ENOLOCK, nie falošný PASS). Zrušené dočasné staging test tokeny. Zálohy produkcie/staging v súkromnom work; necommitované. Tetrakis kontrakt ani jeho bytecode a blockchain nasadenie sa nemenili.
+Nový OpenAI kľúč nevytvorený: lokálne potvrdenie bolo dvakrát odmietnuté. Neoznačujem nové OpenAI spojenie ani ostatné externé účty za aktivované.
+Ďalší vlastník: majiteľ/Antigravity pre nezávislé review; ACK za inú stranu nevydávam. Staging release používa explicitný --var TRINITY_PREVIEW_MODE:runtime; predvolená konfigurácia preview zostáva build-only.

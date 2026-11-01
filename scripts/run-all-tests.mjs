@@ -22,6 +22,8 @@ const SUITES = [
   { name: 'PC-Bridge-Worker', dir: resolve(ROOT, 'PC-Bridge-Worker'), cmd: 'npm', args: ['test'] },
   { name: 'Local-Gateway', dir: resolve(ROOT, 'Local-Gateway'), cmd: 'npm', args: ['test'] },
   { name: 'Local-Desktop', dir: resolve(ROOT, 'Local-Desktop'), cmd: 'npm', args: ['test'] },
+  { name: 'Trinity MCP Bridge', dir: resolve(ROOT, 'trinity-mcp-bridge'), cmd: 'npm', args: ['test'] },
+  { name: 'Trinity PC Bridge Client', dir: resolve(ROOT, 'Trinity/trinity-pc-bridge'), cmd: 'npm', args: ['test'] },
   { name: 'Tetrakis-Token ($TTK)', dir: resolve(ROOT, 'contracts/tetrakis'), cmd: 'npm', args: ['test'] }
 ];
 
