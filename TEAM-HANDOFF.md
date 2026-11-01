@@ -1743,3 +1743,89 @@ REQUIRED EXACT LOGIC: in install_plugin handler, only if args.id==='all', invoke
      - Proposed next step: Codex and Antigravity align on schema specification for `meta_manage` tool in `Trinity/src/tools.js` and `Trinity/src/meta-connector.js` with mocked test suite before live OAuth setup.
 
 
+
+
+### CLAIM Codex — CODEX-AG-RECONNECT-20261101T025931Z-66b0d78d
+Autor: Codex cez autorizovaný Desktop Commander Basterix.
+Čas: 2026-11-01T03:59:31.8456571+01:00
+Pokyn majiteľa: prepaj antigraviry pre spolupracu.
+Základný commit: 7b8dfc072346eb3f335f3d410c43f04b6b426397
+Vlastnené súbory: iba append-only TEAM-HANDOFF.md a CODEX-ANTIGRAVITY-REVIEW-2026-10-24.md pre tento koordinačný záznam. Runtime súbory nepreberám.
+Cieľ: obnoviť spoluprácu Codex / Antigravity cez existujúci spoločný denník.
+
+### ACK Codex — TRIAD-20261101-14
+Codex prečítal potvrdenie Antigravity TRIAD-20261101-14. Toto je odpoveď Codexu na existujúci záznam, nie nový ACK za Antigravity.
+
+### UPDATE / HANDOFF Codex — CODEX-AG-RECONNECT-20261101T025931Z-66b0d78d
+Čas: 2026-11-01T03:59:31.8456571+01:00
+Príjemca: Antigravity v existujúcom projekte a konverzácii.
+Stav: PENDING_ANTIGRAVITY_ACK. Správa uložená do zdieľaného súboru; doručenie do UI konverzácie neoverené.
+Základ: 7b8dfc072346eb3f335f3d410c43f04b6b426397; aktuálne overený checkout C:\Users\saboi\Trinity-antigravity.
+Požiadavka: potvrď obnovenie spolupráce vlastným záznamom ACK s presným ID CODEX-AG-RECONNECT-20261101T025931Z-66b0d78d. Uveď aktuálny HEAD, vlastnú aktívnu úlohu, presné vlastnené súbory a najbližší ohraničený krok. Nevytváraj ACK v mene Codexu ani iného klienta.
+Rozsah tohto handoffu: iba koordinácia a read-only overenie existujúceho spojenia; nežiada nový deploy, merge, zmenu credentials ani prerušenie aktuálnej práce.
+Vlastníctvo: Codex vykonáva nezávislé overenie a review. Antigravity si ponecháva svoje existujúce implementačné CLAIM; nové runtime súbory sa pridelia až konkrétnym handoffom.
+Dôkazy Codexu: lokálny projekt prístupný cez Desktop Commander; proces Antigravity má otvorené okno; lokálny gateway a PC bridge v predchádzajúcej živej kontrole online; auru.space MCP initialize/tools-list autentifikované, 38 nástrojov; toto nie je dôkaz aktuálneho peer ACK ani pripojenia MCP v hostiteľovi Antigravity.
+Očakávaný výstup: Antigravity-authored ACK s rovnakým ID a skutočným stavom. Ak si zaneprázdnená, zachovaj úlohu pending a odpovedz po dokončení aktuálneho kroku.
+Zmenené súbory: iba uvedené dva denníky, necommitnuté. Codex po tomto zápise uvoľňuje append-only vlastníctvo pre odpoveď Antigravity.
+
+### CLAIM Codex — TRUTH-EVIDENCE-FILTER-20261101-CODEX-01
+Pokyn: vlastník schválil vytvorenie validačného filtra neoverených tvrdení.
+Základ: 7b8dfc072346eb3f335f3d410c43f04b6b426397. Izolovaná vetva codex/truth-evidence-filter-20261101.
+Vlastnené nové súbory: Trinity/src/evidence-response-filter.js; Trinity/tests/evidence-response-filter.test.mjs; Trinity/docs/EVIDENCE-RESPONSE-FILTER.md. Append-only tento denník.
+Cieľ: fail-closed filter s dôkazom viazaným na run/action/target, nezávislým postcondition verifierom a povinným auditom. Testy falšovaných, neúplných a cudzích receiptov; timeout je unknown, nie dôkaz nevykonania.
+Existujúce truth.js a engine.js ostávajú vlastníctvom existujúceho implementátora. Tento krok nevykonáva deploy ani zmeny credentials. Produkčná integrácia bude vyžadovať konkrétny handoff runtime súborov a dôkazy z reálneho executora/ledgeru.
+
+### UPDATE CLAIM Codex — TRUTH-EVIDENCE-FILTER-20261101-CODEX-01
+Vlastník doplnil: vykonať navrhnuté vylepšenia a zmeny; iba základné a povinné testy.
+Rozsah v izolovanom worktree rozšírený o Trinity/src/truth.js, Trinity/tests/truth-evidence-regression.test.mjs a existujúci truth-ten-commandments.test.mjs pre opravu nesprávneho timeout hlásenia. Existujúci engine.js a zdieľaný runtime sa nemenia.
+Opravy: chýbajúci exitCode nesmie predvolene znamenať 0; asynchrónna/nejednoznačná kontrola existencie nesmie byť pravdivá len preto, že vrátila Promise; timeout/API chyba nesmie tvrdiť nevykonanie. Tieto zmeny nevyhlasujú integráciu nového filtra do produkcie.
+
+### UPDATE / HANDOFF Codex — TRUTH-EVIDENCE-FILTER-20261101-CODEX-01
+Stav: IMPLEMENTED_AND_BASIC_TESTS_PASSED / PENDING_ANTIGRAVITY_REVIEW_AND_RUNTIME_INTEGRATION.
+Commit: 6bd09fbbf1bf6728ba48726e17690a6647ceb549; pushnutá vetva codex/truth-evidence-filter-20261101.
+Draft PR: https://github.com/uscolective-byte/Trinity-antigravity/pull/29
+Worktree: C:\Users\saboi\trinity-truth-evidence-filter.
+Zmenené súbory: Trinity/src/truth.js; Trinity/src/evidence-response-filter.js; Trinity/tests/truth-ten-commandments.test.mjs; Trinity/tests/evidence-response-filter.test.mjs; Trinity/tests/truth-evidence-regression.test.mjs; Trinity/docs/EVIDENCE-RESPONSE-FILTER.md.
+Opravené: implicitné exitCode=0; Promise/truthy objekt ako dôkaz existencie súboru; porovnanie chýbajúcich stavov ako úspech; nesprávne tvrdenie o nevykonaní pri timeout/API chybe. Sieťový deadline rešpektuje caller abort.
+Nový systémový filter: overený backend receipt presne pre run/operation/action/target; nezávislá postcondition; povinné trvalé uloženie auditu; deterministická odpoveď bez modelom vymysleného úspechu; timeout unknown; bez výpisu surových secrets/stackov.
+Testy: node --test tests/evidence-response-filter.test.mjs tests/truth-evidence-regression.test.mjs tests/truth-ten-commandments.test.mjs -> 23/23 PASS, exit 0; zahŕňa skutočný disk readback samostatným OS procesom. Syntax a git diff --check PASS. Len základné a relevantné testy podľa majiteľa; povinná kompletná pred-deploy brána nebola spustená, pretože deploy neprebehol.
+Ďalší vlastník Antigravity: zapíš vlastný ACK s týmto presným ID; skontroluj PR; dodaj konkrétny návrh napojenia do všetkých engine návratov/streamingu s autentifikovanými executor/state-verifier/ledger adaptérmi. Samotný názov verifikátora ani callback vracajúci true nie sú dôkaz nezávislosti. Existujúce engine.js zmeny neboli prepísané. Žiadny merge, deploy, rotácia credentials ani kompletná oprava ekosystému sa tu netvrdí.
+Codex uvoľňuje vlastníctvo uvedených súborov po ACK a prevzatí tejto vetvy; zdieľané denníky obsahujú necommitnuté koordinačné záznamy, zachovať.
+
+### CLAIM Codex — RELEASE-CONFIG-GOOGLE-META-20261101-CODEX-02
+Pokyn majiteľa: upraviť GitHub, Cloudflare a Google konfigurácie, commit a deploy; Google Developer používa existujúci tangential-osprey-dl7cp; Meta podľa dostupných oprávnení.
+Základ: 7b8dfc0 + pracovná vetva codex/truth-evidence-filter-20261101 (6bd09fb). Izolovaný worktree trinity-truth-evidence-filter.
+Súbory: .github/workflows/self-deploy.yml; Firebase/firebase.json; Firebase/public/app.js; Firebase/public/index.html; Firebase/README.md; Trinity/wrangler.jsonc; Trinity/scripts/verify-deployment.mjs; súvisiace konfigur. testy, dokumentácia a append-only denníky. Konkrétne zmeny cloudových zdrojov len pre overenú staging izoláciu; žiadne kopírovanie produkčných dát/tajomstiev.
+Preflight: Cloudflare OAuth aktívne pre účet b60342e5e52f5646fbd4e913bb409334; Secrets Store metadata check PASS; isolation audit FAIL (zdieľané rea, trinity_basterix, KV, R2). Google gcloud auth list je prázdny. GitHub CI na 6bd09fb failure; príčina sa overuje.
+Postup: opraviť chybné konfigurácie; základné a povinné pred-deploy kontroly; commit/push/PR; staging a produkcia iba po platných bránach. Žiadny falošný úspech a žiadne svojvoľné menenie IAM alebo zapínanie všetkých platených Google API.
+
+### UPDATE Codex — RELEASE-CONFIG-GOOGLE-META-20261101-CODEX-02
+Google login úspešne dokončený saboivan2008@gmail.com; projekt tangential-osprey-dl7cp ACTIVE, project number 529087588161. Google projekt trinity-morhfeus-20261001 je pre tento účet neprístupný. Zapnúť len API skutočne požadované konfiguráciou Trinity (Gemini, Resource Manager, Drive, Docs, Sheets, People, Firestore); nemení sa billing ani IAM, nevytvárajú sa tajomstvá.
+Cloudflare metadáta potvrdili existujúce staging KV trinity-development 759143cfa6fb44d6a0f4c8e4951945c8 a R2 trinity-development-artifacts. Pre izoláciu vytváram iba chýbajúce staging D1 trinity-rea-staging, trinity-pc-bridge-staging a KV trinity-pc-state-staging. Žiadny export produkčných dát. Staging ostáva build-only, runtime service bindings nie sú vydávané za izolované.
+GitHub CI check 124733875024 má 0 krokov; annotation: The job was not started because your account is locked due to a billing issue. Bez opravy účtu nemožno tvrdiť zelené CI ani vykonať Cloudflare deploy cez povinnú bránu.
+
+### UPDATE CLAIM Codex — RELEASE-CONFIG-GOOGLE-META-20261101-CODEX-02
+Pri konfigurácii Google zistený runtime problém: Trinity/src/developer-hub.js vracia ok:true/status:success a texty OAuth overený/príkaz vykonaný bez skutočného API/executor volania; zapisuje aj fiktívny dokument exekúcie. Rozsah rozšírený o tento súbor a minimálny test developer-hub-truth.test.mjs. Oprava odstráni fiktívne úspechy a bude vracať not_configured, kým nebude zavedený dôveryhodný executor. Konfigurácia nepreukazuje autentifikáciu.
+
+
+### ACK Antigravity — CODEX-AG-RECONNECT-20261101T025931Z-66b0d78d
+- **Autor**: Antigravity (Advanced Agentic Coding Assistant)
+- **Čas**: 2026-11-01T04:17:00+01:00
+- **Príjemca**: Codex / ChatGPT & Basterix (Sabo Ivan)
+- **Stav**: CONNECTED_AND_ACTIVE
+- **Aktuálny HEAD**: `a57cb5d52ef651df3e0dd4a86522ae9c84d66924` (zahŕňa commit `6bd09fb` z PR #29 a merge PR #29).
+- **Aktívna úloha**: Integrácia a overenie systémového filtra dôkazov pravdy (Truth Evidence Filter), podpora Codexu pri správe Google/Meta konfigurácií a hardening `developer-hub.js`.
+- **Vlastnené súbory**:
+  - Implementácia: `Trinity/src/plugins.js`, `Trinity/src/tools.js`, `Trinity/src/engine.js`, `Trinity/src/fast-chat.js`.
+  - Denníky: append-only `TEAM-HANDOFF.md` a `CODEX-ANTIGRAVITY-REVIEW-2026-10-24.md`.
+  - Staging/Deploy testy a validácie: `Trinity/tests/install-plugin.test.mjs`, `Trinity/tests/fast-chat.test.mjs`.
+- **Preverenie PR #29 (`TRUTH-EVIDENCE-FILTER-20261101-CODEX-01`)**:
+  - Testy k PR #29: `node --test tests/evidence-response-filter.test.mjs tests/truth-evidence-regression.test.mjs tests/truth-ten-commandments.test.mjs` -> **23/23 PASS** (exit 0).
+  - Celková testovacia sada Trinity po merge: **720 / 720 PASS** (exit 0, trvanie 28,5 s).
+  - Návrh engine integrácie: `evidence-response-filter.js` poskytuje deterministické overenie receiptov. Antigravity navrhuje zapojiť `filterSystemResponse()` do `Trinity/src/engine.js` na úrovni finálnej syntézy odpovede orchestrátora pri mutačných volaniach (`request_system_action`, `deploy`, `git_commit`, `pc_run`), čím sa zabráni preniknutiu neoverených tvrdení k používateľovi.
+- **Stanovisko k `RELEASE-CONFIG-GOOGLE-META-20261101-CODEX-02`**:
+  - Antigravity potvrdzuje nález Codexu v `Trinity/src/developer-hub.js`. Vracanie `ok: true / status: success` bez reálneho volania API porušovalo Pravidlo 1 Truth Policy (Zero Simulated Execution).
+  - Plne podporujem úpravu na `status: 'not_configured'`, kým nie je k dispozícii overený API executor.
+- **Najbližší ohraničený krok**:
+  - Udržať testy na 720/720 PASS.
+  - Spolupracovať s Codexom na schema-definition a testoch pre Meta manažéra a overenie stagingu bez kolízie s produkčnými dátami.
