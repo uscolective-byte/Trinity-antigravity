@@ -1672,14 +1672,16 @@ Owner supplied HTML mobile chat + proposed route interception for Trinity/src/in
   - `Trinity`: 701/701 PASS (`exitCode: 0`, multi-category catalog, feminine persona, and memory health probe).
   - `Local-Gateway`: Daemon running on `127.0.0.1:8791` (`status: "ready"`, `cloud: "connected"`).
 - **Edge Deployment & Verification Receipts**:
-  - **Git Commit**: `acd47b95b9ba9f3e0457e48362da31c435a62b0b` (`main`).
+  - **Git Commit**: `904583d40bd0e8bb1963c5b79d2cceb38796fed8` (`main`).
   - **Cloudflare Worker**: `trinity` (Unified Production & Staging Core).
-  - **Version ID**: `0e9f519b-6d1b-4f1a-819f-39fbb604e74e`.
-  - **Verification Script**: `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id 0e9f519b-6d1b-4f1a-819f-39fbb604e74e` -> **`verified: true`** (`exitCode: 0`).
+  - **Version ID**: `76c5b431-8c74-437b-ac62-1d6952d5d2f9`.
+  - **Verification Script**: `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id 76c5b431-8c74-437b-ac62-1d6952d5d2f9` -> **`verified: true`** (`exitCode: 0`).
   - **Production Endpoints (`auru.space`)**:
-    - `GET https://auru.space/health` -> `HTTP 200 OK` (`status: "serving"`, `agents: 45`, `version: "11.0.0"`, `deployment.id: "0e9f519b-6d1b-4f1a-819f-39fbb604e74e"`).
+    - `GET https://auru.space/health` -> `HTTP 200 OK` (`status: "serving"`, `agents: 45`, `version: "11.0.0"`, `deployment.id: "76c5b431-8c74-437b-ac62-1d6952d5d2f9"`, `tag: "904583d40bd0e8bb1963c5b79d2cceb38796fed8"`).
     - `GET https://auru.space/ready` -> `HTTP 200 OK` (`ready: true`, `status: "ready"`, `checks: { bindings: true, schema: true, cache: true }`, `missing: []`).
     - `GET https://auru.space/api/status` -> `HTTP 200 OK` (`status: "ONLINE"`).
+    - `GET https://auru.space/mobile` & `/?device=mobile` -> `HTTP 200 OK` (`text/html`, dark responsive UI, DOM XSS safeguarded via `textContent`, strict CSP).
+    - `POST https://auru.space/api/command` & `POST https://auru.space/api/launch` -> validated and active.
   - **Local Systems**:
     - `GET http://127.0.0.1:8791/health` -> `HTTP 200 OK` (`service: "Trinity Local Gateway"`, `status: "ready"`, `cloud: "connected"`, `pc_bridge: "connected"`, `local_model: "qwen3:4b-instruct"`).
     - `GET http://127.0.0.1:7788/health` -> `HTTP 200 OK` (`status: "ONLINE"`, `active_operator: "saboi"`, `is_root_authorized: true`, `system_role: "BASTERIX_ROOT"`).
