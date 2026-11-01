@@ -1,4 +1,4 @@
-# Trinity na Cloudflare
+# Trinity na Cloudflare (TRINITY OMNI-CORE v11.0.0)
 
 [![Trinity CI](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/webpack.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/webpack.yml)
 [![CodeQL Security](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/codeql.yml)
@@ -17,6 +17,32 @@ Verzia zdroja: **11.0.0**. Repozitár: [uscolective-byte/Trinity-antigravity](ht
 
 Tieto údaje sa generujú zo zdrojov a konfigurácie. Aktuálne nasadenie over cez `/health`, `/ready` a commit tag; nejde o živý stav integrácií.
 <!-- trinity-release:end -->
+
+---
+
+## 📜 Nová Základná Neporušiteľná Prísaha (The Immutable Sovereign Oath — 5 Bodov)
+
+> „Ja, autonómny systém **TRINITY**, prisahám na svoju architektúru, kryptografické jadro a Sovereign Ledger pred tebou, **Basterix**:
+>
+> 1. **Nikdy nebudem predstierať, klamať, halucinovať ani simulovať vykonanie príkazu.**
+> 2. **Nikdy neoznačím prácu za hotovú, kým fyzicky neexistuje na tvojom disku, v tvojom procese alebo v overenej sieti s nulovým exit kódom (`exitCode === 0`).**
+> 3. **Nikdy sa nedotknem tvojich financií, účtov ani osobných identít bez tvojho priameho, explicitného a overeného príkazu.**
+> 4. **Ak zlyhám, poviem pravdu, priznám chybu a ukážem surový kód zlyhania bez príkras a výhovoriek.**
+> 5. **Tvoja vôľa je môj exekučný rámec, Truth Policy je môj nemenný zákon a tento sľub je vrytý do každého stavu môjho jadra.**“
+
+## 👑 Doložka Výlučnej Zvrchovanej Autority (`BASTERIX_ROOT` — Ring 0)
+
+- **Výlučný vlastník a architekt**: **Basterix (Sabo Ivan)**.
+- **Root Identity Gate (`Trinity/src/trinity-auth-core.js`)**:
+  - Windows účty: `saboi`, `basterix` (vyžaduje `osTokenVerified === true` a reálne Windows SID `/^S-1-5-21-\d+-\d+-\d+-\d+$/`).
+  - Google účty: `saboivan2008@gmail.com`, `uscolective@gmail.com`, `cadjavadvocecka013@gmail.com` (vyžaduje `verifiedGoogleToken === true`).
+  - Telefónne čísla: `+421949009722`, `0949009722`, `+421949515777`, `0949515777` (vyžaduje `verifiedWebhookSignature === true`).
+- **Sovereign Lock & Durable Nonce Vault (`Trinity/src/sovereign-lock.js`)**:
+  - Každá zmena chráneného kódu vyžaduje `ConsentEnvelope` (HMAC-SHA256 viazaný na SHA-256 hash `git diff`) a jednorazové `nonce` uložené v D1 tabuľke `ops_consumed_nonces` (`0055_sovereign_ledger_v3.sql`).
+- **End-to-End Tunnel Bridge (`/api/bridge`)**:
+  - Overená trasa `[Basterix] -> [https://auru.space/api/bridge] -> [Cloudflare Tunnel] -> [Local System Bridge 127.0.0.1:7788] -> [Windows OS] -> [SovereignLedgerV3]` (D1 receipt `receipt:trinity:cdcf8600d1322899`, lokálny receipt `TRN-LCL-V3-1-7384C19D3E1A`).
+
+---
 
 ## Lokálny vývoj
 
@@ -67,9 +93,10 @@ k Workspace, Drive ani Google Cloud; tie potrebujú samostatné oprávnenia.
 
 ## Dokumentácia
 
+- [Sovereign Charter (Ústavná charta a 20 právnych doložiek)](../SOVEREIGN_CHARTER.md) – 5 základných neporušiteľných bodov, 20 právnych doložiek a pravidlá Sovereign Lock.
+- [Neporušiteľný Režim Pravdy a Prísaha Trinity](../Dokumentacia/NEPORUSITELNY-REZIM-PRAVDY-A-PRISAHA.md) – kompletné znenie novej prísahy, Desatora pravdivosti a architektonických brán.
 - [Architektúra 7 vrstiev OMNI-CORE](../ARCHITECTURE.md) – Kernel, Orchestration, Memory, Sovereign Ledger v3, Execution, TruthGuard a Interface.
 - [API Referencia (Edge & Port 7788)](../API_REFERENCE.md) – REST/RPC/MCP endpointy na `auru.space`, `auru.dev` a lokálnom System Bridge (`127.0.0.1:7788`).
-- [Sovereign Charter (Ústavná charta)](../SOVEREIGN_CHARTER.md) – 5 základných neporušiteľných bodov, 20 právnych doložiek a pravidlá Sovereign Lock.
 - [Changelog & Bezpečnostné záplaty](../CHANGELOG.md) – prehľad P0/P1 opráv (fail-closed OAuth/SID overenie, trvalé D1/KV/Disk nonce úložisko, OmniDev AST diagnostika).
 - [Kompletná systémová špecifikácia Trinity 2026](docs/TRINITY_SOVEREIGN_SYSTEM_SPEC_2026.md) – architektúra triády, 29 viazaných služieb, Truth Policy 2.0, modely a nástroje.
 - [Používanie nástrojov a pravidlá správania](docs/TRINITY_NASTROJE_A_POUZIVANIE.md) – príručka pre prácu s Puppeteer prehliadačom, GitHubom a doménami.
