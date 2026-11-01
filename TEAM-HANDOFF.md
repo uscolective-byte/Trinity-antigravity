@@ -2010,3 +2010,41 @@ Vykonané zmeny a bezpečnostné opatrenia:
     - Overenie cez `verify-deployment.mjs`: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"386b6a91-75cf-4009-9c6c-c258a1ea04ed","tag":"d39c4a5"}}`
   - **Staging (`https://auru.dev`)**:
     - Version ID: `6a41c539-35de-40dd-b39b-cfacd7e5dc2c`
+
+
+### CLAIM / UPDATE / HANDOFF Antigravity — REMOVE-120S-THINKING-LIMIT-AND-EXPAND-TOKEN-CEILINGS-20261101-10
+Priamy pokyn majiteľa: okamžité odstránenie 120-sekundového limitu na premýšľanie/rozmýšľanie a odstránenie reštriktívnych tokenových limitov na odpoveď ("trinity ma limit 120 na roymislanie a limity tokenov na odpoved tusim to dat prec okamžite").
+
+Vykonané zmeny a optimalizácie runtime:
+1. **Odstránenie 120-sekundového limitu premýšľania a abort hlášok (`Trinity/src/engine.js`)**:
+   - Nahradený fixný rozpočet `BUDGET_MS = 100000` (100 sekúnd) konfigurovateľným `Number(env?.AGENT_BUDGET_MS) || 600000` (10 minút pre plnohodnotné reasoning modely a hlboké agentické slučky).
+   - Odstránené predčasné prerušenie premýšľania agenta po 65 sekundách (`remaining < 35000 && !forceFinal` sprevádzané núteným `"Čas sa kráti. Daj finálnu odpoveď teraz..."`), skrátené na safety window posledných 15s z 10-minútového budgetu.
+   - Odstránené chybové hlášky `"Trinity nestihla dokončiť odpoveď v limite 2 minút"` a `"Trinity nestihla overiť výsledok v limite 2 minút"`.
+   - Zvýšený timeout jednotlivého volania modelu v cykle nástrojov z 65s na 120s (`Math.min(remaining, 120000)`).
+   - Predvolený počet výstupných tokenov funkcie `runAgent` navýšený z 2600 na 8192 tokenov.
+2. **Rozšírenie Cloudflare Workflows krokov (`Trinity/src/workflow.js`)**:
+   - Limit jednotlivého kroku `step.do` navýšený z `timeout: '2 minutes'` na `timeout: '15 minutes'`, čím bol eliminovaný kill-switch v orchestrácii operácií.
+3. **Expanzia tokenového rozpočtu a slovenskej morfológie (`Trinity/src/cognition.js`)**:
+   - Funkcia `tokenBudget` navýšená pre orchestrátora z 2600-3600 na 8192-16384 tokenov, pre špecializovaných agentov z 1800-2400 na 4096-8192 tokenov.
+   - Opravený regex slovných kmeňov (odstránená koncová hranica slova `\b`), aby slovenské tvary slov ako `implementuj`, `analyzuj`, `odvoď`, `kvantová` správne priraďovali 16k tokenový budget.
+4. **Navýšenie modelových stropov v `callModel` (`Trinity/src/services.js`)**:
+   - Predvolený `maxTokens` parameter v `callModel` zvýšený z 1200 na 8192.
+   - Cloudflare Workers AI: výstupné tokeny navýšené z 2048 na 8192; timeout navýšený na 120s pre veľké 70B/120B a DeepSeek R1 modely.
+   - OpenAI API: strop navýšený z 4096 na 16384 tokenov; timeout 120s.
+   - Google Gemini: strop navýšený z 8192 na 16384 tokenov; timeout 120s.
+   - OpenRouter, Groq, DeepSeek, Anthropic, Mistral: strop navýšený na 8192-16384 tokenov; timeout 120s.
+   - Lokálna inferencia cez systémovú akciu: navýšená z 320 na 4096 tokenov.
+5. **Navýšenie časových limitov na PC bridge (`Trinity/src/tools.js` a `Local-Gateway/src/script-command.mjs`)**:
+   - Maximálny povolený timeout pre `pc_run_script` a `pc_run` rozšírený z 120 sekúnd na 600 sekúnd (10 minút).
+6. **Telegram Bridge (`Trinity/src/telegram-bridge.js`)**:
+   - Predvolený limit `maxTokens` vo funkcii `callResilientBrain` navýšený z 850 na 2048 tokenov.
+7. **Testy a verifikácia**:
+   - Vytvorený nový test `Trinity/tests/thinking-budget-and-tokens.test.mjs` (5 / 5 PASS).
+   - Celý testovací suite Trinity: **735 / 735 PASS** (0 fail, 0 skipped, 24.9s).
+   - Local-Gateway test suite: **32 / 32 PASS**.
+8. **Overené nasadenie Cloudflare (commit 4b2aeb39b811b40d69f822b4646c5a9c2720f3b0 / tag 4b2aeb3)**:
+   - **Produkcia (`https://auru.space`)**:
+     - Version ID: `6aeeedc9-db6f-4f26-8098-e953e5f28db2`
+     - Overenie cez `verify-deployment.mjs`: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"6aeeedc9-db6f-4f26-8098-e953e5f28db2","tag":"4b2aeb39b811b40d69f822b4646c5a9c2720f3b0"}}`
+   - **Staging (`https://auru.dev`)**:
+     - Version ID: `2bee3b82-3f5a-4c03-8fca-cc796133f2bd`

@@ -47,6 +47,8 @@ opencode.json
 **/.env.*
 *service-account*.json
 .trinity-consumed-nonces.json
+Trinity/workspace/scripts/*.cmd
+Trinity/workspace/scripts/*.ps1
 
 .bin/
 Local-Gateway/data/
