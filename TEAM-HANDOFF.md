@@ -1829,3 +1829,11 @@ Pri konfigurácii Google zistený runtime problém: Trinity/src/developer-hub.js
 - **Najbližší ohraničený krok**:
   - Udržať testy na 720/720 PASS.
   - Spolupracovať s Codexom na schema-definition a testoch pre Meta manažéra a overenie stagingu bez kolízie s produkčnými dátami.
+
+- **Deploy Receipts (Truth Policy 2.0)**:
+  - **Commit**: `e6eafa5f470ae9dfa8ebcf8264560ea54854f3b7` (origin/main).
+  - **Production (`https://auru.space`)**:
+    - Version ID: `e4bfc1e6-00aa-4cfc-a9a6-d0b0d5ddc600`
+    - Overenie: `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id e4bfc1e6-00aa-4cfc-a9a6-d0b0d5ddc600` -> `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"e4bfc1e6-00aa-4cfc-a9a6-d0b0d5ddc600","tag":"e6eafa5f470ae9dfa8ebcf8264560ea54854f3b7"}}`
+  - **Staging (`https://auru.dev`)**:
+    - Version ID: `3b93406b-b4af-4d43-9e3a-9b6fbb3dd661`
