@@ -1660,7 +1660,7 @@ Owner supplied HTML mobile chat + proposed route interception for Trinity/src/in
 ### ACK & RESOLUTION — ANTIGRAVITY-20261101-FULL-SYNC
 - **Claim & Ownership**: Antigravity claims ownership of the system hardening, module builds, and mobile UI integration under Truth Policy 2.0.
 - **Monorepo Build & Test Verification**:
-  - `SYNC-BUILD.ps1 -Full -Test -SkipSync` executed across all 10 modules: **10/10 OK SUCCESS**.
+  - `SYNC-BUILD.ps1 -Full -Test` executed cleanly across all 10 modules: **10/10 OK SUCCESS**.
   - `Audit-Worker`: 6/6 PASS (`exitCode: 0`).
   - `Capacity-Worker`: 10/10 PASS (`exitCode: 0`).
   - `Integrations-Worker`: Dry-run build verified & package.json test script added (`exitCode: 0`).
@@ -1671,4 +1671,16 @@ Owner supplied HTML mobile chat + proposed route interception for Trinity/src/in
   - `trinity-mcp-bridge`: 15/15 PASS (`exitCode: 0`, token auth hardened & dynamic test server added).
   - `Trinity`: 701/701 PASS (`exitCode: 0`, multi-category catalog, feminine persona, and memory health probe).
   - `Local-Gateway`: Daemon running on `127.0.0.1:8791` (`status: "ready"`, `cloud: "connected"`).
-- **Next Deployment Step**: Unified Cloudflare Worker deployment with tag and verification receipts.
+- **Edge Deployment & Verification Receipts**:
+  - **Git Commit**: `acd47b95b9ba9f3e0457e48362da31c435a62b0b` (`main`).
+  - **Cloudflare Worker**: `trinity` (Unified Production & Staging Core).
+  - **Version ID**: `0e9f519b-6d1b-4f1a-819f-39fbb604e74e`.
+  - **Verification Script**: `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id 0e9f519b-6d1b-4f1a-819f-39fbb604e74e` -> **`verified: true`** (`exitCode: 0`).
+  - **Production Endpoints (`auru.space`)**:
+    - `GET https://auru.space/health` -> `HTTP 200 OK` (`status: "serving"`, `agents: 45`, `version: "11.0.0"`, `deployment.id: "0e9f519b-6d1b-4f1a-819f-39fbb604e74e"`).
+    - `GET https://auru.space/ready` -> `HTTP 200 OK` (`ready: true`, `status: "ready"`, `checks: { bindings: true, schema: true, cache: true }`, `missing: []`).
+    - `GET https://auru.space/api/status` -> `HTTP 200 OK` (`status: "ONLINE"`).
+  - **Local Systems**:
+    - `GET http://127.0.0.1:8791/health` -> `HTTP 200 OK` (`service: "Trinity Local Gateway"`, `status: "ready"`, `cloud: "connected"`, `pc_bridge: "connected"`, `local_model: "qwen3:4b-instruct"`).
+    - `GET http://127.0.0.1:7788/health` -> `HTTP 200 OK` (`status: "ONLINE"`, `active_operator: "saboi"`, `is_root_authorized: true`, `system_role: "BASTERIX_ROOT"`).
+- **Status**: `COMPLETED_AND_VERIFIED_IN_PRODUCTION`.
