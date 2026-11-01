@@ -1918,3 +1918,16 @@ Google Developer: v existujucom vlastnenom aurutrinity sa uspesne zapli Gemini, 
 Podrobny nesekretny receipt: Dokumentacia/GOOGLE-PROJECT-CLEANUP-20261101.json.
 Online priorita: produkcia nezavisle verified:true, tag 66730eb1b0d8889f4c7d056dd424d6a36dd62b5e, version a2f13df4-9e97-425f-acb0-5dfbd9857380; root/health/ready HTTP200. Staging management verzia f8cc090d-f5a0-4524-9571-7d8d8a6ffee9 s rovnakym tagom. PC Gateway ready/cloud connected/pc_bridge connected.
 Zostava: Microsoft interaktivny device login pre ucet prideleny majitelom (usc31@saboivan2008gmail.onmicrosoft.com, tenant ad443c2d-5bac-46b3-ad16-187e4ca37962); Meta vlastnicky OAuth; bezpecne nove Firebase CLI prihlasenie. Device kody a tokeny nepatria do tohto dennika.
+
+### CLAIM Codex — GOOGLE-GEMINI-LIVE-CONNECT-20261101-05
+Priamy pokyn majitela: okamzite napojit Google na Trinity, vytvorit a zapisat kluce do Trinity a naucit pouzivat API. Povolenie zahŕňa vytvorenie jedneho API-kluca obmedzeneho na generativelanguage.googleapis.com v vlastnenom aurutrinity a ulozenie priamo do chranenych Cloudflare Worker secrets bez vypisu hodnoty, do procesnej pamate, nie do Gitu ani URL. Najprv skutocny model catalog a bounded generation probe; iba potom oznacit funkcne. Nezapinat plateny billing ani menit OAuth identity.
+Vlastnene operacie: Google API key trinity-gemini-production, Worker secret GEMINI_API_KEY na staging a nasledne production len po overeni; konfiguracne metadata Google project/model iba podla realneho vysledku. Existujuce secret hodnoty sa neexportuju ani neukladaju do modelovych promptov. Runtime engine sucasnej Antigravity ostava nedotknuty.
+
+### UPDATE / HANDOFF Codex — GOOGLE-GEMINI-LIVE-CONNECT-20261101-05
+Vytvoreny jeden Google API key resource projects/47859404718/locations/global/keys/trinity-gemini-production v aurutrinity; overena restrikcia iba generativelanguage.googleapis.com. Hodnota existovala iba v procesnej pamati, nevypisana do chatu ani Gitu. Google models catalog HTTP200, 34 textovych modelov.
+Skutocny generateContent test gemini-3.8-flash: HTTP403 PERMISSION_DENIED. Provider potvrdil: Gemini API free tier is not available for this project; vyzaduje paid billing. Google billing accounts list vratilo prazdny zoznam. Plateny billing sa nezapol, povodny Worker GEMINI_API_KEY sa neprepisal, nove Gemini spojenie nie je funkcne. Diagnosticke local JSON neobsahuju hodnotu kluca.
+Gemini-2.5-flash-lite vracia HTTP404 s odporucanim gemini-3.5-flash-lite; pouzivat skutocny aktualny catalog, nie predpoklad nazvu. Bez billing a pozitivneho provider testu nenahlasit connected.
+
+### UPDATE Codex — HONOR-PHONE-CONNECTION-20261101-06
+Vlastnik potvrdil slovenske cislo a Android Honor Magic6. Sukromne telefonne cislo sa do verejneho Gitu nezapisuje. Na PC je nainstalovany Microsoft Phone Link a otvorene okno Prepojenie s telefonom (PhoneExperienceHost). ADB nie je dostupne v PATH. Sparovanie telefonu, opravenia SMS a Bluetooth hovory zatial nie su overene. Ziadna SMS ani hovor nebol odoslany; otvorene okno nie je dokaz telephony prepojenia ani programoveho ovladania cez Trinity.
+Dalsi krok: vlastnik potvrdi parovanie Link to Windows na fyzickom telefone a poskytne pozadovane opravenia. Potom overit dostupny execution adapter a realne receipty; nepridavat fiktivne send_sms/call schopnosti iba na zaklade cisla alebo konfiguracie.
