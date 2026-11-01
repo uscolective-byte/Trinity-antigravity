@@ -1674,10 +1674,10 @@ Owner supplied HTML mobile chat + proposed route interception for Trinity/src/in
 - **Edge Deployment & Verification Receipts**:
   - **Git Commit**: `904583d40bd0e8bb1963c5b79d2cceb38796fed8` (`main`).
   - **Cloudflare Worker**: `trinity` (Unified Production & Staging Core).
-  - **Version ID**: `76c5b431-8c74-437b-ac62-1d6952d5d2f9`.
-  - **Verification Script**: `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id 76c5b431-8c74-437b-ac62-1d6952d5d2f9` -> **`verified: true`** (`exitCode: 0`).
+  - **Version ID**: `b4953628-1607-4335-94fa-0db5e89094d5`.
+  - **Verification Script**: `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id b4953628-1607-4335-94fa-0db5e89094d5` -> **`verified: true`** (`exitCode: 0`).
   - **Production Endpoints (`auru.space`)**:
-    - `GET https://auru.space/health` -> `HTTP 200 OK` (`status: "serving"`, `agents: 45`, `version: "11.0.0"`, `deployment.id: "76c5b431-8c74-437b-ac62-1d6952d5d2f9"`, `tag: "904583d40bd0e8bb1963c5b79d2cceb38796fed8"`).
+    - `GET https://auru.space/health` -> `HTTP 200 OK` (`status: "serving"`, `agents: 45`, `version: "11.0.0"`, `deployment.id: "b4953628-1607-4335-94fa-0db5e89094d5"`, `tag: "904583d40bd0e8bb1963c5b79d2cceb38796fed8"`).
     - `GET https://auru.space/ready` -> `HTTP 200 OK` (`ready: true`, `status: "ready"`, `checks: { bindings: true, schema: true, cache: true }`, `missing: []`).
     - `GET https://auru.space/api/status` -> `HTTP 200 OK` (`status: "ONLINE"`).
     - `GET https://auru.space/mobile` & `/?device=mobile` -> `HTTP 200 OK` (`text/html`, dark responsive UI, DOM XSS safeguarded via `textContent`, strict CSP).
