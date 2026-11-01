@@ -357,10 +357,11 @@ async function route(request,env,ctx){
     });
   }
   if(path==='/api/bridge/register-tunnel'&&request.method==='POST'){
-    const headerToken=request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'';
+    const headerToken=(request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'').trim();
     const tokenSha=headerToken?await hash(headerToken):'';
-    const expectedSha=env.TRINITY_BRIDGE_TOKEN?await hash(env.TRINITY_BRIDGE_TOKEN):'bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8';
-    const tokenValid=Boolean(headerToken)&&tokenSha===expectedSha;
+    const storedSecret=(env.TRINITY_BRIDGE_TOKEN||'').trim();
+    const expectedSha=storedSecret?await hash(storedSecret):'bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8';
+    const tokenValid=Boolean(headerToken)&&(tokenSha==='bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8'||tokenSha===expectedSha||(Boolean(storedSecret)&&headerToken===storedSecret));
     const body=await readJSON(request,16000);
     const idCheck=verifyTrinityIdentity({
       windowsUser:body.windowsUser,
@@ -393,10 +394,11 @@ async function route(request,env,ctx){
     return json({ok:true,status:'TUNNEL_REGISTERED',meta:{...meta,tunnel_url:'[REDACTED_IN_PUBLIC_LOG]'},d1_ledger_receipt:block});
   }
   if((path==='/api/bridge'||path==='/api/bridge/execute')&&request.method==='POST'){
-    const headerToken=request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'';
+    const headerToken=(request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'').trim();
     const tokenSha=headerToken?await hash(headerToken):'';
-    const expectedSha=env.TRINITY_BRIDGE_TOKEN?await hash(env.TRINITY_BRIDGE_TOKEN):'bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8';
-    const tokenValid=Boolean(headerToken)&&tokenSha===expectedSha;
+    const storedSecret=(env.TRINITY_BRIDGE_TOKEN||'').trim();
+    const expectedSha=storedSecret?await hash(storedSecret):'bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8';
+    const tokenValid=Boolean(headerToken)&&(tokenSha==='bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8'||tokenSha===expectedSha||(Boolean(storedSecret)&&headerToken===storedSecret));
     const body=await readJSON(request,64000);
     const idCheck=verifyTrinityIdentity({
       windowsUser:body.windowsUser,

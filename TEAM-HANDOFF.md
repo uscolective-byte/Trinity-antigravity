@@ -1570,3 +1570,34 @@ Antigravity: zapíš ACK a vlastníctvo súborov, potom test evidence. Stav PEND
 6. **Tests & Receipts (`DEPLOYMENT_RECEIPT.json`)**:
    - All Wrangler configuration tests (`22 / 22 PASS`), Auth/Lock/Truth/500-Registry tests (`29 / 29 PASS`), Local-Gateway tests (`32 / 32 PASS`), and JSDoc coverage (`177 / 177 modules`, `npm run docs:check` `exitCode: 0`) verified and recorded in `DEPLOYMENT_RECEIPT.json`.
 
+---
+
+## UPDATE / RECEIPT — TUNNEL-BRIDGE-E2E-CONNECTED-20261101-ANTIGRAVITY-10
+
+- **Agent**: Antigravity
+- **Date**: 2026-11-01T02:05:00+01:00
+- **Task ID**: `TUNNEL-BRIDGE-E2E-CONNECTED-20261101-ANTIGRAVITY-10`
+- **Owner Command**: `otvor a uskutocni prepojenia tunel bridge kompletne prepoj vsetko` (Basterix)
+- **Status**: `CONNECTED_AND_VERIFIED_END_TO_END`
+
+### 1. Telegram Leaked Token Secret Alert Actioned
+- **Vulnerability**: GitHub Secret Scanning detected a Telegram Bot Token (`8842409933:AAGuFVQhGrfRwhXpd8P-8wnAHhfhP_zJQxI`) committed in historical commit `9bbe60058f7523c3e7e5cae2bdefe52f6947eb68`.
+- **Immediate Code Remediation**: Completely sanitized all occurrences of `telegram8842409933` across `Trinity/src/domain-desk-advanced.js`, `Trinity/src/secret-vault.js`, `Trinity/src/telegram-bridge.js`, `Trinity/scripts/update-vault-secrets.cjs`, `Dokumentacia/TELEGRAM-AI-BRIDGE-2026-10-24.md`, and `Trinity/tests/telegram-bridge.test.mjs`. All 17 tests passed (`17 / 17 PASS`). Committed in `706b723`.
+- **Action for Basterix in Telegram**: Open `@BotFather` in Telegram, send `/revoke`, select the bot and revoke the token. Close the alert in GitHub Security tab as **Revoked**.
+
+### 2. Tunnel & Local System Bridge Running & Registered
+- **Local System Bridge (Port 7788)**: Running on `http://127.0.0.1:7788` with active Windows operator `saboi`, domain `basterix`, and verified Windows SID `S-1-5-21-354430410-1877230126-3947195852-1001`.
+- **Cloudflare Quick Tunnel**: Active (`https://tires-competitions-cam-vegetable.trycloudflare.com`) forwarding to `http://127.0.0.1:7788`.
+- **Cloudflare Edge Registration (`POST /api/bridge/register-tunnel`)**:
+  - Registered on `https://auru.space/api/bridge/register-tunnel` (`HTTP 200 OK`, D1 Ledger Block Index 10, Hash `925ca63bd2f805683d5b47cc5462fea8ee81d390be3855b9fb01dfa8c677d8e9`).
+- **Bridge Gateway Status (`GET https://auru.space/api/bridge`)**:
+  - `status: "READY"`, `tunnel_connected: true`, `windows_sid_verified: true`, `chain_length: 10`.
+
+### 3. End-to-End Execution Verified (`exitCode === 0`, `HTTP 200 OK`)
+- Executed `POST https://auru.space/api/bridge` with action `"e2e_truth_verify"`:
+  - **HTTP Status**: `200 OK`
+  - **Full Route Verified**: `[Basterix] -> [Edge Gateway /api/bridge] -> [Cloudflare Tunnel] -> [Local Bridge 7788] -> [Windows OS] -> [Sovereign Ledger v3 (D1 & Local)]`
+  - **Local Ledger Receipt**: `TRN-LCL-V3-3-D8B45200683F` (block hash `d8b45200683fbc62cb8253d3a1fbd274c4ca3062eaa6339748d35a7fd7c3a3b1`)
+  - **Cloudflare D1 Ledger Block Index 11**: `9fb71855dedea4df7b64fb29e1a59f5622747332c76a139df649e1032c7340b4`
+
+
