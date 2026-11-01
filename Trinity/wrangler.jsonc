@@ -444,25 +444,24 @@
         },
         {
           "binding": "rea",
-          "database_name": "trinity-db",
-          "database_id": "5b792055-97cf-4d8a-8145-d588c83c54df"
+          "database_name": "trinity-rea-staging",
+          "database_id": "646283b3-1b15-4ff4-81a0-eef80b8e70d4"
         },
         {
           "binding": "trinity_basterix",
-          "database_name": "trinity-pc-bridge",
-          "database_id": "39be1f38-f710-4df4-9202-5bdbb8febf57",
-          "remote": true
+          "database_name": "trinity-pc-bridge-staging",
+          "database_id": "54d1f8c0-c40b-4fb3-93cf-966a94273e31"
         }
       ],
       "kv_namespaces": [
-        { "binding": "PC_STATE", "id": "7eb48d414296418f9c60d87f8c602956" },
-        { "binding": "Mastermind", "id": "0b92ed2717d742daa860f1827797297f" },
-        { "binding": "TRINITY_KV", "id": "0b92ed2717d742daa860f1827797297f" }
+        { "binding": "PC_STATE", "id": "7335f27a99574fe097010cec9c602cb6" },
+        { "binding": "Mastermind", "id": "759143cfa6fb44d6a0f4c8e4951945c8" },
+        { "binding": "TRINITY_KV", "id": "759143cfa6fb44d6a0f4c8e4951945c8" }
       ],
       "r2_buckets": [
-        { "binding": "ARTIFACTS", "bucket_name": "trinity-artifacts" },
-        { "binding": "TRINITY_STORAGE", "bucket_name": "trinity-artifacts" },
-        { "binding": "R2", "bucket_name": "trinity-artifacts" }
+        { "binding": "ARTIFACTS", "bucket_name": "trinity-development-artifacts" },
+        { "binding": "TRINITY_STORAGE", "bucket_name": "trinity-development-artifacts" },
+        { "binding": "R2", "bucket_name": "trinity-development-artifacts" }
       ],
       "vectorize": [
         { "binding": "VECTORIZE", "index_name": "trinity-vector-index" },

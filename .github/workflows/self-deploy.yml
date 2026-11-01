@@ -57,6 +57,11 @@ jobs:
         run: npm run docs:check
       - name: Run Sovereign Lock, Truth Guard & P0/P1 Security Audit Suite
         run: node --test tests/security-audit-remediation.test.mjs tests/sovereign-lock-root.test.mjs tests/truth-ten-commandments.test.mjs tests/omni-core-500-registry.test.mjs tests/prislub-integrity.test.mjs
+      - name: Verify Secrets Store metadata and staging storage isolation
+        working-directory: .
+        run: |
+          node Trinity/scripts/secrets-store-doctor.mjs
+          node Trinity/scripts/cloudflare-env-audit.mjs --strict
       - name: Run full build (dry-run) and unit test suite
         run: npm test
 
@@ -119,7 +124,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ steps.credentials.outputs.account_id }}
       - name: Verify development readiness (auru.dev)
         if: ${{ steps.deploy.outputs.deployed == 'true' }}
-        run: node scripts/verify-deployment.mjs https://auru.dev "$GITHUB_SHA" || echo "::warning::auru.dev is protected by Cloudflare Access (HTTP 302 login gate)"
+        run: node scripts/verify-deployment.mjs https://auru.dev "$GITHUB_SHA"
 
   deploy-production:
     needs: [verify, deploy-development]
