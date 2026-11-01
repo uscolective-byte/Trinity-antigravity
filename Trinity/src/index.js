@@ -405,10 +405,7 @@ async function route(request,env,ctx){
     if(!tunnelUrl){
       throw new HttpError(503,'Cloudflare Tunnel pre Local Bridge (port 7788) nie je zaregistrovaný.');
     }
-    const lifecycle=new ExecutionLifecycleGuard();
-    const opId='E2E-BRIDGE-'+Date.now();
-    lifecycle.propose(opId,{action:body.action||'e2e_truth_verify',actor:'Basterix'});
-    lifecycle.markRunning(opId);
+    const step1=ExecutionLifecycleGuard.validateTransition('PROPOSED','RUNNING');
     const bridgeRes=await fetch(tunnelUrl+'/api/execute-privileged',{
       method:'POST',
       headers:{
@@ -427,8 +424,10 @@ async function route(request,env,ctx){
     });
     const localData=await bridgeRes.json();
     const exitCode=localData.exit_code??(bridgeRes.ok?0:1);
-    lifecycle.completeWithReceipt(opId,{
+    const step2=ExecutionLifecycleGuard.validateTransition(step1.state,'COMPLETED');
+    const lifecycleState=ExecutionLifecycleGuard.validateTransition(step2.state,exitCode===0?'VERIFIED':'FAILED',{
       issuer:'system_bridge_7788',
+      executorId:'local_bridge:7788',
       exitCode,
       httpStatus:bridgeRes.status,
       receipt_id:localData.local_ledger_receipt?.receipt_id||crypto.randomUUID()
@@ -453,7 +452,7 @@ async function route(request,env,ctx){
         operator:idCheck.operator,
         channel:idCheck.channel
       },
-      lifecycle_guard:lifecycle.getState(opId),
+      lifecycle_guard:lifecycleState,
       local_bridge_7788:localData,
       d1_sovereign_ledger_v3:d1Block
     },bridgeRes.ok?200:502);
