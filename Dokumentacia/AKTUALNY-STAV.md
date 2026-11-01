@@ -8,6 +8,7 @@
 **Desatoro pravdivosti:** [DESATORO-PRAVDIVOSTI-TRINITY.md](DESATORO-PRAVDIVOSTI-TRINITY.md)  
 **Sovereign Lock (Ring 0):** [SOVEREIGN-LOCK-ROOT-COVENANT.md](SOVEREIGN-LOCK-ROOT-COVENANT.md)  
 **7-vrstvová architektúra OMNI-CORE:** [TRINITY-OMNI-CORE-7-LAYERS.md](TRINITY-OMNI-CORE-7-LAYERS.md) & [ARCHITECTURE.md](../ARCHITECTURE.md)  
+**Kompletný katalóg 500 vylepšení (`#001` – `#500` + 75 pilierov):** [KATALOG-500-VYLEPSENI-TRINITY-OMNI-CORE.md](KATALOG-500-VYLEPSENI-TRINITY-OMNI-CORE.md) & [`Trinity/src/omni-core-500-registry.js`](../Trinity/src/omni-core-500-registry.js)  
 
 ---
 

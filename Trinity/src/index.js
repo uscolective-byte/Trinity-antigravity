@@ -39,6 +39,7 @@ import {TRUTH_POLICY_VERSION,ExecutionLifecycleGuard} from './truth.js';
 import {SOVEREIGN_IDENTITY,ROOT_REGISTRY,SOVEREIGN_LEGAL_CHARTER_20} from './sovereign-lock.js';
 import {verifyTrinityIdentity} from './trinity-auth-core.js';
 import {SovereignLedgerV3} from './sovereign-core-v3.js';
+import {OMNI_CORE_500_IMPROVEMENTS,OMNI_CORE_75_FOUNDATIONAL_PILLARS,getOmniCore500Summary,listOmniCoreImprovementsByLayer} from './omni-core-500-registry.js';
 import {SYSTEM_CAPABILITIES,createSystemAction,listSystemActions,getSystemAction,approveSystemAction,rejectSystemAction,claimSystemAction,finishSystemAction,authenticateGateway,getPCBridgeStatus} from './system-actions.js';
 import {createStudioCheckoutOffer,listStudioProjects,getStudioProject,createStudioProject,reviseStudioProject} from './studio.js';
 import {beginGoogleLogin,finishGoogleLogin,googleAuthRequired,googleOAuthConfigured} from './google-auth.js';
@@ -296,6 +297,7 @@ async function route(request,env,ctx){
       environment:runtimeEnvironment(request,env),
       capabilities:{
         sovereign_kernel:{status:'VERIFIED_ACTIVE',module:'sovereign-core-v3.js'},
+        omni_core_500_registry:{status:'VERIFIED_ACTIVE',module:'omni-core-500-registry.js',...getOmniCore500Summary()},
         sovereign_lock_hmac:{status:'VERIFIED_ACTIVE',durable_nonce_d1:Boolean(env.DB),durable_nonce_kv:Boolean(env.Mastermind||env.PC_STATE)},
         truth_guard_v3:{status:'VERIFIED_ACTIVE',module:'truth.js'},
         trinity_auth_core:{status:'VERIFIED_ACTIVE',fail_closed:true,module:'trinity-auth-core.js'},
@@ -308,6 +310,20 @@ async function route(request,env,ctx){
         firebase_manage:{status:Boolean(env.FIREBASE_SERVICE_ACCOUNT_KEY)?'CONFIGURED':'MISSING_CREDENTIALS'},
         telegram_bridge:{status:Boolean(env.TELEGRAM_BOT_TOKEN)?'CONFIGURED':'MISSING_CREDENTIALS'}
       },
+      checked_at:new Date().toISOString()
+    });
+  }
+  if(path==='/api/capabilities/500-improvements'&&request.method==='GET'){
+    const layerFilter=url.searchParams.get('layer');
+    const items=layerFilter?listOmniCoreImprovementsByLayer(layerFilter):OMNI_CORE_500_IMPROVEMENTS;
+    return json({
+      service:'TRINITY OMNI-CORE 500 Improvements Registry',
+      version:TRINITY_VERSION,
+      summary:getOmniCore500Summary(),
+      filter_layer:layerFilter||null,
+      count:items.length,
+      improvements:items,
+      foundational_pillars_75:OMNI_CORE_75_FOUNDATIONAL_PILLARS,
       checked_at:new Date().toISOString()
     });
   }

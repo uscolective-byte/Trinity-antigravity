@@ -93,6 +93,7 @@ k Workspace, Drive ani Google Cloud; tie potrebujú samostatné oprávnenia.
 
 ## Dokumentácia
 
+- [Kompletný Katalóg 500 Vylepšení TRINITY OMNI-CORE (`#001` – `#500` + 75 pilierov)](../Dokumentacia/KATALOG-500-VYLEPSENI-TRINITY-OMNI-CORE.md) – úplný zoznam 250 systémových/desktopových a 250 architektonických OMNI-CORE vylepšení + modul [`src/omni-core-500-registry.js`](src/omni-core-500-registry.js).
 - [Sovereign Charter (Ústavná charta a 20 právnych doložiek)](../SOVEREIGN_CHARTER.md) – 5 základných neporušiteľných bodov, 20 právnych doložiek a pravidlá Sovereign Lock.
 - [Neporušiteľný Režim Pravdy a Prísaha Trinity](../Dokumentacia/NEPORUSITELNY-REZIM-PRAVDY-A-PRISAHA.md) – kompletné znenie novej prísahy, Desatora pravdivosti a architektonických brán.
 - [Architektúra 7 vrstiev OMNI-CORE](../ARCHITECTURE.md) – Kernel, Orchestration, Memory, Sovereign Ledger v3, Execution, TruthGuard a Interface.

@@ -112,6 +112,22 @@ Plné znenie všetkých 20 právnych doložiek sa nachádza v [SOVEREIGN_CHARTER
 
 ---
 
+## 🧬 Kompletný Katalóg 500 Vylepšení TRINITY OMNI-CORE (`#001` – `#500` + 75 Pilierov)
+
+Všetkých **500 architektonických, systémových, hardvérových, desktopových a bezpečnostných vylepšení** spolu so **75 základnými funkčnými piliermi** je zapísaných priamo v dokumentácii aj v runtime kóde jadra:
+
+- 📄 **Kompletný dokumentačný katalóg (1–500 + P-01 až P-75)**: [Dokumentacia/KATALOG-500-VYLEPSENI-TRINITY-OMNI-CORE.md](Dokumentacia/KATALOG-500-VYLEPSENI-TRINITY-OMNI-CORE.md)
+- 💻 **Kanonický zdrojový modul v kóde**: [`Trinity/src/omni-core-500-registry.js`](Trinity/src/omni-core-500-registry.js) (`OMNI_CORE_500_IMPROVEMENTS`, `OMNI_CORE_75_FOUNDATIONAL_PILLARS`)
+- 🌐 **Živý API Endpoint**: `GET https://auru.space/api/capabilities/500-improvements` (podporuje aj filter `?layer=L4_SOVEREIGN_LEDGER` atď.)
+
+| Časť katalógu | Rozsah položiek | Počet | Obsah |
+|---|---|---|---|
+| **Časť I: Systém, Hardvér, Desktop, Produktivita & Bezpečnosť** | `IMP-001` – `IMP-250` (`#001` – `#250`) | **250** | Windows IPC, audio/video, OCR, winget, schránka, batéria, CPU/RAM, DPAPI, lokálna automatizácia, Git/AST nástroje |
+| **Časť II: Architektúra Jadra TRINITY OMNI-CORE** | `IMP-251` – `IMP-500` (`#251` – `#500`) | **250** | Autonómny bootstrap, Sovereign Ledger v3, Compute Budget, TMAC konsenzus, Code Provenance, State Replay, Zero Trust |
+| **Časť III: Základné Funkčné Piliere** | `P-01` – `P-75` | **75** | System & Web Opener, WhatsApp, Meta/Social, Finance Gateway (50 €/200 €), Hlas (Wake-Word, Whisper/MeloTTS), OmniDev |
+
+---
+
 ## ✅ Prehľad Aplikovaných Zmien a End-to-End Overenie (1. 11. 2026)
 
 1. **4 Kritické P0/P1 Bezpečnostné Záplaty (Audit Remediations)**:
@@ -162,6 +178,7 @@ konfigurácie. Po zmene vydania spusti `node scripts/sync-release-docs.mjs`; CI 
 
 ## Dokumentácia a Špecifikácia 2026 (TRINITY OMNI-CORE)
 
+- [Dokumentacia/KATALOG-500-VYLEPSENI-TRINITY-OMNI-CORE.md](Dokumentacia/KATALOG-500-VYLEPSENI-TRINITY-OMNI-CORE.md): Kompletný neskrátený zoznam všetkých **500 vylepšení** (`#001` – `#500`) a **75 základných pilierov** (`P-01` – `P-75`).
 - [SOVEREIGN_CHARTER.md](SOVEREIGN_CHARTER.md): Ústavná charta (5 základných neporušiteľných bodov + 20 právnych doložiek legality) a kryptografický Sovereign Lock.
 - [PRISLUB_TRINITY.txt](PRISLUB_TRINITY.txt): Fyzický textový doklad záväznej prísahy Trinity v koreni repozitára.
 - [Dokumentacia/NEPORUSITELNY-REZIM-PRAVDY-A-PRISAHA.md](Dokumentacia/NEPORUSITELNY-REZIM-PRAVDY-A-PRISAHA.md): Kompletná prísaha, Sovereign Lock, Desatoro pravdivosti a 20 právnych doložiek v priečinku `Dokumentacia/`.
