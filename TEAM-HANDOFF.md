@@ -2003,3 +2003,10 @@ Vykonané zmeny a bezpečnostné opatrenia:
 4. **Verifikácia testov**:
    - Doplnené unit testy overujúce Web Crypto HMAC, kanonickú normalizáciu čísel a Worker secrets overenie.
    - Celý testovací suite: **730 / 730 PASS** (0 fail, 0 skipped, trvanie ~23s).
+
+- **Overené nasadenie Cloudflare (d39c4a5cabb395fbb7c08cea3d3ee439a4ab4e1e / tag d39c4a5)**:
+  - **Produkcia (`https://auru.space`)**:
+    - Version ID: `386b6a91-75cf-4009-9c6c-c258a1ea04ed`
+    - Overenie cez `verify-deployment.mjs`: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"386b6a91-75cf-4009-9c6c-c258a1ea04ed","tag":"d39c4a5"}}`
+  - **Staging (`https://auru.dev`)**:
+    - Version ID: `6a41c539-35de-40dd-b39b-cfacd7e5dc2c`
