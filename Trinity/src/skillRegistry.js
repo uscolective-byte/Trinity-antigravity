@@ -2154,6 +2154,10 @@ skillRegistry.register('resolveCustomCommand', (text, env) => memorySkills.resol
 import { delegateWorker, orchestratePipeline, inspectFleet } from './orchestrator.js';
 skillRegistry.register('callWorkerAction', (params = {}, env) => delegateWorker(env, params.worker, params.action, params.data), { category: 'orchestration' });
 skillRegistry.register('orchestrateTeamTask', (params = {}, env) => orchestratePipeline(env, params.task || params.prompt || ''), { category: 'orchestration' });
+skillRegistry.register('diagnostic_ping', async (params = {}, env) => {
+  const { runTool } = await import('./tools.js');
+  return runTool(env, null, 'diagnostic_ping', params);
+}, { category: 'diagnostics' });
 skillRegistry.register('fleetHealthCheck', (_params, env) => inspectFleet(env), { category: 'orchestration' });
 
 export { developerSkills, entertainmentSkills, educationSkills, lifestyleSkills, creativeSkills, scienceSkills };

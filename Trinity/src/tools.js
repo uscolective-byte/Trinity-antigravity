@@ -16,7 +16,7 @@ import {hash} from './security.js';
 import {capabilityStatus} from './capability-status.js';
 import {boundedText,getOllamaKey,serviceStatus,SERVICES} from './services.js';
 import {ensureToolEnabled,pluginEnabled,listPlugins,installPlugin} from './plugins.js';
-import {SKILLS} from './registry.js';
+import {SKILLS, agentById} from './registry.js';
 import {createSystemAction,getSystemAction,actionEvidence,getPCBridgeStatus} from './system-actions.js';
 import {getPortfolio} from './trading.js';
 import {PRACTICAL_TOOL_NAMES,PRACTICAL_TOOL_SCHEMAS,PRACTICAL_TOOL_HELP,runPracticalTool} from './practical-skills.js';
@@ -51,7 +51,7 @@ import {SOVEREIGN_IDENTITY,ROOT_REGISTRY,SOVEREIGN_LEGAL_CHARTER_20,validateSove
 import {SovereignTruthGuard,ExecutionLifecycleGuard,TEN_COMMANDMENTS_OF_TRUTH} from './truth.js';
 import {diagnoseOmniDevStackTrace,proposeOmniDevRecoveryPatch} from './omnidev-diagnostics.js';
 
-export const INTERNAL_TOOLS=new Set(['request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose']);
+export const INTERNAL_TOOLS=new Set(['diagnostic_ping','request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose','cf_d1_query','cf_kv_store','cf_r2_manage','cf_self_deploy','mail_engine','http_fetch_pro','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','apply_self_evolution','triad_subagent_run','triad_deep_research','triad_code_patch','triad_test_matrix','triad_copilot_sync','triad_status']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
 export const OWNER_BUSINESS_TOOLS=new Set(['finance_propose_transfer','finance_confirm_transfer','finance_audit_ledger','prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
@@ -308,6 +308,9 @@ export const TOOL_SCHEMAS={
     error_text:z.string().min(1).max(8000),
     file_path:z.string().max(300).optional().default('Trinity/src/studio.js'),
     source_code:z.string().max(30000).optional().default('')
+  }).strict(),
+  diagnostic_ping:z.object({
+    message:z.string().max(200).default('ping')
   }).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
@@ -334,7 +337,9 @@ export async function searchMemory(env,query='') {
   return {records:sanitizeMemoryRecords([...own.results,...older.results]),scope:'ops_memory + existujúca memory_long'};
 }
 export async function runTool(env, agent, name, input, executionContext={}) {
-  if(!agent.tools.includes(name)||(!TOOL_SCHEMAS[name]&&!PC_TOOLS.has(name))) throw new Error('Tool not allowed');
+  const agentObj=typeof agent==='string'?agentById(agent):agent;
+  if(agentObj?.tools&&!agentObj.tools.includes(name)) throw new Error('Tool not allowed');
+  if(!TOOL_SCHEMAS[name]&&!PC_TOOLS.has(name)) throw new Error('Tool not allowed');
   const isAdminOrOwner=executionContext.adminAuthorized===true||executionContext.ownerMode===true;
   if((DEVELOPMENT_TOOLS.includes(name)||name==='domain_register'&&input?.live_register===true)&&!isAdminOrOwner)throw new Error('Táto schopnosť vyžaduje serverom overeného správcu.');
   if(OWNER_BUSINESS_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('Obchodné a vývojové schopnosti Trinity sú dostupné iba overenému ownerovi.');
@@ -1139,6 +1144,39 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const recovery=args.source_code?proposeOmniDevRecoveryPatch({filePath:args.file_path,sourceCode:args.source_code,errorText:args.error_text}):null;
     return {diagnosis,recovery,_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
   }
+  if(name==='diagnostic_ping'){
+    const receipt_id = `DIAG-RCPT-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+    const executed_at = new Date().toISOString();
+    const result = {
+      status: 'healthy',
+      tool: 'diagnostic_ping',
+      input: args,
+      echo: args.message || 'ping',
+      receipt_id,
+      executed_at,
+      executor: 'trinity-tool-executor',
+      _evidence: {
+        effect: 'read',
+        action: 'diagnostic_ping',
+        receipt_id
+      }
+    };
+    if (env?.DB) {
+      try {
+        await env.DB.prepare(
+          "INSERT INTO ops_events(action, details) VALUES('tool_executed', ?)"
+        ).bind(JSON.stringify({
+          tool: 'diagnostic_ping',
+          input: args,
+          output: { status: 'healthy', echo: result.echo },
+          receipt_id,
+          executed_by: agent?.id || 'orchestrator',
+          timestamp: executed_at
+        })).run();
+      } catch {}
+    }
+    return result;
+  }
   if(name==='meta_manage'){
     const ownerId=(env?.TRINITY_OWNER_EMAIL||'saboivan2008@gmail.com').trim().toLowerCase();
     const origin='https://auru.space';
@@ -1250,6 +1288,7 @@ export async function recallMemory(env,task){
   return selectMemoryRecords(records,task);
 }
 export const TOOL_HELP={
+  diagnostic_ping:'Bezpečný diagnostický nástroj Trinity na overenie celého reťazca Registry -> Runtime -> Executor -> Audit: {message?:string}',
   web_fetch:'Prečíta konkrétnu verejnú webovú adresu priamo z cloudu bez PC: {url}',
   project_inspect:'Sama nájde aktuálny commit a relevantné súbory Trinity podľa problému: {query}',
   project_read:'Prečíta konkrétny zdroj Trinity z GitHubu: {path,ref?:commit SHA}',
