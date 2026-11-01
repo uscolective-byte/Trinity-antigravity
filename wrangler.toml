@@ -222,3 +222,27 @@ index_name = "aura-memory"
 
 [env.staging.ai]
 binding = "AI"
+
+[exports.TrinityAgent]
+type = "durable-object"
+storage = "sqlite"
+
+[exports.ChatAgent]
+type = "durable-object"
+storage = "sqlite"
+
+[exports.GuardianAgent]
+type = "durable-object"
+storage = "sqlite"
+
+[exports.TrinityAgent]
+type = "durable-object"
+storage = "sqlite"
+
+[exports.ChatAgent]
+type = "durable-object"
+storage = "sqlite"
+
+[exports.GuardianAgent]
+type = "durable-object"
+storage = "sqlite"

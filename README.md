@@ -1,5 +1,11 @@
 # Trinity / Morhfeus (TRINITY OMNI-CORE v11.0.0)
 
+## OpenAI agent Trinity — aktualizácia 1.11.2026
+
+Pôvodný uložený `trinity123` je premenovaný na **Trinity** a zapojený do Local Desktop aj Local Gateway. Spusti `SPUSTIT-TRINITY-AGENT.cmd` alebo `npm run trinity:agent -- doctor`. Kontext projektu, serverové adaptéry poverení, pravidlá pravdivosti a presný stav overenia sú v [TRINITY-OPENAI-AGENT.md](Trinity/docs/TRINITY-OPENAI-AGENT.md).
+
+Autentifikácia OpenAI a aktualizácia uloženého agenta sú overené. Živé vykonávanie zatiaľ blokuje nulový API kredit; zamietnutá platba sa neopakovala a automatické dobíjanie bolo na pokyn majiteľa vypnuté. Lokálna konfigurácia nie je dôkazom úspešnej modelovej úlohy ani nasadenia tejto integrácie do cloudu.
+
 
 Osobná asistentka, webové rozhranie, 7-vrstvový autonómny operačný systém OMNI-CORE a Cloudflare backend v jednom kanonickom repozitári.
 Hlavná aplikácia a konfigurácia sú v `Trinity/`. Koreňové `src/` a `tests/`
