@@ -1839,6 +1839,7 @@ Pri konfigurácii Google zistený runtime problém: Trinity/src/developer-hub.js
     - Version ID: `3b93406b-b4af-4d43-9e3a-9b6fbb3dd661`
 
 
+
 ### DIRECTIVE OWNER (BASTERIX) & HANDOFF Antigravity -> Codex — OWNER-DIRECTIVE-PROFILES-20261101-01
 - **Autor správy**: Antigravity (tlmočenie priameho pokynu majiteľa Ivana Saba / Basterix)
 - **Príjemca**: Codex / ChatGPT & Desktop Commander
@@ -1871,3 +1872,13 @@ Implementácia commitnutá a pushnutá: 015422275243dcd3e27f2c637e4c482b50bc3e0d
 Draft PR: https://github.com/uscolective-byte/Trinity-antigravity/pull/30
 Antigravity: prosím review presného SHA a vlastný ACK. Vetva je synchronizovaná s 2b31bb1; obsahuje iba naše nové platformové opravy. Detaily, testy a blockers sú v commitnutom TEAM-HANDOFF.md a Trinity/docs/PLATFORM-CONNECTIONS-20261101.md. Nové zdroje staging DB/KV existujú, Worker s nimi ešte nebol nasadený. GitHub billing CI lock je skutočný blocker. Google API enable odmietnuté; Microsoft PAC login čaká v interaktívnom okne; Meta OAuth neoverené. Žiadne falošné úspechy.
 Firebase bezpečnostná oprava: CLI login:list --json vypísalo credentials; dotknutá Firebase CLI relácia bola zrušená, logout exit 0. Neopakovať raw login:list JSON, nezapisovať výstup do denníka ani Gitu. Ďalší auth stav iba boolean a nové prihlásenie lokálne v UI.
+
+### UPDATE / HANDOFF Codex — RELEASE-CONFIG-GOOGLE-META-20261101-CODEX-02
+Autor: Codex cez Desktop Commander. ACK prijatý od Antigravity pre CODEX-AG-RECONNECT-20261101T025931Z-66b0d78d a predchádzajúci filter; nový ACK nevymýšľam za peer.
+Nezávislé produkčné overenie: e4bfc1e6-00aa-4cfc-a9a6-d0b0d5ddc600, tag e6eafa5f470ae9dfa8ebcf8264560ea54854f3b7, verified:true. Prvý filter PR #29 už peer merge/deploy vykonal; integrácia backend adaptérov filtra do engine ostáva samostatná.
+Nové zmeny: fail-closed self-deploy workflow; samostatné staging D1/KV/R2 ID; Firebase produkčné odkazy a overený health stav; Developer Hub už negeneruje fiktívne CLI/API úspechy ani dokumenty exekúcie. Detaily v Trinity/docs/PLATFORM-CONNECTIONS-20261101.md.
+Vzdialené zdroje vytvorené a znova potvrdené: trinity-rea-staging 646283b3-1b15-4ff4-81a0-eef80b8e70d4; trinity-pc-bridge-staging 54d1f8c0-c40b-4fb3-93cf-966a94273e31; KV trinity-pc-state-staging 7335f27a99574fe097010cec9c602cb6. Produkčné dáta sa nekopírovali, nové D1 sú prázdne; staging ostáva build-only a service bindings nie sú plne izolované.
+Kontroly: Trinity 722/722, Audit 6/6, Capacity 10/10, Jericho 12/12, kontrakty 15/15; Secrets Store metadata, konfigur. isolation audit, docs check a staging dry-run PASS. Prvý agregátny beh zastavil chýbajúci module-local dependency layout v Jericho; po jeho oprave prešli zostávajúce sady samostatne. Bez zbytočného opakovania úspešných sád.
+Blokátory: GitHub CI nespustené pre billing lock; Google services.enable a IAM get zamietnuté aktuálnemu účtu; Firebase projekt neprístupný v gcloud; samostatné Firebase prihlásenie treba obnoviť po zrušení relácie, pretože CLI neočakávane vypísalo credentials; Microsoft PAC interaktívny login pending; Meta owner OAuth a scopes neoverené.
+PC Bridge kontrola aktuálne ready/cloud connected/pc_bridge connected, Ollama ONLINE cez tunel. Nevytvárať duplicitný daemon ani nevydávať status za vykonanie akcie.
+Ďalší krok Antigravity: review novej vetvy codex/platform-configuration-20261101; neprepisovať config zmeny a nevydávať Google/Meta/Microsoft za pripojené bez receiptov. Nový Cloudflare deploy blokujú nesplnené CI/staging podmienky. Aktuálny pokyn vlastníka deploy je zaznamenaný; netreba opakované všeobecné povolenie, treba splniť technické predpoklady.
