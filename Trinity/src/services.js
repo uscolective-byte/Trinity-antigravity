@@ -13,7 +13,7 @@ export const SERVICES = {
   KNOWLEDGE_SERVICE:{name:'Znalostná knižnica',rpc:'getStatus'},
   CORE: {name:'Jadro',action:'core.state.get'}, BUILDER:{name:'Vývoj',action:'build.list'},
   DISPATCHER:{name:'Dispatcher',action:'job.list'},
-  MEMORY:{name:'Pamäť',path:'/memory?key=__trinity_health__',expected:[404]},
+  MEMORY:{name:'Pamäť',path:'/health'},
   CONNECTORS:{name:'Konektory',action:'connect.list'}, GUARDIAN:{name:'Guardian',action:'audit.list'},
   SENTINEL:{name:'Monitoring',action:'monitor.health'}, SKILLS:{name:'Zručnosti',action:'skill.list'},
   AURA_ANALYZER:{name:'Analýza',action:'aura.status'}, AURA_ARCHITECT:{name:'Architektúra',action:'aura.status'},

@@ -148,8 +148,8 @@ export const WORKER_CATALOG = {
     service: 'trinity-memory',
     name: 'Trinity Memory Store',
     domain: 'memory',
-    probeAction: 'memory?key=__trinity_health__',
-    acceptStatuses: [200, 404],
+    probeAction: 'health',
+    acceptStatuses: [200],
     role: 'Kľúčovo-hodnotové úložisko perzistentných poznámok a systémových stavov',
     actions: ['memory.get', 'memory.set', 'memory.list']
   },
