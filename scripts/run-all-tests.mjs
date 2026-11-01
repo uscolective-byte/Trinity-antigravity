@@ -14,11 +14,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
 const SUITES = [
+  { name: 'Workspace policies and operations', dir: ROOT, cmd: process.execPath, args: ['--test', 'tests/*.test.mjs', 'scripts/*.test.mjs'] },
   { name: 'Trinity Main Fleet', dir: resolve(ROOT, 'Trinity'), cmd: 'npm', args: ['test'] },
   { name: 'Audit-Worker', dir: resolve(ROOT, 'Audit-Worker'), cmd: 'npm', args: ['test'] },
   { name: 'Capacity-Worker', dir: resolve(ROOT, 'Capacity-Worker'), cmd: 'npm', args: ['test'] },
   { name: 'Jericho-Worker', dir: resolve(ROOT, 'Jericho-Worker'), cmd: 'npm', args: ['test'] },
   { name: 'Knowledge-Worker', dir: resolve(ROOT, 'Knowledge-Worker'), cmd: 'npm', args: ['test'] },
+  { name: 'Integrations-Worker', dir: resolve(ROOT, 'Integrations-Worker'), cmd: 'npm', args: ['test'] },
   { name: 'PC-Bridge-Worker', dir: resolve(ROOT, 'PC-Bridge-Worker'), cmd: 'npm', args: ['test'] },
   { name: 'Local-Gateway', dir: resolve(ROOT, 'Local-Gateway'), cmd: 'npm', args: ['test'] },
   { name: 'Local-Desktop', dir: resolve(ROOT, 'Local-Desktop'), cmd: 'npm', args: ['test'] },
@@ -34,7 +36,7 @@ for (const s of SUITES) {
   const res = spawnSync(useNpmCli ? process.execPath : s.cmd, useNpmCli ? [process.env.npm_execpath, ...s.args] : s.args, {
     cwd: s.dir,
     stdio: 'inherit',
-    shell: !useNpmCli,
+    shell: s.cmd === 'npm' && !useNpmCli,
     env: { ...process.env, CI: '1', WRANGLER_SEND_METRICS: 'false' }
   });
   if (res.status !== 0) {

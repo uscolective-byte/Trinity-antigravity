@@ -86,11 +86,13 @@ test('separate OS process verifies exact file content, then rejects a missing fi
     writeFileSync(path,'actual content','utf8');
     const filter=createEvidenceResponseFilter({
       clock:()=>now,
+      // Full-suite process startup on Windows can exceed two seconds under load.
+      timeoutMs:15000,
       readReceipt:async()=>({...receipt,target:path}),
       verifyState:async identity=>{
         const child=spawnSync(process.execPath,['--input-type=module','-e',
           "import {readFileSync} from 'node:fs'; process.exit(readFileSync(process.argv[1],'utf8') === 'actual content' ? 0 : 1);",path],
-          {encoding:'utf8',timeout:2000});
+          {encoding:'utf8',timeout:10000});
         return {...state,...identity,verifierId:'os-child-'+child.pid,verified:child.status===0};
       },
       appendAudit:async()=>({persisted:true,eventId:'test-audit'})
