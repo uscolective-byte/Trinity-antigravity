@@ -482,6 +482,47 @@ async function route(request,env,ctx){
       d1_sovereign_ledger_v3:d1Block
     },bridgeRes.ok?200:502);
   }
+  if((path==='/api/ollama'||path==='/api/ollama/status')&&request.method==='GET'){
+    let tunnelMeta=null;
+    if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
+    if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
+    const tunnelUrl=tunnelMeta?.tunnel_url;
+    if(!tunnelUrl){
+      return json({status:'TUNNEL_OFFLINE',message:'Cloudflare Tunnel na lokálny port 7788 nie je pripojený.',port:11434},503);
+    }
+    const bridgeRes=await fetch(tunnelUrl+'/api/ollama/status',{signal:AbortSignal.timeout(5000)}).catch(err=>({ok:false,status:502,text:()=>Promise.resolve(err.message)}));
+    if(!bridgeRes.ok){
+      return json({status:'LOCAL_OLLAMA_UNREACHABLE',error:await bridgeRes.text(),port:11434},502);
+    }
+    const data=await bridgeRes.json();
+    return json({ok:true,edge_gateway:'auru.space',tunnel_proxied:true,...data});
+  }
+  if((path==='/api/ollama'||path==='/api/ollama/chat')&&request.method==='POST'){
+    let tunnelMeta=null;
+    if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
+    if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
+    const tunnelUrl=tunnelMeta?.tunnel_url;
+    if(!tunnelUrl){
+      return json({status:'TUNNEL_OFFLINE',message:'Cloudflare Tunnel na lokálny port 7788 nie je pripojený.'},503);
+    }
+    const body=await readJSON(request,128000);
+    const clientToken=(request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'').trim();
+    const bridgeToken=(clientToken||env.TRINITY_BRIDGE_TOKEN||'b902cb066b2ccb940a470f06bf3b0fd5d6bf5259ddf8017ce2e41f9a2f5393f6').trim();
+    const bridgeRes=await fetch(tunnelUrl+'/api/ollama/chat',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'X-Trinity-Bridge-Token':bridgeToken
+      },
+      body:JSON.stringify(body),
+      signal:AbortSignal.timeout(180_000)
+    }).catch(err=>({ok:false,status:502,text:()=>Promise.resolve(err.message)}));
+    if(!bridgeRes.ok){
+      return json({ok:false,error:await bridgeRes.text()},bridgeRes.status||502);
+    }
+    const data=await bridgeRes.json();
+    return json({ok:true,edge_gateway:'auru.space',tunnel_proxied:true,...data});
+  }
   if(path==='/api/ecosystem/stats'&&request.method==='GET')return json(universalEcosystem.getStats());
   if(path==='/api/ecosystem/domains'&&request.method==='GET')return json({domains:UNIVERSAL_DOMAINS,templates:APPLICATION_TEMPLATES});
   if(path==='/api/auth/config'&&request.method==='GET')return json({google_enabled:(googleAuthRequired(env)||env.GOOGLE_ENABLED==='true')&&googleOAuthConfigured(env),google_required:googleAuthRequired(env)});

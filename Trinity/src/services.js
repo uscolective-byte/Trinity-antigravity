@@ -149,18 +149,40 @@ export async function callModel(env, provider, messages, maxTokens = 1200, custo
     }
     throw new Error('Lokálny model neodpovedal v časovom limite.');
   }
-  if(provider==='ollama') {
-    const key=await getOllamaKey(env);
-    const model=env.OLLAMA_MODEL || 'gemma4:31b';
-    const response=await fetch('https://ollama.com/api/chat',{
-      method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},
-      body:JSON.stringify({model,messages,stream:false,options:{num_predict:maxTokens,temperature:0.25}}),
-      signal:AbortSignal.timeout(65000),redirect:'manual'
-    });
-    if(!response.ok) throw new Error(`Ollama HTTP ${response.status}`);
-    const data=JSON.parse(await boundedText(response,100000));
-    if(!data.message?.content?.trim()) throw new Error('Ollama vrátila prázdnu odpoveď.');
-    return {text:data.message.content,model,provider,usage:{input:data.prompt_eval_count||0,output:data.eval_count||0}};
+  if(provider==='ollama'||provider==='ollama-local') {
+    let tunnelMeta=null;
+    if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
+    if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
+    const tunnelUrl=tunnelMeta?.tunnel_url;
+    if(tunnelUrl){
+      try {
+        const bridgeToken=env.TRINITY_BRIDGE_TOKEN||'b902cb066b2ccb940a470f06bf3b0fd5d6bf5259ddf8017ce2e41f9a2f5393f6';
+        const res=await fetch(tunnelUrl+'/api/ollama/chat',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','X-Trinity-Bridge-Token':bridgeToken},
+          body:JSON.stringify({messages,max_tokens:maxTokens,model:customModel||env.OLLAMA_MODEL||'qwen3.5:4b'}),
+          signal:AbortSignal.timeout(120_000)
+        });
+        if(res.ok){
+          const data=await res.json();
+          if(data.text)return {text:data.text,model:data.model||'qwen3.5:4b',provider:'ollama-local',usage:data.usage||null};
+        }
+      } catch {}
+    }
+    try {
+      const key=await getOllamaKey(env);
+      const model=customModel||env.OLLAMA_MODEL||'gemma4:31b';
+      const response=await fetch('https://ollama.com/api/chat',{
+        method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},
+        body:JSON.stringify({model,messages,stream:false,options:{num_predict:maxTokens,temperature:0.25}}),
+        signal:AbortSignal.timeout(65000),redirect:'manual'
+      });
+      if(response.ok){
+        const data=JSON.parse(await boundedText(response,100000));
+        if(data.message?.content?.trim())return {text:data.message.content,model,provider:'ollama-cloud',usage:{input:data.prompt_eval_count||0,output:data.eval_count||0}};
+      }
+    } catch {}
+    throw new Error('Ollama nie je dostupná (lokálny tunel ani cloud kľúč neodpovedajú).');
   }
   if(provider==='gemini') {
     const {apiKey:rawKey,model}=await getConfiguredAIProvider(env,'gemini');

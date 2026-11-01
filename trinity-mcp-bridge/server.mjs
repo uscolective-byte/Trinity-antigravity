@@ -14,7 +14,7 @@ const execAsync = promisify(exec);
 export const DEFAULT_WORKSPACE = path.resolve("C:/Users/saboi/Trinity-antigravity");
 export const WORKSPACE_DIR = process.env.TRINITY_WORKSPACE ? path.resolve(process.env.TRINITY_WORKSPACE) : DEFAULT_WORKSPACE;
 export const BRIDGE_PORT = parseInt(process.env.TRINITY_PORT || "3333", 10);
-export const BRIDGE_TOKEN = process.env.TRINITY_TOKEN || "trinity-local-secret";
+export const BRIDGE_TOKEN = process.env.TRINITY_TOKEN || "";
 
 // Constitutional Security Audit - zakázané deštruktívne vzory príkazov
 export const BLOCKED_PATTERNS = [
@@ -222,6 +222,9 @@ const isMainModule = process.argv[1] && (
 
 let httpServer = null;
 if (isMainModule && process.env.NODE_ENV !== "test") {
+  if (!BRIDGE_TOKEN || BRIDGE_TOKEN.length < 32) {
+    throw new Error("TRINITY_TOKEN must contain at least 32 characters before startup.");
+  }
   httpServer = app.listen(BRIDGE_PORT, "127.0.0.1", () => {
     console.error(`[TRINITY Bridge] HTTP brána beží na http://127.0.0.1:${BRIDGE_PORT}`);
     console.error(`[TRINITY Bridge] Workspace: ${WORKSPACE_DIR}`);

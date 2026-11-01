@@ -23,12 +23,13 @@ const RESOURCE_PROFILE=JSON.parse(await readFile(new URL('../config/resource-pro
 async function runLocalInference(payload){
   if(payload.task!=='local-inference'||!Array.isArray(payload.messages)||payload.messages.length<1||payload.messages.length>20)throw new Error('Neplatná lokálna AI požiadavka.');
   const messages=payload.messages.map(message=>{if(!['system','user','assistant'].includes(message?.role)||typeof message.content!=='string'||message.content.length>20_000)throw new Error('Neplatná správa pre lokálny model.');return {role:message.role,content:message.content};});
-  const profile=RESOURCE_PROFILE.ollama,model=profile.model,maxTokens=Math.max(32,Math.min(Number(payload.max_tokens)||1200,profile.max_output_tokens));
+  const profile=RESOURCE_PROFILE.ollama,model=payload.model||profile.model,maxTokens=Math.max(32,Math.min(Number(payload.max_tokens)||1200,profile.max_output_tokens));
   const response=await fetch('http://127.0.0.1:11434/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages,stream:false,keep_alive:profile.keep_alive,options:{num_predict:maxTokens,num_ctx:profile.context,num_thread:profile.threads,temperature:0.25}}),signal:AbortSignal.timeout(180_000)});
   const text=await response.text();let data={};try{data=JSON.parse(text);}catch{}
   if(!response.ok)throw new Error(`Lokálny Ollama model zlyhal (HTTP ${response.status}).`);
-  if(!data.message?.content?.trim())throw new Error('Lokálny model vrátil prázdnu odpoveď.');
-  return {action:'read',task:'local-inference',model,response:data.message.content,usage:{input:data.prompt_eval_count||0,output:data.eval_count||0},completed:true};
+  const responseText = data.message?.content?.trim() || data.message?.thinking?.trim() || '';
+  if(!responseText)throw new Error('Lokálny model vrátil prázdnu odpoveď.');
+  return {action:'read',task:'local-inference',model,response:responseText,thinking:data.message?.thinking||null,usage:{input:data.prompt_eval_count||0,output:data.eval_count||0},completed:true};
 }
 
 async function runProcess(command,args,{cwd,timeoutMs=120_000,environment,windowsVerbatimArguments=false}={}){
