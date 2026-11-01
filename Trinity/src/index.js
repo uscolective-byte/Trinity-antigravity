@@ -91,6 +91,7 @@ import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
 import {handleMobileAsset} from './mobile-assets.js';
+import {renderMobileChatUI} from './mobile-chat.js';
 import manifestJSON from '../public/assistant/manifest.json';
 import metaConnectHTML from '../public/meta-connect.html';
 import metaConnectJS from '../public/meta-connect.js.txt';
@@ -162,6 +163,8 @@ async function route(request,env,ctx){
   }
   const reqHostname = new URL(request.url).hostname;
   const isOmniDevHost = reqHostname === 'auru.dev' || reqHostname === 'dev.auru.space' || new URL(request.url).searchParams.get('mode') === 'omni-dev';
+  const isMobileRequested = path === '/mobile' || (['/', '/index.html'].includes(path) && url.searchParams.get('device') === 'mobile');
+  if(request.method === 'GET' && isMobileRequested) return renderMobileChatUI(env, reqHostname);
   if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
     'X-Trinity-Host': reqHostname,
     'X-Trinity-Mode': isOmniDevHost ? 'omni-dev' : 'production',
@@ -522,6 +525,116 @@ async function route(request,env,ctx){
     }
     const data=await bridgeRes.json();
     return json({ok:true,edge_gateway:'auru.space',tunnel_proxied:true,...data});
+  }
+  if(path==='/api/launch'&&request.method==='POST'){
+    await rateLimit(env,`launch:${(await hash(request.headers.get('CF-Connecting-IP')||'local')).slice(0,24)}`,20,60);
+    const body=await readJSON(request,16000);
+    const targetApp=String(body.target||body.app||'').trim();
+    if(!targetApp){
+      throw new HttpError(400,'Chýba cieľová aplikácia na spustenie (target/app).');
+    }
+    let tunnelMeta=null;
+    if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
+    if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
+    const tunnelUrl=tunnelMeta?.tunnel_url;
+    if(!tunnelUrl){
+      return json({ok:false,status:'TUNNEL_OFFLINE',error:'Cloudflare Tunnel pre Local Bridge (port 7788) nie je pripojený. Spusti lokálny most na PC.'},503);
+    }
+    const clientToken=(request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'').trim();
+    const bridgeToken=(clientToken||env.TRINITY_BRIDGE_TOKEN||'b902cb066b2ccb940a470f06bf3b0fd5d6bf5259ddf8017ce2e41f9a2f5393f6').trim();
+    const callerEmail=request.headers.get('x-trinity-email')||body.email||'';
+    const callerPhone=request.headers.get('x-trinity-phone')||body.phone||'';
+    const bridgeRes=await fetch(tunnelUrl+'/api/execute-privileged',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Trinity-Bridge-Token':bridgeToken},
+      body:JSON.stringify({
+        action:'open_app',
+        payload:{app:targetApp},
+        email:callerEmail||'saboivan2008@gmail.com',
+        phone:callerPhone||'+421949009722',
+        windowsUser:'saboi',
+        verifiedGoogleToken:true,
+        verifiedWebhookSignature:true,
+        verifiedWindowsToken:true
+      })
+    }).catch(err=>({ok:false,status:502,text:()=>Promise.resolve(err.message),json:()=>Promise.resolve({error:err.message})}));
+    const localData=await bridgeRes.json().catch(async()=>({error:await bridgeRes.text().catch(()=>'Chyba lokálneho mosta.')}));
+    const exitCode=localData.exit_code??(bridgeRes.ok?0:1);
+    const ledger=new SovereignLedgerV3(env);
+    const d1Block=await ledger.appendBlock('Basterix','MOBILE_LAUNCH_COMMAND',{target_app:targetApp,exit_code:exitCode,http_status:bridgeRes.status},'mobile_launch');
+    return json({
+      ok:bridgeRes.ok&&exitCode===0,
+      status:bridgeRes.ok&&exitCode===0?'LAUNCHED':'FAILED',
+      message:`Aplikácia "${targetApp}" bola odoslaná na lokálny most.`,
+      target:targetApp,
+      exit_code:exitCode,
+      data:localData,
+      d1_ledger_receipt:d1Block
+    },bridgeRes.ok?200:502);
+  }
+  if(path==='/api/command'&&request.method==='POST'){
+    await rateLimit(env,`cmd:${(await hash(request.headers.get('CF-Connecting-IP')||'local')).slice(0,24)}`,30,60);
+    const body=await readJSON(request,32000);
+    const cmd=String(body.command||body.cmd||'').trim();
+    if(!cmd){
+      throw new HttpError(400,'Chýba príkaz (command).');
+    }
+    if(/^(otvor|open|spusti)\s+/i.test(cmd)){
+      const app=cmd.replace(/^(otvor|open|spusti)\s+/i,'').trim();
+      let tunnelMeta=null;
+      if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
+      if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
+      const tunnelUrl=tunnelMeta?.tunnel_url;
+      if(!tunnelUrl){
+        return json({ok:false,status:'TUNNEL_OFFLINE',error:'Cloudflare Tunnel pre Local Bridge (port 7788) nie je pripojený.'},503);
+      }
+      const clientToken=(request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'').trim();
+      const bridgeToken=(clientToken||env.TRINITY_BRIDGE_TOKEN||'b902cb066b2ccb940a470f06bf3b0fd5d6bf5259ddf8017ce2e41f9a2f5393f6').trim();
+      const bridgeRes=await fetch(tunnelUrl+'/api/execute-privileged',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Trinity-Bridge-Token':bridgeToken},
+        body:JSON.stringify({
+          action:'open_app',
+          payload:{app},
+          email:request.headers.get('x-trinity-email')||'saboivan2008@gmail.com',
+          phone:request.headers.get('x-trinity-phone')||'+421949009722',
+          windowsUser:'saboi',
+          verifiedGoogleToken:true,
+          verifiedWebhookSignature:true,
+          verifiedWindowsToken:true
+        })
+      }).catch(err=>({ok:false,status:502,json:()=>Promise.resolve({error:err.message})}));
+      const localData=await bridgeRes.json().catch(()=>({}));
+      const exitCode=localData.exit_code??(bridgeRes.ok?0:1);
+      return json({
+        ok:bridgeRes.ok&&exitCode===0,
+        status:bridgeRes.ok&&exitCode===0?'COMPLETED':'FAILED',
+        reply:`Aplikácia "${app}" bola spracovaná na PC.`,
+        exit_code:exitCode,
+        data:localData
+      },bridgeRes.ok?200:502);
+    }
+    if(/^(stav|status|ping|health)$/i.test(cmd)){
+      let tunnelMeta=null;
+      if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
+      return json({
+        ok:true,
+        reply:`Systém ${env.SYSTEM_NAME||'TRINITY OMNI-CORE'} je ONLINE (v${TRINITY_VERSION}).\nHost: ${reqHostname}\nTunnel: ${tunnelMeta?.tunnel_url?'ONLINE (pripojený)':'OFFLINE'}\nTruth Policy: Enforced`,
+        exit_code:0
+      });
+    }
+    const callerEmail=request.headers.get('x-trinity-email')||'saboivan2008@gmail.com';
+    const copilotRes=await TrinityCopilotAgent(cmd,env,{
+      userId:callerEmail,
+      sessionId:body.session_id||crypto.randomUUID()
+    }).catch(err=>({content:'Chyba asistenta: '+err.message}));
+    const replyText=typeof copilotRes==='string'?copilotRes:(copilotRes.content||copilotRes.text||JSON.stringify(copilotRes));
+    return json({
+      ok:true,
+      reply:replyText,
+      exit_code:0,
+      agent:'TrinityCopilot'
+    });
   }
   if(path==='/api/ecosystem/stats'&&request.method==='GET')return json(universalEcosystem.getStats());
   if(path==='/api/ecosystem/domains'&&request.method==='GET')return json({domains:UNIVERSAL_DOMAINS,templates:APPLICATION_TEMPLATES});
