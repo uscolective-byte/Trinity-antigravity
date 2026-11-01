@@ -1,71 +1,186 @@
 {
-  "receipt_id": "TRN-E2E-PHASE3-VERIFIED-20261101",
-  "generated_at": "2026-11-01T00:07:30.000Z",
-  "sole_architect_and_owner": "Basterix (Sabo Ivan)",
-  "deployment_gate_status": "PHASE_1_2_3_END_TO_END_LIVE_VERIFIED",
-  "owner_approval_statement": "shvalujem a potvrdzujem",
-  "production_deployed": true,
-  "uncommitted_files_remaining": 0,
-  "documented_modules_total": 177,
-  "cloudflare_zones_status": {
+  "schema": "TRINITY_SOVEREIGN_DEPLOYMENT_RECEIPT_V3",
+  "system": "TRINITY OMNI-CORE",
+  "version": "11.0.0",
+  "root_operator": "Basterix (Sabo Ivan)",
+  "timestamp": "2026-11-01T00:42:36.726Z",
+  "exit_code": 0,
+  "cloudflare_zones": {
     "auru.space": {
       "zone_id": "8f25a7259a78f0fe860fa0cc5e43f1bd",
       "status": "active",
       "paused": false,
-      "public_dns_verified": true,
-      "http_status": 200
+      "custom_domain_worker": "trinity",
+      "cert_id": "66272470-453a-4551-958b-73f56759ae08",
+      "http_root_status": 200,
+      "http_api_status": 200
     },
     "auru.dev": {
       "zone_id": "b1b9b5701776b7f990d00535ad3a43aa",
       "status": "active",
       "paused": false,
-      "public_dns_verified": true,
-      "protection": "Cloudflare Access (302 redirect to login for unauthenticated browser requests)"
+      "custom_domain_worker": "trinity-staging",
+      "cert_id": "c8e29017-23a0-4281-b0bf-cc417636bd83",
+      "http_api_status": 302,
+      "cloudflare_access_gate": "ACTIVE_302_REDIRECT_TO_ZERO_TRUST_LOGIN",
+      "note": "Zone-level Cloudflare Access policy requires Zero Trust Dashboard Service Auth bypass for /api/* (API returned HTTP 403 code 10000/1010 with Wrangler OAuth scope)."
     }
   },
-  "phase_3_end_to_end_truth_verification": {
-    "route": "[Basterix] -> [Edge Gateway https://auru.space/api/bridge] -> [Cloudflare Tunnel (QUIC bts01)] -> [Local Bridge 127.0.0.1:7788] -> [Windows OS (WhatsApp PID 1244)] -> [Sovereign Ledger v3 (D1 & Local)]",
-    "negative_sovereign_lock_http_test": {
-      "http_status": 403,
-      "status": "SECURITY_BLOCKED",
-      "d1_tamper_receipt": "receipt:trinity:4737b358411abd6f"
+  "workers_deployed": {
+    "production": {
+      "worker_name": "trinity",
+      "domain": "https://auru.space",
+      "dry_run_exit_code": 0,
+      "deploy_exit_code": 0,
+      "active_bindings": {
+        "d1_sovereign_ledger": true,
+        "trinity_d1": true,
+        "kv_mastermind": true,
+        "kv_pc_state": true,
+        "trinity_kv": true,
+        "r2_artifacts": true,
+        "trinity_storage": true,
+        "vectorize_index": true,
+        "aura_memory_vector": true,
+        "workers_ai": true,
+        "memory_service": true
+      }
     },
-    "tunnel_registration": {
-      "http_status": 200,
-      "status": "TUNNEL_REGISTERED",
-      "d1_receipt": "receipt:trinity:7ccad894c3dc6207"
+    "staging": {
+      "worker_name": "trinity-staging",
+      "domain": "https://auru.dev",
+      "version_id": "52a5a587-cc65-409a-800f-b08c99ecaa00",
+      "dry_run_exit_code": 0,
+      "deploy_exit_code": 0
+    }
+  },
+  "d1_migrations": {
+    "production_trinity_v03": {
+      "database_id": "ca8ea24e-f7db-431e-b8bf-97f713ae4533",
+      "migrations_applied_through": "0055_sovereign_ledger_v3.sql",
+      "exit_code": 0
     },
-    "positive_e2e_execution": {
-      "http_status": 200,
-      "status": "VERIFIED_END_TO_END",
-      "lifecycle_guard_state": "VERIFIED",
-      "local_bridge_exit_code": 0,
-      "local_bridge_os_token_verified": true,
-      "windows_app_launched": {
-        "operation": "launch",
-        "app": "whatsapp",
-        "opened": true,
-        "window": {
-          "pid": 1244,
-          "process": "WhatsApp.Root",
-          "title": "WhatsApp"
+    "staging_trinity_development": {
+      "database_id": "1cce5249-e044-4c93-868c-0df534a778b5",
+      "migrations_applied_through": "0055_sovereign_ledger_v3.sql",
+      "exit_code": 0
+    }
+  },
+  "vectorize_indexes": [
+    {
+      "binding": "VECTORIZE",
+      "index_name": "trinity-vector-index",
+      "dimensions": 768,
+      "metric": "cosine",
+      "status": "VERIFIED_ACTIVE"
+    },
+    {
+      "binding": "AURA_MEMORY_VECTOR",
+      "index_name": "aura-memory",
+      "dimensions": 768,
+      "metric": "cosine",
+      "status": "VERIFIED_ACTIVE"
+    }
+  ],
+  "secrets_initialized": {
+    "TRINITY_ROOT_HASH": {
+      "production_exit_code": 0,
+      "staging_exit_code": 0
+    },
+    "SOVEREIGN_LEDGER_SECRET_KEY": {
+      "production_exit_code": 0,
+      "staging_exit_code": 0
+    },
+    "TRINITY_BRIDGE_TOKEN": {
+      "production_exit_code": 0,
+      "staging_exit_code": 0
+    },
+    "FIRECRAWL_API_KEY_OR_FIRECRAWL": {
+      "status": "configured"
+    },
+    "GOOGLE_CLIENT_SECRET": {
+      "status": "AWAITING_EXTERNAL_SECRET_FROM_OWNER"
+    },
+    "FIREBASE_SERVICE_ACCOUNT_KEY": {
+      "status": "AWAITING_EXTERNAL_SECRET_FROM_OWNER"
+    }
+  },
+  "sovereign_lock_and_capabilities_verification": {
+    "unverified_bridge_http_status": 403,
+    "unverified_bridge_response_status": "SECURITY_BLOCKED",
+    "unverified_tamper_receipt": "receipt:trinity:6a389119cf67f122",
+    "omni_core_500_improvements_http_status": 200,
+    "omni_core_500_improvements_count": 500,
+    "live_capabilities": {
+      "sovereign_kernel": {
+        "status": "VERIFIED_ACTIVE",
+        "module": "sovereign-core-v3.js"
+      },
+      "omni_core_500_registry": {
+        "status": "VERIFIED_ACTIVE",
+        "module": "omni-core-500-registry.js",
+        "total_improvements": 500,
+        "part_1_system_desktop_250": 250,
+        "part_2_architecture_omni_core_250": 250,
+        "foundational_pillars_75": 75,
+        "by_layer": {
+          "L5_EXECUTION_ENGINE": 247,
+          "L7_EVOLUTION_ENGINE": 54,
+          "L3_MEMORY_ENGINE": 54,
+          "L6_SECURITY_CORE": 59,
+          "L1_TRINITY_KERNEL": 22,
+          "L2_ORCHESTRATION": 30,
+          "L4_SOVEREIGN_LEDGER": 34
         }
       },
-      "local_sovereign_ledger_receipt": {
-        "receipt_id": "TRN-LCL-V3-1-7384C19D3E1A",
-        "block_hash": "7384c19d3e1a4c4b55d79506ebf2d22dcdbb642fc5594c12387edcdeeec5d973",
-        "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
-        "ledger_file": "Local-Gateway/data/sovereign-bridge-ledger.jsonl"
+      "sovereign_lock_hmac": {
+        "status": "VERIFIED_ACTIVE",
+        "durable_nonce_d1": true,
+        "durable_nonce_kv": true
       },
-      "d1_sovereign_ledger_v3": {
-        "block_index": 5,
-        "timestamp": "2026-11-01T00:07:19.359Z",
-        "actor": "Basterix",
-        "action": "E2E_CLOUD_TUNNEL_LOCAL_EXECUTION",
-        "payload_hash": "e63e26579341dfaa297edcbafb087cf3ec82478a2a3834395ed27df8955f6a00",
-        "prev_hash": "7ccad894c3dc620703bc55249068d631bb3c60be8109bf2b4bbf47f17ed8c309",
-        "block_hash": "cdcf8600d13228991d5c0f879df2dea62b9212be0cad39e38fffea1ed3bce3b6",
-        "receipt": "receipt:trinity:cdcf8600d1322899"
+      "truth_guard_v3": {
+        "status": "VERIFIED_ACTIVE",
+        "module": "truth.js"
+      },
+      "trinity_auth_core": {
+        "status": "VERIFIED_ACTIVE",
+        "fail_closed": true,
+        "module": "trinity-auth-core.js"
+      },
+      "omnidev_ast_diagnostics": {
+        "status": "VERIFIED_ACTIVE",
+        "module": "omnidev-diagnostics.js",
+        "local_bridge_port": 7788
+      },
+      "workers_ai": {
+        "status": "VERIFIED_ACTIVE"
+      },
+      "d1_sovereign_ledger": {
+        "status": "VERIFIED_ACTIVE"
+      },
+      "trinity_kv": {
+        "status": "VERIFIED_ACTIVE"
+      },
+      "r2_artifacts": {
+        "status": "VERIFIED_ACTIVE"
+      },
+      "vectorize_index": {
+        "status": "VERIFIED_ACTIVE",
+        "index_name": "trinity-vector-index",
+        "dimensions": 768,
+        "metric": "cosine"
+      },
+      "google_oauth": {
+        "status": "CONFIGURED_DISABLED"
+      },
+      "firecrawl_scrape": {
+        "status": "CONFIGURED"
+      },
+      "firebase_manage": {
+        "status": "MISSING_CREDENTIALS"
+      },
+      "telegram_bridge": {
+        "status": "CONFIGURED"
       }
     }
   }

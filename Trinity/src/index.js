@@ -268,10 +268,15 @@ async function route(request,env,ctx){
         legal_clauses_count:SOVEREIGN_LEGAL_CHARTER_20.length
       },
       bindings:{
-        d1_sovereign_ledger:Boolean(env.DB),
+        d1_sovereign_ledger:Boolean(env.DB||env.TRINITY_D1),
+        trinity_d1:Boolean(env.TRINITY_D1||env.DB),
         kv_mastermind:Boolean(env.Mastermind),
         kv_pc_state:Boolean(env.PC_STATE),
+        trinity_kv:Boolean(env.TRINITY_KV||env.Mastermind),
         r2_artifacts:Boolean(env.ARTIFACTS),
+        trinity_storage:Boolean(env.TRINITY_STORAGE||env.R2||env.ARTIFACTS),
+        vectorize_index:Boolean(env.VECTORIZE),
+        aura_memory_vector:Boolean(env.AURA_MEMORY_VECTOR),
         workers_ai:Boolean(env.AI),
         memory_service:Boolean(env.MEMORY)
       },
@@ -280,7 +285,7 @@ async function route(request,env,ctx){
         google_oauth:((googleAuthRequired(env)||env.GOOGLE_ENABLED==='true')&&googleOAuthConfigured(env))?'active':'disabled_or_missing_secret',
         firebase_project:env.FIREBASE_PROJECT_ID||'trinity-morhfeus-20261001',
         firebase_service_account:Boolean(env.FIREBASE_SERVICE_ACCOUNT_KEY)?'configured':'awaiting_secret',
-        firecrawl_engine:Boolean(env.FIRECRAWL_API_KEY)?'configured':'awaiting_api_key',
+        firecrawl_engine:Boolean(env.FIRECRAWL_API_KEY||env.firecrawl)?'configured':'awaiting_api_key',
         omnidev_studio:'active',
         local_system_bridge_port:7788
       },
@@ -303,10 +308,12 @@ async function route(request,env,ctx){
         trinity_auth_core:{status:'VERIFIED_ACTIVE',fail_closed:true,module:'trinity-auth-core.js'},
         omnidev_ast_diagnostics:{status:'VERIFIED_ACTIVE',module:'omnidev-diagnostics.js',local_bridge_port:7788},
         workers_ai:{status:Boolean(env.AI)?'VERIFIED_ACTIVE':'MISSING_BINDING'},
-        d1_sovereign_ledger:{status:Boolean(env.DB)?'VERIFIED_ACTIVE':'MISSING_BINDING'},
-        r2_artifacts:{status:Boolean(env.ARTIFACTS)?'VERIFIED_ACTIVE':'MISSING_BINDING'},
+        d1_sovereign_ledger:{status:Boolean(env.DB||env.TRINITY_D1)?'VERIFIED_ACTIVE':'MISSING_BINDING'},
+        trinity_kv:{status:Boolean(env.TRINITY_KV||env.Mastermind)?'VERIFIED_ACTIVE':'MISSING_BINDING'},
+        r2_artifacts:{status:Boolean(env.ARTIFACTS||env.TRINITY_STORAGE)?'VERIFIED_ACTIVE':'MISSING_BINDING'},
+        vectorize_index:{status:Boolean(env.VECTORIZE)?'VERIFIED_ACTIVE':'MISSING_BINDING',index_name:'trinity-vector-index',dimensions:768,metric:'cosine'},
         google_oauth:{status:((googleAuthRequired(env)||env.GOOGLE_ENABLED==='true')&&googleOAuthConfigured(env))?'VERIFIED_ACTIVE':'CONFIGURED_DISABLED'},
-        firecrawl_scrape:{status:Boolean(env.FIRECRAWL_API_KEY)?'CONFIGURED':'MISSING_CREDENTIALS'},
+        firecrawl_scrape:{status:Boolean(env.FIRECRAWL_API_KEY||env.firecrawl)?'CONFIGURED':'MISSING_CREDENTIALS'},
         firebase_manage:{status:Boolean(env.FIREBASE_SERVICE_ACCOUNT_KEY)?'CONFIGURED':'MISSING_CREDENTIALS'},
         telegram_bridge:{status:Boolean(env.TELEGRAM_BOT_TOKEN)?'CONFIGURED':'MISSING_CREDENTIALS'}
       },

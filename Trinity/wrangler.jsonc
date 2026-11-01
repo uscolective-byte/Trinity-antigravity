@@ -75,6 +75,7 @@
     "GOOGLE_CLIENT_ID": "618392104829-trinity-auru-space.apps.googleusercontent.com",
     "GOOGLE_REDIRECT_URI": "https://auru.space/auth/google/callback",
     "GOOGLE_PROJECT_ID": "tangential-osprey-dl7cp",
+    "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
     "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
     "TRINITY_ENV": "production",
     "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
@@ -91,6 +92,12 @@
   "d1_databases": [
     {
       "binding": "DB",
+      "database_name": "trinity-v03",
+      "database_id": "ca8ea24e-f7db-431e-b8bf-97f713ae4533",
+      "migrations_dir": "migrations"
+    },
+    {
+      "binding": "TRINITY_D1",
       "database_name": "trinity-v03",
       "database_id": "ca8ea24e-f7db-431e-b8bf-97f713ae4533",
       "migrations_dir": "migrations"
@@ -115,12 +122,34 @@
     {
       "binding": "Mastermind",
       "id": "0b92ed2717d742daa860f1827797297f"
+    },
+    {
+      "binding": "TRINITY_KV",
+      "id": "0b92ed2717d742daa860f1827797297f"
     }
   ],
   "r2_buckets": [
     {
       "binding": "ARTIFACTS",
       "bucket_name": "trinity-artifacts"
+    },
+    {
+      "binding": "TRINITY_STORAGE",
+      "bucket_name": "trinity-artifacts"
+    },
+    {
+      "binding": "R2",
+      "bucket_name": "trinity-artifacts"
+    }
+  ],
+  "vectorize": [
+    {
+      "binding": "VECTORIZE",
+      "index_name": "trinity-vector-index"
+    },
+    {
+      "binding": "AURA_MEMORY_VECTOR",
+      "index_name": "aura-memory"
     }
   ],
   "durable_objects": {
@@ -161,146 +190,41 @@
     }
   ],
   "services": [
-    {
-      "binding": "KNOWLEDGE_SERVICE",
-      "service": "trinity-knowledge"
-    },
-    {
-      "binding": "PC_BRIDGE_V2",
-      "service": "trinity-pc-bridge-v2"
-    },
-    {
-      "binding": "PC_BRIDGE_SERVICE",
-      "service": "trinity-pc-bridge"
-    },
-    {
-      "binding": "CORE",
-      "service": "trinity-core"
-    },
-    {
-      "binding": "BUILDER",
-      "service": "trinity-builder"
-    },
-    {
-      "binding": "DISPATCHER",
-      "service": "trinity-dispatcher"
-    },
-    {
-      "binding": "CONNECTORS",
-      "service": "trinity-connectors"
-    },
-    {
-      "binding": "GUARDIAN",
-      "service": "trinity-guardian"
-    },
-    {
-      "binding": "MEMORY",
-      "service": "trinity-memory"
-    },
-    {
-      "binding": "SENTINEL",
-      "service": "trinity-sentinel"
-    },
-    {
-      "binding": "SKILLS",
-      "service": "trinity-skills"
-    },
-    {
-      "binding": "admin",
-      "service": "aura_sentinel"
-    },
-    {
-      "binding": "admino",
-      "service": "aura_architect"
-    },
-    {
-      "binding": "Trinity",
-      "service": "aura_deployer"
-    },
-    {
-      "binding": "AURA_ANALYZER",
-      "service": "aura_analyzer"
-    },
-    {
-      "binding": "AURA_ARCHITECT",
-      "service": "aura_architect"
-    },
-    {
-      "binding": "AURA_CODEGEN",
-      "service": "aura_codegen"
-    },
-    {
-      "binding": "AURA_DEPLOYER",
-      "service": "aura_deployer"
-    },
-    {
-      "binding": "AURA_EVOLVER",
-      "service": "aura_evolver"
-    },
-    {
-      "binding": "AURA_MEMORY",
-      "service": "aura_memory"
-    },
-    {
-      "binding": "AURA_OPTIMIZER",
-      "service": "aura_optimizer"
-    },
-    {
-      "binding": "AURA_PLANNER",
-      "service": "aura_planner"
-    },
-    {
-      "binding": "AURA_SENTINEL",
-      "service": "aura_sentinel"
-    },
-    {
-      "binding": "AURA_TESTER",
-      "service": "aura_tester"
-    },
-    {
-      "binding": "CHAT_INFERENCE_SERVICE",
-      "service": "trinity-chat-inference"
-    },
-    {
-      "binding": "CAPACITY_SERVICE",
-      "service": "trinity-capacity"
-    },
-    {
-      "binding": "INTEGRATIONS_SERVICE",
-      "service": "trinity-integrations"
-    },
-    {
-      "binding": "AUDIT_SERVICE",
-      "service": "trinity-audit"
-    },
-    {
-      "binding": "JERICHO_SERVICE",
-      "service": "jericho123"
-    },
-    {
-      "binding": "RESEARCHER_SERVICE",
-      "service": "trinity-agent-researcher"
-    },
-    {
-      "binding": "GEMINI_BRIDGE_SERVICE",
-      "service": "trinity-gemini"
-    },
-    {
-      "binding": "OPS_SERVICE",
-      "service": "trinity-ops"
-    },
-    {
-      "binding": "CHAT_MAINTAINER_SERVICE",
-      "service": "trinity-chat-maintainer"
-    },
-    {
-      "binding": "DEPLOYER_SERVICE",
-      "service": "trinity-deployer"
-    },
-    {
-      "binding": "SEEDER_SERVICE",
-      "service": "trinity-seeder"
-    }
+    { "binding": "KNOWLEDGE_SERVICE", "service": "trinity-knowledge" },
+    { "binding": "PC_BRIDGE_V2", "service": "trinity-pc-bridge-v2" },
+    { "binding": "PC_BRIDGE_SERVICE", "service": "trinity-pc-bridge" },
+    { "binding": "CORE", "service": "trinity-core" },
+    { "binding": "BUILDER", "service": "trinity-builder" },
+    { "binding": "DISPATCHER", "service": "trinity-dispatcher" },
+    { "binding": "CONNECTORS", "service": "trinity-connectors" },
+    { "binding": "GUARDIAN", "service": "trinity-guardian" },
+    { "binding": "MEMORY", "service": "trinity-memory" },
+    { "binding": "SENTINEL", "service": "trinity-sentinel" },
+    { "binding": "SKILLS", "service": "trinity-skills" },
+    { "binding": "admin", "service": "aura_sentinel" },
+    { "binding": "admino", "service": "aura_architect" },
+    { "binding": "Trinity", "service": "aura_deployer" },
+    { "binding": "AURA_ANALYZER", "service": "aura_analyzer" },
+    { "binding": "AURA_ARCHITECT", "service": "aura_architect" },
+    { "binding": "AURA_CODEGEN", "service": "aura_codegen" },
+    { "binding": "AURA_DEPLOYER", "service": "aura_deployer" },
+    { "binding": "AURA_EVOLVER", "service": "aura_evolver" },
+    { "binding": "AURA_MEMORY", "service": "aura_memory" },
+    { "binding": "AURA_OPTIMIZER", "service": "aura_optimizer" },
+    { "binding": "AURA_PLANNER", "service": "aura_planner" },
+    { "binding": "AURA_SENTINEL", "service": "aura_sentinel" },
+    { "binding": "AURA_TESTER", "service": "aura_tester" },
+    { "binding": "CHAT_INFERENCE_SERVICE", "service": "trinity-chat-inference" },
+    { "binding": "CAPACITY_SERVICE", "service": "trinity-capacity" },
+    { "binding": "INTEGRATIONS_SERVICE", "service": "trinity-integrations" },
+    { "binding": "AUDIT_SERVICE", "service": "trinity-audit" },
+    { "binding": "JERICHO_SERVICE", "service": "jericho123" },
+    { "binding": "RESEARCHER_SERVICE", "service": "trinity-agent-researcher" },
+    { "binding": "GEMINI_BRIDGE_SERVICE", "service": "trinity-gemini" },
+    { "binding": "OPS_SERVICE", "service": "trinity-ops" },
+    { "binding": "CHAT_MAINTAINER_SERVICE", "service": "trinity-chat-maintainer" },
+    { "binding": "DEPLOYER_SERVICE", "service": "trinity-deployer" },
+    { "binding": "SEEDER_SERVICE", "service": "trinity-seeder" }
   ],
   "secrets_store_secrets": [
     {
@@ -310,6 +234,155 @@
     }
   ],
   "env": {
+    "production": {
+      "name": "trinity",
+      "routes": [
+        {
+          "pattern": "auru.space",
+          "custom_domain": true
+        }
+      ],
+      "triggers": {
+        "crons": [
+          "*/30 * * * *",
+          "0 0 * * *",
+          "0 11 * * *"
+        ]
+      },
+      "vars": {
+        "CF_ACCOUNT_ID": "b60342e5e52f5646fbd4e913bb409334",
+        "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        "AI_FALLBACK_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
+        "AI_FAST_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
+        "OPENAI_MODEL": "gpt-4.1-mini",
+        "GEMINI_MODEL": "gemini-3.8-flash",
+        "IMAGE_MODEL": "@cf/black-forest-labs/flux-1-schnell",
+        "VISION_MODEL": "@cf/meta/llama-3.2-11b-vision-instruct",
+        "STT_MODEL": "@cf/openai/whisper-large-v3-turbo",
+        "TTS_MODEL": "@cf/myshell-ai/melotts",
+        "OLLAMA_MODEL": "gemma4:31b",
+        "TRINITY_ADMIN_EMAILS": "saboivan2008@gmail.com,usc31@auru.space,uscolective@gmail.com,delirium.trade12@gmail.com",
+        "TRINITY_OWNER_EMAIL": "saboivan2008@gmail.com",
+        "TRINITY_OWNER_EMAILS": "saboivan2008@gmail.com,uscolective@gmail.com,usc31@auru.space",
+        "GOOGLE_ENABLED": "false",
+        "GOOGLE_CLIENT_ID": "618392104829-trinity-auru-space.apps.googleusercontent.com",
+        "GOOGLE_REDIRECT_URI": "https://auru.space/auth/google/callback",
+        "GOOGLE_PROJECT_ID": "tangential-osprey-dl7cp",
+        "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
+        "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
+        "TRINITY_ENV": "production",
+        "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
+        "TRINITY_GITHUB_BRANCH": "main",
+        "TRINITY_AUTO_IMPROVE": "true",
+        "TRINITY_AUTO_MERGE": "true",
+        "AI_FAST_FALLBACK_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        "META_APP_ID": "1105151122389213",
+        "META_GRAPH_VERSION": "v26.0"
+      },
+      "ai": {
+        "binding": "AI"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "trinity-v03",
+          "database_id": "ca8ea24e-f7db-431e-b8bf-97f713ae4533",
+          "migrations_dir": "migrations"
+        },
+        {
+          "binding": "TRINITY_D1",
+          "database_name": "trinity-v03",
+          "database_id": "ca8ea24e-f7db-431e-b8bf-97f713ae4533",
+          "migrations_dir": "migrations"
+        },
+        {
+          "binding": "rea",
+          "database_name": "trinity-db",
+          "database_id": "5b792055-97cf-4d8a-8145-d588c83c54df"
+        },
+        {
+          "binding": "trinity_basterix",
+          "database_name": "trinity-pc-bridge",
+          "database_id": "39be1f38-f710-4df4-9202-5bdbb8febf57",
+          "remote": true
+        }
+      ],
+      "kv_namespaces": [
+        { "binding": "PC_STATE", "id": "7eb48d414296418f9c60d87f8c602956" },
+        { "binding": "Mastermind", "id": "0b92ed2717d742daa860f1827797297f" },
+        { "binding": "TRINITY_KV", "id": "0b92ed2717d742daa860f1827797297f" }
+      ],
+      "r2_buckets": [
+        { "binding": "ARTIFACTS", "bucket_name": "trinity-artifacts" },
+        { "binding": "TRINITY_STORAGE", "bucket_name": "trinity-artifacts" },
+        { "binding": "R2", "bucket_name": "trinity-artifacts" }
+      ],
+      "vectorize": [
+        { "binding": "VECTORIZE", "index_name": "trinity-vector-index" },
+        { "binding": "AURA_MEMORY_VECTOR", "index_name": "aura-memory" }
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "Brain", "class_name": "TrinityAgent" },
+          { "name": "CHAT_AGENT", "class_name": "ChatAgent" },
+          { "name": "GUARDIAN_AGENT", "class_name": "GuardianAgent" }
+        ]
+      },
+      "workflows": [
+        {
+          "binding": "OPS_WORKFLOW",
+          "name": "trinity-operations",
+          "class_name": "TrinityOperations"
+        }
+      ],
+      "services": [
+        { "binding": "KNOWLEDGE_SERVICE", "service": "trinity-knowledge" },
+        { "binding": "PC_BRIDGE_V2", "service": "trinity-pc-bridge-v2" },
+        { "binding": "PC_BRIDGE_SERVICE", "service": "trinity-pc-bridge" },
+        { "binding": "CORE", "service": "trinity-core" },
+        { "binding": "BUILDER", "service": "trinity-builder" },
+        { "binding": "DISPATCHER", "service": "trinity-dispatcher" },
+        { "binding": "CONNECTORS", "service": "trinity-connectors" },
+        { "binding": "GUARDIAN", "service": "trinity-guardian" },
+        { "binding": "MEMORY", "service": "trinity-memory" },
+        { "binding": "SENTINEL", "service": "trinity-sentinel" },
+        { "binding": "SKILLS", "service": "trinity-skills" },
+        { "binding": "admin", "service": "aura_sentinel" },
+        { "binding": "admino", "service": "aura_architect" },
+        { "binding": "Trinity", "service": "aura_deployer" },
+        { "binding": "AURA_ANALYZER", "service": "aura_analyzer" },
+        { "binding": "AURA_ARCHITECT", "service": "aura_architect" },
+        { "binding": "AURA_CODEGEN", "service": "aura_codegen" },
+        { "binding": "AURA_DEPLOYER", "service": "aura_deployer" },
+        { "binding": "AURA_EVOLVER", "service": "aura_evolver" },
+        { "binding": "AURA_MEMORY", "service": "aura_memory" },
+        { "binding": "AURA_OPTIMIZER", "service": "aura_optimizer" },
+        { "binding": "AURA_PLANNER", "service": "aura_planner" },
+        { "binding": "AURA_SENTINEL", "service": "aura_sentinel" },
+        { "binding": "AURA_TESTER", "service": "aura_tester" },
+        { "binding": "CHAT_INFERENCE_SERVICE", "service": "trinity-chat-inference" },
+        { "binding": "CAPACITY_SERVICE", "service": "trinity-capacity" },
+        { "binding": "INTEGRATIONS_SERVICE", "service": "trinity-integrations" },
+        { "binding": "AUDIT_SERVICE", "service": "trinity-audit" },
+        { "binding": "JERICHO_SERVICE", "service": "jericho123" },
+        { "binding": "RESEARCHER_SERVICE", "service": "trinity-agent-researcher" },
+        { "binding": "GEMINI_BRIDGE_SERVICE", "service": "trinity-gemini" },
+        { "binding": "OPS_SERVICE", "service": "trinity-ops" },
+        { "binding": "CHAT_MAINTAINER_SERVICE", "service": "trinity-chat-maintainer" },
+        { "binding": "DEPLOYER_SERVICE", "service": "trinity-deployer" },
+        { "binding": "SEEDER_SERVICE", "service": "trinity-seeder" }
+      ],
+      "secrets_store_secrets": [
+        {
+          "binding": "OLLAMA_SECRET",
+          "store_id": "5ba06ba934c343fa8c0dc5454ce67038",
+          "secret_name": "ollama"
+        }
+      ],
+      "version_metadata": {
+        "binding": "CF_VERSION_METADATA"
+      }
+    },
     "staging": {
       "name": "trinity-staging",
       "triggers": {
@@ -340,6 +413,7 @@
         "GOOGLE_CLIENT_ID": "618392104829-trinity-auru-space.apps.googleusercontent.com",
         "GOOGLE_REDIRECT_URI": "https://auru.dev/auth/google/callback",
         "GOOGLE_PROJECT_ID": "tangential-osprey-dl7cp",
+        "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
         "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
         "TRINITY_ENV": "staging",
         "TRINITY_PREVIEW_MODE": "build-only",
@@ -363,6 +437,12 @@
           "migrations_dir": "migrations"
         },
         {
+          "binding": "TRINITY_D1",
+          "database_name": "trinity-development",
+          "database_id": "1cce5249-e044-4c93-868c-0df534a778b5",
+          "migrations_dir": "migrations"
+        },
+        {
           "binding": "rea",
           "database_name": "trinity-db",
           "database_id": "5b792055-97cf-4d8a-8145-d588c83c54df"
@@ -375,16 +455,18 @@
         }
       ],
       "kv_namespaces": [
-        {
-          "binding": "Mastermind",
-          "id": "0b92ed2717d742daa860f1827797297f"
-        }
+        { "binding": "PC_STATE", "id": "7eb48d414296418f9c60d87f8c602956" },
+        { "binding": "Mastermind", "id": "0b92ed2717d742daa860f1827797297f" },
+        { "binding": "TRINITY_KV", "id": "0b92ed2717d742daa860f1827797297f" }
       ],
       "r2_buckets": [
-        {
-          "binding": "ARTIFACTS",
-          "bucket_name": "trinity-artifacts"
-        }
+        { "binding": "ARTIFACTS", "bucket_name": "trinity-artifacts" },
+        { "binding": "TRINITY_STORAGE", "bucket_name": "trinity-artifacts" },
+        { "binding": "R2", "bucket_name": "trinity-artifacts" }
+      ],
+      "vectorize": [
+        { "binding": "VECTORIZE", "index_name": "trinity-vector-index" },
+        { "binding": "AURA_MEMORY_VECTOR", "index_name": "aura-memory" }
       ],
       "durable_objects": {
         "bindings": [
