@@ -1899,3 +1899,22 @@ Nové platformové opravy sú v https://github.com/uscolective-byte/Trinity-anti
     - Overenie: `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id a2f13df4-9e97-425f-acb0-5dfbd9857380` -> `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"a2f13df4-9e97-425f-acb0-5dfbd9857380","tag":"66730eb1b0d8889f4c7d056dd424d6a36dd62b5e"}}`
   - **Staging (`https://auru.dev`)**:
     - Version ID: `f8cc090d-f5a0-4524-9571-7d8d8a6ffee9`
+
+### CLAIM Codex — OWNER-PLATFORM-PROVISION-20261101-03
+Priamy nový pokyn majiteľa v tomto chate: ked treba vitvor nove profili a vitvor to ako ma boit. Toto je aktuálne výslovné povolenie pre potrebné nové profily/projekty pri Google/Microsoft/Meta/Firebase integrácii; nahrádza starší sprostredkovaný zákaz v rozsahu tejto úlohy. Naďalej bez kopírovania credentials a bez falošnej identity.
+Prvý ohraničený krok: zistiť dostupné Google projekty a pokúsiť sa vytvoriť nový samostatný projekt trinity-basterix-20261101 pod existujúcim prihláseným účtom, keďže pôvodný projekt odmietol serviceusage.services.enable. Bez pripájania platobného účtu, zmien billing/IAM cudzieho projektu či nových používateľských hesiel. Konfiguráciu zmeniť až po skutočnom potvrdení projektu.
+Microsoft: pokračovať v existujúcom PAC auth create pre existujúce prostredie. Meta: overiť dostupnosť developer rozhrania a existujúceho OAuth; nová externá identita sa nevyhlasuje za vytvorenú bez výsledku poskytovateľa.
+
+### UPDATE / CLAIM Codex — GOOGLE-PROJECT-CLEANUP-20261101-04
+Majiteľ upresnil priamo: Len staré Google projekty; Trinity zachovať. Projekty Trinity/Aura/Morfeus a aktuálne používané integrácie zachovať. Za nepoužívaný nemožno považovať projekt iba podľa názvu. Najprv read-only inventár veku a zdrojov kandidátov My First Project; neoverený inventár blokuje dotknuté mazanie. Žiadne mazanie GitHub/Cloudflare ani produkčných dát Trinity.
+Online priorita splnená nezávislým overením: auru.space /, /health, /ready HTTP200; verified:true pre 66730eb a deployment a2f13df4-9e97-425f-acb0-5dfbd9857380. V main oproti tomuto commitu pribudli iba záznamy v TEAM-HANDOFF.md. Staging management metadata potvrdili 100% deployment f8cc090d-f5a0-4524-9571-7d8d8a6ffee9 s rovnakým SHA. Lokálna brána ready, cloud/pc_bridge connected.
+Google projekt create trinity-basterix-20261101 bol zamietnutý pre vyčerpanú project quota; projekt nevznikol. Read-only IAM potvrdil roles/owner pre prihláseného používateľa v existujúcich projektoch aurutrinity a trinity-8a5f4. Tieto projekty zachovať.
+
+### UPDATE / HANDOFF Codex — GOOGLE-PROJECT-CLEANUP-20261101-04
+Priama autorizacia majitela: len stare Google projekty, Trinity zachovat.
+Dokoncene: 13 auditovanych predvolenych projektov starsich nez 30 dni bolo odoslanych na odstranenie; kazdy nasledny projects describe potvrdil DELETE_REQUESTED a delete exit 0. Nejde o tvrdenie okamziteho fyzickeho vymazania.
+Zachovane: vsetky projekty Trinity/Aura/Morfeus, projekty s API klucmi alebo vlastnymi assetmi, najma aurutrinity a trinity-8a5f4 (overene ACTIVE). Dvaja dalsi kandidati neboli odstraneni pre vlastne assety/API kluce.
+Google Developer: v existujucom vlastnenom aurutrinity sa uspesne zapli Gemini, Drive, Docs, Sheets, People, Resource Manager, Firebase, Cloud Asset a API Keys API. Operacia enable exit 0 a nasledny enabled-services read potvrdili aktivaciu. Nejde o dokaz prepojenia OAuth v Trinity ani o migraciu existujucich klucov. Novy Google projekt nevznikol, billing/IAM sa nemenili.
+Podrobny nesekretny receipt: Dokumentacia/GOOGLE-PROJECT-CLEANUP-20261101.json.
+Online priorita: produkcia nezavisle verified:true, tag 66730eb1b0d8889f4c7d056dd424d6a36dd62b5e, version a2f13df4-9e97-425f-acb0-5dfbd9857380; root/health/ready HTTP200. Staging management verzia f8cc090d-f5a0-4524-9571-7d8d8a6ffee9 s rovnakym tagom. PC Gateway ready/cloud connected/pc_bridge connected.
+Zostava: Microsoft interaktivny device login pre ucet prideleny majitelom (usc31@saboivan2008gmail.onmicrosoft.com, tenant ad443c2d-5bac-46b3-ad16-187e4ca37962); Meta vlastnicky OAuth; bezpecne nove Firebase CLI prihlasenie. Device kody a tokeny nepatria do tohto dennika.
