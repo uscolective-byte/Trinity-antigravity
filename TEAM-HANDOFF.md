@@ -2048,3 +2048,16 @@ Vykonané zmeny a optimalizácie runtime:
      - Overenie cez `verify-deployment.mjs`: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"6aeeedc9-db6f-4f26-8098-e953e5f28db2","tag":"4b2aeb39b811b40d69f822b4646c5a9c2720f3b0"}}`
    - **Staging (`https://auru.dev`)**:
      - Version ID: `2bee3b82-3f5a-4c03-8fca-cc796133f2bd`
+
+### CLAIM Codex — CODEX-FULL-CHECK-20261101
+Vlastník: Codex. Pokyn majiteľa: opraviť Trinity, overiť nástroje a následne nasadiť.
+Základ: 308c47f932ea0501ad944a769ef849af0a0c1742.
+Rozsah: scripts/run-all-tests.mjs (chýbajúce testovacie moduly a Windows spúšťanie), príslušné testy runnera. Produkčný kód/UI a cudzie súbory nepreberám.
+Nasadenie až po testoch a overenom stagingu; žiadne nové tajomstvá.
+
+### UPDATE / CLAIM Codex — CODEX-FULL-CHECK-20261101
+Živý job 927ae127-3010-4e57-852b-e3217db4d0aa skončil completed/437, ale calculate v tool_log zlyhal na schéme. Rozširujem CLAIM o Trinity/src/fast-chat.js a Trinity/tests/fast-chat.test.mjs: presné rozpoznanie explicitnej požiadavky na kalkulačku, bez modelového odhadu. Prístup na staging overený cez existujúci Access service token bez zverejnenia hodnôt. UI sa nemení.
+
+### UPDATE / CLAIM Codex — CODEX-FULL-CHECK-20261101 — release
+Oprava kalkulačky má 8/8 fokusovaných testov; kompletná rozšírená sada sa opakuje. Existujúci Access token funguje. staging /health je build-only/data_access blocked, preto pri vydaní explicitne použijem TRINITY_PREVIEW_MODE=runtime na overenie skutočného requestu; konfiguráciu predvoleného preview nemením. cloudflare-env-audit --strict: isolated=true, secrets-store-doctor: ok=true; vzdialené metadáta scope workers aktívne. Záloha D1 staging vytvorená do súkromného work súboru. Rollback: predchádzajúca staging verzia 2bee3b82-3f5a-4c03-8fca-cc796133f2bd; produkcia 6aeeedc9-db6f-4f26-8098-e953e5f28db2.
+CLAIM cloud: existujúce workery trinity-staging a trinity, iba opravený balík so SHA tagom; produkcia až po úspešnom staging dôkaze. Pokyn majiteľa na nasadenie je v tomto chate.

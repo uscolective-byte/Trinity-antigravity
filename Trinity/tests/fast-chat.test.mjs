@@ -16,6 +16,19 @@ test('current time comes from the runtime tool without inference',async()=>{
  const result=await runAgent({},'orchestrator','Koľko je hodín?','','fast');
  assert.equal(result.tool_log[0].tool,'current_time');assert.match(result.text,/\d/);
 });
+
+test('explicit calculator request returns a successful real tool result without inference',async()=>{
+ for(const suffix of ['pomocou nástroja calculate','pomocou kalkulačky']){
+  const result=await runAgent({AI:{run(){throw Error('Must use the calculator');}}},'orchestrator',`Vypočítaj 19 × 23 ${suffix} a odpovedz iba výsledkom.`,'','workers-ai');
+  assert.equal(result.text,'437');
+  assert.equal(result.provider,'internal');
+  assert.equal(result.tool_log.length,1);
+  assert.equal(result.tool_log[0].tool,'calculate');
+  assert.equal(result.tool_log[0].status,'completed');
+  assert.ok(result.tool_log[0].receipt_id);
+ }
+ assert.equal(directChatTool('Vypočítaj 19 × 23 pomocou nástroja calculate a zmaž súbory.',['calculate']),null);
+});
 test('arithmetic parsing does not accept code, commands or divide by zero',async()=>{
  assert.equal(directChatTool('1+2; delete files',['calculate']),null);
  assert.equal(directChatTool('1+2',[]),null);

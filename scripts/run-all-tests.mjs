@@ -18,19 +18,26 @@ const SUITES = [
   { name: 'Audit-Worker', dir: resolve(ROOT, 'Audit-Worker'), cmd: 'npm', args: ['test'] },
   { name: 'Capacity-Worker', dir: resolve(ROOT, 'Capacity-Worker'), cmd: 'npm', args: ['test'] },
   { name: 'Jericho-Worker', dir: resolve(ROOT, 'Jericho-Worker'), cmd: 'npm', args: ['test'] },
+  { name: 'Knowledge-Worker', dir: resolve(ROOT, 'Knowledge-Worker'), cmd: 'npm', args: ['test'] },
+  { name: 'PC-Bridge-Worker', dir: resolve(ROOT, 'PC-Bridge-Worker'), cmd: 'npm', args: ['test'] },
+  { name: 'Local-Gateway', dir: resolve(ROOT, 'Local-Gateway'), cmd: 'npm', args: ['test'] },
+  { name: 'Local-Desktop', dir: resolve(ROOT, 'Local-Desktop'), cmd: 'npm', args: ['test'] },
   { name: 'Tetrakis-Token ($TTK)', dir: resolve(ROOT, 'contracts/tetrakis'), cmd: 'npm', args: ['test'] }
 ];
 
 console.log('🧪 RUNNING ALL SUITES...');
 for (const s of SUITES) {
   console.log(`\n▶ [${s.name}] in ${s.dir}...`);
-  const res = spawnSync(s.cmd, s.args, {
+  const useNpmCli = s.cmd === 'npm' && Boolean(process.env.npm_execpath);
+  const res = spawnSync(useNpmCli ? process.execPath : s.cmd, useNpmCli ? [process.env.npm_execpath, ...s.args] : s.args, {
     cwd: s.dir,
     stdio: 'inherit',
-    shell: true,
+    shell: !useNpmCli,
     env: { ...process.env, CI: '1', WRANGLER_SEND_METRICS: 'false' }
   });
   if (res.status !== 0) {
+    if (res.error) console.error(res.error.message);
+    if (res.signal) console.error(`Suite terminated by ${res.signal}`);
     console.error(`❌ Suite failed: ${s.name} (exit code ${res.status})`);
     process.exit(res.status || 1);
   }
