@@ -14,6 +14,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
 const SUITES = [
+  { name: 'TAP Contracts', dir: resolve(ROOT, 'packages/contracts'), cmd: 'npm', args: ['test'] },
+  { name: 'TAP JSON Schema consistency', dir: resolve(ROOT, 'packages/contracts'), cmd: 'npm', args: ['run', 'schema:check'] },
   { name: 'Workspace policies and operations', dir: ROOT, cmd: process.execPath, args: ['--test', 'tests/*.test.mjs', 'scripts/*.test.mjs'] },
   { name: 'Trinity Main Fleet', dir: resolve(ROOT, 'Trinity'), cmd: 'npm', args: ['test'] },
   { name: 'Audit-Worker', dir: resolve(ROOT, 'Audit-Worker'), cmd: 'npm', args: ['test'] },

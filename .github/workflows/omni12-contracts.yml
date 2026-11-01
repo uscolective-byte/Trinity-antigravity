@@ -5,6 +5,9 @@ on:
     paths:
       - packages/contracts/**
       - Trinity/src/tap-runtime.js
+      - Trinity/src/tap-mcp-adapter.js
+      - Trinity/src/mcp.js
+      - Trinity/wrangler.jsonc
       - Trinity/tests/tap-*.test.mjs
       - Trinity/docs/omni12/**
       - .github/workflows/omni12-contracts.yml
@@ -24,7 +27,9 @@ jobs:
         working-directory: packages/contracts
       - run: npm ci --ignore-scripts
         working-directory: Trinity
-      - run: node --test tests/tap-foundation.test.mjs
+      - run: npm run build
+        working-directory: Trinity
+      - run: node --test tests/tap-foundation.test.mjs tests/tap-mcp-http.test.mjs
         working-directory: Trinity
       - run: node docs/omni12/run-local-proof.mjs "$RUNNER_TEMP/omni12-proof"
         working-directory: Trinity

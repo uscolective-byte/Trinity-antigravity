@@ -1,10 +1,10 @@
-/** Opt-in Foundation facade. No HTTP route, credential discovery or production activation. */
+/** Scoped Foundation facade. Only the existing diagnostic tool is eligible for activation. */
 import { MessageSchema, canonicalJson, createReceipt, digest, transition, verifyReceipt } from '../../packages/contracts/src/tap.js';
 import { runTool, TOOL_SCHEMAS } from './tools.js';
 import { agentById } from './registry.js';
 
 export const TAP_AGENTS = Object.freeze({
-  orchestrator: Object.freeze({ agent_id: 'orchestrator', scopes: Object.freeze(['tool:diagnostic_ping']), environments: Object.freeze(['local', 'staging']) }),
+  orchestrator: Object.freeze({ agent_id: 'orchestrator', scopes: Object.freeze(['tool:diagnostic_ping']), environments: Object.freeze(['local', 'staging', 'production']) }),
   'auru-dev-agent': Object.freeze({ agent_id: 'auru-dev-agent', source: 'https://auru.dev', owner_reported_provider: 'Meta AI',
     availability: 'NOT_TESTED', protocol: 'UNVERIFIED', scopes: Object.freeze([]), environments: Object.freeze(['staging']),
     verified_capabilities: Object.freeze([]), transport: null })
@@ -23,11 +23,13 @@ function uncertain(request) {
 }
 
 // Only server-authenticated callers may construct context/grant. Never spread JSON body into it.
-function authorize(request, context) {
+function authorize(request, context, env) {
   requireValue(context?.principal?.authenticated === true, 'TAP_IDENTITY_REQUIRED');
   requireValue(context.principal.agent_id === request.sender.id, 'TAP_IDENTITY_MISMATCH');
   requireValue(request.sender.type === 'agent' && request.receiver.type === 'agent', 'TAP_AGENT_REQUIRED');
-  requireValue(['local', 'staging'].includes(context.environment) && request.environment === context.environment, 'TAP_ENVIRONMENT_DENIED');
+  const allowedEnvironment = ['local', 'staging'].includes(context.environment)
+    || context.environment === 'production' && env.TRINITY_TAP_PRODUCTION === 'diagnostic-only';
+  requireValue(allowedEnvironment && request.environment === context.environment, 'TAP_ENVIRONMENT_DENIED');
   const grant = context.grant;
   requireValue(grant && grant.subject_id === request.sender.id && grant.receiver_id === request.receiver.id
     && grant.environment === request.environment && grant.authorization_ref === request.authorization_ref
@@ -111,7 +113,7 @@ export async function executeTapTask(env, input, context) {
   const m = MessageSchema.parse(input);
   requireValue(m.kind === 'task.request', 'TAP_REQUEST_REQUIRED');
   requireValue(canonicalJson(m).length <= 32768, 'TAP_MESSAGE_TOO_LARGE');
-  authorize(m, context);
+  authorize(m, context, env);
   requireValue(env.TAP_DB && env.TAP_ARTIFACTS, 'TAP_ISOLATED_STORAGE_REQUIRED');
   const store = new TapStore(env.TAP_DB, env.TAP_ARTIFACTS);
   const { fresh, row } = await store.claim(m, await digest(m));

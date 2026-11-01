@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS tap_runs (
   run_id TEXT PRIMARY KEY,
   task_id TEXT NOT NULL,
-  environment TEXT NOT NULL CHECK(environment IN ('local','staging')),
+  environment TEXT NOT NULL CHECK(environment IN ('local','staging','production')),
   sender_id TEXT NOT NULL,
   agent_id TEXT NOT NULL,
   idempotency_key TEXT NOT NULL,

@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 import { executeTapTask, TAP_AGENTS, TapStore } from '../src/tap-runtime.js';
 import { fromLegacy, digest, verifyReceipt } from '../../packages/contracts/src/tap.js';
+import { runTapMcpDiagnostic } from '../src/tap-mcp-adapter.js';
 
 let mf, db, bucket;
 before(async () => {
@@ -139,4 +140,33 @@ test('interrupted durable RUNNING is reconciled as unknown without automatic tak
   await db.prepare(`INSERT INTO tap_runs(run_id,task_id,environment,sender_id,agent_id,idempotency_key,request_hash,status) VALUES(?,?,?,?,?,?,?,'RUNNING')`)
     .bind(m.run_id, m.task_id, m.environment, m.sender.id, m.receiver.id, m.idempotency_key, await digest(m)).run();
   assert.equal((await executeTapTask(env, m, context)).status, 'UNKNOWN_OUTCOME'); assert.deepEqual(await audit(m), []);
+});
+test('production needs explicit diagnostic-only activation in addition to a server grant', async () => {
+  const { m, env, context } = fixture(); m.environment = context.environment = context.grant.environment = 'production';
+  await assert.rejects(executeTapTask(env, m, context), /TAP_ENVIRONMENT_DENIED/);
+  env.TRINITY_TAP_PRODUCTION = 'diagnostic-only';
+  assert.equal((await executeTapTask(env, m, context)).status, 'VERIFIED');
+});
+test('MCP adapter keeps legacy output and deterministic replay, isolates principals and rejects changed requests', async () => {
+  const { env } = fixture(); Object.assign(env, { TRINITY_TAP_ENABLED: 'true', TRINITY_ENV: 'staging' });
+  const args = { idempotency_key: crypto.randomUUID() }, access = { projectControl: true, principal: 'api-key:fixture-a' };
+  const first = await runTapMcpDiagnostic(env, args, access), replay = await runTapMcpDiagnostic(env, args, access);
+  assert.equal(first.data.status, 'healthy'); assert.equal(first.data.echo, 'ping'); assert.equal(first.isError, false);
+  assert.deepEqual(replay, first); assert.equal(await verifyReceipt(first.data.tap.evidence[0], first.data.tap_request, first.data.tap.result), true);
+  const other = await runTapMcpDiagnostic(env, args, { ...access, principal: 'api-key:fixture-b' });
+  assert.notEqual(other.data.tap.run_id, first.data.tap.run_id);
+  await assert.rejects(runTapMcpDiagnostic(env, { ...args, message: 'changed' }, access), /TAP_IDEMPOTENCY_CONFLICT/);
+});
+test('MCP adapter never accepts forged principal/grants in body or read-only host access', async () => {
+  const { env } = fixture(); Object.assign(env, { TRINITY_TAP_ENABLED: 'true', TRINITY_ENV: 'staging' });
+  const access = { projectControl: true, principal: 'api-key:fixture' };
+  await assert.rejects(runTapMcpDiagnostic(env, {}, { ...access, projectControl: false }), /TAP_MCP_IDENTITY_REQUIRED/);
+  await assert.rejects(runTapMcpDiagnostic(env, {}, { projectControl: true }), /TAP_MCP_IDENTITY_REQUIRED/);
+  await assert.rejects(runTapMcpDiagnostic(env, { principal: 'owner', grant: { scopes: ['*'] } }, access));
+});
+test('MCP adapter reports evidence storage failure as isError UNKNOWN_OUTCOME, never healthy', async () => {
+  const { env } = fixture({ TAP_ARTIFACTS: { put: async () => { throw new Error('fixture failure'); } } });
+  Object.assign(env, { TRINITY_TAP_ENABLED: 'true', TRINITY_ENV: 'staging' });
+  const outcome = await runTapMcpDiagnostic(env, {}, { projectControl: true, principal: 'api-key:failure' });
+  assert.equal(outcome.isError, true); assert.equal(outcome.data.status, 'unknown_outcome'); assert.equal(outcome.data.tap.status, 'UNKNOWN_OUTCOME');
 });
