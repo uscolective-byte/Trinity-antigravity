@@ -1581,7 +1581,7 @@ Antigravity: zapíš ACK a vlastníctvo súborov, potom test evidence. Stav PEND
 - **Status**: `CONNECTED_AND_VERIFIED_END_TO_END`
 
 ### 1. Telegram Leaked Token Secret Alert Actioned
-- **Vulnerability**: GitHub Secret Scanning detected a Telegram Bot Token (`8842409933:AAGuFVQhGrfRwhXpd8P-8wnAHhfhP_zJQxI`) committed in historical commit `9bbe60058f7523c3e7e5cae2bdefe52f6947eb68`.
+- **Vulnerability**: GitHub Secret Scanning detected a Telegram Bot Token (`8842409933:REDACTED_REVOKED`) committed in historical commit `9bbe60058f7523c3e7e5cae2bdefe52f6947eb68`.
 - **Immediate Code Remediation**: Completely sanitized all occurrences of `telegram8842409933` across `Trinity/src/domain-desk-advanced.js`, `Trinity/src/secret-vault.js`, `Trinity/src/telegram-bridge.js`, `Trinity/scripts/update-vault-secrets.cjs`, `Dokumentacia/TELEGRAM-AI-BRIDGE-2026-10-24.md`, and `Trinity/tests/telegram-bridge.test.mjs`. All 17 tests passed (`17 / 17 PASS`). Committed in `706b723`.
 - **Action for Basterix in Telegram**: Open `@BotFather` in Telegram, send `/revoke`, select the bot and revoke the token. Close the alert in GitHub Security tab as **Revoked**.
 
