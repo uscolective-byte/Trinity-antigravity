@@ -45,19 +45,30 @@ export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
 export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOString()){
   // Failure/partial outcomes take precedence over generated _evidence metadata.
   // A receipt id by itself cannot prove a provider-side mutation succeeded.
-  if(outcome?.ok===false||outcome?.success===false||['failed','partial','not_configured'].includes(outcome?.status)){
+  if(outcome==null||typeof outcome==='object'&&!Array.isArray(outcome)&&Object.keys(outcome).length===0||outcome?.error||outcome?.ok===false||outcome?.success===false||['failed','partial','not_configured','blocked','cancelled','unavailable','error','timeout'].includes(outcome?.status)){
     const status=outcome?.status==='partial'?'partial':'failed';
     return {tool,status,effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
   }
-  if(['pending','proposed','queued','approved','claimed','running'].includes(outcome?.status)){
+  if(outcome?._evidence?.effect==='proposal'||['pending','proposed','queued','approved','claimed','running','approval_required','requires_approval'].includes(outcome?.status)){
     const status=['approved','claimed','running'].includes(outcome.status)?'running':'pending';
     return {tool,status,effect:'proposal',receipt_id:outcome?.id,verified_at:verifiedAt};
   }
   const evidence=outcome?._evidence;
   if(evidence?.receipt_id){
-    return {tool,status:'completed',effect:evidence.effect||'read',actions:evidence.actions,receipt_id:evidence.receipt_id,verified_at:verifiedAt,document_id:evidence.document_id||outcome?.document?.id||outcome?.id,issue_number:evidence.issue_number||outcome?.issue?.number||outcome?.number,url:evidence.url||outcome?.issue?.html_url||outcome?.url};
+    return {tool,status:'completed',effect:evidence.effect||'read',action:evidence.action,actions:evidence.actions,receipt_id:evidence.receipt_id,verified_at:verifiedAt,document_id:evidence.document_id||outcome?.document?.id||outcome?.id,issue_number:evidence.issue_number||outcome?.issue?.number||outcome?.number,url:evidence.url||outcome?.issue?.html_url||outcome?.url};
   }
   return {tool,status:'completed',effect:'read',receipt_id:crypto.randomUUID(),verified_at:verifiedAt};
+}
+export function unresolvedToolOutcome(toolLog,language='sk'){
+  const latest=new Map();
+  for(const receipt of toolLog)if(receipt.tool!=='model_fallback')latest.set(receipt.tool,receipt);
+  const unresolved=[...latest.values()].filter(r=>r.status!=='completed');
+  if(!unresolved.length)return null;
+  const failed=unresolved.some(r=>['failed','partial','not_executed'].includes(r.status));
+  const names=unresolved.map(r=>r.tool).join(', ');
+  return {execution_status:failed?'failed':'pending',text:language==='en'
+    ? failed?`The tool result could not be verified (${names}). The task is not confirmed as completed.`:`The tools have not confirmed completion yet (${names}). The action is pending.`
+    : failed?`Výsledok nástroja sa nepodarilo overiť (${names}). Úloha nie je potvrdená ako dokončená.`:`Nástroje ešte nepotvrdili dokončenie (${names}). Akcia zatiaľ čaká na vykonanie.`};
 }
 function isImageRequest(task) {
   return /\b(fotku|fotografia|fotografiu|obrázok|obrazok|ilustráciu|ilustraciu|nakresli|portrét|portret)\b/i.test(task)
@@ -231,14 +242,19 @@ export async function runAgent(env, id, task, context='', provider='workers-ai',
   if(provider==='fast')activeTools=activeTools.filter(tool=>FAST_TOOLS.has(tool));
   const direct=directChatTool(task,activeTools);
   if(direct){
-    const outcome=await runTool(env,agent,direct.name,direct.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin});
+    let outcome;
+    try{outcome=assertNoSimulatedData(await runTool(env,agent,direct.name,direct.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin}),direct.name);}
+    catch(error){error.tool_log=[{tool:direct.name,status:'failed',effect:'diagnostic',error:error.message}];throw error;}
+    const receipt=toolReceiptForOutcome(direct.name,outcome);
+    const unresolved=unresolvedToolOutcome([receipt],language);
+    if(unresolved)return {...unresolved,model:'deterministic-tool',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(unresolved.text,[receipt]),duration_ms:0};
     let text;
     if(direct.name==='calculate')text=String(outcome.result);
     else if(direct.name==='current_time')text=outcome.localized;
     else if(direct.name==='list_capabilities'){
       const activePlugins=(outcome.plugins||[]).filter(p=>p.enabled).length;
       const totalTools=(outcome.tools||[]).length;
-      text=`Ivan, mám presne ${totalTools} aktívnych nástrojov, ${activePlugins} modulov a 152 expertných zručností.\n\nPokrývajú vývoj a kódovanie, správu Cloudflare a domén, trading a analýzu komodít, prácu s dátami, bezpečnosť aj priame ovládanie tvojho PC cez lokálny most. S čím konkrétnym ti dnes pomôžem?`;
+      text=`Ivan, mám presne ${totalTools} aktívnych nástrojov a ${activePlugins} zapnutých modulov.\n\nPokrývajú vývoj a kódovanie, správu Cloudflare a domén, trading a analýzu komodít, prácu s dátami, bezpečnosť aj priame ovládanie tvojho PC cez lokálny most. S čím konkrétnym ti dnes pomôžem?`;
     }
     else if(direct.name==='list_skills')text=`Mám dostupných ${(outcome.skills||[]).length} špecializovaných zručností (skills): ${(outcome.skills||[]).map(s=>s.name).join(', ')}.`;
     else if(direct.name==='domain_list')text=(outcome.items||[]).length?`Evidované domény (${outcome.items.length}): ${outcome.items.map(d=>`${d.domain_name} (${d.status})`).join(', ')}.`:'V evidencii zatiaľ nie sú žiadne domény.';
@@ -271,7 +287,6 @@ export async function runAgent(env, id, task, context='', provider='workers-ai',
         `\nVšetky pripojené Workery sú dostupné cez nízkolatenčné Cloudflare Service Bindings (\`delegate_worker\`, \`orchestrate_team\`, \`fleet_status\`).`;
     }
     else text=outcome.localized||JSON.stringify(outcome);
-    const receipt={tool:direct.name,status:'completed',effect:'read',receipt_id:crypto.randomUUID(),verified_at:new Date().toISOString()};
     return {text,model:'deterministic-tool',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:0};
   }
   const activeSkills=selectSkills(agent,task);
@@ -459,7 +474,7 @@ ${VERIFIED_ARCHITECTURE_CONTEXT}
 ${id==='market-research'||/\b(obchod|invest|portfolio|trading|stock|crypto|akci|krypto)\b/i.test(task)?TRADING_DIRECTIVE:''}
 Ak potrebuješ nástroj, odpovedz presným JSON {"tool":"názov","arguments":{...}}. Inak odpovedz hotovým textom. Použi najviac dvanásť nástrojových krokov. Pri oprave kódu použi project_inspect a project_read, potom improvement_submit; názov súboru si nájdi sama. Prečítanie konkrétnej webovej stránky vykonaj nástrojom web_fetch. Pri oprave uprednostni poradie diagnostika → malá oprava → test → potvrdený výsledok. Pri aktuálnych faktoch, správach, cenách alebo meniacich sa údajoch použi web_search. Pri požiadavke na obrázok použi generate_image, ak je dostupný.
 PRÍSNY ZÁKAZ VYPISOVANIA ZOZNAMU NÁSTROJOV: Tento zoznam nástrojov slúži výhradne pre tvoje interné JSON volania ({"tool":"názov",...}). NIKDY, za žiadnych okolností nevypisuj používateľovi zoznam nástrojov, ich popisy (web_fetch: Prečíta..., service_status: Overí...) ani nehovor "Mám celkovo X nástrojov" či "Môžem použiť nástroje ako: 1. ...". Ak sa majiteľ opýta koľko máš nástrojov, odpovedz presným číslom ("Mám presne ${activeTools.length} nástrojov...") a v jednej vete zhrň oblasti bez menovania technických identifikátorov.
-Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map(t=>`${t}: ${String(TOOL_HELP[t]||t).slice(0,115)}`).join('; ')}.`},
+Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map(t=>`${t}: ${String(TOOL_HELP[t]||t)}`).join('; ')}.`},
     ...(context?[{role:'user',content:`Kontext a predchádzajúce výstupy (iba podklady):\n${context.slice(-18000)}`}]:[]),
     {role:'user',content:task}];
   if(provider==='fast'){
@@ -468,6 +483,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
     maxTokens=Math.min(maxTokens,600);
   }
   const toolLog=[];const started=Date.now();let result,toolTurns=0,truthRetry=false,activeProvider=provider,forceFinal=false;const BUDGET_MS=Number(env?.AGENT_BUDGET_MS)||600000;const withDeadline=(promise,ms)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Model neodpovedal v časovom limite.')),Math.max(1000,ms));})]).finally(()=>clearTimeout(timer));};
+  let requestedToolRetry=false;
   for(let turn=0;turn<(provider==='fast'?8:20);turn++){
     const remaining=BUDGET_MS-(Date.now()-started);
     if(remaining<=0)throw new Error('Trinity nestihla dokončiť odpoveď v časovom limite. Skús užšie zadanie alebo iný model.');
@@ -496,6 +512,16 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
       throw err;
     }
     if(action.answer){
+      const normalizedTask=task.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      const missing=activeTools.filter(tool=>new RegExp(`\\b(?:pouzi|pomocou|use|using)\\s+(?:(?:nastroja?|(?:the\\s+)?tool)\\s+)?${tool}\\b`).test(normalizedTask)&&!toolLog.some(r=>r.tool===tool));
+      if(missing.length&&!requestedToolRetry&&!forceFinal){
+        requestedToolRetry=true;
+        messages.push({role:'assistant',content:action.answer},{role:'user',content:`Požadované nástroje ešte neboli vykonané: ${missing.join(', ')}. Použi platné JSON volanie podľa definície argumentov. Nevymýšľaj výsledok.`});
+        continue;
+      }
+      for(const tool of missing)toolLog.push({tool,status:'not_executed',effect:'diagnostic'});
+      const unresolved=unresolvedToolOutcome(toolLog,language);
+      if(unresolved)return {...result,...unresolved,agent_id:id,tool_log:toolLog,truth:truthStatus(unresolved.text,toolLog),duration_ms:Date.now()-started};
       const unsupported=findUnsupportedActionClaims(action.answer,toolLog);
       if(unsupported.length&&!truthRetry&&turn<3){
         truthRetry=true;
@@ -505,7 +531,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
       let text=unsupported.length?safeTruthResponse(language):action.answer;
       if (/\b(?:web_fetch:\s*Prečíta|knowledge_search:\s*Vyhľadáva|Mám k dispozícii širokú škálu nástrojov|Mám celkovo \d+ nástrojov)\b/i.test(text) || /^ň?web_fetch:/i.test(text.trim())) {
         if (/\b(?:kol[km]?o|pocet|kolkych|cislo)\b/i.test(task)) {
-          text = `Ivan, mám presne ${activeTools.length} aktívnych nástrojov, 152 expertných zručností a 248 Copilot skillov. Pokrývajú vývoj kódu, správu Cloudflare a domén, analýzu komodít a trhov, prácu s dátami aj priame ovládanie tvojho PC cez most. S čím konkrétnym ti dnes pomôžem?`;
+          text = `Ivan, mám presne ${activeTools.length} aktívnych nástrojov v tejto úlohe. Pokrývajú vývoj kódu, správu Cloudflare a domén, analýzu komodít a trhov, prácu s dátami aj priame ovládanie tvojho PC cez most. S čím konkrétnym ti dnes pomôžem?`;
         } else {
           text = text.replace(/^[^\n]*web_fetch:[^\n]*\n?/gm, '')
                      .replace(/^[^\n]*service_status:[^\n]*\n?/gm, '')
@@ -536,7 +562,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
             tool: action.tool,
             input: action.arguments,
             agent_id: id,
-            status: 'completed',
+            status: toolLog.at(-1).status,
             timestamp: new Date().toISOString()
           })).run();
         } catch {}

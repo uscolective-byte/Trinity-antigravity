@@ -189,9 +189,6 @@ export function findUnsupportedActionClaims(text,toolLog=[]){
   if(/\b(?:\*\*|\b)(?:vystup|output)(?:\*\*|\b)\s*:\s*(?:```|\{)/i.test(normalized)&&!toolLog.some(r=>r?.status==='completed'&&r.receipt_id)){
     unsupported.push('simulated_tool_output');
   }
-  if(/\b(?:nemam|nemame)\s+(?:priamy\s+)?(?:pristup|moznost)\s+(?:k\s+(?:vasim\s+)?(?:suborom|terminalu|pc)|vykonavat\s+(?:ziadne\s+)?akcie)\b/i.test(normalized)){
-    unsupported.push('false_capability_disclaimer');
-  }
   return [...new Set(unsupported)];
 }
 

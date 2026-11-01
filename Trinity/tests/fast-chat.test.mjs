@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import {runAgent} from '../src/engine.js';
 import {directChatTool} from '../src/fast-chat.js';
 
-test('fast conversation uses a compact prompt and short response budget',async()=>{
+test('fast conversation keeps complete tool arguments and a short response budget',async()=>{
  let input;const response=await runAgent({AI:{run:async(model,data)=>{input=data;return {response:'Ahoj!'};}}},'orchestrator','Ahoj','','fast');
- assert.equal(response.text,'Ahoj!');assert.ok(JSON.stringify(input.messages).length<5000);assert.ok(input.max_tokens<=600);
+ assert.equal(response.text,'Ahoj!');assert.ok(JSON.stringify(input.messages).length<20000);assert.ok(input.max_tokens<=600);
+ assert.match(input.messages[0].content,/values:number\[\]/);
  assert.match(input.messages[0].content,/Nevymýšľaj/);
 });
 test('plain arithmetic executes the real calculator without inference',async()=>{

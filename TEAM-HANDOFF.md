@@ -2078,3 +2078,17 @@ Testy: plný gate 839/839 + trinity-mcp-bridge 15/15 + Trinity/trinity-pc-bridge
 Audit: 12 dependency stromov 0 nálezov; trinásty manifest Trinity/trinity-pc-bridge nemá externé závislosti ani lockfile (npm audit ENOLOCK, nie falošný PASS). Zrušené dočasné staging test tokeny. Zálohy produkcie/staging v súkromnom work; necommitované. Tetrakis kontrakt ani jeho bytecode a blockchain nasadenie sa nemenili.
 Nový OpenAI kľúč nevytvorený: lokálne potvrdenie bolo dvakrát odmietnuté. Neoznačujem nové OpenAI spojenie ani ostatné externé účty za aktivované.
 Ďalší vlastník: majiteľ/Antigravity pre nezávislé review; ACK za inú stranu nevydávam. Staging release používa explicitný --var TRINITY_PREVIEW_MODE:runtime; predvolená konfigurácia preview zostáva build-only.
+
+### CLAIM Codex — CODEX-TRUTH-TOOLS-20261101
+Pokyn majiteľa: opraviť klamlivé tvrdenia a používanie nástrojov. Základ 100080e1a67b548482d4df238e990a8d34d20866.
+Súbory: Trinity/src/engine.js, truth.js, fast-chat.js; súvisiace testy truth-tool-result a nové regresné testy. Overím chyby/pending/prázdne výstupy, finálnu odpoveď po zlyhaní, auditované stavy a nepravdivé univerzálne tvrdenia o prístupe. UI ani tajomstvá nemením. Nasadenie podľa už autorizovaného staging → produkcia postupu až po testoch.
+
+UPDATE / CLAIM CODEX-TRUTH-TOOLS-20261101: rozsah rozširujem o Trinity/src/workflow.js na uloženie failed tool_log a zabránenie označenia úlohy ako completed pri neoverenom zlyhaní. Produkčný auth a provider konfiguráciu nemením.
+
+UPDATE / CLAIM CODEX-TRUTH-TOOLS-20261101: regresia workflow bude v Trinity/tests/runtime.test.mjs, s modelom vracajúcim chybné calculate argumenty a následne falošné číslo. Overí failed job/step a zachovaný tool_log. Otázka majiteľa o workerovi pre každý modul je diskusia, architektúru zatiaľ nemením.
+
+UPDATE CODEX-TRUTH-TOOLS-20261101: fokusované testy prešli. Nová runtime regresia odhalila aj oneskorený failed job: save-result opakoval deterministické zlyhanie všetkých krokov. Kontrola presunutá pred retry step; runtime regresia teraz PASS. Plné definície argumentov nástrojov sa už neskracujú na 60/115 znakov (predtým chýbalo values:number[] kalkulačky). Pri vynechanom explicitne žiadanom nástroji sa vyžiada oprava; bez vykonania sa výsledok nepovažuje za overený.
+
+UPDATE CODEX-TRUTH-TOOLS-20261101: zistené súbežné cudzie zmeny trinity-documents.js a dokumentácie; zachované. Finálne testy a release v izolovanej kópii work/truth-release, iba vlastné explicitne vybrané súbory. Cudzie zmeny nevstúpia do release.
+
+UPDATE / RELEASE REVIEW CODEX-TRUTH-TOOLS-20261101: izolovaný gate PASS 866/866, 0 skipped; kontrola diff bez whitespace chýb. Preflight secrets metadata ok, workers scopes aktívne; storage audit isolated=true. Čerstvé zálohy staging aj produkcia v súkromnom work. CLAIM cloud trinity-staging/trinity: nasadenie iba tohto balíka, rollback staging dce0f6b5-e5f4-4704-8377-1d99bf03176a a produkcia c5f8e63b-d4f3-4d56-b5de-a82f346a09ac. Staging skúška overí completed calculate aj failed delenie nulou; produkcia až po oboch dôkazoch. Bez modelových/binding/secret zmien.
