@@ -1976,3 +1976,10 @@ Vykonané zmeny a opravy:
   - Celý testovací suite `npm test`: **727 / 727 PASS**, 0 fail, trvanie ~24s.
 - **Git & Deployment**:
   - Pripravené na commit a push do `origin/main`.
+
+- **Overené nasadenie Cloudflare (3dfda398c40e1b620ec50922b9933b56462b7de4)**:
+  - **Produkcia (`https://auru.space`)**:
+    - Version ID: `c043b523-ea28-496d-9c4b-7c4933e4d812`
+    - Overenie cez `verify-deployment.mjs`: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","commit":"3dfda398c40e1b620ec50922b9933b56462b7de4"}`
+  - **Staging (`https://auru.dev`)**:
+    - Version ID: `22894c63-b876-40ae-b80e-a99812ec636c`
