@@ -50,3 +50,5 @@ opencode.json
 
 .bin/
 Local-Gateway/data/
+**/.gemini/
+**/.mcp.json
