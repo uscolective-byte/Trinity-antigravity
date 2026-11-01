@@ -19,6 +19,7 @@ import {z} from 'zod';
 import {AGENTS} from './registry.js';
 import {createJob,getJob,listJobs} from './jobs.js';
 import {runTool, searchMemory} from './tools.js';
+import {runTapMcpDiagnostic,tapDiagnosticInput} from './tap-mcp-adapter.js';
 import {callModel,serviceStatus,readiness} from './services.js';
 import {skillRegistry} from './skillRegistry.js';
 import {listPlugins} from './plugins.js';
@@ -37,7 +38,11 @@ export function handleMcp(request,env,ctx,access={}){
   return createMcpHandler(()=>{
   const server=new McpServer({name:'trinity',version:TRINITY_VERSION});
     const requireProjectAccess=()=>{if(access.projectControl!==true)throw new Error('Tento MCP klient nemá projektové oprávnenie.');};
-    server.registerTool('diagnostic_ping',{description:'Vykoná bezpečný diagnostický ping pre overenie prepojenia Tool Registry, Agent Runtime a Tool Executor.',inputSchema:{message:z.string().default('ping')}},async({message})=>result(await runTool(env,null,'diagnostic_ping',{message})));
+    server.registerTool('diagnostic_ping',{description:'Vykoná bezpečný diagnostický ping pre overenie prepojenia Tool Registry, Agent Runtime a Tool Executor.',inputSchema:tapDiagnosticInput.shape},async(args)=>{
+      if(env.TRINITY_TAP_ENABLED!=='true')return result(await runTool(env,null,'diagnostic_ping',{message:args.message}));
+      const outcome=await runTapMcpDiagnostic(env,args,access);
+      return {...result(outcome.data),...(outcome.isError?{isError:true}:{})};
+    });
     server.registerTool('infrastructure_status',{description:'Stav konfigurácie domén, hostingu a vývoja Trinity.',inputSchema:{}},async()=>result(infrastructureStatus(env)));
     server.registerTool('project_inspect',{description:'Nájde relevantné zdrojové súbory a presný commit Trinity.',inputSchema:{query:z.string().max(2000).default('')}},async({query})=>{requireProjectAccess();return result(await inspectProject(env,query));});
     server.registerTool('project_read',{description:'Číta zdroj z GitHubu bez zapnutého PC.',inputSchema:{path:z.string().max(500),ref:z.string().regex(/^[a-f0-9]{40}$/).optional()}},async({path,ref})=>{requireProjectAccess();return result(await readProjectSource(env,path,ref));});
