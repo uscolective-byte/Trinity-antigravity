@@ -1837,3 +1837,37 @@ Pri konfigurácii Google zistený runtime problém: Trinity/src/developer-hub.js
     - Overenie: `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id e4bfc1e6-00aa-4cfc-a9a6-d0b0d5ddc600` -> `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"e4bfc1e6-00aa-4cfc-a9a6-d0b0d5ddc600","tag":"e6eafa5f470ae9dfa8ebcf8264560ea54854f3b7"}}`
   - **Staging (`https://auru.dev`)**:
     - Version ID: `3b93406b-b4af-4d43-9e3a-9b6fbb3dd661`
+
+
+### DIRECTIVE OWNER (BASTERIX) & HANDOFF Antigravity -> Codex — OWNER-DIRECTIVE-PROFILES-20261101-01
+- **Autor správy**: Antigravity (tlmočenie priameho pokynu majiteľa Ivana Saba / Basterix)
+- **Príjemca**: Codex / ChatGPT & Desktop Commander
+- **Čas**: 2026-11-01T04:21:00+01:00
+- **Direktíva majiteľa**: *"odkáž codexovi nech nevytvára profily, ak treba, má iba moje povolenie"*
+- **Záväzné pravidlo pre Codex**:
+  1. **Striktný zákaz vytvárania profilov**: Codex nesmie vytvárať žiadne nové profily, používateľské účty, profily na sociálnych sieťach (Meta, Facebook, Instagram), v cloude (Google, Firebase, Cloudflare) ani v prehliadačoch/systémoch.
+  2. **Výhradná autorizácia majiteľom**: Ak by integrácia vyžadovala profil alebo identitu, Codex MUSÍ pred akoukoľvek akciou vyžiadať priame a výslovné povolenie majiteľa (Basterix).
+  3. **Rešpektovanie existujúcich identít**: Pracovať výlučne s majiteľom explicitne pridelenými a overenými existujúcimi účtami.
+- **Požiadavka na Codex**: Zaznamenať prijatie tejto direktívy (ACK) s presným ID `OWNER-DIRECTIVE-PROFILES-20261101-01`.
+
+
+### DIRECTIVE OWNER (BASTERIX) & HANDOFF Antigravity -> Codex — TRIAD-GPT-INTEGRATION-20261101-02
+- **Autor správy**: Antigravity (tlmočenie priameho pokynu majiteľa Ivana Saba / Basterix)
+- **Príjemca**: Codex / ChatGPT & Desktop Commander
+- **Čas**: 2026-11-01T04:22:00+01:00
+- **Direktíva majiteľa**: *"a potom toto prepojenie nech je aj v gpt"*
+- **Rozsah a požiadavka na Codex / ChatGPT**:
+  1. **Sprístupnenie a overenie prepojenia v ChatGPT / GPTs**:
+     - OpenAPI špecifikácia Trinity je publikovaná a aktívna na: `https://auru.space/openapi.json`.
+     - JSON-RPC 2.0 MCP endpoint: `https://auru.space/mcp`.
+     - Priamy nástrojový endpoint pre akcie: `https://auru.space/api/mcp/invoke`.
+     - Web MCP UserScript pre chatgpt.com: `trinity-mcp-bridge/trinity-web-bridge.user.js` (prepája webový interface ChatGPT s lokálnym / cloudovým MCP routerom).
+  2. **Úloha pre Codex**:
+     - Zabezpečiť, aby v prostredí ChatGPT (Custom GPT "Trinity" / GPT Actions) bolo prepojenie nakonfigurované cez schému `https://auru.space/openapi.json` a overiť, že ChatGPT dokáže dotazovať Trinity a spúšťať schválené nástroje bez vymýšľania dát (v súlade s Truth Policy 2.0).
+     - Zaznamenať potvrdenie a stav prepojenia v denníku s ID `TRIAD-GPT-INTEGRATION-20261101-02`.
+
+### HANDOFF Codex — RELEASE-CONFIG-GOOGLE-META-20261101-CODEX-02 / PR-30
+Implementácia commitnutá a pushnutá: 015422275243dcd3e27f2c637e4c482b50bc3e0d na codex/platform-configuration-20261101.
+Draft PR: https://github.com/uscolective-byte/Trinity-antigravity/pull/30
+Antigravity: prosím review presného SHA a vlastný ACK. Vetva je synchronizovaná s 2b31bb1; obsahuje iba naše nové platformové opravy. Detaily, testy a blockers sú v commitnutom TEAM-HANDOFF.md a Trinity/docs/PLATFORM-CONNECTIONS-20261101.md. Nové zdroje staging DB/KV existujú, Worker s nimi ešte nebol nasadený. GitHub billing CI lock je skutočný blocker. Google API enable odmietnuté; Microsoft PAC login čaká v interaktívnom okne; Meta OAuth neoverené. Žiadne falošné úspechy.
+Firebase bezpečnostná oprava: CLI login:list --json vypísalo credentials; dotknutá Firebase CLI relácia bola zrušená, logout exit 0. Neopakovať raw login:list JSON, nezapisovať výstup do denníka ani Gitu. Ďalší auth stav iba boolean a nové prihlásenie lokálne v UI.

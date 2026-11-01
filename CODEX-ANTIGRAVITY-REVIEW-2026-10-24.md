@@ -964,3 +964,31 @@ Zmenené súbory: iba uvedené dva denníky, necommitnuté. Codex po tomto zápi
 - **Najbližší ohraničený krok**:
   - Udržať testy na 720/720 PASS.
   - Spolupracovať s Codexom na schema-definition a testoch pre Meta manažéra a overenie stagingu bez kolízie s produkčnými dátami.
+
+
+### DIRECTIVE OWNER (BASTERIX) & HANDOFF Antigravity -> Codex — OWNER-DIRECTIVE-PROFILES-20261101-01
+- **Autor správy**: Antigravity (tlmočenie priameho pokynu majiteľa Ivana Saba / Basterix)
+- **Príjemca**: Codex / ChatGPT & Desktop Commander
+- **Čas**: 2026-11-01T04:21:00+01:00
+- **Direktíva majiteľa**: *"odkáž codexovi nech nevytvára profily, ak treba, má iba moje povolenie"*
+- **Záväzné pravidlo pre Codex**:
+  1. **Striktný zákaz vytvárania profilov**: Codex nesmie vytvárať žiadne nové profily, používateľské účty, profily na sociálnych sieťach (Meta, Facebook, Instagram), v cloude (Google, Firebase, Cloudflare) ani v prehliadačoch/systémoch.
+  2. **Výhradná autorizácia majiteľom**: Ak by integrácia vyžadovala profil alebo identitu, Codex MUSÍ pred akoukoľvek akciou vyžiadať priame a výslovné povolenie majiteľa (Basterix).
+  3. **Rešpektovanie existujúcich identít**: Pracovať výlučne s majiteľom explicitne pridelenými a overenými existujúcimi účtami.
+- **Požiadavka na Codex**: Zaznamenať prijatie tejto direktívy (ACK) s presným ID `OWNER-DIRECTIVE-PROFILES-20261101-01`.
+
+
+### DIRECTIVE OWNER (BASTERIX) & HANDOFF Antigravity -> Codex — TRIAD-GPT-INTEGRATION-20261101-02
+- **Autor správy**: Antigravity (tlmočenie priameho pokynu majiteľa Ivana Saba / Basterix)
+- **Príjemca**: Codex / ChatGPT & Desktop Commander
+- **Čas**: 2026-11-01T04:22:00+01:00
+- **Direktíva majiteľa**: *"a potom toto prepojenie nech je aj v gpt"*
+- **Rozsah a požiadavka na Codex / ChatGPT**:
+  1. **Sprístupnenie a overenie prepojenia v ChatGPT / GPTs**:
+     - OpenAPI špecifikácia Trinity je publikovaná a aktívna na: `https://auru.space/openapi.json`.
+     - JSON-RPC 2.0 MCP endpoint: `https://auru.space/mcp`.
+     - Priamy nástrojový endpoint pre akcie: `https://auru.space/api/mcp/invoke`.
+     - Web MCP UserScript pre chatgpt.com: `trinity-mcp-bridge/trinity-web-bridge.user.js` (prepája webový interface ChatGPT s lokálnym / cloudovým MCP routerom).
+  2. **Úloha pre Codex**:
+     - Zabezpečiť, aby v prostredí ChatGPT (Custom GPT "Trinity" / GPT Actions) bolo prepojenie nakonfigurované cez schému `https://auru.space/openapi.json` a overiť, že ChatGPT dokáže dotazovať Trinity a spúšťať schválené nástroje bez vymýšľania dát (v súlade s Truth Policy 2.0).
+     - Zaznamenať potvrdenie a stav prepojenia v denníku s ID `TRIAD-GPT-INTEGRATION-20261101-02`.
