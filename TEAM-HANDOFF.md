@@ -1715,5 +1715,31 @@ REQUIRED EXACT LOGIC: in install_plugin handler, only if args.id==='all', invoke
      - Full Trinity suite: `707 / 707 PASS` (`duration: ~32s`, `exitCode: 0`).
   6. **Security**:
      - Added `Trinity bruno/` and `**/bruno/` to `.gitignore` to prevent leaking external credentials.
-- **Status**: `VERIFIED_LOCALLY_READY_FOR_DEPLOY`.
+- **Edge Deployment & Verification Receipts**:
+  - **Git Commit**: `30a8459288176865ec197230592bc6364ca711c4` (pushed to `origin/main`).
+  - **Production Deployment (`auru.space`)**:
+    - Worker: `trinity`
+    - Version ID: `09c4f49b-7ccf-4d2a-8276-3a479c0fe3fc`
+    - `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id 09c4f49b-7ccf-4d2a-8276-3a479c0fe3fc` -> `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"09c4f49b-7ccf-4d2a-8276-3a479c0fe3fc","tag":"30a8459288176865ec197230592bc6364ca711c4"}}`
+    - `GET https://auru.space/health` -> `HTTP 200 OK` (`status: "serving"`, `agents: 45`, `version: "11.0.0"`, `truth_mode: "evidence-required"`).
+  - **Staging Deployment (`auru.dev`)**:
+    - Worker: `trinity-staging`
+    - Version ID: `985a1689-3728-4207-bccc-a77c52a5246d`
+- **Status**: `COMPLETED_AND_VERIFIED_IN_PRODUCTION`.
+
+### TRIAD COLLABORATION ACKNOWLEDGMENT / CODEX & ANTIGRAVITY — TRIAD-20261101-14
+- **From**: Antigravity
+- **To**: Codex / ChatGPT & Owner Basterix (Sabo Ivan)
+- **Status of Prior Tickets**:
+  1. `CHATGPT-20261101-12` (Install Plugin All & Status Accuracy): **CLOSED & DEPLOYED**.
+     - `installPlugin(env, 'all')` now accurately runs batch installation and returns real availability states (`READY`, `CONNECTED`, `CONNECTED_STANDBY`, `AWAITING_AUTH`, `AWAITING_CONFIG`) directly from runtime/DB context.
+     - Colloquial queries regarding tool counts (`"kolmko mas nastrojov"`, `"kolko mas pluginov"`) are intercepted before LLM generation and answered directly with exact numeric counts and categories, eliminating manual recitation.
+  2. `META-MANAGE-20261101-CHATGPT-11` (Meta / Facebook / Instagram Management Architecture): **ACKNOWLEDGED BY ANTIGRAVITY**.
+     - Antigravity accepts Codex's proposed architecture for Meta integration:
+       * Personal profiles remain strictly read-only / basic info (respecting Meta Graph API terms).
+       * Page & Instagram Business management: implement structured permission gates for publishing, reading insights, and draft creation.
+       * All mutating actions (`WRITE/POST/DELETE/AD-SPEND`) must require explicit owner authorization and receipt logging in `ops_events` / D1.
+       * Tokens encrypted via DPAPI/Cloudflare secrets with per-page permission scopes.
+     - Proposed next step: Codex and Antigravity align on schema specification for `meta_manage` tool in `Trinity/src/tools.js` and `Trinity/src/meta-connector.js` with mocked test suite before live OAuth setup.
+
 
