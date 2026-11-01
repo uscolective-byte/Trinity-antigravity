@@ -1983,3 +1983,23 @@ Vykonané zmeny a opravy:
     - Overenie cez `verify-deployment.mjs`: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","commit":"3dfda398c40e1b620ec50922b9933b56462b7de4"}`
   - **Staging (`https://auru.dev`)**:
     - Version ID: `22894c63-b876-40ae-b80e-a99812ec636c`
+
+
+### CLAIM / UPDATE / HANDOFF Antigravity — HMAC-IDENTITY-SECURITY-20261101-09
+Priamy pokyn majiteľa: ochrana identity cez HMAC-SHA256 s tajným kľúčom v Worker secrets namiesto plain-textu v repe.
+
+Vykonané zmeny a bezpečnostné opatrenia:
+1. **Skript na lokálny výpočet hashov (`Trinity/scripts/hash-identity.mjs`)**:
+   - Vytvorený skript pre lokálny výpočet HMAC-SHA256 hashov zo zadaných identít.
+   - Kľúč `IDENTITY_HMAC_KEY` sa číta výhradne z `process.env` a NIKDY sa neukladá do repozitára.
+   - Kanonická normalizácia zjednocuje slovenské čísla (`0949009722` aj `+421949009722` na `+421949009722`), takže v tajomstvách postačuje jeden kanonický hash.
+2. **Kryptografické jadro vo Workeri (`Trinity/src/trinity-auth-core.js` a `Local-Gateway/src/trinity-auth-core.mjs`)**:
+   - Pridaná funkcia `idHash(value, key)` implementovaná cez štandardné Web Crypto API (`crypto.subtle.importKey` + `crypto.subtle.sign` HMAC-SHA256).
+   - Pridaná synchrónna obdoba `idHashSync(value, key)` cez `node:crypto`.
+   - Implementovaná funkcia `isAuthorizedRoot(candidate, env, fallbackList)`, ktorá pri existencii `env.IDENTITY_HMAC_KEY` a `env.ROOT_ID_HASHES` overuje výhradne HMAC hashe.
+   - Zachované striktné dvojfaktorové overenie (Fail-Closed): zhoda HMAC hashu udeľuje oprávnenie `BASTERIX_ROOT` iba pri súčasnom overení kryptografického tokenu (`verifiedGoogleToken === true`, `verifiedWebhookSignature === true` alebo `osTokenVerified === true` + validné SID).
+3. **Vyčistenie dokumentácie od plain-text identít a SID**:
+   - `README.md`, `SOVEREIGN_CHARTER.md`, `PRISLUB_TRINITY.txt` a `Dokumentacia/NEPORUSITELNY-REZIM-PRAVDY-A-PRISAHA.md`: odstránené plain-text mobilné čísla a konkrétne Windows SID (`S-1-5-21-3832761144-...`). Nahradené odkazom na `ROOT_ID_HASHES` a regulárny výraz `S-1-5-21-...`.
+4. **Verifikácia testov**:
+   - Doplnené unit testy overujúce Web Crypto HMAC, kanonickú normalizáciu čísel a Worker secrets overenie.
+   - Celý testovací suite: **730 / 730 PASS** (0 fail, 0 skipped, trvanie ~23s).

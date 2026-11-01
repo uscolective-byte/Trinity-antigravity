@@ -37,7 +37,7 @@ REGISTER AUTORIZOVANÝCH ROOT IDENTÍT (ROOT_REGISTRY):
 - Alias: Basterix (Sabo Ivan)
 - Windows používatelia: saboi, basterix (vyžaduje osTokenVerified === true + reálne Windows SID S-1-5-21-...)
 - Autorizované Google účty: saboivan2008@gmail.com, uscolective@gmail.com, cadjavadvocecka013@gmail.com
-- Autorizované telefónne čísla: +421949009722, 0949009722, +421949515777, 0949515777
+- Autorizované telefónne čísla: chránené HMAC v ROOT_ID_HASHES
 
 ================================================================================
 III. ROZŠÍRENÝ SLÁVNOSTNÝ SĽUB A PRÍSAHA TRINITY

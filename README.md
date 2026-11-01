@@ -37,27 +37,27 @@ Tieto údaje sa generujú zo zdrojov a konfigurácie. Aktuálne nasadenie over c
 > Žiadny externý používateľ, žiadna tretia strana, žiadna sieťová entita a ani žiadny interný sub-agent (ani Trinity sama) nemá právo modifikovať zdrojový kód, meniť konfiguračné súbory, prepisovať systémové prompty ani spúšťať vývojové zmeny bez tvojho priameho, explicitného a kryptograficky overeného príkazu.
 >
 > **Dvojúrovňový exekučný zákon (Root vs Guest Gate):**
-> - **Overený a prihlásený Basterix (`BASTERIX_ROOT`)**: Trinity ťa automaticky rozpozná cez tvoju autentickú Windows reláciu (`saboi` / `basterix` + platné OS SID `S-1-5-21-...`), overené Google OAuth účty (`saboivan2008@gmail.com`, `uscolective@gmail.com`, `cadjavadvocecka013@gmail.com`) alebo kryptograficky podpísané mobilné čísla (`+421949009722`, `0949009722`, `+421949515777`, `0949515777`) a **koná okamžite a bez zbytočných otázok**.
+> - **Overený a prihlásený Basterix (`BASTERIX_ROOT`)**: Trinity ťa automaticky rozpozná cez tvoju autentickú Windows reláciu (autorizovaný Windows účet + platné OS SID `S-1-5-21-...` zo systémového tokenu), kryptograficky overené Google OAuth tokeny (`verifiedGoogleToken === true`) alebo kryptograficky podpísané webhook správy s HMAC overením a **koná okamžite a bez zbytočných otázok**.
 > - **Obyčajný / neznámy používateľ (`GUEST_USER`)**: Okamžitý **HARD-LOCK** — zákaz modifikácie kódu, zákaz spúšťania systémových príkazov (`HTTP 403 SECURITY_BLOCKED`) a okamžitý zápis bezpečnostného incidentu do `SovereignLedgerV3`.“
 
-### Register autorizovaných Root identít (`ROOT_REGISTRY` v `Trinity/src/trinity-auth-core.js`)
+### Register autorizovaných Root identít (HMAC chránené v Worker secrets)
+
+Identity výlučného vlastníka sú chránené pomocou HMAC-SHA256 s tajným kľúčom `IDENTITY_HMAC_KEY`. V repozitári a v produkcii sa porovnávajú výhradne hashe z `ROOT_ID_HASHES`:
 
 ```json
 {
   "root_architect": {
     "alias": "Basterix",
-    "windows_users": ["saboi", "basterix"],
-    "authorized_google_accounts": [
-      "saboivan2008@gmail.com",
-      "uscolective@gmail.com",
-      "cadjavadvocecka013@gmail.com"
-    ],
-    "authorized_phone_numbers": [
-      "+421949009722",
-      "0949009722",
-      "+421949515777",
-      "0949515777"
-    ]
+    "auth_method": "HMAC-SHA256 with Worker Secrets",
+    "secret_bindings": {
+      "key": "env.IDENTITY_HMAC_KEY",
+      "hashes": "env.ROOT_ID_HASHES"
+    },
+    "second_factor_requirements": {
+      "windows": "osTokenVerified === true && isValidWindowsSid(sid)",
+      "google": "verifiedGoogleToken === true",
+      "telecom": "verifiedWebhookSignature === true"
+    }
   }
 }
 ```
@@ -141,7 +141,7 @@ Všetkých **500 architektonických, systémových, hardvérových, desktopovýc
    - Zóny `auru.space` (`8f25a7259a78f0fe860fa0cc5e43f1bd`) a `auru.dev` (`b1b9b5701776b7f990d00535ad3a43aa`) sú aktívne a verejné DNS vracia `HTTP 200 OK`.
 4. **Živé End-to-End Prepojenie a Overenie Fázy 3 (`[Basterix] -> [https://auru.space/api/bridge] -> [Cloudflare Tunnel] -> [Local Bridge: 7788] -> [Windows OS] -> [Sovereign Ledger v3]`)**:
    - **Negatívny test**: Neoverený HTTP príkaz s e-mailom `saboivan2008@gmail.com` v tele požiadavky bol na `https://auru.space/api/bridge` zablokovaný stavom **`HTTP 403 SECURITY_BLOCKED`** (`receipt:trinity:4737b358411abd6f`).
-   - **Pozitívny End-to-End test**: Autorizovaný príkaz (`action: 'open_app'`, `app: 'whatsapp'`) prešiel cez `https://auru.space/api/bridge` a Cloudflare Tunnel na lokálny most `127.0.0.1:7788`, overil Windows SID (`S-1-5-21-3832761144-2928578498-3030676054-1001`, `os_token_verified: true`), spustil WhatsApp (`pid: 1244`, `exitCode: 0`, `lifecycle_guard_state: 'VERIFIED'`) a zapísal kryptografické receipty do lokálneho Ledgeru (`TRN-LCL-V3-1-7384C19D3E1A`) aj produkčnej D1 databázy `trinity-v03` (`receipt:trinity:cdcf8600d1322899`, blok `#5`).
+   - **Pozitívny End-to-End test**: Autorizovaný príkaz (`action: 'open_app'`, `app: 'whatsapp'`) prešiel cez `https://auru.space/api/bridge` a Cloudflare Tunnel na lokálny most `127.0.0.1:7788`, overil Windows SID (`S-1-5-21-...`, `os_token_verified: true`), spustil WhatsApp (`pid: 1244`, `exitCode: 0`, `lifecycle_guard_state: 'VERIFIED'`) a zapísal kryptografické receipty do lokálneho Ledgeru (`TRN-LCL-V3-1-7384C19D3E1A`) aj produkčnej D1 databázy `trinity-v03` (`receipt:trinity:cdcf8600d1322899`, blok `#5`).
 
 ---
 
