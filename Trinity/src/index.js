@@ -1,3 +1,5 @@
+import {authorizeBridgeProxy,authorizeBridgeRequest} from './bridge-proxy-auth.js';
+import {BRIDGE_AUTH_VERSION,registeredBridgeTunnelUrl} from '../../packages/contracts/src/bridge-auth.js';
 /**
  * @module TRINITY_OMNI_CORE
  * @subsystem EDGE_KERNEL_AND_HTTP_ROUTER
@@ -348,7 +350,7 @@ async function route(request,env,ctx){
       service:'TRINITY Cloud-to-Local Bridge Gateway',
       host:reqHostname,
       local_bridge_target_port:7788,
-      tunnel_connected:Boolean(tunnelMeta?.tunnel_url),
+      tunnel_connected:Boolean(registeredBridgeTunnelUrl(tunnelMeta)),
       tunnel_metadata:tunnelMeta?{
         registered_at:tunnelMeta.registered_at,
         operator:tunnelMeta.operator,
@@ -360,94 +362,47 @@ async function route(request,env,ctx){
     });
   }
   if(path==='/api/bridge/register-tunnel'&&request.method==='POST'){
-    const headerToken=(request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'').trim();
-    const tokenSha=headerToken?await hash(headerToken):'';
-    const storedSecret=(env.TRINITY_BRIDGE_TOKEN||'').trim();
-    const expectedSha=storedSecret?await hash(storedSecret):'bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8';
-    const tokenValid=Boolean(headerToken)&&(tokenSha==='bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8'||tokenSha===expectedSha||(Boolean(storedSecret)&&headerToken===storedSecret));
+    const authority=await authorizeBridgeRequest(request,env);
     const body=await readJSON(request,16000);
-    const idCheck=verifyTrinityIdentity({
-      windowsUser:body.windowsUser,
-      sid:body.sid,
-      osTokenVerified:body.osTokenVerified===true&&tokenValid,
-      verifiedWindowsToken:body.verifiedWindowsToken===true&&tokenValid,
-      email:body.email,
-      verifiedGoogleToken:body.verifiedGoogleToken===true&&tokenValid
-    });
-    if(!tokenValid||!idCheck.isRoot){
-      const ledger=new SovereignLedgerV3(env);
-      await ledger.appendBlock('UNVERIFIED_CALLER','BRIDGE_TUNNEL_REGISTER_BLOCKED',{reason:idCheck.reason||'INVALID_BRIDGE_TOKEN',channel:idCheck.channel},'security_gate');
-      return json({ok:false,status:'SECURITY_BLOCKED',reason:idCheck.reason||'INVALID_BRIDGE_TOKEN',channel:idCheck.channel},403);
-    }
-    const tunnelUrl=String(body.tunnel_url||'').trim().replace(/\/+$/,'');
-    if(!/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(tunnelUrl)&&!/^https:\/\/[a-z0-9.-]+$/i.test(tunnelUrl)){
+    const tunnelUrl=registeredBridgeTunnelUrl({auth_version:BRIDGE_AUTH_VERSION,tunnel_url:String(body.tunnel_url||'').trim()});
+    if(!tunnelUrl){
       throw new HttpError(400,'Neplatná URL Cloudflare tunela.');
     }
     const meta={
       tunnel_url:tunnelUrl,
-      operator:idCheck.operator,
-      channel:idCheck.channel,
-      windows_sid:body.sid||null,
+      operator:authority.actor,
+      channel:authority.channel,
+      auth_version:BRIDGE_AUTH_VERSION,
       registered_at:new Date().toISOString()
     };
     if(env.PC_STATE)await env.PC_STATE.put('bridge:tunnel_meta',JSON.stringify(meta),{expirationTtl:86400});
     if(env.Mastermind)await env.Mastermind.put('bridge:tunnel_meta',JSON.stringify(meta),{expirationTtl:86400});
     const ledger=new SovereignLedgerV3(env);
-    const block=await ledger.appendBlock('Basterix','BRIDGE_TUNNEL_REGISTERED',{tunnel_host:new URL(tunnelUrl).hostname,channel:idCheck.channel},'cloud_bridge_gate');
+    const block=await ledger.appendBlock(authority.actor,'BRIDGE_TUNNEL_REGISTERED',{tunnel_host:new URL(tunnelUrl).hostname,channel:authority.channel},'cloud_bridge_gate');
     return json({ok:true,status:'TUNNEL_REGISTERED',meta:{...meta,tunnel_url:'[REDACTED_IN_PUBLIC_LOG]'},d1_ledger_receipt:block});
   }
   if((path==='/api/bridge'||path==='/api/bridge/execute')&&request.method==='POST'){
-    const headerToken=(request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'').trim();
-    const tokenSha=headerToken?await hash(headerToken):'';
-    const storedSecret=(env.TRINITY_BRIDGE_TOKEN||'').trim();
-    const expectedSha=storedSecret?await hash(storedSecret):'bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8';
-    const tokenValid=Boolean(headerToken)&&(tokenSha==='bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8'||tokenSha===expectedSha||(Boolean(storedSecret)&&headerToken===storedSecret));
+    const authority=await authorizeBridgeRequest(request,env);
     const body=await readJSON(request,64000);
-    const idCheck=verifyTrinityIdentity({
-      windowsUser:body.windowsUser,
-      sid:body.sid,
-      osTokenVerified:body.osTokenVerified===true&&tokenValid,
-      verifiedWindowsToken:body.verifiedWindowsToken===true&&tokenValid,
-      email:body.email,
-      verifiedGoogleToken:body.verifiedGoogleToken===true&&tokenValid
-    });
     const ledger=new SovereignLedgerV3(env);
-    if(!tokenValid||!idCheck.isRoot){
-      const blockedBlock=await ledger.appendBlock('UNVERIFIED_CALLER','UNAUTHORIZED_BRIDGE_EXECUTION_BLOCKED',{
-        reason:idCheck.reason||'INVALID_BRIDGE_TOKEN',
-        channel:idCheck.channel,
-        attempted_action:body.action||'UNKNOWN'
-      },'sovereign_lock_edge');
-      return json({
-        ok:false,
-        status:'SECURITY_BLOCKED',
-        error:'403 ACCESS DENIED: Príkaz cez HTTP hlavičku bol zablokovaný — chýba overený Windows SID alebo Google token Basterixa.',
-        identity_check:idCheck,
-        d1_ledger_receipt:blockedBlock
-      },403);
-    }
     let tunnelMeta=null;
     if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
     if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
-    const tunnelUrl=tunnelMeta?.tunnel_url;
+    const tunnelUrl=registeredBridgeTunnelUrl(tunnelMeta);
     if(!tunnelUrl){
       throw new HttpError(503,'Cloudflare Tunnel pre Local Bridge (port 7788) nie je zaregistrovaný.');
     }
     const step1=ExecutionLifecycleGuard.validateTransition('PROPOSED','RUNNING');
     const bridgeRes=await fetch(tunnelUrl+'/api/execute-privileged',{
+      redirect:'manual',
       method:'POST',
       headers:{
         'Content-Type':'application/json',
-        'X-Trinity-Bridge-Token':headerToken
+        'X-Trinity-Bridge-Token':authority.token
       },
       body:JSON.stringify({
         action:body.action||'e2e_truth_verify',
-        payload:body.payload||{},
-        windowsUser:body.windowsUser,
-        sid:body.sid,
-        verifiedWindowsToken:body.verifiedWindowsToken===true,
-        email:body.email,
-        verifiedGoogleToken:body.verifiedGoogleToken===true
+        payload:body.payload||{}
       })
     });
     const localData=await bridgeRes.json();
@@ -463,7 +418,7 @@ async function route(request,env,ctx){
     const d1Block=await ledger.appendBlock('Basterix','E2E_CLOUD_TUNNEL_LOCAL_EXECUTION',{
       action:body.action||'e2e_truth_verify',
       payload:body.payload||{},
-      identity_channel:idCheck.channel,
+      identity_channel:authority.channel,
       local_http_status:bridgeRes.status,
       local_exit_code:exitCode,
       local_receipt_id:localData.local_ledger_receipt?.receipt_id||null,
@@ -477,8 +432,8 @@ async function route(request,env,ctx){
       edge_gateway:{
         host:reqHostname,
         identity_verified:true,
-        operator:idCheck.operator,
-        channel:idCheck.channel
+        operator:authority.actor,
+        channel:authority.channel
       },
       lifecycle_guard:lifecycleState,
       local_bridge_7788:localData,
@@ -489,7 +444,7 @@ async function route(request,env,ctx){
     let tunnelMeta=null;
     if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
     if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
-    const tunnelUrl=tunnelMeta?.tunnel_url;
+    const tunnelUrl=registeredBridgeTunnelUrl(tunnelMeta);
     if(!tunnelUrl){
       return json({status:'TUNNEL_OFFLINE',message:'Cloudflare Tunnel na lokálny port 7788 nie je pripojený.',port:11434},503);
     }
@@ -501,16 +456,15 @@ async function route(request,env,ctx){
     return json({ok:true,edge_gateway:'auru.space',tunnel_proxied:true,...data});
   }
   if((path==='/api/ollama'||path==='/api/ollama/chat')&&request.method==='POST'){
+    const bridgeToken=await authorizeBridgeProxy(request,env);
     let tunnelMeta=null;
     if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
     if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
-    const tunnelUrl=tunnelMeta?.tunnel_url;
+    const tunnelUrl=registeredBridgeTunnelUrl(tunnelMeta);
     if(!tunnelUrl){
       return json({status:'TUNNEL_OFFLINE',message:'Cloudflare Tunnel na lokálny port 7788 nie je pripojený.'},503);
     }
     const body=await readJSON(request,128000);
-    const clientToken=(request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'').trim();
-    const bridgeToken=(clientToken||env.TRINITY_BRIDGE_TOKEN||'b902cb066b2ccb940a470f06bf3b0fd5d6bf5259ddf8017ce2e41f9a2f5393f6').trim();
     const bridgeRes=await fetch(tunnelUrl+'/api/ollama/chat',{
       method:'POST',
       headers:{
@@ -518,7 +472,7 @@ async function route(request,env,ctx){
         'X-Trinity-Bridge-Token':bridgeToken
       },
       body:JSON.stringify(body),
-      signal:AbortSignal.timeout(180_000)
+      signal:AbortSignal.timeout(180_000),redirect:'manual'
     }).catch(err=>({ok:false,status:502,text:()=>Promise.resolve(err.message)}));
     if(!bridgeRes.ok){
       return json({ok:false,error:await bridgeRes.text()},bridgeRes.status||502);
@@ -527,6 +481,7 @@ async function route(request,env,ctx){
     return json({ok:true,edge_gateway:'auru.space',tunnel_proxied:true,...data});
   }
   if(path==='/api/launch'&&request.method==='POST'){
+    const bridgeToken=await authorizeBridgeProxy(request,env);
     await rateLimit(env,`launch:${(await hash(request.headers.get('CF-Connecting-IP')||'local')).slice(0,24)}`,20,60);
     const body=await readJSON(request,16000);
     const targetApp=String(body.target||body.app||'').trim();
@@ -536,26 +491,17 @@ async function route(request,env,ctx){
     let tunnelMeta=null;
     if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
     if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
-    const tunnelUrl=tunnelMeta?.tunnel_url;
+    const tunnelUrl=registeredBridgeTunnelUrl(tunnelMeta);
     if(!tunnelUrl){
       return json({ok:false,status:'TUNNEL_OFFLINE',error:'Cloudflare Tunnel pre Local Bridge (port 7788) nie je pripojený. Spusti lokálny most na PC.'},503);
     }
-    const clientToken=(request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'').trim();
-    const bridgeToken=(clientToken||env.TRINITY_BRIDGE_TOKEN||'b902cb066b2ccb940a470f06bf3b0fd5d6bf5259ddf8017ce2e41f9a2f5393f6').trim();
-    const callerEmail=request.headers.get('x-trinity-email')||body.email||'';
-    const callerPhone=request.headers.get('x-trinity-phone')||body.phone||'';
     const bridgeRes=await fetch(tunnelUrl+'/api/execute-privileged',{
+      redirect:'manual',
       method:'POST',
       headers:{'Content-Type':'application/json','X-Trinity-Bridge-Token':bridgeToken},
       body:JSON.stringify({
         action:'open_app',
-        payload:{app:targetApp},
-        email:callerEmail||'saboivan2008@gmail.com',
-        phone:callerPhone||'+421949009722',
-        windowsUser:'saboi',
-        verifiedGoogleToken:true,
-        verifiedWebhookSignature:true,
-        verifiedWindowsToken:true
+        payload:{app:targetApp}
       })
     }).catch(err=>({ok:false,status:502,text:()=>Promise.resolve(err.message),json:()=>Promise.resolve({error:err.message})}));
     const localData=await bridgeRes.json().catch(async()=>({error:await bridgeRes.text().catch(()=>'Chyba lokálneho mosta.')}));
@@ -573,35 +519,32 @@ async function route(request,env,ctx){
     },bridgeRes.ok?200:502);
   }
   if(path==='/api/command'&&request.method==='POST'){
-    await rateLimit(env,`cmd:${(await hash(request.headers.get('CF-Connecting-IP')||'local')).slice(0,24)}`,30,60);
+    checkOrigin(request,env);
     const body=await readJSON(request,32000);
     const cmd=String(body.command||body.cmd||'').trim();
     if(!cmd){
       throw new HttpError(400,'Chýba príkaz (command).');
     }
-    if(/^(otvor|open|spusti)\s+/i.test(cmd)){
+    const opensApp=/^(otvor|open|spusti)\s+/i.test(cmd);
+    const bridgeToken=opensApp?await authorizeBridgeProxy(request,env):null;
+    const commandUser=opensApp?null:await authenticate(request,env);
+    await rateLimit(env,`cmd:${(await hash(request.headers.get('CF-Connecting-IP')||'local')).slice(0,24)}`,30,60);
+    if(opensApp){
       const app=cmd.replace(/^(otvor|open|spusti)\s+/i,'').trim();
       let tunnelMeta=null;
       if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
       if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
-      const tunnelUrl=tunnelMeta?.tunnel_url;
+      const tunnelUrl=registeredBridgeTunnelUrl(tunnelMeta);
       if(!tunnelUrl){
         return json({ok:false,status:'TUNNEL_OFFLINE',error:'Cloudflare Tunnel pre Local Bridge (port 7788) nie je pripojený.'},503);
       }
-      const clientToken=(request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'').trim();
-      const bridgeToken=(clientToken||env.TRINITY_BRIDGE_TOKEN||'b902cb066b2ccb940a470f06bf3b0fd5d6bf5259ddf8017ce2e41f9a2f5393f6').trim();
       const bridgeRes=await fetch(tunnelUrl+'/api/execute-privileged',{
+        redirect:'manual',
         method:'POST',
         headers:{'Content-Type':'application/json','X-Trinity-Bridge-Token':bridgeToken},
         body:JSON.stringify({
           action:'open_app',
-          payload:{app},
-          email:request.headers.get('x-trinity-email')||'saboivan2008@gmail.com',
-          phone:request.headers.get('x-trinity-phone')||'+421949009722',
-          windowsUser:'saboi',
-          verifiedGoogleToken:true,
-          verifiedWebhookSignature:true,
-          verifiedWindowsToken:true
+          payload:{app}
         })
       }).catch(err=>({ok:false,status:502,json:()=>Promise.resolve({error:err.message})}));
       const localData=await bridgeRes.json().catch(()=>({}));
@@ -619,11 +562,11 @@ async function route(request,env,ctx){
       if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
       return json({
         ok:true,
-        reply:`Systém ${env.SYSTEM_NAME||'TRINITY OMNI-CORE'} je ONLINE (v${TRINITY_VERSION}).\nHost: ${reqHostname}\nTunnel: ${tunnelMeta?.tunnel_url?'ONLINE (pripojený)':'OFFLINE'}\nTruth Policy: Enforced`,
+        reply:`Systém ${env.SYSTEM_NAME||'TRINITY OMNI-CORE'} je ONLINE (v${TRINITY_VERSION}).\nHost: ${reqHostname}\nTunnel: ${registeredBridgeTunnelUrl(tunnelMeta)?'ONLINE (pripojený)':'OFFLINE'}\nTruth Policy: Enforced`,
         exit_code:0
       });
     }
-    const callerEmail=request.headers.get('x-trinity-email')||'saboivan2008@gmail.com';
+    const callerEmail=commandUser.email||commandUser.id;
     const copilotRes=await TrinityCopilotAgent(cmd,env,{
       userId:callerEmail,
       sessionId:body.session_id||crypto.randomUUID()

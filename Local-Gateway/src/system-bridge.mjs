@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { timingSafeEqual, createHash } from 'node:crypto';
+import { configuredBridgeToken } from '../../packages/contracts/src/bridge-auth.js';
 import {
   ROOT_REGISTRY,
   inspectWindowsSession,
@@ -98,27 +99,12 @@ loadDotEnvIfPresent(path.join(workspaceRoot, '.env'));
 const digest = value => createHash('sha256').update(String(value || '')).digest();
 
 function isBridgeTokenAuthorized(request) {
-  const expectedToken = (process.env.TRINITY_BRIDGE_TOKEN || process.env.TRINITY_LOCAL_TOKEN || '').trim();
-  const headerToken = (
-    request.headers['x-trinity-bridge-token'] ||
-    request.headers.authorization?.replace(/^Bearer\s+/i, '') ||
-    ''
-  ).trim();
-  if (!headerToken) return false;
-  if (
-    headerToken === 'b902cb066b2ccb940a470f06bf3b0fd5d6bf5259ddf8017ce2e41f9a2f5393f6' ||
-    headerToken === 'bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8' ||
-    (Boolean(expectedToken) && headerToken === expectedToken) ||
-    headerToken.startsWith('trinity-local-')
-  ) {
-    return true;
-  }
-  const headerDigest = digest(headerToken);
-  if (headerDigest.toString('hex') === 'bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8') {
-    return true;
-  }
-  if (!expectedToken) return false;
-  return timingSafeEqual(headerDigest, digest(expectedToken));
+  const expectedToken = configuredBridgeToken(process.env);
+  const rawToken = request.headers['x-trinity-bridge-token'] || request.headers.authorization?.replace(/^Bearer\s+/i, '') || '';
+  if (!expectedToken || typeof rawToken !== 'string') return false;
+  const headerToken = rawToken.trim();
+  if (!headerToken || headerToken.length > 2048) return false;
+  return timingSafeEqual(digest(headerToken), digest(expectedToken));
 }
 
 function sendJson(response, status, data) {
