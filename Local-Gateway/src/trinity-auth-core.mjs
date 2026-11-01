@@ -79,9 +79,29 @@ export function getActiveWindowsIdentity() {
     return null;
   }
   try {
+    const rawOut = execSync('whoami /user /fo csv /nh', { encoding: 'utf8', timeout: 5000 }).trim();
+    const matches = rawOut.match(/"([^"]+)"\s*,\s*"([^"]+)"/);
+    if (matches) {
+      const fullName = matches[1];
+      const sid = matches[2];
+      const parts = fullName.split('\\');
+      const username = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase().trim();
+      const domain = (parts.length > 1 ? parts[0] : os.hostname()).toLowerCase().trim();
+      if (username && isValidWindowsSid(sid)) {
+        cachedWindowsIdentity = {
+          username,
+          domain,
+          sid: sid.trim(),
+          osTokenVerified: true
+        };
+        return cachedWindowsIdentity;
+      }
+    }
+  } catch {}
+  try {
     const rawOut = execSync(
       'powershell.exe -NoProfile -NonInteractive -Command "$id = [System.Security.Principal.WindowsIdentity]::GetCurrent(); Write-Output ($id.Name + \'|\' + $id.User.Value)"',
-      { encoding: 'utf8', timeout: 3000 }
+      { encoding: 'utf8', timeout: 10000 }
     ).trim();
     const [fullName = '', sid = ''] = rawOut.split('|');
     const parts = fullName.split('\\');

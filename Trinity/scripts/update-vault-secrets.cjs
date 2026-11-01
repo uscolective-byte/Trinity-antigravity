@@ -19,7 +19,7 @@ vault = vault.replace(
 );
 vault = vault.replace(
   "telegram:env?.TELEGRAM_BOT_TOKEN,",
-  "telegram:env?.TELEGRAM_BOT_TOKEN||env?.telegram8842409933,"
+  "telegram:env?.TELEGRAM_BOT_TOKEN||env?.TELEGRAM_BOT_TOKEN,"
 );
 vault = vault.replace(
   "gemini:env?.GEMINI_API_KEY,",

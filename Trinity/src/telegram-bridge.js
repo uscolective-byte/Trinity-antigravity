@@ -16,7 +16,7 @@ const WEBHOOK_HEADER = 'X-Telegram-Bot-Api-Secret-Token';
 
 // Alias is the Cloudflare binding NAME only. Its secret VALUE remains in the Worker.
 export function telegramToken(env) {
-  return env.TELEGRAM_BOT_TOKEN || env.telegram8842409933 || '';
+  return env.TELEGRAM_BOT_TOKEN || '';
 }
 
 export function telegramIntegrationStatus(env) {

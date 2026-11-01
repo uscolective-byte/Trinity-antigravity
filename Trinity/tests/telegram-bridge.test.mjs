@@ -163,10 +163,10 @@ test('Telegram reads an existing custom Cloudflare secret binding without copyin
   const t=setup();
   try {
     delete t.env.TELEGRAM_BOT_TOKEN;
-    t.env.telegram8842409933='test-alias-secret-value';
+    t.env.TELEGRAM_BOT_TOKEN='test-alias-secret-value';
     const status=telegramIntegrationStatus(t.env);
     assert.equal(status.bot_token,true);
-    assert.equal(JSON.stringify(status).includes(t.env.telegram8842409933),false);
+    assert.equal(JSON.stringify(status).includes(t.env.TELEGRAM_BOT_TOKEN),false);
     const work=t.context();
     const response=await handleTelegramWebhook(t.createRequest(t.message('/help')),t.env,work.ctx);
     assert.equal(response.status,200);

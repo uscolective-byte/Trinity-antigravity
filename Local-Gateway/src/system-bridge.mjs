@@ -153,7 +153,7 @@ export async function createSystemBridgeServer(options = {}) {
       const winSession = inspectWindowsSession();
 
       // 1. Public / Local Health & Status Check
-      if (request.method === 'GET' && (url.pathname === '/health' || url.pathname === '/api/status' || url.pathname === '/api/auth/status')) {
+      if ((request.method === 'GET' || request.method === 'HEAD') && (url.pathname === '/health' || url.pathname === '/api/status' || url.pathname === '/api/auth/status' || url.pathname === '/api/bridge' || url.pathname === '/api/bridge/status')) {
         return sendJson(response, 200, {
           status: 'ONLINE',
           service: 'Trinity Local System Bridge (OmniDev & Ring 0 Gate)',

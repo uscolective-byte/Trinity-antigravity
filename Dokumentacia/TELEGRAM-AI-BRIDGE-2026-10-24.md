@@ -29,7 +29,7 @@ Plne implementované a otestované v monorepe (`Trinity/src/telegram-bridge.js`,
 ## Cloudflare Secrets
 
 Produkčný Cloudflare Worker `trinity` má nastavené tieto tajomstvá:
-- `telegram8842409933` (alebo `TELEGRAM_BOT_TOKEN`) — bot token z @BotFather.
+- `TELEGRAM_BOT_TOKEN` (alebo `TELEGRAM_BOT_TOKEN`) — bot token z @BotFather.
 - `TELEGRAM_WEBHOOK_SECRET` — náhodná 32+ znaková hodnota overovaná na každom prichádzajúcom webhooku.
 - `TELEGRAM_ALLOWED_USER_IDS` — numerické Telegram ID majiteľa (Sabo Ivan).
 

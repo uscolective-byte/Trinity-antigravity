@@ -334,7 +334,7 @@ async function route(request,env,ctx){
       checked_at:new Date().toISOString()
     });
   }
-  if(path==='/api/bridge'&&request.method==='GET'){
+  if((path==='/api/bridge'||path==='/api/bridge/status')&&(request.method==='GET'||request.method==='HEAD')){
     let tunnelMeta=null;
     if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
     if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}

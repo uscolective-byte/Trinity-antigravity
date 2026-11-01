@@ -266,7 +266,7 @@ export async function resolveProviderSecret(env,provider){
     firebase:env?.FIREBASE_API_KEY||env?.FIREBASE_SERVICE_ACCOUNT||env?.TRINITY_FIREBASE_KEY,
     supabase:env?.SUPABASE_KEY||env?.SUPABASE_SERVICE_ROLE_KEY,
     vercel:env?.VERCEL_TOKEN,
-    telegram:env?.TELEGRAM_BOT_TOKEN||env?.telegram8842409933,
+    telegram: env?.TELEGRAM_BOT_TOKEN || null,
     slack:env?.SLACK_WEBHOOK_URL||env?.SLACK_BOT_TOKEN,
     discord:env?.DISCORD_WEBHOOK_URL||env?.DISCORD_BOT_TOKEN,
     notion:env?.NOTION_API_KEY||env?.notionaccess,
