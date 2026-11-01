@@ -1,8 +1,8 @@
 {
-  "receipt_id": "TRN-LIVE-DEPLOY-RECEIPT-20261101-V2",
-  "generated_at": "2026-10-31T23:52:00.000Z",
+  "receipt_id": "TRN-E2E-PHASE3-VERIFIED-20261101",
+  "generated_at": "2026-11-01T00:07:30.000Z",
   "sole_architect_and_owner": "Basterix (Sabo Ivan)",
-  "deployment_gate_status": "APPROVED_BY_BASTERIX_AND_LIVE_VERIFIED",
+  "deployment_gate_status": "PHASE_1_2_3_END_TO_END_LIVE_VERIFIED",
   "owner_approval_statement": "shvalujem a potvrdzujem",
   "production_deployed": true,
   "uncommitted_files_remaining": 0,
@@ -20,102 +20,53 @@
       "status": "active",
       "paused": false,
       "public_dns_verified": true,
-      "protection": "Cloudflare Access (302 redirect to login for unauthenticated requests)"
+      "protection": "Cloudflare Access (302 redirect to login for unauthenticated browser requests)"
     }
   },
-  "cloudflare_deployments": {
-    "production": {
-      "worker_name": "trinity",
-      "custom_domain": "auru.space",
-      "workers_dev_url": "https://trinity.saboivan2008.workers.dev",
-      "d1_migration_0055": "APPLIED (15 queries executed on ca8ea24e-f7db-431e-b8bf-97f713ae4533, exitCode=0)"
+  "phase_3_end_to_end_truth_verification": {
+    "route": "[Basterix] -> [Edge Gateway https://auru.space/api/bridge] -> [Cloudflare Tunnel (QUIC bts01)] -> [Local Bridge 127.0.0.1:7788] -> [Windows OS (WhatsApp PID 1244)] -> [Sovereign Ledger v3 (D1 & Local)]",
+    "negative_sovereign_lock_http_test": {
+      "http_status": 403,
+      "status": "SECURITY_BLOCKED",
+      "d1_tamper_receipt": "receipt:trinity:4737b358411abd6f"
     },
-    "staging": {
-      "worker_name": "trinity-staging",
-      "custom_domain": "auru.dev",
-      "workers_dev_url": "https://trinity-staging.saboivan2008.workers.dev",
-      "d1_migration_0055": "APPLIED (15 queries executed on 1cce5249-e044-4c93-868c-0df534a778b5, exitCode=0)"
-    }
-  },
-  "live_http_verification": {
-    "local_bridge_7788": {
-      "url": "http://127.0.0.1:7788/api/status",
+    "tunnel_registration": {
       "http_status": 200,
-      "status": "ONLINE",
-      "active_operator": "saboi",
-      "domain": "basterix",
-      "is_root_authorized": true,
-      "system_role": "BASTERIX_ROOT",
-      "os_token_verified": true,
-      "sid_verified": true,
-      "omnidev_studio": "READY (OmniDev-AST-Recovery-v3)"
+      "status": "TUNNEL_REGISTERED",
+      "d1_receipt": "receipt:trinity:7ccad894c3dc6207"
     },
-    "auru_space_public_dns": {
-      "endpoints": [
-        "https://auru.space/ (HTTP 200)",
-        "https://auru.space/health (HTTP 200, status=serving, agents=45)",
-        "https://auru.space/ready (HTTP 200, ready=true, bindings=true, schema=true, cache=true)",
-        "https://auru.space/api/status (HTTP 200, status=ONLINE)",
-        "https://auru.space/api/capabilities/live (HTTP 200, Live Capability Registry)"
-      ]
+    "positive_e2e_execution": {
+      "http_status": 200,
+      "status": "VERIFIED_END_TO_END",
+      "lifecycle_guard_state": "VERIFIED",
+      "local_bridge_exit_code": 0,
+      "local_bridge_os_token_verified": true,
+      "windows_app_launched": {
+        "operation": "launch",
+        "app": "whatsapp",
+        "opened": true,
+        "window": {
+          "pid": 1244,
+          "process": "WhatsApp.Root",
+          "title": "WhatsApp"
+        }
+      },
+      "local_sovereign_ledger_receipt": {
+        "receipt_id": "TRN-LCL-V3-1-7384C19D3E1A",
+        "block_hash": "7384c19d3e1a4c4b55d79506ebf2d22dcdbb642fc5594c12387edcdeeec5d973",
+        "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "ledger_file": "Local-Gateway/data/sovereign-bridge-ledger.jsonl"
+      },
+      "d1_sovereign_ledger_v3": {
+        "block_index": 5,
+        "timestamp": "2026-11-01T00:07:19.359Z",
+        "actor": "Basterix",
+        "action": "E2E_CLOUD_TUNNEL_LOCAL_EXECUTION",
+        "payload_hash": "e63e26579341dfaa297edcbafb087cf3ec82478a2a3834395ed27df8955f6a00",
+        "prev_hash": "7ccad894c3dc620703bc55249068d631bb3c60be8109bf2b4bbf47f17ed8c309",
+        "block_hash": "cdcf8600d13228991d5c0f879df2dea62b9212be0cad39e38fffea1ed3bce3b6",
+        "receipt": "receipt:trinity:cdcf8600d1322899"
+      }
     }
-  },
-  "security_findings_remediated": [
-    {
-      "id": "FINDING_1_CRITICAL_PLAIN_TEXT_IDENTITY_SPOOFING",
-      "status": "FIXED_TESTED_AND_DEPLOYED",
-      "files": [
-        "Trinity/src/trinity-auth-core.js",
-        "Local-Gateway/src/trinity-auth-core.mjs",
-        "Local-Gateway/src/server.mjs",
-        "Local-Gateway/src/system-bridge.mjs"
-      ],
-      "verification": "verifyTrinityIdentity() fails closed (SPOOFED_UNVERIFIED_*_INPUT / 403 ACCESS DENIED) unless verifiedGoogleToken === true, verifiedWebhookSignature === true, or osTokenVerified === true + valid real Windows SID."
-    },
-    {
-      "id": "FINDING_2_HIGH_SYNTHETIC_WINDOWS_SID",
-      "status": "FIXED_TESTED_AND_DEPLOYED",
-      "files": [
-        "Trinity/src/trinity-auth-core.js",
-        "Local-Gateway/src/trinity-auth-core.mjs"
-      ],
-      "verification": "Removed synthetic S-1-5-21-BASTERIX-* fallback and env USERNAME trust. Enforces authentic SID matching /^S-1-5-21-\\d+-\\d+-\\d+-\\d+$/ from [System.Security.Principal.WindowsIdentity]::GetCurrent() with osTokenVerified === true."
-    },
-    {
-      "id": "FINDING_3_HIGH_DURABLE_ATOMIC_NONCE_STORAGE",
-      "status": "FIXED_TESTED_AND_DEPLOYED",
-      "files": [
-        "Trinity/src/sovereign-lock.js",
-        "Trinity/migrations/0055_sovereign_ledger_v3.sql"
-      ],
-      "verification": "Added ops_consumed_nonces table (PRIMARY KEY + immutable triggers) and checkAndConsumeDurableNonce() persisting across D1, KV, and local Node Disk Vault. Verified replay block across simulated process restarts."
-    },
-    {
-      "id": "FINDING_4_P0_SELF_EVOLUTION_FAIL_CLOSED_AND_ADMIN_GATE",
-      "status": "FIXED_TESTED_AND_DEPLOYED",
-      "files": [
-        "Trinity/src/self-evolution.js",
-        "Trinity/src/index.js",
-        "Trinity/tests/omni-tools.test.mjs"
-      ],
-      "verification": "applySelfModification() now defaults to fail-closed (verifiedSession=false, basterixManualConsent=false) and POST /api/system/self-evolve + POST /api/skills/register enforce authenticate() + requireAdmin()."
-    }
-  ],
-  "verification_steps": [
-    {
-      "step": "node --test Trinity/tests/omni-tools.test.mjs Trinity/tests/trinity-auth-core.test.mjs Trinity/tests/sovereign-lock.test.mjs Trinity/tests/truth.test.mjs Trinity/tests/sovereign-core-v3.test.mjs Local-Gateway/tests/trinity-auth-core.test.mjs Local-Gateway/tests/system-bridge.test.mjs",
-      "exit_code": 0,
-      "passed": "35/35"
-    },
-    {
-      "step": "npm test --prefix Local-Gateway",
-      "exit_code": 0,
-      "passed": "32/32"
-    },
-    {
-      "step": "npm run docs:check",
-      "exit_code": 0,
-      "passed": true
-    }
-  ]
+  }
 }
