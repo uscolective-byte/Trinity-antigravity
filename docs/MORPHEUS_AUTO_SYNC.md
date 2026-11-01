@@ -39,7 +39,7 @@ vlastných skriptov a workflow súboru. GitHub ho skutočne vytvoril:
 [run #41222912897](https://github.com/uscolective-byte/Trinity-antigravity/actions/runs/41222912897).
 
 **Result: failure ešte pred spustením.** GitHub API pri jobe `124601005929`
-vrátilo `runner_id=0`, `runner_name=""`, `steps=[]`. 
+vrátilo `runner_id=0`, `runner_name=""`, `steps=[]`.
 Žiadny fetch, Git mirror push, PR ani test neprebehol. Znova: nový GitHub
 token nedokáže napraviť chýbajúci GitHub-hosted runner.
 

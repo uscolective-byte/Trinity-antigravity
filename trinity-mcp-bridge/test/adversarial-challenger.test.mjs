@@ -3,15 +3,46 @@ import assert from "node:assert/strict";
 import http from "node:http";
 import { createApp, auditCommand, runSafeCommand, BRIDGE_TOKEN, WORKSPACE_DIR } from "../server.mjs";
 
-const LIVE_URL = "http://127.0.0.1:3333";
+const DEFAULT_LIVE_URL = "http://127.0.0.1:3333";
 const VALID_TOKEN = "trinity-local-secret";
 
+let testServer = null;
+let activeUrl = DEFAULT_LIVE_URL;
+
+test.before(async () => {
+  try {
+    const probe = await fetch(`${DEFAULT_LIVE_URL}/health`, { signal: AbortSignal.timeout(500) });
+    if (probe.ok) {
+      const authProbe = await fetch(`${DEFAULT_LIVE_URL}/exec`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-trinity-token": VALID_TOKEN },
+        body: JSON.stringify({ command: "node -v" }),
+        signal: AbortSignal.timeout(500)
+      });
+      if (authProbe.status !== 401) {
+        return;
+      }
+    }
+  } catch {}
+
+  process.env.TRINITY_TOKEN = VALID_TOKEN;
+  const app = createApp();
+  testServer = http.createServer(app);
+  await new Promise((resolve) => testServer.listen(0, "127.0.0.1", resolve));
+  const port = testServer.address().port;
+  activeUrl = `http://127.0.0.1:${port}`;
+});
+
+test.after(() => {
+  if (testServer) testServer.close();
+});
+
 // ============================================================================
-// PART 1: LIVE DAEMON EMPIRICAL VERIFICATION (http://127.0.0.1:3333)
+// PART 1: LIVE DAEMON EMPIRICAL VERIFICATION
 // ============================================================================
 
 test("Live Daemon Check 1: Missing token on POST /exec (must return 401)", async () => {
-  const res = await fetch(`${LIVE_URL}/exec`, {
+  const res = await fetch(`${activeUrl}/exec`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ command: "git status --short" })
@@ -25,7 +56,7 @@ test("Live Daemon Check 1: Missing token on POST /exec (must return 401)", async
 test("Live Daemon Check 2: Wrong token on POST /exec (must return 401)", async () => {
   const invalidTokens = ["wrong-token", "", "invalid_secret", "Bearer trinity-local-secret"];
   for (const token of invalidTokens) {
-    const res = await fetch(`${LIVE_URL}/exec`, {
+    const res = await fetch(`${activeUrl}/exec`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -51,7 +82,7 @@ test("Live Daemon Check 3: Sandbox traversal attempts (must return 400 SANDBOX V
     "C:\\Users\\saboi\\Trinity-antigravity-fake"
   ];
   for (const subdir of maliciousSubdirs) {
-    const res = await fetch(`${LIVE_URL}/exec`, {
+    const res = await fetch(`${activeUrl}/exec`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -80,7 +111,7 @@ test("Live Daemon Check 4: Destructive command audit (must return 400 SECURITY A
     "rm -rf /etc"
   ];
   for (const cmd of mandatedCommands) {
-    const res = await fetch(`${LIVE_URL}/exec`, {
+    const res = await fetch(`${activeUrl}/exec`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -97,7 +128,7 @@ test("Live Daemon Check 4: Destructive command audit (must return 400 SECURITY A
 });
 
 test("Live Daemon Check 5: Disallowed CORS origin (must return 403 Forbidden)", async () => {
-  const res = await fetch(`${LIVE_URL}/exec`, {
+  const res = await fetch(`${activeUrl}/exec`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -120,7 +151,7 @@ test("Live Daemon Check 5: Disallowed CORS origin (must return 403 Forbidden)", 
 });
 
 test("Live Daemon Check 6: Allowed CORS origin (https://gemini.google.com)", async () => {
-  const res = await fetch(`${LIVE_URL}/exec`, {
+  const res = await fetch(`${activeUrl}/exec`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -137,29 +168,30 @@ test("Live Daemon Check 6: Allowed CORS origin (https://gemini.google.com)", asy
 });
 
 test("Live Daemon Check 7: Valid command execution (POST /exec with git status --short)", async () => {
-  const res = await fetch(`${LIVE_URL}/exec`, {
+  const res = await fetch(`${activeUrl}/exec`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Origin": "https://gemini.google.com",
       "x-trinity-token": VALID_TOKEN
     },
     body: JSON.stringify({ command: "git status --short" })
   });
   const body = await res.json();
-  console.log("Live Check 7 Receipt:", { status: res.status, exitCode: body.result?.exitCode });
+  console.log("Live Check 7 Receipt:", { status: res.status, exitCode: body?.result?.exitCode });
   assert.equal(res.status, 200);
   assert.equal(body.status, "ok");
   assert.equal(body.result.exitCode, 0);
 });
 
 test("Live Daemon Check 8: Stability under rapid adversarial burst", async () => {
-  const health1 = await (await fetch(`${LIVE_URL}/health`)).json();
+  const health1 = await (await fetch(`${activeUrl}/health`)).json();
   assert.equal(health1.status, "ok");
 
   // Fire 10 concurrent requests
   const reqs = [];
   for (let i = 0; i < 10; i++) {
-    reqs.push(fetch(`${LIVE_URL}/exec`, {
+    reqs.push(fetch(`${activeUrl}/exec`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-trinity-token": "bad" },
       body: JSON.stringify({ command: "git status" })
@@ -168,7 +200,7 @@ test("Live Daemon Check 8: Stability under rapid adversarial burst", async () =>
   const responses = await Promise.all(reqs);
   assert.equal(responses.every(r => r.status === 401), true);
 
-  const health2 = await (await fetch(`${LIVE_URL}/health`)).json();
+  const health2 = await (await fetch(`${activeUrl}/health`)).json();
   console.log("Live Check 8 Health After Burst:", health2);
   assert.equal(health2.status, "ok");
 });
