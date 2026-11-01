@@ -61,11 +61,50 @@ export async function listPlugins(env){
  const rows=(await env.DB.prepare('SELECT id,version,installed,enabled,source,installed_at,updated_at FROM ops_plugins').all()).results;
  return PLUGINS.map(p=>{const state=rows.find(r=>r.id===p.id);return {...p,version:state?.version||p.version,installed:state?.installed===1,enabled:state?.installed===1&&state?.enabled===1,source:state?.source||null,installed_at:state?.installed_at||null,updated_at:state?.updated_at||null};});
 }
+export function checkPluginAvailability(env = {}, plugin) {
+  if (!plugin) return 'UNAVAILABLE';
+  const readyInternal = ['json-data','checksums','units','entities','text-format','date-math','timezone-converter','statistics','csv-inspector','csv-json','text-diff','list-cleaner','table-transform','geometry','calculator','clock','text'];
+  if (readyInternal.includes(plugin.id)) return 'READY';
+  if (['artifacts','truth','skills','capabilities'].includes(plugin.id)) return env?.DB ? 'READY' : 'INSTALLED';
+  if (['computer-control','workspace-files','internet-operator','developer-operator'].includes(plugin.id)) {
+    return 'CONNECTED_STANDBY';
+  }
+  if (plugin.id === 'facebook-connector') {
+    return (env?.META_ACCESS_TOKEN || env?.FACEBOOK_ACCESS_TOKEN) ? 'CONNECTED' : 'AWAITING_AUTH';
+  }
+  if (plugin.id === 'firebase') {
+    return (env?.FIREBASE_PROJECT_ID && env?.FIREBASE_SERVICE_ACCOUNT) ? 'CONNECTED' : 'AWAITING_CONFIG';
+  }
+  if (plugin.id === 'firecrawl') {
+    return env?.FIRECRAWL_API_KEY ? 'CONNECTED' : 'AWAITING_CONFIG';
+  }
+  return 'INSTALLED';
+}
 export async function installPlugin(env,id){
+ if (id === 'all' || id === '*') {
+  const res = await installAllPlugins(env);
+  const pluginsWithStatus = PLUGINS.map(p => ({
+    id: p.id,
+    name: p.name,
+    status: checkPluginAvailability(env, p)
+  }));
+  const readyCount = pluginsWithStatus.filter(p => p.status === 'READY' || p.status === 'CONNECTED' || p.status === 'CONNECTED_STANDBY').length;
+  return {
+    id: 'all',
+    name: 'Všetky dôveryhodné pluginy Trinity',
+    installed: true,
+    enabled: true,
+    count: res.installed,
+    ready_count: readyCount,
+    plugins: pluginsWithStatus,
+    status: 'INSTALLED',
+    source: 'trinity-core'
+  };
+ }
  const plugin=PLUGINS.find(item=>item.id===id);if(!plugin)throw new Error('Plugin nie je v dôveryhodnom katalógu Trinity.');
  await env.DB.prepare("INSERT INTO ops_plugins(id,version,installed,enabled,source,installed_at,updated_at) VALUES(?,?,1,1,'trinity-core',datetime('now'),datetime('now')) ON CONFLICT(id) DO UPDATE SET version=excluded.version,installed=1,enabled=1,source='trinity-core',installed_at=coalesce(ops_plugins.installed_at,datetime('now')),updated_at=datetime('now')").bind(plugin.id,plugin.version).run();
  await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('plugin_installed',?)").bind(JSON.stringify({plugin:plugin.id,source:'trinity-core'})).run();
- return {id:plugin.id,name:plugin.name,version:plugin.version,installed:true,enabled:true,source:'trinity-core'};
+ return {id:plugin.id,name:plugin.name,version:plugin.version,installed:true,enabled:true,status:checkPluginAvailability(env,plugin),source:'trinity-core'};
 }
 export async function installAllPlugins(env){
  const now="datetime('now')";

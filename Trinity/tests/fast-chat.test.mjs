@@ -26,6 +26,13 @@ test('fast model can call an enabled calculator and receives its actual result',
  const result=await runAgent(env,'orchestrator','Použi kalkulačku pre súčin šesť a sedem.','','fast');
  assert.equal(result.text,'42');assert.equal(count,2);assert.equal(result.tool_log[0].tool,'calculate');
 });
+test('fast chat tool matching catches colloquial questions about tool count with typos', () => {
+ assert.deepEqual(directChatTool('kolmko mas nastrojov', ['list_capabilities']), { name: 'list_capabilities', arguments: {} });
+ assert.deepEqual(directChatTool('napis ima konkretne cislo kolko nastrojov mas', ['list_capabilities']), { name: 'list_capabilities', arguments: {} });
+ assert.deepEqual(directChatTool('koko mas nastrojov', ['list_capabilities']), { name: 'list_capabilities', arguments: {} });
+ assert.deepEqual(directChatTool('kolko mas pluginov', ['list_capabilities']), { name: 'list_capabilities', arguments: {} });
+});
+
 test('fast chat rejects a tool outside its available set',async()=>{
  let calls=0;const env={AI:{run:async(model,input)=>{if(calls++===0)return {response:JSON.stringify({tool:'pc_run',arguments:{command:'npm run deploy'}})};assert.match(input.messages.at(-1).content,/nie je povolený/);return {response:'Tento nástroj tu nie je dostupný.'};}}};
  const result=await runAgent(env,'orchestrator','Odpovedz krátko.','','fast',600,null,true);

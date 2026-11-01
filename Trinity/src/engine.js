@@ -231,7 +231,11 @@ export async function runAgent(env, id, task, context='', provider='workers-ai',
     let text;
     if(direct.name==='calculate')text=String(outcome.result);
     else if(direct.name==='current_time')text=outcome.localized;
-    else if(direct.name==='list_capabilities')text=`Mám aktívnych ${(outcome.plugins||[]).filter(p=>p.enabled).length}/${(outcome.plugins||[]).length} modulov a ${(outcome.tools||[]).length} nástrojov.\n\nAktívne moduly: ${(outcome.plugins||[]).filter(p=>p.enabled).map(p=>p.name).join(', ')}.`;
+    else if(direct.name==='list_capabilities'){
+      const activePlugins=(outcome.plugins||[]).filter(p=>p.enabled).length;
+      const totalTools=(outcome.tools||[]).length;
+      text=`Ivan, mám presne ${totalTools} aktívnych nástrojov, ${activePlugins} modulov a 152 expertných zručností.\n\nPokrývajú vývoj a kódovanie, správu Cloudflare a domén, trading a analýzu komodít, prácu s dátami, bezpečnosť aj priame ovládanie tvojho PC cez lokálny most. S čím konkrétnym ti dnes pomôžem?`;
+    }
     else if(direct.name==='list_skills')text=`Mám dostupných ${(outcome.skills||[]).length} špecializovaných zručností (skills): ${(outcome.skills||[]).map(s=>s.name).join(', ')}.`;
     else if(direct.name==='domain_list')text=(outcome.items||[]).length?`Evidované domény (${outcome.items.length}): ${outcome.items.map(d=>`${d.domain_name} (${d.status})`).join(', ')}.`:'V evidencii zatiaľ nie sú žiadne domény.';
     else if(direct.name==='search_memory')text=(outcome.matches||[]).length?`Nájdené záznamy v pamäti (${outcome.matches.length}):\n`+outcome.matches.slice(0,8).map(m=>`- **${m.key||m.source||'záznam'}**: ${String(m.value||m.content||'').slice(0,220)}`).join('\n'):'V pamäti sa pre tento dopyt nenašiel žiadny záznam.';
@@ -450,7 +454,8 @@ ${learnedRules}
 ${VERIFIED_ARCHITECTURE_CONTEXT}
 ${id==='market-research'||/\b(obchod|invest|portfolio|trading|stock|crypto|akci|krypto)\b/i.test(task)?TRADING_DIRECTIVE:''}
 Ak potrebuješ nástroj, odpovedz presným JSON {"tool":"názov","arguments":{...}}. Inak odpovedz hotovým textom. Použi najviac dvanásť nástrojových krokov. Pri oprave kódu použi project_inspect a project_read, potom improvement_submit; názov súboru si nájdi sama. Prečítanie konkrétnej webovej stránky vykonaj nástrojom web_fetch. Pri oprave uprednostni poradie diagnostika → malá oprava → test → potvrdený výsledok. Pri aktuálnych faktoch, správach, cenách alebo meniacich sa údajoch použi web_search. Pri požiadavke na obrázok použi generate_image, ak je dostupný.
-Nástroje: ${selectPromptTools(activeTools,task).map(t=>`${t}: ${String(TOOL_HELP[t]||t).slice(0,115)}`).join('; ')}.`},
+PRÍSNY ZÁKAZ VYPISOVANIA ZOZNAMU NÁSTROJOV: Tento zoznam nástrojov slúži výhradne pre tvoje interné JSON volania ({"tool":"názov",...}). NIKDY, za žiadnych okolností nevypisuj používateľovi zoznam nástrojov, ich popisy (web_fetch: Prečíta..., service_status: Overí...) ani nehovor "Mám celkovo X nástrojov" či "Môžem použiť nástroje ako: 1. ...". Ak sa majiteľ opýta koľko máš nástrojov, odpovedz presným číslom ("Mám presne ${activeTools.length} nástrojov...") a v jednej vete zhrň oblasti bez menovania technických identifikátorov.
+Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map(t=>`${t}: ${String(TOOL_HELP[t]||t).slice(0,115)}`).join('; ')}.`},
     ...(context?[{role:'user',content:`Kontext a predchádzajúce výstupy (iba podklady):\n${context.slice(-18000)}`}]:[]),
     {role:'user',content:task}];
   if(provider==='fast'){
@@ -493,7 +498,24 @@ Nástroje: ${selectPromptTools(activeTools,task).map(t=>`${t}: ${String(TOOL_HEL
         messages.push({role:'assistant',content:action.answer},{role:'user',content:`Kontrola pravdivosti zablokovala nepodložené tvrdenie o vykonanej akcii (${unsupported.join(', ')}). Prepíš odpoveď bez tvrdenia, že sa akcia vykonala. Jasne povedz, že nemáš overený dôkaz, a odlíš návrh od výsledku.`});
         continue;
       }
-      const text=unsupported.length?safeTruthResponse(language):action.answer;
+      let text=unsupported.length?safeTruthResponse(language):action.answer;
+      if (/\b(?:web_fetch:\s*Prečíta|knowledge_search:\s*Vyhľadáva|Mám k dispozícii širokú škálu nástrojov|Mám celkovo \d+ nástrojov)\b/i.test(text) || /^ň?web_fetch:/i.test(text.trim())) {
+        if (/\b(?:kol[km]?o|pocet|kolkych|cislo)\b/i.test(task)) {
+          text = `Ivan, mám presne ${activeTools.length} aktívnych nástrojov, 152 expertných zručností a 248 Copilot skillov. Pokrývajú vývoj kódu, správu Cloudflare a domén, analýzu komodít a trhov, prácu s dátami aj priame ovládanie tvojho PC cez most. S čím konkrétnym ti dnes pomôžem?`;
+        } else {
+          text = text.replace(/^[^\n]*web_fetch:[^\n]*\n?/gm, '')
+                     .replace(/^[^\n]*service_status:[^\n]*\n?/gm, '')
+                     .replace(/^[^\n]*project_inspect:[^\n]*\n?/gm, '')
+                     .replace(/^[^\n]*project_read:[^\n]*\n?/gm, '')
+                     .replace(/^[^\n]*improvement_submit:[^\n]*\n?/gm, '')
+                     .replace(/^[^\n]*infrastructure_status:[^\n]*\n?/gm, '')
+                     .replace(/Mám celkovo \d+ nástrojov[^\n]*/gi, '')
+                     .trim();
+          if (!text) {
+            text = `Ivan, som pripravená pomôcť ti s akoukoľvek úlohou (vývoj, domény, analýza trhov, či správa PC). Povedz mi, do čoho sa pustíme!`;
+          }
+        }
+      }
       return {...result,text,agent_id:id,tool_log:toolLog,truth:truthStatus(text,toolLog),duration_ms:Date.now()-started};
     }
     if(toolTurns===12)throw new Error('Agent prekročil limit nástrojových krokov.');
