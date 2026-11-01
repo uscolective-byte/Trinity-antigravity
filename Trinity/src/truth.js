@@ -261,33 +261,25 @@ export function enforceRawEvidenceOnly(data,rawStdout='',rawStderr=''){
  * Tvrdý sieťový timeout (predvolene 5000 ms). Pri výpadku vráti presné hlásenie.
  */
 export async function fetchWithHardTimeout(url,options={},timeoutMs=5000,fetcher=fetch){
+  if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new TypeError('Neplatný sieťový timeout.');
+  const controller=new AbortController();
+  let timer;
   try{
-    const response=await fetcher(url,{
-      ...options,
-      signal:AbortSignal.timeout(timeoutMs)
-    });
+    const signal=options.signal?AbortSignal.any([options.signal,controller.signal]):controller.signal;
+    const response=await Promise.race([
+      Promise.resolve().then(()=>fetcher(url,{...options,signal})),
+      new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(new Error('Network deadline exceeded'));},timeoutMs);})
+    ]);
     if(!response||!response.ok){
-      return {
-        ok:false,
-        rule:'3_NO_FAKE_APIS',
-        status:response?.status||503,
-        message:'Chyba spojenia: Endpoint neodpovedá. Operácia nebola vykonaná.'
-      };
+      return {ok:false,rule:'3_NO_FAKE_APIS',status:response?.status||503,outcome:'unknown',
+        message:'Endpoint vrátil chybu. Výsledok operácie nie je overený.'};
     }
-    return {
-      ok:true,
-      rule:'3_NO_FAKE_APIS',
-      status:response.status,
-      response
-    };
-  }catch{
-    return {
-      ok:false,
-      rule:'3_NO_FAKE_APIS',
-      status:504,
-      message:'Chyba spojenia: Endpoint neodpovedá. Operácia nebola vykonaná.'
-    };
-  }
+    return {ok:true,rule:'3_NO_FAKE_APIS',status:response.status,response};
+  }catch(error){
+    return {ok:false,rule:'3_NO_FAKE_APIS',status:504,outcome:'unknown',
+      error_code:error?.name==='AbortError'?'ABORTED':'NETWORK_UNAVAILABLE',
+      message:'Chyba spojenia: Výsledok operácie nie je overený. Pred opakovaním skontroluj jej stav.'};
+  }finally{clearTimeout(timer);}
 }
 
 /**
@@ -298,7 +290,8 @@ export function verifyPhysicalDiskWrite(filePath,existsCheckFn){
   if(typeof existsCheckFn!=='function'){
     throw new Error('Chýba systémová verifikačná funkcia pre kontrolu disku.');
   }
-  const exists=Boolean(existsCheckFn(filePath));
+  const exists=existsCheckFn(filePath);
+  if(typeof exists!=='boolean')throw new TypeError('Kontrola disku musí synchronne vrátiť boolean; Promise nie je dôkaz existencie.');
   if(!exists){
     return {
       verified:false,
@@ -398,7 +391,8 @@ export class IndependentVerifier {
     if(proposingAgent===verifyingAgent){
       throw new Error(`Porušenie oddelenia moci (Pravidlo 8): Agent "${proposingAgent}" nesmie sám hodnotiť výsledok vlastnej exekúcie.`);
     }
-    const plannedJson=JSON.stringify(plannedState??null);
+    if(plannedState==null||actualState==null)throw new Error('Chýba plánovaný alebo skutočne zistený stav.');
+    const plannedJson=JSON.stringify(plannedState);
     const actualJson=JSON.stringify(actualState??null);
     const matched=plannedJson===actualJson;
     return {
@@ -540,7 +534,7 @@ export class SovereignTruthGuard {
   filterAntiAssumption(text, hasVerifiedReceipt = false) {
     return filterAntiAssumption(text, hasVerifiedReceipt);
   }
-  verifyZeroSimulatedExecution({ exitCode = 0, stdout = '', stderr = '' } = {}) {
+  verifyZeroSimulatedExecution({ exitCode, stdout = '', stderr = '' } = {}) {
     return {
       ...enforceZeroSimulatedExecution({ exitCode }),
       ...enforceRawEvidenceOnly(null, stdout, stderr)
