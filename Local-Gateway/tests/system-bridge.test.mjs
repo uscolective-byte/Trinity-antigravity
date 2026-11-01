@@ -51,6 +51,38 @@ test('System Bridge (Port 7788): /api/status vracia ONLINE s overeným Windows S
     assert.equal(blockedRes.status, 403);
     const blockedData = await blockedRes.json();
     assert.match(blockedData.error, /ACCESS DENIED.*UNVERIFIED_GOOGLE_OAUTH_TOKEN/);
+
+    // 4. Test zablokovania volania bez X-Trinity-Bridge-Token aj bez emailu (Fail-Closed HTTP Header Gate)
+    const noTokenRes = await fetch(`${baseUrl}/api/execute-privileged`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'e2e_truth_verify'
+      })
+    });
+    assert.equal(noTokenRes.status, 403);
+
+    // 5. Pozitívny test s platným TRINITY_BRIDGE_TOKEN + overeným Windows SID Basterixa + zápis do lokálneho Sovereign Ledgeru
+    process.env.TRINITY_BRIDGE_TOKEN = process.env.TRINITY_BRIDGE_TOKEN || 'test-bridge-token-7788';
+    const validRes = await fetch(`${baseUrl}/api/execute-privileged`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Trinity-Bridge-Token': process.env.TRINITY_BRIDGE_TOKEN
+      },
+      body: JSON.stringify({
+        action: 'e2e_truth_verify',
+        payload: {}
+      })
+    });
+    assert.equal(validRes.status, 200);
+    const validData = await validRes.json();
+    assert.equal(validData.status, 'completed');
+    assert.equal(validData.exit_code, 0);
+    assert.equal(validData.os_token_verified, true);
+    assert.match(validData.windows_sid, /^S-1-5-21-\d+-\d+-\d+-\d+$/);
+    assert.ok(validData.local_ledger_receipt.receipt_id.startsWith('TRN-LCL-V3-'));
+    assert.equal(validData.local_ledger_receipt.block_hash.length, 64);
   } finally {
     await new Promise(resolve => server.close(resolve));
   }

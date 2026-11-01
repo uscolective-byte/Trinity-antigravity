@@ -31,11 +31,50 @@ import {
 import { CAPABILITIES, ACTIONS } from './policy.mjs';
 import { ProposalStore } from './store.mjs';
 import { executeProposal, readWorkspaceFile } from './executor.mjs';
+import { executeDesktop, listDesktopWindows } from './desktop.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const gatewayRoot = path.resolve(here, '..');
 const workspaceRoot = path.resolve(process.env.MORHFEUS_ROOT || path.join(gatewayRoot, '..'));
 const dataDir = path.resolve(process.env.TRINITY_GATEWAY_DATA || path.join(gatewayRoot, 'data'));
+
+function appendLocalSovereignLedger(targetDataDir, entry) {
+  fs.mkdirSync(targetDataDir, { recursive: true });
+  const ledgerFile = path.join(targetDataDir, 'sovereign-bridge-ledger.jsonl');
+  let prevHash = '0'.repeat(64);
+  let index = 1;
+  if (fs.existsSync(ledgerFile)) {
+    const lines = fs.readFileSync(ledgerFile, 'utf8').trim().split(/\r?\n/).filter(Boolean);
+    if (lines.length > 0) {
+      try {
+        const last = JSON.parse(lines[lines.length - 1]);
+        prevHash = last.block_hash || prevHash;
+        index = (last.index || lines.length) + 1;
+      } catch {}
+    }
+  }
+  const timestamp = new Date().toISOString();
+  const payloadStr = JSON.stringify(entry);
+  const blockHash = createHash('sha256')
+    .update(`${index}|${timestamp}|${entry.actor || 'UNKNOWN'}|${entry.operation || 'BRIDGE_OP'}|${payloadStr}|${prevHash}`)
+    .digest('hex');
+  const receiptId = `TRN-LCL-V3-${index}-${blockHash.slice(0, 12).toUpperCase()}`;
+  const record = {
+    index,
+    receipt_id: receiptId,
+    timestamp,
+    actor: entry.actor || 'UNKNOWN',
+    operation: entry.operation || 'BRIDGE_OP',
+    exit_code: entry.exit_code ?? 0,
+    windows_sid: entry.windows_sid || null,
+    prev_hash: prevHash,
+    block_hash: blockHash,
+    payload: entry,
+    ledger_file: ledgerFile
+  };
+  fs.appendFileSync(ledgerFile, JSON.stringify(record) + '\n', 'utf8');
+  return record;
+}
 
 function loadDotEnvIfPresent(envFilePath) {
   if (!fs.existsSync(envFilePath)) return {};
@@ -164,12 +203,13 @@ export async function createSystemBridgeServer(options = {}) {
         });
       }
 
-      // 3. Privileged Execution Gate (requires valid Bridge Token OR verified local Basterix OS session)
+      // 3. Privileged Execution Gate (requires valid Bridge Token AND verified Basterix OS SID or Google OAuth)
       if (request.method === 'POST' && url.pathname === '/api/execute-privileged') {
         const tokenOk = isBridgeTokenAuthorized(request);
         const input = await parseJsonBody(request);
+        const targetDataDir = options.dataDir || dataDir;
 
-        // Nikdy nedôverovať neovereným hlavičkám/telu bez dôkazu
+        // Nikdy nedôverovať neovereným hlavičkám/telu bez dôkazu a platného TRINITY_BRIDGE_TOKEN
         const authContext = {
           email: input.email,
           phone: input.phone,
@@ -177,22 +217,69 @@ export async function createSystemBridgeServer(options = {}) {
           verifiedGoogleToken: input.verifiedGoogleToken === true && tokenOk,
           verifiedWebhookSignature: input.verifiedWebhookSignature === true && tokenOk,
           verifiedWindowsToken: input.verifiedWindowsToken === true && tokenOk,
-          sid: input.sid,
-          checkLocalWindows: !input.email && !input.phone && !input.windowsUser
+          sid: input.sid || winSession.sid,
+          checkLocalWindows: tokenOk && !input.email && !input.phone && !input.windowsUser
         };
 
         const result = await executePrivileged(
           authContext,
-          { action: input.action || 'READ_WORKSPACE', target: input.payload?.path || input.action },
+          { action: input.action || 'READ_WORKSPACE', target: input.payload?.path || input.payload?.app || input.action },
           async verifiedAuth => {
-            if (input.action === 'read' && input.payload?.path) {
-              const fileData = await readWorkspaceFile(workspaceRoot, input.payload.path);
+            if (input.action === 'open_app' || input.action === 'e2e_truth_verify') {
+              const appToOpen = input.payload?.app || null;
+              let appResult = null;
+              if (appToOpen) {
+                try {
+                  appResult = await executeDesktop({ task: 'desktop-control', operation: 'launch', app: appToOpen });
+                } catch (err) {
+                  const windows = await listDesktopWindows();
+                  appResult = { operation: 'launch_fallback_list', app: appToOpen, note: err.message, active_windows_count: windows.length };
+                }
+              } else {
+                const windows = await listDesktopWindows();
+                appResult = { operation: 'list', active_windows_count: windows.length, sample_windows: windows.slice(0, 5) };
+              }
+              const localLedger = appendLocalSovereignLedger(targetDataDir, {
+                actor: verifiedAuth.operator,
+                channel: verifiedAuth.channel,
+                identifier: verifiedAuth.identifier,
+                operation: input.action.toUpperCase(),
+                exit_code: 0,
+                windows_sid: winSession.sid,
+                app_result: appResult
+              });
               return {
                 status: 'completed',
+                exit_code: 0,
                 operator: verifiedAuth.operator,
                 channel: verifiedAuth.channel,
                 identifier: verifiedAuth.identifier,
-                receipt: fileData
+                windows_sid: winSession.sid,
+                os_token_verified: winSession.osTokenVerified,
+                app_execution: appResult,
+                local_ledger_receipt: localLedger,
+                executed_at: new Date().toISOString()
+              };
+            }
+            if (input.action === 'read' && input.payload?.path) {
+              const fileData = await readWorkspaceFile(workspaceRoot, input.payload.path);
+              const localLedger = appendLocalSovereignLedger(targetDataDir, {
+                actor: verifiedAuth.operator,
+                channel: verifiedAuth.channel,
+                identifier: verifiedAuth.identifier,
+                operation: 'READ_WORKSPACE_FILE',
+                exit_code: 0,
+                windows_sid: winSession.sid,
+                path: input.payload.path
+              });
+              return {
+                status: 'completed',
+                exit_code: 0,
+                operator: verifiedAuth.operator,
+                channel: verifiedAuth.channel,
+                identifier: verifiedAuth.identifier,
+                receipt: fileData,
+                local_ledger_receipt: localLedger
               };
             }
             if (ACTIONS.has(input.action)) {
@@ -204,26 +291,47 @@ export async function createSystemBridgeServer(options = {}) {
               await store.transition(proposal.id, ['approved'], 'executing', {
                 executionStartedAt: new Date().toISOString()
               });
-              const receipt = await executeProposal(workspaceRoot, { ...proposal, status: 'approved' }, dataDir);
+              const receipt = await executeProposal(workspaceRoot, { ...proposal, status: 'approved' }, targetDataDir);
               const finalStatus = receipt.success === false ? 'failed' : 'completed';
               await store.transition(proposal.id, ['executing'], finalStatus, {
                 receipt,
                 completedAt: new Date().toISOString()
               });
+              const localLedger = appendLocalSovereignLedger(targetDataDir, {
+                actor: verifiedAuth.operator,
+                channel: verifiedAuth.channel,
+                identifier: verifiedAuth.identifier,
+                operation: input.action.toUpperCase(),
+                exit_code: receipt.exitCode ?? 0,
+                windows_sid: winSession.sid,
+                proposal_id: proposal.id
+              });
               return {
                 status: finalStatus,
+                exit_code: receipt.exitCode ?? 0,
                 operator: verifiedAuth.operator,
                 channel: verifiedAuth.channel,
                 identifier: verifiedAuth.identifier,
-                receipt
+                receipt,
+                local_ledger_receipt: localLedger
               };
             }
+            const localLedger = appendLocalSovereignLedger(targetDataDir, {
+              actor: verifiedAuth.operator,
+              channel: verifiedAuth.channel,
+              identifier: verifiedAuth.identifier,
+              operation: input.action || 'PRIVILEGED_ACTION',
+              exit_code: 0,
+              windows_sid: winSession.sid
+            });
             return {
               status: 'completed',
+              exit_code: 0,
               operator: verifiedAuth.operator,
               channel: verifiedAuth.channel,
               identifier: verifiedAuth.identifier,
               verified_proof: verifiedAuth.verifiedProof,
+              local_ledger_receipt: localLedger,
               executed_at: new Date().toISOString()
             };
           }

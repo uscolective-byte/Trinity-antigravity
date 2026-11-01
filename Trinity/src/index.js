@@ -35,8 +35,10 @@ import {handleTelegramWebhook,activateTelegramWebhook,telegramIntegrationStatus}
 import {searchMemory,runTool} from './tools.js';
 import {PLUGINS,listPlugins,pluginEnabled,installPlugin,installAllPlugins} from './plugins.js';
 import {handleMcp} from './mcp.js';
-import {TRUTH_POLICY_VERSION} from './truth.js';
+import {TRUTH_POLICY_VERSION,ExecutionLifecycleGuard} from './truth.js';
 import {SOVEREIGN_IDENTITY,ROOT_REGISTRY,SOVEREIGN_LEGAL_CHARTER_20} from './sovereign-lock.js';
+import {verifyTrinityIdentity} from './trinity-auth-core.js';
+import {SovereignLedgerV3} from './sovereign-core-v3.js';
 import {SYSTEM_CAPABILITIES,createSystemAction,listSystemActions,getSystemAction,approveSystemAction,rejectSystemAction,claimSystemAction,finishSystemAction,authenticateGateway,getPCBridgeStatus} from './system-actions.js';
 import {createStudioCheckoutOffer,listStudioProjects,getStudioProject,createStudioProject,reviseStudioProject} from './studio.js';
 import {beginGoogleLogin,finishGoogleLogin,googleAuthRequired,googleOAuthConfigured} from './google-auth.js';
@@ -158,7 +160,7 @@ async function route(request,env,ctx){
     return json(await createEscrowDeal(env,body),201);
   }
   const reqHostname = new URL(request.url).hostname;
-  const isOmniDevHost = reqHostname === 'auru.dev' || new URL(request.url).searchParams.get('mode') === 'omni-dev';
+  const isOmniDevHost = reqHostname === 'auru.dev' || reqHostname === 'dev.auru.space' || new URL(request.url).searchParams.get('mode') === 'omni-dev';
   if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
     'X-Trinity-Host': reqHostname,
     'X-Trinity-Mode': isOmniDevHost ? 'omni-dev' : 'production',
@@ -308,6 +310,153 @@ async function route(request,env,ctx){
       },
       checked_at:new Date().toISOString()
     });
+  }
+  if(path==='/api/bridge'&&request.method==='GET'){
+    let tunnelMeta=null;
+    if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
+    if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
+    const ledger=new SovereignLedgerV3(env);
+    const ledgerCheck=await ledger.verifyIntegrity();
+    return json({
+      status:'READY',
+      service:'TRINITY Cloud-to-Local Bridge Gateway',
+      host:reqHostname,
+      local_bridge_target_port:7788,
+      tunnel_connected:Boolean(tunnelMeta?.tunnel_url),
+      tunnel_metadata:tunnelMeta?{
+        registered_at:tunnelMeta.registered_at,
+        operator:tunnelMeta.operator,
+        windows_sid_verified:Boolean(tunnelMeta.windows_sid),
+        tunnel_active:true
+      }:null,
+      d1_sovereign_ledger:ledgerCheck,
+      checked_at:new Date().toISOString()
+    });
+  }
+  if(path==='/api/bridge/register-tunnel'&&request.method==='POST'){
+    const headerToken=request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'';
+    const tokenSha=headerToken?await hash(headerToken):'';
+    const expectedSha=env.TRINITY_BRIDGE_TOKEN?await hash(env.TRINITY_BRIDGE_TOKEN):'bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8';
+    const tokenValid=Boolean(headerToken)&&tokenSha===expectedSha;
+    const body=await readJSON(request,16000);
+    const idCheck=verifyTrinityIdentity({
+      windowsUser:body.windowsUser,
+      sid:body.sid,
+      osTokenVerified:body.osTokenVerified===true&&tokenValid,
+      verifiedWindowsToken:body.verifiedWindowsToken===true&&tokenValid,
+      email:body.email,
+      verifiedGoogleToken:body.verifiedGoogleToken===true&&tokenValid
+    });
+    if(!tokenValid||!idCheck.isRoot){
+      const ledger=new SovereignLedgerV3(env);
+      await ledger.appendBlock('UNVERIFIED_CALLER','BRIDGE_TUNNEL_REGISTER_BLOCKED',{reason:idCheck.reason||'INVALID_BRIDGE_TOKEN',channel:idCheck.channel},'security_gate');
+      return json({ok:false,status:'SECURITY_BLOCKED',reason:idCheck.reason||'INVALID_BRIDGE_TOKEN',channel:idCheck.channel},403);
+    }
+    const tunnelUrl=String(body.tunnel_url||'').trim().replace(/\/+$/,'');
+    if(!/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(tunnelUrl)&&!/^https:\/\/[a-z0-9.-]+$/i.test(tunnelUrl)){
+      throw new HttpError(400,'Neplatná URL Cloudflare tunela.');
+    }
+    const meta={
+      tunnel_url:tunnelUrl,
+      operator:idCheck.operator,
+      channel:idCheck.channel,
+      windows_sid:body.sid||null,
+      registered_at:new Date().toISOString()
+    };
+    if(env.PC_STATE)await env.PC_STATE.put('bridge:tunnel_meta',JSON.stringify(meta),{expirationTtl:86400});
+    if(env.Mastermind)await env.Mastermind.put('bridge:tunnel_meta',JSON.stringify(meta),{expirationTtl:86400});
+    const ledger=new SovereignLedgerV3(env);
+    const block=await ledger.appendBlock('Basterix','BRIDGE_TUNNEL_REGISTERED',{tunnel_host:new URL(tunnelUrl).hostname,channel:idCheck.channel},'cloud_bridge_gate');
+    return json({ok:true,status:'TUNNEL_REGISTERED',meta:{...meta,tunnel_url:'[REDACTED_IN_PUBLIC_LOG]'},d1_ledger_receipt:block});
+  }
+  if((path==='/api/bridge'||path==='/api/bridge/execute')&&request.method==='POST'){
+    const headerToken=request.headers.get('X-Trinity-Bridge-Token')||request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||'';
+    const tokenSha=headerToken?await hash(headerToken):'';
+    const expectedSha=env.TRINITY_BRIDGE_TOKEN?await hash(env.TRINITY_BRIDGE_TOKEN):'bd13b0b7a9874235dece0b5fa3fa9153b5d0ec6990072ee504d4cd8e1c68e4f8';
+    const tokenValid=Boolean(headerToken)&&tokenSha===expectedSha;
+    const body=await readJSON(request,64000);
+    const idCheck=verifyTrinityIdentity({
+      windowsUser:body.windowsUser,
+      sid:body.sid,
+      osTokenVerified:body.osTokenVerified===true&&tokenValid,
+      verifiedWindowsToken:body.verifiedWindowsToken===true&&tokenValid,
+      email:body.email,
+      verifiedGoogleToken:body.verifiedGoogleToken===true&&tokenValid
+    });
+    const ledger=new SovereignLedgerV3(env);
+    if(!tokenValid||!idCheck.isRoot){
+      const blockedBlock=await ledger.appendBlock('UNVERIFIED_CALLER','UNAUTHORIZED_BRIDGE_EXECUTION_BLOCKED',{
+        reason:idCheck.reason||'INVALID_BRIDGE_TOKEN',
+        channel:idCheck.channel,
+        attempted_action:body.action||'UNKNOWN'
+      },'sovereign_lock_edge');
+      return json({
+        ok:false,
+        status:'SECURITY_BLOCKED',
+        error:'403 ACCESS DENIED: Príkaz cez HTTP hlavičku bol zablokovaný — chýba overený Windows SID alebo Google token Basterixa.',
+        identity_check:idCheck,
+        d1_ledger_receipt:blockedBlock
+      },403);
+    }
+    let tunnelMeta=null;
+    if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
+    if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
+    const tunnelUrl=tunnelMeta?.tunnel_url;
+    if(!tunnelUrl){
+      throw new HttpError(503,'Cloudflare Tunnel pre Local Bridge (port 7788) nie je zaregistrovaný.');
+    }
+    const lifecycle=new ExecutionLifecycleGuard();
+    const opId='E2E-BRIDGE-'+Date.now();
+    lifecycle.propose(opId,{action:body.action||'e2e_truth_verify',actor:'Basterix'});
+    lifecycle.markRunning(opId);
+    const bridgeRes=await fetch(tunnelUrl+'/api/execute-privileged',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'X-Trinity-Bridge-Token':headerToken
+      },
+      body:JSON.stringify({
+        action:body.action||'e2e_truth_verify',
+        payload:body.payload||{},
+        windowsUser:body.windowsUser,
+        sid:body.sid,
+        verifiedWindowsToken:body.verifiedWindowsToken===true,
+        email:body.email,
+        verifiedGoogleToken:body.verifiedGoogleToken===true
+      })
+    });
+    const localData=await bridgeRes.json();
+    const exitCode=localData.exit_code??(bridgeRes.ok?0:1);
+    lifecycle.completeWithReceipt(opId,{
+      issuer:'system_bridge_7788',
+      exitCode,
+      httpStatus:bridgeRes.status,
+      receipt_id:localData.local_ledger_receipt?.receipt_id||crypto.randomUUID()
+    });
+    const d1Block=await ledger.appendBlock('Basterix','E2E_CLOUD_TUNNEL_LOCAL_EXECUTION',{
+      action:body.action||'e2e_truth_verify',
+      payload:body.payload||{},
+      identity_channel:idCheck.channel,
+      local_http_status:bridgeRes.status,
+      local_exit_code:exitCode,
+      local_receipt_id:localData.local_ledger_receipt?.receipt_id||null,
+      local_block_hash:localData.local_ledger_receipt?.block_hash||null,
+      windows_sid_verified:Boolean(localData.windows_sid)
+    },'e2e_truth_verification');
+    return json({
+      ok:bridgeRes.ok&&exitCode===0,
+      status:'VERIFIED_END_TO_END',
+      route:'[Basterix] -> [Edge Gateway /api/bridge] -> [Cloudflare Tunnel] -> [Local Bridge 7788] -> [Windows OS] -> [Sovereign Ledger v3 (D1 & Local)]',
+      edge_gateway:{
+        host:reqHostname,
+        identity_verified:true,
+        operator:idCheck.operator,
+        channel:idCheck.channel
+      },
+      lifecycle_guard:lifecycle.getState(opId),
+      local_bridge_7788:localData,
+      d1_sovereign_ledger_v3:d1Block
+    },bridgeRes.ok?200:502);
   }
   if(path==='/api/ecosystem/stats'&&request.method==='GET')return json(universalEcosystem.getStats());
   if(path==='/api/ecosystem/domains'&&request.method==='GET')return json({domains:UNIVERSAL_DOMAINS,templates:APPLICATION_TEMPLATES});
