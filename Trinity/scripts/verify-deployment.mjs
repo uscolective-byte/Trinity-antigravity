@@ -16,7 +16,7 @@ export function verificationTarget(args){
 export async function verifyDeployment({origin,expectedTag,expectedVersionId,version,attempts=6,delayMs=10000,fetcher=fetch}){
  let last='No response';
  const headers={Accept:'application/json','User-Agent':'Mozilla/5.0'};
- const allowedEnvironments=origin==='https://auru.dev'?new Set(['staging']):new Set(['production']);
+ const allowedEnvironments=new Set(['production']);
  for(let attempt=0;attempt<attempts;attempt++){
   try{
    const health=await fetcher(origin+'/health',{headers,signal:AbortSignal.timeout(10000),redirect:'error'});

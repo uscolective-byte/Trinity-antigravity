@@ -13,6 +13,10 @@
     {
       "pattern": "auru.space",
       "custom_domain": true
+    },
+    {
+      "pattern": "auru.dev",
+      "custom_domain": true
     }
   ],
   "triggers": {
@@ -388,12 +392,7 @@
       "triggers": {
         "crons": []
       },
-      "routes": [
-        {
-          "pattern": "auru.dev",
-          "custom_domain": true
-        }
-      ],
+      "routes": [],
       "vars": {
         "CF_ACCOUNT_ID": "b60342e5e52f5646fbd4e913bb409334",
         "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",

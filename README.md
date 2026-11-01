@@ -11,7 +11,7 @@ Verzia zdroja: **11.0.0**. Repozitár: [uscolective-byte/Trinity-antigravity](ht
 | Doména | Prostredie | Worker |
 |---|---|---|
 | auru.space | production | `trinity` |
-| auru.dev | staging | `trinity-staging` |
+| auru.dev | production | `trinity` |
 
 Tieto údaje sa generujú zo zdrojov a konfigurácie. Aktuálne nasadenie over cez `/health`, `/ready` a commit tag; nejde o živý stav integrácií.
 <!-- trinity-release:end -->

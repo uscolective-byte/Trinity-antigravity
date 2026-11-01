@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {TRINITY_SOURCE} from '../src/version.js';
 
-test('one repository and branch serve isolated production and staging Workers',()=>{
+test('both public domains serve one production Worker and isolated previews own no public alias',()=>{
  const config=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
  assert.equal(config.name,'trinity');
- assert.deepEqual(config.routes,[{pattern:'auru.space',custom_domain:true}]);
+ assert.deepEqual(config.routes,[{pattern:'auru.space',custom_domain:true},{pattern:'auru.dev',custom_domain:true}]);
  assert.equal(config.vars.TRINITY_ENV,'production');
  assert.equal(config.vars.TRINITY_GITHUB_REPO,TRINITY_SOURCE.repository);
  assert.equal(config.vars.TRINITY_GITHUB_BRANCH,TRINITY_SOURCE.branch);
@@ -17,7 +17,7 @@ test('one repository and branch serve isolated production and staging Workers',(
  assert.equal(callback.search,'');assert.equal(callback.hash,'');
  const staging=config.env?.staging;
  assert.equal(staging.name,'trinity-staging');
- assert.deepEqual(staging.routes,[{pattern:'auru.dev',custom_domain:true}]);
+ assert.deepEqual(staging.routes,[]);
  assert.equal(staging.vars.TRINITY_ENV,'staging');
  assert.equal(staging.vars.TRINITY_PREVIEW_MODE,'build-only');
  assert.deepEqual(staging.triggers,{crons:[]},'staging must not inherit production schedules');
