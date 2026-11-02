@@ -7,6 +7,7 @@
  * @description Modul run-all-tests.mjs (scripts/run-all-tests.mjs) v ekosystéme TRINITY OMNI-CORE.
  */
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -31,23 +32,47 @@ const SUITES = [
   { name: 'Tetrakis-Token ($TTK)', dir: resolve(ROOT, 'contracts/tetrakis'), cmd: 'npm', args: ['test'] }
 ];
 
-console.log('🧪 RUNNING ALL SUITES...');
-for (const s of SUITES) {
-  console.log(`\n▶ [${s.name}] in ${s.dir}...`);
-  const useNpmCli = s.cmd === 'npm' && Boolean(process.env.npm_execpath);
-  const res = spawnSync(useNpmCli ? process.execPath : s.cmd, useNpmCli ? [process.env.npm_execpath, ...s.args] : s.args, {
-    cwd: s.dir,
+const resolveNpmCommand = () => (process.platform === 'win32' ? 'npm.cmd' : 'npm');
+
+const runSuite = (suite) => {
+  const packageJsonPath = resolve(suite.dir, 'package.json');
+  if (!existsSync(packageJsonPath)) {
+    console.warn(`⚠️ Skipping ${suite.name}: missing ${packageJsonPath}`);
+    return true;
+  }
+
+  console.log(`\n▶ [${suite.name}] in ${suite.dir}...`);
+  const useNpmCommand = suite.cmd === 'npm';
+  const cmd = useNpmCommand ? resolveNpmCommand() : suite.cmd;
+  const res = spawnSync(cmd, suite.args, {
+    cwd: suite.dir,
     stdio: 'inherit',
-    shell: s.cmd === 'npm' && !useNpmCli,
+    shell: process.platform === 'win32' && useNpmCommand,
     env: { ...process.env, CI: '1', WRANGLER_SEND_METRICS: 'false' }
   });
+
+  if (res.error) {
+    console.error(res.error.message);
+  }
+  if (res.signal) {
+    console.error(`Suite terminated by signal ${res.signal}`);
+  }
+
   if (res.status !== 0) {
-    if (res.error) console.error(res.error.message);
-    if (res.signal) console.error(`Suite terminated by ${res.signal}`);
-    console.error(`❌ Suite failed: ${s.name} (exit code ${res.status})`);
+    console.error(`❌ Suite failed: ${suite.name} (exit code ${res.status})`);
     process.exit(res.status || 1);
   }
-  console.log(`✅ Passed: ${s.name}`);
+
+  console.log(`✅ Passed: ${suite.name}`);
+  return true;
+};
+
+console.log('🧪 RUNNING ALL SUITES...');
+for (const suite of SUITES) {
+  const ok = runSuite(suite);
+  if (!ok) {
+    process.exit(1);
+  }
 }
 
 console.log('\n🎉 ALL SUITES PASSED CLEANLY!');
