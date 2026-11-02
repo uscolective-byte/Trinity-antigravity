@@ -33,7 +33,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "5.20261023.1",
+    "@cloudflare/workers-types": "5.20261029.1",
     "esbuild": "0.28.2",
     "miniflare": "5.20261006.1-alpha",
     "wrangler": "4.154.0"
