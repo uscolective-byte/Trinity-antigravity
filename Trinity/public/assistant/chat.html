@@ -308,6 +308,32 @@ Pripravené na spustenie príkazu na hostiteľskom PC...</div>
         </section>
         <section id="owner-growth-panel" class="panel admin-command-panel" hidden><div class="panel-head"><div><span class="eyebrow">OWNER · OBCHOD A RAST</span><h2>Obchodné centrum & Osobný PayPal Checkout (bez nutnosti firmy)</h2></div><span class="detail-chip">FYZICKÁ OSOBA / OWNER</span></div><p>Nepotrebuješ mať založenú firmu ani Pro účet. Prepoj svoj osobný <b>PayPal (PayPal.me alebo PayPal e-mail)</b> a Trinity automaticky vytvorí platobné brány s presnou sumou v EUR pre predaj webov, domén a AI služieb.</p><div class="admin-action-grid"><button type="button" data-open-commerce="settings" class="primary"><i>💙</i><span><b>Prepojiť osobný PayPal</b><small>PayPal e-mail alebo PayPal.me na 1 klik</small></span></button><button data-owner-prompt="prospects"><i>⌕</i><span><b>Nájsť zákazníkov</b><small>Verejný web, LinkedIn a katalógy</small></span></button><button data-owner-prompt="score"><i>◎</i><span><b>Vyhodnotiť príležitosti</b><small>Zoradiť dopyty podľa dôkazov</small></span></button><button data-owner-prompt="offer"><i>✎</i><span><b>Pripraviť ponuku</b><small>Personalizovaný návrh s PayPal linkom</small></span></button><button data-owner-prompt="revenue"><i>€</i><span><b>Model zárobku</b><small>Tržby, náklady a čistý výnos</small></span></button><button data-owner-prompt="blueprint"><i>✦</i><span><b>Plán monetizácie</b><small>Balíky webov, domén a AI služieb</small></span></button></div></section>
         <div class="dashboard-grid admin-grid"><section class="panel admin-command-panel"><div class="panel-head"><div><span class="eyebrow">ADMIN AKCIE</span><h2>Riadenie Trinity</h2></div><span id="admin-system-state" class="admin-state running">Systém beží</span></div><div class="admin-action-grid"><button data-view="settings"><i>⚙</i><span><b>Modely a integrácie</b><small>API kľúče, poskytovatelia, moduly a roly</small></span></button><button data-view="projects"><i>▦</i><span><b>Projekty a úlohy</b><small>Kontrola práce agentov a výstupov</small></span></button><button data-view="studio"><i>✦</i><span><b>AI Studio</b><small>Tvorba a verzovanie webových výstupov</small></span></button><button type="button" data-view="documents"><i>📚</i><span><b>Trinity Dokumenty</b><small>Automatické záznamy každého kroku (MD / PDF)</small></span></button></div></section><section class="panel activity-panel"><div class="panel-head"><div><span class="eyebrow">SYSTÉMOVÁ AKTIVITA</span><h2>Najnovšie úlohy</h2></div><button data-view="chat">Otvoriť chat</button></div><div id="admin-dashboard-activity" class="activity-list"><p class="skeleton">Systém je pripravený na prácu.</p></div></section></div>
+        <div class="dashboard-grid admin-grid" style="margin-top:16px">
+          <section class="panel admin-command-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">RÝCHLY PRÍKAZ AGENTOM</span><h2>⚡ Poveriť špecialistu úlohou</h2></div>
+              <span class="detail-chip">45 ŠPECIALISTOV</span>
+            </div>
+            <p style="margin:4px 0 10px;font-size:0.88rem;color:var(--muted)">Okamžité poverenie vybraného kľúčového agenta autonómnou úlohou na 1 klik:</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+              <button type="button" class="primary" data-open-chat data-prompt="AURA_ARCHITECT: Navrhni optimalizáciu architektúry a zoznam ďalších krokov pre náš systém.">🏛️ Architekt</button>
+              <button type="button" class="primary" data-open-chat data-prompt="AURA_CODEGEN: Vygeneruj robustný kód podľa aktuálnych požiadaviek projektu.">💻 Programátor</button>
+              <button type="button" class="primary" data-open-chat data-prompt="Výskumník: Vyhľadaj a zosumarizuj najnovšie trendy a riešenia pre Trinity.">🔍 Výskumník</button>
+              <button type="button" class="primary" data-open-chat data-prompt="AURA_TESTER: Spusť testy a over integritu celého systému.">🧪 Tester</button>
+              <button type="button" class="primary" data-open-chat data-prompt="AURA_SENTINEL: Skontroluj bezpečnosť, oprávnenia a integritu Sovereign Locku.">🛡️ Bezpečnosť</button>
+            </div>
+          </section>
+          <section class="panel activity-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">DIAGNOSTIKA A STAV</span><h2>Rýchle kontroly systému</h2></div>
+            </div>
+            <div style="display:flex;gap:8px;flex-direction:column;padding:6px 0">
+              <button type="button" data-open-chat data-prompt="skontroluj stav trinity a over dostupnosť služieb">🩺 Komplexný health check flotily</button>
+              <button type="button" data-open-chat data-prompt="vypíš zoznam registrovaných agentov a ich role">📋 Zoznam 45 agentov a rolí</button>
+              <button type="button" data-open-chat data-prompt="skontroluj stav PC bridge a lokálneho pripojenia">💻 Stav PC Bridge a lokálnej brány</button>
+            </div>
+          </section>
+        </div>
       </div>
       <div id="ui-custom-widgets-slot" class="ui-custom-widgets-grid" hidden></div>
     </section>
