@@ -234,15 +234,3 @@ storage = "sqlite"
 [exports.GuardianAgent]
 type = "durable-object"
 storage = "sqlite"
-
-[exports.TrinityAgent]
-type = "durable-object"
-storage = "sqlite"
-
-[exports.ChatAgent]
-type = "durable-object"
-storage = "sqlite"
-
-[exports.GuardianAgent]
-type = "durable-object"
-storage = "sqlite"

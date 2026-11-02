@@ -16,6 +16,6 @@ for (const [name, schema] of [['tap-v1', MessageSchema], ['receipt-v1', ReceiptS
   const content = JSON.stringify(document, null, 2) + '\n';
   const path = new URL(`../schema/${name}.json`, import.meta.url);
   if (process.argv.includes('--check')) {
-    if (await readFile(path, 'utf8') !== content) throw new Error(`Schema drift: ${name}`);
+    if ((await readFile(path, 'utf8')).replace(/\r\n/g, '\n') !== content) throw new Error(`Schema drift: ${name}`);
   } else await writeFile(path, content);
 }

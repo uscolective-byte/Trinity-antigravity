@@ -40,8 +40,11 @@ Pokyny pre agentov (Codex, Antigravity). S majiteľom (Sabo Ivan / Basterix) kom
 ## Zjednotené oprávnenia a vývoj
 
 Kanonický repozitár: `uscolective-byte/Trinity-antigravity@main`.
-Pre Codex, ChatGPT, Antigravity, Gemini, Copilot Studio a Ollama platí
+Pre Codex, ChatGPT, Antigravity, Gemini, GitHub Copilot, Copilot Studio a Ollama platí
 [AGENT_ACCESS_AND_AUTONOMY.md](Trinity/docs/AGENT_ACCESS_AND_AUTONOMY.md).
+GitHub Copilot je samostatný účastník `github-copilot`; jeho konkrétne odovzdanie
+a stav hostiteľského prepojenia sú v [GITHUB-COPILOT-HANDOFF.md](GITHUB-COPILOT-HANDOFF.md).
+Jeho ACK môže zapísať iba skutočný príjemca; konfigurácia MCP sama nepotvrdzuje spojenie.
 Pri autorizovanom vlastníkovi automatizuj bezpečné úpravy, build, testy,
 commity a PR. Model nie je samostatná identita ani poverenie.
 Merge, zmeny infraštruktúry a produkcie vykonaj iba po skutočnej kontrole
