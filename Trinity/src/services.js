@@ -1,3 +1,4 @@
+import {configuredBridgeToken,registeredBridgeTunnelUrl} from '../../packages/contracts/src/bridge-auth.js';
 /**
  * @module TRINITY_OMNI_CORE
  * @subsystem CORE_RUNTIME
@@ -153,15 +154,15 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
     let tunnelMeta=null;
     if(env.PC_STATE){try{tunnelMeta=JSON.parse(await env.PC_STATE.get('bridge:tunnel_meta')||'null');}catch{}}
     if(!tunnelMeta&&env.Mastermind){try{tunnelMeta=JSON.parse(await env.Mastermind.get('bridge:tunnel_meta')||'null');}catch{}}
-    const tunnelUrl=tunnelMeta?.tunnel_url;
-    if(tunnelUrl){
+    const tunnelUrl=registeredBridgeTunnelUrl(tunnelMeta);
+    const bridgeToken=configuredBridgeToken(env);
+    if(tunnelUrl&&bridgeToken){
       try {
-        const bridgeToken=env.TRINITY_BRIDGE_TOKEN||'b902cb066b2ccb940a470f06bf3b0fd5d6bf5259ddf8017ce2e41f9a2f5393f6';
         const res=await fetch(tunnelUrl+'/api/ollama/chat',{
           method:'POST',
           headers:{'Content-Type':'application/json','X-Trinity-Bridge-Token':bridgeToken},
           body:JSON.stringify({messages,max_tokens:maxTokens,model:customModel||env.OLLAMA_MODEL||'qwen3.5:4b'}),
-          signal:AbortSignal.timeout(120_000)
+          signal:AbortSignal.timeout(120_000),redirect:'manual'
         });
         if(res.ok){
           const data=await res.json();
