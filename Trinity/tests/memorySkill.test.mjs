@@ -159,3 +159,39 @@ test('memorySkills: integrácia do SkillRegistry', async () => {
   assert.ok(learn);
   assert.equal(learn.category, 'memory');
 });
+
+test('learning cannot report success when D1 rejects the write', async () => {
+  const env = createMockMemoryDB();
+  const prepare = env.DB.prepare.bind(env.DB);
+  env.DB.prepare = sql => {
+    const statement = prepare(sql);
+    if (sql.includes('INSERT INTO trinity_commands')) statement.run = async () => ({success: false});
+    return statement;
+  };
+  await assert.rejects(memorySkills.learnFromChat('!skill plan = Vytvor plán.', env), /nepodarilo|overiť/);
+  assert.equal(env.DB.store.size, 0);
+});
+
+test('learning requires an independent matching D1 readback, not only an acknowledged write', async () => {
+  for (const persisted of [null, {instructions: 'Starý alebo súbežne zmenený pokyn.'}]) {
+    const env = createMockMemoryDB();
+    const prepare = env.DB.prepare.bind(env.DB);
+    env.DB.prepare = sql => {
+      const statement = prepare(sql);
+      if (sql.includes('SELECT instructions FROM trinity_commands')) statement.first = async () => persisted;
+      return statement;
+    };
+    await assert.rejects(memorySkills.learnFromChat('!skill plan = Vytvor plán.', env), /overiť/);
+  }
+});
+
+test('runAgent does not emit a completed memory receipt when readback fails', async () => {
+  const env = createMockMemoryDB();
+  const prepare = env.DB.prepare.bind(env.DB);
+  env.DB.prepare = sql => {
+    const statement = prepare(sql);
+    if (sql.includes('SELECT instructions FROM trinity_commands')) statement.first = async () => {throw Error('D1 read unavailable');};
+    return statement;
+  };
+  await assert.rejects(runAgent(env, 'orchestrator', '!skill plan = Vytvor plán.'), /D1 read unavailable/);
+});
