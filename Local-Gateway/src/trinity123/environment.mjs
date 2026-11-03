@@ -6,6 +6,10 @@ import {execFile} from 'node:child_process';
 // Only trusted local configuration is loaded. Existing process variables win.
 export async function loadAgentEnvironment() {
   if (process.env.TRINITY123_LOAD_ENV === '0') return;
+  const rootEnv = 'C:\\Users\\saboi\\.env';
+  if (existsSync(rootEnv)) {
+    try { loadEnvFile(rootEnv); } catch {}
+  }
   const file = fileURLToPath(new URL('../../.env', import.meta.url));
   if (existsSync(file)) {
     try { loadEnvFile(file); }

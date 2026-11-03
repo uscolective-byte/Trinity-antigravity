@@ -19,7 +19,7 @@ export async function getDevHubStatus(env) {
   const unverified={active:false,verified:false,status:'not_verified',capabilities:[]};
   return {
     hub_name:'Trinity Unified Developer & Cloud CLI Integration Hub',
-    version:'11.0.0',
+    version:'11.1.0',
     timestamp:new Date().toISOString(),
     scope:'configuration-only',
     environments:{

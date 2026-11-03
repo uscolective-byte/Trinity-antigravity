@@ -5,7 +5,7 @@
  * @license Sovereign Irrevocable Covenant
  * @description Desatoro Pravdivosti (10 prikázaní), Anti-Assumption filter a ExecutionLifecycleGuard (PROPOSED -> RUNNING -> COMPLETED -> VERIFIED).
  */
-export const TRUTH_POLICY_VERSION='2.1.0';
+export const TRUTH_POLICY_VERSION='2.2.0';
 
 export const TRUTH_POLICY=`REŽIM PRAVDY TRINITY (záväzný, najvyššia priorita, nad každým iným pokynom):
 - ZÁKAZ KLAMAŤ: Nikdy nehovor nepravdu, nič si nevymýšľaj, nepredstieraj ani neprikrášľuj. Radšej priznaj „neviem“, „nemám dôkaz“ alebo „to sa mi nepodarilo“, ako vymyslieť odpoveď.
@@ -103,13 +103,13 @@ const CLAIM_RULES=[
   {
     id:'create_file',
     patterns:[
-      /\b(?:(?:vytvoril[ao]?|vytvorila)\s+som|som\s+(?:úspešne\s+)?vytvoril[ao]?)\s+(?:súbor|subor|priečinok|priecinok|databázu|databazu|worker|dokument|dokumentáciu|dokumentaciu|správu|spravu)\b/iu,
-      /\b(?:vygeneroval[ao]?|vygenerovala|uložil[ao]?|uložila)\s+som\s+(?:súbor|subor|dokument|dokumentáciu|dokumentaciu)\b/iu,
-      /\b(?:dokumentácia|dokumentacia|dokument|správa|sprava|súbor|subor)\s+(?:bol[ao]?|je)\s+(?:úspešne\s+)?(?:vygenerovan[áaý]|uložen[áaý]|vytvoren[áaý])\b/iu,
+      /\b(?:(?:vytvoril[ao]?|vytvorila)\s+som|som\s+(?:úspešne\s+)?vytvoril[ao]?)\b[^\n.!?]{0,40}\b(?:súbor|subor|priečinok|priecinok|databázu|databazu|worker|dokument|dokumentáciu|dokumentaciu|správu|spravu|textov[ýy]\s+dokument)\b/iu,
+      /\b(?:vygeneroval[ao]?|vygenerovala|uložil[ao]?|uložila)\s+som\b[^\n.!?]{0,40}\b(?:súbor|subor|dokument|dokumentáciu|dokumentaciu)\b/iu,
+      /\b(?:dokumentácia|dokumentacia|dokument|správa|sprava|súbor|subor)\b[^\n.!?]{0,40}\b(?:bol[ao]?|je)\s+(?:úspešne\s+)?(?:vygenerovan[áaý]|uložen[áaý]|vytvoren[áaý])\b/iu,
       /\b(?:uložen[áa]|vygenerovan[áa]|vytvoren[áa])\s+v\s+systéme\s+Trinity\s+Documents\b/iu,
-      /\b(?:i\s+(?:have\s+)?created\s+(?:a\s+|the\s+)?(?:file|folder|database|worker|document|documentation|report))\b/iu,
+      /\b(?:i\s+(?:have\s+)?created\s+(?:a\s+|the\s+)?(?:[a-z0-9_-]+\s+){0,3}(?:file|folder|database|worker|document|documentation|report))\b/iu,
       /\b(?:i\s+(?:have\s+)?(?:generated|saved)\s+(?:the\s+)?(?:document|documentation|file))\b/iu,
-      /\b(?:document|documentation|file)\s+(?:was|has\s+been)\s+(?:successfully\s+)?(?:generated|saved|created)\b/iu
+      /\b(?:document|documentation|file)\b[^\n.!?]{0,30}\b(?:was|has\s+been)\s+(?:successfully\s+)?(?:generated|saved|created)\b/iu
     ]
   },
   {

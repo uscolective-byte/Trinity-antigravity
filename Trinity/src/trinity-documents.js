@@ -86,12 +86,12 @@ Dozorný orgán: Úrad na ochranu osobných údajov Slovenskej republiky (https:
   },
   {
     "id": "trinity-kompletna-dokumentacia",
-    "title": "Kompletná Oficiálna Dokumentácia a Architektúra TRINITY 11.0 (OMNI-CORE)",
+    "title": "Kompletná Oficiálna Dokumentácia a Architektúra TRINITY 11.1 (OMNI-CORE)",
     "category": "architecture",
     "step_name": "omni_core_manual",
     "actor": "Trinity Sovereign Core",
-    "summary": "Kompletná príručka a technická encyklopédia Trinity 11.0 OMNI-CORE: 7-vrstvová architektúra, 29 Cloudflare Workerov, Omni-Dev Studio, Meta AI, Google Cloud, Truth Policy 2.1 a katalóg 112+ nástrojov.",
-    "content": "# Kompletná Oficiálna Dokumentácia a Technická Encyklopédia TRINITY 11.0 (OMNI-CORE)\n\n**Verzia systému:** Trinity 11.0.0 OMNI-CORE  \n**Dátum vydania:** 1. novembra 2026  \n**Zvrchovaný tvorca a vlastník:** Ivan Sabo (alias **Basterix**), saboivan2008@gmail.com  \n**Produkčná zóna:** https://auru.space · **Staging zóna:** https://auru.dev  \n**Režim pravdivosti:** Truth Policy 2.1.0 (evidence-required, nulové simulácie)\n\n---\n\n## 1. Úvod a Poslanie\nTrinity 11.0 je zvrchovaný autonómny operačný systém navrhnutý na Cloudflare Edge infraštruktúre pre plnohodnotné kódovanie, generovanie webov, správu hostiteľského PC a autonómne riadenie sociálnych sietí.\n\n## 2. 7-Vrstvová Architektúra\n1. **Sovereign Lock & TruthGuard (Ring 0):** Merkle chain, nonces, ochrana proti klamaniu.\n2. **Dátové úložiská:** D1 trinity-v03, KV Mastermind, R2 trinity-artifacts, Durable Objects.\n3. **Flotila 29 Workerov:** 10 AURA špecialistov, 8 Trinity Core, 8 RPC služieb, 3 pomocné služby.\n4. **Host PC Bridge:** PowerShell, CMD, Node, Python, WinRT OCR, Screenshot, Súbory.\n5. **112+ Exekučných nástrojov:** meta_manage, pc_*, domain_*, wallet_*, calculate.\n6. **Kognícia a Pentad 2.0:** Workers AI Llama 3.3 70B, Gemini 3.8 Flash, GPT-4.1-mini.\n7. **Zvrchované UI:** Omni-Dev Studio, Chat, AI Studio, Domény, Peňaženka, Dokumentácia.\n\n## 3. Desatoro Pravdivosti\n1. Žiadne vymýšľanie dát ani halucinácie úspechu.\n2. Každá vykonaná akcia musí mať overiteľný receipt.\n3. Fail-Closed pri akejkoľvek chybe.\n4. Guarded Rollout s overením pred nasadením.",
+    "summary": "Kompletná príručka a technická encyklopédia Trinity 11.1 OMNI-CORE: 7-vrstvová architektúra, 29 Cloudflare Workerov, Omni-Dev Studio, Meta AI, Google Cloud, Truth Policy 2.1 a katalóg 112+ nástrojov.",
+    "content": "# Kompletná Oficiálna Dokumentácia a Technická Encyklopédia TRINITY 11.1 (OMNI-CORE)\n\n**Verzia systému:** Trinity 11.1.0 OMNI-CORE  \n**Dátum vydania:** 1. novembra 2026  \n**Zvrchovaný tvorca a vlastník:** Ivan Sabo (alias **Basterix**), saboivan2008@gmail.com  \n**Produkčná zóna:** https://auru.space · **Staging zóna:** https://auru.dev  \n**Režim pravdivosti:** Truth Policy 2.1.0 (evidence-required, nulové simulácie)\n\n---\n\n## 1. Úvod a Poslanie\nTrinity 11.1 je zvrchovaný autonómny operačný systém navrhnutý na Cloudflare Edge infraštruktúre pre plnohodnotné kódovanie, generovanie webov, správu hostiteľského PC a autonómne riadenie sociálnych sietí.\n\n## 2. 7-Vrstvová Architektúra\n1. **Sovereign Lock & TruthGuard (Ring 0):** Merkle chain, nonces, ochrana proti klamaniu.\n2. **Dátové úložiská:** D1 trinity-v03, KV Mastermind, R2 trinity-artifacts, Durable Objects.\n3. **Flotila 29 Workerov:** 10 AURA špecialistov, 8 Trinity Core, 8 RPC služieb, 3 pomocné služby.\n4. **Host PC Bridge:** PowerShell, CMD, Node, Python, WinRT OCR, Screenshot, Súbory.\n5. **112+ Exekučných nástrojov:** meta_manage, pc_*, domain_*, wallet_*, calculate.\n6. **Kognícia a Pentad 2.0:** Workers AI Llama 3.3 70B, Gemini 3.8 Flash, GPT-4.1-mini.\n7. **Zvrchované UI:** Omni-Dev Studio, Chat, AI Studio, Domény, Peňaženka, Dokumentácia.\n\n## 3. Desatoro Pravdivosti\n1. Žiadne vymýšľanie dát ani halucinácie úspechu.\n2. Každá vykonaná akcia musí mať overiteľný receipt.\n3. Fail-Closed pri akejkoľvek chybe.\n4. Guarded Rollout s overením pred nasadením.",
     "tags": [
       "dokumentacia",
       "architektura",
@@ -170,12 +170,12 @@ Dozorný orgán: Úrad na ochranu osobných údajov Slovenskej republiky (https:
   },
   {
     "id": "trinity-aktualny-stav-systemu",
-    "title": "Aktuálny Stav a Integračná Správa Ekosystému Trinity 11.0 (K 1. 11. 2026)",
+    "title": "Aktuálny Stav a Integračná Správa Ekosystému Trinity 11.1 (K 1. 11. 2026)",
     "category": "architecture",
     "step_name": "status_report",
     "actor": "Trinity Sovereign Core",
     "summary": "Kompletný auditný prehľad produkčného a staging stavu: vyriešenie P0/P1 bezpečnostných bodov, live testovanie Windows PC Bridge cez WhatsApp a stav Cloudflare Edge.",
-    "content": "# Aktuálny Stav Trinity Sovereign OS (11.0.0 OMNI-CORE)\n\n**Dátum auditu:** 1. novembra 2026  \n**Produkcia:** auru.space (trinity Worker, D1 trinity-v03, KV Mastermind)  \n**Staging:** auru.dev (trinity-staging Worker)  \n**Host PC Daemon:** Basterix (win32, PID overený, PRISLUB overený)\n\n## Stav Bezpečnostných Opatrení\n- Odstránené 4 kritické zraniteľnosti (overovanie Google/OS tokenov, odstránenie falošného SID).\n- Durable Nonce Vault v tabuľke ops_consumed_nonces s ochranou proti replay útokom.\n- Všetkých 177 zdrojových súborov štandardizovaných pod JSDoc autoritou Basterix.\n- Úspešný End-to-End test cez https://auru.space/api/bridge s receiptom v D1 ledger blok #5.",
+    "content": "# Aktuálny Stav Trinity Sovereign OS (11.1.0 OMNI-CORE)\n\n**Dátum auditu:** 1. novembra 2026  \n**Produkcia:** auru.space (trinity Worker, D1 trinity-v03, KV Mastermind)  \n**Staging:** auru.dev (trinity-staging Worker)  \n**Host PC Daemon:** Basterix (win32, PID overený, PRISLUB overený)\n\n## Stav Bezpečnostných Opatrení\n- Odstránené 4 kritické zraniteľnosti (overovanie Google/OS tokenov, odstránenie falošného SID).\n- Durable Nonce Vault v tabuľke ops_consumed_nonces s ochranou proti replay útokom.\n- Všetkých 177 zdrojových súborov štandardizovaných pod JSDoc autoritou Basterix.\n- Úspešný End-to-End test cez https://auru.space/api/bridge s receiptom v D1 ledger blok #5.",
     "tags": [
       "stav",
       "audit",

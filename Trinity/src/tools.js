@@ -1247,7 +1247,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
         }catch{}
       }
       if(!caption){
-        caption=`🚀 ${topic}\n\nPosúvame hranice autonómnej umelej inteligencie a technologickej suverenity. Trinity 11.0 riadi procesy, exekúciu a prepojenia v reálnom čase.\n\n#trinity #ai #sovereign #innovation #tech #future`;
+        caption=`🚀 ${topic}\n\nPosúvame hranice autonómnej umelej inteligencie a technologickej suverenity. Trinity 11.1 riadi procesy, exekúciu a prepojenia v reálnom čase.\n\n#trinity #ai #sovereign #innovation #tech #future`;
       }
       return {
         action:'create_post_draft',
