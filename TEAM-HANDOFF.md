@@ -2432,3 +2432,54 @@ Scope: Canonical workspace `C:\Users\saboi\Trinity\Trinity-antigravity`.
    - `npm run build:staging` (staging): PASS (exit code 0).
 5. **Teamwork orchestrácia pre desktopové schopnosti**:
    - Beží koordinácia pre `pc_open_app`, `pc_open_url`, `pc_open_file` s automatickým čistením okien a procesov (Notepad/Calc/Browser) v súlade s Truth Policy 2.1.
+
+### CLAIM Antigravity — AUTONOMOUS-DESKTOP-BRIDGE-20261103
+Scope: Canonical workspace `C:\Users\saboi\Trinity\Trinity-antigravity`.
+1. Naučiť Trinity autonómne otvárať aplikácie (`pc_open_app`), webové adresy v prehliadači (`pc_open_url`) a súbory vo východzích programoch (`pc_open_file`) na pozadí na Windows PC.
+2. Zabezpečiť kompletnú odolnosť voči injection útokom, path traversal (`../../`), nebezpečným protokolom (`file://`, `javascript:`, `ftp://`) a chráneným súborom (`.env`, `.credentials`).
+3. Doplniť 4-úrovňovú nezávislú Opaque-Box E2E testovaciu sadu (21/21 testov) s garantovaným čistením procesov cez `ProcessGuard` a cross-process zámok (`withDesktopLock`).
+4. Implementovať obojsmernú podporu slovenských a hovorových tvarov (`otvor kalkulačku`, `otvor súbor`, `spusti prehliadač`).
+5. Overiť 100% prechod testov naprieč všetkými subsystémami (Trinity 851/851, Local-Gateway 61/61, E2E 21/21, MCP Bridge 16/16, build PASS) a dodržať Truth Policy 2.1 s nulovým únikom procesov.
+
+### UPDATE / HANDOFF Antigravity — AUTONOMOUS-DESKTOP-BRIDGE-20261103
+1. **Local-Gateway Most (`Local-Gateway/src/`)**:
+   - `desktop.mjs`: Robustné spúšťanie procesov s asynchrónnym `child.on('error')` fallbackom (`code.cmd -> code.exe`, `wt.exe -> powershell.exe`). Vracia štruktúru `{ pid, process, title }`.
+   - `executor.mjs`:
+     - `open_url`: Spúšťanie cez `cmd.exe /d /c start "" "${parsedUrl.href}"` s `windowsVerbatimArguments: true` zabraňujúcim štiepeniu URL na operátoroch `&` a `#`.
+     - `open_file`: Bezpečné rozlišovanie absolútnych i relatívnych ciest v rámci workspace s validáciou cez `resolveSafePath`.
+     - `open_app`: Normalizácia aliasov cez mapu aplikácií (kalkulacka, poznamkovyblok, skicar, prieskumnik, prehliadac, terminal).
+   - `policy.mjs`: `resolveSafePath` bezpečne prijíma a normalizuje validné workspace cesty a striktne blokuje path traversal i chránené súbory.
+   - `system-bridge.mjs`: Plná integrácia `open_app`, `open_url` a `open_file` s overením Windows SID Basterixa a zápisom do lokálneho Sovereign Ledgeru.
+2. **Trinity Core Prepájenie (`Trinity/src/`)**:
+   - `tools.js`: Pridaný nástroj `pc_open_file` do `PC_TOOLS`, schémy `pcSchema`, dispečerského zoznamu PC bridge a `TOOL_HELP`.
+   - `registry.js`: Registrácia `pc_open_url` a `pc_open_file` v nástrojoch orchestrátora.
+   - `system-actions.js`: Schopnosť `open_file` v `SYSTEM_CAPABILITIES` (`risk: 'read', approval: false`) a evidencia v `actionEvidence()`.
+   - `plugins.js`: Zaradenie `pc_open_file` do pluginu `computer-control`.
+   - `engine.js`: Rozšírený regex v `selectPromptTools` na detekciu slovenských i anglických zámerov pre otvorenie aplikácií, súborov a URL.
+3. **E2E Testovacia Sada (`tests/e2e/`)**:
+   - `process-cleanup.mjs`: Správa procesov s cross-process súborovým zámkom (`withDesktopLock`) s detekciou mŕtvych PID a TTL, striktné ukončovanie iba cez `taskkill.exe /F /T /PID <pid>` (nikdy nie cez `/IM`).
+   - `bridge-test-harness.mjs`: Izolovaný harness pre spúšťanie System Bridge s odolným spojením (`Connection: close` a transient retry).
+   - `tier1-feature-coverage.test.mjs`: 5/5 PASS (Notepad, Calculator, Browser URL, Workspace File, Truth Policy 2.1).
+   - `tier2-boundary-corner-cases.test.mjs`: 8/8 PASS (URL parametre `&`/`#`, percent encoding, blokovanie protokolov, medzery v názvoch súborov, odmietnutie path traversal, blokovanie `.env`, neautorizované aplikácie, slovenské aliasy).
+   - `tier3-cross-feature-combinations.test.mjs`: 4/4 PASS (sekvenčné spúšťanie, pipeline App->File->URL, paralelné požiadavky, dispečerská validácia).
+   - `tier4-real-world-scenarios.test.mjs`: 4/4 PASS (vývojársky workflow, výskumný workflow, rýchle poznámky, overenie reťazca Sovereign Ledger).
+4. **Verifikácia a Výsledky Testov (100% PASS)**:
+   - **E2E Testy**: 21/21 PASS (exit code 0, 0 zlyhaní, 0 visiacich procesov).
+   - **Local-Gateway**: 61/61 PASS (exit code 0).
+   - **trinity-mcp-bridge**: 16/16 PASS (exit code 0).
+   - **Trinity Core**: 851/851 PASS (exit code 0).
+   - **Trinity Targeted Suites**: 35/35 PASS (exit code 0).
+   - **Produkčný Build**: `npm run build` PASS (wrangler dry-run deploy exit code 0, 4826.26 KiB).
+
+
+### CLAIM Codex — ROOT-WRANGLER-TRINITYAGENT-20261103
+Owner requests repair of TrinityAgent deployment errors 10064/100403 and deployment to auru.space. Base 7bd2d8086cffb7be0a8af4c55b4e8a1083feeb32; existing peer modifications preserved. Scope: newly pasted/untracked root wrangler.jsonc and src/index.ts, new root-config synchronization helper and regression tests, append-only journal. Restore canonical Trinity implementation and metadata rather than dummy DurableObject classes; no change to active peer runtime files, provider credentials/models or namespace storage types. Back up overwritten pasted files outside repo. Deploy remains subject to actual tests, isolated staging proof, hosted CI and existing release rules; no destructive migration or invented ACK.
+
+### UPDATE Codex — ROOT-WRANGLER-TRINITYAGENT-20261103 / CONFLICT RESOLVED
+Root wrangler.jsonc changed externally after successful 4-test verification, losing canonical bindings again. Affected writes stopped; owner answered that no other actor is editing it now. Preserve both pasted snapshots, restore canonical mirror, validate an isolated HEAD-based candidate to exclude active peer runtime modifications. Public /health and /ready on auru.space return HTTP302 to Cloudflare Access; application readiness remains unverified. Git remote main6e16924 differs from local HEAD7bd2d80 (ahead2); no hosted CI pass has been established for the local candidate.
+
+### UPDATE / HANDOFF Codex — ROOT-WRANGLER-TRINITYAGENT-20261103 / LOCAL_REPAIR_VERIFIED_RELEASE_BLOCKED
+Saved root src/index.ts as canonical reexports; replaced pasted root wrangler.jsonc with canonical metadata mirror and rebased migration paths. Added scripts/sync-root-wrangler.mjs and tests/root-wrangler-entrypoint.test.mjs. Original and concurrent pasted snapshots backed up outside repo. Owner confirmed no other current writer; final main-workspace 4/4 regression tests PASS and root mirror --check PASS. Peer runtime edits and existing package modifications preserved.
+Validation candidate detached HEAD7bd2d8086cffb7be0a8af4c55b4e8a1083feeb32 excludes dirty peer runtime edits. Trinity851/851 PASS, root regression4/4 PASS, root/canonical-production/staging dry-run builds PASS. Initial isolated tests lacked expected Trinity/dist; rerun with actual build851/851 PASS. Local Secrets Store doctor PASS and configured D1/KV/R2 staging identifiers isolated. OAuth whoami and remote Secrets Store active/workers scope for ollama/apigoogle/copilot verified through metadata only. Active trinity version2e75ee4b-e885-44d5-9b9b-4f3ab1b687fa has TrinityAgent/ChatAgent/GuardianAgent bindings.
+NO DEPLOY/UPLOAD/MIGRATION/cloud mutation performed. Public auru.space health/ready and auru.dev health return302 to Cloudflare Access; no app health pass claimed. Remote main6e16924 differs from localHEAD (ahead2). Main GitHub CI run41649089271 failure, job125962176555 has0steps; exact failure cause not established (annotation endpoint unavailable). Successful hosted CI and authenticated staging proof missing; required cloudflare-secrets-store release gate respected. No Access bypass, new credential, billing action, push or peer ACK invented.
+Reviewable repair bundle and verification report: current task outputs/trinityagent-repair.zip and outputs/trinityagent-repair/README.md. Sales follow-up blocked by missing grounded call evidence; no email or CRM mutation. Local repair ownership released; production release remains blocked by actual gates, not by a repeated user permission request.

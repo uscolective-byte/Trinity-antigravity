@@ -139,8 +139,8 @@ function selectPromptTools(activeTools, task) {
   if (/\b(obraz|fotk|hudb|skladb|video|prezentac|slajd|grafik)\b/.test(norm)) {
     ['generate_image','generate_music','generate_video','generate_presentation','generate_creative_pack'].forEach(t => priority.add(t));
   }
-  if (/\b(pc|pocitac|lokaln|okno|aplikaci|skript|terminal|prikaz|screenshot)\b/.test(norm)) {
-    ['pc_open_app','pc_app_control','pc_run','pc_run_script','pc_file_read','pc_file_write','pc_screenshot','pc_system_info','request_system_action'].forEach(t => priority.add(t));
+  if (/\b(pc|pocitac|lokaln[a-z]*|okn[a-z]*|aplikac[a-z]*|skript[a-z]*|terminal[a-z]*|prikaz[a-z]*|screenshot[a-z]*|subor[a-z]*|dokument[a-z]*|link[a-z]*|url|web[a-z]*|otvor[a-z]*|odkaz[a-z]*|spust[a-z]*|open[a-z]*|launch[a-z]*|file[a-z]*|document[a-z]*|app[a-z]*|website[a-z]*)\b/.test(norm)) {
+    ['pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_run','pc_run_script','pc_file_read','pc_file_write','pc_screenshot','pc_system_info','request_system_action'].forEach(t => priority.add(t));
   }
   if (/\b(meta|facebook|instagram|llama|social|post|prispev|fb|ig)\b/.test(norm)) {
     ['meta_manage','morpheus_status','generate_image','tech_news'].forEach(t => priority.add(t));

@@ -97,15 +97,29 @@ export async function executeDesktop(payload){
     const spec=APPS[request.app];
     if(spec.protocol){
       const child=spawn('cmd.exe',['/c','start','',spec.protocol],{detached:true,stdio:'ignore',windowsHide:true});
+      child.on('error', () => {});
       child.unref();
     } else {
-      let child;
+      let primaryFailed = false;
+      const tryFallback = () => {
+        if (spec.fallback && !primaryFailed) {
+          primaryFailed = true;
+          try {
+            const fallbackChild = spawn(spec.fallback, [], { detached: true, stdio: 'ignore', windowsHide: false });
+            fallbackChild.on('error', () => {});
+            fallbackChild.unref();
+          } catch {}
+        }
+      };
       try{
-        child=spawn(spec.command,[],{detached:true,stdio:'ignore',windowsHide:false});
+        const child = spawn(spec.command, [], { detached: true, stdio: 'ignore', windowsHide: false });
+        child.on('error', () => {
+          tryFallback();
+        });
+        child.unref();
       }catch{
-        if(spec.fallback)child=spawn(spec.fallback,[],{detached:true,stdio:'ignore',windowsHide:false});
+        tryFallback();
       }
-      child?.unref();
     }
     await new Promise(resolve=>setTimeout(resolve,1500));
     const windows=await listDesktopWindows(),opened=windows.find(item=>matchesWindow(spec,item));
@@ -116,13 +130,13 @@ export async function executeDesktop(payload){
       if(procOutput){
         try{
           const procs=JSON.parse(procOutput);
-          const p=Array.isArray(procs)?procs[0]:procs;
+          const p=Array.isArray(procs)?procs[procs.length - 1]:procs;
           if(p?.Id)return {operation:'launch',app:request.app,opened:true,window:{pid:p.Id,process:p.ProcessName,title:spec.titles?.[0]||request.app}};
         }catch{}
       }
       throw new Error('Aplikácia sa spustila, ale jej okno sa nepodarilo potvrdiť.');
     }
-    return {operation:'launch',app:request.app,opened:true,window:opened};
+    return {operation:'launch',app:request.app,opened:true,window:{pid:opened.pid,process:opened.process,title:opened.title||spec.titles?.[0]||request.app}};
   }
   const window=await focusApp(request.app);
   if(request.operation==='focus')return {operation:'focus',app:request.app,focused:true,window};

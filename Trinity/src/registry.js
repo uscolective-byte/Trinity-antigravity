@@ -102,7 +102,7 @@ export const AGENTS = groups.flatMap(([cluster, roles]) => roles.map(([id, name,
     ...(['Riadenie','Cloud a prevádzka','Dáta a pamäť','Kvalita a bezpečnosť','Podpora a automatizácia'].includes(cluster) ? ['service_status'] : []),
     ...(['Cloud a prevádzka','Riadenie'].includes(cluster)||['backend','architect','cloudflare','orchestrator'].includes(id)?['domain_add','domain_register','domain_set_dns','domain_delete_dns','domain_env_provision','domain_env_deploy']:[]),
     ...(['Obchod a rast','Riadenie'].includes(cluster)||['business-development','offer-strategist','web-sales','growth-analyst','market-research','cloudflare','orchestrator'].includes(id)?['domain_list_for_sale','domain_sell','domain_list_for_lease','domain_lease','domain_end_lease','commerce_status','commerce_add_offer','monetization_blueprint']:[]),
-    ...(id==='orchestrator'?['request_system_action','system_action_status','pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']:[]),
+    ...(id==='orchestrator'?['request_system_action','system_action_status','pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']:[]),
     ...(['backend','release','cloudflare'].includes(id)?['pc_git_commit','pc_git_pr','pc_run']:[])]
 })));
 export function agentById(id) { return AGENTS.find(a => a.id === id); }

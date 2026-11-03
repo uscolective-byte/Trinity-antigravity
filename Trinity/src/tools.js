@@ -111,7 +111,7 @@ export const TOOL_SCHEMAS={
   ,list_skills:z.object({query:z.string().max(80).default('')}).strict()
   ,list_connectors:z.object({}).strict()
   ,install_plugin:z.object({id:z.string().regex(/^(?:[a-z0-9-]{1,40}|all)$/),reason:z.string().min(3).max(300)}).strict()
-  ,request_system_action:z.object({action:z.enum(['read','write','edit','selfwrite','run','deploy','share','upload','upgrade','screenshot','open_app','notify','system_info','scrape','web_fetch','download','git_commit','git_pr']),payload:z.record(z.string(),z.unknown()).default({}),rationale:z.string().min(3).max(1000)}).strict()
+  ,request_system_action:z.object({action:z.enum(['read','write','edit','selfwrite','run','deploy','share','upload','upgrade','screenshot','open_app','open_url','open_file','notify','system_info','scrape','web_fetch','download','git_commit','git_pr']),payload:z.record(z.string(),z.unknown()).default({}),rationale:z.string().min(3).max(1000)}).strict()
   ,system_action_status:z.object({id:z.string().uuid()}).strict()
   ,portfolio_summary:z.object({portfolio_id:z.string().uuid().optional()}).strict()
   ,json_tool:z.object({operation:z.enum(['validate','format','minify','get']),json:z.string().max(20000),path:z.string().max(200).optional()}).strict()
@@ -963,7 +963,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     };
   }
   // ── PC Bridge nástroje ──
-  if(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr'].includes(name)){
+  if(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr'].includes(name)){
     const pcActionMap={
       pc_screenshot:'screenshot', pc_run_script:'run', pc_run:'run', pc_file_read:'read', pc_file_write:'write',
       pc_file_append:'write',pc_file_edit:'edit',pc_directory_create:'write',
@@ -982,6 +982,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       pc_directory_create:z.object({path:z.string().min(1).max(2000)}).strict(),
       pc_open_app:z.object({target:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser','commander','cmder'])}).strict(),
       pc_open_url:z.object({url:z.string().min(1).max(2048)}).strict(),
+      pc_open_file:z.object({path:z.string().min(1).max(2000)}).strict(),
       pc_app_control:z.object({operation:z.enum(['list','launch','type']),app:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser']).optional(),text:z.string().min(1).max(500).optional()}).strict(),
       pc_notify:z.object({message:z.string().min(1).max(256),title:z.string().max(80).optional(),duration:z.number().int().min(1).max(30).optional()}).strict(),
       pc_system_info:z.object({detail:z.boolean().optional()}).strict(),
@@ -1323,6 +1324,7 @@ export const TOOL_HELP={
   pc_file_edit:'Nahradí text v súbore v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string,find:string,replace:string}',
   pc_directory_create:'Vytvorí adresár v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string}',
   pc_open_url:'Otvorí URL odkaz na počítači v prehliadači: {url:string}',
+  pc_open_file:'Otvorí zadaný súbor v predvolenej aplikácii na PC: {path:string}',
   pc_open_app:'Otvorí povolenú aplikáciu na PC (vyžaduje schválenie): {target:notepad|calculator|paint|explorer|chrome|edge|whatsapp|vscode|terminal|browser}',
   pc_app_control:'Vypíše okná alebo po schválení otvorí aplikáciu či napíše text do aktívneho okna: {operation:list|launch|type,app?:alias,text?:string}',
   pc_notify:'Zobrazí Windows toast notifikáciu: {title?:string,message:string,duration?:sek}',
