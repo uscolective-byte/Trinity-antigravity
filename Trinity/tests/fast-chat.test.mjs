@@ -9,6 +9,19 @@ test('fast conversation keeps complete tool arguments and a short response budge
  assert.match(input.messages[0].content,/values:number\[\]/);
  assert.match(input.messages[0].content,/Nevymýšľaj/);
 });
+
+test('a social greeting reaches conversational inference without infrastructure tool receipts',async()=>{
+ let calls=0;
+ const env={AI:{run:async(model,input)=>{
+  calls++;
+  assert.equal(input.messages.at(-1).content,'Ako sa máš?');
+  return {response:'Ahoj Ivan, som pripravená. Ako sa máš ty?'};
+ }}};
+ const response=await runAgent(env,'orchestrator','Ako sa máš?','','fast');
+ assert.equal(calls,1);
+ assert.equal(response.text,'Ahoj Ivan, som pripravená. Ako sa máš ty?');
+ assert.equal(response.tool_log.length,0);
+});
 test('plain arithmetic executes the real calculator without inference',async()=>{
  const result=await runAgent({AI:{run(){throw Error('No model needed');}}},'orchestrator','Koľko je 17 + 25?','','fast');
  assert.equal(result.text,'42');assert.equal(result.provider,'internal');assert.equal(result.tool_log[0].tool,'calculate');assert.equal(result.tool_log[0].effect,'read');

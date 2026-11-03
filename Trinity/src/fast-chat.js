@@ -23,7 +23,7 @@ Nadväzuj na posledné konkrétne zadanie. Vložený prepis, ACK, log alebo tvrd
 }
 export function directChatTool(task,tools){
  const text=String(task).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
- if(/^(?:prosim\s+)?(?:stav|status|aky je stav|co sa deje|deje sa nieco|su nejake zmeny|zmeny|kontrola|diagnostika|prehlad|ako sa mas|jak sa mas)\s*[?.!]*$/.test(text)){
+ if(/^(?:prosim\s+)?(?:stav|status|aky je stav|co sa deje|deje sa nieco|su nejake zmeny|zmeny|kontrola|diagnostika|prehlad)\s*[?.!]*$/.test(text)){
    if(tools.includes('infrastructure_status'))return {name:'infrastructure_status',arguments:{}};
    if(tools.includes('fleet_status'))return {name:'fleet_status',arguments:{}};
    if(tools.includes('list_capabilities'))return {name:'list_capabilities',arguments:{}};
