@@ -150,6 +150,23 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
     const desktop=await executeDesktop({task:'desktop-control',operation:'launch',app:target});
     return {action:'open_app',target,desktop,success:true};
   }
+    if(proposal.action==='open_file'){
+    const rawPath=payload.path||payload.file||payload.target;
+    if(!rawPath||typeof rawPath!=='string')throw new Error('Chýba cesta k súboru.');
+    const safePath=await resolveSafePath(workspaceRoot,rawPath);
+    const {spawn}=await import('node:child_process');
+    if (process.platform === 'win32') {
+      const child = spawn('cmd.exe', ['/c', 'start', '', safePath], {detached: true, stdio: 'ignore', windowsHide: true});
+      child.unref();
+    } else if (process.platform === 'darwin') {
+      const child = spawn('open', [safePath], {detached: true, stdio: 'ignore'});
+      child.unref();
+    } else {
+      const child = spawn('xdg-open', [safePath], {detached: true, stdio: 'ignore'});
+      child.unref();
+    }
+    return {action:'open_file',path:rawPath,resolvedPath:safePath,success:true};
+  }
   if(proposal.action==='open_url'){
     const rawUrl=payload.url||payload.link||payload.target;
     if(!rawUrl||typeof rawUrl!=='string')throw new Error('Chýba URL adresa.');

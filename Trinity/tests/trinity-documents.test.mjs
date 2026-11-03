@@ -13,13 +13,14 @@ test('trinity-documents: SEED_COMPLIANCE_DOCUMENTS obsahuje kompletnú sadu kľ�
   assert.ok(ids.includes('trinity-architektura-20261103'), 'Obsahuje Architektúru 20261103');
   assert.ok(ids.includes('trinity-protokol-369-kvantovy-router'), 'Obsahuje Protokol 3-6-9');
   assert.ok(ids.includes('trinity-team-handoff-ledger'), 'Obsahuje Team Handoff Ledger');
+  assert.ok(ids.includes('trinity-jednotna-receipt-architektura'), 'Obsahuje Jednotnú Receipt Architektúru');
 });
 
 test('trinity-documents: listTrinityDocuments vracia seed dokumenty aj bez D1/KV', async () => {
   const mockEnv = {};
   const res = await listTrinityDocuments(mockEnv, { limit: 50 });
   assert.ok(Array.isArray(res.items));
-  assert.ok(res.items.length >= 9, 'Musí obsahovať minimálne 9 seed dokumentov');
+  assert.ok(res.items.length >= 10, 'Musí obsahovať minimálne 10 seed dokumentov');
   assert.ok(res.categories.includes('legal_compliance'));
   assert.ok(res.categories.includes('architecture'));
   assert.ok(res.categories.includes('manual_doc'));
@@ -59,6 +60,15 @@ test('trinity-documents: overenie nových dokumentov naostro do UI', async () =>
   assert.equal(teamDoc.category, 'workflow_step');
   assert.ok(teamDoc.content.includes('Codex & Antigravity'));
   assert.ok(teamDoc.content.includes('PR #35'));
+
+  // 4. Jednotná Receipt Architektúra
+  const receiptDoc = await getTrinityDocument(mockEnv, 'trinity-jednotna-receipt-architektura');
+  assert.ok(receiptDoc, 'Jednotná Receipt Architektúra musí existovať');
+  assert.equal(receiptDoc.category, 'architecture');
+  assert.ok(receiptDoc.content.includes('Jednotná Receipt Architektúra'));
+  assert.ok(receiptDoc.content.includes('Sovereign Ledger'));
+  assert.ok(receiptDoc.content.includes('executeVerifiedFileCreation'));
+
 });
 
 test('trinity-documents: exportTrinityDocument exportuje .md a .pdf pre nové dokumenty', async () => {

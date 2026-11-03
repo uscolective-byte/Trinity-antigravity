@@ -254,6 +254,28 @@ Dozorný orgán: Úrad na ochranu osobných údajov Slovenskej republiky (https:
   "created_at": "2026-11-03T12:00:00.000Z",
   "export_md_url": "/api/assistant/documents/trinity-team-handoff-ledger/export?format=md",
   "export_pdf_url": "/api/assistant/documents/trinity-team-handoff-ledger/export?format=pdf"
+},
+{
+  "id": "trinity-jednotna-receipt-architektura",
+  "title": "Jednotná Receipt Architektúra a Sovereign Ledger Dôkazy",
+  "category": "architecture",
+  "step_name": "receipt_architecture_rfc",
+  "actor": "Basterix (Root Architect)",
+  "summary": "Špecifikácia Jednotnej Receipt Architektúry pre Trinity Sovereign OS: OpenTelemetry + Cloudflare Audit + Git Commit Evidence + Sovereign Ledger. Každá akcia = Receipt = Overiteľný dôkaz (Truth Policy 2.1).",
+  "content": "# Jednotná Receipt Architektúra Trinity\n**Autor:** Basterix (Root Architect)  \n**Koncepcia:** OpenTelemetry + Cloudflare Audit + Git Commit Evidence + Sovereign Ledger  \n**Pravidlo:** Každá akcia = Receipt = Overiteľný dôkaz (Truth Policy 2.1)\n\n---\n\n## 1. Princíp a Invarianty\n1. Žiadna operácia nesmie hlásiť `SUCCESS` bez overiteľného dôkazu (`evidence`).\n2. Každý receipt je nemenne identifikovaný cez `receiptId`, viazaný na čas (`startedAt`, `completedAt`), aktéra (`actor`), cieľ (`target`) a kryptografický doklad (`ledger`).\n3. Zreťazenie operácií sa realizuje cez `parentReceiptId`, čím vzniká auditovateľný strom priebehu úlohy.\n\n---\n\n## 2. Dátový model\n\n### 2.1 Evidence Schéma\n```typescript\nexport interface Evidence {\n  type: 'file' | 'document' | 'database' | 'git' | 'http' | 'api' | 'ui' | 'test';\n  id: string;\n  description: string;\n  beforeHash?: string;\n  afterHash?: string;\n  uri?: string;\n}\n```\n\n### 2.2 Ledger Proof\n```typescript\nexport interface LedgerProof {\n  eventId: string;\n  hash: string;\n  signedAt: string;\n  chainHash?: string;\n}\n```\n\n### 2.3 Základný Receipt\n```typescript\nexport interface Receipt {\n  receiptId: string;\n  parentReceiptId?: string;\n  tool: string;\n  action: string;\n  status: 'success' | 'failed' | 'partial' | 'cancelled';\n  startedAt: string;\n  completedAt: string;\n  durationMs: number;\n  actor: { type: 'user' | 'agent' | 'system'; id: string };\n  target?: { type: string; id: string };\n  evidence: Evidence[];\n  metrics?: Record<string, number>;\n  ledger?: LedgerProof;\n}\n```\n\n---\n\n## 3. Typizované Receipty\n\n### Git Receipt\n```json\n{\n  \"tool\": \"git_commit\",\n  \"action\": \"commit\",\n  \"status\": \"success\",\n  \"evidence\": [{ \"type\": \"git\", \"id\": \"2fd75ce\", \"description\": \"Commit created\" }]\n}\n```\n\n### File Receipt\n```json\n{\n  \"tool\": \"write_file\",\n  \"action\": \"create\",\n  \"target\": { \"type\": \"file\", \"id\": \"src/routing/quantum-router.ts\" },\n  \"evidence\": [{ \"type\": \"file\", \"id\": \"src/routing/quantum-router.ts\", \"afterHash\": \"sha256:...\" }]\n}\n```\n\n### Trinity Docs Receipt\n```json\n{\n  \"tool\": \"trinity_doc_create\",\n  \"action\": \"create_document\",\n  \"status\": \"success\",\n  \"target\": { \"type\": \"document\", \"id\": \"quantum-resonance-config\" },\n  \"evidence\": [{ \"type\": \"document\", \"id\": \"doc_8931\" }]\n}\n```\n\n### MCP Receipt\n```json\n{\n  \"tool\": \"mcp_call\",\n  \"action\": \"tools/list\",\n  \"evidence\": [{ \"type\": \"api\", \"id\": \"trinity-local\" }],\n  \"metrics\": { \"latencyMs\": 57, \"toolCount\": 3 }\n}\n```\n\n### Database Receipt\n```json\n{\n  \"tool\": \"d1\",\n  \"action\": \"insert\",\n  \"target\": { \"type\": \"table\", \"id\": \"memory_entries\" },\n  \"evidence\": [{ \"type\": \"database\", \"id\": \"row:1452\" }]\n}\n```\n\n### Test Receipt\n```json\n{\n  \"tool\": \"test_runner\",\n  \"action\": \"integration\",\n  \"status\": \"success\",\n  \"metrics\": { \"passed\": 19, \"failed\": 0 }\n}\n```\n\n### 3-6-9 Resonance Extension\n```json\n{\n  \"thesis\": { \"intent\": \"refactor_router\", \"confidence\": 0.92 },\n  \"transform\": { \"guardianPassed\": true, \"toolsSelected\": [\"project_inspect\", \"write_file\", \"test_runner\"] },\n  \"synthesis\": { \"outputHash\": \"sha256:...\", \"persisted\": true }\n}\n```\n\n---\n\n## 4. Implementačné kritérium 1 (Overené)\nFunkcia `executeVerifiedFileCreation()` v `Trinity/src/receipt.js`:\n1. Vytvorí súbor na disku.\n2. Vypočíta jeho SHA-256 hash.\n3. Nezávisle znovu prečíta súbor a overí integritu obsahu.\n4. Zostaví kryptografický Ledger Proof.\n5. Zapíše záznam do lokálneho `sovereign-receipt-ledger.jsonl`.\n6. Iba pri 100% zhode a úspechu vracia stav `SUCCESS`.\n",
+  "tags": [
+    "receipt-architecture",
+    "sovereign-ledger",
+    "evidence",
+    "truth-policy",
+    "opentelemetry",
+    "audit"
+  ],
+  "receipt_id": "doc:receipt:arch:20261103",
+  "auto_generated": false,
+  "created_at": "2026-11-03T15:00:00.000Z",
+  "export_md_url": "/api/assistant/documents/trinity-jednotna-receipt-architektura/export?format=md",
+  "export_pdf_url": "/api/assistant/documents/trinity-jednotna-receipt-architektura/export?format=pdf"
 }
 ];
 
