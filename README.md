@@ -1,13 +1,26 @@
 # 🔱 TRINITY ANTIGRAVITY
+
+**Začni tu:** [jeden projekt, konsolidovaná vetva a obnova](START-HERE-RECOVERY.md).
+
+<!-- trinity-release:start -->
+Verzia zdroja: **11.1.0**. Repozitár: [uscolective-byte/Trinity-antigravity](https://github.com/uscolective-byte/Trinity-antigravity), vetva **`main`**.
+
+| Doména | Prostredie | Worker |
+|---|---|---|
+| auru.space | production | `trinity` |
+| auru.dev | production | `trinity` |
+
+Tieto údaje sa generujú zo zdrojov a konfigurácie. Aktuálne nasadenie over cez `/health`, `/ready` a commit tag; nejde o živý stav integrácií.
+<!-- trinity-release:end -->
 ### **Autonomous Multi-Agent AI Operating System & Distributed Edge Framework**
 
 <p align="center">
-  <b>OMNI-CORE v11.0.0</b> • Sovereign Core Architecture • Cloudflare Edge Workers • Local PC Bridge • Truth Policy Enforced
+  <b>OMNI-CORE v11.1.0</b> • Sovereign Core Architecture • Cloudflare Edge Workers • Local PC Bridge • Truth Policy Enforced
 </p>
 
 <p align="center">
   <a href="https://auru.space"><img src="https://img.shields.io/badge/Production-auru.space-brightgreen?style=for-the-badge&logo=cloudflare" alt="Production"></a>
-  <a href="https://auru.dev"><img src="https://img.shields.io/badge/Staging-auru.dev-orange?style=for-the-badge&logo=cloudflare" alt="Staging"></a>
+  <a href="https://auru.dev"><img src="https://img.shields.io/badge/Production-auru.dev-brightgreen?style=for-the-badge&logo=cloudflare" alt="Production"></a>
   <a href="#-ring-0-security--sovereign-lock"><img src="https://img.shields.io/badge/Security-Ring%200%20Verified-red?style=for-the-badge&logo=gnupg" alt="Security"></a>
   <a href="SOVEREIGN_CHARTER.md"><img src="https://img.shields.io/badge/License-Sovereign%20Covenant-blue?style=for-the-badge" alt="License"></a>
 </p>

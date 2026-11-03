@@ -6,6 +6,8 @@ on:
     paths:
       - 'Trinity/**'
       - 'packages/contracts/**'
+      - 'packages/trinity-guardian/**'
+      - 'scripts/**'
       - 'Audit-Worker/**'
       - 'PC-Bridge-Worker/**'
       - 'Local-Gateway/**'
@@ -19,6 +21,8 @@ on:
     paths:
       - 'Trinity/**'
       - 'packages/contracts/**'
+      - 'packages/trinity-guardian/**'
+      - 'scripts/**'
       - 'Audit-Worker/**'
       - 'PC-Bridge-Worker/**'
       - 'Local-Gateway/**'
@@ -74,13 +78,16 @@ jobs:
 
       - name: Run Trinity unit tests
         working-directory: Trinity
-        run: node --test tests/*.test.mjs
+        run: node --test --test-concurrency=1 tests/*.test.mjs
+
+      - name: Validate Guardian package contract
+        run: node --test Trinity/tests/guardian-package.test.mjs
 
       - name: Run signed Audit Worker tests
         run: node --test Audit-Worker/tests/*.test.mjs
 
       - name: Validate legacy root entry points against canonical sources
-        run: node --test tests/*.test.mjs
+        run: node --test --test-concurrency=1 tests/*.test.mjs
 
       - name: Validate unified local desktop and provider adapters
         run: node --test Local-Desktop/tests/*.test.mjs

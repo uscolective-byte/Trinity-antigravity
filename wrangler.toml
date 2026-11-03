@@ -20,6 +20,17 @@ routes = [
   { pattern = "auru.space", custom_domain = true }
 ]
 
+# Compatibility build entry. Releases use Trinity/wrangler.jsonc.
+[[rules]]
+type = "Data"
+globs = ["**/*.webp"]
+fallthrough = true
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html", "**/*.css", "**/*.js.txt"]
+fallthrough = true
+
 [triggers]
 crons = ["*/30 * * * *", "0 0 * * *", "0 11 * * *"]
 

@@ -11,7 +11,8 @@ import {agentById,selectSkills} from './registry.js';
 import {callModel} from './services.js';
 import {runTool,TOOL_HELP,INTERNAL_TOOLS,PC_TOOLS,DEVELOPMENT_TOOLS} from './tools.js';
 import {listPlugins} from './plugins.js';
-import {TRUTH_POLICY,assertNoSimulatedData,findUnsupportedActionClaims,safeTruthResponse,truthStatus} from './truth.js';
+import {TRUTH_POLICY,assertNoSimulatedData,findUnsupportedActionClaims,safeTruthResponse,truthStatus,finalizeAgentResponse} from './truth.js';
+import {formatAppOpenResult,formatIntegrationStatus,formatCloudflareStatus,formatGitHubStatus,formatWalletStatus,formatInfrastructureStatus} from './verified-response-formatters.js';
 import {approveSystemAction} from './system-actions.js';
 import {COMMUNICATION_STYLE,KNOWLEDGE_DIRECTIVE,REASONING_DIRECTIVE,CHATGPT_CAPABILITIES_DIRECTIVE,CODEX_CAPABILITIES_DIRECTIVE,ANTIGRAVITY_CAPABILITIES_DIRECTIVE,TRINITY_SOVEREIGN_TRIAD_DIRECTIVE,languageDirective,TRINITY_LOYALTY_OATH,UNIFIED_TRINITY_DIRECTIVE,TRINITY_DEVELOPER_DIRECTIVE,META_INTEGRATION_DIRECTIVE} from './cognition.js';
 import {VERIFIED_ARCHITECTURE_CONTEXT} from './architecture.js';
@@ -21,6 +22,9 @@ import {ownerLearnBehaviorRule,createSelfImprovementProposal,listActiveBehaviorR
 import {createTrinityDocument} from './trinity-documents.js';
 import {getSelfAwarenessDirective} from './skill-matrix.js';
 import {parseModelAction} from './model-action-parser.js';
+export async function runAgent(...args){
+  return finalizeAgentResponse(await runAgentUnchecked(...args),args[6]||'sk');
+}
 export function parseAction(text) {
   return parseModelAction(text);
 }
@@ -29,7 +33,7 @@ export function executionPolicyForProvider(provider,ownerMode=false){
   return {geminiOperator:provider==='gemini'&&directAdmin,directAdmin,allowInternal:directAdmin,allowDirectPC:directAdmin,approvalRequired:false};
 }
 export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
-  if(outcome?.ok===false||outcome?.success===false||outcome?.status==='failed')
+  if(outcome?.ok===false||outcome?.success===false||outcome?.error||outcome?.opened===false||outcome?.desktop?.opened===false||['failed','cancelled','denied','blocked'].includes(outcome?.status))
     return {tool:'pc_open_app',status:'failed',effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
   const state=outcome?.status;
   if(['pending','proposed','queued','approved','claimed','running'].includes(state)){
@@ -45,7 +49,7 @@ export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
 export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOString()){
   // Failure/partial outcomes take precedence over generated _evidence metadata.
   // A receipt id by itself cannot prove a provider-side mutation succeeded.
-  if(outcome==null||typeof outcome==='object'&&!Array.isArray(outcome)&&Object.keys(outcome).length===0||outcome?.error||outcome?.ok===false||outcome?.success===false||['failed','partial','not_configured','blocked','cancelled','unavailable','error','timeout'].includes(outcome?.status)){
+  if(outcome==null||typeof outcome==='object'&&!Array.isArray(outcome)&&Object.keys(outcome).length===0||outcome?.error||outcome?.ok===false||outcome?.success===false||['failed','partial','not_configured','blocked','cancelled','unavailable','error','timeout','unknown','denied','not_verified'].includes(outcome?.status)){
     const status=outcome?.status==='partial'?'partial':'failed';
     return {tool,status,effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
   }
@@ -187,7 +191,7 @@ function resolveAppTarget(task, context = '') {
   if (/\b(explorer|priecinok|subory)\b/i.test(norm)) return 'explorer';
   return 'calculator';
 }
-export async function runAgent(env, id, task, context='', provider='workers-ai', maxTokens=8192,language='auto',ownerMode=false) {
+async function runAgentUnchecked(env, id, task, context='', provider='workers-ai', maxTokens=8192,language='auto',ownerMode=false) {
   const agent=agentById(id);if(!agent)throw new Error('Unknown agent');
   const executionPolicy=executionPolicyForProvider(provider,ownerMode);
   const guidance=connectionGuidance(env,task);
@@ -263,16 +267,9 @@ export async function runAgent(env, id, task, context='', provider='workers-ai',
     else if(direct.name==='crypto_prices')text=(outcome.coins||[]).length?`🪙 **Aktuálne kurzy kryptomien (${(outcome.vs_currency||'eur').toUpperCase()})**:\n`+outcome.coins.map(c=>`- **${c.name} (${c.symbol})**: **${c.price} ${(outcome.vs_currency||'EUR').toUpperCase()}** (24h: ${c.change_24h_pct>=0?'+':''}${Number(c.change_24h_pct||0).toFixed(2)}%)`).join('\n'):'Nepodarilo sa načítať kurzy kryptomien.';
     else if(direct.name==='tech_news')text=(outcome.stories||[]).length?`📰 **Najnovšie technologické správy (HackerNews)**:\n`+outcome.stories.map(s=>`- [${s.title}](${s.url||'https://news.ycombinator.com/item?id='+s.id}) (${s.score} bodov · ${s.comments} komentárov)`).join('\n'):'Nepodarilo sa načítať technologické správy.';
     else if(direct.name==='infrastructure_status'){
-      text=`⚡ **Reálny stav infraštruktúry Trinity (Sovereign OS)**:\n\n`+
-        `- **Stav systému**: ONLINE (Cloudflare Edge)\n`+
-        `- **Cloudflare účet**: \`${outcome.account_id||'b60342e5e52f5646fbd4e913bb409334'}\`\n`+
-        `- **Hosting**: \`${outcome.hosting?.provider||'Cloudflare Workers'}\` (${outcome.hosting?.configured?'Aktívny':'Čaká'})\n`+
-        `- **Domény a DNS**: \`${outcome.registrar?.configured?'Cloudflare overené':'Lokálne'}\`\n`+
-        `- **GitHub CI/CD**: \`${outcome.evolution?.configured?'Pripojené':'Sledované lokálne'}\`\n`+
-        `- **Web & Dáta**: Edge Fetch bez otvorených portov\n\n`+
-        `Všetky údaje pochádzajú priamo zo serverového runtime bez akejkoľvek simulácie.`;
-    }
-    else if(direct.name==='project_snapshot'){
+      text=formatInfrastructureStatus(outcome);
+  }
+  else if(direct.name==='project_snapshot'){
       const tasks=(outcome.tasks||[]).slice(0,5);
       text=`📋 **Posledné reálne zaznamenané úlohy v D1 databáze**:\n\n`+
         (tasks.length?tasks.map((t,i)=>`${i+1}. **${t.title||'Úloha'}** — Stav: \`${t.status||'neznámy'}\``).join('\n'):'V databáze nie sú žiadne rozpracované úlohy.')+
@@ -312,10 +309,7 @@ export async function runAgent(env, id, task, context='', provider='workers-ai',
     const started=Date.now();
     const outcome=await runTool(env,agent,'pc_open_app',{target},{adminAuthorized:executionPolicy.directAdmin});
     const receipt=pcActionReceipt(outcome);
-    const isCompleted=outcome?.desktop?.operation==='launch'||outcome?.status==='completed';
-    const text=isCompleted
-      ?(language==='en'?`I have opened ${appName} on your computer.`:`Otvorila som aplikáciu ${appName} na tvojom počítači.`)
-      :(language==='en'?`I prepared the action to open ${appName} (Action ID: ${outcome.id}). To display the window, run Local-Gateway on your computer (SPUSTIT-LOCAL.cmd).`:`Pripravila som otvorenie aplikácie ${appName} na tvojom PC (ID akcie: ${outcome.id}).\n\nAby sa okno fyzicky zobrazilo na obrazovke, spusť na svojom počítači lokálnu bránu (\`Local-Gateway/SPUSTIT-LOCAL.cmd\`). Akcia sa vykoná ihneď po jej zapnutí.`);
+    const text=formatAppOpenResult(appName,receipt,language);
     return {text,model:'deterministic-policy',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
   }
   if(isTwentyDomainsRequest(task)){
@@ -363,39 +357,28 @@ export async function runAgent(env, id, task, context='', provider='workers-ai',
     const started=Date.now();
     const outcome=await runTool(env,agent,'integration_status',{});
     const receipt={tool:'integration_status',status:'completed',effect:'read',receipt_id:`integrations:${Date.now()}`,verified_at:new Date().toISOString()};
-    const items=(outcome.integrations||[]).map(i=>`- **${i.name}** (\`${i.id}\` · ${i.category}) — Stav: \`${i.status}\` · *${i.description}*`).join('\n');
-    const text=`🔌 **Prehľad prepojených platforiem a modulov Trinity:**\n\n${items}\n\nTrinity má priame napojenie na Cloudflare Edge, GitHub repozitár, Firecrawl web intelligence, Firebase a ďalšie služby. Poverenia je možné kedykoľvek overiť alebo aktualizovať v Trezore tajomstiev.`;
+    const text=formatIntegrationStatus(outcome);
     return {text,model:'trinity-integration-hub',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
   }
   if(activeTools.includes('cloudflare_manage')&&isCloudflareRequest(task)){
     const started=Date.now();
     const outcome=await runTool(env,agent,'cloudflare_manage',{action:'status'});
     const receipt={tool:'cloudflare_manage',status:'completed',effect:'read',receipt_id:`cf:${Date.now()}`,verified_at:new Date().toISOString()};
-    const text=`☁️ **Cloudflare Edge Control:**\n\n- Účet: \`${outcome.data?.accountId||'b60342e5e52f5646fbd4e913bb409334'}\`\n- Behové prostredie: \`${outcome.data?.edge_runtime||'workerd'}\`\n- Aktívne D1 databázy: \`${(outcome.data?.active_d1_databases||[]).join(', ')}\`\n- KV Namespace: \`${(outcome.data?.kv_namespaces||[]).join(', ')}\`\n- R2 Archív: \`${(outcome.data?.r2_buckets||[]).join(', ')}\`\n- AI Model: \`${outcome.data?.workers_ai_model}\`\n\n${outcome.message||'Cloudflare väzby sú plne aktívne a pripravené.'}`;
+    const text=formatCloudflareStatus(outcome);
     return {text,model:'trinity-cloudflare-ops',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
   }
   if(activeTools.includes('github_manage')&&isGithubRequest(task)){
     const started=Date.now();
     const outcome=await runTool(env,agent,'github_manage',{action:'status'});
     const receipt={tool:'github_manage',status:'completed',effect:'read',receipt_id:`gh:${Date.now()}`,verified_at:new Date().toISOString()};
-    const text=`🐙 **GitHub Integrácia (\`${outcome.repo}\`):**\n\n- Repozitár: [${outcome.repo}](https://github.com/${outcome.repo})\n- Predvolená vetva: \`${outcome.details?.default_branch||'main'}\`\n- Otvorené issues: \`${outcome.details?.open_issues||0}\`\n- Autentifikovaný prístup: \`${outcome.authenticated?'Áno (Token v trezore)':'Verejné čítanie (Bezpečný režim)'}\`\n\nTrinity dokáže kontrolovať commity, issues, prispôsobovať vetvy a spúšťať GitHub Actions.`;
+    const text=formatGitHubStatus(outcome);
     return {text,model:'trinity-github-ops',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
   }
   if(activeTools.includes('wallet_terminals_status')&&isWalletTerminalRequest(task)){
     const started=Date.now();
     const outcome=await runTool(env,agent,'wallet_terminals_status',{});
     const receipt={tool:'wallet_terminals_status',status:'completed',effect:'read',receipt_id:outcome._evidence?.receipt_id||`wallet:${Date.now()}`,verified_at:new Date().toISOString()};
-    const w=outcome.wallet||{};
-    const t=outcome.terminals||{};
-    const text=`💳 **Peňaženka Trinity & Platobné Terminály (Overené fakty bez simulácií)**\n\n`+
-      `- **Celkový zostatok**: **${w.balance_eur?.toFixed(2)||'0.00'} EUR** (Dostupné na výber: ${w.available_payout_eur?.toFixed(2)||'0.00'} EUR)\n`+
-      `- **Celkovo prijaté**: ${w.total_received_eur?.toFixed(2)||'0.00'} EUR · **Celkové výbery**: ${w.total_withdrawn_eur?.toFixed(2)||'0.00'} EUR\n\n`+
-      `### ⚡ Pripojené platobné terminály na príjem a výber:\n`+
-      `1. **🏦 SEPA Instant & EPC QR**: IBAN \`${t.sepa?.iban||'Nenastavený'}\` (${t.sepa?.bic||'—'}) · Štandard EPC069-08 pre okamžité mobilné platby zo slovenských a európskych bánk.\n`+
-      `2. **⚡ Revolut Pay**: \`${t.revolut?.handle||'Revolut.me pripravený'}\` · Okamžitý príjem a prevod cez Revolut.\n`+
-      `3. **🅿 PayPal Commerce**: \`${t.paypal?.email||'PayPal pripravený'}\` · Platba kartou a cez PayPal účet.\n`+
-      `4. **🪙 Web3 Krypto Peňaženka**: Adresa \`${t.crypto?.address||'0x...'}\` (Sieť: ${t.crypto?.network||'Polygon'}) · Okamžitý príjem USDC a USDT stablecoinov.\n\n`+
-      `*Môžeš vygenerovať platobnú požiadavku cez \`terminal_charge\`, zadať výber cez \`terminal_payout\` alebo otvoriť interaktívny POS Terminál v záložke **Peňaženka & Terminály**.*`;
+    const text=formatWalletStatus(outcome);
     return {text,model:'trinity-wallet-engine',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
   }
   if(isLoyaltyOathRequest(task)){

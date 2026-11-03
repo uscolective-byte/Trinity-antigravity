@@ -132,10 +132,17 @@ const CLAIM_RULES=[
 
 export const READ_TOOLS=new Set(['revolut_account_status','search_memory','project_snapshot','service_status','web_search','calculate','analyze_text','domain_check','domain_list','domain_inspect','domain_marketplace','quantum_accelerate','list_artifacts','read_artifact','fleet_status','trinity_doc_list']);
 
+function isCompletedReceipt(receipt){
+  return Boolean(receipt&&receipt.status==='completed'&&typeof receipt.receipt_id==='string'&&receipt.receipt_id.trim()&&
+    receipt.ok!==false&&receipt.success!==false&&!receipt.error&&receipt.issuer!=='llm_model'&&receipt.forged!==true);
+}
+function issueUrlMatches(value,num){
+  try{const url=new URL(value);return url.protocol==='https:'&&url.hostname==='github.com'&&/^\/[^/]+\/[^/]+\/issues\/\d+$/.test(url.pathname)&&url.pathname.endsWith('/issues/'+num);}catch{return false;}
+}
 function supportsClaim(receipt,claimId){
-  if(!receipt||receipt.status!=='completed'||!receipt.receipt_id)return false;
+  if(!isCompletedReceipt(receipt))return false;
   if(claimId==='verify')return receipt.effect==='read'&&READ_TOOLS.has(receipt.tool);
-  return receipt.effect==='mutation'&&(receipt.action===claimId||receipt.action==='*'||receipt.actions?.includes(claimId));
+  return receipt.effect==='mutation'&&(receipt.action===claimId||(Array.isArray(receipt.actions)&&receipt.actions.includes(claimId)));
 }
 
 export function findUnsupportedActionClaims(text,toolLog=[]){
@@ -143,6 +150,8 @@ export function findUnsupportedActionClaims(text,toolLog=[]){
   const unsupported=CLAIM_RULES.filter(rule=>rule.patterns.some(pattern=>pattern.test(source))&&!toolLog.some(receipt=>supportsClaim(receipt,rule.id))).map(rule=>rule.id);
   const normalized=source.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   
+  if(/\b(?:otvorila|otvoril)\s+som\s+(?:aplikaciu|program|okno)\b|\bi\s+(?:have\s+)?opened\s+(?:the\s+)?(?:app|application|program|window)\b/i.test(normalized)&&
+    !toolLog.some(receipt=>supportsClaim(receipt,'execute')))unsupported.push('execute');
   // Named tool results verification
   const namedResults=[
     /\b(?:vysledok|vystup)\s+nastroja\s+`?([a-z_][a-z0-9_-]*)`?\s+(?:je|bol)\s*:/g,
@@ -152,7 +161,7 @@ export function findUnsupportedActionClaims(text,toolLog=[]){
   for(const pattern of namedResults){
     for(const match of normalized.matchAll(pattern)){
       const name=match[1];
-      if(!toolLog.some(r=>r?.tool===name&&r.status==='completed'&&r.receipt_id))unsupported.push('tool_result:'+name);
+      if(!toolLog.some(r=>r?.tool===name&&isCompletedReceipt(r)))unsupported.push('tool_result:'+name);
     }
   }
 
@@ -160,12 +169,11 @@ export function findUnsupportedActionClaims(text,toolLog=[]){
   const docIdMatches = source.matchAll(/\b(?:id\s+dokumentu(?:\s+je)?|dokument\s+id|dokumentu\s+s\s+id)\s*[:=]?\s*`?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})`?/gi);
   for(const m of docIdMatches){
     const uuid=m[1].toLowerCase();
-    const verified=toolLog.some(r=>r?.status==='completed'&&(
+    const verified=toolLog.some(r=>isCompletedReceipt(r)&&(
       r.document_id===uuid ||
       r.document?.id===uuid ||
       r.receipt_id===uuid ||
-      r.receipt_id===`doc:${uuid}` ||
-      r.receipt_id?.toLowerCase().includes(uuid)
+      r.receipt_id===`doc:${uuid}`
     ));
     if(!verified)unsupported.push(`unsupported_document_id:${uuid}`);
   }
@@ -175,18 +183,17 @@ export function findUnsupportedActionClaims(text,toolLog=[]){
   for(const m of issueActionMatches){
     const num=Number(m[1]||m[2]||m[3]);
     if(num>0){
-      const verified=toolLog.some(r=>r?.status==='completed'&&(
+      const verified=toolLog.some(r=>isCompletedReceipt(r)&&(
         r.issue_number===num ||
         r.issue?.number===num ||
         r.receipt_id===`issue:${num}` ||
-        r.receipt_id?.includes(`:${num}`) ||
-        r.url?.includes(`/issues/${num}`)
+        issueUrlMatches(r.url,num)
       ));
       if(!verified)unsupported.push(`unsupported_github_issue:${num}`);
     }
   }
 
-  if(/\b(?:\*\*|\b)(?:vystup|output)(?:\*\*|\b)\s*:\s*(?:```|\{)/i.test(normalized)&&!toolLog.some(r=>r?.status==='completed'&&r.receipt_id)){
+  if(/\b(?:\*\*|\b)(?:vystup|output)(?:\*\*|\b)\s*:\s*(?:```|\{)/i.test(normalized)&&!toolLog.some(r=>isCompletedReceipt(r))){
     unsupported.push('simulated_tool_output');
   }
   return [...new Set(unsupported)];
@@ -404,6 +411,21 @@ export class IndependentVerifier {
 }
 
 /**
+ * Enforced at the public runAgent boundary, including deterministic early returns.
+ * tool_log must come from this run's server executor, never model input.
+ * This textual guard does not authenticate cryptographic executor receipts.
+ */
+export function finalizeAgentResponse(result,language='sk'){
+  if(!result||typeof result.text!=='string')throw new TypeError('Agent response must contain text');
+  const receipts=Array.isArray(result.tool_log)?result.tool_log:[];
+  const checked=truthStatus(result.text,receipts);
+  const assumption=filterAntiAssumption(result.text,false);
+  const unsupported=[...checked.unsupported_claims,...(assumption.blocked?['unsupported_assumption']:[])];
+  if(!unsupported.length)return {...result,truth:{...checked,response_filtered:false}};
+  return {...result,text:safeTruthResponse(language),truth:{...checked,status:'blocked',unsupported_claims:[...new Set(unsupported)],response_filtered:true}};
+}
+
+/**
  * 9. Zákaz skrytých pádov (No Silent Errors)
  * Zákaz prázdnych catch blokov a okamžité vyplávanie neočakávanej výnimky so stack trace.
  */
@@ -488,11 +510,11 @@ export class ExecutionLifecycleGuard {
       throw new Error(`Invalid execution state transition: ${currentState} -> ${nextState}`);
     }
 
-    if (nextState === 'VERIFIED') {
+    if (nextState === 'COMPLETED' || nextState === 'VERIFIED') {
       if (!receipt || typeof receipt !== 'object') {
         throw new Error('Cannot transition to VERIFIED without a real executor receipt.');
       }
-      if (receipt.issuer === 'llm_model' || receipt.forged === true || !receipt.executorId) {
+      if (receipt.issuer === 'llm_model' || receipt.forged === true || !receipt.executorId || !receipt.receipt_id) {
         throw new Error('SECURITY BLOCK: Model-generated or forged receipts are rejected. Only OS/Runtime executor receipts are accepted.');
       }
       if (receipt.exitCode !== 0) {
@@ -537,4 +559,20 @@ export class SovereignTruthGuard {
       ...enforceRawEvidenceOnly(null, stdout, stderr)
     };
   }
+}
+
+// Only authenticated executor output with an explicit successful process result
+// and its original ledger receipt may support an end-to-end completion claim.
+export function bridgeExecutionVerified(httpOk, result) {
+  const receipt = result?.local_ledger_receipt;
+  return httpOk === true && result?.status === 'completed' && result?.exit_code === 0 &&
+    result?.success !== false && result?.ok !== false && !result?.error &&
+    typeof receipt?.receipt_id === 'string' && receipt.receipt_id.trim().length > 0 &&
+    receipt.exit_code === 0 && typeof receipt.block_hash === 'string' && /^[a-f0-9]{64}$/i.test(receipt.block_hash) &&
+    findSimulationMarkers(result).length === 0;
+}
+
+export function workflowResultComplete(result) {
+  if (!result || (result.execution_status && result.execution_status !== 'completed')) return false;
+  return Array.isArray(result.tool_log) && result.tool_log.every(entry => entry?.status === 'completed');
 }
