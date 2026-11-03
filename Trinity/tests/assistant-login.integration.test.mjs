@@ -141,3 +141,17 @@ test('reading old messages opts out of automatic follow',()=>{
  s.run('chatFollowLatest=false;bottom()');assert.equal(area.scrollTop,50);
  s.run('bottom(true)');assert.equal(area.scrollTop,1000);
 });
+
+test('late history cannot replace messages sent while history was loading',async()=>{
+ const s=setup();let resolveHistory;
+ s.context.fetch=async path=>path.includes('/history')?new Promise(resolve=>{resolveHistory=resolve;}):new Response('Bad gateway',{status:502});
+ const loading=s.run('loadHistory()');
+ s.elements.get('message').value='Nová správa počas načítavania';
+ await s.elements.get('chat-form').onsubmit({preventDefault(){}});
+ const bubbles=s.elements.get('messages').children.slice();
+ assert.equal(bubbles.length,2);
+ resolveHistory(Response.json([{role:'assistant',content:'Stará história'}]));
+ await loading;
+ assert.deepEqual(s.elements.get('messages').children,bubbles);
+ assert.equal(bubbles[0].children[1].textContent,'Nová správa počas načítavania');
+});

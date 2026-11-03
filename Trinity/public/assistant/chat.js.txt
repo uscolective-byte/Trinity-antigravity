@@ -494,7 +494,7 @@ $('chat-form').onsubmit=safe(async()=>{
  if(controller)return;
  const input=$('message'),text=input.value.trim();
  if(!text)return;
- const generation=chatGeneration,requestController=new AbortController();
+ const generation=++chatGeneration,requestController=new AbortController();
  const current=()=>generation===chatGeneration;
  controller=requestController;
  bubble('user',text);
