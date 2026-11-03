@@ -87,7 +87,7 @@ import html from '../public/index.html';
 import appJS from '../public/app.js.txt';
 import css from '../public/style.css';
 import refreshCSS from '../public/refresh.css';
-import {selectChatProvider,pickChatProvider,CHAT_ENGINE_VALUES,normalizeChatEngine} from './chat-routing.js';
+import {selectChatProvider,pickChatProvider,routeChatWithResonance,CHAT_ENGINE_VALUES,normalizeChatEngine,QuantumRouter,ResonanceMatrix369,globalEntanglementBridge} from './chat-routing.js';
 import assistantHTML from '../public/assistant/chat.html';
 import assistantCSS from '../public/assistant/chat.css';
 import builderCSS from '../public/assistant/builder.css';
@@ -1424,7 +1424,8 @@ async function route(request,env,ctx){
     if(d.engine==='local')requireAdmin(user);
     const wantsMemory=/^(zapamätaj si|zapamataj si|remember)\s*[:,-]?\s+/i.test(d.message);
     const delegated=shouldDelegate(d.message);
-    const provider=await pickChatProvider(env,d.engine,d.message);
+    const routed=await routeChatWithResonance(env,d.engine,d.message,{sessionId:d.session,user});
+    const provider=routed.provider;
     const ownerMode=['owner','admin'].includes(user.role)||user.email==='saboivan2008@gmail.com'||user.email===env.TRINITY_OWNER_EMAIL||(env.TRINITY_ADMIN_EMAILS&&env.TRINITY_ADMIN_EMAILS.split(',').map(s=>s.trim()).includes(user.email));
     const teamMode=/\b(t[ií]mov[yý]\s+re[zž]im|team\s+mode)\b/i.test(d.message);
     return json(await createJob(env,{task:d.message,session_id:d.session,agent:teamMode?'auto':'orchestrator',mode:teamMode?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,idempotency_key:crypto.randomUUID()}),202);
@@ -1453,6 +1454,15 @@ async function route(request,env,ctx){
     assertCopilotSkillEnabled(copilotSkillExec[1]);
     const result=await skillRegistry.execute(copilotSkillExec[1],body?.input??body,env,body?.options||{});
     return json({result});
+  }
+  if(path==='/api/resonance/status'&&request.method==='GET'){
+    return json({
+      protocol: 'RESONANCE_369',
+      version: '1.0.0',
+      status: 'ACTIVE_RESONANCE',
+      entanglement_session: globalEntanglementBridge.sessionId,
+      recent_events: globalEntanglementBridge.history.slice(-10)
+    });
   }
   if((path==='/api/ecosystem/search'||path==='/api/ecosystem/catalog')&&(request.method==='GET'||request.method==='POST')){
     let q='',type,domain;
