@@ -2299,3 +2299,27 @@ Zdrojovy balík hotovy; Trinity819/819, ostatne JS217 test executions, Python14/
 Dokonceny zdrojovy balík vo vetve codex/consolidated-20261103; PR https://github.com/uscolective-byte/Trinity-antigravity/pull/34. Trinity819/819, ostatne JS217 test executions, Python14/14, vsetky32 konfiguracie + staging dry-run PASS. Konfiguracny doctor/isolation, release docs sync, Vercel schema a diff check PASS. Ziadny produkcny deploy alebo migracia.
 Remote22 a local14 starych branch names odstranene po verifikacii historie; ostavaju iba main a vysledna vetva. Archive740e3e3 obsahuje19 povodnych tipov; archiva nemenila source tree. Povodne pracovne subory, ignorovane data, tajomstva a PC zostali zachovane. Ziadna nova OS zaloha sa netvrdi.
 GitHubActions skutocne BLOCKED_BILLING: job0steps/ziadnyrunner, annotation account locked due billing. Vercel4preview statusy SUCCESS pre740e3e3. Main merge sa nerobil a branch protection sa neobchadzala. Stare PR32/33 zatvorene, aktivne PR34. Dalsi vlastnik release ma po vyrieseni billing overit hosted CI a staging pred produkciou. Nezavisly ACK za inu stranu sa netvrdi. Ownership implementacie uvolnene.
+
+### CLAIM Codex — CONNECT-MCP-20261103-01
+Base b03ee6f730eaaf251c50931e6a5ed06b2a6a20a8. Scope: local append-only TEAM-HANDOFF, read-only endpoint checks, register existing Trinity endpoint in Codex configuration with environment credential reference only. No credentials created/copied; no deployment or cloud changes. Existing peer ACK remains pending. This checkout is a fresh isolated clone, not the historical canonical PC checkout.
+
+### UPDATE / HANDOFF Codex — CONNECT-MCP-20261103-01
+2026-11-03 Europe/Bratislava. Repository main b03ee6f730eaaf251c50931e6a5ed06b2a6a20a8 fetched into isolated workspace. GitHub authenticated as uscolective-byte, repository admin/push verified. Codex global trinity MCP registered at https://auru.space/mcp with bearer_token_env_var TRINITY_MCP_API_KEY; previous configuration backed up. Credential absent in process/user environment; no credentials created or copied. Both unauthenticated initialize requests returned HTTP302; authentication and initialize/tools-list/status remain NOT_VERIFIED. Public sync attention-required. Copilot CLI installed but current MCP configuration has no Trinity entry. Antigravity processes present but no current host handshake/ACK. Historical canonical checkout missing. Pending owner action: connect existing Trinity credential and existing Cloudflare Access session through host connection UI. No production/config source deployment. This handoff is local only, not delivered to peer conversations or published to GitHub.
+
+### CLAIM Codex — TRINITY-LOCAL-STDIO-20261103
+Scope: isolated trinity-mcp-bridge/server.mjs startup transport condition, install lockfile dependencies without scripts, global trinity-local MCP config, live stdio verification. Owner authorizes MCP_STDIO=true. No remote credential created or copied; ~/.env remains owner-supplied. Existing main b03ee6f preserved.
+
+
+### UPDATE / HANDOFF Codex — TRINITY-LOCAL-STDIO-20261103
+Registered global trinity-local with MCP_STDIO=true, NODE_ENV=production and explicit workspace. One-line local startup fix prevents HTTP listener/token requirement in stdio mode. SDK initialize PASS, tools/list PASS (3 tools), trinity_bridge_status returns ready on win32/node v24.22.1 with exact workspace. Existing bridge tests 15/15 PASS. No remote key created, ~/.env not changed; remote auth remains pending. Evidence outputs/trinity-local-verification.json. Local checkout changes only; no commit/push/deploy.
+
+### CLAIM Codex — TRINITY-REMOTE-SETUP-20261103
+Owner requests execution. Scope: masked native input of owner existing Trinity MCP credential, preserve ~/.env contents and set named key only, user environment key for future Codex processes, sanitized initialize verification without redirects. No token generation, sharing across apps, Access change or deployment.
+
+
+### CLAIM Codex — OFFICIAL-LOCAL-MCP-20261103
+Owner requests local official repository integration. Scope: existing isolated checkout, trinity-mcp-bridge/server.mjs stdio startup fix, new stdio regression test, append-only TEAM-HANDOFF; publish branch and PR targeting main. Base b03ee6f730eaaf251c50931e6a5ed06b2a6a20a8. No credentials, Terraform token policies, cloud changes or production deployment included.
+
+
+### UPDATE / HANDOFF Codex — OFFICIAL-LOCAL-MCP-20261103
+Implementation: stdio bypasses HTTP listener/token startup; new actual MCP subprocess regression checks initialize, tool catalog and ready workspace. Full bridge suite 16/16 PASS. Local trinity-local registered and SDK status ready. Scope limited to bridge startup, regression and this journal. Remote auth still pending; no peer ACK or cloud deployment claimed. Publishing review branch/PR; main remains subject to repository checks.
