@@ -9,6 +9,15 @@
   ],
   "workers_dev": true,
   "keep_vars": true,
+  "rules": [
+    {
+      "type": "Data",
+      "globs": [
+        "**/*.webp"
+      ],
+      "fallthrough": true
+    }
+  ],
   "routes": [
     {
       "pattern": "auru.space",
@@ -22,3 +31,178 @@
       "0 11 * * *"
     ]
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "trinity-v03",
+      "database_id": "ca8ea24e-f7db-431e-b8bf-97f713ae4533",
+      "migrations_dir": "migrations"
+    },
+    {
+      "binding": "TRINITY_D1",
+      "database_name": "trinity-v03",
+      "database_id": "ca8ea24e-f7db-431e-b8bf-97f713ae4533",
+      "migrations_dir": "migrations"
+    },
+    {
+      "binding": "rea",
+      "database_name": "trinity-db",
+      "database_id": "5b792055-97cf-4d8a-8145-d588c83c54df"
+    },
+    {
+      "binding": "trinity_basterix",
+      "database_name": "trinity-pc-bridge",
+      "database_id": "39be1f38-f710-4df4-9202-5bdbb8febf57"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "TRINITY_KV",
+      "id": "0b92ed2717d742daa860f1827797297f"
+    },
+    {
+      "binding": "Mastermind",
+      "id": "0b92ed2717d742daa860f1827797297f"
+    },
+    {
+      "binding": "PC_STATE",
+      "id": "7eb48d414296418f9c60d87f8c602956"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2_STORAGE",
+      "bucket_name": "trinity-artifacts"
+    },
+    {
+      "binding": "TRINITY_STORAGE",
+      "bucket_name": "trinity-artifacts"
+    },
+    {
+      "binding": "ARTIFACTS",
+      "bucket_name": "trinity-artifacts"
+    }
+  ],
+  "vectorize": [
+    {
+      "binding": "VECTOR_INDEX",
+      "index_name": "trinity-vector-index"
+    },
+    {
+      "binding": "VECTORIZE",
+      "index_name": "trinity-vector-index"
+    },
+    {
+      "binding": "AURA_MEMORY_VECTOR",
+      "index_name": "aura-memory"
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
+  "secrets_store_secrets": [
+    {
+      "binding": "OLLAMA_SECRET",
+      "store_id": "5ba06ba934c343fa8c0dc5454ce67038",
+      "secret_name": "ollama"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "Brain",
+        "class_name": "TrinityAgent"
+      },
+      {
+        "name": "CHAT_AGENT",
+        "class_name": "ChatAgent"
+      },
+      {
+        "name": "GUARDIAN_AGENT",
+        "class_name": "GuardianAgent"
+      }
+    ]
+  },
+  "env": {
+    "staging": {
+      "name": "trinity-staging",
+      "workers_dev": true,
+      "routes": [],
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "TRINITY_ENV": "staging",
+        "TRINITY_PREVIEW_MODE": "build-only"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "trinity-development",
+          "database_id": "1cce5249-e044-4c93-868c-0df534a778b5",
+          "migrations_dir": "migrations"
+        },
+        {
+          "binding": "TRINITY_D1",
+          "database_name": "trinity-development",
+          "database_id": "1cce5249-e044-4c93-868c-0df534a778b5",
+          "migrations_dir": "migrations"
+        },
+        {
+          "binding": "rea",
+          "database_name": "trinity-rea-staging",
+          "database_id": "646283b3-1b15-4ff4-81a0-eef80b8e70d4"
+        },
+        {
+          "binding": "trinity_basterix",
+          "database_name": "trinity-pc-bridge-staging",
+          "database_id": "54d1f8c0-c40b-4fb3-93cf-966a94273e31"
+        }
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "TRINITY_KV",
+          "id": "76f5a49c1225477db2bab019fdc2a50d"
+        },
+        {
+          "binding": "Mastermind",
+          "id": "76f5a49c1225477db2bab019fdc2a50d"
+        },
+        {
+          "binding": "PC_STATE",
+          "id": "7335f27a99574fe097010cec9c602cb6"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_STORAGE",
+          "bucket_name": "trinity-staging-artifacts"
+        },
+        {
+          "binding": "TRINITY_STORAGE",
+          "bucket_name": "trinity-staging-artifacts"
+        },
+        {
+          "binding": "ARTIFACTS",
+          "bucket_name": "trinity-staging-artifacts"
+        }
+      ],
+      "vectorize": [
+        {
+          "binding": "VECTOR_INDEX",
+          "index_name": "trinity-vector-index-staging"
+        },
+        {
+          "binding": "VECTORIZE",
+          "index_name": "trinity-vector-index-staging"
+        },
+        {
+          "binding": "AURA_MEMORY_VECTOR",
+          "index_name": "aura-memory-staging"
+        }
+      ],
+      "ai": {
+        "binding": "AI"
+      },
+      "secrets_store_secrets": []
+    }
+  }
+}

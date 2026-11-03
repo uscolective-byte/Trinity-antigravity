@@ -2299,3 +2299,68 @@ Zdrojovy balík hotovy; Trinity819/819, ostatne JS217 test executions, Python14/
 Dokonceny zdrojovy balík vo vetve codex/consolidated-20261103; PR https://github.com/uscolective-byte/Trinity-antigravity/pull/34. Trinity819/819, ostatne JS217 test executions, Python14/14, vsetky32 konfiguracie + staging dry-run PASS. Konfiguracny doctor/isolation, release docs sync, Vercel schema a diff check PASS. Ziadny produkcny deploy alebo migracia.
 Remote22 a local14 starych branch names odstranene po verifikacii historie; ostavaju iba main a vysledna vetva. Archive740e3e3 obsahuje19 povodnych tipov; archiva nemenila source tree. Povodne pracovne subory, ignorovane data, tajomstva a PC zostali zachovane. Ziadna nova OS zaloha sa netvrdi.
 GitHubActions skutocne BLOCKED_BILLING: job0steps/ziadnyrunner, annotation account locked due billing. Vercel4preview statusy SUCCESS pre740e3e3. Main merge sa nerobil a branch protection sa neobchadzala. Stare PR32/33 zatvorene, aktivne PR34. Dalsi vlastnik release ma po vyrieseni billing overit hosted CI a staging pred produkciou. Nezavisly ACK za inu stranu sa netvrdi. Ownership implementacie uvolnene.
+
+### CLAIM — DESKTOP-COMMANDER-MCP-20261103-COPILOT-01
+Čas a časové pásmo: 2026-11-03 12:52, Europe/Bratislava.
+Autor a klient: github-copilot, GitHub Copilot app (nie VS Code/CLI/cloud agent).
+Príjemca: majiteľ.
+Cieľ a pokyn majiteľa: pridať používateľom zadaný `https://mcp.desktopcommander.app/mcp` ako samostatný server do VS Code MCP konfigurácie; používateľ výslovne potvrdil úpravu napriek staršiemu handoff obmedzeniu.
+Základný commit / checkout: `b03ee6f730eaaf251c50931e6a5ed06b2a6a20a8`, izolovaný worktree `uscolective-byte-desktop-commander-mcp`.
+Vlastnené súbory alebo zdroje / prostredie: `.vscode/mcp.json` (iba nový server entry, zachovať všetky existujúce entries a credential references) a tento append-only `TEAM-HANDOFF.md`; bez live handshake alebo zásahu do servera.
+Stav: active. Ďalší krok: doplniť konfiguráciu a overiť JSON/diff bez vypísania poverení.
+
+### UPDATE / HANDOFF — DESKTOP-COMMANDER-MCP-20261103-COPILOT-01
+Čas: 2026-11-03, Europe/Bratislava.
+Zmena: do `.vscode/mcp.json` pridaný samostatný HTTP MCP server `desktop-commander` na `https://mcp.desktopcommander.app/mcp`; existujúce Trinity entries a credential references zachované. Bez nových credentials.
+Kontroly: JSON parse a kontrola troch server entries PASS; `git diff --check` PASS. Zmenené iba `.vscode/mcp.json` a tento append-only handoff.
+Live stav: neoverený — tento GitHub Copilot app hostiteľ nespustil VS Code MCP `initialize`, `tools/list` ani status tool. Po načítaní workspace môže VS Code požiadať o autorizáciu, ak ju server vyžaduje.
+Commit: necommitnuté. Stav: pending_ack. Ďalší vlastník: majiteľ / VS Code host na overenie pripojenia a prípadné schválenie nástrojov.
+
+### CLAIM — WRANGLER-PRODUCTION-BINDINGS-20261103-COPILOT-01
+Čas: 2026-11-03, Europe/Bratislava.
+Autor a klient: github-copilot, GitHub Copilot app.
+Pokyn majiteľa: doplniť produkčné bindingy do `Trinity/wrangler.jsonc` podľa root `wrangler.toml`; výslovne potvrdený bezpečný rozsah: staging bez zdieľaných produkčných bindingov a bez deployu.
+Základ: `b03ee6f730eaaf251c50931e6a5ed06b2a6a20a8` (`origin/main` pri kontrole).
+Vlastnené cesty: `Trinity/wrangler.jsonc` a append-only `TEAM-HANDOFF.md`. Zachovať existujúce dirty zmeny mimo týchto ciest.
+Rozsah: obnoviť syntakticky platnú konfiguráciu a doplniť iba produkčné D1/KV/R2/Vectorize/AI/Durable Object bindingy doložené v `wrangler.toml`. Nepridávať staging bindingy, account Secrets Store binding bez overeného STORE_ID, nové zdroje, migrácie ani hodnoty z `[vars]`. Žiadny deploy, migrácia alebo cloudový zápis. Stav: active.
+UPDATE / CLAIM: pre zachovanie existujúceho produkčného runtime pridávam aj pôvodný `OLLAMA_SECRET` binding; metadata `ollama` a store ID sa zhodujú v `Trinity/wrangler.knowledge.jsonc` a `Trinity/wrangler.integrations.jsonc` a s načítaným Secrets Store skillom. Nové TRINITY_MASTER ani staging tajné bindingy nepridávam.
+
+### UPDATE / HANDOFF — WRANGLER-PRODUCTION-BINDINGS-20261103-COPILOT-01
+Čas: 2026-11-03, Europe/Bratislava.
+Zmena: `Trinity/wrangler.jsonc` syntakticky uzavretý a doplnený produkčnými bindingmi. Staging ostal bez bindingov; produkčné tajné hodnoty sa nečítali ani nemenili.
+Validácia: JSON parse a produkčné binding asercie PASS; `git diff --check` PASS. `npm ci` dokončil inštaláciu 144 balíkov a audit uviedol 0 zraniteľností; lifecycle skript `workerd` nebol spustený.
+Build: prvý `npm run build` zastal pre chýbajúci `esbuild`. Po obnove závislostí druhý `npm run build`/Wrangler dry-run FAILED pri bundlovaní: chýba `/garage-v1.webp`, nie je loader pre `.webp` a `packages/contracts/src/tap.js` nevie vyriešiť `zod`. Wrangler zároveň varoval, že DO bindingy `TrinityAgent`, `ChatAgent`, `GuardianAgent` nemajú živý `exports` záznam; storage metadata sa nepridali bez overenia kompatibility existujúcej DO perzistencie.
+Rozsah vykonania: žiadny deploy, migrácia ani cloudový zápis. `Trinity/scripts/secrets-store-doctor.mjs` nebol spustený, pretože súčasný test očakáva staging väzby, ktoré majiteľ výslovne nechcel.
+Zmenené pracovné súbory: `Trinity/wrangler.jsonc` a tento append-only handoff; existujúca zmena `.vscode/mcp.json` zachovaná. Commit nebol vytvorený. Stav: pending_ack; ďalší vlastník: majiteľ/release owner na rozhodnutie o DO storage metadata a oprave samostatných bundling chýb.
+
+### CLAIM — STAGING-RESOURCE-ISOLATION-20261103-COPILOT-02
+Čas: 2026-11-03, Europe/Bratislava.
+Autor a klient: github-copilot, GitHub Copilot app.
+Pokyn majiteľa: staging nemažať; nakonfigurovať ho oddelene od produkčných dát a vytvoriť chýbajúce zdroje.
+Základ: `b03ee6f730eaaf251c50931e6a5ed06b2a6a20a8`; aktuálny pracovný branch `uscolective-byte-desktop-commander-mcp`.
+Vlastnené cesty: `Trinity/wrangler.jsonc` a tento append-only `TEAM-HANDOFF.md`; zachovať predchádzajúce zmeny produkčných bindingov a všetky cudzie zmeny.
+Rozsah: ponechať existujúci Worker `trinity-staging`; využiť oddelené D1 `trinity-development`, `trinity-rea-staging`, `trinity-pc-bridge-staging` a KV `trinity-pc-state-staging`; vytvoriť iba `trinity-staging-state` KV, `trinity-staging-artifacts` R2 a Vectorize `trinity-vector-index-staging`/`aura-memory-staging`; následne nakonfigurovať výhradne staging bindingy bez route na produkčnú doménu. Žiadne mazanie, tajomstvá, D1 migrácie, deploy ani produkčné zmeny v tomto CLAIM. Stav: active.
+
+### UPDATE / HANDOFF — STAGING-RESOURCE-ISOLATION-20261103-COPILOT-02
+Cloudflare resources: created KV `trinity-staging-state` (ID `76f5a49c1225477db2bab019fdc2a50d`), R2 bucket `trinity-staging-artifacts`, Vectorize indexes `trinity-vector-index-staging` and `aura-memory-staging` (768 dimensions, cosine). Wrangler returned success for all four creation operations. Existing isolated staging D1s and `trinity-pc-state-staging` were reused; no resource was deleted.
+Config: `Trinity/wrangler.jsonc` now defines `env.staging` as `trinity-staging`, `workers_dev: true`, `routes: []`, `TRINITY_ENV=staging`, build-only preview, separate D1/KV/R2/Vectorize bindings and Workers AI. Production routes and storage identifiers are not assigned to staging. No staging provider secrets were bound.
+Validation: JSON parse and storage/route isolation assertions PASS; `node scripts/cloudflare-env-audit.mjs --strict` PASS with `shared_mutable_resources: []`; `git diff --check` PASS. Wrangler read-only deployment listing confirmed the existing staging Worker; latest listed staging version `657163dc-bd2b-44c5-a3f1-81a025d60180` (tag not present).
+Blockers: `node scripts/secrets-store-doctor.mjs` FAILED because staging `OLLAMA_SECRET`, `TRINITY_MASTER_GOOGLE`, and `TRINITY_MASTER_COPILOT` are intentionally unbound; no secret values were accessed or copied. `npm run build:staging` FAILED on existing bundling errors: missing `/garage-v1.webp`, no `.webp` loader, unresolved `zod` from `packages/contracts/src/tap.js`. Wrangler also warns that staging has no Durable Object bindings and no DO `exports` metadata; these were not added because they require a separate compatibility/migration decision.
+No D1 migrations, staging deploy, production changes, or production deploy were performed. The request to publish the broad documentation/rewrite to production remains blocked by the build and staging-secret/DO prerequisites. Commit not created; status pending_ack.
+
+### CLAIM — TRINITY-WEBP-BUILD-FIX-20261103-COPILOT-03
+Čas: 2026-11-03, Europe/Bratislava.
+Autor a klient: github-copilot, GitHub Copilot app.
+Pokyn majiteľa: pokračovať vo vykonaní predchádzajúcej požiadavky a odblokovať ďalší bezpečný krok.
+Základ: `b03ee6f730eaaf251c50931e6a5ed06b2a6a20a8`; pracovná vetva `uscolective-byte-desktop-commander-mcp`.
+Vlastnené cesty: `Trinity/wrangler.jsonc` a append-only `TEAM-HANDOFF.md`. Súbor `Trinity/wrangler.jsonc` je už v tejto vetve zmenený predchádzajúcimi Copilot CLAIMmi; tie zachovávam.
+Rozsah: doplniť iba chýbajúce Wrangler `Data` pravidlo pre existujúce `.webp` assety; nezasahovať do bindingov, rout, secrets, Durable Objects, zdrojového kódu ani deployovať. `packages/contracts` dependencies sa overia lokálne podľa CI kroku `npm ci --ignore-scripts`; konfigurácia balíkov nie je predmetom úpravy.
+Stav: active.
+
+### UPDATE / HANDOFF — TRINITY-WEBP-BUILD-FIX-20261103-COPILOT-03
+Zmena: do `Trinity/wrangler.jsonc` pridané iba `Data` pravidlo `**/*.webp`; existujúci asset `Trinity/public/assistant/garage-v1.webp` zostáva nezmenený. Žiadny zásah do bindings, routes, secrets, Durable Objects, zdrojového kódu ani deploy.
+Validácia: v `packages/contracts` vykonané `npm ci --ignore-scripts` — PASS, 0 audit zraniteľností v tomto balíku. V `Trinity` vykonané `npm run build:staging` — PASS, Wrangler dry-run vytvoril bundle 5354.59 KiB (gzip 1346.68 KiB); build chyby WebP a `zod` sú odstránené. `git diff --check` PASS.
+Plný gate: `npm test` — build dry-run PASS; testy 811/819 PASS, 8 FAIL. Zlyhania: `assistant-bridge-wiring.test.mjs`, `chat-inference.test.mjs`, `preview-mode.test.mjs`, tri prípady v `secrets-store-doctor.test.mjs`, `source-environments.test.mjs` a jeden prípad v `trinity-master-wrangler.test.mjs`. Tieto kontroly vyžadujú odlišné produkčné/staging konfigurácie a staging Secrets Store bindingy; bez schváleného secret scope a aktualizovaného očakávania izolácie ich nemožno „opraviť“ bezpečne iba vypnutím testov.
+Zostávajúce Wrangler upozornenia: staging nemá Durable Object bindingy ani per-class `exports` storage metadata; stagingu chýba `OLLAMA_SECRET`, `TRINITY_MASTER_GOOGLE`, `TRINITY_MASTER_COPILOT`. Nevykonal sa remote Secrets Store metadata/scope/permission preflight ani staging deploy.
+Deploy rozhodnutie: požiadavka „depoloy na tvrdo“ neprebíja release gate; produkčný deploy sa nevykonal. Aktuálny gate je červený (8 testov zlyhalo), staging nie je nasadený/overený a nie sú stanovené DO storage kompatibilita ani staging secret scopes. `git diff --check` PASS; pracovný strom obsahuje aj predchádzajúce zmeny `.vscode/mcp.json` a `Trinity/wrangler.jsonc`, ktoré sa zachovávajú. Zmeny necommitnuté.
+Ďalší vlastník: release owner po zosúladení testov s aktuálnou izolovanou konfiguráciou, autorizovanom staging-only Secrets Store metadata/scope a schválenom DO storage/migrácii; až potom staging proof a samostatná produkčná kontrola.
