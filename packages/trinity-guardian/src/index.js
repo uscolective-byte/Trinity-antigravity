@@ -1,3 +1,5 @@
+import serviceGuardian from '../../../Trinity/services/guardian.js';
+import { internalAuthorized } from '../../../Trinity/services/internal-auth.js';
 ﻿/**
  * TRINITY SUPREME GUARDIAN & OMNI-TRUTH SENTINEL v3.0.0
  * Plná integrácia: D1 + KV + R2 + Workers AI + Multi-Agent Probe
@@ -239,6 +241,14 @@ export default {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
+    if (url.pathname === '/health' || url.pathname.startsWith('/api/')) {
+      return serviceGuardian.fetch(request, env);
+    }
+    if (url.pathname === '/' && request.method === 'POST') {
+      const call = await request.clone().json().catch(() => null);
+      if (call?.action) return serviceGuardian.fetch(request, env);
+    }
+    if (!await internalAuthorized(request, env)) return json({ok:false,error:'Unauthorized'},401);
     await ensureFullSchema(env.DB);
 
     if (url.pathname === '/health' && request.method === 'GET') {
@@ -299,7 +309,8 @@ export default {
 
       return json({
         ok: true,
-        gate_status: 'APPROVED_AND_VERIFIED',
+        gate_status: 'MODEL_REVIEW_PASSED',
+        execution_verified: false,
         truth_score: audit.truth_score,
         verdict: audit.verdict
       });

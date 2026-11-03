@@ -23,7 +23,9 @@ before(async () => {
     { name: 'fixture', modules: true, compatibilityDate: '2026-10-01', script: `const records=[];export default {async fetch(req){
       if(new URL(req.url).pathname==='/records')return Response.json({records});
       const body=await req.json();records.push({url:req.url,token:req.headers.get('X-Trinity-Bridge-Token'),body});
-      return Response.json({status:'completed',exit_code:0,text:'local provider fixture',receipt_id:'fixture-read-receipt'});
+      if(body.payload?.fixture_response==='missing')return Response.json({status:'completed'});
+      if(body.payload?.fixture_response==='failed')return Response.json({status:'failed',exit_code:1});
+      return Response.json({status:'completed',exit_code:0,text:'local provider fixture',receipt_id:'fixture-read-receipt',local_ledger_receipt:{receipt_id:'fixture-local-ledger',exit_code:0,block_hash:'a'.repeat(64)}});
     }};` }
   ] }));
   host = await mf.getWorker('host'); fixture = await mf.getWorker('fixture');
@@ -109,4 +111,15 @@ test('registration cannot accept a credential-bearing URL or an arbitrary path',
     assert.equal(res.status, 400);
   }
   assert.equal(await kv.get('bridge:tunnel_meta'), previous);
+});
+
+test('bridge refuses a success claim when authenticated execution lacks its original evidence',async()=>{
+  for(const fixture_response of ['missing','failed']) {
+    const response=await request('/api/bridge/execute',{action:'e2e_truth_verify',payload:{fixture_response}},{Authorization:'Bearer '+owner});
+    assert.equal(response.status,502);
+    const body=await response.json();
+    assert.equal(body.ok,false);
+    assert.equal(body.status,'EXECUTION_NOT_VERIFIED');
+    assert.equal(body.lifecycle_guard.state,'FAILED');
+  }
 });

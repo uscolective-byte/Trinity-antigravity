@@ -208,7 +208,7 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
       let models=[];
       try{
         const catalog=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000',{
-          headers:{'x-goog-api-key':apiKey},signal:AbortSignal.timeout(10000),redirect:'error'
+          headers:{'x-goog-api-key':apiKey},signal:AbortSignal.timeout(10000),redirect:'manual'
         });
         if(catalog.ok){
           const listing=await catalog.json();

@@ -37,7 +37,7 @@ import {handleTelegramWebhook,activateTelegramWebhook,telegramIntegrationStatus}
 import {searchMemory,runTool} from './tools.js';
 import {PLUGINS,listPlugins,pluginEnabled,installPlugin,installAllPlugins} from './plugins.js';
 import {handleMcp} from './mcp.js';
-import {TRUTH_POLICY_VERSION,ExecutionLifecycleGuard} from './truth.js';
+import {TRUTH_POLICY_VERSION,ExecutionLifecycleGuard,bridgeExecutionVerified} from './truth.js';
 import {SOVEREIGN_IDENTITY,ROOT_REGISTRY,SOVEREIGN_LEGAL_CHARTER_20} from './sovereign-lock.js';
 import {verifyTrinityIdentity} from './trinity-auth-core.js';
 import {SovereignLedgerV3} from './sovereign-core-v3.js';
@@ -406,15 +406,12 @@ async function route(request,env,ctx){
       })
     });
     const localData=await bridgeRes.json();
-    const exitCode=localData.exit_code??(bridgeRes.ok?0:1);
-    const step2=ExecutionLifecycleGuard.validateTransition(step1.state,'COMPLETED');
-    const lifecycleState=ExecutionLifecycleGuard.validateTransition(step2.state,exitCode===0?'VERIFIED':'FAILED',{
-      issuer:'system_bridge_7788',
-      executorId:'local_bridge:7788',
-      exitCode,
-      httpStatus:bridgeRes.status,
-      receipt_id:localData.local_ledger_receipt?.receipt_id||crypto.randomUUID()
-    });
+    const verified=bridgeExecutionVerified(bridgeRes.ok,localData);
+    const exitCode=Number.isInteger(localData.exit_code)?localData.exit_code:null;
+    const originalReceipt={issuer:'system_bridge_7788',executorId:'local_bridge:7788',exitCode,
+      httpStatus:bridgeRes.status,receipt_id:localData.local_ledger_receipt?.receipt_id};
+    const step2=ExecutionLifecycleGuard.validateTransition(step1.state,verified?'COMPLETED':'FAILED',verified?originalReceipt:null);
+    const lifecycleState=verified?ExecutionLifecycleGuard.validateTransition(step2.state,'VERIFIED',originalReceipt):step2;
     const d1Block=await ledger.appendBlock('Basterix','E2E_CLOUD_TUNNEL_LOCAL_EXECUTION',{
       action:body.action||'e2e_truth_verify',
       payload:body.payload||{},
@@ -426,8 +423,8 @@ async function route(request,env,ctx){
       windows_sid_verified:Boolean(localData.windows_sid)
     },'e2e_truth_verification');
     return json({
-      ok:bridgeRes.ok&&exitCode===0,
-      status:'VERIFIED_END_TO_END',
+      ok:verified,
+      status:verified?'VERIFIED_END_TO_END':'EXECUTION_NOT_VERIFIED',
       route:'[Basterix] -> [Edge Gateway /api/bridge] -> [Cloudflare Tunnel] -> [Local Bridge 7788] -> [Windows OS] -> [Sovereign Ledger v3 (D1 & Local)]',
       edge_gateway:{
         host:reqHostname,
@@ -438,7 +435,7 @@ async function route(request,env,ctx){
       lifecycle_guard:lifecycleState,
       local_bridge_7788:localData,
       d1_sovereign_ledger_v3:d1Block
-    },bridgeRes.ok?200:502);
+    },verified?200:502);
   }
   if((path==='/api/ollama'||path==='/api/ollama/status')&&request.method==='GET'){
     let tunnelMeta=null;
@@ -505,18 +502,19 @@ async function route(request,env,ctx){
       })
     }).catch(err=>({ok:false,status:502,text:()=>Promise.resolve(err.message),json:()=>Promise.resolve({error:err.message})}));
     const localData=await bridgeRes.json().catch(async()=>({error:await bridgeRes.text().catch(()=>'Chyba lokálneho mosta.')}));
-    const exitCode=localData.exit_code??(bridgeRes.ok?0:1);
+    const verified=bridgeExecutionVerified(bridgeRes.ok,localData);
+    const exitCode=Number.isInteger(localData.exit_code)?localData.exit_code:null;
     const ledger=new SovereignLedgerV3(env);
     const d1Block=await ledger.appendBlock('Basterix','MOBILE_LAUNCH_COMMAND',{target_app:targetApp,exit_code:exitCode,http_status:bridgeRes.status},'mobile_launch');
     return json({
-      ok:bridgeRes.ok&&exitCode===0,
-      status:bridgeRes.ok&&exitCode===0?'LAUNCHED':'FAILED',
-      message:`Aplikácia "${targetApp}" bola odoslaná na lokálny most.`,
+      ok:verified,
+      status:verified?'LAUNCHED':'FAILED',
+      message:verified?`Aplikácia "${targetApp}" bola spustená na PC.`:'Vykonanie na PC nebolo overené.',
       target:targetApp,
       exit_code:exitCode,
       data:localData,
       d1_ledger_receipt:d1Block
-    },bridgeRes.ok?200:502);
+    },verified?200:502);
   }
   if(path==='/api/command'&&request.method==='POST'){
     checkOrigin(request,env);
@@ -548,14 +546,15 @@ async function route(request,env,ctx){
         })
       }).catch(err=>({ok:false,status:502,json:()=>Promise.resolve({error:err.message})}));
       const localData=await bridgeRes.json().catch(()=>({}));
-      const exitCode=localData.exit_code??(bridgeRes.ok?0:1);
+      const verified=bridgeExecutionVerified(bridgeRes.ok,localData);
+    const exitCode=Number.isInteger(localData.exit_code)?localData.exit_code:null;
       return json({
-        ok:bridgeRes.ok&&exitCode===0,
-        status:bridgeRes.ok&&exitCode===0?'COMPLETED':'FAILED',
-        reply:`Aplikácia "${app}" bola spracovaná na PC.`,
+        ok:verified,
+        status:verified?'COMPLETED':'FAILED',
+        reply:verified?`Aplikácia "${app}" bola spracovaná na PC.`:'Vykonanie na PC nebolo overené.',
         exit_code:exitCode,
         data:localData
-      },bridgeRes.ok?200:502);
+      },verified?200:502);
     }
     if(/^(stav|status|ping|health)$/i.test(cmd)){
       let tunnelMeta=null;

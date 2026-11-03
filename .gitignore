@@ -56,3 +56,6 @@ Local-Gateway/data/
 **/.mcp.json
 Trinity bruno/
 **/bruno/
+
+# Local staging dry-run output
+/Trinity/dist-staging/

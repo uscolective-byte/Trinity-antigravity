@@ -1,36 +1,30 @@
-# Trinity — začni tu
+# Trinity — jeden projekt, jedno miesto na pokračovanie
 
-Overené 3. novembra 2026. Kanonický projekt: uscolective-byte/Trinity-antigravity, vetva main.
+Kanonický repozitár: **uscolective-byte/Trinity-antigravity**. Výsledná pracovná vetva: **codex/consolidated-20261103**. `main` zostáva základnou vetvou; tento balík do nej zatiaľ nie je zlúčený.
 
-## Obnova
+## Obnova a pokračovanie
 
 ```powershell
-git clone https://github.com/uscolective-byte/Trinity-antigravity.git
+git clone --branch codex/consolidated-20261103 https://github.com/uscolective-byte/Trinity-antigravity.git
 cd Trinity-antigravity
-git switch main
 ```
 
-Používaj jeden hlavný checkout. Čítaj AGENTS.md a aktuálny TEAM-HANDOFF.md. Závislosti obnov podľa README konkrétneho balíka. Prihlásenia, PC bridge ani cloudové dáta samotný clone neobnoví.
+Používaj tento jeden checkout. Najprv čítaj AGENTS.md a aktuálny koniec TEAM-HANDOFF.md. Prehľad dokončených zmien a obmedzení je v [PROJECT-STATUS.md](PROJECT-STATUS.md).
 
-## Kde je práca
+## Čo sa stalo so starými vetvami
 
-- main: hlavný vývoj, aktuálnu verziu zisťuj z origin/main.
-- backup/pre-reset-20261103/: 11 zachovaných lokálnych vetiev.
-- backup/pre-reset-20261103/worktree-0: rozpracovaný spoločný denník.
-- backup/pre-reset-20261103/worktree-2: Copilot secret-vault a denník.
-- backup/pre-reset-20261103/worktree-8: generovaný artefakt TetrakisToken.json.
-- codex/recovery-index-20261103: tento prehľad a manifest.
+Majiteľ 3. novembra 2026 schválil ponechať na GitHube iba main a konsolidovanú vetvu. Pred odstránením názvov vetiev sú ich pôvodné commity zachované v histórii konsolidovanej vetvy. Starší kód sa nekopíruje cez novší main: TAP a bridge už boli začlenené, chýbajúce opravy sú prenesené a testované osobitne.
 
-Presné SHA, pôvodné cesty a súbory: docs/recovery/github-backup-20261103.json. Všetky uvedené zálohy boli overené cez vzdialené Git refs. Snapshot je nepreverená rozpracovaná práca; nie release. Pred zlúčením treba review vlastníka a testy. Pre zálohu neboli spúšťané runtime testy.
+[Inventár](docs/consolidation/branch-inventory.json) obsahuje pôvodné SHA a názvy. [Prvý záložný manifest](docs/recovery/github-backup-20261103.json) je historický záznam overenia pred uprataním, nie zoznam stále existujúcich vetiev. Starý súbor sa dá získať napríklad `git show SHA:cesta/k/suboru`.
 
-## Ďalší poriadok
+Necommitnutý secret-vault zo snapshotu worktree-2 je dokončený v aktuálnom resolveri. Snapshot worktree-8 je starý generovaný Tetrakis artefakt; používa sa aktuálny zdroj a overený build. Staré denníky sú históriou, aktuálny stav určuje tento prehľad a posledný handoff.
 
-Nová úloha má jednu vetvu a vlastníka. Záložné vetvy zostávajú archívom; nezlučovať ich hromadne do main. Existujúce cudzie zmeny sa neprepisujú. Tento dokument nerobí produkčný deploy.
+## Inštalácia a build
 
-## Pred vymazaním disku
+Závislosti inštaluj podľa README jednotlivých balíkov a ich lockfiles. `node scripts/run-all-tests.mjs` spúšťa projektovú bránu; `npm --prefix Trinity run build` je lokálny Cloudflare dry-run. Žiadny z týchto výsledkov sám nepotvrdzuje živé provider účty alebo nasadenie.
 
-GitHub nie je úplná záloha PC. Samostatne na šifrované úložisko mimo počítača treba zachrániť osobné súbory, Dokumenty, projektové výstupy, lokálne databázy, ignorované Local-Desktop/Data, runtime, Workspace a Local-Gateway/data, konfigurácie Codex/Antigravity/VS Code/tunela a obnoviteľné poverenia.
+## Pred vymazaním počítača
 
-.env, tajomstvá a credentials do Gitu nepatria. DPAPI súbory samotné nemusia po reinštalácii fungovať; pôvodné poverenia musia mať bezpečný obnoviteľný zdroj. Cloudové databázy týmto neboli exportované. Negitované súbory mimo inventarizovaných worktrees neboli zálohované.
+GitHub neobsahuje osobné súbory, ignorované databázy, .env, credentials, lokálne nastavenia aplikácií ani všetky projektové výstupy mimo repozitára. Tie potrebujú samostatnú šifrovanú zálohu mimo počítača. DPAPI kópia nemusí po reinštalácii fungovať bez pôvodnej Windows identity; poverenia musia mať bezpečný obnoviteľný zdroj.
 
-**Disk zatiaľ nie je potvrdený ako pripravený na vymazanie.** Úplná externá záloha ignorovaných a osobných dát ešte nie je overená.
+Schválené upratanie vetiev nie je vymazaním disku. Úplná záloha osobných a ignorovaných dát sa v tejto úlohe neoverila.

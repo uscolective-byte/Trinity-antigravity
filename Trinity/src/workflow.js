@@ -1,3 +1,4 @@
+import {workflowResultComplete} from './truth.js';
 /**
  * @module TRINITY_OMNI_CORE
  * @subsystem CORE_RUNTIME
@@ -47,12 +48,12 @@ export class TrinityOperations extends WorkflowEntrypoint {
         let output;
         try{output=await step.do(`agent-${position}-${agent}`,{retries:{limit:0,delay:'1 second',backoff:'constant'},timeout:'15 minutes'},async()=>{
           const done=await this.env.DB.prepare("SELECT result,model,tool_log,duration_ms FROM ops_steps WHERE id=? AND status='completed'").bind(stepId).first();
-          if(done)return {text:done.result,model:done.model,agent_id:agent,tool_log:JSON.parse(done.tool_log||'[]'),duration_ms:done.duration_ms};
+          if(done){const cached={text:done.result,model:done.model,agent_id:agent,tool_log:JSON.parse(done.tool_log||'[]'),duration_ms:done.duration_ms};if(!workflowResultComplete(cached))throw new Error('Uložený krok nemá dokončené vykonanie.');return cached;}
           await this.env.DB.prepare(`INSERT INTO ops_steps(id,job_id,position,agent_id,status) VALUES(?,?,?,?,'running')
             ON CONFLICT(id) DO UPDATE SET status='running',error=NULL,updated_at=datetime('now')`).bind(stepId,id,position,agent).run();
           try {
             const result=await runAgent(this.env,agent,job.task,[history,...outputs.map(o=>`${o.agent_id}: ${o.text}`)].join('\n'),job.provider,tokenBudget(agent,job.task),job.language||'auto',job.owner_mode===1);
-            if(result.execution_status==='failed'){
+            if(!workflowResultComplete(result)){
               const error=new Error(result.text);error.tool_log=result.tool_log;throw error;
             }
             await this.env.DB.prepare("UPDATE ops_steps SET status='completed',result=?,model=?,tool_log=?,duration_ms=?,updated_at=datetime('now') WHERE id=?")
