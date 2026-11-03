@@ -1,8 +1,8 @@
 {
-  "generated_by": "openai-codex",
+  "generated_by": "github-copilot",
   "reviewed": false,
   "risk": "medium",
-  "component": "Trinity/auth-and-source-sync",
-  "description": "Synchronizes source-derived README release data, canonical main-only synchronization and deployment entrypoints. Shares authentication bootstrap across both interfaces, checks redemption errors and preserves ticket issuer identity with a D1 migration. External OAuth, payments and messaging activation are not claimed.",
+  "component": "Trinity/configuration",
+  "description": "Registers the Desktop Commander MCP endpoint for VS Code, adds the verified production Worker bindings, isolates staging storage resources, and configures WebP asset bundling. No deployment, migration, or secret-value change was performed; staging and production release remain blocked by missing staging secret bindings and Durable Object metadata, plus failing tests.",
   "source_pr": null
 }

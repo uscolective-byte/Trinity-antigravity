@@ -2364,3 +2364,17 @@ Plný gate: `npm test` — build dry-run PASS; testy 811/819 PASS, 8 FAIL. Zlyha
 Zostávajúce Wrangler upozornenia: staging nemá Durable Object bindingy ani per-class `exports` storage metadata; stagingu chýba `OLLAMA_SECRET`, `TRINITY_MASTER_GOOGLE`, `TRINITY_MASTER_COPILOT`. Nevykonal sa remote Secrets Store metadata/scope/permission preflight ani staging deploy.
 Deploy rozhodnutie: požiadavka „depoloy na tvrdo“ neprebíja release gate; produkčný deploy sa nevykonal. Aktuálny gate je červený (8 testov zlyhalo), staging nie je nasadený/overený a nie sú stanovené DO storage kompatibilita ani staging secret scopes. `git diff --check` PASS; pracovný strom obsahuje aj predchádzajúce zmeny `.vscode/mcp.json` a `Trinity/wrangler.jsonc`, ktoré sa zachovávajú. Zmeny necommitnuté.
 Ďalší vlastník: release owner po zosúladení testov s aktuálnou izolovanou konfiguráciou, autorizovanom staging-only Secrets Store metadata/scope a schválenom DO storage/migrácii; až potom staging proof a samostatná produkčná kontrola.
+
+### CLAIM — PR-AI-CHANGE-METADATA-20261103-COPILOT-04
+Čas: 2026-11-03, Europe/Bratislava.
+Autor a klient: github-copilot, GitHub Copilot app.
+Účel: doplniť AI Change Policy metadata vyžadované PR šablónou pre commit `120b8e3f6d291e0b5e3423d46c7681d6d75ba8a4`.
+Základ: `120b8e3f6d291e0b5e3423d46c7681d6d75ba8a4`.
+Vlastnené cesty: `.github/ai-change.json` a append-only `TEAM-HANDOFF.md`.
+Rozsah: aktualizovať opis AI-generovanej konfigurácie, riziko a komponent; ponechať `reviewed: false`, nevydávať metadata za ľudské schválenie. Potom validovať existujúcou JSON Schema kontrolou.
+Stav: active.
+
+### UPDATE / HANDOFF — PR-AI-CHANGE-METADATA-20261103-COPILOT-04
+Aktualizované `.github/ai-change.json` pre konfiguračné zmeny PR; `reviewed` ostáva `false`, pretože ľudské CODEOWNER review zatiaľ neprebehlo.
+Validácia: `npx --yes --package=ajv-cli@5.0.0 --package=ajv-formats@3.0.1 ajv validate -c ajv-formats -s .github/ai-change-policy.schema.json -d .github/ai-change.json` — PASS (`.github/ai-change.json valid`); `git diff --check` PASS.
+Stav: necommitnuté, pripravené zahrnúť do aktuálnej PR vetvy. Produkčný deploy a staging deploy nevykonané.
