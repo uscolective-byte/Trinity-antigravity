@@ -18,7 +18,7 @@ Používaj jeden hlavný checkout. Čítaj AGENTS.md a aktuálny TEAM-HANDOFF.md
 - backup/pre-reset-20261103/: 11 zachovaných lokálnych vetiev.
 - backup/pre-reset-20261103/worktree-0: rozpracovaný spoločný denník.
 - backup/pre-reset-20261103/worktree-2: Copilot secret-vault a denník.
-- backup/pre-reset-20261103/worktree-8: zmena generovanej contracts schémy.
+- backup/pre-reset-20261103/worktree-8: generovaný artefakt TetrakisToken.json.
 - codex/recovery-index-20261103: tento prehľad a manifest.
 
 Presné SHA, pôvodné cesty a súbory: docs/recovery/github-backup-20261103.json. Všetky uvedené zálohy boli overené cez vzdialené Git refs. Snapshot je nepreverená rozpracovaná práca; nie release. Pred zlúčením treba review vlastníka a testy. Pre zálohu neboli spúšťané runtime testy.
