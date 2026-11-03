@@ -2378,3 +2378,7 @@ Stav: active.
 Aktualizované `.github/ai-change.json` pre konfiguračné zmeny PR; `reviewed` ostáva `false`, pretože ľudské CODEOWNER review zatiaľ neprebehlo.
 Validácia: `npx --yes --package=ajv-cli@5.0.0 --package=ajv-formats@3.0.1 ajv validate -c ajv-formats -s .github/ai-change-policy.schema.json -d .github/ai-change.json` — PASS (`.github/ai-change.json valid`); `git diff --check` PASS.
 Stav: necommitnuté, pripravené zahrnúť do aktuálnej PR vetvy. Produkčný deploy a staging deploy nevykonané.
+
+UPDATE / HANDOFF — PR-AI-CHANGE-METADATA-20261103-COPILOT-04 — superseding status
+`.github/ai-change.json` and this handoff update were committed as `2974e6bfc4a0b34abc4be0f4db9b42f90aa082f2`. The branch was pushed to `origin/uscolective-byte-desktop-commander-mcp`; PR #37 was created against `main`: https://github.com/uscolective-byte/Trinity-antigravity/pull/37.
+The earlier "uncommitted" status above is superseded. The uncommitted root `package.json` and `package-lock.json` changes were not included. No deployment was performed. Tests remain red as recorded above; CODEOWNER review is pending.
