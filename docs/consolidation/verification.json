@@ -15,7 +15,8 @@
   "storage_isolation_config": "PASS",
   "release_docs_check": "PASS",
   "vercel_config_schema": "PASS against https://openapi.vercel.sh/vercel.json",
-  "hosted_ci": "Not yet verified for this branch",
+  "hosted_ci": "BLOCKED: GitHub billing lock; job not started; 0 steps",
   "production_deploy": false,
-  "test_scope": "All project suites passed in the full gate; the changed Trinity suite was rerun after final engine/formatter integration. Counts are test executions, including the Guardian contract repeated in its package gate."
+  "test_scope": "All project suites passed in the full gate; the changed Trinity suite was rerun after final engine/formatter integration. Counts are test executions, including the Guardian contract repeated in its package gate.",
+  "vercel_previews": "4 project statuses SUCCESS at 740e3e39b117cfe2bdacb8b2e9920bf33d1fc19e"
 }
