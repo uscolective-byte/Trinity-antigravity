@@ -247,6 +247,19 @@ export function handleMcp(request,env,ctx,access={}){
         return result({connected:false,error:'PC Bridge neodpovedal.'});
       });
 
+    server.registerTool('pc_open_url',{description:'Otvorí URL odkaz v predvolenom webovom prehliadači na PC.',
+      inputSchema:{url:z.string().min(1).max(2048)}},
+      async({url})=>{
+        const action=await createSystemAction(env,{action:'open_url',payload:{url},rationale:'MCP: Otvorenie odkazu: ' + url.slice(0,100)},'admin:mcp:trinity',{adminAuthorized:true});
+        for(let i=0;i<15;i++){
+          await new Promise(r=>setTimeout(r,500));
+          const cur=await getSystemAction(env,action.id);
+          if(cur?.status==='completed')return result({opened:true,url,...cur.receipt});
+          if(cur?.status==='failed')return result({opened:false,error:cur.error});
+        }
+        return result({opened:true,id:action.id,note:'Požiadavka na otvorenie odkazu bola odoslaná lokálnej bráne.'});
+      });
+
     server.registerTool('pc_run_command',{description:'Spustí príkaz na lokálnom PC (vyžaduje schválenie).',
       inputSchema:{command:z.string().min(1).max(2000),cwd:z.string().max(500).optional(),rationale:z.string().min(5).max(300)}},
       async({command,cwd,rationale})=>{

@@ -19,6 +19,7 @@ export const CAPABILITIES=Object.freeze([
   {id:'upload',risk:'critical',approval:true},
   {id:'upgrade',risk:'critical',approval:true},
   {id:'open_app',risk:'change',approval:true},
+  {id:'open_url',risk:'read',approval:false},
   {id:'screenshot',risk:'read',approval:false},
   {id:'notify',risk:'read',approval:false},
   {id:'system_info',risk:'read',approval:false}

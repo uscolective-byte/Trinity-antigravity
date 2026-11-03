@@ -53,7 +53,7 @@ import {diagnoseOmniDevStackTrace,proposeOmniDevRecoveryPatch} from './omnidev-d
 
 export const INTERNAL_TOOLS=new Set(['diagnostic_ping','request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose','cf_d1_query','cf_kv_store','cf_r2_manage','cf_self_deploy','mail_engine','http_fetch_pro','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','apply_self_evolution','triad_subagent_run','triad_deep_research','triad_code_patch','triad_test_matrix','triad_copilot_sync','triad_status']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
-export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
+export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
 export const OWNER_BUSINESS_TOOLS=new Set(['finance_propose_transfer','finance_confirm_transfer','finance_audit_ledger','prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
 export const requiresVerifiedAdminForIntegrationTool=(name,args={})=>
   name==='cloudflare_manage'&&args?.action==='purge_cache'
@@ -98,6 +98,7 @@ export const TOOL_SCHEMAS={
     monthly_income_goal_eur:z.number().finite().min(100).max(100000).default(2500)
   }).strict(),
   search_memory:z.object({query:z.string().max(200).default('')}).strict(),
+  pc_open_url:z.object({url:z.string().min(1).max(2048)}).strict(),
   project_snapshot:z.object({}).strict(),
   service_status:z.object({binding:z.enum(Object.keys(SERVICES)).optional()}).strict(),
   web_search:z.object({query:z.string().min(3).max(500)}).strict()
@@ -961,11 +962,11 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     };
   }
   // ── PC Bridge nástroje ──
-  if(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr'].includes(name)){
+  if(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr'].includes(name)){
     const pcActionMap={
       pc_screenshot:'screenshot', pc_run_script:'run', pc_run:'run', pc_file_read:'read', pc_file_write:'write',
       pc_file_append:'write',pc_file_edit:'edit',pc_directory_create:'write',
-      pc_open_app:'open_app',pc_app_control:'open_app', pc_notify:'notify', pc_system_info:'system_info',
+      pc_open_app:'open_app',pc_open_url:'open_url',pc_app_control:'open_app', pc_notify:'notify', pc_system_info:'system_info',
       pc_scrape:'scrape',pc_web_fetch:'web_fetch',pc_download:'download', pc_git_commit:'git_commit', pc_git_pr:'git_pr',
     };
     const pcAction=pcActionMap[name];
@@ -978,7 +979,8 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       pc_file_append:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000)}).strict(),
       pc_file_edit:z.object({path:z.string().min(1).max(2000),find:z.string().min(1).max(200000),replace:z.string().max(200000)}).strict(),
       pc_directory_create:z.object({path:z.string().min(1).max(2000)}).strict(),
-      pc_open_app:z.object({target:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser'])}).strict(),
+      pc_open_app:z.object({target:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser','commander','cmder'])}).strict(),
+      pc_open_url:z.object({url:z.string().min(1).max(2048)}).strict(),
       pc_app_control:z.object({operation:z.enum(['list','launch','type']),app:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser']).optional(),text:z.string().min(1).max(500).optional()}).strict(),
       pc_notify:z.object({message:z.string().min(1).max(256),title:z.string().max(80).optional(),duration:z.number().int().min(1).max(30).optional()}).strict(),
       pc_system_info:z.object({detail:z.boolean().optional()}).strict(),
@@ -990,6 +992,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     };
     const parsedArgs=pcSchema[name].parse(input);
     let payload=parsedArgs;
+    if(name==='pc_open_url')payload={url:parsedArgs.url};
     if(name==='pc_run_script')payload={task:'script',...parsedArgs};
     if(name==='pc_file_read')payload={path:parsedArgs.path,depth:parsedArgs.depth};
     if(name==='pc_file_write')payload={path:parsedArgs.path,content:parsedArgs.content,expected_sha256:parsedArgs.expected_sha256};
@@ -1317,6 +1320,7 @@ export const TOOL_HELP={
   pc_file_append:'Pridá obsah na koniec súboru v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string,content:string}',
   pc_file_edit:'Nahradí text v súbore v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string,find:string,replace:string}',
   pc_directory_create:'Vytvorí adresár v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string}',
+  pc_open_url:'Otvorí URL odkaz na počítači v prehliadači: {url:string}',
   pc_open_app:'Otvorí povolenú aplikáciu na PC (vyžaduje schválenie): {target:notepad|calculator|paint|explorer|chrome|edge|whatsapp|vscode|terminal|browser}',
   pc_app_control:'Vypíše okná alebo po schválení otvorí aplikáciu či napíše text do aktívneho okna: {operation:list|launch|type,app?:alias,text?:string}',
   pc_notify:'Zobrazí Windows toast notifikáciu: {title?:string,message:string,duration?:sek}',

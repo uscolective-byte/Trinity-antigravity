@@ -21,6 +21,7 @@ export const SYSTEM_CAPABILITIES=Object.freeze([
   // ── NextGen PC akcie ──
   {id:'screenshot', approval:false, risk:'read'},
   {id:'open_app',   approval:true,  risk:'change'},
+  {id:'open_url',   approval:false, risk:'read'},
   {id:'notify',     approval:false, risk:'read'},
   {id:'system_info',approval:false, risk:'read'},
   {id:'scrape',     approval:false, risk:'read'},

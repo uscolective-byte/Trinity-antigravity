@@ -142,12 +142,42 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
       whatsapp:'whatsapp',watsap:'whatsapp',
       vscode:'vscode',code:'vscode',
       terminal:'terminal',powershell:'terminal',cmd:'terminal',
+      cmder:'cmder',commander:'commander',
       browser:'browser',prehliadac:'browser'
     };
     const clean=String(appTarget).toLowerCase().replace(/[^a-z]/g,'');
     const target=appMap[clean]||'calculator';
     const desktop=await executeDesktop({task:'desktop-control',operation:'launch',app:target});
     return {action:'open_app',target,desktop,success:true};
+  }
+  if(proposal.action==='open_url'){
+    const rawUrl=payload.url||payload.link||payload.target;
+    if(!rawUrl||typeof rawUrl!=='string')throw new Error('Chýba URL adresa.');
+    let parsedUrl;
+    try {
+      if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(rawUrl)) {
+        parsedUrl = new URL(rawUrl);
+      } else {
+        parsedUrl = new URL(`https://${rawUrl}`);
+      }
+      if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+        throw new Error("Povolené sú iba HTTP a HTTPS adresy.");
+      }
+    } catch (e) {
+      throw new Error(`Neplatná URL adresa: ${e.message}`);
+    }
+    const {spawn} = await import('node:child_process');
+    if (process.platform === 'win32') {
+      const child = spawn('cmd.exe', ['/c', 'start', '', parsedUrl.href], {detached: true, stdio: 'ignore', windowsHide: true});
+      child.unref();
+    } else if (process.platform === 'darwin') {
+      const child = spawn('open', [parsedUrl.href], {detached: true, stdio: 'ignore'});
+      child.unref();
+    } else {
+      const child = spawn('xdg-open', [parsedUrl.href], {detached: true, stdio: 'ignore'});
+      child.unref();
+    }
+    return {action:'open_url',url:parsedUrl.href,success:true};
   }
   throw new Error('Neznáma systémová akcia.');
 }

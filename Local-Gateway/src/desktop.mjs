@@ -17,7 +17,9 @@ const APPS=Object.freeze({
   whatsapp:{command:'whatsapp.exe',protocol:'whatsapp:',processes:['WhatsApp','WhatsApp.Root'],titles:['WhatsApp']},
   vscode:{command:'code.cmd',fallback:'code.exe',processes:['Code'],titles:['Visual Studio Code']},
   terminal:{command:'wt.exe',fallback:'powershell.exe',processes:['WindowsTerminal','powershell','pwsh'],titles:['Windows PowerShell','PowerShell','Terminal']},
-  browser:{command:'chrome.exe',fallback:'msedge.exe',processes:['chrome','msedge'],titles:['Google Chrome','Microsoft Edge']}
+  browser:{command:'chrome.exe',fallback:'msedge.exe',processes:['chrome','msedge'],titles:['Google Chrome','Microsoft Edge']},
+  cmder:{command:'cmd.exe',fallback:'powershell.exe',processes:['cmd','powershell','WindowsTerminal'],titles:['Command Prompt','Príkazový riadok','Windows PowerShell','Terminal']},
+  commander:{command:'cmd.exe',fallback:'powershell.exe',processes:['cmd','powershell','WindowsTerminal'],titles:['Command Prompt','Príkazový riadok','Windows PowerShell','Terminal']}
 });
 const OPERATIONS=new Set(['list','launch','focus','type','screenshot']);
 
