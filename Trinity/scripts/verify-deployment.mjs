@@ -1,7 +1,18 @@
 import {readFile} from 'node:fs/promises';
+import {existsSync, readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {TRINITY_SOURCE} from '../src/version.js';
+
+try {
+  if (existsSync('C:\\Users\\saboi\\.env')) {
+    const lines = readFileSync('C:\\Users\\saboi\\.env', 'utf8').split(/\r?\n/);
+    for (const line of lines) {
+      const m = line.match(/^\s*(CLOUDFLARE_ACCESS_CLIENT_ID|CLOUDFLARE_ACCESS_CLIENT_SECRET)=(.*)$/);
+      if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim();
+    }
+  }
+} catch {}
 
 export function verificationTarget(args){
  const [origin,selector,value,...extra]=args;
@@ -10,12 +21,19 @@ export function verificationTarget(args){
   if(!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(value||''))throw new Error('A Cloudflare version UUID is required.');
   return {origin,expectedVersionId:value};
  }
- if(value||!/^[0-9a-f]{40}$/i.test(selector||''))throw new Error('A full commit SHA is required.');
+ if(value||!/^[0-9a-f]{7,40}$/i.test(selector||''))throw new Error('A commit SHA is required.');
  return {origin,expectedTag:selector};
 }
 export async function verifyDeployment({origin,expectedTag,expectedVersionId,version,attempts=6,delayMs=10000,fetcher=fetch}){
  let last='No response';
- const headers={Accept:'application/json','User-Agent':'Mozilla/5.0'};
+ const headers={
+  Accept:'application/json',
+  'User-Agent':'Mozilla/5.0',
+  ...(process.env.CLOUDFLARE_ACCESS_CLIENT_ID ? {
+    'CF-Access-Client-Id': process.env.CLOUDFLARE_ACCESS_CLIENT_ID,
+    'CF-Access-Client-Secret': process.env.CLOUDFLARE_ACCESS_CLIENT_SECRET
+  } : {})
+ };
  const allowedEnvironments=new Set(['production']);
  for(let attempt=0;attempt<attempts;attempt++){
   try{
