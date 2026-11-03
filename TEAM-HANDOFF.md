@@ -2213,3 +2213,36 @@ Trinity otvorená a ponechaná v prehliadači. Nový lokálny auth commit5e1117c
 Odstránené implicitné source/prefix/digest bridge credentials, chránené proxy aj register/execute pred anonymným použitím server tokenu, odstránené syntetické caller identity flags a defaultPII, vynútené autentifikované nové tunnel metadata a HTTPS root/manual redirects. Stará cache úmyselne nepoužiteľná do autentifikovanej re-registrácie pri budúcom rolloute. Zachovaný cloud Ollama fallback a explicitne nakonfigurované platné credentials. CRLF schema check portability fix bez zmeny schémy.
 Výsledky: build dry-run PASS; Trinity801/801, Local-Gateway61/61, contracts6/6 a schema PASS. Nezávislý review_foundation ACK_BRIDGE_AUTH_SOURCE_20261102 a33/33 cielených testov PASS, related register/cache bypass opravený. Žiadny push, merge, deploy, restart gateway, IAM/secret/cloudKV zásah v tomto reze. Nový live PC/Google/Meta handshake sa netvrdí, legacy lifecycle označenia zostávajú samostatným auditom.
 Výstupy v Documents/Codex/2026-11-01/referenced-chatgpt-conversation-this-is-an/outputs/Bridge-auth-pokracovanie-20261102.md, bridge-auth-20261102.patch, bridge-auth-20261102-files.zip, bridge-auth-20261102-tests.txt a bridge-auth-20261102-review.md. Ďalší vlastník rolloutu má najprv prevziať cloud/PC ownership, overiť explicitnú konfiguráciu a autentifikovanú re-registráciu; tento source ACK nie je deployment receipt.
+
+
+### CLAIM ? SECURITY-RESOLVER-FIX-20261102-COPILOT-01
+?as a ?asov? p?smo: 2026-11-02 00:00, Europe/Bratislava.
+Autor a klient: Copilot App / local workspace agent.
+Pr?jemca: Majite? (Basterix), Antigravity, Codex.
+Cie? a pokyn majite?a: ?vikonaj kompletne opravi? + ?bez testov vikonaj opravi?.
+Z?kladn? commit / checkout: aktu?lny worktree HEAD bez stabiln?ho git commit; lok?lny audit v worktree s obmedzen?m Git config.
+Vlastnen? s?bory alebo zdroje / prostredie: `Trinity/src/secret-vault.js`, `Trinity/src/trinity-master-secrets.js`, `Trinity/tests/trinity-master-provider-resolution.test.mjs`.
+Skuto?n? zmeny:
+1. Opraven? `resolveProviderSecret()` v `Trinity/src/secret-vault.js` tak, aby neumo??oval ?irok? pr?stup k neoveren?m glob?lnym secretom typu `GITHUBE_FINE_TOKEN` a `default_grok_default`.
+2. Zostaven? striktn? allowlist pre provider-specific env promenn? a zachovan? server-side `TRINITY_MASTER` / encrypted-vault fallbacky.
+3. Udr?iavan? fail-closed behavior: pokia? ch?ba explicitn?, schv?len? k??? pre dan?ho providera, funkcia vr?ti `null`, nie n?hodn? token z in?ho kontextu.
+Kontroly a d?kazy:
+- Direct validation: `node --input-type=module -e "...resolveProviderSecret..."` -> `secret-resolver checks passed`.
+- Overen?, ?e `resolveProviderSecret(env,'groq')` vr?ti `null` pri `default_grok_default`, a `resolveProviderSecret(env,'github')` vracia `null` pri `TRINITY_MASTER_GITHUB` bez povolenia.
+- Preh?ad `grep` po `GITHUBE_FINE_TOKEN|default_grok_default` v `Trinity/src` -> bez zvy?kov.
+Commit v?sledku alebo necommitnut?: necommitnut? (pou?it? lok?lne fixy pod?a po?iadavky bez testov, bez pushu).
+Stav: completed.
+?al?? krok a vlastn?k: majite? / Antigravity m??e pokra?ova? v k???ovom integr??nom overen? v Cloudflare a staging; v tejto worktree je bezpe?nostn? oprava hotov?.
+
+### UPDATE ? SECURITY-RESOLVER-FIX-20261102-COPILOT-01
+?as a ?asov? p?smo: 2026-11-02 00:05, Europe/Bratislava.
+Autor a klient: Copilot App / local workspace agent.
+Zmeny: pridan? fail-closed fix pre `resolveProviderSecret()`; vyl??en? ne?pecifick? roz??ren? GitHub/Grok tokeny z provider resolution a ponechan? autorizovan? bindy / encrypted-vault fallbacky.
+Kontroly: `node --input-type=module -e ...` -> `secret-resolver checks passed`; grep preh?ad overil pr?zdny sektor `Trinity/src` pre nepovolen? n?zvy.
+Zost?vaj?ce probl?my: nie je dokon?en? live Cloudflare overenie scopes a staging deployment; v sandboxe ch?baj? pln? infra overenia, ale k?dova?ia bezpe?nostn? chyba je opraven?.
+
+### HANDOFF ? SECURITY-RESOLVER-FIX-20261102-COPILOT-01
+Autor: Copilot App, 2026-11-02, Europe/Bratislava.
+Pr?jemca: Majite? (Basterix), Antigravity, Codex.
+D?kaz: lok?lna valid?cia `secret-resolver checks passed` po zmen?ch v `Trinity/src/secret-vault.js`.
+Stav: completed, necommitnut?, hotov? na review alebo ?al?? integrovan? deploy. Tento handoff je aktu?lny zdroj pre ?al?? agentick? pr?stup a ?ahk? review bez overovania live Cloudflare stromu.
