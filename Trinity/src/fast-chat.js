@@ -39,9 +39,9 @@ export function directChatTool(task,tools){
  if(/^(?:prosim\s+)?(?:stav workerov|skontroluj workery|kolko mas workerov|ake mas workery|stav flotily|vypis workery|ake mas bindingy|skontroluj bindingy)\s*[?.!]*$/.test(text)&&tools.includes('fleet_status'))return {name:'fleet_status',arguments:{}};
  const memMatch=text.match(/^(?:prosim\s+)?(?:hladaj v pamati|najdi v pamati)\s+(.+?)\s*[?.!]*$/);
  if(memMatch&&tools.includes('search_memory'))return {name:'search_memory',arguments:{query:memMatch[1]}};
- const weatherMatch=text.match(/^(?:prosim\s+)?(?:ake je pocasie|pocasie)\s+(?:v|vo|pre)\s+([a-z0-9\s-]{2,40})\s*[?.!]*$/);
- if(weatherMatch&&tools.includes('open_weather'))return {name:'open_weather',arguments:{city:weatherMatch[1].trim()}};
- if(/^(?:prosim\s+)?(?:kurzy kryptomien|ceny kryptomien|cena bitcoinu|kolko stoji bitcoin)\s*[?.!]*$/.test(text)&&tools.includes('crypto_prices'))return {name:'crypto_prices',arguments:{vs_currency:'eur',per_page:8}};
+ const weatherMatch=String(task).trim().match(/^(?:pros[ií]m\s+)?(?:ak[eé] je po[cč]asie|po[cč]asie)\s+(?:v|vo|pre)\s+([\p{L}\p{N} '-]{2,80})\s*[?.!]*$/iu);
+ if(weatherMatch&&tools.includes('open_weather'))return {name:'open_weather',arguments:{query:weatherMatch[1].trim()}};
+ if(/^(?:prosim\s+)?(?:kurzy kryptomien|ceny kryptomien|cena bitcoinu|kolko stoji bitcoin)\s*[?.!]*$/.test(text)&&tools.includes('crypto_prices'))return {name:'crypto_prices',arguments:{coins:/\b(?:bitcoinu|bitcoin)\b/.test(text)?['bitcoin']:['bitcoin','ethereum','solana']}};
  if(/^(?:prosim\s+)?(?:tech spravy|technologicke novinky|najnovsie tech spravy)\s*[?.!]*$/.test(text)&&tools.includes('tech_news'))return {name:'tech_news',arguments:{limit:6}};
  return null;
 }

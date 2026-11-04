@@ -1,3 +1,4 @@
+import {formatWeather,formatCryptoPrices} from './external-data-response.js';
 import {formatFleetStatus} from './fleet-response.js';
 /**
  * @module TRINITY_OMNI_CORE
@@ -264,8 +265,8 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     else if(direct.name==='list_skills')text=`Mám dostupných ${(outcome.skills||[]).length} špecializovaných zručností (skills): ${(outcome.skills||[]).map(s=>s.name).join(', ')}.`;
     else if(direct.name==='domain_list')text=(outcome.items||[]).length?`Evidované domény (${outcome.items.length}): ${outcome.items.map(d=>`${d.domain_name} (${d.status})`).join(', ')}.`:'V evidencii zatiaľ nie sú žiadne domény.';
     else if(direct.name==='search_memory')text=(outcome.matches||[]).length?`Nájdené záznamy v pamäti (${outcome.matches.length}):\n`+outcome.matches.slice(0,8).map(m=>`- **${m.key||m.source||'záznam'}**: ${String(m.value||m.content||'').slice(0,220)}`).join('\n'):'V pamäti sa pre tento dopyt nenašiel žiadny záznam.';
-    else if(direct.name==='open_weather')text=outcome.ok?`🌤️ **Počasie (${outcome.location?.name||direct.arguments.city}, ${outcome.location?.country||''})**: **${outcome.current?.temperature_c}°C** (pocitovo ${outcome.current?.apparent_temperature_c}°C), vlhkosť ${outcome.current?.humidity_pct}%, vietor ${outcome.current?.wind_kmh} km/h.`:(outcome.error||'Nepodarilo sa načítať počasie.');
-    else if(direct.name==='crypto_prices')text=(outcome.coins||[]).length?`🪙 **Aktuálne kurzy kryptomien (${(outcome.vs_currency||'eur').toUpperCase()})**:\n`+outcome.coins.map(c=>`- **${c.name} (${c.symbol})**: **${c.price} ${(outcome.vs_currency||'EUR').toUpperCase()}** (24h: ${c.change_24h_pct>=0?'+':''}${Number(c.change_24h_pct||0).toFixed(2)}%)`).join('\n'):'Nepodarilo sa načítať kurzy kryptomien.';
+    else if(direct.name==='open_weather')text=formatWeather(outcome);
+    else if(direct.name==='crypto_prices')text=formatCryptoPrices(outcome);
     else if(direct.name==='tech_news')text=(outcome.stories||[]).length?`📰 **Najnovšie technologické správy (HackerNews)**:\n`+outcome.stories.map(s=>`- [${s.title}](${s.url||'https://news.ycombinator.com/item?id='+s.id}) (${s.score} bodov · ${s.comments} komentárov)`).join('\n'):'Nepodarilo sa načítať technologické správy.';
     else if(direct.name==='infrastructure_status'){
       text=formatInfrastructureStatus(outcome);
