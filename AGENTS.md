@@ -14,13 +14,13 @@ nasadení si najprv načítaj
 [cloudflare-secrets-store skill](.agents/skills/cloudflare-secrets-store/SKILL.md).
 Pred deployom spusti čisto metadátový test:
 `node Trinity/scripts/secrets-store-doctor.mjs`.
-Cloudflare account Secrets Store používa `await env.BINDING.get()`,
+Cloudflare account Secrets Store používa `await .BINDING.get()`,
 nie čítanie textu z konfigurácie. Rozsah `workers` a oprávnenia
 nasadzujúceho účtu sa musia overiť osobitne.
 
-Cloudflare v `Trinity/wrangler.jsonc` používa `--env staging`,
-nie historický názov `--env development`.
-Súbor `C:\Users\saboi\.env` je len existujúca lokálna
+Cloudflare v `Trinity/wrangler.jsonc` používa `-- staging`,
+nie historický názov `-- development`.
+Súbor `C:\Users\saboi\.` je len existujúca lokálna
 vývojová konfigurácia mimo repozitára; **nie je zdrojom cloudových
 Secrets Store hodnôt**. Skutočné produkčné hodnoty nikdy nekopíruj do
 súborov, logov, komentárov, modelových promptov ani Gitu. Kľúč
@@ -32,8 +32,8 @@ na lokálny PC ani nasadenie.
 Pokyny pre agentov (Codex, Antigravity). S majiteľom (Sabo Ivan / Basterix) komunikuj po slovensky.
 
 1. Najprv prečítaj [CODEX-ANTIGRAVITY-PROTOCOL.md](CODEX-ANTIGRAVITY-PROTOCOL.md) a posledný HANDOFF (aktuálne `CODEX-HANDOFF-FROM-ANTIGRAVITY-CORE-TOOLS-20261027.md`).
-2. **Kľúče a tajomstvá:** spoločný súbor je `C:\Users\saboi\.env` (mimo repa). Postup, zákazy a inventár sú v protokole, sekcia 7.
-   - Prítomnosť over: `powershell -NoProfile -File scripts/shared-env.ps1 -Check` (hodnoty sa nevypisujú).
+2. **Kľúče a tajomstvá:** spoločný súbor je `C:\Users\saboi\.` (mimo repa). Postup, zákazy a inventár sú v protokole, sekcia 7.
+   - Prítomnosť over: `powershell -NoProfile -File scripts/shared-.ps1 -Check` (hodnoty sa nevypisujú).
    - Hodnoty nikdy nevypisuj, nelogovaj ani necommituj. Chýbajúci kľúč pridá majiteľ, nežiadaj ho do chatu.
 3. Pred deployom testy, deploy s `--tag <git-sha>`, overenie `node Trinity/scripts/verify-deployment.mjs`. Produkčný merge/deploy len po staging dôkaze a rozhodnutí majiteľa.
 

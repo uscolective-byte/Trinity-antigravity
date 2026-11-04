@@ -1,29 +1,25 @@
 {
-  "name": "trinity-antigravity-workspace",
+  "name": "trinity-omni-core",
+  "version": "2.5.0",
   "private": true,
-  "version": "1.0.0",
-  "license": "MIT",
-  "author": "Ivan Sabo (Basterix31) <saboivan2008@gmail.com>",
   "scripts": {
-    "trinity:agent": "npm --prefix Local-Gateway run agent:trinity --",
-    "sync": "powershell -ExecutionPolicy Bypass -File ./SYNC-BUILD.ps1 -Full -Test",
-    "build": "powershell -ExecutionPolicy Bypass -File ./SYNC-BUILD.ps1 -Full -Test",
-    "deploy": "powershell -ExecutionPolicy Bypass -File ./SYNC-BUILD.ps1 -Full -Test -Deploy",
-    "test": "npm --prefix Trinity test",
-    "check": "node scripts/run-all-tests.mjs",
-    "deploy:all": "node scripts/deploy-all-workers.mjs",
-    "gemini:chat": "node scripts/gemini-dev-chat.mjs",
-    "docs:check": "node scripts/sync-release-docs.mjs --check",
-    "docs:sync": "node scripts/sync-release-docs.mjs",
-    "cloudflare:doctor": "node scripts/cloudflare-doctor.mjs"
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.32.2",
-    "ethers": "^6.17.0",
-    "hono": "^4.13.16",
-    "zod": "^4.6.7"
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.453.0",
+    "next": "14.2.16",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "tailwind-merge": "^2.5.4",
+    "wrangler": "^4.157.0"
   },
-  "engines": {
-    "node": ">=24.0.0"
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "typescript": "^5.9.3"
   }
 }

@@ -39,7 +39,7 @@
 - Opens target files in the default Windows program via the system bridge.
 - Safely resolves paths with spaces in directory and file names.
 - Enforces strict Morhfeus workspace root confinement and blocks directory traversal (`../../`).
-- Strictly protects sensitive configuration and secrets (`.env`, `.credentials`).
+- Strictly protects sensitive configuration and secrets (`.`, `.credentials`).
 - Automatically snapshots candidate handler PIDs, identifies delta PIDs, and terminates only test-spawned processes.
 
 ### Truth Policy 2.1 & Sovereign Ledger v3
@@ -78,7 +78,7 @@
   ✔ Tier 2.3: pc_open_url rejects dangerous schemes (file://, javascript:, ftp://)
   ✔ Tier 2.4: pc_open_file handles filenames and paths with spaces safely
   ✔ Tier 2.5: pc_open_file rejects path traversal attempts
-  ✔ Tier 2.6: pc_open_file rejects protected files (.env, credentials)
+  ✔ Tier 2.6: pc_open_file rejects protected files (., credentials)
   ✔ Tier 2.7: pc_open_app rejects unlisted or dangerous applications
   ✔ Tier 2.8: pc_open_app normalizes Slovak and colloquial app aliases (calc, poznamkovyblok)
 ✔ Tier 2: Boundary & Corner Cases (Opaque-Box E2E)

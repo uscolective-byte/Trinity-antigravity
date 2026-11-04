@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title TRINITY INSTALL ALL & SETUP ENVIRONMENT
+title TRINITY INSTALL ALL & SETUP IRONMENT
 cls
 cd /d "%~dp0"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\install-all.ps1" %*

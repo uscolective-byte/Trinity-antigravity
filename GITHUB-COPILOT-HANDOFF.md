@@ -66,7 +66,7 @@ konfiguračný súbor, uložený kľúč alebo tento dokument nestačia.
    `Trinity/tests/ollama-bridge-auth.test.mjs`,
    `Local-Gateway/tests/system-bridge-auth.test.mjs`,
    `Trinity/docs/omni12/bridge-auth-hardening.md` a relevantný záznam `TEAM-HANDOFF.md`.
-   Credential súbory, `.env`, DPAPI, tokeny ani plaintext starých source credentialov
+   Credential súbory, `.`, DPAPI, tokeny ani plaintext starých source credentialov
    nečítaj do odpovede a nezverejňuj v nálezoch.
 4. Posúď odmietnutie implicitnej/prefixovej/digest autentifikácie, serverovú
    owner autorizáciu proxy, ochranu registrácie tunela a execute, HTTPS root

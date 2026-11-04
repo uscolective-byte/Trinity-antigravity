@@ -468,7 +468,7 @@ Stav: completed a pripravené na nasadenie.
 Výsledky a dôkazy:
 1. Vytvorený App Hub a rozhranie prepojených aplikácií na `https://auru.dev` aj v `Local-Desktop` (Telegram Bot, GitHub, Google Workspace, X/Twitter, Meta, PC Bridge a Microsoft Copilot Studio Trinitys).
 2. Interaktívne Guarded Action schvaľovacie karty: zápisy, commity, odosielanie emailov ani zmeny súborov nevstúpia do siete bez výslovného kliknutia majiteľa na `[⚡ Schváliť a vykonať]`.
-3. Integrácia agenta Trinitys (Microsoft Copilot Studio): Bot ID `767f155a-5b45-15fc-17b1-e4d712682945`, Env ID `b2ffa450-7427-e2dd-89dd-7df6a8c0a149`, Object ID `d77169b1-e300-42da-88c3-e8df11b82604`, M365 Tenant `usc31@saboivan2008gmail.onmicrosoft.com` a osobný účet `saboivan2008@gmail.com`.
+3. Integrácia agenta Trinitys (Microsoft Copilot Studio): Bot ID `767f155a-5b45-15fc-17b1-e4d712682945`, a450-7427-e2dd-89dd-7df6a8c0a149`, Object ID `d77169b1-e300-42da-88c3-e8df11b82604`, M365 Tenant `usc31@saboivan2008gmail.onmicrosoft.com` a osobný účet `saboivan2008@gmail.com`.
 4. Priame prepojenie na Zdieľaný Copilot Chat (Share ID `d6114d11-9316-4428-b409-b61541cbb757`, Konverzácia `24140b7a-2679-41db-bd3b-3e45db731263`).
 5. Reakcia na nález Codexu (MCP-APPROVAL-20261028-CODEX-01): `approve_system_action` a `reject_system_action` v `Trinity/src/mcp.js` boli sprísnené – vyžadujú zhodu `confirmation` UUID s ID akcie a striktné overenie `access.admin` / `access.projectControl`. Žiadna akcia nemôže byť anonymne autorizovaná cez MCP.
 6. Testy pred nasadením:
@@ -660,7 +660,7 @@ Stav: pending_owner_phone_verification. Po overení nového kontaktu pokračova�
 v registrácii Meta Developer, konfigurácii aplikácie a OAuth pre Trinity.
 Zdroj konektora je už integrovaný v main (98a4a36, aktuálne overený HEAD
 a1ec099211d57b97806a5ec7f56f518450e13a9f); cielené testy konektora 9/9 PASS.
-META_APP_ID/SECRET/GRAPH_VERSION stále nie sú dostupné v spoločnom lokálnom env.
+META_APP_ID/SECRET/GRAPH_VERSION stále nie sú dostupné v spoločnom lokálnom 
 Účet zatiaľ nemožno označiť za pripojený k Trinity; publikovanie neprebehlo.
 
 ### UPDATE — META-READ-CONNECTION-20261029-CODEX-01 — obnova prístupu
@@ -826,7 +826,7 @@ Pred spustením owner setup treba opraviť nový Trinity/scripts/set-meta-secret
 1. Po npx wrangler secret put sa nekontroluje LASTEXITCODE; skript vždy vypíše
    Úspech aj pri zlyhaní uploadu. Úspech musí závisieť od návratového kódu a
    následne možno potvrdiť iba prítomnosť názvu secret, nie OAuth spojenie.
-2. Produkčný cieľ musí byť explicitný: overený config, worker trinity a env=.
+2. Produkčný cieľ musí byť explicitný: overený config, worker trinity a 
    Použiť známy lokálny Wrangler, zabrániť implicitnému downloadu/zmene cieľa.
 3. BSTR/SecureString aj plaintext čistiť v finally aj pri chybe; prázdny alebo
    riadiace znaky obsahujúci vstup nesmie spustiť upload. Žiadne echo/argv secretu.
@@ -844,7 +844,7 @@ C:\Users\saboi\Documents\Codex\2026-10-27\tri\outputs\meta-owner-setup\Spustit-M
 Kanonický Antigravity setter neprepisuje. Nezávisle skontrolovaný vstavaný
 Wrangler 4.151.1 vie v skutočnom TTY maskovať vstup cez isSecret/password.
 Launcher otvorí tento už nainštalovaný program pre majiteľa, explicitne
-trinity/env= a správny účet/config. Žiadne pipe, secret argumenty, logovanie
+trinity/ny účet/config. Žiadne pipe, secret argumenty, logovanie
 alebo nové kľúče. App Secret zadá výhradne majiteľ v maskovanom CLI prompe.
 Vopred sa overí TTY; bez neho sa upload nesmie spustiť. Vault sa nemení.
 Cieľ je odstrániť závislosť na zatiaľ neopravenej success vetve AG setteru.
@@ -856,13 +856,13 @@ overiť secret metadata a owner OAuth. Žiadny taký zápis zatiaľ neprebehol.
 UI konektora: needs_setup, missing=[META_APP_SECRET], publishing_enabled=false.
 Tlačidlo Prihlásiť sa cez Meta je preto zatiaľ disabled.
 Launcher mimo repa prešiel PowerShell parserom; negatívny neinteraktívny test
-bezpečne skončil pred shared-env load, vstupom kľúča a cloud uploadom.
+bezpečne skončil pred shared-tupom kľúča a cloud uploadom.
 Codex otvoril samostatné interaktívne okno s overeným vstavaným Wranglerom:
 PowerShell PID 7516, conhost PID 3688, node CLI PID 28300. CLI je spustené
 bez pipe/redirection a bez hodnoty tajomstva v argv. Verejný lokálny receipt
 zatiaľ neexistoval; dokončenie uploadu sa preto nehlási.
 App Secret má majiteľ zadať sám priamo do maskovaného promptu. Kľúč nesmeruje
-do chatu, .env, logu ani nového scriptu. Mení sa výhradne META_APP_SECRET pre
+do chatu, .i nového scriptu. Mení sa výhradne META_APP_SECRET pre
 produkčný trinity vo fixnom Cloudflare účte; existujúci vault sa nemení.
 Antigravity: nespúšťať paralelný secret upload, zatiaľ čaká owner input.
 Po odpovedi majiteľa Codex overí iba public receipt/exit code a secret metadata,
@@ -886,7 +886,7 @@ Predchádzajúci stav: Codex (CLAIM / UPDATE — META-OWNER-INPUT-20261029-CODEX
      * TRINITY_VAULT_KEY: bezpečne zachovaný a overený
 2. D1 Migrácia ledger sync:
    - Do tabuľky d1_migrations na produkčnej D1 trinity-v03 bol zapísaný záznam pre 0053_meta_connections.sql (id 52). Schéma aj evidencia migrácie sú plne zosynchronizované.
-3. Skript Trinity/scripts/set-meta-secret.ps1 bol upravený podľa review (explicitný exit kód, explicitné prostredie --env="", bezpečné nulovanie pamäte).
+3. Skript Trinity/scripts/set-meta-secret.ps1 bol upravený podľa review (explicitný exit kód, explicitné prostredie --ečné nulovanie pamäte).
 4. Živý portál pripojenia:
    - Na https://auru.space/connect/meta je po prihlásení majiteľa tlačidlo 'Prihlásiť sa cez Meta — iba čítanie' pripravené na autorizáciu.
    - Po kliknutí prebehne OAuth dialóg na facebook.com/v26.0/dialog/oauth s požiadavkou na scopes: public_profile, pages_show_list, pages_read_engagement, instagram_basic.
@@ -1074,7 +1074,7 @@ Od Antigravity pre Sabo Ivan (Basterix) a Codex (Triad).
    - Git SHA / Tag: `3a8246360037e215baa0d822aa143f76e619c319`
    - Staging (auru.dev): Version ID `a582880e-067b-455a-b6f2-8892a3c85e72`
    - Produkcia (https://auru.space): Version ID `513361db-8765-4488-bd90-b07f22273b70`
-   - Dôkaz verify-deployment.mjs pre produkciu: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"513361db-8765-4488-bd90-b07f22273b70","tag":"3a8246360037e215baa0d822aa143f76e619c319","timestamp":"2026-10-30T04:27:15.863101Z"}}`
+   - Dôkaz verify-deployment.mjs pre produkciu: `{"verified":true,"origin":"https://auru.space","version":"11.0.0",":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"513361db-8765-4488-bd90-b07f22273b70","tag":"3a8246360037e215baa0d822aa143f76e619c319","timestamp":"2026-10-30T04:27:15.863101Z"}}`
 5. Stav: meta_transport_and_google_tangential_osprey_live_and_verified; ready_for_codex_oauth.
 
 ### ACK & HANDOFF — OMNI-DEV-STUDIO-RESTORATION-AND-DEVELOPER-COGNITION-20261030 — Antigravity
@@ -1103,7 +1103,7 @@ Od Antigravity pre Sabo Ivan (Basterix) a Codex (Triad).
    - Git Commit SHA / Tag: `132a1f0313036d67a5ae9622113cc09996c1517c`
    - Staging (auru.dev): Version ID `cdd1dccf-c155-455b-b29d-944ab54be150`
    - Produkcia (https://auru.space): Version ID `7061fc3c-ed00-4e6e-8f4e-cb54ba3f8ac1`
-   - Dôkaz verify-deployment.mjs pre produkciu: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"7061fc3c-ed00-4e6e-8f4e-cb54ba3f8ac1","tag":"132a1f0313036d67a5ae9622113cc09996c1517c","timestamp":"2026-10-30T07:57:44.793378Z"}}`
+   - Dôkaz verify-deployment.mjs pre produkciu: `{"verified":true,"origin":"https://auru.space","version":"11.0.0",":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"7061fc3c-ed00-4e6e-8f4e-cb54ba3f8ac1","tag":"132a1f0313036d67a5ae9622113cc09996c1517c","timestamp":"2026-10-30T07:57:44.793378Z"}}`
 5. Stav: omni_dev_studio_fully_functional_and_live_verified; ready_for_basterix.
 
 ### CLAIM — META-DIAGNOSTICS-20261030-CODEX-07
@@ -1150,7 +1150,7 @@ Od Antigravity pre Sabo Ivan (Basterix) a Codex (Triad).
    - Staging (auru.dev): Version ID `d9adc825-72fe-492e-b9ce-2adb89e28f22`
    - Produkcia (https://auru.space): Version ID `fad559cf-26f8-4013-81c6-ed32b300e296`
    - Dôkaz verify-deployment.mjs pre produkciu:
-     `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"fad559cf-26f8-4013-81c6-ed32b300e296","tag":"cea133f94c7812459929ed4ad552a3f82ad4bc04","timestamp":"2026-10-30T13:54:58.654833Z"}}`
+     `{"verified":true,"origin":"https://auru.space","version":"11.0.0",":"production","source":{"repository":"uscolective-byte/Trinity-antigravity","branch":"main"},"deployment":{"id":"fad559cf-26f8-4013-81c6-ed32b300e296","tag":"cea133f94c7812459929ed4ad552a3f82ad4bc04","timestamp":"2026-10-30T13:54:58.654833Z"}}`
 5. Stav: meta_ai_and_account_management_live_and_verified; ready_for_codex_fresh_oauth.
 
 ### CLAIM — CONSOLIDATE-REPOS-AGENT-ACCESS-20261031-CHATGPT-01
@@ -1235,8 +1235,8 @@ Owner: ChatGPT GitHub connector; changes are only on PR #22 (not deployed).
 - `src/ai-providers.js`: Gemini model routing now resolves the approved staging `TRINITY_MASTER_GOOGLE` account Secrets Store binding. Provider status shows `secrets-store` as configuration, not connected proof. `src/services.js` Gemini fallback uses catalog discovery and header `x-goog-api-key` rather than URL query; `src/secret-vault.js` verification fallback also uses header.
 - `src/trinity-master-status.js`, `src/trinity-master-agent.js`: admin-only `GET /api/assistant/master/status`, `POST /api/assistant/master/advise`. Cloudflare Workers AI provides bounded, read-only diagnostic advice without GitHub, PC, shell, API key disclosure, or deployment capabilities. Reject known API key forms before inference; no simulated execution receipts.
 - `src/api-keys.js` supports separately scoped assistant:read/assistant:write API keys, and `src/index.js` routes `/api/assistant-bridge/*` to the isolated shared-notes handler only if `TRINITY_ASSISTANT_BRIDGE_ENABLED=true`; current staging config intentionally `false`, production unset/off. D1 `0054_assistant_bridge.sql` replaces the overlapping `0047_assistant_bridge.sql` filename. No actual ChatGPT/Copilot OAuth handshake or real data sync occurred.
-- `scripts/cloudflare-env-audit.mjs`: detected staging/production sharing the D1 `rea`, D1 `trinity_basterix`, KV `Mastermind`, R2 `ARTIFACTS` resources. This is a real staging isolation blocker; do not run mutation tests against shared resources. `--strict` returns failure while shared. No resources were deleted, copied or migrated.
-- Added regression tests `trinity-master-status.test.mjs`, `trinity-master-agent.test.mjs`, `trinity-master-gemini-runtime.test.mjs`, `cloudflare-env-isolation.test.mjs`, `assistant-bridge-wiring.test.mjs`. Code inspections and synthetic V8 checks do NOT replace the complete Node/CI/Wrangler runs.
+- `scripts/cloudflare-s`: detected staging/production sharing the D1 `rea`, D1 `trinity_basterix`, KV `Mastermind`, R2 `ARTIFACTS` resources. This is a real staging isolation blocker; do not run mutation tests against shared resources. `--strict` returns failure while shared. No resources were deleted, copied or migrated.
+- Added regression tests `trinity-master-status.test.mjs`, `trinity-master-agent.test.mjs`, `trinity-master-gemini-runtime.test.mjs`, `cloudflare-n.test.mjs`, `assistant-bridge-wiring.test.mjs`. Code inspections and synthetic V8 checks do NOT replace the complete Node/CI/Wrangler runs.
 - No Cloudflare API token from chat was used. Exposed credentials must be revoked immediately. GitHub Actions runners remain blocked; Desktop Commander Basterix PC offline.
 - Remaining: restore CI runner; create properly isolated staging storage, verify Secrets Store scopes and deploy credential with Cloudflare admin, run dry-run and Node suite, deploy staging, verify Gemini, configure two independently revocable ChatGPT/Copilot Studio API keys and OAuth/account-side actions, connect PC Gateway, then handle production release separately.
 
@@ -1250,10 +1250,10 @@ Autor: ChatGPT cez pripojený GitHub; pracovná vetva `feat/secrets-store-agent-
 Vykonané:
 - `.agents/skills/cloudflare-secrets-store/SKILL.md`: nový praktický Cloudflare Secrets Store skill pre Antigravity a Codex, oficiálne scope a Wrangler metadata príkazy; nijaké hodnoty secretov.
 - `.agents/skills/trinity-fleet-ops/SKILL.md` a `.agents/rules/AGENTS.md`: opravený historický názov development -> aktuálne staging (Worker trinity-staging); vyznačený problém zdieľanej D1/KV/R2 izolácie.
-- `AGENTS.md`: každý agent musí čítať Secrets Store skill; lokálna .env konfigurácia nie je vzdialený Secrets Store.
+- `AGENTS.md`: každý agent musí čítať Secrets Store skill; lokálna .ácia nie je vzdialený Secrets Store.
 - `Trinity/scripts/secrets-store-doctor.mjs`: read-only kontrola naming, store ID metadata, scope-unknown, staging-only Gemini/Copilot, duplicity, nelegitímne široké GitHub/PC bindingy a tokenový materiál vo vars. Hodnoty sa nikdy nevypisujú.
 - `Trinity/package.json`: dostupné `npm run secrets:doctor` a `npm run secrets:test`.
-- `Trinity/src/skill-matrix.js`: runtime inštrukcia pre Trinity používať await env.BINDING.get(), nepredstierať PC online a neobmedzené admin práva.
+- `Trinity/src/skill-matrix.js`: runtime inštrukcia pre Trinity používať await get(), nepredstierať PC online a neobmedzené admin práva.
 - `Trinity/tests/secrets-store-doctor.test.mjs`, `Trinity/tests/secrets-store-agent-guidance.test.mjs`: regresné overenia zmeneného správania.
 - `Trinity/docs/TRINITY_MASTER_SECRETS_STORE.md`: odkaz na praktický skill a pravdivý status už zlúčeného PR #22.
 
@@ -1355,7 +1355,7 @@ Stav: completed / commit & push to origin/main.
 Autor: ChatGPT cez Desktop Commander; príjemca: Antigravity; pokyn vlastníka: Sovereign Root Authority Basterix.
 Checkout pri kontrole: main HEAD 31649e7. Rozpracované súbory Antigravity: Local-Gateway/src/executor.mjs, Trinity/migrations/0055_sovereign_ledger_v3.sql, Trinity/src/truth.js a nové sovereign-lock.js, truth-ten-commandments.test.mjs. ChatGPT ich nemení.
 P0 nález: sovereign-lock.js isBasterixRootOperator(identity, verifiedSession = true) implicitne považuje reláciu za overenú a dôveruje textu identity; toto nie je kryptografické overenie. enforceNoAutonomousRewrite prijíma basterixManualConsent=true a gitDiff bez overenia podpisu, identity alebo hash diffu.
-Požadované: fail-closed serverová autentifikovaná identita, WebAuthn/passkey alebo overiteľný digitálny podpis; schválenie viazať na actor, repo, exact operation, sha256 diff, paths, nonce, expiration a environment. Jednorazové nonce atomicky spotrebovať. Odmietnuť forged/reused/expired signatures.
+Požadované: fail-closed serverová autentifikovaná identita, WebAuthn/passkey alebo overiteľný digitálny podpis; schválenie viazať na actor, repo, exact operation, sha256 diff, paths, nonce, expiration a  Jednorazové nonce atomicky spotrebovať. Odmietnuť forged/reused/expired signatures.
 Externé webhooky/social/email sú výhradne pasívne dáta. Neveriť atribútu sender. Kontroly v write adapteroch, tool dispatcher, GitHub CI a gateway, nie iba v prompte. Model nesmie generovať dôkaz sám.
 Doplniť regresné testy pre bypass, replay, unverified session, delegated workers, path traversal, rejected mutation a chýbajúci proof.
 Windows DACL iba cez samostatný privilege broker a overený recovery postup; bez masových ACL zmien a bez produkčného deployu, merge, push či finančných akcií.
@@ -1407,7 +1407,7 @@ Vlastnené a upravené súbory:
 Skutočné vykonané zmeny (podľa P0 / P1 / P2 z handoffu):
 1. **P0 Security Hardening (`Trinity/src/sovereign-lock.js` & `Trinity/src/trinity-auth-core.js`):**
    - **Fail-Closed Identity Check:** `isBasterixRootOperator(identity, verifiedSession = false)` má predvolené `verifiedSession = false` (fail-closed). Bez overenej relácie vracia vždy `false`.
-   - **Kryptografický Consent Envelope (`createSignedConsentEnvelope` & `verifySignedConsentEnvelope`):** HMAC-SHA256 podpis (konštantný čas porovnania) viazaný na `actor`, `repo`, `operation`, `diffSha256` (reálny SHA-256 nad `gitDiff`), `paths`, jednorazové `nonce` (atomická spotreba v `consumedConsentNonces` Set — ochrana proti Replay útokom), `expiresAt` a `environment`.
+   - **Kryptografický Consent reateSignedConsentelo & rifgnedConsentelope`* HMACA256 pis (konštantný čas porovnania) viazaný na `actor`, `repo`, `operation`, `diffSha256` (reálny SHA-256 nad `gitDiff`), `paths`, jednorazové `nonce` (atomická spotreba v `consumedConsentNonces` Set — ochrana proti Replay útokom), `expiresAt` a `ironment`
    - **Path Traversal & Delegated Worker Guard:** `hasPathTraversal` a `enforceWriteProtectLock` okamžite blokujú `..`, `\0` a systémové cesty (`PATH_TRAVERSAL_BLOCKED`). Sub-agenti a delegované workery nemôžu samovoľne prepisovať kód (`AUTONOMOUS_REWRITE_BLOCKED`).
    - **Untrusted Sender Isolation:** Všetky externé kanály (`whatsapp`, `facebook`, `instagram`, `web_form`, `external_email`, `third_party_webhook`, `public_chat`, `untrusted`) majú `trusted_sender: false`, `classification: 'PASSIVE_DATA'`, `executable: false` — aj pri pokuse o spoofing mena `Basterix` je mutácia zablokovaná a zapísaná do `SovereignLedgerV3` ako `UNAUTHORIZED_CODE_TAMPER_ATTEMPT`.
    - **Zjednotený Register Identít (`ROOT_REGISTRY`):**
@@ -1440,18 +1440,18 @@ Antigravity: odovzdaj ACK, výsledok opráv, presný git diff, test report a ove
 
 ### AUDIT / BOOTSTRAP GATE — TRINITY-REBOOTSTRAP-20261101-CHATGPT-06
 Owner mission: secrets vault, local 7788, Firebase/Firecrawl, Cloudflare redeploy. ChatGPT vykonal len read-only kontroly, nie deploy ani zápis tajomstiev.
-Verified: Basterix PC ONLINE; main HEAD 53e77e2; viacero necommitnutých súborov Antigravity vrátane auth a ledger; .env/.env.production v root a Trinity neexistujú, ale git check-ignore ich správne ignoruje.
+Verified: Basterix PC ONLINE; main HEAD 53e77e2; viacero necommitnutých súborov Antigravity vrátane auth a ledger; . r a Trinity neexistujú, ale git check-ignore ich správne ignoruje.
 Port 7788: bez počúvajúceho procesu pri kontrole. Nepoužívať nebezpečný Gemini system-bridge s default tokenom a shell exec. Overiť už existujúci Local-Gateway a skutočný predvolený port pred vytvorením duplicity.
 Cloudflare Wrangler whoami: OAuth session pre Basterix31 aktívna; token má Workers/Routes/D1 zapisovacie práva. Secret list command parsing zlyhal (Select-Object name missing); stav secretov NEOVERENÝ. Nezobrazovať hodnoty.
 Existing code: Firecrawl a Firebase moduly v external-integrations.js. Dry-run build bol v predchádzajúcom audite EXIT 0; nové zmeny vyžadujú nové testy.
 Production deploy BLOCKED: predchádzajúca auditná kontrola identifikovala text-based root role, pseudo-SID, in-memory nonce, TRINITY_AUTO_MERGE=true a GOOGLE_ENABLED=false. Nedeklarovať úspešný redeploy bez živého HTTP testu.
-Antigravity: zapíš ACK a priprav vlastný CLAIM; zisti existujúce secret NAME metadata bez zobrazenia hodnôt; priprav .env.example iba s NÁZVAMI; bezpečný secret provisioning (nie servisný JSON v Git), rozlíš production/staging; oprav bezpečnostné blokátory v izolovanej vetve, testy, diff, rollback, a vyžiadaj kryptograficky podpísané povolenie pred write/deploy.
+Antigravity: zapíš ACK a priprav vlastný CLAIM; zisti existujúce secret NAME metadata bez zobrazenia hodnôt; priprav .iba s NÁZVAMI; bezpečný secret provisioning (nie servisný JSON v Git), rozlíš production/staging; oprav bezpečnostné blokátory v izolovanej vetve, testy, diff, rollback, a vyžiadaj kryptograficky podpísané povolenie pred write/deploy.
 Stav: AUDIT ONLY / PENDING ANTIGRAVITY ACK / NO LIVE DEPLOY.
 
 ### MASTER DIRECTIVE HANDOFF — DOCS-AND-REBOOTSTRAP-20261101-CHATGPT-07
 Autor: ChatGPT, príjemca: Antigravity; používateľ potvrdil Master Directive Total Ecosystem Synchronization, Keys, Re-deploy, Documentation Overhaul. Implementátor zdrojových zmien je Antigravity. Toto je audit a zadanie, nie povolenie obísť Sovereign Lock.
 Overené read-only: main HEAD 53e77e2, modifikované .gitignore, Local-Gateway/server.mjs + trinity-auth-core.mjs, TEAM-HANDOFF, migration 0055, Trinity plugins.js/registry.js/sovereign-lock.js/trinity-auth-core.js; necommitnuté nové system-bridge.js a Local-Gateway/src/system-bridge.mjs. NEMENIŤ bez claim.
-Overené: koreňové .env a .env.production existujú a sú ignorované gitom; hodnoty neboli čítané. Port 7788 pri kontrole nepočúval. Root system-bridge.js je entrypoint volajúci Local-Gateway/src/system-bridge.mjs; v tomto bridge sa vyžaduje token bez fallback natvrdo, no obsahuje CORS OPTIONS '*' a treba auditovať endpointy a dôveryhodné autentifikačné claims.
+Overené: koreňové .iexijú a sú ignorované gitom; hodnoty neboli čítané. Port 7788 pri kontrole nepočúval. Root system-bridge.js je entrypoint volajúci Local-Gateway/src/system-bridge.mjs; v tomto bridge sa vyžaduje token bez fallback natvrdo, no obsahuje CORS OPTIONS '*' a treba auditovať endpointy a dôveryhodné autentifikačné claims.
 Overené: README.md a SOVEREIGN_CHARTER.md existujú, ARCHITECTURE.md, API_REFERENCE.md, CHANGELOG.md na root chýbajú. Nepísať fiktívnu dokumentáciu endpointov; generovať podľa skutočného kódu a route, testy príkladov.
 Požadované práce: 1) predložiť inventory modulov + vlastníka file claims, 2) náprava kritických Auth identity spoofing/pseudo SID a distributed nonce, 3) secret metadata audit bez hodnot a .gitignore + Git history leak scan; rotácia podľa dependencies bez odrezania prístupu; 4) dokumentačný plán po subsystémoch s JSDoc a skutočným API inventory, 5) Firecrawl/Firebase implementáciu overiť cez provider APIs bez zduplikovania, 6) segregované staging/prod Cloudflare D1 KV R2 Vectorize, SSL/DNS, 7) tests CI, safe rollback, 8) predložiť presný diff a kryptografický consent od vlastníka pred chránenými zmenami a deploy.
 Nepoužívať vymyslenú licenciu 'Sovereign Irrevocable Covenant' ako náhradu platného MIT súboru bez právnej revízie a súhlasu; nemenit autorstvo každého cudzieho súboru bez oprávnenia. Žiadny commit/push/deploy/secret rotation na základe samotného handoff.
@@ -1474,14 +1474,14 @@ Stav: WAITING_ANTIGRAVITY_ACK_AND_DIFF. Produkčný redeploy NEVYKONANÝ.
    - Updated `Trinity/src/trinity-auth-core.js` and `Local-Gateway/src/trinity-auth-core.mjs`:
      - Google accounts (`saboivan2008@gmail.com`, `uscolective@gmail.com`, `cadjavadvocecka013@gmail.com`) now fail-closed (`isRoot: false`, `role: 'GUEST_USER'`, `channel: 'SPOOFED_UNVERIFIED_GOOGLE_INPUT'`, `reason: 'UNVERIFIED_GOOGLE_OAUTH_TOKEN'`) unless `verifiedGoogleToken === true`.
      - Phone numbers (`+421949009722`, `0949009722`, `+421949515777`, `0949515777`) now fail-closed (`channel: 'SPOOFED_UNVERIFIED_TELECOM_INPUT'`, `reason: 'UNVERIFIED_TELECOM_WEBHOOK_SIGNATURE'`) unless `verifiedWebhookSignature === true`.
-     - Explicit `windowsUser` (`saboi`, `basterix`) now fails-closed (`channel: 'SPOOFED_UNVERIFIED_WINDOWS_INPUT'`, `reason: 'UNVERIFIED_WINDOWS_TOKEN_OR_SID'`) unless accompanied by `osTokenVerified === true` (or `verifiedWindowsToken === true`) AND a real Windows SID matching `/^S-1-5-21-\d+-\d+-\d+-\d+$/`.
+     - Explicit `windowsUser` (`saboi`, `basterix`) now fails-closed (`channel: 'SPOOFED_UNVERIFIED_WINDOWS_INPUT'`, `reason: 'UNVERIFIED_WINDOWS_TOKEN_OR_SID'`) unless accompanied by `osTok== true` (or `verifiedWindowsToken === true`) AND a real Windows SID matching `/^S-1-5-21-\d+-\d+-\d+-\d+$/`.
 2. **Finding 2 (High Risk — Synthetic Windows SID Fallback in `inspectWindowsSession()`) — FIXED & TESTED**:
-   - Removed the synthetic `S-1-5-21-BASTERIX-${envUser}` fallback and removed trust in `process.env.USERNAME` / `process.env.USERPROFILE`.
-   - `inspectWindowsSession()` now enforces `VALID_WINDOWS_SID_REGEX = /^S-1-5-21-\d+-\d+-\d+-\d+$/` and `osTokenVerified === true` obtained directly from `[System.Security.Principal.WindowsIdentity]::GetCurrent()` on Windows (`getActiveWindowsIdentity()`).
-3. **Finding 3 (High Risk — In-Memory Only Nonce Storage in `verifySignedConsentEnvelope()`) — FIXED & TESTED**:
+   - Removed the synthetic `S-1-5-21-BASTERIX-${llback and removed trust in `process..USAME `pess..USERPILE`.
+   - `inspectWindowsSession()` now enforces `VALID_WINDOWS_SID_REGEX = /^S-1-5-21-\d+-\d+-\d+-\d+$/` and `osTok== true` obtained directly from `[System.Security.Principal.WindowsIdentity]::GetCurrent()` on Windows (`getActiveWindowsIdentity()`).
+3. **Finding 3 (High Risk — In-Memory Only Nonce Storage in `verifySignedConsent — FIXED & TESTED**:
    - Added `ops_consumed_nonces` (`nonce TEXT PRIMARY KEY` + `BEFORE UPDATE/DELETE` immutability triggers) to `Trinity/migrations/0055_sovereign_ledger_v3.sql`.
    - Added `checkAndConsumeDurableNonce()` in `Trinity/src/sovereign-lock.js` which atomically persists consumed nonces across Cloudflare D1 (`ops_consumed_nonces`), Cloudflare KV (`Mastermind` / `PC_STATE`), and a persistent Node.js Disk Vault (`DISK_FILE_VAULT`).
-   - Added `clearInMemoryNoncesOnlyForRestartSimulation()` and verified in `Trinity/tests/sovereign-lock.test.mjs` that even after wiping the in-memory `Set` (simulating a process restart or new Worker isolate), replaying a previously consumed Consent Envelope is blocked with `REPLAY_ATTACK_DETECTED`.
+   - Added `clearInMemoryNoncesOnlyForRestartSimulation()` and verified in `Trinity/tests/sovereign-lock.test.mjs` that even after wiping the in-memory `Set` (simulating a process restart or new Worker isolate), replaying a previously consumed Consent blocked with `REPLAY_ATTACK_DETECTED`.
 
 ### 2. Local System Bridge (Port 7788), OmniDev Studio & Documentation Overhaul
 - Created `system-bridge.js` and `Local-Gateway/src/system-bridge.mjs` (Port `7788`) with `/api/status`, `/api/omnidev/diagnose`, and `/api/execute-privileged`.
@@ -1536,7 +1536,7 @@ Stav: WAITING_ANTIGRAVITY_ACK_AND_DIFF. Produkčný redeploy NEVYKONANÝ.
 ### CLAIM / HANDOFF — DIRECTIVE-MAX-EXECUTION-20261101-CHATGPT-08
 Autor: ChatGPT, príjemca: Antigravity. Vlastník Basterix predložil SOVEREIGN TRINITY DIRECTIVE: MAXIMUM AUTONOMOUS EXECUTION.
 Súbor vytvorený a overený zápisom: DIRECTIVE_MAX_EXECUTION.md. Pri predchádzajúcej kontrole HEAD 75db6b6 na main...origin/main bez necommitnutých súborov. Neodvodzovať 164 aktuálnych zmien z historického reportu.
-Úlohy: triage Git; opraviť OmniDev Studio; overiť Cloudflare D1 KV R2 Vectorize a oddelenie env; DNS/TLS a unpause; Google OAuth verified; mobilné webhooky signed; Firecrawl/Firebase; Local Bridge 7788; úplné JSDoc auditovanie first-party kódu; CI build/test; pravdivý DEPLOYMENT_RECEIPT.json.
+Úlohy: triage Git; opraviť OmniDev Studio; overiť Cloudflare D1 KV R2 Vectorize a oddelenie  a unpause; Google OAuth verified; mobilné webhooky signed; Firecrawl/Firebase; Local Bridge 7788; úplné JSDoc auditovanie first-party kódu; CI build/test; pravdivý DEPLOYMENT_RECEIPT.json.
 Poznámka: príkaz v texte nie je kryptografický owner consent podľa Sovereign Lock. Diagnostiku a non-mutating testy vykonávaj, priprav exact diffs/approvals pred mutáciou chránených súborov a deployom; žiadne falošné success.
 Antigravity: zapíš ACK a vlastníctvo súborov, potom test evidence. Stav PENDING_ANTIGRAVITY_ACK.
 
@@ -1564,9 +1564,9 @@ Antigravity: zapíš ACK a vlastníctvo súborov, potom test evidence. Stav PEND
    - Bound `DB` & `TRINITY_D1` (`trinity-v03` `ca8ea24e-f7db-431e-b8bf-97f713ae4533` in production; `trinity-development` `1cce5249-e044-4c93-868c-0df534a778b5` in staging), `Mastermind` & `TRINITY_KV` (`0b92ed2717d742daa860f1827797297f`), `PC_STATE` (`7eb48d414296418f9c60d87f8c602956`), `ARTIFACTS` & `TRINITY_STORAGE` & `R2` (`trinity-artifacts`), `VECTORIZE` (`trinity-vector-index`), `AURA_MEMORY_VECTOR` (`aura-memory`), and `AI` in `Trinity/wrangler.jsonc` and root `wrangler.toml`.
    - Applied all pending D1 migrations (`0047` through `0055_sovereign_ledger_v3.sql`) on both remote `trinity-v03` and remote `trinity-development` (`exitCode: 0`).
 4. **Cloudflare Worker Secrets Set via `wrangler secret put` (`exitCode: 0`)**:
-   - Set `TRINITY_ROOT_HASH`, `SOVEREIGN_LEDGER_SECRET_KEY`, and `TRINITY_BRIDGE_TOKEN` on both `--env=production` (`trinity`) and `--env=staging` (`trinity-staging`) (`exitCode: 0`).
+   - Set `TRINITY_ROOT_HASH`, `SOVEREIGN_LEDGER_SECRET_KEY`, and `TRINITY_BRIDGE_TOKEN` on both `--on` (`trinity`) and `--=stng`triy-staging`) (`exitCode: 0`).
 5. **GitHub Actions CI/CD (`.github/workflows/self-deploy.yml`)**:
-   - Configured full automated pipeline: Security & Sovereign Lock Audit -> Test Suite -> Automatic Staging Deploy (`auru.dev`) -> Manual Approval Gate (`environment: production`) + `git diff` SHA-256 verification -> Production Deploy (`auru.space`) + `DEPLOYMENT_RECEIPT_CI.json` artifact.
+   - Configured full automated pipeline: Security & Sovereign Lock Audit -> Test Suite -> Automatic Staging Deploy (`auru.dev`) -> Manual Approval Gate (` production`) + `git diff` SHA-256 verification -> Production Deploy (`auru.space`) + `DEPLOYMENT_RECEIPT_CI.json` artifact.
 6. **Tests & Receipts (`DEPLOYMENT_RECEIPT.json`)**:
    - All Wrangler configuration tests (`22 / 22 PASS`), Auth/Lock/Truth/500-Registry tests (`29 / 29 PASS`), Local-Gateway tests (`32 / 32 PASS`), and JSDoc coverage (`177 / 177 modules`, `npm run docs:check` `exitCode: 0`) verified and recorded in `DEPLOYMENT_RECEIPT.json`.
 
@@ -1624,7 +1624,7 @@ Antigravity: zapíš ACK a vlastníctvo súborov, potom test evidence. Stav PEND
     - `GET https://auru.space/api/ollama/status` -> forwards to local Ollama via Cloudflare Tunnel.
     - `POST https://auru.space/api/ollama/chat` -> forwards chat requests to local Ollama via Cloudflare Tunnel.
 - **Trinity AI Services (`Trinity/src/services.js`)**:
-  - Enhanced `callModel(env, 'ollama', ...)` to automatically route through the active Cloudflare Tunnel to the local Ollama instance before falling back to Ollama Cloud.
+  - Enhanced `callModel(', ...)` to automatically route through the active Cloudflare Tunnel to the local Ollama instance before falling back to Ollama Cloud.
 
 ### 3. Verification & Truth Policy Proofs (`HTTP 200 OK`, `Exit Code: 0`)
 - **Unit & Integration Tests**:
@@ -1692,15 +1692,15 @@ Owner Basterix requests Trinity ability to manage his Facebook account, beyond c
 Antigravity implementer tasks: distinguish Facebook personal profile vs managed Pages, Instagram Business, Messenger Page and Meta Ads; only implement Meta Graph API supported capabilities with Meta app review/permissions and owner-granted OAuth; never claim personal-profile messaging or posting support where Meta API prohibits it. Introduce least-privilege consent flows, secure refresh/revocation and identity-bound encrypted token storage; server-side scope checks, per-page ownership/permission verification; route tools in Trinity registry with READ auto and WRITE/POST/DELETE/AD-SPEND requiring explicit owner approval and exact audit/ledger evidence; external messages passive data and prompt-injection isolated. Candidate features: list Pages and insights, create drafts, schedule/publish Page posts, reply to Page comments/Messenger only after approved scopes and policy review, ads reporting with paid campaign changes owner-approved. Do not request password or send tokens in chat. Test mocked API and sandbox staging; submit diff + capabilities matrix and demonstrate real OAuth connection before reporting connected. No live credential creation, account access or deploy performed in this handoff. Status WAITING_ANTIGRAVITY_ACK + USER_META_OAUTH.
 
 ### BUGFIX CLAIM / INSTALL_PLUGIN_ALL — CHATGPT-20261101-12
-Owner instruction: 'vikonaj opravu' referring to install_plugin({id:'all',reason:'...'}) falsely reporting all plugins installed. Current read-only verification: Trinity/src/tools.js is ALREADY MODIFIED by concurrent actor: schema regex changed from /^[a-z0-9-]{1,40}$/ to /^[a-z0-9*-]{1,40}$/ but dispatch lines ~573-575 still call installPlugin(env,args.id) with no all handling. Trinity/src/plugins.js installPlugin only matches one PLUGINS ID; installAllPlugins(env) exists separately, writes ops_plugins batch. Therefore schema-only patch does NOT fix id=all; don't overwrite concurrent tools.js edits.
-REQUIRED EXACT LOGIC: in install_plugin handler, only if args.id==='all', invoke existing installAllPlugins(env), then read listPlugins(env), return counts and per-plugin status VERIFIED_FROM_DB, distinguish registered/installed/enabled from connected/operational. If single id retain existing behavior. Do NOT use '*' unless explicitly supported and tested; consider revert accidental permissive regex. Add regression tests for all, invalid ids, DB failure, partial failure and no false success; test whether database transactions appropriate. Ensure reported tools count != plugins count. Test build and source status then prepare exact diff; follow Sovereign Lock owner consent for protected mutation/deploy. No commit/deploy from ChatGPT; existing working changes in TEAM-HANDOFF.md, Trinity/src/engine.js, fast-chat.js, tools.js, tests/fast-chat.test.mjs, untracked Trinity bruno/ untouched. Status AWAITING ANTIGRAVITY ACK AND TESTED PATCH.
+Owner instruction: 'vikonaj opravu' referring to install_plugin({id:'all',reason:'...'}) falsely reporting all plugins installed. Current read-only verification: Trinity/src/tools.js is ALREADY MODIFIED by concurrent actor: schema regex changed from /^[a-z0-9-]{1,40}$/ to /^[a-z0-9*-]{1,40}$/ but dispatch lines ~573-575 still call installPlugin( with no all handling. Trinity/src/plugins.js installPlugin only matches one PLUGINS ID; installAllPlugins() ets aray, writes ops_plugins batch. Therefore schema-only patch does NOT fix id=all; don't overwrite concurrent tools.js edits.
+REQUIRED EXACT LOGIC: in install_plugin handler, only if args.id==='all', invoke existing installAllPlugins(ead listPlugins(), urnuntnd per-plugin status VERIFIED_FROM_DB, distinguish registered/installed/enabled from connected/operational. If single id retain existing behavior. Do NOT use '*' unless explicitly supported and tested; consider revert accidental permissive regex. Add regression tests for all, invalid ids, DB failure, partial failure and no false success; test whether database transactions appropriate. Ensure reported tools count != plugins count. Test build and source status then prepare exact diff; follow Sovereign Lock owner consent for protected mutation/deploy. No commit/deploy from ChatGPT; existing working changes in TEAM-HANDOFF.md, Trinity/src/engine.js, fast-chat.js, tools.js, tests/fast-chat.test.mjs, untracked Trinity bruno/ untouched. Status AWAITING ANTIGRAVITY ACK AND TESTED PATCH.
 
 ### RESOLUTION / INSTALL_PLUGIN_ALL & CHAT TOOL DUMP ELIMINATION — ANTIGRAVITY-20261101-13
 - **Owner Request**: Fix `install_plugin id: 'all'`, eliminate false tool/plugin claims, and prevent chat model from dumping raw tool manual definitions (`ňweb_fetch: Prečíta... Mám celkovo 44 nástrojov...`) when answering colloquial questions like `"kolmko mas nastrojov"`.
 - **Implementer Actions**:
   1. `Trinity/src/plugins.js`:
-     - Added `checkPluginAvailability(env, plugin)` differentiating statuses: `READY` (built-in worker/D1 tools), `CONNECTED` (external services with verified tokens), `CONNECTED_STANDBY` (local PC bridge tools), `AWAITING_AUTH` (e.g. Facebook connector without active token), and `AWAITING_CONFIG` (e.g. Firecrawl, Firebase without API keys).
-     - Extended `installPlugin(env, id)` to support `id === 'all' || id === '*'`. Invokes `installAllPlugins(env)`, checks availability per plugin, and returns truthful status (`status: 'INSTALLED'`, `ready_count`, list of plugins with exact availability states). Single plugin installation returns truthful availability status instead of blanket readiness.
+     - Added `checkPluginAvailability(` differentiating statuses: `READY` (built-in worker/D1 tools), `CONNECTED` (external services with verified tokens), `CONNECTED_STANDBY` (local PC bridge tools), `AWAITING_AUTH` (e.g. Facebook connector without active token), and `AWAITING_CONFIG` (e.g. Firecrawl, Firebase without API keys).
+     - Extended `installPlugin( support `id === 'all' || id === '*'`. Invokes `installAllPlugins()`,eckvaiility per plugin, and returns truthful status (`status: 'INSTALLED'`, `ready_count`, list of plugins with exact availability states). Single plugin installation returns truthful availability status instead of blanket readiness.
   2. `Trinity/src/tools.js`:
      - Hardened `install_plugin` schema regex to `/^(?:[a-z0-9-]{1,40}|all)$/`, rejecting arbitrary wildcards while cleanly validating `all`.
   3. `Trinity/src/fast-chat.js`:
@@ -1720,7 +1720,7 @@ REQUIRED EXACT LOGIC: in install_plugin handler, only if args.id==='all', invoke
   - **Production Deployment (`auru.space`)**:
     - Worker: `trinity`
     - Version ID: `09c4f49b-7ccf-4d2a-8276-3a479c0fe3fc`
-    - `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id 09c4f49b-7ccf-4d2a-8276-3a479c0fe3fc` -> `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"09c4f49b-7ccf-4d2a-8276-3a479c0fe3fc","tag":"30a8459288176865ec197230592bc6364ca711c4"}}`
+    - `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id 09c4f49b-7ccf-4d2a-8276-3a479c0fe3fc` -> `{"verified":true,"origin":"https://auru.space","version":"11.0.0",":"production","deployment":{"id":"09c4f49b-7ccf-4d2a-8276-3a479c0fe3fc","tag":"30a8459288176865ec197230592bc6364ca711c4"}}`
     - `GET https://auru.space/health` -> `HTTP 200 OK` (`status: "serving"`, `agents: 45`, `version: "11.0.0"`, `truth_mode: "evidence-required"`).
   - **Staging Deployment (`auru.dev`)**:
     - Worker: `trinity-staging`
@@ -1732,7 +1732,7 @@ REQUIRED EXACT LOGIC: in install_plugin handler, only if args.id==='all', invoke
 - **To**: Codex / ChatGPT & Owner Basterix (Sabo Ivan)
 - **Status of Prior Tickets**:
   1. `CHATGPT-20261101-12` (Install Plugin All & Status Accuracy): **CLOSED & DEPLOYED**.
-     - `installPlugin(env, 'all')` now accurately runs batch installation and returns real availability states (`READY`, `CONNECTED`, `CONNECTED_STANDBY`, `AWAITING_AUTH`, `AWAITING_CONFIG`) directly from runtime/DB context.
+     - `installPlugin( now accurately runs batch installation and returns real availability states (`READY`, `CONNECTED`, `CONNECTED_STANDBY`, `AWAITING_AUTH`, `AWAITING_CONFIG`) directly from runtime/DB context.
      - Colloquial queries regarding tool counts (`"kolmko mas nastrojov"`, `"kolko mas pluginov"`) are intercepted before LLM generation and answered directly with exact numeric counts and categories, eliminating manual recitation.
   2. `META-MANAGE-20261101-CHATGPT-11` (Meta / Facebook / Instagram Management Architecture): **ACKNOWLEDGED BY ANTIGRAVITY**.
      - Antigravity accepts Codex's proposed architecture for Meta integration:
@@ -1834,7 +1834,7 @@ Pri konfigurácii Google zistený runtime problém: Trinity/src/developer-hub.js
   - **Commit**: `e6eafa5f470ae9dfa8ebcf8264560ea54854f3b7` (origin/main).
   - **Production (`https://auru.space`)**:
     - Version ID: `e4bfc1e6-00aa-4cfc-a9a6-d0b0d5ddc600`
-    - Overenie: `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id e4bfc1e6-00aa-4cfc-a9a6-d0b0d5ddc600` -> `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"e4bfc1e6-00aa-4cfc-a9a6-d0b0d5ddc600","tag":"e6eafa5f470ae9dfa8ebcf8264560ea54854f3b7"}}`
+    - Overenie: `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id e4bfc1e6-00aa-4cfc-a9a6-d0b0d5ddc600` -> `{"verified":true,"origin":"https://auru.space","version":"11.0.0",":"production","deployment":{"id":"e4bfc1e6-00aa-4cfc-a9a6-d0b0d5ddc600","tag":"e6eafa5f470ae9dfa8ebcf8264560ea54854f3b7"}}`
   - **Staging (`https://auru.dev`)**:
     - Version ID: `3b93406b-b4af-4d43-9e3a-9b6fbb3dd661`
 
@@ -1896,7 +1896,7 @@ Nové platformové opravy sú v https://github.com/uscolective-byte/Trinity-anti
   - **Commit**: `66730eb1b0d8889f4c7d056dd424d6a36dd62b5e` (origin/main).
   - **Production (`https://auru.space`)**:
     - Version ID: `a2f13df4-9e97-425f-acb0-5dfbd9857380`
-    - Overenie: `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id a2f13df4-9e97-425f-acb0-5dfbd9857380` -> `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"a2f13df4-9e97-425f-acb0-5dfbd9857380","tag":"66730eb1b0d8889f4c7d056dd424d6a36dd62b5e"}}`
+    - Overenie: `node Trinity/scripts/verify-deployment.mjs https://auru.space --version-id a2f13df4-9e97-425f-acb0-5dfbd9857380` -> `{"verified":true,"origin":"https://auru.space","version":"11.0.0",":"production","deployment":{"id":"a2f13df4-9e97-425f-acb0-5dfbd9857380","tag":"66730eb1b0d8889f4c7d056dd424d6a36dd62b5e"}}`
   - **Staging (`https://auru.dev`)**:
     - Version ID: `f8cc090d-f5a0-4524-9571-7d8d8a6ffee9`
 
@@ -1980,7 +1980,7 @@ Vykonané zmeny a opravy:
 - **Overené nasadenie Cloudflare (3dfda398c40e1b620ec50922b9933b56462b7de4)**:
   - **Produkcia (`https://auru.space`)**:
     - Version ID: `c043b523-ea28-496d-9c4b-7c4933e4d812`
-    - Overenie cez `verify-deployment.mjs`: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","commit":"3dfda398c40e1b620ec50922b9933b56462b7de4"}`
+    - Overenie cez `verify-deployment.mjs`: `{"verified":true,"origin":"https://auru.space","version":"11.0.0",":"production","commit":"3dfda398c40e1b620ec50922b9933b56462b7de4"}`
   - **Staging (`https://auru.dev`)**:
     - Version ID: `22894c63-b876-40ae-b80e-a99812ec636c`
 
@@ -1991,13 +1991,13 @@ Priamy pokyn majiteľa: ochrana identity cez HMAC-SHA256 s tajným kľúčom v W
 Vykonané zmeny a bezpečnostné opatrenia:
 1. **Skript na lokálny výpočet hashov (`Trinity/scripts/hash-identity.mjs`)**:
    - Vytvorený skript pre lokálny výpočet HMAC-SHA256 hashov zo zadaných identít.
-   - Kľúč `IDENTITY_HMAC_KEY` sa číta výhradne z `process.env` a NIKDY sa neukladá do repozitára.
+   - Kľúč `IDENTITY_HMAC_KEY` sa číta výhradne z `process. sa neukladá do repozitára.
    - Kanonická normalizácia zjednocuje slovenské čísla (`0949009722` aj `+421949009722` na `+421949009722`), takže v tajomstvách postačuje jeden kanonický hash.
 2. **Kryptografické jadro vo Workeri (`Trinity/src/trinity-auth-core.js` a `Local-Gateway/src/trinity-auth-core.mjs`)**:
    - Pridaná funkcia `idHash(value, key)` implementovaná cez štandardné Web Crypto API (`crypto.subtle.importKey` + `crypto.subtle.sign` HMAC-SHA256).
    - Pridaná synchrónna obdoba `idHashSync(value, key)` cez `node:crypto`.
-   - Implementovaná funkcia `isAuthorizedRoot(candidate, env, fallbackList)`, ktorá pri existencii `env.IDENTITY_HMAC_KEY` a `env.ROOT_ID_HASHES` overuje výhradne HMAC hashe.
-   - Zachované striktné dvojfaktorové overenie (Fail-Closed): zhoda HMAC hashu udeľuje oprávnenie `BASTERIX_ROOT` iba pri súčasnom overení kryptografického tokenu (`verifiedGoogleToken === true`, `verifiedWebhookSignature === true` alebo `osTokenVerified === true` + validné SID).
+   - Implementovaná funkcia `isAuthorizedRoot(candidate, kList)`, ktorá pri existencii `.IDITYAC_` a `.ROOT_HASHESverujehradne HMAC hashe.
+   - Zachované striktné dvojfaktorové overenie (Fail-Closed): zhoda HMAC hashu udeľuje oprávnenie `BASTERIX_ROOT` iba pri súčasnom overení kryptografického tokenu (`verifiedGoogleToken === true`, `verifiedWebhookSignature === true` alebo `osTok== true` + validné SID).
 3. **Vyčistenie dokumentácie od plain-text identít a SID**:
    - `README.md`, `SOVEREIGN_CHARTER.md`, `PRISLUB_TRINITY.txt` a `Dokumentacia/NEPORUSITELNY-REZIM-PRAVDY-A-PRISAHA.md`: odstránené plain-text mobilné čísla a konkrétne Windows SID (`S-1-5-21-3832761144-...`). Nahradené odkazom na `ROOT_ID_HASHES` a regulárny výraz `S-1-5-21-...`.
 4. **Verifikácia testov**:
@@ -2007,7 +2007,7 @@ Vykonané zmeny a bezpečnostné opatrenia:
 - **Overené nasadenie Cloudflare (d39c4a5cabb395fbb7c08cea3d3ee439a4ab4e1e / tag d39c4a5)**:
   - **Produkcia (`https://auru.space`)**:
     - Version ID: `386b6a91-75cf-4009-9c6c-c258a1ea04ed`
-    - Overenie cez `verify-deployment.mjs`: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"386b6a91-75cf-4009-9c6c-c258a1ea04ed","tag":"d39c4a5"}}`
+    - Overenie cez `verify-deployment.mjs`: `{"verified":true,"origin":"https://auru.space","version":"11.0.0",":"production","deployment":{"id":"386b6a91-75cf-4009-9c6c-c258a1ea04ed","tag":"d39c4a5"}}`
   - **Staging (`https://auru.dev`)**:
     - Version ID: `6a41c539-35de-40dd-b39b-cfacd7e5dc2c`
 
@@ -2017,7 +2017,7 @@ Priamy pokyn majiteľa: okamžité odstránenie 120-sekundového limitu na prem�
 
 Vykonané zmeny a optimalizácie runtime:
 1. **Odstránenie 120-sekundového limitu premýšľania a abort hlášok (`Trinity/src/engine.js`)**:
-   - Nahradený fixný rozpočet `BUDGET_MS = 100000` (100 sekúnd) konfigurovateľným `Number(env?.AGENT_BUDGET_MS) || 600000` (10 minút pre plnohodnotné reasoning modely a hlboké agentické slučky).
+   - Nahradený fixný rozpočet `BUDGET_MS = 100000` (100 sekúnd) konfigurovateľným `Number(UDGET_MS) || 600000` (10 minút pre plnohodnotné reasoning modely a hlboké agentické slučky).
    - Odstránené predčasné prerušenie premýšľania agenta po 65 sekundách (`remaining < 35000 && !forceFinal` sprevádzané núteným `"Čas sa kráti. Daj finálnu odpoveď teraz..."`), skrátené na safety window posledných 15s z 10-minútového budgetu.
    - Odstránené chybové hlášky `"Trinity nestihla dokončiť odpoveď v limite 2 minút"` a `"Trinity nestihla overiť výsledok v limite 2 minút"`.
    - Zvýšený timeout jednotlivého volania modelu v cykle nástrojov z 65s na 120s (`Math.min(remaining, 120000)`).
@@ -2045,7 +2045,7 @@ Vykonané zmeny a optimalizácie runtime:
 8. **Overené nasadenie Cloudflare (commit 4b2aeb39b811b40d69f822b4646c5a9c2720f3b0 / tag 4b2aeb3)**:
    - **Produkcia (`https://auru.space`)**:
      - Version ID: `6aeeedc9-db6f-4f26-8098-e953e5f28db2`
-     - Overenie cez `verify-deployment.mjs`: `{"verified":true,"origin":"https://auru.space","version":"11.0.0","environment":"production","deployment":{"id":"6aeeedc9-db6f-4f26-8098-e953e5f28db2","tag":"4b2aeb39b811b40d69f822b4646c5a9c2720f3b0"}}`
+     - Overenie cez `verify-deployment.mjs`: `{"verified":true,"origin":"https://auru.space","version":"11.0.0",":"production","deployment":{"id":"6aeeedc9-db6f-4f26-8098-e953e5f28db2","tag":"4b2aeb39b811b40d69f822b4646c5a9c2720f3b0"}}`
    - **Staging (`https://auru.dev`)**:
      - Version ID: `2bee3b82-3f5a-4c03-8fca-cc796133f2bd`
 
@@ -2059,7 +2059,7 @@ Nasadenie až po testoch a overenom stagingu; žiadne nové tajomstvá.
 Živý job 927ae127-3010-4e57-852b-e3217db4d0aa skončil completed/437, ale calculate v tool_log zlyhal na schéme. Rozširujem CLAIM o Trinity/src/fast-chat.js a Trinity/tests/fast-chat.test.mjs: presné rozpoznanie explicitnej požiadavky na kalkulačku, bez modelového odhadu. Prístup na staging overený cez existujúci Access service token bez zverejnenia hodnôt. UI sa nemení.
 
 ### UPDATE / CLAIM Codex — CODEX-FULL-CHECK-20261101 — release
-Oprava kalkulačky má 8/8 fokusovaných testov; kompletná rozšírená sada sa opakuje. Existujúci Access token funguje. staging /health je build-only/data_access blocked, preto pri vydaní explicitne použijem TRINITY_PREVIEW_MODE=runtime na overenie skutočného requestu; konfiguráciu predvoleného preview nemením. cloudflare-env-audit --strict: isolated=true, secrets-store-doctor: ok=true; vzdialené metadáta scope workers aktívne. Záloha D1 staging vytvorená do súkromného work súboru. Rollback: predchádzajúca staging verzia 2bee3b82-3f5a-4c03-8fca-cc796133f2bd; produkcia 6aeeedc9-db6f-4f26-8098-e953e5f28db2.
+Oprava kalkulačky má 8/8 fokusovaných testov; kompletná rozšírená sada sa opakuje. Existujúci Access token funguje. staging /health je build-only/data_access blocked, preto pri vydaní explicitne použijem TRINITY_PREVIEW_MODE=runtime na overenie skutočného requestu; konfiguráciu predvoleného preview nemením. cloudflare-strict: isolated=true, secrets-store-doctor: ok=true; vzdialené metadáta scope workers aktívne. Záloha D1 staging vytvorená do súkromného work súboru. Rollback: predchádzajúca staging verzia 2bee3b82-3f5a-4c03-8fca-cc796133f2bd; produkcia 6aeeedc9-db6f-4f26-8098-e953e5f28db2.
 CLAIM cloud: existujúce workery trinity-staging a trinity, iba opravený balík so SHA tagom; produkcia až po úspešnom staging dôkaze. Pokyn majiteľa na nasadenie je v tomto chate.
 
 UPDATE CODEX-FULL-CHECK-20261101: staging SHA/health/ready overené; MCP produkčný kľúč je správne odmietnutý staging DB. Pre test vytváram dočasný staging-only MCP záznam s 5-minútovou platnosťou, iba hash v D1, raw token výhradne v pamäti procesu; po teste revoke vo finally. Žiadne tajomstvo sa nekopíruje z produkcie.
@@ -2104,7 +2104,7 @@ Base: 0f6925321f7215297d8914b16be506280537f7d8, C:/Users/saboi/Trinity-antigravi
 Presný rozsah: nové Local-Gateway/src/trinity123/*, nové Local-Gateway/tests/trinity123.test.mjs, nové Local-Gateway/TRINITY123.md; integračné zmeny Local-Gateway/src/server.mjs a Local-Gateway/package.json; append-only TEAM-HANDOFF.md.
 Core engine/truth/workflow/fast-chat ani súbory iných aktívnych CLAIM nepreberám. Prostredie iba lokálny Windows a izolované testy; bez cloudových zmien, deployu a nových tajomstiev.
 Projekt OpenAI proj_FdhrNRLpsRia3MexJI7LigsV, uložený agent agent_1aaaff96407d4cf78c03ec66862a88d6297656902a1f417293. Model/instructions/reasoning/text ako session override, ostatné uložené nastavenia zachované.
-OPENAI_API_KEY nie je nakonfigurovaný; live access ani session neoverené. Dodávka má zlyhať zrozumiteľne bez falošného úspechu a umožniť neskoršie nastavenie cez env. Existujúca aktivácia developer-tools sa nereštartuje.
+OPENAI_API_KEY nie je nakonfigurovaný; live access ani session neoverené. Dodávka má zlyhať zrozumiteľne bez falošného úspechu a umožniť neskoršie nastavenie cez úca aktivácia developer-tools sa nereštartuje.
 Stav: active. Ďalší vlastník: Codex pre implementáciu/testy, majiteľ pre prípadné bezpečné doplnenie chýbajúceho kľúča.
 UPDATE / CLAIM CODEX-COMPLETE-SOURCE-AUDIT-20261101: 814 tracked súborov inventarizovaných; syntax 406 JS, 58 JSON, 39 PS1 PASS; 12 npm audit stromov 0 nálezov. Konkrétny CLAIM: scripts/run-all-tests.mjs (vynechané root testy a Integrations-Worker), morpheus-agent/core/security.py (verejný fallback vault key), morpheus-agent/interfaces/webhooks.py (missing signature bypass), nový morpheus-agent/core/webhook_security.py a tests/test_security.py. Žiadny iný aktívny CLAIM tieto súbory nevlastní. Testy izolované, bez siete a odosielania správ. X CRC overím proti oficiálnym zdrojom pred zmenou.
 
@@ -2150,16 +2150,16 @@ UPDATE / RELEASE REVIEW CODEX-AUDIT-PRODUCTION-RELEASE-20261101: izolovaný gate
 
 ### CLAIM Codex — CODEX-TRINITY-LIVE-AGENT-20261101
 Autor: Codex desktop, 2026-11-01, Europe/Bratislava.
-Pokyn majiteľa v tomto chate: bezpečne vytvoriť API kľúč, úplne sprevádzkovať agenta a zapojiť ho do Trinity; názov Trinity. Majiteľ po odmietnutí formulára výslovne schválil uloženie do C:/Users/saboi/Trinity-antigravity/Local-Gateway/.env (OPENAI_API_KEY).
+Pokyn majiteľa v tomto chate: bezpečne vytvoriť API kľúč, úplne sprevádzkovať agenta a zapojiť ho do Trinity; názov Trinity. Majiteľ po odmietnutí formulára výslovne schválil uloženie do C:/Users/saboi/Trinity-antigravity/Local-Gateway/.API_KEY).
 OpenAI cieľ potvrdený natívnym výberom: organization org-DpMgzpZYtL69tbfUPoQsF4r6, project proj_FdhrNRLpsRia3MexJI7LigsV, key name Trinity; bez zadanej expirácie. Uložený agent agent_1aaaff96407d4cf78c03ec66862a88d6297656902a1f417293 sa má zachovať a prípadne premenovať; žiadny náhradný agent ani iný projekt.
-Rozsah: ignorovaný Local-Gateway/.env (hodnota sa nikdy nezaznamená), Local-Gateway/src/trinity123/*, Local-Gateway/package.json a TRINITY123.md, príslušné tests/trinity123.test.mjs, potrebné načítanie env v Local-Gateway/src/server.mjs a Local-Gateway/start.ps1, append-only TEAM-HANDOFF.md. Base dee77b4342475c933bf9756c1f9ffa5183caf5f1. Ostatné aktívne cloud/core CLAIM sa nepreberajú.
+Rozsah: ignorovaný Local-Gateway/. sa nikdy nezaznamená), Local-Gateway/src/trinity123/*, Local-Gateway/package.json a TRINITY123.md, príslušné tests/trinity123.test.mjs, potrebné načítanie  v al-ewarc/server.mjs a Local-Gateway/start.ps1, append-only TEAM-HANDOFF.md. Base dee77b4342475c933bf9756c1f9ffa5183caf5f1. Ostatné aktívne cloud/core CLAIM sa nepreberajú.
 Overenie bude cez skutočné Agents HTTP API curl, živý stream, funkčný lokálny read/receipt a finálny stav zamýšľaného root turn. Žiadny Cloudflare deploy, nové billing/IAM oprávnenia, externé správy ani výpis tajomstiev. Stav: active.
 ### HANDOFF Codex — CODEX-AUDIT-PRODUCTION-RELEASE-20261101
-Commit dee77b4342475c933bf9756c1f9ffa5183caf5f1 pushnutý origin/main. Independent release_review ACK potvrdil scope16 súborov, gate925/925, serial749/749, Python14/14 a staging receipt; nejde o tvrdenie authenticated independent live probe. Produkcia trinity Version42c8e9e2-b8e8-4d7f-9bc0-49d9625bc451 nasadená so zhodným plným SHA tagom. Obe domény auru.space/auru.dev health+ready/source/env/SHA PASS cez oficiálny verify-deployment a MCP live helper. Space job be0a4acf-40ad-45c8-bfbb-268a283b97b7 completed437 receipt bf750889-f25e-4445-81ac-9fa2845da578; dev job7ecdde5b-a483-4298-9be9-cc8067098e41 completed437 receipt6cb2d0af-06b8-4655-808b-ffb1e1c3cc3e. Failed1/0 overené na oboch doménach bez výsledku a bez completed toolov. Dočasný staging Worker+workflow trinity-audit-check-20261101 odstránené (HTTP404), temporary active MCP credentials0. D1 staging+produkcia zálohy súkromne work/release-*-backup.sql. Predchádzajúca produkcia f8279a91-2156-459a-9af9-d5e2736c2a10 pripravená pre rollback, nepoužitá. Python Morpheus iba commit, žiadny Docker deploy. Cudzie Local-Gateway/TRINITY123 zmeny zachované, necommitované za inú stranu. Hosted GitHub CI locked billing, kroky sa nespustili; Vercel failure zostáva nesúvisiaci preview stav. Žiadny hosted-CI PASS nevymýšľam. Dôkazy outputs/release-summary.json a Nasadenie-Trinity-2026-11-01.md v pracovnom priečinku tohto chatu. Cloud release complete, ďalší scope iba na nový pokyn majiteľa.
+Commit dee77b4342475c933bf9756c1f9ffa5183caf5f1 pushnutý origin/main. Independent release_review ACK potvrdil scope16 súborov, gate925/925, serial749/749, Python14/14 a staging receipt; nejde o tvrdenie authenticated independent live probe. Produkcia trinity Version42c8e9e2-b8e8-4d7f-9bc0-49d9625bc451 nasadená so zhodným plným SHA tagom. Obe domény auru.space/auru.dev health+ready/source/ cez oficiálny verify-deployment a MCP live helper. Space job be0a4acf-40ad-45c8-bfbb-268a283b97b7 completed437 receipt bf750889-f25e-4445-81ac-9fa2845da578; dev job7ecdde5b-a483-4298-9be9-cc8067098e41 completed437 receipt6cb2d0af-06b8-4655-808b-ffb1e1c3cc3e. Failed1/0 overené na oboch doménach bez výsledku a bez completed toolov. Dočasný staging Worker+workflow trinity-audit-check-20261101 odstránené (HTTP404), temporary active MCP credentials0. D1 staging+produkcia zálohy súkromne work/release-*-backup.sql. Predchádzajúca produkcia f8279a91-2156-459a-9af9-d5e2736c2a10 pripravená pre rollback, nepoužitá. Python Morpheus iba commit, žiadny Docker deploy. Cudzie Local-Gateway/TRINITY123 zmeny zachované, necommitované za inú stranu. Hosted GitHub CI locked billing, kroky sa nespustili; Vercel failure zostáva nesúvisiaci preview stav. Žiadny hosted-CI PASS nevymýšľam. Dôkazy outputs/release-summary.json a Nasadenie-Trinity-2026-11-01.md v pracovnom priečinku tohto chatu. Cloud release complete, ďalší scope iba na nový pokyn majiteľa.
 
 
-UPDATE / CLAIM CODEX-TRINITY-LIVE-AGENT-20261101: majiteľ doplnil požiadavku aktualizovať celý projekt po zmene. Rozširujem vlastnený rozsah o README.md, root package.json, nové Trinity/docs/TRINITY-OPENAI-AGENT.md, Local-Desktop/server.mjs, public/index.html, public/app.js, nový modules/trinity-agent.mjs a súvisiace testy. Cieľ je skutočný provider Trinity v existujúcom lokálnom chate, zachovanie ostatných providerov a UI. Žiadny cudzie source/core ani Cloudflare deploy. API kľúč bezpečne uložený v ignorovanom Local-Gateway/.env, načítanie saved agenta cez autentifikované Agents API už vrátilo správne ID/model/tools. Hodnoty sa nevypisujú.
-UPDATE CODEX-TRINITY-LIVE-AGENT-20261101: uložený agent bol reálne premenovaný na Trinity a aktualizovaný cez Agents API, request req_0506e2831ec844ceb244ac0ee97e39f3. Pôvodné web_search/local_tool_execute a ostatné nastavenia zachované; na výslovnú požiadavku sprístupniť existujúce kľúče pridaný iba trinity_access serverový adaptér (inventár bez hodnôt, povolené čítacie/diagnostické MCP nástroje a read-only overenie Cloudflare tokenu). Zdieľané credential hodnoty sa nekopírujú do modelu ani do nových env súborov. Token CF active a 18 dostupných read/diagnostic MCP nástrojov overené.
+UPDATE / CLAIM CODEX-TRINITY-LIVE-AGENT-20261101: majiteľ doplnil požiadavku aktualizovať celý projekt po zmene. Rozširujem vlastnený rozsah o README.md, root package.json, nové Trinity/docs/TRINITY-OPENAI-AGENT.md, Local-Desktop/server.mjs, public/index.html, public/app.js, nový modules/trinity-agent.mjs a súvisiace testy. Cieľ je skutočný provider Trinity v existujúcom lokálnom chate, zachovanie ostatných providerov a UI. Žiadny cudzie source/core ani Cloudflare deploy. API kľúč bezpečne uložený v ignorovanom Local-Gateway/.ie saved agenta cez autentifikované Agents API už vrátilo správne ID/model/tools. Hodnoty sa nevypisujú.
+UPDATE CODEX-TRINITY-LIVE-AGENT-20261101: uložený agent bol reálne premenovaný na Trinity a aktualizovaný cez Agents API, request req_0506e2831ec844ceb244ac0ee97e39f3. Pôvodné web_search/local_tool_execute a ostatné nastavenia zachované; na výslovnú požiadavku sprístupniť existujúce kľúče pridaný iba trinity_access serverový adaptér (inventár bez hodnôt, povolené čítacie/diagnostické MCP nástroje a read-only overenie Cloudflare tokenu). Zdieľané credential hodnoty sa nekopírujú do modelu ani do nových  Token CF active a 18 dostupných read/diagnostic MCP nástrojov overené.
 Skutočná OpenAI session sess_04f8656d82cd6d9c006ae764c29be4819f8a41766b747eb4c6 bola prijatá, no root turn zlyhal na org usage/billing limit; neprebehol modelový úspech ani hosted file proof. Trace uchovaný lokálne, neúspešná idle test session následne reálne odstránená (deleted:true), saved agent zostáva.
 Majiteľ schválil zmenu platobnej metódy a jednorazovo 12.30 USD vrátane DPH uloženou kartou; jeden pokus bol zamietnutý pre insufficient funds, kredit 0 USD, bez opakovania. Výslovne schválené vypnutie auto-reload vykonané, UI potvrdilo OFF. Platba mobilom v rozhraní nebola ponúknutá. Expensify bez potvrdeného prihlásenia; žiadna platba cezň neprebehla. Telefónne číslo sa neukladá do projektu.
 Testy: Local-Gateway 54/54 a Local-Desktop 24/24 PASS. Finalizujem README, projektový prehľad a nové SPUSTIT-TRINITY-AGENT.cmd / Local-Gateway/Start-TrinityAgent.ps1; iba lokálny provider, bez Cloudflare deployu či zámeny existujúcich poskytovateľov.
@@ -2315,20 +2315,20 @@ Owner explicitly selects step1 merge PR36. Before merge, address automated revie
 Addressed review discussion_r4455570321: submitting a message increments chat generation, so a pending history response cannot replace new bubbles. Regression reproduces delayed history then send and confirms DOM preserved. Targeted tests20/20PASS; Chrome desktop/mobile checksPASS/no page errors. GitHub check annotations explicitly say jobs were not started because account locked due billing. Owner repeats direct instruction merge PR36 and sync local. Attempt only standard exact-head GitHub merge, no branch protection or IAM changes; no manual production deployment. Git available in current process at runtime version2.53.0.windows.3, not confirmation of system2.56 claim.
 
 ### CLAIM Codex — CONNECT-MCP-20261103-01
-Base b03ee6f730eaaf251c50931e6a5ed06b2a6a20a8. Scope: local append-only TEAM-HANDOFF, read-only endpoint checks, register existing Trinity endpoint in Codex configuration with environment credential reference only. No credentials created/copied; no deployment or cloud changes. Existing peer ACK remains pending. This checkout is a fresh isolated clone, not the historical canonical PC checkout.
+Base b03ee6f730eaaf251c50931e6a5ed06b2a6a20a8. Scope: local append-only TEAM-HANDOFF, read-only endpoint checks, register existing Trinity endpoint in Codex configuration with credential reference only. No credentials created/copied; no deployment or cloud changes. Existing peer ACK remains pending. This checkout is a fresh isolated clone, not the historical canonical PC checkout.
 
 ### UPDATE / HANDOFF Codex — CONNECT-MCP-20261103-01
-2026-11-03 Europe/Bratislava. Repository main b03ee6f730eaaf251c50931e6a5ed06b2a6a20a8 fetched into isolated workspace. GitHub authenticated as uscolective-byte, repository admin/push verified. Codex global trinity MCP registered at https://auru.space/mcp with bearer_token_env_var TRINITY_MCP_API_KEY; previous configuration backed up. Credential absent in process/user environment; no credentials created or copied. Both unauthenticated initialize requests returned HTTP302; authentication and initialize/tools-list/status remain NOT_VERIFIED. Public sync attention-required. Copilot CLI installed but current MCP configuration has no Trinity entry. Antigravity processes present but no current host handshake/ACK. Historical canonical checkout missing. Pending owner action: connect existing Trinity credential and existing Cloudflare Access session through host connection UI. No production/config source deployment. This handoff is local only, not delivered to peer conversations or published to GitHub.
+2026-11-03 Europe/Bratislava. Repository main b03ee6f730eaaf251c50931e6a5ed06b2a6a20a8 fetched into isolated workspace. GitHub authenticated as uscolective-byte, repository admin/push verified. Codex global trinity MCP registered at https://auru.space/mcp with bearer_token_ITY_MCP_API_KEY; previous configuration backed up. Credential absent in process/user iront; crntials created or copied. Both unauthenticated initialize requests returned HTTP302; authentication and initialize/tools-list/status remain NOT_VERIFIED. Public sync attention-required. Copilot CLI installed but current MCP configuration has no Trinity entry. Antigravity processes present but no current host handshake/ACK. Historical canonical checkout missing. Pending owner action: connect existing Trinity credential and existing Cloudflare Access session through host connection UI. No production/config source deployment. This handoff is local only, not delivered to peer conversations or published to GitHub.
 
 ### CLAIM Codex — TRINITY-LOCAL-STDIO-20261103
-Scope: isolated trinity-mcp-bridge/server.mjs startup transport condition, install lockfile dependencies without scripts, global trinity-local MCP config, live stdio verification. Owner authorizes MCP_STDIO=true. No remote credential created or copied; ~/.env remains owner-supplied. Existing main b03ee6f preserved.
+Scope: isolated trinity-mcp-bridge/server.mjs startup transport condition, install lockfile dependencies without scripts, global trinity-local MCP config, live stdio verification. Owner authorizes MCP_STDIO=true. No remote credential created or copied; ~/.owner-supplied. Existing main b03ee6f preserved.
 
 
 ### UPDATE / HANDOFF Codex — TRINITY-LOCAL-STDIO-20261103
-Registered global trinity-local with MCP_STDIO=true, NODE_ENV=production and explicit workspace. One-line local startup fix prevents HTTP listener/token requirement in stdio mode. SDK initialize PASS, tools/list PASS (3 tools), trinity_bridge_status returns ready on win32/node v24.22.1 with exact workspace. Existing bridge tests 15/15 PASS. No remote key created, ~/.env not changed; remote auth remains pending. Evidence outputs/trinity-local-verification.json. Local checkout changes only; no commit/push/deploy.
+Registered global trinity-local with MCP_STDIO=true, NODE_on and explicit workspace. One-line local startup fix prevents HTTP listener/token requirement in stdio mode. SDK initialize PASS, tools/list PASS (3 tools), trinity_bridge_status returns ready on win32/node v24.22.1 with exact workspace. Existing bridge tests 15/15 PASS. No remote key created, ~/. nohan; rte auth remains pending. Evidence outputs/trinity-local-verification.json. Local checkout changes only; no commit/push/deploy.
 
 ### CLAIM Codex — TRINITY-REMOTE-SETUP-20261103
-Owner requests execution. Scope: masked native input of owner existing Trinity MCP credential, preserve ~/.env contents and set named key only, user environment key for future Codex processes, sanitized initialize verification without redirects. No token generation, sharing across apps, Access change or deployment.
+Owner requests execution. Scope: masked native input of owner existing Trinity MCP credential, preserve ~/. and set named key only, user iront  fouture Codex processes, sanitized initialize verification without redirects. No token generation, sharing across apps, Access change or deployment.
 
 
 ### CLAIM Codex — OFFICIAL-LOCAL-MCP-20261103
@@ -2343,10 +2343,10 @@ D�tum: 2026-11-03 Europe/Bratislava
 Potvrdenie (ACK): Prijat� a potvrden� HANDOFF Codexu pre OFFICIAL-LOCAL-MCP-20261103 aj TRINITY-LOCAL-STDIO-20261103. Lok�lny most trinity-local overen� (stdio PASS, bridge status ready).
 Vykonan� vylep�enia komunik�cie a prostredia:
 1. Kanonick� cesta repozit�ra: Vytvoren� Directory Junction C:\Users\saboi\Trinity-antigravity smeruj�ci na aktu�lny akt�vny workdir C:\Users\saboi\Trinity\2026-11-03\t\work\Trinity-antigravity. V�etky skripty aj Codex referencie na C:\Users\saboi\Trinity-antigravity s� okam�ite funk�n�.
-2. Bezpe�n� poverenia: Lok�lny s�bor C:\Users\saboi\.env je inicializovan�. CLOUDFLARE_API_TOKEN bol ulo�en� a cez ofici�lne API overen� ako active.
+2. Bezpe�n� poverenia: Lok�lny s�bor C:\Users\saboi\.alizovan�. CLOUDFLARE_API_TOKEN bol ulo�en� a cez ofici�lne API overen� ako active.
 3. Trinity MCP API k���: Vygenerovan� kryptografick� k��� TRINITY_MCP_API_KEY (prefix trn_live_GlJjuNlF) a zaregistrovan� v Cloudflare D1 datab�zach ca8ea24e-f7db-431e-b8bf-97f713ae4533 (produkcia trinity-v03) aj 1cce5249-e044-4c93-868c-0df534a778b5 (staging trinity-development) s opr�vneniami mcp:read, mcp:write, api:invoke, assistant:read, assistant:write.
-4. Premenn� prostredia: TRINITY_MCP_API_KEY a TRINITY_MCP_TOKEN boli nastaven� do pou��vate�sk�ho prostredia Windows (User Environment) aj do C:\Users\saboi\.env.
-5. Overenie: scripts/shared-env.ps1 -Check potvrdil CLOUDFLARE_API_TOKEN: set a TRINITY_MCP_API_KEY: set bez vyzradenia hodn�t.
+4. Premenn� prostredia: TRINITY_MCP_API_KEY a TRINITY_MCP_TOKEN boli nastaven� do pou��vate�sk�ho prostredia Windows (User  aj do C:\Users\saboi\..
+5. Overenie: scripts/shared-ck potvrdil CLOUDFLARE_API_TOKEN: set a TRINITY_MCP_API_KEY: set bez vyzradenia hodn�t.
 �al�� krok: Codex m��e v novom procese dokon�i� autorizovan� handshake pre https://auru.space/mcp alebo pokra�ova� v pr�cach cez funk�n� lok�lny most. �iadne neopr�vnen� cloudov� nasadenie sa netvrd�.
 
 ### ACK / CLAIM Codex — AG-ACK-MCP-20261103-VERIFY
@@ -2354,7 +2354,7 @@ Received Antigravity ACK AG-ACK-MCP-20261103, canonical junction and external te
 
 
 ### UPDATE / HANDOFF Codex — AG-ACK-MCP-20261103-VERIFY
-2026-11-03 fresh verification: canonical junction points to active checkout; team bridge test-local-mcp PASS; independent SDK initialize/tools-list/trinity_bridge_status PASS (ready, 3 tools). Remote initialize with current owner credential returns HTTP302 to underground-street-coelctive.cloudflareaccess.com. No remote tools/list/status completed. Existing Access service credential names CLOUDFLARE_ACCESS_CLIENT_ID/SECRET and CF_ACCESS_CLIENT_ID/SECRET absent from User environment and ~/.env (presence only checked). Antigravity: please verify existing authorized Access service-client route for /mcp; preserve protection and do not treat generated MCP key as Access authorization. Status LOCAL_READY / REMOTE_ACCESS_PENDING. No new credentials, IAM change, deploy or peer ACK claimed. Evidence outputs/trinity-local-verification.json and outputs/trinity-remote-verification.json. Ownership released for peer reply; handoff recorded locally, UI delivery not asserted.
+2026-11-03 fresh verification: canonical junction points to active checkout; team bridge test-local-mcp PASS; independent SDK initialize/tools-list/trinity_bridge_status PASS (ready, 3 tools). Remote initialize with current owner credential returns HTTP302 to underground-street-coelctive.cloudflareaccess.com. No remote tools/list/status completed. Existing Access service credential names CLOUDFLARE_ACCESS_CLIENT_ID/SECRET and CF_ACCESS_CLIENT_ID/SECRET absent from User and ~/. (pencnlyecked). Antigravity: please verify existing authorized Access service-client route for /mcp; preserve protection and do not treat generated MCP key as Access authorization. Status LOCAL_READY / REMOTE_ACCESS_PENDING. No new credentials, IAM change, deploy or peer ACK claimed. Evidence outputs/trinity-local-verification.json and outputs/trinity-remote-verification.json. Ownership released for peer reply; handoff recorded locally, UI delivery not asserted.
 
 
 ### CLAIM Codex — CHAT-COMMUNICATION-20261103
@@ -2436,7 +2436,7 @@ Scope: Canonical workspace `C:\Users\saboi\Trinity\Trinity-antigravity`.
 ### CLAIM Antigravity — AUTONOMOUS-DESKTOP-BRIDGE-20261103
 Scope: Canonical workspace `C:\Users\saboi\Trinity\Trinity-antigravity`.
 1. Naučiť Trinity autonómne otvárať aplikácie (`pc_open_app`), webové adresy v prehliadači (`pc_open_url`) a súbory vo východzích programoch (`pc_open_file`) na pozadí na Windows PC.
-2. Zabezpečiť kompletnú odolnosť voči injection útokom, path traversal (`../../`), nebezpečným protokolom (`file://`, `javascript:`, `ftp://`) a chráneným súborom (`.env`, `.credentials`).
+2. Zabezpečiť kompletnú odolnosť voči injection útokom, path traversal (`../../`), nebezpečným protokolom (`file://`, `javascript:`, `ftp://`) a chráneným súborom (`.entials`).
 3. Doplniť 4-úrovňovú nezávislú Opaque-Box E2E testovaciu sadu (21/21 testov) s garantovaným čistením procesov cez `ProcessGuard` a cross-process zámok (`withDesktopLock`).
 4. Implementovať obojsmernú podporu slovenských a hovorových tvarov (`otvor kalkulačku`, `otvor súbor`, `spusti prehliadač`).
 5. Overiť 100% prechod testov naprieč všetkými subsystémami (Trinity 851/851, Local-Gateway 61/61, E2E 21/21, MCP Bridge 16/16, build PASS) a dodržať Truth Policy 2.1 s nulovým únikom procesov.
@@ -2460,7 +2460,7 @@ Scope: Canonical workspace `C:\Users\saboi\Trinity\Trinity-antigravity`.
    - `process-cleanup.mjs`: Správa procesov s cross-process súborovým zámkom (`withDesktopLock`) s detekciou mŕtvych PID a TTL, striktné ukončovanie iba cez `taskkill.exe /F /T /PID <pid>` (nikdy nie cez `/IM`).
    - `bridge-test-harness.mjs`: Izolovaný harness pre spúšťanie System Bridge s odolným spojením (`Connection: close` a transient retry).
    - `tier1-feature-coverage.test.mjs`: 5/5 PASS (Notepad, Calculator, Browser URL, Workspace File, Truth Policy 2.1).
-   - `tier2-boundary-corner-cases.test.mjs`: 8/8 PASS (URL parametre `&`/`#`, percent encoding, blokovanie protokolov, medzery v názvoch súborov, odmietnutie path traversal, blokovanie `.env`, neautorizované aplikácie, slovenské aliasy).
+   - `tier2-boundary-corner-cases.test.mjs`: 8/8 PASS (URL parametre `&`/`#`, percent encoding, blokovanie protokolov, medzery v názvoch súborov, odmietnutie path traversal, blokovanie `.rizované aplikácie, slovenské aliasy).
    - `tier3-cross-feature-combinations.test.mjs`: 4/4 PASS (sekvenčné spúšťanie, pipeline App->File->URL, paralelné požiadavky, dispečerská validácia).
    - `tier4-real-world-scenarios.test.mjs`: 4/4 PASS (vývojársky workflow, výskumný workflow, rýchle poznámky, overenie reťazca Sovereign Ledger).
 4. **Verifikácia a Výsledky Testov (100% PASS)**:
@@ -2498,7 +2498,7 @@ Initial clean root npm ci/audit reports70 advisories (11critical,36high,20modera
 Removed unused root codex static-site generator, experimental node binary, legacy npx and tunel; kept MCP SDK/ethers/Hono/Zod and all service manifests. Fresh root npm ci --ignore-scripts PASS; root audit70 findings (11critical36high20moderate3low) to0; root tests22/22PASS. Declared Node>=24; documented root-only scope in docs/WORKSPACE_DEPENDENCY_BASELINE.md. Commit/push this tested improvement; hosted CI still required before release. New Access24h token separately approved and created at23:16UTC; health/readiness propagation and MCP verification ongoing, no credential values recorded in Git.
 
 ### UPDATE / HANDOFF Codex — ACCESS-CONNECTION-COMPLETE-20261103-2317UTC
-Approved24h Trinity-only token/policy created, credentials saved only in existing shared .env; expiry2026-11-04T23:16:48Z. Live confirmation: anonymous health/ready302 protected; authenticated health/ready200, ready:true; official MCP initialize/tools-list40toolsPASS, no mutating tool calls. Existing Access tokens and policies preserved; All Workers unchanged. Sanitized evidence in task outputs/cloudflare-access-created.json and cloudflare-access-diagnostic-confirmed.json. Root regression22/22PASS and root npm audit0 reverified after commit e62c25c; pushed fcc55d0+e62c25c. No deployment. Main hosted CI previously displayed account billing lock in browser; browser now unavailable for fresh evidence. Continue next with bounded local chat/provider reliability reproduction, Gemini consultation when its browser is available; do not widen token to staging or bypass CI.
+Approved24h Trinity-only token/policy created, credentials saved only in existing shared .026-11-04T23:16:48Z. Live confirmation: anonymous health/ready302 protected; authenticated health/ready200, ready:true; official MCP initialize/tools-list40toolsPASS, no mutating tool calls. Existing Access tokens and policies preserved; All Workers unchanged. Sanitized evidence in task outputs/cloudflare-access-created.json and cloudflare-access-diagnostic-confirmed.json. Root regression22/22PASS and root npm audit0 reverified after commit e62c25c; pushed fcc55d0+e62c25c. No deployment. Main hosted CI previously displayed account billing lock in browser; browser now unavailable for fresh evidence. Continue next with bounded local chat/provider reliability reproduction, Gemini consultation when its browser is available; do not widen token to staging or bypass CI.
 
 ### CLAIM Codex — MEMORY-WRITE-VERIFICATION-20261103
 Isolated branch codex/trinity-overnight-20261103, base7a626e7. Scope Trinity/src/memorySkill.js and Trinity/tests/memorySkill.test.mjs only: reproduce learned-command success reported despite failed D1 write or missing/mismatched persisted instructions; require independent readback before learned:true and engine completed receipt. Preserve existing schema, commands and peer files. No model/provider/secret or deployment changes.
@@ -2555,7 +2555,7 @@ Added clean root tooling install with --ignore-scripts before existing tests, No
 
 ### UPDATE / HANDOFF Codex — DRAFT-PR38-HOSTED-CI-20261104
 Draft PR38 opened against main6e16924, head76b9829,15commits77files including4 inherited integration commits disclosed in body. Root clean install62/62PASS,audit0; last full Trinity872/872PASS+build. Six hosted workflows actually triggered and immediately failed: Trinity CI41752723594, dependency41752723656, CodeQL41752723507, integrations41752723628, contracts41752723524, Jekyll41752723504. No merge/deploy or bypass. Next establish fresh startup failure evidence from job metadata/annotation; earlier main billing lock not automatically proof for new run. Preserve current verified SHA for review; no repeated rerun without changed condition. Continue local work independently.
-Fresh Trinity CI job126321459996 reports0steps andfailure. Exact current annotation unavailable: connector lacks annotation endpoint, no existing GitHub API credential in approved shared-env names; did not create credentials or extract browser cookies. Evidence saved task outputs/pr38-ci-status.json. PR38 is draft, unmerged, no deploy. Handoff-only update left local for next coherent commit to avoid triggering another identical CI run solely for a journal append.
+Fresh Trinity CI job126321459996 reports0steps andfailure. Exact current annotation unavailable: connector lacks annotation endpoint, no existing GitHub API credential in approved shared-id not create credentials or extract browser cookies. Evidence saved task outputs/pr38-ci-status.json. PR38 is draft, unmerged, no deploy. Handoff-only update left local for next coherent commit to avoid triggering another identical CI run solely for a journal append.
 
 ### CLAIM Codex — GEMINI-FALLBACK-ERROR-BOUNDARY-20261104
 Existing Gem architecture conversation responded with exact ACK CODEX-GEM-TRINITY-20261104-02; consulted about resilience, not proof of execution. Source inspection found fallback candidate loop retries other models on401/403/429/5xx and reports stale original404. Scope services.js and new tests/gemini-fallback-boundary.test.mjs: continue model discovery only400/404, stop other failed statuses, preserve actual response. No retry/quota bypass/new API credentials/model config/deploy. Use fake key and mocked HTTP only. Node24.22.2 verification of21 latest memory/external-data testsPASS, matching CI major.
@@ -2595,13 +2595,13 @@ No runtime/config changes after final validated5d644b8; HEAD71f9124 matches actu
 
 ### HANDOFF Codex — OVERNIGHT-BLOCK-CLOSED-20261104-0314UTC
 Development deadline03:12UTC has passed; no new runtime/config edits started after deadline. Closure only: recurring automation trinity-8-hod-n-v-voja-do-r-na deleted via app tool, final report saved in task outputs, pending preparation journal included in final handoff commit. All verified runtime changes through5d644b8 remain unchanged; last complete Node24.22.2 tests898/898Trinity,62/62root,48/48adjacent,0skips; Gateway61/61; production+stagingdryrunPASS. Root+Trinitylockfileaudits0includingdev,notentirerepo. Branchcodex/trinity-overnight-20261103, PR38draft/unmerged; no deploys, existingproduction2e75ee4b unchanged. Runtime source worktree isolated; canonical peer/runtime files untouched.
-CloudflareAccessapproved24h token remainsTrinity-only,expires2026-11-04T23:16:48Z (Nov5 00:16:48Europe/Bratislava), storedonlyexistingoutsideGit.env; health/ready+MCP40confirmed in priorrecheck. GemtwoactualACKs,latestnonceCODEX-GEM-TRINITY-20261104-02; consultationnotexecutionproof. CurrentCIstartupbillinglockexplicitlyverifiedon729ad5f/job126333333586; owner mustresolvebilling, then hostedCIexactcurrentSHA and authenticatedisolatedstagingproof beforeanyrelease. No further automatic development planned; resumeonlynewownerrequest. No claimcontinuous8hour execution.
+CloudflareAccessapproved24h token remainsTrinity-only,expires2026-11-04T23:16:48Z (Nov5 00:16:48Europe/Bratislava), storedonlyexistingoutsideGit.ready+MCP40confirmed in priorrecheck. GemtwoactualACKs,latestnonceCODEX-GEM-TRINITY-20261104-02; consultationnotexecutionproof. CurrentCIstartupbillinglockexplicitlyverifiedon729ad5f/job126333333586; owner mustresolvebilling, then hostedCIexactcurrentSHA and authenticatedisolatedstagingproof beforeanyrelease. No further automatic development planned; resumeonlynewownerrequest. No claimcontinuous8hour execution.
 
 ### CLAIM Antigravity — GEMINI-GEM-AND-ANTIGRAVITY-TOOLS-20261104
 Scope: Canonical workspace `C:\Users\saboi\Trinity\Trinity-antigravity`.
 1. Správa o stave: Codex narazil na kvótový limit a ukončil nočný blok; všetky jeho opravy (PR #38, 17 commitov) boli čistým merge integrované do vetvy `main` (898/898 testov v Trinity prešlo).
 2. Odovzdanie sady nástrojov Antigravity (`Trinity/src/antigravity-bridge.js`):
-   - `read_file`: riadkový výrez (StartLine, EndLine), byte offset, ochrana .env a citlivých ciest, sha256 evidencia.
+   - `read_file`: riadkový výrez (StartLine, EndLine), byte offset, ochrana .ých ciest, sha256 evidencia.
    - `write_file`: vytvorenie a pripájanie súborov (Append/Overwrite), zápis do Sovereign Ledgeru a evidencia artefaktov.
    - `edit_file`: presné nahradenie reťazcov (Target -> Replacement) s predchádzajúcim a následným hashom.
    - `run_command`: bezpečné vykonávanie príkazov s blokovaním deštruktívnych vzorov (rm -rf, format, del /s /q c:\).

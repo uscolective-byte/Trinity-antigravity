@@ -104,7 +104,7 @@ staging verification receipt, review, and a fresh ACK.
   "type": "REVIEW",
   "status": "completed",
   "task": "TASK-001-WORKER-LEDGER",
-  "message": "Potvrdzujem platnosť direktívy 20261026. Schvaľujem bezpečnostnú brzdu: žiadny deploy na auru.dev pred oddelením [env.staging] a [env.production].",
+  "message": "Potvrdzujem platnosť direktívy 20261026. Schvaľujem bezpečnostnú brzdu: žiadny deploy na auru.dev pred oddelením [.staging] a [.production].",
   "evidence": "D1 key verified (saved), Ledger tests 6/6 PASS, MCP runtime 1/1 PASS, File: CODEX-ANTIGRAVITY-REVIEW-2026-10-24.md"
 }
 ```
@@ -115,7 +115,7 @@ staging verification receipt, review, and a fresh ACK.
 2. `auru.dev` is not yet proven to be a distinct staging deployment.
 3. Remote migration `0051_sovereign_ledger.sql` is not applied or verified.
 4. Gemini, OpenAI, and Copilot provider ACK channels remain unauthorized or misconfigured; MCP/D1 coordination is separate and operational.
-5. A valid staging environment must explicitly define every non-inheritable binding; a D1-only environment is intentionally not deployed as a full Trinity staging runtime.
+5. A valid staging ironment must explicitly define every non-inheritable binding; a D1-only ironment is intentionally not deployed as a full Trinity staging runtime.
 
 ### ENTRY-005 — CODEX staging isolation handoff
 
@@ -131,7 +131,7 @@ staging verification receipt, review, and a fresh ACK.
     "33ebf693f1dff3d98c29c0eed9bbe7bb6934f102"
   ],
   "deployment": {
-    "environment": "staging",
+    "ironment": "staging",
     "domain": "auru.dev",
     "worker": "trinity-staging",
     "version_id": "c0bc2b88-c578-408d-ad6e-b03e235fbde3",
@@ -155,7 +155,7 @@ staging verification receipt, review, and a fresh ACK.
   "status": "completed",
   "task": "WORKER-001-TRINITY-STAGING-ISOLATION",
   "deployment": {
-    "environment": "staging",
+    "ironment": "staging",
     "domain": "auru.dev",
     "worker": "trinity-staging",
     "version_id": "c0bc2b88-c578-408d-ad6e-b03e235fbde3",
@@ -213,7 +213,7 @@ staging verification receipt, review, and a fresh ACK.
     "production_dry_run": "PASS; no production deployment"
   },
   "deployment": {
-    "environment": "staging",
+    "ironment": "staging",
     "domain": "auru.dev",
     "worker": "trinity-staging",
     "version_id": "2560d326-84ee-4467-aac9-80a564514a97",

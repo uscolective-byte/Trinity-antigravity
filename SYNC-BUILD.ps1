@@ -17,7 +17,7 @@ $ConfigFile = "$ScriptPath\stav-projektu.json"
 # PowerShell execution policies can prevent npm.ps1 from running even when Node
 # is installed correctly. Prefer the Windows command shim, which is not subject
 # to that policy; on other platforms keep the normal npm command.
-$NpmCommand = if ($env:OS -eq 'Windows_NT' -and (Get-Command 'npm.cmd' -ErrorAction SilentlyContinue)) {
+$NpmCommand = if ($ -eq 'Windows_NT' -and (Get-Command 'npm.cmd' -ErrorAction SilentlyContinue)) {
     'npm.cmd'
 }
 else {
@@ -274,14 +274,14 @@ function Verify-Security {
     Log "Checking security..." "INFO"
 
     try {
-        $secretFiles = @("*.dpapi", ".credentials", ".env", ".env.*", ".dev.vars", ".wrangler")
+        $secretFiles = @("*.dpapi", ".credentials", "."..*".dev.vars", ".wrangler")
         $violations = 0
 
         foreach ($pattern in $secretFiles) {
             $found = Get-ChildItem -Path $ScriptPath -Recurse -Force -File -Filter $pattern -ErrorAction SilentlyContinue |
             Where-Object {
                 $_.FullName -notmatch '[\\/](node_modules|\.wrangler|\.git)[\\/]' -and
-                $_.Name -notmatch '^\.env\.(example|sample|template|dist)(\..*)?$'
+                $_.Name -notmatch '^\.example|sample|template|dist)(\..*)?$'
             }
             if ($found) {
                 Log "Potential security issue: $pattern found" "WARN"

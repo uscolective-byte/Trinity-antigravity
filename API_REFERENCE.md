@@ -15,7 +15,7 @@ Verejný stavový endpoint vracajúci živý stav jadra TRINITY OMNI-CORE, autor
   "status": "ONLINE",
   "service": "TRINITY OMNI-CORE",
   "version": "11.0.0",
-  "environment": "staging | production",
+  "ironment": "staging | production",
   "host": "auru.dev | auru.space",
   "mode": "omni-dev | production",
   "root_authority": {

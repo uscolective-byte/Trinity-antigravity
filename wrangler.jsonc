@@ -81,7 +81,7 @@
     "GOOGLE_PROJECT_ID": "tangential-osprey-dl7cp",
     "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
     "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
-    "TRINITY_ENV": "production",
+    "TRINITY_": "production",
     "TRINITY_TAP_ENABLED": "true",
     "TRINITY_TAP_PRODUCTION": "diagnostic-only",
     "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
@@ -353,7 +353,7 @@
       "secret_name": "ollama"
     }
   ],
-  "env": {
+  "": {
     "production": {
       "name": "trinity",
       "routes": [
@@ -394,7 +394,7 @@
         "GOOGLE_PROJECT_ID": "tangential-osprey-dl7cp",
         "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
         "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
-        "TRINITY_ENV": "production",
+        "TRINITY_": "production",
         "TRINITY_TAP_ENABLED": "true",
         "TRINITY_TAP_PRODUCTION": "diagnostic-only",
         "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
@@ -683,7 +683,7 @@
         "GOOGLE_PROJECT_ID": "tangential-osprey-dl7cp",
         "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
         "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
-        "TRINITY_ENV": "staging",
+        "TRINITY_": "staging",
         "TRINITY_TAP_ENABLED": "true",
         "TRINITY_TAP_PRODUCTION": "disabled",
         "TRINITY_PREVIEW_MODE": "build-only",

@@ -9,8 +9,8 @@ Zaznamy/
 Referencie/
 Prototypy/
 *.dpapi
-.env
-.env.*
+.
+..*
 Local-Desktop/Data/
 Local-Desktop/runtime/
 Local-Desktop/Workspace/
@@ -43,8 +43,8 @@ trinity-mcp-bridge/logs/
 opencode.json
 
 
-**/.env
-**/.env.*
+**/.
+**/..*
 *service-account*.json
 .trinity-consumed-nonces.json
 Trinity/workspace/scripts/*.cmd
