@@ -19,12 +19,11 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
-    "codex": "^0.2.3",
     "ethers": "^6.17.0",
     "hono": "^4.13.16",
-    "node": "^27.0.0-alpha.0.0.0",
-    "npx": "^10.2.2",
-    "tunel": "^0.5.1",
     "zod": "^4.6.7"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }

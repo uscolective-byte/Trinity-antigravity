@@ -50,12 +50,15 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
           cache-dependency-path: |
             Trinity/package-lock.json
             PC-Bridge-Worker/package-lock.json
             Local-Gateway/package-lock.json
+
+      - name: Install root tooling dependencies
+        run: npm ci --ignore-scripts
 
       - name: Install TAP contracts dependencies
         working-directory: packages/contracts
