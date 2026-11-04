@@ -14,13 +14,20 @@ export const memorySkills = {
    */
   async learnFromChat(rawText, env) {
     if (!rawText || typeof rawText !== 'string') return null;
-    const match = rawText.match(/^!skill\s+([a-zA-Z0-9_-]+)\s*=\s*(.+)$/is);
+    const match = rawText.match(/^!skill\s+([a-zA-Z0-9_-]+)\s*=\s*(.*)$/is);
     if (!match) {
       return null;
     }
 
     const cmdName = match[1].toLowerCase().trim();
     const instructions = match[2].trim();
+
+    if (!instructions) {
+      throw new Error('Pokyn príkazu nesmie byť prázdny.');
+    }
+    if (['skill', 'zoznam', 'zlepsenie'].includes(cmdName)) {
+      throw new Error(`Názov !${cmdName} je vyhradený pre zabudovaný príkaz. Zvoľ iný názov.`);
+    }
 
     if (!env?.DB) {
       throw new Error('D1 databáza nie je k dispozícii pre uloženie príkazu.');

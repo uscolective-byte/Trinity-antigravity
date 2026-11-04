@@ -195,3 +195,31 @@ test('runAgent does not emit a completed memory receipt when readback fails', as
   };
   await assert.rejects(runAgent(env, 'orchestrator', '!skill plan = Vytvor plán.'), /D1 read unavailable/);
 });
+
+test('empty learned instructions cannot overwrite an existing command or invalidate its cache',async()=>{
+  const env=createMockMemoryDB();
+  await memorySkills.learnFromChat('!skill plan = Zachovaj tento plán.',env);
+  await memorySkills.getAllCommands(env);
+  const cached=env.CACHE.cacheStore.get('trinity:learned_commands');
+  for(const suffix of ['',' ','\t\n  ']){
+    await assert.rejects(memorySkills.learnFromChat('!skill plan ='+suffix,env),/prázdn|pokyn/i);
+    assert.equal(env.DB.store.get('plan').instructions,'Zachovaj tento plán.');
+    assert.equal(env.CACHE.cacheStore.get('trinity:learned_commands'),cached);
+  }
+});
+
+test('builtin command names are rejected before database access',async()=>{
+  let writes=0;
+  const env={DB:{prepare(){writes++;throw Error('Unexpected DB access');}}};
+  for(const name of ['zoznam','ZLEPSENIE','skill']){
+    await assert.rejects(memorySkills.learnFromChat(`!skill ${name} = Vlastný pokyn.`,env),/vyhraden/i);
+  }
+  assert.equal(writes,0);
+});
+
+test('runAgent rejects blank learning requests without model inference or successful receipt',async()=>{
+  const env=createMockMemoryDB();
+  env.AI={run(){throw Error('No model call expected');}};
+  await assert.rejects(runAgent(env,'orchestrator','!skill plan ='),/Pokyn príkazu nesmie byť prázdny/);
+  assert.equal(env.DB.store.size,0);
+});
