@@ -130,7 +130,7 @@ function selectPromptTools(activeTools, task) {
     ['diagnostic_ping','service_status','integration_status'].forEach(t => priority.add(t));
   }
   if (/\b(kod|code|subor|projekt|oprav|fix|inspect|git|build|deploy|hosting|infra|migrac)\b/.test(norm)) {
-    ['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','install_plugin'].forEach(t => priority.add(t));
+    ['read_file','write_file','edit_file','run_command','execute_gemini_gem','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','install_plugin','search_marketplace'].forEach(t => priority.add(t));
   }
   if (/\b(domen|dns|subdomen|escrow|predaj|prenajom|hosting)\b/.test(norm)) {
     ['domain_search','domain_add','domain_register','domain_set_dns','domain_delete_dns','domain_env_provision','domain_env_deploy','domain_marketplace','domain_list_for_sale'].forEach(t => priority.add(t));

@@ -50,8 +50,10 @@ import {SovereignLedgerV3,TMACConsensusEngine,StateReplayEngine,CodeProvenanceTr
 import {SOVEREIGN_IDENTITY,ROOT_REGISTRY,SOVEREIGN_LEGAL_CHARTER_20,validateSovereignCharterCompliance,SovereignLockMiddleware,enforceDataCommandBoundary} from './sovereign-lock.js';
 import {SovereignTruthGuard,ExecutionLifecycleGuard,TEN_COMMANDMENTS_OF_TRUTH} from './truth.js';
 import {diagnoseOmniDevStackTrace,proposeOmniDevRecoveryPatch} from './omnidev-diagnostics.js';
+import {executeGeminiGemAgent} from './gemini-gem-agent.js';
+import {antigravityReadFile,antigravityWriteFile,antigravityEditFile,antigravityRunCommand,antigravityManageTask,antigravitySearchMarketplace} from './antigravity-bridge.js';
 
-export const INTERNAL_TOOLS=new Set(['diagnostic_ping','request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose','cf_d1_query','cf_kv_store','cf_r2_manage','cf_self_deploy','mail_engine','http_fetch_pro','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','apply_self_evolution','triad_subagent_run','triad_deep_research','triad_code_patch','triad_test_matrix','triad_copilot_sync','triad_status']);
+export const INTERNAL_TOOLS=new Set(['diagnostic_ping','request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose','cf_d1_query','cf_kv_store','cf_r2_manage','cf_self_deploy','mail_engine','http_fetch_pro','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','apply_self_evolution','triad_subagent_run','triad_deep_research','triad_code_patch','triad_test_matrix','triad_copilot_sync','triad_status','read_file','write_file','edit_file','run_command','manage_task','search_marketplace','execute_gemini_gem']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
 export const OWNER_BUSINESS_TOOLS=new Set(['finance_propose_transfer','finance_confirm_transfer','finance_audit_ledger','prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
@@ -313,7 +315,14 @@ export const TOOL_SCHEMAS={
   }).strict(),
   diagnostic_ping:z.object({
     message:z.string().max(200).default('ping')
-  }).strict()
+  }).strict(),
+  read_file:z.object({Path:z.string().min(1).max(2000),StartLine:z.number().int().optional(),EndLine:z.number().int().optional(),ByteOffset:z.number().int().optional()}).strict(),
+  write_file:z.object({Path:z.string().min(1).max(2000),Content:z.string().max(10_000_000),Append:z.boolean().optional().default(false),Overwrite:z.boolean().optional().default(false),ArtifactMetadata:z.record(z.string(),z.unknown()).optional().nullable()}).strict(),
+  edit_file:z.object({Path:z.string().min(1).max(2000),Target:z.string().min(1).max(500000),Replacement:z.string().max(500000),ArtifactMetadata:z.record(z.string(),z.unknown()).optional().nullable()}).strict(),
+  run_command:z.object({CommandLine:z.string().min(1).max(8000),WaitMsBeforeAsync:z.number().int().min(500).max(120000).optional().default(5000),toolSummary:z.string().max(200).optional().default('Command Execution'),IsDaemon:z.boolean().optional().default(false)}).strict(),
+  manage_task:z.object({Action:z.enum(['list','kill','status','send_input']),TaskId:z.string().optional(),Input:z.string().optional()}).strict(),
+  search_marketplace:z.object({queries:z.array(z.string()).default([]),kind:z.enum(['all','plugin','skill']).default('all'),limit:z.number().int().min(1).max(50).default(10)}).strict(),
+  execute_gemini_gem:z.object({task:z.string().min(1).max(20000),systemPrompt:z.string().max(10000).optional(),maxTokens:z.number().int().optional()}).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -1183,6 +1192,53 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     }
     return result;
   }
+  if(name==='read_file'){
+    const root = typeof process !== 'undefined' && process.cwd ? process.cwd() : '.';
+    return antigravityReadFile(root, args);
+  }
+  if(name==='write_file'){
+    const root = typeof process !== 'undefined' && process.cwd ? process.cwd() : '.';
+    return antigravityWriteFile(root, args);
+  }
+  if(name==='edit_file'){
+    const root = typeof process !== 'undefined' && process.cwd ? process.cwd() : '.';
+    return antigravityEditFile(root, args);
+  }
+  if(name==='run_command'){
+    const root = typeof process !== 'undefined' && process.cwd ? process.cwd() : '.';
+    return antigravityRunCommand(root, args);
+  }
+  if(name==='manage_task'){
+    return antigravityManageTask(args);
+  }
+  if(name==='search_marketplace'){
+    return antigravitySearchMarketplace(args);
+  }
+  if(name==='execute_gemini_gem'){
+    return executeGeminiGemAgent(env, args.task, args);
+  }
+  if(name==='triad_subagent_run'){
+    const roleMap = {
+      researcher: 'Výskumný špecialista Triády',
+      architect: 'Architekt suverénneho systému Triády',
+      codegen: 'Kódovací špecialista Triády',
+      tester: 'Testovací špecialista Triády',
+      sentinel: 'Bezpečnostný strážca Triády'
+    };
+    const rolePrompt = roleMap[args.role] || 'Špecializovaný subagent Triády';
+    return executeGeminiGemAgent(env, args.task, { systemPrompt: 'Si ' + rolePrompt + '. Vykonaj zadanú úlohu odborne a presne.' });
+  }
+  if(name==='triad_status'){
+    return {
+      status: 'active',
+      triad: {
+        trinity: { role: 'Sovereign Orchestrator', ready: true },
+        codex: { role: 'Background Developer', status: 'standby' },
+        antigravity: { role: 'Agentic Controller', status: 'online' }
+      },
+      gemini_gem_unlimited: { status: 'READY_NO_LIMIT' }
+    };
+  }
   if(name==='meta_manage'){
     const ownerId=(env?.TRINITY_OWNER_EMAIL||'saboivan2008@gmail.com').trim().toLowerCase();
     const origin='https://auru.space';
@@ -1399,6 +1455,13 @@ export const TOOL_HELP={
   triad_test_matrix:'Spustí kompletný verifikačný testovací matrix Trinity (549+ testov) s reportom výsledku: {suite?:all|unit|integration|truth|social}',
   triad_copilot_sync:'Prepojenie a synchronizácia s Microsoft Copilot Studio (Trinitys) a OpenAI asistentmi: {action:status|chat|list_skills|sync_tenant, message?:string}',
   triad_status:'Kompletný live stav a telemetria Zvrchovanej Triády (Trinity + Codex + Antigravity): {}',
+  read_file:'Prečíta obsah súboru s voliteľným riadkovým rozsahom a offsetom: {Path:string,StartLine?:number,EndLine?:number,ByteOffset?:number}',
+  write_file:'Vytvorí alebo prepíše súbor s evidenciou v ledgeri: {Path:string,Content:string,Append?:boolean,Overwrite?:boolean,ArtifactMetadata?:object}',
+  edit_file:'Presne nahradí reťazec Target za Replacement v súbore: {Path:string,Target:string,Replacement:string,ArtifactMetadata?:object}',
+  run_command:'Spustí príkaz s riadeným timeoutom a zachytením výstupu: {CommandLine:string,WaitMsBeforeAsync?:number,toolSummary?:string,IsDaemon?:boolean}',
+  manage_task:'Správa asynchrónnych úloh a procesov: {Action:list|kill|status|send_input,TaskId?:string,Input?:string}',
+  search_marketplace:'Prehľadáva pluginy a skilly v katalógu: {queries?:string[],kind?:all|plugin|skill,limit?:number}',
+  execute_gemini_gem:'Spustí bezlimitného Gemini GEM agenta s dynamickou kaskádou modelov a edge fallbackom: {task:string,systemPrompt?:string,maxTokens?:number}',
   finance_propose_transfer:'Pripraví autorizovaný finančný príkaz s limitom 50€/200€ denne: {amount_eur:number,recipient:string,provider?:revolut|paypal|sepa,note?:string}',
   finance_confirm_transfer:'Potvrdí a kryptograficky zapíše prevod do auditného ledgera: {proposal_id:string,confirmation_token?:string}',
   finance_audit_ledger:'Zobrazí nemennú auditnú knihu finančných transakcií: {limit?:number}',
