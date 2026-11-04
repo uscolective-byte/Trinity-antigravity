@@ -1,14 +1,19 @@
 # Overnight validation — 2026-11-04
 
-Runtime candidate: `729ad5f11e6591c523568c80f9163dd81d554ba7`.
+Runtime candidate: `5d644b82027bcb890ccd85986b0973b34e45d3b2`.
 Review: draft [PR #38](https://github.com/uscolective-byte/Trinity-antigravity/pull/38).
 
 ## Local evidence
 
-- Trinity production dry-run build passed.
-- Full Trinity suite: 895/895 tests passed on Node 24.22.2; no skipped tests.
+- Trinity production and staging dry-run builds passed.
+- Full Trinity suite: 898/898 tests passed on Node 24.22.2; no skipped tests.
 - Clean root install with lifecycle scripts disabled passed; root audit: zero
-  findings; all 62 root tests passed. This is not an audit of all service locks.
+  findings; all 62 root tests passed on Node 24.22.2.
+- Fresh registry lockfile audits found zero findings in both root and Trinity,
+  including development dependencies. Other service lockfiles are not covered.
+- Combined Audit-Worker, Local-Desktop, PC-Bridge-Worker and MCP bridge suites:
+  48/48 passed on Node 24.22.2; no skipped tests. Native desktop UI E2E tests
+  were not repeated in this final validation.
 - Local-Gateway suite rechecked: 61/61 passed; no skipped tests.
 - Release documentation synchronization check passed.
 - Local Secrets Store metadata doctor passed without reading secret values.
@@ -27,7 +32,7 @@ Credential values are outside Git and excluded from this record.
 
 ## Hosted release blocker
 
-The [Trinity CI job for the candidate](https://github.com/uscolective-byte/Trinity-antigravity/actions/runs/41756373239/job/126333333586)
+The [Trinity CI job for earlier runtime commit 729ad5f](https://github.com/uscolective-byte/Trinity-antigravity/actions/runs/41756373239/job/126333333586)
 failed before executing any steps. Its annotation was inspected in the
 owner's existing authenticated browser session and explicitly states that
 the account is locked due to a billing issue.
