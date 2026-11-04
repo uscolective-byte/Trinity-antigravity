@@ -1,3 +1,4 @@
+import {formatFleetStatus} from './fleet-response.js';
 /**
  * @module TRINITY_OMNI_CORE
  * @subsystem COGNITIVE_EXECUTION_ENGINE
@@ -275,14 +276,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
         (tasks.length?tasks.map((t,i)=>`${i+1}. **${t.title||'Úloha'}** — Stav: \`${t.status||'neznámy'}\``).join('\n'):'V databáze nie sú žiadne rozpracované úlohy.')+
         `\n\n*Dáta načítané priamo z D1 tabuľky \`tasks\`.*`;
     }
-    else if(direct.name==='fleet_status'){
-      const online=(outcome.fleet||[]).filter(w=>w.status==='online');
-      const auxOnline=(outcome.auxiliary_fleet||[]).filter(w=>w.status==='online');
-      text=`🐝 **Stav flotily Cloudflare Workerov a Service Bindingov (${outcome.online_count}/${outcome.total_workers} hlavných + ${auxOnline.length}/${outcome.auxiliary_workers||0} pomocných online)**:\n\n`+
-        `- **Hlavné špecializované Workery online (${online.length})**: ${online.map(w=>`\`${w.worker}\` (${w.service})`).join(', ')||'žiadne'}\n`+
-        (auxOnline.length?`- **Pomocné Workery online (${auxOnline.length})**: ${auxOnline.map(w=>`\`${w.worker}\` (${w.service})`).join(', ')}\n`:'')+
-        `\nVšetky pripojené Workery sú dostupné cez nízkolatenčné Cloudflare Service Bindings (\`delegate_worker\`, \`orchestrate_team\`, \`fleet_status\`).`;
-    }
+    else if(direct.name==='fleet_status')text=formatFleetStatus(outcome);
     else text=outcome.localized||JSON.stringify(outcome);
     return {text,model:'deterministic-tool',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:0};
   }
@@ -291,15 +285,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     const started=Date.now();
     const outcome=await runTool(env,agent,'fleet_status',{});
     const receipt={tool:'fleet_status',status:'completed',effect:'read',receipt_id:outcome._evidence?.receipt_id||`fleet:${Date.now()}`,verified_at:new Date().toISOString()};
-    const online=(outcome.fleet||[]).filter(w=>w.status==='online');
-    const offline=(outcome.fleet||[]).filter(w=>w.status!=='online');
-    const auxOnline=(outcome.auxiliary_fleet||[]).filter(w=>w.status==='online');
-    const text=`🐝 **Cloudflare Worker Flotila & Service Bindings Trinity (${outcome.online_count}/${outcome.total_workers} hlavných + ${auxOnline.length}/${outcome.auxiliary_workers||0} pomocných Workerov online)**\n\n`+
-      `### ✅ Aktívne špecializované Workery (${online.length}):\n`+
-      online.map(w=>`- **\`${w.worker}\`** (\`${w.service}\` · *${w.role}*) — Stav: \`online\``).join('\n')+
-      (auxOnline.length?`\n\n### ⚡ Pomocné Service Bindings (${auxOnline.length}):\n`+auxOnline.map(w=>`- **\`${w.worker}\`** (\`${w.service}\` · *${w.role}*) — Stav: \`online\``).join('\n'):'')+
-      (offline.length?`\n\n### ⚠️ Workery mimo odozvy (${offline.length}):\n`+offline.map(w=>`- \`${w.worker}\` (\`${w.service}\` — ${w.status})`).join('\n'):'')+
-      `\n\n*Trinity automaticky deleguje úlohy na tieto Workery cez nástroje \`delegate_worker\`, \`orchestrate_team\` a \`fleet_status\`.*`;
+    const text=formatFleetStatus(outcome);
     return {text,model:'trinity-fleet-orchestrator',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
   }
   if(id==='orchestrator'&&activeTools.includes('pc_open_app')&&isOpenAppRequest(task,context)){
