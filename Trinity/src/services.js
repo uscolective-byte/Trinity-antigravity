@@ -137,6 +137,18 @@ export function usableModelText(text) {
   const repeated = compact.match(/(.)\1{79,}/gu) || [];
   return repeated.reduce((size, run) => size + run.length, 0) < compact.length * 0.8;
 }
+async function readModelResponse(response,provider) {
+  if(!response.ok){
+    await response.body?.cancel().catch(()=>{});
+    const reason=[401,403].includes(response.status)?'Poskytovateľ odmietol prístup.':
+      response.status===429?'Poskytovateľ oznámil limit požiadaviek.':
+      response.status>=500?'Služba poskytovateľa je dočasne nedostupná.':'Požiadavka zlyhala.';
+    throw new Error(`${provider} HTTP ${response.status}: ${reason}`);
+  }
+  try{return JSON.parse(await boundedText(response,250000));}
+  catch{throw new Error(`${provider} vrátil neplatnú odpoveď.`);}
+}
+
 export async function callModel(env, provider, messages, maxTokens = 8192, customModel = null) {
   if(provider==='local'){
     if(!env.TRINITY_GATEWAY_KEY)throw new Error('Lokálna brána nie je nakonfigurovaná.');
@@ -243,8 +255,7 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
         if(![400,404].includes(fallbackResponse.status))break;
       }
     }
-    const data=JSON.parse(await boundedText(response,250000));
-    if(!response.ok)throw new Error(`Gemini HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
+    const data=await readModelResponse(response,'Gemini');
     const text=extractGeminiInteractionText(data);
     if(!text)throw new Error('Gemini vrátilo prázdnu odpoveď.');
     return {text,model:usedModel,provider,usage:{input:data.usageMetadata?.promptTokenCount||0,output:data.usageMetadata?.candidatesTokenCount||0}};
@@ -283,8 +294,7 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
         signal:AbortSignal.timeout(120000),redirect:'manual'
       });
     }
-    const data=JSON.parse(await boundedText(response,250000));
-    if(!response.ok)throw new Error(`OpenAI HTTP ${response.status}: ${String(data.error?.message||'požiadavka zlyhala').slice(0,400)}`);
+    const data=await readModelResponse(response,'OpenAI');
     const text=extractModelText(data);
     if(!text.trim())throw new Error('OpenAI vrátilo prázdnu odpoveď.');
     return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||data.usage?.input_tokens||0,output:data.usage?.completion_tokens||data.usage?.output_tokens||0}};
@@ -302,8 +312,7 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
       body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:0.3}),
       signal:AbortSignal.timeout(120000),redirect:'manual'
     });
-    const data=JSON.parse(await boundedText(response,250000));
-    if(!response.ok)throw new Error(`Groq HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
+    const data=await readModelResponse(response,'Groq');
     const text=extractModelText(data);
     if(!text.trim())throw new Error('Groq vrátil prázdnu odpoveď.');
     return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||0,output:data.usage?.completion_tokens||0}};
@@ -320,8 +329,7 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
       body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:0.3}),
       signal:AbortSignal.timeout(120000),redirect:'manual'
     });
-    const data=JSON.parse(await boundedText(response,250000));
-    if(!response.ok)throw new Error(`DeepSeek HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
+    const data=await readModelResponse(response,'DeepSeek');
     const text=extractModelText(data);
     if(!text.trim())throw new Error('DeepSeek vrátil prázdnu odpoveď.');
     return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||0,output:data.usage?.completion_tokens||0}};
@@ -339,8 +347,7 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
       body:JSON.stringify({model,messages:chatMessages,system:system||undefined,max_tokens:Math.min(maxTokens,8192),temperature:0.3}),
       signal:AbortSignal.timeout(120000),redirect:'manual'
     });
-    const data=JSON.parse(await boundedText(response,250000));
-    if(!response.ok)throw new Error(`Anthropic HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
+    const data=await readModelResponse(response,'Anthropic');
     const text=data.content?.[0]?.text||'';
     if(!text.trim())throw new Error('Anthropic Claude vrátil prázdnu odpoveď.');
     return {text,model:data.model||model,provider,usage:{input:data.usage?.input_tokens||0,output:data.usage?.output_tokens||0}};
@@ -357,8 +364,7 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
       body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:0.3}),
       signal:AbortSignal.timeout(120000),redirect:'manual'
     });
-    const data=JSON.parse(await boundedText(response,250000));
-    if(!response.ok)throw new Error(`Mistral HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
+    const data=await readModelResponse(response,'Mistral');
     const text=extractModelText(data);
     if(!text.trim())throw new Error('Mistral AI vrátil prázdnu odpoveď.');
     return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||0,output:data.usage?.completion_tokens||0}};
@@ -375,8 +381,7 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
       body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:0.3}),
       signal:AbortSignal.timeout(120000),redirect:'manual'
     });
-    const data=JSON.parse(await boundedText(response,250000));
-    if(!response.ok)throw new Error(`OpenRouter HTTP ${response.status}: ${data.error?.message||'požiadavka zlyhala'}`);
+    const data=await readModelResponse(response,'OpenRouter');
     const text=extractModelText(data);
     if(!text.trim())throw new Error('OpenRouter vrátil prázdnu odpoveď.');
     return {text,model:data.model||model,provider,usage:{input:data.usage?.prompt_tokens||0,output:data.usage?.completion_tokens||0}};
