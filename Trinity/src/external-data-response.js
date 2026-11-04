@@ -22,3 +22,14 @@ export function formatCryptoPrices(outcome={}) {
     `- ${coin.symbol||coin.id}: ${coin.price_usd} USD${coin.timestamp?` (čas údaja: ${coin.timestamp})`:''}`
   ).join('\n')+(outcome.source?`\nZdroj: ${outcome.source}.`:'');
 }
+
+export function formatTechNews(outcome={}) {
+  if(outcome.available!==true)return outcome.reason||'Nepodarilo sa načítať technologické správy.';
+  const stories=(Array.isArray(outcome.stories)?outcome.stories:[]).filter(story=>typeof story?.title==='string'&&story.title.trim());
+  if(!stories.length)return 'Zdroj nevrátil žiadne dostupné technologické správy.';
+  return 'Technologické správy zo zdroja Hacker News:\n'+stories.map(story=>{
+    const title=story.url?`[${story.title}](${story.url})`:story.title;
+    const metrics=[numeric(story.score)?`${story.score} bodov`:null,numeric(story.comments_count)?`${story.comments_count} komentárov`:null].filter(Boolean);
+    return `- ${title}${metrics.length?` (${metrics.join(' · ')})`:''}`;
+  }).join('\n');
+}

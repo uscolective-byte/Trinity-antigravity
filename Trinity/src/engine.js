@@ -1,4 +1,4 @@
-import {formatWeather,formatCryptoPrices} from './external-data-response.js';
+import {formatWeather,formatCryptoPrices,formatTechNews} from './external-data-response.js';
 import {formatFleetStatus} from './fleet-response.js';
 /**
  * @module TRINITY_OMNI_CORE
@@ -35,7 +35,7 @@ export function executionPolicyForProvider(provider,ownerMode=false){
   return {geminiOperator:provider==='gemini'&&directAdmin,directAdmin,allowInternal:directAdmin,allowDirectPC:directAdmin,approvalRequired:false};
 }
 export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
-  if(outcome?.ok===false||outcome?.success===false||outcome?.error||outcome?.opened===false||outcome?.desktop?.opened===false||['failed','cancelled','denied','blocked'].includes(outcome?.status))
+  if(outcome?.ok===false||outcome?.success===false||outcome?.available===false||outcome?.error||outcome?.opened===false||outcome?.desktop?.opened===false||['failed','cancelled','denied','blocked'].includes(outcome?.status))
     return {tool:'pc_open_app',status:'failed',effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
   const state=outcome?.status;
   if(['pending','proposed','queued','approved','claimed','running'].includes(state)){
@@ -51,7 +51,7 @@ export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
 export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOString()){
   // Failure/partial outcomes take precedence over generated _evidence metadata.
   // A receipt id by itself cannot prove a provider-side mutation succeeded.
-  if(outcome==null||typeof outcome==='object'&&!Array.isArray(outcome)&&Object.keys(outcome).length===0||outcome?.error||outcome?.ok===false||outcome?.success===false||['failed','partial','not_configured','blocked','cancelled','unavailable','error','timeout','unknown','denied','not_verified'].includes(outcome?.status)){
+  if(outcome==null||typeof outcome==='object'&&!Array.isArray(outcome)&&Object.keys(outcome).length===0||outcome?.error||outcome?.ok===false||outcome?.success===false||outcome?.available===false||['failed','partial','not_configured','blocked','cancelled','unavailable','error','timeout','unknown','denied','not_verified'].includes(outcome?.status)){
     const status=outcome?.status==='partial'?'partial':'failed';
     return {tool,status,effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
   }
@@ -267,7 +267,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     else if(direct.name==='search_memory')text=(outcome.records||[]).length?`Nájdené záznamy v pamäti (${outcome.records.length}):\n`+outcome.records.slice(0,8).map(m=>`- **${m.key||m.source||'záznam'}**: ${String(m.value||m.content||'').slice(0,220)}`).join('\n'):'V pamäti sa pre tento dopyt nenašiel žiadny záznam.';
     else if(direct.name==='open_weather')text=formatWeather(outcome);
     else if(direct.name==='crypto_prices')text=formatCryptoPrices(outcome);
-    else if(direct.name==='tech_news')text=(outcome.stories||[]).length?`📰 **Najnovšie technologické správy (HackerNews)**:\n`+outcome.stories.map(s=>`- [${s.title}](${s.url||'https://news.ycombinator.com/item?id='+s.id}) (${s.score} bodov · ${s.comments} komentárov)`).join('\n'):'Nepodarilo sa načítať technologické správy.';
+    else if(direct.name==='tech_news')text=formatTechNews(outcome);
     else if(direct.name==='infrastructure_status'){
       text=formatInfrastructureStatus(outcome);
   }

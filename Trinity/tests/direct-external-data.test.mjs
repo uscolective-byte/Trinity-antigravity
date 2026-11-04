@@ -52,6 +52,8 @@ test('Bitcoin chat requests Bitcoin and labels the returned price as USD without
 test('upstream weather failure does not become a fabricated weather answer',async t=>{
  t.mock.method(globalThis,'fetch',async()=>new Response('Unavailable',{status:503}));
  const result=await runAgent({},'orchestrator','Počasie v Bratislava?','','fast');
+ assert.equal(result.tool_log[0].status,'failed');
+ assert.equal(result.execution_status,'failed');
  assert.doesNotMatch(result.text,/°C|undefined/);
  assert.match(result.text,/503|nepodarilo|nedostupn|zlyhal/i);
 });
