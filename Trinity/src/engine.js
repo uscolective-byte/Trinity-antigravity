@@ -264,7 +264,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     }
     else if(direct.name==='list_skills')text=`Mám dostupných ${(outcome.skills||[]).length} špecializovaných zručností (skills): ${(outcome.skills||[]).map(s=>s.name).join(', ')}.`;
     else if(direct.name==='domain_list')text=(outcome.items||[]).length?`Evidované domény (${outcome.items.length}): ${outcome.items.map(d=>`${d.domain_name} (${d.status})`).join(', ')}.`:'V evidencii zatiaľ nie sú žiadne domény.';
-    else if(direct.name==='search_memory')text=(outcome.matches||[]).length?`Nájdené záznamy v pamäti (${outcome.matches.length}):\n`+outcome.matches.slice(0,8).map(m=>`- **${m.key||m.source||'záznam'}**: ${String(m.value||m.content||'').slice(0,220)}`).join('\n'):'V pamäti sa pre tento dopyt nenašiel žiadny záznam.';
+    else if(direct.name==='search_memory')text=(outcome.records||[]).length?`Nájdené záznamy v pamäti (${outcome.records.length}):\n`+outcome.records.slice(0,8).map(m=>`- **${m.key||m.source||'záznam'}**: ${String(m.value||m.content||'').slice(0,220)}`).join('\n'):'V pamäti sa pre tento dopyt nenašiel žiadny záznam.';
     else if(direct.name==='open_weather')text=formatWeather(outcome);
     else if(direct.name==='crypto_prices')text=formatCryptoPrices(outcome);
     else if(direct.name==='tech_news')text=(outcome.stories||[]).length?`📰 **Najnovšie technologické správy (HackerNews)**:\n`+outcome.stories.map(s=>`- [${s.title}](${s.url||'https://news.ycombinator.com/item?id='+s.id}) (${s.score} bodov · ${s.comments} komentárov)`).join('\n'):'Nepodarilo sa načítať technologické správy.';
