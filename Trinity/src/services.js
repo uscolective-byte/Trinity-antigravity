@@ -233,11 +233,14 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
           signal:AbortSignal.timeout(120000),
           redirect:'manual'
         });
+        response=fallbackResponse;
         if(fallbackResponse.ok){
-          response=fallbackResponse;
           usedModel=candidateModel;
           break;
         }
+        // Trying another model is only a compatibility fallback. It cannot
+        // repair rejected credentials, provider limits or a service outage.
+        if(![400,404].includes(fallbackResponse.status))break;
       }
     }
     const data=JSON.parse(await boundedText(response,250000));
