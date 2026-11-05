@@ -2735,3 +2735,6 @@ Merge commit/push este nebol vytvoreny v case tohto zaznamu; dalsi vlastnik: rel
 
 ### UPDATE / HANDOFF — PR37-CONFLICT-CURRENT-MAIN-20261105-COPILOT-01
 Merge commit `818e356ede0617724d12f1e5803713f158305540` bol vytvoreny a pushnuty na `uscolective-byte-desktop-commander-mcp`; `git ls-remote` potvrdil rovnaky SHA. GitHub PR #37 teraz hlasi `MERGEABLE` bez konfliktu. Pri kontrole boli povinne CI kontroly a dva Vercel kontexty stale `IN_PROGRESS`/`PENDING`; hosted CI preto nie je finalne overene. Pracovny strom bol cisty. PR sa nemergoval, staging/prod deploy ani migracie sa nevykonali.
+
+### UPDATE / HANDOFF — PR37-CONFLICT-CURRENT-MAIN-20261105-COPILOT-01
+Na head `7cbfa782140b1f1803a823b5ef331066c903c63f` su Vercel kontroly a `contracts` uspesne, no dve GitHub Actions kontroly zlyhali. `Cloudflare build, tests, dependency and AI policy` zlyhalo v `npm run docs:check` pre neaktualne `README.md` a `Trinity/README.md`; `Trinity integrations checks` zlyhalo, lebo `Trinity/src/mcp.js` importuje chybanuci `Trinity/dist-mcp/control.html`. Tieto subory nie su zmenene v PR diff-e, preto sa ich nezavisle problemy z main v tejto PR vetve neupravuju. CodeQL bol pri poslednej kontrole este bez vysledku. PR ostava bez konfliktu; merge ani deploy sa nevykonali.
