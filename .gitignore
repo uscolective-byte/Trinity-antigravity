@@ -61,3 +61,6 @@ Trinity bruno/
 /Trinity/dist-staging/
 
 Trinity/workspace/receipt-test/
+
+# Next.js build and cache directory
+.next/
