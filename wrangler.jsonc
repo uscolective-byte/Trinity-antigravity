@@ -13,10 +13,6 @@
     {
       "pattern": "auru.space",
       "custom_domain": true
-    },
-    {
-      "pattern": "auru.dev",
-      "custom_domain": true
     }
   ],
   "triggers": {
@@ -145,6 +141,10 @@
       "bucket_name": "trinity-artifacts"
     },
     {
+      "binding": "R2_STORAGE",
+      "bucket_name": "trinity-artifacts"
+    },
+    {
       "binding": "TRINITY_STORAGE",
       "bucket_name": "trinity-artifacts"
     },
@@ -160,6 +160,10 @@
   "vectorize": [
     {
       "binding": "VECTORIZE",
+      "index_name": "trinity-vector-index"
+    },
+    {
+      "binding": "VECTOR_INDEX",
       "index_name": "trinity-vector-index"
     },
     {
@@ -360,10 +364,6 @@
         {
           "pattern": "auru.space",
           "custom_domain": true
-        },
-        {
-          "pattern": "auru.dev",
-          "custom_domain": true
         }
       ],
       "triggers": {
@@ -458,6 +458,10 @@
           "bucket_name": "trinity-artifacts"
         },
         {
+          "binding": "R2_STORAGE",
+          "bucket_name": "trinity-artifacts"
+        },
+        {
           "binding": "TRINITY_STORAGE",
           "bucket_name": "trinity-artifacts"
         },
@@ -473,6 +477,10 @@
       "vectorize": [
         {
           "binding": "VECTORIZE",
+          "index_name": "trinity-vector-index"
+        },
+        {
+          "binding": "VECTOR_INDEX",
           "index_name": "trinity-vector-index"
         },
         {
@@ -661,40 +669,23 @@
       "triggers": {
         "crons": []
       },
-      "routes": [],
+      "routes": [
+        {
+          "pattern": "auru.dev",
+          "custom_domain": true
+        }
+      ],
       "vars": {
-        "CF_ACCOUNT_ID": "b60342e5e52f5646fbd4e913bb409334",
-        "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-        "AI_FALLBACK_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
-        "AI_FAST_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
-        "OPENAI_MODEL": "gpt-4.1-mini",
-        "GEMINI_MODEL": "gemini-3.8-flash",
-        "IMAGE_MODEL": "@cf/black-forest-labs/flux-1-schnell",
-        "VISION_MODEL": "@cf/meta/llama-3.2-11b-vision-instruct",
-        "STT_MODEL": "@cf/openai/whisper-large-v3-turbo",
-        "TTS_MODEL": "@cf/myshell-ai/melotts",
-        "OLLAMA_MODEL": "gemma4:31b",
-        "TRINITY_ADMIN_EMAILS": "saboivan2008@gmail.com,usc31@auru.space,uscolective@gmail.com,delirium.trade12@gmail.com",
-        "TRINITY_OWNER_EMAIL": "saboivan2008@gmail.com",
-        "TRINITY_OWNER_EMAILS": "saboivan2008@gmail.com,uscolective@gmail.com,usc31@auru.space",
-        "GOOGLE_ENABLED": "false",
-        "GOOGLE_CLIENT_ID": "618392104829-trinity-auru-space.apps.googleusercontent.com",
-        "GOOGLE_REDIRECT_URI": "https://auru.dev/auth/google/callback",
-        "GOOGLE_PROJECT_ID": "tangential-osprey-dl7cp",
-        "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
-        "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
+        "ENVIRONMENT": "staging",
         "TRINITY_ENV": "staging",
-        "TRINITY_TAP_ENABLED": "true",
-        "TRINITY_TAP_PRODUCTION": "disabled",
         "TRINITY_PREVIEW_MODE": "build-only",
         "TRINITY_ASSISTANT_BRIDGE_ENABLED": "false",
+        "TRINITY_TAP_ENABLED": "true",
+        "TRINITY_TAP_PRODUCTION": "disabled",
         "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
         "TRINITY_GITHUB_BRANCH": "main",
         "TRINITY_AUTO_IMPROVE": "false",
-        "TRINITY_AUTO_MERGE": "false",
-        "AI_FAST_FALLBACK_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-        "META_APP_ID": "1105151122389213",
-        "META_GRAPH_VERSION": "v26.0"
+        "TRINITY_AUTO_MERGE": "false"
       },
       "ai": {
         "binding": "AI"
@@ -748,6 +739,10 @@
           "bucket_name": "trinity-development-artifacts"
         },
         {
+          "binding": "R2_STORAGE",
+          "bucket_name": "trinity-development-artifacts"
+        },
+        {
           "binding": "TRINITY_STORAGE",
           "bucket_name": "trinity-development-artifacts"
         },
@@ -763,11 +758,15 @@
       "vectorize": [
         {
           "binding": "VECTORIZE",
-          "index_name": "trinity-vector-index"
+          "index_name": "trinity-vector-index-staging"
+        },
+        {
+          "binding": "VECTOR_INDEX",
+          "index_name": "trinity-vector-index-staging"
         },
         {
           "binding": "AURA_MEMORY_VECTOR",
-          "index_name": "aura-memory"
+          "index_name": "aura-memory-staging"
         }
       ],
       "durable_objects": {

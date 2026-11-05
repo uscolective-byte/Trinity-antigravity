@@ -17,6 +17,9 @@ test('production and staging domains stay on their isolated Workers',()=>{
  assert.ok(['/api/auth/google/callback','/auth/google/callback'].includes(callback.pathname));
  assert.equal(callback.search,'');assert.equal(callback.hash,'');
  const staging=config.env?.staging;
+ const production=config.env?.production;
+ assert.ok(production.r2_buckets.some(binding=>binding.binding==='R2_STORAGE'&&binding.bucket_name==='trinity-artifacts'));
+ assert.ok(production.vectorize.some(binding=>binding.binding==='VECTOR_INDEX'&&binding.index_name==='trinity-vector-index'));
  assert.equal(staging.name,'trinity-staging');
  assert.deepEqual(staging.routes,[{pattern:'auru.dev',custom_domain:true}]);
  assert.equal(staging.vars.TRINITY_ENV,'staging');

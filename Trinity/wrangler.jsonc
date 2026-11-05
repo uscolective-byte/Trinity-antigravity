@@ -458,6 +458,10 @@
           "bucket_name": "trinity-artifacts"
         },
         {
+          "binding": "R2_STORAGE",
+          "bucket_name": "trinity-artifacts"
+        },
+        {
           "binding": "TRINITY_STORAGE",
           "bucket_name": "trinity-artifacts"
         },
@@ -473,6 +477,10 @@
       "vectorize": [
         {
           "binding": "VECTORIZE",
+          "index_name": "trinity-vector-index"
+        },
+        {
+          "binding": "VECTOR_INDEX",
           "index_name": "trinity-vector-index"
         },
         {

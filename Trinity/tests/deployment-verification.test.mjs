@@ -5,7 +5,7 @@ import {TRINITY_SOURCE,sourceMetadata} from '../src/version.js';
 const id='863ecc84-3985-4aea-9114-fdc18b723555';
 const commit='a'.repeat(40);
 const config={origin:'https://auru.space',expectedVersionId:id,version:'11.0.0',attempts:1};
-const fake=(health={},ready={})=>async url=>Response.json(url.endsWith('/health')?{version:'11.0.0',environment:'production',source:TRINITY_SOURCE,deployment:{id,tag:null},...health}:{version:'11.0.0',environment:'production',source:TRINITY_SOURCE,ready:true,...ready});
+const fake=(health={},ready={},environment='production')=>async url=>Response.json(url.endsWith('/health')?{version:'11.0.0',environment,source:TRINITY_SOURCE,deployment:{id,tag:null},...health}:{version:'11.0.0',environment,source:TRINITY_SOURCE,ready:true,...ready});
 
 test('both domains require the canonical repository and main branch',async()=>{
  assert.deepEqual(sourceMetadata({}),TRINITY_SOURCE);
@@ -14,9 +14,10 @@ test('both domains require the canonical repository and main branch',async()=>{
   await assert.rejects(verifyDeployment({...config,fetcher:fake({source})}),/verification failed/);
   await assert.rejects(verifyDeployment({...config,fetcher:fake({},{source})}),/verification failed/);
  }
- const result=await verifyDeployment({...config,origin:'https://auru.dev',fetcher:fake()});
- assert.equal(result.environment,'production');assert.deepEqual(result.source,TRINITY_SOURCE);
- await assert.rejects(verifyDeployment({...config,origin:'https://auru.dev',fetcher:fake({environment:'staging'},{environment:'staging'})}),/verification failed/);
+ const result=await verifyDeployment({...config,origin:'https://auru.dev',fetcher:fake({}, {}, 'staging')});
+ assert.equal(result.environment,'staging');assert.deepEqual(result.source,TRINITY_SOURCE);
+ await assert.rejects(verifyDeployment({...config,origin:'https://auru.dev',fetcher:fake()}),/verification failed/);
+ await assert.rejects(verifyDeployment({...config,origin:'https://auru.space',fetcher:fake({environment:'staging'},{environment:'staging'},'staging')}),/verification failed/);
 });
 test('deployment verifier accepts a real version receipt when Workers Builds has no commit tag',async()=>{
  const target=verificationTarget(['https://auru.space','--version-id',id]);assert.equal(target.expectedVersionId,id);
@@ -30,4 +31,7 @@ test('deployment CLI preserves commit-tag verification and rejects ambiguous or 
  assert.deepEqual(verificationTarget(['https://auru.dev',commit]),{origin:'https://auru.dev',expectedTag:commit});
  assert.equal((await verifyDeployment({...config,expectedVersionId:undefined,expectedTag:commit,fetcher:fake({deployment:{id,tag:commit}})})).verified,true);
  for(const args of [['https://evil.example',commit],['https://auru.space','--version-id','bad'],['https://auru.space',commit,'extra'],['https://auru.space','short']])assert.throws(()=>verificationTarget(args));
+});
+test('deployment verification rejects origins outside the production and staging domains',async()=>{
+ await assert.rejects(verifyDeployment({...config,origin:'https://example.com',fetcher:fake()}),/Unsupported deployment origin/);
 });

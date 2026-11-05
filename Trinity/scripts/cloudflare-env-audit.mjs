@@ -9,7 +9,8 @@ export function sharedMutableBindings(config){
   const categories=[
     ['D1','d1_databases','binding','database_id'],
     ['KV','kv_namespaces','binding','id'],
-    ['R2','r2_buckets','binding','bucket_name']
+    ['R2','r2_buckets','binding','bucket_name'],
+    ['Vectorize','vectorize','binding','index_name']
   ];
   const collisions=[];
   for(const [type,key,bindingKey,idKey] of categories){
@@ -43,8 +44,8 @@ export function reportEnvironmentIsolation(config){
     shared_mutable_resources:collisions,
     isolated:collisions.length===0,
     note:collisions.length
-      ?'Shared D1/KV/R2 resources can leak staging writes into production. Provision distinct resources and migrate safely.'
-      :'No common D1/KV/R2 identifiers detected in config; live deployment remains unverified.'
+      ?'Shared D1/KV/R2/Vectorize resources can leak staging writes into production. Provision distinct resources and migrate safely.'
+      :'No common D1/KV/R2/Vectorize identifiers detected in config; live deployment remains unverified.'
   };
 }
 

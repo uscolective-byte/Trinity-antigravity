@@ -1,8 +1,8 @@
 {
   "generated_by": "github-copilot",
   "reviewed": false,
-  "risk": "medium",
+  "risk": "high",
   "component": "Trinity/configuration",
-  "description": "Registers the Desktop Commander MCP endpoint for VS Code, adds the verified production Worker bindings, isolates staging storage resources, and configures WebP asset bundling. No deployment, migration, or secret-value change was performed; staging and production release remain blocked by missing staging secret bindings and Durable Object metadata, plus failing tests.",
-  "source_pr": null
+  "description": "Adds the Desktop Commander MCP endpoint for VS Code, keeps production on auru.space, and configures auru.dev as build-only staging with isolated D1, KV, R2, and Vectorize resources plus staging Secrets Store metadata. No deployment, migration, or cloud write was performed; remote bindings, endpoint availability, and deployment readiness remain unverified.",
+  "source_pr": 37
 }

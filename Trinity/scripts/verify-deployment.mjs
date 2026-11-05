@@ -25,6 +25,8 @@ export function verificationTarget(args){
  return {origin,expectedTag:selector};
 }
 export async function verifyDeployment({origin,expectedTag,expectedVersionId,version,attempts=6,delayMs=10000,fetcher=fetch}){
+ const expectedEnvironment=origin==='https://auru.dev'?'staging':origin==='https://auru.space'?'production':null;
+ if(!expectedEnvironment)throw new Error('Unsupported deployment origin.');
  let last='No response';
  const headers={
   Accept:'application/json',
@@ -34,7 +36,6 @@ export async function verifyDeployment({origin,expectedTag,expectedVersionId,ver
     'CF-Access-Client-Secret': process.env.CLOUDFLARE_ACCESS_CLIENT_SECRET
   } : {})
  };
- const allowedEnvironments=new Set(['production']);
  for(let attempt=0;attempt<attempts;attempt++){
   try{
    const health=await fetcher(origin+'/health',{headers,signal:AbortSignal.timeout(10000),redirect:'error'});
@@ -43,7 +44,7 @@ export async function verifyDeployment({origin,expectedTag,expectedVersionId,ver
    const readiness=await ready.json();
    const matched=expectedVersionId?data.deployment?.id===expectedVersionId:data.deployment?.tag===expectedTag;
    const sourceMatches=[data,readiness].every(result=>result.source?.repository===TRINITY_SOURCE.repository&&result.source?.branch===TRINITY_SOURCE.branch);
-   const envMatches=allowedEnvironments.has(data.environment)&&data.environment===readiness.environment;
+   const envMatches=data.environment===expectedEnvironment&&data.environment===readiness.environment;
    if(health.ok&&ready.ok&&matched&&sourceMatches&&data.version===version&&readiness.version===version&&envMatches&&readiness.ready===true){
     return {verified:true,origin,version,environment:data.environment,source:data.source,...(expectedTag?{commit:expectedTag}:{}),deployment:data.deployment};
    }
