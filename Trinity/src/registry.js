@@ -11,7 +11,7 @@ import {PRACTICAL_TOOL_NAMES} from './practical-skills.js';
 const groups = [
   ['Riadenie', [
     ['orchestrator', 'Trinity', 'Koordinuj tím a spoj overené výsledky do jednej slovenskej odpovede.'],
-    ['gemini-gem', 'Gemini GEM Unlimited', 'Vysokorýchlostný multimodálny kódovací a autonómny agent napojený na Gemini API s dynamickým fallbackom, bezlimitným tokom kontextu a autonómnym riadením nástrojov.'],
+    ['gemini-gem', 'Gemini pre Trinity', 'Gemini API agent s kontextom Trinity a nakonfigurovaným modelovým fallbackom. Kvóty spravujú poskytovatelia; dostupnosť ani externé oprávnenia nie sú zaručené.'],
     ['planner', 'Plánovač', 'Rozlož zadanie na vykonateľné kroky s podmienkami úspechu.'],
     ['project-manager', 'Projektový manažér', 'Spravuj rozsah projektu, míľniky, závislosti a termíny.'],
     ['requirements', 'Analytik požiadaviek', 'Spresni požiadavky a zostav akceptačné kritériá.'],
