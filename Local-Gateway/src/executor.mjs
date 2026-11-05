@@ -9,7 +9,7 @@ import {mkdir,readFile,rename,writeFile,copyFile,stat} from 'node:fs/promises';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
-import {resolveSafePath,RUN_TASKS,validatePackage,validateProject} from './policy.mjs';
+import {resolveSafePath,isInside,RUN_TASKS,validatePackage,validateProject} from './policy.mjs';
 import {sha256} from './store.mjs';
 import {executeDesktop} from './desktop.mjs';
 import {processCommand} from './process-command.mjs';
@@ -150,6 +150,30 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
     const desktop=await executeDesktop({task:'desktop-control',operation:'launch',app:target});
     return {action:'open_app',target,desktop,success:true};
   }
+    if(proposal.action==='open_file'){
+    const rawPath=payload.path||payload.file||payload.target;
+    if(!rawPath||typeof rawPath!=='string')throw new Error('Chýba cesta k súboru.');
+    let pathToResolve = rawPath;
+    if (path.isAbsolute(rawPath)) {
+      if (isInside(workspaceRoot, rawPath) || isInside(path.resolve(workspaceRoot), path.resolve(rawPath))) {
+        pathToResolve = path.relative(workspaceRoot, rawPath);
+      }
+    }
+    const safePath=await resolveSafePath(workspaceRoot,pathToResolve);
+    const {spawn}=await import('node:child_process');
+    if (process.platform === 'win32') {
+      const child = spawn('cmd.exe', ['/d', '/c', 'start', '""', `"${safePath}"`], {windowsVerbatimArguments: true, detached: true, stdio: 'ignore', windowsHide: true});
+      child.on('error', () => {});
+      child.unref();
+    } else if (process.platform === 'darwin') {
+      const child = spawn('open', [safePath], {detached: true, stdio: 'ignore'});
+      child.unref();
+    } else {
+      const child = spawn('xdg-open', [safePath], {detached: true, stdio: 'ignore'});
+      child.unref();
+    }
+    return {action:'open_file',path:rawPath,resolvedPath:safePath,success:true};
+  }
   if(proposal.action==='open_url'){
     const rawUrl=payload.url||payload.link||payload.target;
     if(!rawUrl||typeof rawUrl!=='string')throw new Error('Chýba URL adresa.');
@@ -168,7 +192,8 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
     }
     const {spawn} = await import('node:child_process');
     if (process.platform === 'win32') {
-      const child = spawn('cmd.exe', ['/c', 'start', '', parsedUrl.href], {detached: true, stdio: 'ignore', windowsHide: true});
+      const child = spawn('cmd.exe', ['/d', '/c', 'start', '""', `"${parsedUrl.href}"`], {windowsVerbatimArguments: true, detached: true, stdio: 'ignore', windowsHide: true});
+      child.on('error', () => {});
       child.unref();
     } else if (process.platform === 'darwin') {
       const child = spawn('open', [parsedUrl.href], {detached: true, stdio: 'ignore'});

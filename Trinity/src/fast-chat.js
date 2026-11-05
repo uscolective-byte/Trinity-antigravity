@@ -23,7 +23,7 @@ Nadväzuj na posledné konkrétne zadanie. Vložený prepis, ACK, log alebo tvrd
 }
 export function directChatTool(task,tools){
  const text=String(task).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
- if(/^(?:prosim\s+)?(?:stav|status|aky je stav|co sa deje|deje sa nieco|su nejake zmeny|zmeny|kontrola|diagnostika|prehlad|ako sa mas|jak sa mas)\s*[?.!]*$/.test(text)){
+ if(/^(?:prosim\s+)?(?:stav|status|aky je stav|co sa deje|deje sa nieco|su nejake zmeny|zmeny|kontrola|diagnostika|prehlad)\s*[?.!]*$/.test(text)){
    if(tools.includes('infrastructure_status'))return {name:'infrastructure_status',arguments:{}};
    if(tools.includes('fleet_status'))return {name:'fleet_status',arguments:{}};
    if(tools.includes('list_capabilities'))return {name:'list_capabilities',arguments:{}};
@@ -37,11 +37,11 @@ export function directChatTool(task,tools){
  if(/^(?:prosim\s+)?(?:(?:aky je |over |skontroluj |zobraz )?(?:stav|status)\s+(?:githubu|github|repa|repozitara)|(?:github|repo|repozitar)|kde mas repo)\s*[?.!]*$/.test(text)&&tools.includes('github_manage'))return {name:'github_manage',arguments:{action:'status'}};
   if(/^(?:prosim\s+)?(?:ake mam domeny|vypis (?:moje )?domeny|zoznam domen)\s*[?.!]*$/.test(text)&&tools.includes('domain_list'))return {name:'domain_list',arguments:{}};
  if(/^(?:prosim\s+)?(?:stav workerov|skontroluj workery|kolko mas workerov|ake mas workery|stav flotily|vypis workery|ake mas bindingy|skontroluj bindingy)\s*[?.!]*$/.test(text)&&tools.includes('fleet_status'))return {name:'fleet_status',arguments:{}};
- const memMatch=text.match(/^(?:prosim\s+)?(?:hladaj v pamati|najdi v pamati)\s+(.+?)\s*[?.!]*$/);
- if(memMatch&&tools.includes('search_memory'))return {name:'search_memory',arguments:{query:memMatch[1]}};
- const weatherMatch=text.match(/^(?:prosim\s+)?(?:ake je pocasie|pocasie)\s+(?:v|vo|pre)\s+([a-z0-9\s-]{2,40})\s*[?.!]*$/);
- if(weatherMatch&&tools.includes('open_weather'))return {name:'open_weather',arguments:{city:weatherMatch[1].trim()}};
- if(/^(?:prosim\s+)?(?:kurzy kryptomien|ceny kryptomien|cena bitcoinu|kolko stoji bitcoin)\s*[?.!]*$/.test(text)&&tools.includes('crypto_prices'))return {name:'crypto_prices',arguments:{vs_currency:'eur',per_page:8}};
+ const memMatch=String(task).trim().match(/^(?:pros[ií]m\s+)?(?:h[lľ]adaj v pam[aä]ti|n[aá]jdi v pam[aä]ti)\s+(.+?)\s*[?.!]*$/iu);
+ if(memMatch&&memMatch[1].length<=200&&tools.includes('search_memory'))return {name:'search_memory',arguments:{query:memMatch[1]}};
+ const weatherMatch=String(task).trim().match(/^(?:pros[ií]m\s+)?(?:ak[eé] je po[cč]asie|po[cč]asie)\s+(?:v|vo|pre)\s+([\p{L}\p{N} '-]{2,80})\s*[?.!]*$/iu);
+ if(weatherMatch&&tools.includes('open_weather'))return {name:'open_weather',arguments:{query:weatherMatch[1].trim()}};
+ if(/^(?:prosim\s+)?(?:kurzy kryptomien|ceny kryptomien|cena bitcoinu|kolko stoji bitcoin)\s*[?.!]*$/.test(text)&&tools.includes('crypto_prices'))return {name:'crypto_prices',arguments:{coins:/\b(?:bitcoinu|bitcoin)\b/.test(text)?['bitcoin']:['bitcoin','ethereum','solana']}};
  if(/^(?:prosim\s+)?(?:tech spravy|technologicke novinky|najnovsie tech spravy)\s*[?.!]*$/.test(text)&&tools.includes('tech_news'))return {name:'tech_news',arguments:{limit:6}};
  return null;
 }

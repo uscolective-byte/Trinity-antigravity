@@ -50,10 +50,12 @@ import {SovereignLedgerV3,TMACConsensusEngine,StateReplayEngine,CodeProvenanceTr
 import {SOVEREIGN_IDENTITY,ROOT_REGISTRY,SOVEREIGN_LEGAL_CHARTER_20,validateSovereignCharterCompliance,SovereignLockMiddleware,enforceDataCommandBoundary} from './sovereign-lock.js';
 import {SovereignTruthGuard,ExecutionLifecycleGuard,TEN_COMMANDMENTS_OF_TRUTH} from './truth.js';
 import {diagnoseOmniDevStackTrace,proposeOmniDevRecoveryPatch} from './omnidev-diagnostics.js';
+import {executeGeminiGemAgent} from './gemini-gem-agent.js';
+import {antigravityReadFile,antigravityWriteFile,antigravityEditFile,antigravityRunCommand,antigravityManageTask,antigravitySearchMarketplace} from './antigravity-bridge.js';
 
-export const INTERNAL_TOOLS=new Set(['diagnostic_ping','request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose','cf_d1_query','cf_kv_store','cf_r2_manage','cf_self_deploy','mail_engine','http_fetch_pro','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','apply_self_evolution','triad_subagent_run','triad_deep_research','triad_code_patch','triad_test_matrix','triad_copilot_sync','triad_status']);
+export const INTERNAL_TOOLS=new Set(['diagnostic_ping','request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose','cf_d1_query','cf_kv_store','cf_r2_manage','cf_self_deploy','mail_engine','http_fetch_pro','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','apply_self_evolution','triad_subagent_run','triad_deep_research','triad_code_patch','triad_test_matrix','triad_copilot_sync','triad_status','read_file','write_file','edit_file','run_command','manage_task','search_marketplace','execute_gemini_gem']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
-export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
+export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
 export const OWNER_BUSINESS_TOOLS=new Set(['finance_propose_transfer','finance_confirm_transfer','finance_audit_ledger','prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
 export const requiresVerifiedAdminForIntegrationTool=(name,args={})=>
   name==='cloudflare_manage'&&args?.action==='purge_cache'
@@ -99,6 +101,7 @@ export const TOOL_SCHEMAS={
   }).strict(),
   search_memory:z.object({query:z.string().max(200).default('')}).strict(),
   pc_open_url:z.object({url:z.string().min(1).max(2048)}).strict(),
+      pc_open_file:z.object({path:z.string().min(1).max(2000)}).strict(),
   project_snapshot:z.object({}).strict(),
   service_status:z.object({binding:z.enum(Object.keys(SERVICES)).optional()}).strict(),
   web_search:z.object({query:z.string().min(3).max(500)}).strict()
@@ -110,7 +113,7 @@ export const TOOL_SCHEMAS={
   ,list_skills:z.object({query:z.string().max(80).default('')}).strict()
   ,list_connectors:z.object({}).strict()
   ,install_plugin:z.object({id:z.string().regex(/^(?:[a-z0-9-]{1,40}|all)$/),reason:z.string().min(3).max(300)}).strict()
-  ,request_system_action:z.object({action:z.enum(['read','write','edit','selfwrite','run','deploy','share','upload','upgrade','screenshot','open_app','notify','system_info','scrape','web_fetch','download','git_commit','git_pr']),payload:z.record(z.string(),z.unknown()).default({}),rationale:z.string().min(3).max(1000)}).strict()
+  ,request_system_action:z.object({action:z.enum(['read','write','edit','selfwrite','run','deploy','share','upload','upgrade','screenshot','open_app','open_url','open_file','notify','system_info','scrape','web_fetch','download','git_commit','git_pr']),payload:z.record(z.string(),z.unknown()).default({}),rationale:z.string().min(3).max(1000)}).strict()
   ,system_action_status:z.object({id:z.string().uuid()}).strict()
   ,portfolio_summary:z.object({portfolio_id:z.string().uuid().optional()}).strict()
   ,json_tool:z.object({operation:z.enum(['validate','format','minify','get']),json:z.string().max(20000),path:z.string().max(200).optional()}).strict()
@@ -312,7 +315,14 @@ export const TOOL_SCHEMAS={
   }).strict(),
   diagnostic_ping:z.object({
     message:z.string().max(200).default('ping')
-  }).strict()
+  }).strict(),
+  read_file:z.object({Path:z.string().min(1).max(2000),StartLine:z.number().int().optional(),EndLine:z.number().int().optional(),ByteOffset:z.number().int().optional()}).strict(),
+  write_file:z.object({Path:z.string().min(1).max(2000),Content:z.string().max(10_000_000),Append:z.boolean().optional().default(false),Overwrite:z.boolean().optional().default(false),ArtifactMetadata:z.record(z.string(),z.unknown()).optional().nullable()}).strict(),
+  edit_file:z.object({Path:z.string().min(1).max(2000),Target:z.string().min(1).max(500000),Replacement:z.string().max(500000),ArtifactMetadata:z.record(z.string(),z.unknown()).optional().nullable()}).strict(),
+  run_command:z.object({CommandLine:z.string().min(1).max(8000),WaitMsBeforeAsync:z.number().int().min(500).max(120000).optional().default(5000),toolSummary:z.string().max(200).optional().default('Command Execution'),IsDaemon:z.boolean().optional().default(false)}).strict(),
+  manage_task:z.object({Action:z.enum(['list','kill','status','send_input']),TaskId:z.string().optional(),Input:z.string().optional()}).strict(),
+  search_marketplace:z.object({queries:z.array(z.string()).default([]),kind:z.enum(['all','plugin','skill']).default('all'),limit:z.number().int().min(1).max(50).default(10)}).strict(),
+  execute_gemini_gem:z.object({task:z.string().min(1).max(20000),systemPrompt:z.string().max(10000).optional(),maxTokens:z.number().int().optional()}).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -962,11 +972,11 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     };
   }
   // ── PC Bridge nástroje ──
-  if(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr'].includes(name)){
+  if(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr'].includes(name)){
     const pcActionMap={
       pc_screenshot:'screenshot', pc_run_script:'run', pc_run:'run', pc_file_read:'read', pc_file_write:'write',
       pc_file_append:'write',pc_file_edit:'edit',pc_directory_create:'write',
-      pc_open_app:'open_app',pc_open_url:'open_url',pc_app_control:'open_app', pc_notify:'notify', pc_system_info:'system_info',
+      pc_open_app:'open_app',pc_open_url:'open_url',pc_open_file:'open_file',pc_app_control:'open_app', pc_notify:'notify', pc_system_info:'system_info',
       pc_scrape:'scrape',pc_web_fetch:'web_fetch',pc_download:'download', pc_git_commit:'git_commit', pc_git_pr:'git_pr',
     };
     const pcAction=pcActionMap[name];
@@ -981,6 +991,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       pc_directory_create:z.object({path:z.string().min(1).max(2000)}).strict(),
       pc_open_app:z.object({target:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser','commander','cmder'])}).strict(),
       pc_open_url:z.object({url:z.string().min(1).max(2048)}).strict(),
+      pc_open_file:z.object({path:z.string().min(1).max(2000)}).strict(),
       pc_app_control:z.object({operation:z.enum(['list','launch','type']),app:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser']).optional(),text:z.string().min(1).max(500).optional()}).strict(),
       pc_notify:z.object({message:z.string().min(1).max(256),title:z.string().max(80).optional(),duration:z.number().int().min(1).max(30).optional()}).strict(),
       pc_system_info:z.object({detail:z.boolean().optional()}).strict(),
@@ -993,6 +1004,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const parsedArgs=pcSchema[name].parse(input);
     let payload=parsedArgs;
     if(name==='pc_open_url')payload={url:parsedArgs.url};
+    if(name==='pc_open_file')payload={path:parsedArgs.path};
     if(name==='pc_run_script')payload={task:'script',...parsedArgs};
     if(name==='pc_file_read')payload={path:parsedArgs.path,depth:parsedArgs.depth};
     if(name==='pc_file_write')payload={path:parsedArgs.path,content:parsedArgs.content,expected_sha256:parsedArgs.expected_sha256};
@@ -1180,6 +1192,59 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     }
     return result;
   }
+  if(name==='read_file'){
+    const root = typeof process !== 'undefined' && process.cwd ? process.cwd() : '.';
+    return antigravityReadFile(root, args);
+  }
+  if(name==='write_file'){
+    const root = typeof process !== 'undefined' && process.cwd ? process.cwd() : '.';
+    return antigravityWriteFile(root, args);
+  }
+  if(name==='edit_file'){
+    const root = typeof process !== 'undefined' && process.cwd ? process.cwd() : '.';
+    return antigravityEditFile(root, args);
+  }
+  if(name==='run_command'){
+    const root = typeof process !== 'undefined' && process.cwd ? process.cwd() : '.';
+    return antigravityRunCommand(root, args);
+  }
+  if(name==='manage_task'){
+    return antigravityManageTask(args);
+  }
+  if(name==='search_marketplace'){
+    return antigravitySearchMarketplace(args);
+  }
+  if(name==='execute_gemini_gem'){
+    return executeGeminiGemAgent(env, args.task, args);
+  }
+  if(name==='triad_subagent_run'){
+    const roleMap = {
+      researcher: 'Výskumný špecialista Triády',
+      architect: 'Architekt suverénneho systému Triády',
+      codegen: 'Kódovací špecialista Triády',
+      tester: 'Testovací špecialista Triády',
+      sentinel: 'Bezpečnostný strážca Triády'
+    };
+    const rolePrompt = roleMap[args.role] || 'Špecializovaný subagent Triády';
+    return executeGeminiGemAgent(env, args.task, { systemPrompt: 'Si ' + rolePrompt + '. Vykonaj zadanú úlohu odborne a presne.' });
+  }
+  if(name==='triad_status'){
+    return {
+      status: 'active',
+      triad: {
+        trinity: { role: 'Sovereign Orchestrator', ready: true },
+        codex: { role: 'Background Developer', status: 'standby' },
+        antigravity: { role: 'Agentic Controller', status: 'online' }
+      },
+      gemini_gem: {
+        status: 'configured_in_code',
+        provider: 'Gemini API',
+        user_gem_linked: false,
+        execution: 'inference_only',
+        quota: 'provider_managed_unverified'
+      }
+    };
+  }
   if(name==='meta_manage'){
     const ownerId=(env?.TRINITY_OWNER_EMAIL||'saboivan2008@gmail.com').trim().toLowerCase();
     const origin='https://auru.space';
@@ -1321,6 +1386,7 @@ export const TOOL_HELP={
   pc_file_edit:'Nahradí text v súbore v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string,find:string,replace:string}',
   pc_directory_create:'Vytvorí adresár v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string}',
   pc_open_url:'Otvorí URL odkaz na počítači v prehliadači: {url:string}',
+  pc_open_file:'Otvorí zadaný súbor v predvolenej aplikácii na PC: {path:string}',
   pc_open_app:'Otvorí povolenú aplikáciu na PC (vyžaduje schválenie): {target:notepad|calculator|paint|explorer|chrome|edge|whatsapp|vscode|terminal|browser}',
   pc_app_control:'Vypíše okná alebo po schválení otvorí aplikáciu či napíše text do aktívneho okna: {operation:list|launch|type,app?:alias,text?:string}',
   pc_notify:'Zobrazí Windows toast notifikáciu: {title?:string,message:string,duration?:sek}',
@@ -1395,6 +1461,13 @@ export const TOOL_HELP={
   triad_test_matrix:'Spustí kompletný verifikačný testovací matrix Trinity (549+ testov) s reportom výsledku: {suite?:all|unit|integration|truth|social}',
   triad_copilot_sync:'Prepojenie a synchronizácia s Microsoft Copilot Studio (Trinitys) a OpenAI asistentmi: {action:status|chat|list_skills|sync_tenant, message?:string}',
   triad_status:'Kompletný live stav a telemetria Zvrchovanej Triády (Trinity + Codex + Antigravity): {}',
+  read_file:'Prečíta obsah súboru s voliteľným riadkovým rozsahom a offsetom: {Path:string,StartLine?:number,EndLine?:number,ByteOffset?:number}',
+  write_file:'Vytvorí alebo prepíše súbor s evidenciou v ledgeri: {Path:string,Content:string,Append?:boolean,Overwrite?:boolean,ArtifactMetadata?:object}',
+  edit_file:'Presne nahradí reťazec Target za Replacement v súbore: {Path:string,Target:string,Replacement:string,ArtifactMetadata?:object}',
+  run_command:'Spustí príkaz s riadeným timeoutom a zachytením výstupu: {CommandLine:string,WaitMsBeforeAsync?:number,toolSummary?:string,IsDaemon?:boolean}',
+  manage_task:'Správa asynchrónnych úloh a procesov: {Action:list|kill|status|send_input,TaskId?:string,Input?:string}',
+  search_marketplace:'Prehľadáva pluginy a skilly v katalógu: {queries?:string[],kind?:all|plugin|skill,limit?:number}',
+  execute_gemini_gem:'Vykoná Gemini API inferenciu s Trinity profilom, modelovou kaskádou a prípadným Workers AI fallbackom. Limity spravuje poskytovateľ: {task:string,systemPrompt?:string,maxTokens?:number}',
   finance_propose_transfer:'Pripraví autorizovaný finančný príkaz s limitom 50€/200€ denne: {amount_eur:number,recipient:string,provider?:revolut|paypal|sepa,note?:string}',
   finance_confirm_transfer:'Potvrdí a kryptograficky zapíše prevod do auditného ledgera: {proposal_id:string,confirmation_token?:string}',
   finance_audit_ledger:'Zobrazí nemennú auditnú knihu finančných transakcií: {limit?:number}',

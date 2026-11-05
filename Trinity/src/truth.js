@@ -576,3 +576,11 @@ export function workflowResultComplete(result) {
   if (!result || (result.execution_status && result.execution_status !== 'completed')) return false;
   return Array.isArray(result.tool_log) && result.tool_log.every(entry => entry?.status === 'completed');
 }
+
+export function verifyUnifiedReceipt(receipt) {
+  if (!receipt || typeof receipt !== 'object') return false;
+  if (!receipt.receiptId || receipt.status !== 'success') return false;
+  if (!Array.isArray(receipt.evidence) || receipt.evidence.length === 0) return false;
+  if (!receipt.ledger || typeof receipt.ledger.hash !== 'string') return false;
+  return true;
+}

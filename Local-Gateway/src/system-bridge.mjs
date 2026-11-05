@@ -310,10 +310,27 @@ export async function createSystemBridgeServer(options = {}) {
 
         const result = await executePrivileged(
           authContext,
-          { action: input.action || 'READ_WORKSPACE', target: input.payload?.path || input.payload?.app || input.action },
+          { action: input.action || 'READ_WORKSPACE', target: input.payload?.path || input.payload?.app || input.payload?.target || input.action },
           async verifiedAuth => {
             if (input.action === 'open_app' || input.action === 'e2e_truth_verify') {
-              const appToOpen = input.payload?.app || null;
+              const rawApp = input.payload?.app || input.payload?.target || null;
+              const appMap = {
+                calculator:'calculator',calc:'calculator',kalkulacka:'calculator',
+                notepad:'notepad',poznamkovyblok:'notepad',
+                paint:'paint',skicar:'paint',
+                explorer:'explorer',prieskumnik:'explorer',
+                chrome:'chrome',edge:'edge',
+                whatsapp:'whatsapp',watsap:'whatsapp',
+                vscode:'vscode',code:'vscode',
+                terminal:'terminal',powershell:'terminal',cmd:'terminal',
+                cmder:'cmder',commander:'commander',
+                browser:'browser',prehliadac:'browser'
+              };
+              let appToOpen = null;
+              if (rawApp) {
+                const clean = String(rawApp).toLowerCase().replace(/[^a-z]/g, '');
+                appToOpen = appMap[clean] || rawApp;
+              }
               let appResult = null;
               if (appToOpen) {
                 try {
@@ -344,6 +361,7 @@ export async function createSystemBridgeServer(options = {}) {
                 windows_sid: winSession.sid,
                 os_token_verified: winSession.osTokenVerified,
                 app_execution: appResult,
+                receipt: { action: 'open_app', target: appToOpen, desktop: appResult, success: !appResult?.note },
                 local_ledger_receipt: localLedger,
                 executed_at: new Date().toISOString()
               };

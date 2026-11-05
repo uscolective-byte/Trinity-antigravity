@@ -1,3 +1,5 @@
+import {formatWeather,formatCryptoPrices,formatTechNews} from './external-data-response.js';
+import {formatFleetStatus} from './fleet-response.js';
 /**
  * @module TRINITY_OMNI_CORE
  * @subsystem COGNITIVE_EXECUTION_ENGINE
@@ -33,7 +35,7 @@ export function executionPolicyForProvider(provider,ownerMode=false){
   return {geminiOperator:provider==='gemini'&&directAdmin,directAdmin,allowInternal:directAdmin,allowDirectPC:directAdmin,approvalRequired:false};
 }
 export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
-  if(outcome?.ok===false||outcome?.success===false||outcome?.error||outcome?.opened===false||outcome?.desktop?.opened===false||['failed','cancelled','denied','blocked'].includes(outcome?.status))
+  if(outcome?.ok===false||outcome?.success===false||outcome?.available===false||outcome?.error||outcome?.opened===false||outcome?.desktop?.opened===false||['failed','cancelled','denied','blocked'].includes(outcome?.status))
     return {tool:'pc_open_app',status:'failed',effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
   const state=outcome?.status;
   if(['pending','proposed','queued','approved','claimed','running'].includes(state)){
@@ -49,7 +51,7 @@ export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
 export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOString()){
   // Failure/partial outcomes take precedence over generated _evidence metadata.
   // A receipt id by itself cannot prove a provider-side mutation succeeded.
-  if(outcome==null||typeof outcome==='object'&&!Array.isArray(outcome)&&Object.keys(outcome).length===0||outcome?.error||outcome?.ok===false||outcome?.success===false||['failed','partial','not_configured','blocked','cancelled','unavailable','error','timeout','unknown','denied','not_verified'].includes(outcome?.status)){
+  if(outcome==null||typeof outcome==='object'&&!Array.isArray(outcome)&&Object.keys(outcome).length===0||outcome?.error||outcome?.ok===false||outcome?.success===false||outcome?.available===false||['failed','partial','not_configured','blocked','cancelled','unavailable','error','timeout','unknown','denied','not_verified'].includes(outcome?.status)){
     const status=outcome?.status==='partial'?'partial':'failed';
     return {tool,status,effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
   }
@@ -128,7 +130,7 @@ function selectPromptTools(activeTools, task) {
     ['diagnostic_ping','service_status','integration_status'].forEach(t => priority.add(t));
   }
   if (/\b(kod|code|subor|projekt|oprav|fix|inspect|git|build|deploy|hosting|infra|migrac)\b/.test(norm)) {
-    ['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','install_plugin'].forEach(t => priority.add(t));
+    ['read_file','write_file','edit_file','run_command','execute_gemini_gem','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','install_plugin','search_marketplace'].forEach(t => priority.add(t));
   }
   if (/\b(domen|dns|subdomen|escrow|predaj|prenajom|hosting)\b/.test(norm)) {
     ['domain_search','domain_add','domain_register','domain_set_dns','domain_delete_dns','domain_env_provision','domain_env_deploy','domain_marketplace','domain_list_for_sale'].forEach(t => priority.add(t));
@@ -139,8 +141,8 @@ function selectPromptTools(activeTools, task) {
   if (/\b(obraz|fotk|hudb|skladb|video|prezentac|slajd|grafik)\b/.test(norm)) {
     ['generate_image','generate_music','generate_video','generate_presentation','generate_creative_pack'].forEach(t => priority.add(t));
   }
-  if (/\b(pc|pocitac|lokaln|okno|aplikaci|skript|terminal|prikaz|screenshot)\b/.test(norm)) {
-    ['pc_open_app','pc_app_control','pc_run','pc_run_script','pc_file_read','pc_file_write','pc_screenshot','pc_system_info','request_system_action'].forEach(t => priority.add(t));
+  if (/\b(pc|pocitac|lokaln[a-z]*|okn[a-z]*|aplikac[a-z]*|skript[a-z]*|terminal[a-z]*|prikaz[a-z]*|screenshot[a-z]*|subor[a-z]*|dokument[a-z]*|link[a-z]*|url|web[a-z]*|otvor[a-z]*|odkaz[a-z]*|spust[a-z]*|open[a-z]*|launch[a-z]*|file[a-z]*|document[a-z]*|app[a-z]*|website[a-z]*)\b/.test(norm)) {
+    ['pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_run','pc_run_script','pc_file_read','pc_file_write','pc_screenshot','pc_system_info','request_system_action'].forEach(t => priority.add(t));
   }
   if (/\b(meta|facebook|instagram|llama|social|post|prispev|fb|ig)\b/.test(norm)) {
     ['meta_manage','morpheus_status','generate_image','tech_news'].forEach(t => priority.add(t));
@@ -262,10 +264,10 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     }
     else if(direct.name==='list_skills')text=`Mám dostupných ${(outcome.skills||[]).length} špecializovaných zručností (skills): ${(outcome.skills||[]).map(s=>s.name).join(', ')}.`;
     else if(direct.name==='domain_list')text=(outcome.items||[]).length?`Evidované domény (${outcome.items.length}): ${outcome.items.map(d=>`${d.domain_name} (${d.status})`).join(', ')}.`:'V evidencii zatiaľ nie sú žiadne domény.';
-    else if(direct.name==='search_memory')text=(outcome.matches||[]).length?`Nájdené záznamy v pamäti (${outcome.matches.length}):\n`+outcome.matches.slice(0,8).map(m=>`- **${m.key||m.source||'záznam'}**: ${String(m.value||m.content||'').slice(0,220)}`).join('\n'):'V pamäti sa pre tento dopyt nenašiel žiadny záznam.';
-    else if(direct.name==='open_weather')text=outcome.ok?`🌤️ **Počasie (${outcome.location?.name||direct.arguments.city}, ${outcome.location?.country||''})**: **${outcome.current?.temperature_c}°C** (pocitovo ${outcome.current?.apparent_temperature_c}°C), vlhkosť ${outcome.current?.humidity_pct}%, vietor ${outcome.current?.wind_kmh} km/h.`:(outcome.error||'Nepodarilo sa načítať počasie.');
-    else if(direct.name==='crypto_prices')text=(outcome.coins||[]).length?`🪙 **Aktuálne kurzy kryptomien (${(outcome.vs_currency||'eur').toUpperCase()})**:\n`+outcome.coins.map(c=>`- **${c.name} (${c.symbol})**: **${c.price} ${(outcome.vs_currency||'EUR').toUpperCase()}** (24h: ${c.change_24h_pct>=0?'+':''}${Number(c.change_24h_pct||0).toFixed(2)}%)`).join('\n'):'Nepodarilo sa načítať kurzy kryptomien.';
-    else if(direct.name==='tech_news')text=(outcome.stories||[]).length?`📰 **Najnovšie technologické správy (HackerNews)**:\n`+outcome.stories.map(s=>`- [${s.title}](${s.url||'https://news.ycombinator.com/item?id='+s.id}) (${s.score} bodov · ${s.comments} komentárov)`).join('\n'):'Nepodarilo sa načítať technologické správy.';
+    else if(direct.name==='search_memory')text=(outcome.records||[]).length?`Nájdené záznamy v pamäti (${outcome.records.length}):\n`+outcome.records.slice(0,8).map(m=>`- **${m.key||m.source||'záznam'}**: ${String(m.value||m.content||'').slice(0,220)}`).join('\n'):'V pamäti sa pre tento dopyt nenašiel žiadny záznam.';
+    else if(direct.name==='open_weather')text=formatWeather(outcome);
+    else if(direct.name==='crypto_prices')text=formatCryptoPrices(outcome);
+    else if(direct.name==='tech_news')text=formatTechNews(outcome);
     else if(direct.name==='infrastructure_status'){
       text=formatInfrastructureStatus(outcome);
   }
@@ -275,14 +277,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
         (tasks.length?tasks.map((t,i)=>`${i+1}. **${t.title||'Úloha'}** — Stav: \`${t.status||'neznámy'}\``).join('\n'):'V databáze nie sú žiadne rozpracované úlohy.')+
         `\n\n*Dáta načítané priamo z D1 tabuľky \`tasks\`.*`;
     }
-    else if(direct.name==='fleet_status'){
-      const online=(outcome.fleet||[]).filter(w=>w.status==='online');
-      const auxOnline=(outcome.auxiliary_fleet||[]).filter(w=>w.status==='online');
-      text=`🐝 **Stav flotily Cloudflare Workerov a Service Bindingov (${outcome.online_count}/${outcome.total_workers} hlavných + ${auxOnline.length}/${outcome.auxiliary_workers||0} pomocných online)**:\n\n`+
-        `- **Hlavné špecializované Workery online (${online.length})**: ${online.map(w=>`\`${w.worker}\` (${w.service})`).join(', ')||'žiadne'}\n`+
-        (auxOnline.length?`- **Pomocné Workery online (${auxOnline.length})**: ${auxOnline.map(w=>`\`${w.worker}\` (${w.service})`).join(', ')}\n`:'')+
-        `\nVšetky pripojené Workery sú dostupné cez nízkolatenčné Cloudflare Service Bindings (\`delegate_worker\`, \`orchestrate_team\`, \`fleet_status\`).`;
-    }
+    else if(direct.name==='fleet_status')text=formatFleetStatus(outcome);
     else text=outcome.localized||JSON.stringify(outcome);
     return {text,model:'deterministic-tool',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:0};
   }
@@ -291,15 +286,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     const started=Date.now();
     const outcome=await runTool(env,agent,'fleet_status',{});
     const receipt={tool:'fleet_status',status:'completed',effect:'read',receipt_id:outcome._evidence?.receipt_id||`fleet:${Date.now()}`,verified_at:new Date().toISOString()};
-    const online=(outcome.fleet||[]).filter(w=>w.status==='online');
-    const offline=(outcome.fleet||[]).filter(w=>w.status!=='online');
-    const auxOnline=(outcome.auxiliary_fleet||[]).filter(w=>w.status==='online');
-    const text=`🐝 **Cloudflare Worker Flotila & Service Bindings Trinity (${outcome.online_count}/${outcome.total_workers} hlavných + ${auxOnline.length}/${outcome.auxiliary_workers||0} pomocných Workerov online)**\n\n`+
-      `### ✅ Aktívne špecializované Workery (${online.length}):\n`+
-      online.map(w=>`- **\`${w.worker}\`** (\`${w.service}\` · *${w.role}*) — Stav: \`online\``).join('\n')+
-      (auxOnline.length?`\n\n### ⚡ Pomocné Service Bindings (${auxOnline.length}):\n`+auxOnline.map(w=>`- **\`${w.worker}\`** (\`${w.service}\` · *${w.role}*) — Stav: \`online\``).join('\n'):'')+
-      (offline.length?`\n\n### ⚠️ Workery mimo odozvy (${offline.length}):\n`+offline.map(w=>`- \`${w.worker}\` (\`${w.service}\` — ${w.status})`).join('\n'):'')+
-      `\n\n*Trinity automaticky deleguje úlohy na tieto Workery cez nástroje \`delegate_worker\`, \`orchestrate_team\` a \`fleet_status\`.*`;
+    const text=formatFleetStatus(outcome);
     return {text,model:'trinity-fleet-orchestrator',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
   }
   if(id==='orchestrator'&&activeTools.includes('pc_open_app')&&isOpenAppRequest(task,context)){

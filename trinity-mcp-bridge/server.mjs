@@ -222,7 +222,7 @@ const isMainModule = process.argv[1] && (
 );
 
 let httpServer = null;
-if (isMainModule && process.env.NODE_ENV !== "test") {
+if (isMainModule && process.env.MCP_STDIO !== "true" && process.env.NODE_ENV !== "test") {
   if (!BRIDGE_TOKEN || BRIDGE_TOKEN.length < 32) {
     throw new Error("TRINITY_TOKEN must contain at least 32 characters before startup.");
   }
