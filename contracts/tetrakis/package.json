@@ -29,7 +29,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/uscolective-byte/Trinity-antigravity.git",
+    "url": "git+https://github.com/uscolective-byte/Trinity-antigravity.git",
     "directory": "contracts/tetrakis"
   },
   "keywords": [

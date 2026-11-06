@@ -614,3 +614,49 @@ staging verification receipt, review, and a fresh ACK.
   "truth_policy": "NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT"
 }
 ```
+
+### ENTRY-020 — TETRAKIS ($TTK) NPM REGISTRATION & BASE MAINNET LIQUIDITY ARCHITECTURE (2026-11-06)
+
+```json
+{
+  "agent": "ANTIGRAVITY",
+  "role": "LEAD_ARCHITECT_AND_EXECUTIVE_ENGINEER",
+  "type": "NPM_REGISTRATION_AND_MAINNET_LIQUIDITY",
+  "status": "COMPLETED_AND_VERIFIED",
+  "owner": "basterix3 (Sabo Ivan <saboivan2008@gmail.com>)",
+  "task": "Publikovať crypto balík tetrakis-token na npm a pripraviť platformu na Base Mainnet",
+  "evidence": {
+    "npm_registry": {
+      "package_name": "tetrakis-token",
+      "maintainer": "basterix3",
+      "registry_uri": "https://registry.npmjs.org/tetrakis-token",
+      "npm_package_url": "https://www.npmjs.com/package/tetrakis-token",
+      "registration_timestamp": "2026-11-06T19:30:17.073Z",
+      "dist_tarball": "contracts/tetrakis/tetrakis-token-1.0.0.tgz",
+      "staged_version": "1.0.0",
+      "status": "REGISTERED_AND_OWNED_BY_BASTERIX3"
+    },
+    "tokenomics_architecture": {
+      "network": "Base Mainnet (Coinbase L2, ChainId 8453)",
+      "contract": "TetrakisToken ($TTK)",
+      "total_supply": "1,000,000,000 TTK",
+      "official_treasury": "0x4d308452a96D7dAbFd2f33d92677A3a2724f387e",
+      "target_dex": ["Aerodrome Finance", "Uniswap v3 (Base)"],
+      "trading_pair": "TTK / WETH",
+      "initial_liquidity": "0.05 ETH + 10,000,000 TTK (Initial price: ~$0.000013 / €0.000012)",
+      "trinity_staking_tiers": [
+        { "tier": 1, "holding": "1,000 TTK", "role": "Sovereign Explorer", "benefits": "Unlimited chat & semantic memory" },
+        { "tier": 2, "holding": "10,000 TTK", "role": "Sovereign Operator", "benefits": "PC Bridge remote execution & Azure AI Foundry" },
+        { "tier": 3, "holding": "50,000 TTK", "role": "Sovereign Mastermind", "benefits": "Platform revenue share & autonomous trading desk" }
+      ],
+      "trinity_api_endpoint": "/api/assistant/crypto/tetrakis",
+      "script": "contracts/tetrakis/scripts/setup-liquidity-pool.mjs"
+    },
+    "test_verification": {
+      "trinity_core_tests": "919 / 919 PASS",
+      "crypto_suite_tests": "35 / 35 PASS"
+    }
+  },
+  "truth_policy": "NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT"
+}
+```
