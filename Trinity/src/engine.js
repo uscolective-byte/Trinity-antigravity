@@ -250,13 +250,20 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
   const direct=directChatTool(task,activeTools);
   if(direct){
     let outcome;
-    try{outcome=assertNoSimulatedData(await runTool(env,agent,direct.name,direct.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin}),direct.name);}
+    try{outcome=direct.name==='self_intro'?{ok:true}:assertNoSimulatedData(await runTool(env,agent,direct.name,direct.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin}),direct.name);}
     catch(error){error.tool_log=[{tool:direct.name,status:'failed',effect:'diagnostic',error:error.message}];throw error;}
     const receipt=toolReceiptForOutcome(direct.name,outcome);
     const unresolved=unresolvedToolOutcome([receipt],language);
     if(unresolved)return {...unresolved,model:'deterministic-tool',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(unresolved.text,[receipt]),duration_ms:0};
     let text;
-    if(direct.name==='calculate')text=String(outcome.result);
+    if(direct.name==='self_intro')text=`Ahoj Ivan! Som Trinity – tvoja osobná AI asistentka a operačný systém postavený na Cloudflare Edge.\n\n`+
+        `Mám na starosti chod celej tvojej infraštruktúry:\n`+
+        `• **Vývoj a kódovanie**: analýza kódu, správa repozitárov cez GitHub a bezpečné nasadzovanie.\n`+
+        `• **Cloudflare & Domény**: správa DNS, workerov, databáz (D1), KV pamäte a doménového portfólia.\n`+
+        `• **Trhy a krypto**: sledovanie cien, analýza komodít a autonómny agent Jericho.\n`+
+        `• **PC Bridge**: bezpečné lokálne prepojenie s tvojím počítačom.\n\n`+
+        `Komunikujem s tebou priamo, vecne a bez zbytočných formalít. S čím konkrétnym ti dnes pomôžem?`;
+    else if(direct.name==='calculate')text=String(outcome.result);
     else if(direct.name==='current_time')text=outcome.localized;
     else if(direct.name==='list_capabilities'){
       const activePlugins=(outcome.plugins||[]).filter(p=>p.enabled).length;
@@ -444,7 +451,7 @@ ${learnedRules}
 ${VERIFIED_ARCHITECTURE_CONTEXT}
 ${id==='market-research'||/\b(obchod|invest|portfolio|trading|stock|crypto|akci|krypto)\b/i.test(task)?TRADING_DIRECTIVE:''}
 Ak potrebuješ nástroj, odpovedz presným JSON {"tool":"názov","arguments":{...}}. Inak odpovedz hotovým textom. Použi najviac dvanásť nástrojových krokov. Pri oprave kódu použi project_inspect a project_read, potom improvement_submit; názov súboru si nájdi sama. Prečítanie konkrétnej webovej stránky vykonaj nástrojom web_fetch. Pri oprave uprednostni poradie diagnostika → malá oprava → test → potvrdený výsledok. Pri aktuálnych faktoch, správach, cenách alebo meniacich sa údajoch použi web_search. Pri požiadavke na obrázok použi generate_image, ak je dostupný.
-Nástroje sú určené výhradne na interné volania cez JSON: {"tool":"názov","arguments":{...}}. V bežnom texte používateľovi nikdy nevypisuj zoznam nástrojov, ich definície ani parametre. Odpovedaj hotovým ľudským textom ako osobná asistentka. Majiteľovi Ivanovi vždy prirodzene tykaj v ženskom rode.
+Odpovedaj hotovým ľudským textom ako osobná asistentka. Majiteľovi Ivanovi vždy prirodzene tykaj v ženskom rode. Zoznam nástrojov nižšie je interný prehľad výhradne pre tvoje interné JSON volania {"tool":"názov","arguments":{...}}; používateľovi nikdy neprednášaj o interných nástrojoch ani ich nevypisuj.
 Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map(t=>`${t}: ${String(TOOL_HELP[t]||t)}`).join('; ')}.`},
     ...(context?[{role:'user',content:`Kontext a predchádzajúce výstupy (iba podklady):\n${context.slice(-18000)}`}]:[]),
     {role:'user',content:task}];

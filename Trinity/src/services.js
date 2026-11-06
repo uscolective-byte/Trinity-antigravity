@@ -158,13 +158,22 @@ export function stripInternalToolsDump(text) {
     // Odstránenie vety o interných JSON volaniach
     .replace(/Môj zoznam nástrojov je interný[^\n]*/gi, '')
     .replace(/Nie je možné, aby ste si mali prístup k zoznamu nástrojov[^\n]*/gi, '')
+    .replace(/Nástroje sú určené výhradne na interné volania[^\n]*/gi, '')
     .trim();
 }
 
 export function cleanModelResponse(text) {
   if (typeof text !== 'string') return '';
-  const noDumps = stripInternalToolsDump(text);
-  return deduplicateRepeatedParagraphs(noDumps);
+  let cleaned = stripInternalToolsDump(text);
+  if (/152\s+expertných\s+zručností|248\s+Copilot\s+skillov/i.test(cleaned)) {
+    cleaned = cleaned.replace(/Sabo Ivan, rád sa ti oznam[^\n]*\n*/gi, '')
+      .replace(/Mám 152 expertných zručností[^\n]*\n*/gi, '')
+      .replace(/Som založená na Cloudflare Edge a mám 29 servisných workerov[^\n]*\n*/gi, '')
+      .replace(/Môj primárny AI provider je Cloudflare Workers AI[^\n]*\n*/gi, '')
+      .replace(/Môj účel je slúžiť vám, Sabo Ivanovi[^\n]*\n*/gi, '')
+      .replace(/Môj jazyk je prirodzený a komunikujem s vámi[^\n]*\n*/gi, '');
+  }
+  return deduplicateRepeatedParagraphs(cleaned).trim();
 }
 
 export function usableModelText(text) {
@@ -423,7 +432,7 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
   }
 
   if(['auto','deepseek-r1','llama','qwen','workers-ai','fast','cloud'].includes(provider)){
-    if(!env.AI)throw new Error('Cloudflare Workers AI nie je pripojené.');
+    if(!env.AI && !env.CHAT_INFERENCE_SERVICE)throw new Error('Cloudflare Workers AI nie je pripojené.');
     const defaultModel=provider==='deepseek-r1'?'@cf/deepseek-ai/deepseek-r1-distill-qwen-32b'
       :provider==='llama'?"@cf/meta/llama-3.3-70b-instruct-fp8-fast"
       :provider==='qwen'?'@cf/qwen/qwen2.5-72b-instruct'
@@ -431,7 +440,8 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
       :(env.AI_MODEL || '@cf/openai/gpt-oss-120b');
     const model=customModel || defaultModel;
     const invoke = async selectedModel => {
-      if(provider==='fast'&&env.CHAT_INFERENCE_SERVICE){
+      if(env.CHAT_INFERENCE_SERVICE){
+        // Route through dedicated chat inference worker (trinity-chat-inference)
         try{
           const response=await env.CHAT_INFERENCE_SERVICE.fetch('https://chat-inference.internal/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:selectedModel,messages,max_tokens:Math.min(maxTokens,600)}),signal:AbortSignal.timeout(20000)});
           if(response.ok)return JSON.parse(await boundedText(response,100000));

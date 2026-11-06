@@ -20,6 +20,7 @@
     }
   },
   "vars": {
+    "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     "AI_FAST_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
     "AI_FALLBACK_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     "AI_FAST_FALLBACK_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
