@@ -725,3 +725,23 @@ staging verification receipt, review, and a fresh ACK.
   "truth_policy": "NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT"
 }
 ```
+
+
+### ENTRY-022: LIVE PRODUCTION & STAGING HARD DEPLOYMENT (CLOUDFLARE EDGE)
+- **Timestamp**: 2026-11-06T22:22:30+01:00
+- **Author**: Basterix & Antigravity
+- **Scope**: Cloudflare Worker hard deployment for both `staging` and `production` environments with complete service bindings.
+- **Evidence / Receipts**:
+  - `Trinity/wrangler.jsonc` & `wrangler.jsonc` patched with missing service bindings: `RESEARCHER_SERVICE`, `GEMINI_BRIDGE_SERVICE`, `OPS_SERVICE`, `CHAT_MAINTAINER_SERVICE`, `DEPLOYER_SERVICE`, `SEEDER_SERVICE`.
+  - **Staging Worker (`trinity-staging`)**:
+    - Version ID: `9e3c80c4-3604-4a8f-aefe-4b3b60cf7f5e`
+    - Live URL: `https://trinity-staging.saboivan2008.workers.dev`
+    - Workflow: `trinity-operations-staging`
+    - HTTP Status: `302 Found` (Secured via Cloudflare Access)
+  - **Production Worker (`trinity`)**:
+    - Version ID: `08412136-fd8c-41d6-8570-631b392831fe`
+    - Live Domains: `https://auru.space`, `https://auru.dev`, `https://trinity.saboivan2008.workers.dev`
+    - Cron Schedules: `*/30 * * * *`, `0 0 * * *`, `0 11 * * *`
+    - Workflow: `trinity-operations`
+    - HTTP Status: `302 Found` (Secured via Cloudflare Access)
+- **Truth Policy**: `NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT`
