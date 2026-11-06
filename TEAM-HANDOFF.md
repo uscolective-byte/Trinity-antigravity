@@ -2982,3 +2982,28 @@ Rozsirenie CLAIM `PR37-MAIN-CONFLICT-20261106-COPILOT-01`: opravene review feedb
 Konflikty merge z aktualnym `origin/main` `2632f5911b93522a03db8642194c5d8c92f7b5ef` vyriesene: `TEAM-HANDOFF.md` zachovava append-only zaznamy oboch vetiev a root `wrangler.jsonc` bol regenerovany z kanonickeho `Trinity/wrangler.jsonc`. Opravene tri nove preukazane review chyby: izolacny audit porovnava root aj `env.production`; production deploy pipeline vyzaduje presne staging SHA pred D1 migraciami a po deployi overuje iba production; architecture context a README teraz oznacuju `auru.dev` ako nakonfigurovany build-only staging a odlisujú konfiguraciu od live stavu.
 Validacia: cielene `node --test tests/cloudflare-env-isolation.test.mjs tests/deployment-verification.test.mjs tests/source-environments.test.mjs` v `Trinity/` — 11/11 PASS; `node Trinity/scripts/cloudflare-env-audit.mjs --strict` PASS, bez zdielanych D1/KV/R2/Vectorize identifikatorov; `node scripts/sync-root-wrangler.mjs --check` PASS; `node scripts/sync-release-docs.mjs --check` PASS. Pre zmenene subory neboli zistene konflikty; audit celkoveho indexu zachytil iba existujuce trailing whitespace/EOF v inych suboroch aktualneho `main`, ktore sa neupravovali.
 Predchadzajuce hosted CI failures su mimo PR diffu: CodeQL default-versus-advanced setup, Local Gateway testy a integrations dry-run s chybajucim `Trinity/dist-mcp/control.html`; zlyhavajuce paths/workflow nepatria do PR zmenenych suborov a neboli menene. Novy CI run caka na push aktualneho merge commitu. Review odpovede na tri opravene pripomienky este cakaju na push; blocker presunu `auru.dev` zostava otvoreny, bez noveho rozhodnutia vlastnika. Bez Cloudflare deployu alebo vzdialenych zmien.
+
+### CLAIM — TRINITY-LOCAL-DEPENDENCIES-AND-COMMIT-20261106-COPILOT-01
+Čas a časové pásmo: 2026-11-06, Europe/Bratislava.
+Autor a klient: GitHub Copilot, VS Code Copilot SDK host.
+Pokyn majiteľa: nainštalovať lokálne závislosti projektu Trinity a commitnúť jedinú existujúcu staged zmenu.
+Základný commit: `2632f5911b93522a03db8642194c5d8c92f7b5ef` na `main`.
+Vlastnené cesty: `Trinity/node_modules/` (lokálne, ignorované); append-only `TEAM-HANDOFF.md`; už staged `.github/act-history.json`, ktorého obsah bol skontrolovaný a ktorého commit majiteľ výslovne schválil.
+Plán: inštalovať deklarované závislosti iba v `Trinity/` cez npm s `--ignore-scripts --no-package-lock`; spustiť Trinity testy; commitnúť iba schválený act-history záznam a túto koordináciu. Bez runtime/config zmien, Cloudflare operácií, secrets, deployu, pushu alebo merge.
+Stav: active.
+
+### UPDATE — TRINITY-LOCAL-DEPENDENCIES-AND-COMMIT-20261106-COPILOT-01
+Lokálne závislosti nainštalované v `Trinity/` príkazom `npm.cmd install --ignore-scripts --no-package-lock` (exit 0; npm audit: 0 zraniteľností). `package.json` ani lockfile sa nemenili; inštalácia je v lokálnom `node_modules/`.
+Overenie: `npm.cmd test` (exit 0) spustilo Wrangler dry-run build a Trinity testy: 915/915 PASS, 0 fail; trvanie testov 142178.9 ms. `git diff --check` aj `git diff --cached --check` PASS.
+Stav pred commitom: jediná pôvodná staged zmena je schválený `.github/act-history.json`; druhá zmena je táto append-only koordinácia. Bez deployu, cloudových zmien, secretov alebo vzdialených PC akcií.
+Stav: ready_to_commit.
+
+### HANDOFF — TRINITY-LOCAL-DEPENDENCIES-AND-COMMIT-20261106-COPILOT-01
+Stav: completed; lokálny checkout na vetve `copilot/trinity-local-deps-20261106`.
+Commit schválenej staged zmeny a koordinácie: `06b161909f73fd2649c7f9b0111195e67d007058`.
+Kontroly: inštalácia exit 0; npm audit 0 zraniteľností; `npm.cmd test` exit 0, Wrangler dry-run build PASS, Trinity 915/915 PASS; pracovný strom bol po commite čistý.
+Lokálne `Trinity/node_modules/` nie je commitnuté. Bez pushu/PR, Cloudflare deployu alebo zmien účtov a secrets.
+Ďalší krok a vlastník: majiteľ môže rozhodnúť o publikovaní izolovanej vetvy; žiadny ACK za inú stranu sa nevydáva.
+### UPDATE / HANDOFF — PR37-MAIN-CONFLICT-20261106-COPILOT-01 (main refresh)
+Po posune `main` na `deb93baad98ced744f96f09bad241b9fbf455460` vznikol iba dalsi konflikt v append-only `TEAM-HANDOFF.md`; zachovane su zaznamy oboch stran vratane novych Codex/Copilot handoffov a aktualny index sa oznaci vyrieseny po kontrole bez konflikt markerov. `.vscode/mcp.json` sa automaticky zosuladilo bez konfliktu.
+Vercel check `Vercel – trinity-mcp-bridge` na starsom SHA `c236d8b367b001b719e85efd9d5e091b5f14ed90` ma status failure; GitHub status uvadza len, ze deployment zlyhal a logy vyzaduju Vercel CLI. Verejne citanie `details_url` zobrazilo iba vseobecne navigacne UI, nie build log. Chyba Vercel authenticated read-only integracia alebo log poskytnuty vlastnikom; inline prikaz z neovereneho check textu nebol spusteny. Po pushi aktualneho merge commitu sa novy Vercel run znovu posudi.
