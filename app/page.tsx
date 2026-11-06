@@ -17,10 +17,16 @@ import {
   Copy,
   Download,
   Trash2,
-  ExternalLink,
   ChevronRight,
   Server,
-  Zap
+  Zap,
+  Activity,
+  Radio,
+  Lock,
+  Compass,
+  FileCheck2,
+  Eye,
+  Check
 } from "lucide-react";
 
 type AgentStep = {
@@ -40,6 +46,8 @@ type AgentResponse = {
     receiptId?: string;
     timestamp?: string;
     agentId?: string;
+    agentName?: string;
+    provider?: string;
     steps?: AgentStep[];
     finalAnswer?: string;
   };
@@ -68,10 +76,10 @@ type LogEntry = {
   receiptId?: string;
 };
 
-// 46 Agents definition across 9 sovereign clusters
+// 46 Oficiálnych agentov ekosystému TRINITY OMNI-CORE v 9 klastroch
 const DEFAULT_AGENTS: AgentItem[] = [
   { id: "orchestrator", name: "Trinity Omni-Core", cluster: "Riadenie", role: "Koordinuj tím a spoj overené výsledky do jednej slovenskej odpovede.", toolsCount: 179 },
-  { id: "gemini-gem", name: "Gemini pre Trinity", cluster: "Riadenie", role: "Gemini API agent s kontextom Trinity a poistným modelovým fallbackom.", toolsCount: 142 },
+  { id: "gemini-gem", name: "Gemini pre Trinity", cluster: "Riadenie", role: "Gemini API agent s kontextom Trinity a nakonfigurovaným modelovým fallbackom.", toolsCount: 142 },
   { id: "planner", name: "Plánovač", cluster: "Riadenie", role: "Rozlož zadanie na vykonateľné kroky s podmienkami úspechu.", toolsCount: 142 },
   { id: "project-manager", name: "Projektový manažér", cluster: "Riadenie", role: "Spravuj rozsah projektu, míľniky, závislosti a termíny.", toolsCount: 142 },
   { id: "requirements", name: "Analytik požiadaviek", cluster: "Riadenie", role: "Spresni požiadavky a zostav akceptačné kritériá.", toolsCount: 142 },
@@ -131,10 +139,11 @@ const CLUSTER_COLORS: Record<string, string> = {
 };
 
 const QUICK_ACTIONS = [
-  { label: "⚡ Diagnostika systému", prompt: "Spusti komplexnú diagnostiku Trinity Omni-Core, over stav všetkých 46 agentov a skontroluj pripojenie k D1 a Cloudflare." },
-  { label: "🛡️ Bezpečnostný audit", prompt: "Vykonaj bezpečnostný audit Sovereign Locku, over ochranu kľúčov v .env a súlad s TruthGuard Ústavou." },
-  { label: "🌐 Cloudflare Edge Probe", prompt: "Otestuj routing na doménach auru.space a auru.dev a over pripravenosť Workerov." },
-  { label: "🧠 Synchronizácia pamäte", prompt: "Vytvor snapshot spoločnej pamäte agentov a zosynchronizuj nedávne zápisy do Sovereign Ledger." }
+  { label: "⚡ Diagnostika flotily", prompt: "Spusti komplexnú diagnostiku Trinity Omni-Core, over stav všetkých 46 agentov a skontroluj pripojenie k D1 a Cloudflare." },
+  { label: "🔒 Bezpečnostný audit", prompt: "Vykonaj bezpečnostný audit Sovereign Locku, over ochranu kľúčov v .env a súlad s TruthGuard ústavou." },
+  { label: "☁️ Cloudflare Edge Probe", prompt: "Otestuj routing na doménach auru.space a auru.dev a over pripravenosť Workerov." },
+  { label: "🧬 Gemini GEM Tool Loop", prompt: "Aktivuj autonómny Gemini GEM cyklus pre kontrolu projektu a generovanie Sovereign dokladov." },
+  { label: "💾 Synchronizácia pamäte", prompt: "Vytvor snapshot spoločnej pamäte agentov a zosynchronizuj nedávne zápisy do Sovereign Ledger." }
 ];
 
 export default function TrinityDashboard() {
@@ -146,32 +155,24 @@ export default function TrinityDashboard() {
 
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [apiOnline, setApiOnline] = useState(true);
-  const [skillsTotal, setSkillsTotal] = useState<number>(152);
+  const [currentPipelineStep, setCurrentPipelineStep] = useState<number>(0);
+  const [copiedReceipt, setCopiedReceipt] = useState<string | null>(null);
+
   const [agentsList, setAgentsList] = useState<AgentItem[]>(DEFAULT_AGENTS);
   const [skillsList, setSkillsList] = useState<SkillItem[]>([]);
-  const [receipts, setReceipts] = useState<Array<{ id: string; agent: string; time: string; summary: string }>>([
-    { id: "RCPT-INIT-001", agent: "orchestrator", time: "Práve teraz", summary: "TRINITY OMNI-CORE 11.1 inicializovaný pre Basterix (Sabo Ivan)." }
+  const [skillsTotal, setSkillsTotal] = useState(152);
+
+  const [receipts, setReceipts] = useState<Array<{ id: string; agent: string; time: string; summary: string; provider?: string }>>([
+    { id: "RCPT-INIT-001", agent: "Trinity Omni-Core", time: "Pred chvíľou", summary: "TRINITY OMNI-CORE inicializovaný pre Basterix (Sabo Ivan).", provider: "sovereign-kernel" }
   ]);
 
   const [logs, setLogs] = useState<LogEntry[]>([
-    { id: "1", timestamp: "08:44:00", type: "system", text: "TRINITY // OMNI-CORE 11.1 Sovereign System Online" },
-    { id: "2", timestamp: "08:44:01", type: "system", text: "Overený majiteľ: Basterix (saboivan2008@gmail.com)" },
-    { id: "3", timestamp: "08:44:02", type: "system", text: "Aktivovaných 46 agentov v 9 operačných klastroch | 152 overených skillov" },
-    { id: "4", timestamp: "08:44:03", type: "system", text: "OpenAI API & Cloudflare Edge synchronizácia: AKTÍVNA (96 modelov overených)" }
+    { id: "1", timestamp: "14:30:00", type: "system", text: "TRINITY // QUANTUM SOVEREIGN COCKPIT INITIALIZED" },
+    { id: "2", timestamp: "14:30:01", type: "system", text: "Overený majiteľ & Sovereign Architect: Basterix (saboivan2008@gmail.com)" },
+    { id: "3", timestamp: "14:30:02", type: "system", text: "TruthGuard Ústava aktívna: NO RECEIPT = NO SUCCESS. 46 špecialistov pripravených." }
   ]);
 
-  const appendLog = (type: LogEntry["type"], text: string, receiptId?: string) => {
-    const entry: LogEntry = {
-      id: Math.random().toString(36).substring(2, 9),
-      timestamp: new Date().toLocaleTimeString("sk-SK"),
-      type,
-      text,
-      receiptId
-    };
-    setLogs(prev => [...prev, entry]);
-  };
-
+  // Dynamické načítanie skillov a agentov z API
   useEffect(() => {
     async function loadSkillsAndAgents() {
       try {
@@ -179,16 +180,15 @@ export default function TrinityDashboard() {
         if (res.ok) {
           const data = await res.json();
           if (data.total) setSkillsTotal(data.total);
-          if (data.agents && Array.isArray(data.agents) && data.agents.length > 0) {
-            setAgentsList(data.agents);
-          }
           if (data.skills && Array.isArray(data.skills)) {
             setSkillsList(data.skills);
           }
-          setApiOnline(true);
+          if (data.agents && Array.isArray(data.agents) && data.agents.length > 0) {
+            setAgentsList(data.agents);
+          }
         }
       } catch {
-        setApiOnline(true);
+        // Fallback na predvolený zoznam
       }
     }
     void loadSkillsAndAgents();
@@ -197,6 +197,17 @@ export default function TrinityDashboard() {
   const activeAgent = useMemo(() => {
     return agentsList.find(a => a.id === selectedAgentId) || agentsList[0];
   }, [agentsList, selectedAgentId]);
+
+  const appendLog = (type: LogEntry["type"], text: string, receiptId?: string) => {
+    const newEntry: LogEntry = {
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      timestamp: new Date().toLocaleTimeString("sk-SK"),
+      type,
+      text,
+      receiptId
+    };
+    setLogs(prev => [...prev, newEntry]);
+  };
 
   const filteredAgents = useMemo(() => {
     return agentsList.filter(agent => {
@@ -222,11 +233,15 @@ export default function TrinityDashboard() {
 
     if (!taskText) setPrompt("");
     setIsLoading(true);
+    setCurrentPipelineStep(1); // 1. Auth & verification
 
-    appendLog("prompt", `[Cieľ: ${activeAgent.name}] > "${currentPrompt}"`);
-    appendLog("system", `[KERNEL] Delegujem požiadavku na agenta ${activeAgent.name} (${activeAgent.id})...`);
+    appendLog("prompt", `[Target: ${activeAgent.name} // ${activeAgent.id}] > "${currentPrompt}"`);
+    appendLog("system", `[ORCHESTRATOR] Zahajujem autorizovanú multi-agentovú pipeline pre [${activeAgent.name}]...`);
 
     try {
+      setTimeout(() => setCurrentPipelineStep(2), 300); // 2. Dispatch
+      setTimeout(() => setCurrentPipelineStep(3), 700); // 3. Tool execution
+
       const res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -241,9 +256,9 @@ export default function TrinityDashboard() {
       }
 
       const data: AgentResponse = await res.json();
+      setCurrentPipelineStep(4); // 4. Receipt sealed
 
       if (data.status === "SUCCESS" && data.data) {
-        setApiOnline(true);
         const steps = data.data.steps || [];
 
         for (const step of steps) {
@@ -251,7 +266,7 @@ export default function TrinityDashboard() {
             appendLog("step", `[Krok ${step.stepNumber ?? 1}] ${step.thought}`);
           }
           if (step.action?.tool) {
-            appendLog("tool", `-> NÁSTROJ: ${step.action.tool}`);
+            appendLog("tool", `-> EXEKÚCIA NÁSTROJA: ${step.action.tool}`);
           }
           if (step.observation) {
             appendLog("result", `<- VÝSLEDOK: ${typeof step.observation === "object" ? JSON.stringify(step.observation) : String(step.observation)}`);
@@ -259,34 +274,36 @@ export default function TrinityDashboard() {
         }
 
         if (data.data.finalAnswer) {
-          appendLog("success", `✔ ODPOVEĎ AGENTA:\n${data.data.finalAnswer}`);
+          appendLog("success", `✦ ODPOVEĎ AGENTA [${data.data.agentName || activeAgent.name}] (${data.data.provider || "Trinity"}):\n\n${data.data.finalAnswer}`);
         }
 
         if (data.data.receiptId) {
-          appendLog("receipt", `📜 DOKLAD OVERENIA (RECEIPT): ${data.data.receiptId}`, data.data.receiptId);
+          appendLog("receipt", `📜 KRYPTOGRAFICKÝ DOKLAD (SOVEREIGN RECEIPT): ${data.data.receiptId}`, data.data.receiptId);
           setReceipts(prev => [
             {
               id: data.data?.receiptId || "RCPT",
-              agent: activeAgent.name,
+              agent: data.data?.agentName || activeAgent.name,
               time: new Date().toLocaleTimeString("sk-SK"),
-              summary: currentPrompt.length > 60 ? currentPrompt.substring(0, 57) + "..." : currentPrompt
+              summary: currentPrompt.length > 65 ? currentPrompt.substring(0, 62) + "..." : currentPrompt,
+              provider: data.data?.provider
             },
             ...prev
           ]);
         }
       } else {
-        appendLog("error", `✖ CHYBA: ${data.error || "Neznáme zlyhanie spracovania"}`);
+        appendLog("error", `✗ CHYBA PIPELINE: ${data.error || "Neznáme zlyhanie spracovania"}`);
       }
     } catch (err: any) {
-      appendLog("error", `✖ CHYBA SPOJENIA: ${err?.message || "Server neodpovedá"}`);
+      appendLog("error", `✗ CHYBA SPOJENIA: ${err?.message || "Server neodpovedá"}`);
     } finally {
       setIsLoading(false);
+      setTimeout(() => setCurrentPipelineStep(0), 1500);
     }
   };
 
   const handleClearLogs = () => {
     setLogs([
-      { id: "cleared", timestamp: new Date().toLocaleTimeString("sk-SK"), type: "system", text: "Telemetrický záznamník vyčistený operátorom." }
+      { id: "cleared", timestamp: new Date().toLocaleTimeString("sk-SK"), type: "system", text: "Konzola bola vyčistená operátorom. Telemetrický okruh aktívny." }
     ]);
   };
 
@@ -301,34 +318,54 @@ export default function TrinityDashboard() {
     URL.revokeObjectURL(url);
   };
 
+  const copyToClipboard = (text: string, id: string) => {
+    void navigator.clipboard.writeText(text);
+    setCopiedReceipt(id);
+    setTimeout(() => setCopiedReceipt(null), 2000);
+  };
+
   return (
     <div className="app-container">
-      {/* Top Header */}
-      <header className="glass-panel p-4 md:p-6 flex flex-wrap items-center justify-between gap-4 border-b border-white/10 glow-emerald">
+      {/* Top Futuristic Command Header */}
+      <header className="glass-panel p-4 md:p-6 flex flex-wrap items-center justify-between gap-4 border-b border-cyan-500/20 glow-quantum hud-corner">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-600/30 to-cyan-500/20 border border-emerald-500/40 flex items-center justify-center shadow-lg shadow-emerald-950/50">
-            <Cpu className="w-6 h-6 text-emerald-400" />
+          <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600/40 via-cyan-500/30 to-purple-600/20 border border-cyan-500/50 flex items-center justify-center shadow-xl shadow-cyan-950/60 overflow-hidden">
+            <Cpu className="w-7 h-7 text-cyan-300 relative z-10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 to-transparent animate-pulse"></div>
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl md:text-2xl font-bold tracking-wider text-white">
-                TRINITY <span className="text-emerald-400 font-mono">//</span> OMNI-CORE
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl md:text-2xl font-black tracking-wider text-white flex items-center gap-2">
+                TRINITY <span className="text-cyan-400 font-mono text-lg font-light">//</span> OMNI-CORE
               </h1>
-              <span className="badge-chip badge-emerald text-xs">v11.1.0</span>
+              <span className="badge-chip badge-cyan text-xs">v11.1 QUANTUM HUD</span>
             </div>
-            <p className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-              <span>Sovereign AI Ecosystem</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-emerald-400 font-medium">Basterix (Sabo Ivan)</span>
-            </p>
+            <div className="text-xs text-slate-400 flex items-center gap-3 mt-1 font-mono">
+              <span className="flex items-center gap-1.5 text-emerald-400">
+                <Lock className="w-3.5 h-3.5" /> ROOT_SOVEREIGN: Basterix (Sabo Ivan)
+              </span>
+              <span className="text-slate-600">|</span>
+              <span className="text-cyan-300 flex items-center gap-1">
+                <FileCheck2 className="w-3.5 h-3.5" /> TRUTH POLICY 2.1
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Global telemetry pills */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <div className="badge-chip badge-amber">
-            <Shield className="w-3.5 h-3.5" />
-            <span>SOVEREIGN LOCK: AKTÍVNY</span>
+        {/* Live Neural Frequency Visualizer + Telemetry Status */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Animated Wave Indicator */}
+          <div className="px-3.5 py-2 rounded-xl bg-black/60 border border-white/10 flex items-center gap-2.5">
+            <div className="flex items-center gap-1 h-5">
+              <span className="wave-bar"></span>
+              <span className="wave-bar"></span>
+              <span className="wave-bar"></span>
+              <span className="wave-bar"></span>
+              <span className="wave-bar"></span>
+            </div>
+            <span className="text-[11px] font-mono text-cyan-300 uppercase tracking-wider font-semibold">
+              {isLoading ? "PROCESUJEM..." : "KVANTOVÁ REZONANCIA"}
+            </span>
           </div>
 
           <div className="badge-chip badge-emerald">
@@ -336,27 +373,27 @@ export default function TrinityDashboard() {
             <span>46 AGENTOV</span>
           </div>
 
-          <div className="badge-chip badge-cyan">
-            <Code className="w-3.5 h-3.5" />
+          <div className="badge-chip badge-violet">
+            <Sparkles className="w-3.5 h-3.5" />
             <span>{skillsTotal} SKILLOV</span>
           </div>
 
-          <div className="badge-chip badge-violet">
-            <Server className="w-3.5 h-3.5" />
-            <span>OPENAI + EDGE ONLINE</span>
+          <div className="badge-chip badge-amber">
+            <Radio className="w-3.5 h-3.5" />
+            <span>CLOUDFLARE EDGE ONLINE</span>
           </div>
         </div>
       </header>
 
-      {/* Main Navigation Bar */}
-      <nav className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/40 p-2 rounded-xl border border-white/5 backdrop-blur-md">
-        <div className="flex flex-wrap items-center gap-1.5">
+      {/* Main Tactical Navigation Bar */}
+      <nav className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 p-2.5 rounded-2xl border border-white/10 backdrop-blur-xl">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setActiveTab("console")}
             className={`btn-secondary ${activeTab === "console" ? "active" : ""}`}
           >
             <Terminal className="w-4 h-4" />
-            <span>Riadiaca konzola</span>
+            <span>Orbitálna Konzola</span>
           </button>
 
           <button
@@ -364,42 +401,69 @@ export default function TrinityDashboard() {
             className={`btn-secondary ${activeTab === "agents" ? "active" : ""}`}
           >
             <Layers className="w-4 h-4" />
-            <span>Tím 46 agentov</span>
+            <span>Tím 46 Agentov</span>
           </button>
 
           <button
             onClick={() => setActiveTab("skills")}
             className={`btn-secondary ${activeTab === "skills" ? "active" : ""}`}
           >
-            <Sparkles className="w-4 h-4" />
-            <span>Katalóg skillov ({skillsTotal})</span>
+            <Compass className="w-4 h-4" />
+            <span>Katalóg Skillov ({skillsTotal})</span>
           </button>
 
           <button
             onClick={() => setActiveTab("ledger")}
             className={`btn-secondary ${activeTab === "ledger" ? "active" : ""}`}
           >
-            <CheckCircle2 className="w-4 h-4" />
+            <Shield className="w-4 h-4" />
             <span>Sovereign Ledger ({receipts.length})</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg bg-black/40 border border-white/5">
-          <span className="text-slate-400">Aktívny agent:</span>
-          <span className="font-semibold text-emerald-400 font-mono">{activeAgent.name}</span>
-          <span className="text-slate-600">[{activeAgent.cluster}]</span>
+        <div className="flex items-center gap-2.5 text-xs px-3.5 py-1.5 rounded-xl bg-black/60 border border-cyan-500/30">
+          <span className="text-slate-400 font-mono">Vybraný špecialista:</span>
+          <span className="font-bold text-cyan-300 font-mono">{activeAgent.name}</span>
+          <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800 text-cyan-200 font-mono">
+            {activeAgent.cluster}
+          </span>
         </div>
       </nav>
 
+      {/* LIVE 4-STAGE PIPELINE PROGRESS INDICATOR */}
+      {isLoading && (
+        <div className="glass-panel p-3.5 flex items-center justify-between gap-2 border border-cyan-500/40 bg-cyan-950/20 text-xs font-mono">
+          <div className={`flex items-center gap-2 ${currentPipelineStep >= 1 ? "text-emerald-400 font-bold" : "text-slate-500"}`}>
+            <span className="w-5 h-5 rounded-full border flex items-center justify-center text-[10px] border-current">1</span>
+            <span>Sovereign Auth</span>
+          </div>
+          <ChevronRight className="w-4 h-4 text-slate-600" />
+          <div className={`flex items-center gap-2 ${currentPipelineStep >= 2 ? "text-cyan-400 font-bold" : "text-slate-500"}`}>
+            <span className="w-5 h-5 rounded-full border flex items-center justify-center text-[10px] border-current">2</span>
+            <span>Multi-Agent Dispatch</span>
+          </div>
+          <ChevronRight className="w-4 h-4 text-slate-600" />
+          <div className={`flex items-center gap-2 ${currentPipelineStep >= 3 ? "text-purple-400 font-bold" : "text-slate-500"}`}>
+            <span className="w-5 h-5 rounded-full border flex items-center justify-center text-[10px] border-current">3</span>
+            <span>Inferencia & Nástroje</span>
+          </div>
+          <ChevronRight className="w-4 h-4 text-slate-600" />
+          <div className={`flex items-center gap-2 ${currentPipelineStep >= 4 ? "text-amber-400 font-bold" : "text-slate-500"}`}>
+            <span className="w-5 h-5 rounded-full border flex items-center justify-center text-[10px] border-current">4</span>
+            <span>Sovereign Receipt Zapečatený</span>
+          </div>
+        </div>
+      )}
+
       {/* VIEW: CONSOLE (COMMAND & TELEMETRY) */}
       {activeTab === "console" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
           {/* Left Column: Command & Dispatcher */}
-          <div className="lg:col-span-5 flex flex-col gap-5">
+          <div className="lg:col-span-5 flex flex-col gap-4">
             {/* Active Agent Selector Banner */}
-            <div className="glass-panel p-4 flex items-center justify-between gap-3 border border-emerald-500/20">
+            <div className="glass-panel p-4 flex items-center justify-between gap-3 border border-cyan-500/20 hud-corner">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold font-mono">
+                <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/40 flex items-center justify-center text-cyan-300 font-bold font-mono text-lg shadow-md shadow-cyan-950/50">
                   {activeAgent.name.charAt(0)}
                 </div>
                 <div>
@@ -414,21 +478,21 @@ export default function TrinityDashboard() {
               </div>
               <button
                 onClick={() => setActiveTab("agents")}
-                className="text-xs text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 shrink-0"
+                className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 shrink-0"
               >
-                Zmeniť agenta <ChevronRight className="w-3.5 h-3.5" />
+                Zmeniť <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Prompt Form */}
-            <section className="glass-panel p-5 flex flex-col gap-4">
+            {/* Prompt Form Cockpit */}
+            <section className="glass-panel p-5 flex flex-col gap-4 glow-cyan hud-corner">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-emerald-400" />
-                  Príkazové centrum
+                  <Terminal className="w-4 h-4 text-cyan-400" />
+                  Riadiaci Cockpit
                 </h2>
                 <span className="text-[11px] font-mono text-slate-500">
-                  Target: <span className="text-emerald-400">{activeAgent.id}</span>
+                  Target: <span className="text-cyan-400 font-semibold">{activeAgent.id}</span>
                 </span>
               </div>
 
@@ -437,41 +501,41 @@ export default function TrinityDashboard() {
                   value={prompt}
                   onChange={e => setPrompt(e.target.value)}
                   onKeyDown={e => {
-                    if (e.key === "Enter" && !e.shiftKey) {
+                    if (e.key === "Enter" && (e.ctrlKey || !e.shiftKey)) {
                       e.preventDefault();
                       void handleRunAgent();
                     }
                   }}
-                  placeholder={`Zadaj úlohu pre agenta [${activeAgent.name}]... (Stlač Enter pre odoslanie)`}
+                  placeholder={`Zadaj operačný príkaz pre [${activeAgent.name}]... (Stlač Enter pre odoslanie)`}
                   rows={5}
-                  className="w-full bg-black/60 border border-white/10 rounded-lg p-3.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 resize-none font-mono transition-all"
+                  className="w-full bg-black/75 border border-cyan-500/20 rounded-xl p-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 resize-none font-mono transition-all"
                 />
               </div>
 
               <button
                 onClick={() => handleRunAgent()}
                 disabled={isLoading || !prompt.trim()}
-                className="btn-primary w-full py-3"
+                className="btn-primary w-full py-3.5"
               >
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin text-black" />
-                    <span>Spracúvam multi-agentový pipeline...</span>
+                    <span>Multi-Agent orchester pracuje...</span>
                   </>
                 ) : (
                   <>
                     <Play className="w-4 h-4 fill-current text-black" />
-                    <span>Vykonať príkaz cez {activeAgent.name}</span>
+                    <span>Odoslať príkaz cez {activeAgent.name}</span>
                   </>
                 )}
               </button>
             </section>
 
-            {/* Quick Action Deck */}
-            <section className="glass-panel p-5 flex flex-col gap-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            {/* Quick Tactical Action Deck */}
+            <section className="glass-panel p-4 flex flex-col gap-2.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2 font-mono">
                 <Zap className="w-3.5 h-3.5 text-amber-400" />
-                Rýchle operačné akcie
+                Rýchle operačné presety
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {QUICK_ACTIONS.map(action => (
@@ -482,12 +546,12 @@ export default function TrinityDashboard() {
                       void handleRunAgent(action.prompt);
                     }}
                     disabled={isLoading}
-                    className="p-3 text-left rounded-lg bg-black/40 border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-950/20 transition-all text-xs text-slate-300 font-medium group"
+                    className="p-3 text-left rounded-xl bg-black/40 border border-white/5 hover:border-cyan-500/40 hover:bg-cyan-950/20 transition-all text-xs text-slate-300 font-medium group"
                   >
-                    <div className="font-semibold text-white group-hover:text-emerald-400 transition-colors">
+                    <div className="font-semibold text-white group-hover:text-cyan-300 transition-colors">
                       {action.label}
                     </div>
-                    <div className="text-[11px] text-slate-500 line-clamp-1 mt-1">
+                    <div className="text-[11px] text-slate-500 line-clamp-1 mt-1 font-mono">
                       {action.prompt}
                     </div>
                   </button>
@@ -496,13 +560,13 @@ export default function TrinityDashboard() {
             </section>
           </div>
 
-          {/* Right Column: Live Telemetry Console */}
-          <section className="lg:col-span-7 glass-panel p-5 flex flex-col gap-4 glow-cyan min-h-[560px]">
+          {/* Right Column: Live Telemetry Stream */}
+          <section className="lg:col-span-7 glass-panel p-5 flex flex-col gap-4 glow-quantum min-h-[580px] hud-corner">
             <div className="flex flex-wrap items-center justify-between border-b border-white/10 pb-3 gap-2">
               <div className="flex items-center gap-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 pulse-indicator"></span>
-                <span className="text-xs uppercase font-bold tracking-wider text-slate-300 font-mono">
-                  Live Multi-Agent Telemetria
+                <span className="text-xs uppercase font-bold tracking-wider text-slate-200 font-mono flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-cyan-400" /> Live Sovereign Telemetria
                 </span>
                 <span className="badge-chip badge-cyan text-[10px]">
                   {logs.length} udalostí
@@ -513,14 +577,14 @@ export default function TrinityDashboard() {
                 <button
                   onClick={handleExportLogs}
                   title="Stiahnuť telemetrický záznam"
-                  className="p-1.5 rounded hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                  className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors border border-white/5"
                 >
                   <Download className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handleClearLogs}
                   title="Vyčistiť záznamník"
-                  className="p-1.5 rounded hover:bg-white/10 text-slate-400 hover:text-rose-400 transition-colors"
+                  className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-rose-400 transition-colors border border-white/5"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -528,7 +592,7 @@ export default function TrinityDashboard() {
             </div>
 
             {/* Output stream */}
-            <div className="flex-1 bg-black/75 border border-white/5 rounded-xl p-4 overflow-y-auto space-y-3.5 text-xs font-mono max-h-[560px]">
+            <div className="flex-1 bg-black/80 border border-white/5 rounded-xl p-4 overflow-y-auto space-y-3 text-xs font-mono max-h-[580px]">
               {logs.map(log => {
                 let colorClass = "text-slate-300";
                 let badge = "SYS";
@@ -536,44 +600,53 @@ export default function TrinityDashboard() {
 
                 if (log.type === "prompt") {
                   colorClass = "text-amber-300 font-semibold";
-                  badge = "INPUT";
-                  badgeClass = "bg-amber-950/80 text-amber-300 border-amber-800";
+                  badge = "PRÍKAZ";
+                  badgeClass = "bg-amber-950/90 text-amber-300 border-amber-800";
                 } else if (log.type === "step") {
                   colorClass = "text-cyan-300";
-                  badge = "STEP";
-                  badgeClass = "bg-cyan-950/80 text-cyan-300 border-cyan-800";
+                  badge = "KROK";
+                  badgeClass = "bg-cyan-950/90 text-cyan-300 border-cyan-800";
                 } else if (log.type === "tool") {
-                  colorClass = "text-purple-300";
-                  badge = "TOOL";
-                  badgeClass = "bg-purple-950/80 text-purple-300 border-purple-800";
+                  colorClass = "text-purple-300 font-semibold";
+                  badge = "NÁSTROJ";
+                  badgeClass = "bg-purple-950/90 text-purple-300 border-purple-800";
                 } else if (log.type === "result") {
                   colorClass = "text-slate-400";
-                  badge = "DATA";
+                  badge = "VÝSLEDOK";
                   badgeClass = "bg-slate-900 text-slate-400 border-slate-800";
                 } else if (log.type === "success") {
-                  colorClass = "text-emerald-300 bg-emerald-950/30 p-3 rounded-lg border border-emerald-500/20";
-                  badge = "FINAL";
+                  colorClass = "text-emerald-200 bg-emerald-950/30 p-3.5 rounded-xl border border-emerald-500/30";
+                  badge = "ODPOVEĎ";
                   badgeClass = "bg-emerald-900 text-emerald-300 border-emerald-700";
                 } else if (log.type === "receipt") {
-                  colorClass = "text-yellow-400 bg-amber-950/30 p-2.5 rounded-lg border border-amber-500/30 font-bold";
-                  badge = "RECEIPT";
+                  colorClass = "text-yellow-300 bg-amber-950/40 p-3 rounded-xl border border-amber-500/40 font-bold flex items-center justify-between gap-2";
+                  badge = "DOKLAD";
                   badgeClass = "bg-yellow-950 text-yellow-300 border-yellow-700";
                 } else if (log.type === "error") {
-                  colorClass = "text-rose-400 bg-rose-950/30 p-3 rounded-lg border border-rose-500/30 font-bold";
-                  badge = "ERROR";
+                  colorClass = "text-rose-400 bg-rose-950/40 p-3.5 rounded-xl border border-rose-500/40 font-bold";
+                  badge = "CHYBA";
                   badgeClass = "bg-rose-900 text-rose-300 border-rose-700";
                 }
 
                 return (
-                  <div key={log.id} className="flex items-start gap-2.5 leading-relaxed break-words animate-fadeIn">
+                  <div key={log.id} className="flex items-start gap-2.5 leading-relaxed break-words">
                     <span className="text-[10px] text-slate-600 shrink-0 select-none pt-0.5">
                       {log.timestamp}
                     </span>
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded border uppercase font-bold shrink-0 ${badgeClass}`}>
+                    <span className={`text-[9px] px-2 py-0.5 rounded border uppercase font-bold shrink-0 ${badgeClass}`}>
                       {badge}
                     </span>
                     <div className={`flex-1 whitespace-pre-wrap ${colorClass}`}>
                       {log.text}
+                      {log.receiptId && (
+                        <button
+                          onClick={() => copyToClipboard(log.receiptId!, log.id)}
+                          className="ml-3 px-2 py-0.5 rounded bg-black/60 border border-yellow-500/40 text-[10px] text-yellow-300 hover:bg-yellow-500/20 transition-all inline-flex items-center gap-1"
+                        >
+                          {copiedReceipt === log.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                          {copiedReceipt === log.id ? "Skopírované" : "Kopírovať"}
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -583,19 +656,19 @@ export default function TrinityDashboard() {
         </div>
       )}
 
-      {/* VIEW: 46 AGENTS ROSTER */}
+      {/* VIEW: 46 AGENTS MATRIX */}
       {activeTab === "agents" && (
         <section className="flex flex-col gap-5">
           {/* Filter Bar */}
-          <div className="glass-panel p-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="glass-panel p-4 flex flex-wrap items-center justify-between gap-4 hud-corner">
             <div className="flex items-center gap-2 flex-1 max-w-md">
-              <Search className="w-4 h-4 text-slate-400" />
+              <Search className="w-4 h-4 text-cyan-400" />
               <input
                 type="text"
                 value={agentSearch}
                 onChange={e => setAgentSearch(e.target.value)}
                 placeholder="Hľadať agenta podľa mena, role alebo ID..."
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
               />
             </div>
 
@@ -604,9 +677,9 @@ export default function TrinityDashboard() {
                 <button
                   key={cluster}
                   onClick={() => setClusterFilter(cluster)}
-                  className={`px-3 py-1.5 rounded-lg border transition-all ${
+                  className={`px-3 py-1.5 rounded-xl border transition-all ${
                     clusterFilter === cluster
-                      ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold"
+                      ? "bg-cyan-500/20 border-cyan-400 text-cyan-300 font-bold shadow-md shadow-cyan-950/50"
                       : "bg-black/30 border-white/5 text-slate-400 hover:text-white"
                   }`}
                 >
@@ -633,14 +706,14 @@ export default function TrinityDashboard() {
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
-                      <h4 className="font-bold text-white text-sm flex items-center gap-1.5">
+                      <h4 className="font-bold text-white text-sm flex items-center gap-2">
                         {agent.name}
-                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 inline" />}
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-emerald-400 inline" />}
                       </h4>
-                      <span className="text-[11px] font-mono text-slate-500">ID: {agent.id}</span>
+                      <span className="text-[11px] font-mono text-cyan-400">ID: {agent.id}</span>
                     </div>
 
-                    <span className={`text-[10px] px-2 py-0.5 rounded border font-semibold ${colorStyle}`}>
+                    <span className={`text-[10px] px-2.5 py-0.5 rounded-full border font-semibold font-mono ${colorStyle}`}>
                       {agent.cluster}
                     </span>
                   </div>
@@ -649,10 +722,10 @@ export default function TrinityDashboard() {
                     {agent.role}
                   </p>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 border-t border-white/5 pt-2">
-                    <span>Nástroje: <b className="text-slate-300">{agent.toolsCount}</b></span>
-                    <span className="text-emerald-400 font-medium group-hover:underline flex items-center gap-1">
-                      Vybrať agenta →
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 border-t border-white/10 pt-2.5 font-mono">
+                    <span>Nástroje: <b className="text-cyan-300">{agent.toolsCount}</b></span>
+                    <span className="text-cyan-400 font-semibold group-hover:underline flex items-center gap-1">
+                      Poveriť agenta →
                     </span>
                   </div>
                 </div>
@@ -664,11 +737,11 @@ export default function TrinityDashboard() {
 
       {/* VIEW: SKILLS CATALOG */}
       {activeTab === "skills" && (
-        <section className="glass-panel p-5 flex flex-col gap-4">
+        <section className="glass-panel p-5 flex flex-col gap-4 hud-corner">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-cyan-400" />
+                <Compass className="w-5 h-5 text-cyan-400" />
                 Oficiálny Katalóg Skillov ({skillsTotal})
               </h2>
               <p className="text-xs text-slate-400">
@@ -677,59 +750,68 @@ export default function TrinityDashboard() {
             </div>
 
             <div className="flex items-center gap-2 max-w-sm w-full">
-              <Search className="w-4 h-4 text-slate-400" />
+              <Search className="w-4 h-4 text-cyan-400" />
               <input
                 type="text"
                 value={skillSearch}
                 onChange={e => setSkillSearch(e.target.value)}
                 placeholder="Hľadať v skilloch..."
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 max-h-[600px] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 max-h-[620px] overflow-y-auto pr-1">
             {filteredSkills.length > 0 ? (
               filteredSkills.map(skill => (
-                <div key={skill.id} className="p-3.5 rounded-lg bg-black/40 border border-white/5 hover:border-cyan-500/40 transition-all flex flex-col justify-between gap-2">
+                <div key={skill.id} className="p-4 rounded-xl bg-black/50 border border-white/10 hover:border-cyan-500/50 transition-all flex flex-col justify-between gap-2.5 group">
                   <div>
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <h4 className="font-bold text-white text-xs">{skill.name}</h4>
-                      <span className="text-[10px] font-mono text-cyan-400">{skill.id}</span>
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <h4 className="font-bold text-white text-xs group-hover:text-cyan-300 transition-colors">{skill.name}</h4>
+                      <span className="text-[10px] font-mono text-cyan-400 px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800">{skill.id}</span>
                     </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">{skill.description}</p>
+                    <p className="text-xs text-slate-300 leading-relaxed">{skill.description}</p>
                   </div>
-                  {skill.clusters && skill.clusters.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {skill.clusters.map(c => (
+                  <div className="flex items-center justify-between border-t border-white/5 pt-2">
+                    <div className="flex flex-wrap gap-1">
+                      {(skill.clusters || []).slice(0, 2).map(c => (
                         <span key={c} className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
                           {c}
                         </span>
                       ))}
                     </div>
-                  )}
+                    <button
+                      onClick={() => {
+                        setPrompt(`Spusti skill [${skill.id}]: ${skill.name} a analyzuj výstup.`);
+                        setActiveTab("console");
+                      }}
+                      className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold"
+                    >
+                      Otestovať →
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (
-              <div className="col-span-full py-12 text-center text-slate-500 text-xs">
-                Katalóg skillov sa synchronizuje z Trinity jadra ({skillsTotal} skillov pripravených).
+              <div className="col-span-full py-16 text-center text-slate-500 text-xs font-mono">
+                Katalóg skillov sa dynamicky synchronizuje ({skillsTotal} skillov pripravených).
               </div>
             )}
           </div>
         </section>
       )}
 
-      {/* VIEW: SOVEREIGN LEDGER */}
+      {/* VIEW: SOVEREIGN LEDGER EXPLORER */}
       {activeTab === "ledger" && (
-        <section className="glass-panel p-5 flex flex-col gap-5">
+        <section className="glass-panel p-5 flex flex-col gap-5 hud-corner">
           <div className="border-b border-white/10 pb-4 flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <Shield className="w-5 h-5 text-amber-400" />
-                Sovereign Ledger & TruthGuard Telemetria
+                Sovereign Ledger & TruthGuard Explorer
               </h2>
-              <p className="text-xs text-slate-400">
-                Pravidlo Ústavy: NO RECEIPT = NO SUCCESS. Každá vykonaná operácia má kryptografický záznam.
+              <p className="text-xs text-slate-400 font-mono">
+                Ústavné pravidlo: NO RECEIPT = NO SUCCESS. Každý záznam nesie SHA-256 kryptografický odtlačok.
               </p>
             </div>
 
@@ -738,27 +820,41 @@ export default function TrinityDashboard() {
             </span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {receipts.map(r => (
-              <div key={r.id} className="p-4 rounded-xl bg-black/50 border border-white/5 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4" />
+              <div key={r.id} className="p-4 rounded-xl bg-black/60 border border-white/10 hover:border-amber-500/30 transition-all flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-md">
+                    <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-yellow-400">{r.id}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800">
-                        VERIFIED_SUCCESS
+                    <div className="flex items-center gap-2.5">
+                      <span className="font-mono text-xs font-bold text-amber-400">{r.id}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-800 font-mono">
+                        VERIFIED_BLOCK
                       </span>
+                      {r.provider && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+                          {r.provider}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-slate-300 mt-1">{r.summary}</p>
+                    <p className="text-xs text-slate-200 mt-1 font-sans">{r.summary}</p>
                   </div>
                 </div>
 
-                <div className="text-right text-xs text-slate-500 font-mono">
-                  <div>Agent: <span className="text-slate-300">{r.agent}</span></div>
-                  <div>Čas: {r.time}</div>
+                <div className="flex items-center gap-4 text-right text-xs text-slate-400 font-mono">
+                  <div>
+                    <div>Zodpovedný: <span className="text-cyan-300 font-semibold">{r.agent}</span></div>
+                    <div className="text-[11px] text-slate-500">Čas: {r.time}</div>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(r.id, r.id)}
+                    className="p-2 rounded-lg bg-black/40 border border-white/10 hover:border-cyan-400 text-slate-400 hover:text-white transition-all"
+                    title="Kopírovať Receipt ID"
+                  >
+                    {copiedReceipt === r.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
                 </div>
               </div>
             ))}
