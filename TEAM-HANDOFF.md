@@ -2323,3 +2323,16 @@ Owner requests local official repository integration. Scope: existing isolated c
 
 ### UPDATE / HANDOFF Codex — OFFICIAL-LOCAL-MCP-20261103
 Implementation: stdio bypasses HTTP listener/token startup; new actual MCP subprocess regression checks initialize, tool catalog and ready workspace. Full bridge suite 16/16 PASS. Local trinity-local registered and SDK status ready. Scope limited to bridge startup, regression and this journal. Remote auth still pending; no peer ACK or cloud deployment claimed. Publishing review branch/PR; main remains subject to repository checks.
+
+### CLAIM Codex — COPILOT-PR35-HTTP-LAUNCHER-20261106
+Time: 2026-11-06 08:57:18 +01:00 (Europe/Bratislava).
+Base: PR #35 branch head b4783e1b49a4c3cf6be58767b06b41b8b23bf8e3.
+Owned files: trinity-mcp-bridge/Restart-Bridge.ps1; append-only TEAM-HANDOFF.md.
+Goal: prevent the HTTP bridge process from inheriting MCP_STDIO=true while preserving the parent PowerShell value after launch.
+Scope: script-only fix prompted by Copilot review comment #4490195661. No credentials, live process, tests/builds, deployment, or merge.
+### UPDATE Codex — COPILOT-PR35-HTTP-LAUNCHER-20261106
+Time: 2026-11-06 08:59:28 +01:00 (Europe/Bratislava).
+Changed trinity-mcp-bridge/Restart-Bridge.ps1 so the HTTP child temporarily starts without inherited MCP_STDIO and the parent PowerShell value is restored in finally. No other inherited variables changed.
+Review finding: Copilot #4490195661 on PR #35. Scope is limited to the launcher; no bridge process was started or stopped and no credential value was read.
+Check: git diff --check completed with no whitespace errors; Git emitted only its normal LF-to-CRLF working-copy notice for TEAM-HANDOFF.md. Tests/build were not run.
+Status: local change ready for a commit and update to PR #35; merge/deploy not performed.
