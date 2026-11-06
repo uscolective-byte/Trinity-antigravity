@@ -1,3 +1,4 @@
+import {calculateIntrinsicValuation,calculateTtkQuote,VALUATION_MILESTONES,VALUE_MECHANISMS} from './crypto-value-engine.js';
 import {authorizeBridgeProxy,authorizeBridgeRequest} from './bridge-proxy-auth.js';
 import {BRIDGE_AUTH_VERSION,registeredBridgeTunnelUrl} from '../../packages/contracts/src/bridge-auth.js';
 /**
@@ -1367,6 +1368,17 @@ async function route(request,env,ctx){
     requireAdmin(user);
     return json(await syncConnector(env,ownerId,syncMatch[1]));
   }
+  if(path==='/api/assistant/crypto/value'&&request.method==='GET'){
+    return json({
+      valuation: calculateIntrinsicValuation(),
+      milestones: VALUATION_MILESTONES,
+      mechanisms: VALUE_MECHANISMS
+    });
+  }
+  if(path==='/api/assistant/crypto/quote'&&request.method==='POST'){
+    const body = await readJSON(request, 8000).catch(() => ({}));
+    return json(calculateTtkQuote(Number(body?.amount_eur || 50)));
+  }
   if(path==='/api/assistant/crypto/tetrakis'&&request.method==='GET'){
     return json({
       token: 'Tetrakis',
@@ -1381,6 +1393,9 @@ async function route(request,env,ctx){
       chain_id: 8453,
       dex_platforms: ['Aerodrome Finance', 'Uniswap v3 (Base)'],
       pair: 'TTK / WETH',
+      value_engine: calculateIntrinsicValuation(),
+      valuation_milestones: VALUATION_MILESTONES,
+      value_mechanisms: VALUE_MECHANISMS,
       staking_tiers: [
         { tier: 1, required_ttk: 1000, name: 'Sovereign Explorer', benefits: 'Unlimited chat, knowledge search, and semantic memory' },
         { tier: 2, required_ttk: 10000, name: 'Sovereign Operator', benefits: 'Full PC Bridge remote execution, Azure AI Foundry GPT-4o inference, and skill synthesis' },
@@ -1390,7 +1405,8 @@ async function route(request,env,ctx){
         liquidity_pool: '40% (400,000,000 TTK)',
         agent_ecosystem: '30% (300,000,000 TTK)',
         treasury_reserve: '20% (200,000,000 TTK)',
-        founder_core_dev: '10% (100,000,000 TTK)'
+        founder_basterix: '0.1% (1,000,000 TTK priamo v peňaženke Basterixa)',
+        founder_dev_reserve: '9.9% (99,000,000 TTK)'
       },
       status: 'COMPILED_AND_READY_FOR_BASE_MAINNET_LIQUIDITY',
       basescan: 'https://basescan.org/address/0x4d308452a96D7dAbFd2f33d92677A3a2724f387e'
