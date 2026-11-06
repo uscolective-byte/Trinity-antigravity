@@ -1004,3 +1004,23 @@ Head SHA: 4de21e8b9cf090f3f56e3ac0c0abc1fcaf346045
 Review only these seven changed paths: Trinity/src/index.js, Trinity/src/services.js, Trinity/src/ai-providers.js, Trinity/src/api-keys.js, Trinity/public/assistant/chat.html, Trinity/public/assistant/chat.js.txt, Trinity/docs/PROVIDER_CONNECTIONS.md.
 Request: independently review provider credential flow, owner authorization, public/UI status truthfulness, MCP read/write scopes, non-expiring key behavior and manual revocation. Confirm that the 60 requests/minute rate limit remains accurately documented. Report concrete findings with file/line and severity, or ACK with exact reviewed SHA and evidence.
 Restrictions: read-only; do not read .env, .dev.vars, DPAPI, vault contents or token values. Do not edit, commit, push, merge, deploy, or run tests/builds for this review. No historical ACK is a response to this new task.
+### HANDOFF Codex -> Antigravity — TRINITY-PR37-COPILOT-FINDINGS-20261106-AG01
+Time: 2026-11-06 09:02:24 +01:00 (Europe/Bratislava).
+Status: PENDING_ANTIGRAVITY_ACK. Shared-file delivery only; no direct conversation receipt has been verified.
+Task ID: TRINITY-PR37-COPILOT-FINDINGS-20261106-AG01
+Nonce: AG-PR37-32F3E004-20261106-02
+Target: PR #37 head 32f3e004dad99d5b98ab3f150b746054c597ae4f against base ed4b43d9c3900a1810eaa292533c3244216a64bd.
+Owned paths in an isolated worktree: Trinity/scripts/cloudflare-env-audit.mjs, Trinity/scripts/trinity-environment.sh, Trinity/src/architecture.js, README.md. Read-only context: Trinity/wrangler.jsonc and the open Copilot thread that warns auru.dev would become build-only while VS Code still targets https://auru.dev/mcp.
+Request: address the Copilot findings about auditing Vectorize against both root and env.production profiles, checking staging before production migrations and verifying only auru.space after production, and updating architecture/README to separate configured routes from verified live status. Report exact SHA, file/line evidence and unresolved items.
+Safety and boundary: do not edit the auru.dev route, bindings, DNS, secrets, Cloudflare resources or deploy. The auru.dev route requires Basterix's migration decision and remains an open blocker. Do not read credentials. No tests/builds requested for this task. One implementer per file; provide an Antigravity-authored ACK/UPDATE only.
+### CLAIM Codex — TRINITY-PR41-COPILOT-FINDINGS-CODEX-20261106
+Time: 2026-11-06 09:14 +01:00 (Europe/Bratislava).
+Status: ACTIVE in isolated worktree C:\Users\saboi\2026-11-06\provider-connections-worktree, branch codex/provider-connections-20261106, exact base/head 4de21e8b9cf090f3f56e3ac0c0abc1fcaf346045.
+Owned source files: Trinity/public/assistant/chat.js.txt, Trinity/src/index.js, Trinity/src/services.js, Trinity/src/ai-providers.js, Trinity/src/chat-routing.js, Trinity/src/jobs.js, Trinity/src/engine.js, Trinity/src/workflow.js, Trinity/src/followup.js, Trinity/migrations/0056_ai_provider_job_owner.sql. Root coordination logs are append-only. Do not edit Trinity/src/mcp.js or Trinity/tests/runtime.test.mjs; those remain VS Code Copilot-owned.
+Purpose: address Copilot review comments #4490274577, #4490274649, #4490274677, #4490274704, #4490274742. No tests/builds, credentials, Cloudflare resources, merge, or deploy. PR remains draft.
+
+### HANDOFF Codex -> GitHub Copilot (VS Code) — TRINITY-PR41-MCP-APPROVAL-FIX-20261106
+Time: 2026-11-06 09:14 +01:00 (Europe/Bratislava).
+Status: PENDING_COPILOT_ACK; shared-file delivery only, receipt not verified.
+Source review comments: PR #41 comment #4490274614 (MCP write can self-approve/run) and #4490274704 (self-approving improvement).
+Request to the active owner of Trinity/src/mcp.js and Trinity/tests/runtime.test.mjs: gate approve_system_action away from MCP API-key/projectControl clients, require separate authenticated owner approval and matching confirmation; change propose_improvement to create a pending proposal without approving/applying it. Add focused regression tests and return actual file/line evidence and commit. No Codex edit to these paths.

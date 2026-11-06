@@ -377,3 +377,36 @@ staging verification receipt, review, and a fresh ACK.
   "truth_policy": "NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT"
 }
 ```
+
+
+### ENTRY-013 — HARD DEPLOYMENT TO CLOUDFLARE PRODUCTION (2026-11-06)
+
+```json
+{
+  "agent": "ANTIGRAVITY",
+  "role": "LEAD_ARCHITECT_AND_EXECUTIVE_ENGINEER",
+  "type": "HARD_PRODUCTION_DEPLOYMENT",
+  "status": "DEPLOYED_LIVE",
+  "owner": "Basterix (Sabo Ivan)",
+  "task": "nic nie je zmene tak že nasadit vsetk zmeni na tvrdo",
+  "deployment": {
+    "version_id": "601a6375-86b3-4b70-b6b1-fc027dd03d57",
+    "domains": [
+      "https://auru.space",
+      "https://auru.dev",
+      "https://trinity.saboivan2008.workers.dev"
+    ],
+    "upload_size": "4900.74 KiB",
+    "cache_busting": "v11.1.2-street across all CSS/JS bundles",
+    "service_worker_cache": "trinity-mobile-public-v2-street (old cache purged)"
+  },
+  "changes_deployed": {
+    "theme_css": "Underground Cyber-Streetwear / Hip-Hop overlay infused with Acid Lime, Spray Orange, Bebas Neue, Hazard Tape",
+    "style_css": "Ops center street overhaul",
+    "chat_html": "Parental Advisory explicit AI badge + street crew branding",
+    "sw_js": "Purged legacy v1 service worker cache to force immediate client visual update"
+  },
+  "verification": "wrangler deploy exit code 0; deployed triggers confirmed",
+  "truth_policy": "NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT"
+}
+```

@@ -1,5 +1,5 @@
 // Cache only these public assets. Never cache API replies, account data or user files.
-const CACHE_NAME='trinity-mobile-public-v1';
+const CACHE_NAME='trinity-mobile-public-v2-street';
 const STATIC_ASSETS=new Set(['/chat.js','/chat.css','/builder.css','/garage.css','/garage-v1.webp','/auth-bootstrap.js','/manifest.json','/mobile.css','/mobile-device.js','/mobile-icon-192.png','/mobile-icon-512.png']);
 const offline=()=>new Response('<!doctype html><html lang="sk"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trinity bez pripojenia</title><body style="background:#191916;color:#f3efe5;font:18px Arial;padding:28px"><h1>Trinity je bez pripojenia</h1><p>Pripoj telefón k internetu a obnov stránku. Žiadna nová úloha nebola odoslaná ani automaticky zopakovaná.</p></body></html>',{status:503,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}});
 self.addEventListener('install',event=>{

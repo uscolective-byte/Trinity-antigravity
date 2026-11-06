@@ -2819,3 +2819,35 @@ Changes:
 - app/page.tsx: Redesigned as an underground recording studio & cyber-crew console. 46 crew members with specialized street roles, 152 crate samples/skills, MPC quick-drop beat triggers, boombox cipher telemetria with street tags.
 Verification: Next.js Turbopack build PASS (5/5 pages clean in 884ms), Local-Desktop suite 24/24 PASS, Trinity test suite 915/915 PASS.
 Next owner: Basterix preview / Triad harmony.
+
+### UPDATE Codex — COPILOT-PR35-HTTP-LAUNCHER-20261106
+Time: 2026-11-06 09:02:24 +01:00 (Europe/Bratislava).
+Committed d08c137c67685f6d066e0e7d47e99ef91322f5c8 on isolated branch codex/pr35-http-launcher-fix-20261106 and pushed it fast-forward to PR #35 head codex/trinity-local-stdio-20261103. The change clears MCP_STDIO only during HTTP child creation, then restores the parent value. PR head now d08c137c67685f6d066e0e7d47e99ef91322f5c8.
+Updated PR description to distinguish the original b4783e1 test evidence from this untested follow-up. git diff --check had no whitespace errors; no tests/builds or live bridge actions were run. Copilot re-review was requested again; result pending. PR #35 remains open and GitHub reports mergeable=false; no merge/deploy.
+
+### HANDOFF Codex -> Antigravity — TRINITY-PR37-COPILOT-FINDINGS-20261106-AG01
+Time: 2026-11-06 09:02:24 +01:00 (Europe/Bratislava).
+Status: PENDING_ANTIGRAVITY_ACK. This request is recorded in the shared review file; acceptance is not inferred from another Antigravity task.
+Task ID: TRINITY-PR37-COPILOT-FINDINGS-20261106-AG01
+Nonce: AG-PR37-32F3E004-20261106-02
+Target: open PR #37, https://github.com/uscolective-byte/Trinity-antigravity/pull/37; head 32f3e004dad99d5b98ab3f150b746054c597ae4f; base ed4b43d9c3900a1810eaa292533c3244216a64bd.
+Own only these files in a separate worktree: Trinity/scripts/cloudflare-env-audit.mjs, Trinity/scripts/trinity-environment.sh, Trinity/src/architecture.js, README.md. Review Trinity/wrangler.jsonc only to document the unresolved domain decision; do not edit routing, bindings, or deployments.
+Request: resolve the current Copilot findings in the owned files: compare staging Vectorize to both root and env.production profiles; ensure staging validation occurs before production migrations and that post-production verification targets auru.space; correct architecture/README text to distinguish configured routes from live verification. Return exact changed files, commit, diff evidence and unresolved items.
+Safety: preserve the auru.dev route as-is until Basterix chooses the migration target. Do not alter secrets, account data, production/staging resources, DNS, or run deploys. Do not read credentials. No tests/builds in this review/fix request. Leave the auru.dev outage-risk thread open pending the owner's route decision.
+### UPDATE Codex — COPILOT-PR35-REVIEW-QUOTA-20261106
+Time: 2026-11-06 09:14 +01:00 (Europe/Bratislava).
+Copilot re-review of PR #35 could not run because the requesting account has insufficient remaining review quota. The prior HTTP-launcher fix is pushed as d08c137c67685f6d066e0e7d47e99ef91322f5c8, but Copilot has not verified it; finding #4490195661 remains open. No tests/builds, merge, or deployment were performed for this follow-up.
+
+### CLAIM Codex — TRINITY-PR41-COPILOT-FINDINGS-CODEX-20261106
+Time: 2026-11-06 09:14 +01:00 (Europe/Bratislava).
+Goal: fix the non-MCP findings from the six open Copilot review comments on draft PR #41, head 4de21e8b9cf090f3f56e3ac0c0abc1fcaf346045, base ed4b43d9c3900a1810eaa292533c3244216a64bd.
+Owned source paths: Trinity/public/assistant/chat.js.txt, Trinity/src/index.js, Trinity/src/services.js, Trinity/src/ai-providers.js, Trinity/src/chat-routing.js, Trinity/src/jobs.js, Trinity/src/engine.js, Trinity/src/workflow.js, Trinity/src/followup.js, Trinity/migrations/0056_ai_provider_job_owner.sql. Coordination paths: TEAM-HANDOFF.md, CODEX-ANTIGRAVITY-REVIEW-2026-10-24.md, GITHUB-COPILOT-HANDOFF.md (append-only).
+Scope: fix the malformed API-key expiry rendering; restrict saved provider credentials/settings to the authenticated owner across provider selection and asynchronous jobs; preserve explicit disabled settings; keep the OpenAI UI default enabled until an explicit setting exists; report Worker-secret Cloudflare presence only as configured. No MCP source or test files: Trinity/src/mcp.js and Trinity/tests/runtime.test.mjs remain owned by the active VS Code Copilot task.
+Boundaries: no credential reads or disclosures, no tests/builds, no Cloudflare/account/DNS changes, no merge/deploy. Keep PR #41 draft. Preserve all other worktree changes. Record actual diff and commit before pushing only the owned paths to the existing PR branch.
+
+### HANDOFF Codex -> GitHub Copilot (VS Code) — TRINITY-PR41-MCP-APPROVAL-FIX-20261106
+Time: 2026-11-06 09:14 +01:00 (Europe/Bratislava).
+Status: PENDING_COPILOT_ACK; this is a request recorded in the shared handoff, not proof of receipt.
+Source: Copilot PR #41 review comment #4490274614, plus comment #4490274704 on the same draft PR head 4de21e8b9cf090f3f56e3ac0c0abc1fcaf346045.
+Request within Copilot's already-owned Trinity/src/mcp.js and Trinity/tests/runtime.test.mjs: ensure an MCP API key with mcp:write/projectControl cannot approve its own run/deploy/system action; require an authenticated owner approval channel and a required matching confirmation. Change propose_improvement so MCP only creates a pending proposal and cannot approve/apply it in the same call. Add/update focused tests and document exact evidence in Copilot's own ACK.
+Do not edit Codex-owned provider paths. Preserve read/write for ordinary approved project changes; no credential changes, merge, or deployment. Only VS Code GitHub Copilot may ACK its implementation.
