@@ -261,18 +261,17 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
     return {text,model:usedModel,provider,usage:{input:data.usageMetadata?.promptTokenCount||0,output:data.usageMetadata?.candidatesTokenCount||0}};
   }
   if(provider==='openai') {
-    let apiKey=typeof env.OPENAI_API_KEY==='string'?sanitizeApiKey(env.OPENAI_API_KEY,/(?:sk-[A-Za-z0-9_-]{16,}|test-[A-Za-z0-9_-]{10,})/):'';
     const envModel=env.OPENAI_MODEL&&!/luna/i.test(env.OPENAI_MODEL)?env.OPENAI_MODEL.trim():'';
-    let model=customModel||envModel||'gpt-4.1-mini';
-    if(!apiKey){
-      try {
-        const vaultProvider=await getConfiguredAIProvider(env,'openai');
-        if(vaultProvider?.apiKey){
-          apiKey=sanitizeApiKey(vaultProvider.apiKey,/sk-[A-Za-z0-9_-]{16,}/);
-          if(vaultProvider.model)model=vaultProvider.model;
-        }
-      }catch{}
-    }
+    let apiKey='',model=customModel||'';
+    try {
+      const vaultProvider=await getConfiguredAIProvider(env,'openai');
+      if(vaultProvider?.apiKey){
+        apiKey=sanitizeApiKey(vaultProvider.apiKey,/sk-[A-Za-z0-9_-]{16,}/);
+        if(!model&&vaultProvider.model)model=vaultProvider.model;
+      }
+    }catch{}
+    if(!apiKey)apiKey=typeof env.OPENAI_API_KEY==='string'?sanitizeApiKey(env.OPENAI_API_KEY,/(?:sk-[A-Za-z0-9_-]{16,}|test-[A-Za-z0-9_-]{10,})/):'';
+    if(!model)model=envModel||'gpt-4.1-mini';
     if(!apiKey)throw new Error('OpenAI API nie je nakonfigurované.');
     const chatMessages=messages.slice(-16).map(message=>({
       role:message.role==='system'?'system':message.role,
