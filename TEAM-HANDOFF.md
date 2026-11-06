@@ -2866,3 +2866,10 @@ Lokálne závislosti nainštalované v `Trinity/` príkazom `npm.cmd install --i
 Overenie: `npm.cmd test` (exit 0) spustilo Wrangler dry-run build a Trinity testy: 915/915 PASS, 0 fail; trvanie testov 142178.9 ms. `git diff --check` aj `git diff --cached --check` PASS.
 Stav pred commitom: jediná pôvodná staged zmena je schválený `.github/act-history.json`; druhá zmena je táto append-only koordinácia. Bez deployu, cloudových zmien, secretov alebo vzdialených PC akcií.
 Stav: ready_to_commit.
+
+### HANDOFF — TRINITY-LOCAL-DEPENDENCIES-AND-COMMIT-20261106-COPILOT-01
+Stav: completed; lokálny checkout na vetve `copilot/trinity-local-deps-20261106`.
+Commit schválenej staged zmeny a koordinácie: `06b161909f73fd2649c7f9b0111195e67d007058`.
+Kontroly: inštalácia exit 0; npm audit 0 zraniteľností; `npm.cmd test` exit 0, Wrangler dry-run build PASS, Trinity 915/915 PASS; pracovný strom bol po commite čistý.
+Lokálne `Trinity/node_modules/` nie je commitnuté. Bez pushu/PR, Cloudflare deployu alebo zmien účtov a secrets.
+Ďalší krok a vlastník: majiteľ môže rozhodnúť o publikovaní izolovanej vetvy; žiadny ACK za inú stranu sa nevydáva.
