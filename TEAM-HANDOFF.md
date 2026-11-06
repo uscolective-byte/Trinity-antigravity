@@ -2723,3 +2723,60 @@ PR: https://github.com/uscolective-byte/Trinity-antigravity/pull/40, open agains
 Vetva obsahuje iba Gemini integráciu + opravu troch zastaraných počtov agentov; `npm run build` dry-run PASS, `npm test` 906/906 PASS. Hosted GitHub joby sa nespustili: automatická anotácia uvádza zablokovaný účet pre billing issue. Dôvod je zapísaný v PR. PR nie je zlúčený; deploy neprebehol.
 Rozšírený commit `0133463547eb61c06fbbd3b8148f575e3bac5629` na izolovanej lokálnej `codex/trinity-suite-repair-20261105` aplikuje rovnaké pravdivé kvótové tvrdenia aj na novší lokálny tool-calling runtime a odovzdáva iba executionContext volajúceho. Táto vetva stojí na `ea6064c` a nebola publikovaná, lebo by zahŕňala iné nepreverené commity; jej `npm test` PASS 911/911.
 Pôvodný checkout s lokálnymi zmenami ostáva zachovaný.
+
+### CLAIM Codex — TRINITY-PROVIDER-CONNECTIONS-20261106
+Čas: 2026-11-06, Europe/Bratislava.
+Cieľ: sprístupniť v hlavnom Trinity kóde pravdivé a bezpečné pripojenie Cloudflare, GitHub, OpenAI/GPT, Gemini a Google Antigravity.
+Základ: `origin/main` (`ed4b43d`); izolovaný worktree `C:\Users\saboi\2026-11-06\provider-connections-worktree` a vetva `codex/provider-connections-20261106`.
+Rozsah: využiť existujúci šifrovaný trezor pre Cloudflare, GitHub, OpenAI/GPT a Gemini; umožniť priradiť overený OpenAI kľúč ako aktívny model; vytvárať samostatné, odvolateľné Trinity MCP kľúče pre Antigravity a Visual Studio Code. Antigravity používa Bearer hlavičku; VS Code dostane plný rozsah `mcp:read` + `mcp:write` na výslovnú požiadavku vlastníka. Nijaké poverenie nepatrí do zdrojov.
+Vlastnené cesty: `Trinity/src/index.js`, `Trinity/src/services.js`, `Trinity/src/ai-providers.js`, `Trinity/src/api-keys.js`, `Trinity/public/assistant/chat.html`, `Trinity/public/assistant/chat.js.txt`, `Trinity/docs/PROVIDER_CONNECTIONS.md` a tento handoff.
+Hranice: bez čítania alebo zmeny tajných hodnôt, bez účtových zmien, OAuth registrácie, merge, push alebo nasadenia; zachovať existujúce necommitnuté úpravy `.vscode/settings.json` a package manifestov v hlavnom checkoute.
+Stav: implementácia dokončená a commitnutá v izolovanej vetve; čaká na integráciu. Bez OAuth migrácie, registrácie účtov, nasadenia alebo publikovania.
+
+### UPDATE / HANDOFF — TRINITY-PROVIDER-CONNECTIONS-20261106
+Dátum: 2026-11-06, Europe/Bratislava.
+Worktree: `C:\Users\saboi\2026-11-06\provider-connections-worktree`; vetva `codex/provider-connections-20261106`, čistá po commite.
+Commit: `796b5b5` (`feat(trinity): add secure provider connection flows`), založený na `origin/main` `ed4b43d`.
+Zmeny: pripojovacie usmernenia a stavové karty pre Cloudflare, GitHub, OpenAI/GPT, Gemini, Antigravity a VS Code; OpenAI kľúč z trezora možno vybrať ako aktívny model a jeho vault credential má prednosť pred worker secret; Antigravity dostane samostatný 90-dňový MCP kľúč s `mcp:read` ako predvolenou voľbou a voliteľným zápisom; VS Code dostane samostatný 90-dňový `mcp:read` + `mcp:write` kľúč a native/Copilot konfiguráciu; API token expiry používa julianday porovnanie.
+Kontrola: `git diff --check` bez nálezov. Testy a build neboli spustené. Žiadne API kľúče neboli zadané; externé účty sa neprihlásili ani nezmenili.
+Publikovanie: bez pushu, PR, merge alebo deployu. Root `main` stále má necommitnuté používateľské úpravy `.vscode/settings.json` a package manifestov; zostali nedotknuté. Na produkčnej hlavnej vetve zatiaľ zmena nie je.
+
+### CLAIM GitHub Copilot (VS Code) — TRINITY-LOCAL-CODEX-CAPABILITIES-20261106
+Čas: 2026-11-06, Europe/Bratislava.
+Cieľ: overiť dostupný nástrojový reťazec Trinity a opraviť iba bootstrap lokálneho bridge tak, aby používal zdokumentovaný port a správne Windows token status pole.
+Základ: `origin/main` `ed4b43d9c3900a1810eaa292533c3244216a64bd`.
+Vlastnené cesty: `system-bridge.js`; tento záznam v `TEAM-HANDOFF.md` je append-only koordinačné metadata.
+Hranice: bez globálnych inštalácií, čítania alebo zmeny credentials, zmeny provider prístupov, spustenia/deployu bridge, Cloudflare/GitHub účtových zmien alebo zásahu do dokončenej Codex provider-connection zmeny.
+Stav: active; implementácia a cielené testy v izolovanom worktree.
+### CLAIM Codex — MCP-UNLIMITED-ACCESS-20261106
+Čas: 2026-11-06, Europe/Bratislava.
+Cieľ: podľa požiadavky vlastníka nastaviť Antigravity a Visual Studio Code Trinity MCP kľúče na `mcp:read` + `mcp:write` bez expirácie.
+Základ: commit `796b5b5` na `codex/provider-connections-20261106`.
+Vlastnené cesty: `Trinity/public/assistant/chat.html`, `Trinity/public/assistant/chat.js.txt`, `Trinity/docs/PROVIDER_CONNECTIONS.md` a tento handoff.
+Hranice: meniť iba rozsah a platnosť kľúčov vydávaných Trinity; nemeníť Cloudflare/GitHub/OpenAI/Gemini účty ani neznáme externé tokeny. Zachovať všetky ostatné pracovné zmeny.
+Stav: active; ďalší krok je upraviť oba generátory a dokumentáciu.
+
+### UPDATE / HANDOFF GitHub Copilot (VS Code) — TRINITY-LOCAL-CODEX-CAPABILITIES-20261106
+Výsledok: v čistom izolovanom worktree na `origin/main` `ed4b43d9c3900a1810eaa292533c3244216a64bd` sa potvrdilo, že `system-bridge.js` už správne používa `process.env.TRINITY_BRIDGE_PORT` a `win.osTokenVerified`; nebola potrebná zmena zdrojového kódu.
+Existujúce schopnosti: Trinity MCP registruje projektové read/write a riadené run nástroje; Local Gateway obsahuje schválený developer-tools katalóg s projektovou inštaláciou presnej verzie a vypnutými lifecycle skriptami. Wrangler `4.154.0` je v `Trinity/package.json` a jeho lokálny binárny súbor je nainštalovaný.
+Lokálne overenie: `node`, `npm`, `python`, `pip`, `git` a `code` sú dostupné; `gh` a globálny `wrangler` nie sú v PATH, ale GitHub integrácia je cez provider/MCP a Wrangler je lokálny balík projektu. GET `http://127.0.0.1:7788/health` zlyhal; lokálny bridge je nedostupný. V tejto relácii nebol dostupný Trinity MCP nástroj na `trinity_status`/`tools/list`, preto live MCP handshake ani runtime oprávnenia nie sú overené.
+Zmeny/testy: žiadne runtime súbory sa nemenili; build a testy sa nespúšťali. V hlavnom checkoute zostali cudzie necommitnuté zmeny nedotknuté. Žiadne balíky, účty, credentials ani služby sa nemenili/neinštalovali/spúšťali.
+Stav: uzavreté bez kódovej zmeny; samotný kód Trinity už ponúka deklarované nástroje, no lokálne spojenie a oprávnenia treba aktivovať/overiť v autorizovanom hostiteľovi. Bez commit/PR/deploy.
+### UPDATE / HANDOFF — MCP-UNLIMITED-ACCESS-20261106
+Dátum: 2026-11-06, Europe/Bratislava.
+Vetva `codex/provider-connections-20261106`; nadväzujúci commit `4de21e8` (`fix(trinity): make MCP access permanent and full read-write`) po `796b5b5`.
+Antigravity aj Visual Studio Code generujú teraz Trinity API kľúče s `mcp:read` + `mcp:write` a `expires_at: null`; používateľ ich môže ručne odvolať v Trinity. Antigravity nemá už iba-read predvolený režim. Poverenia a expirácia Cloudflare/GitHub/OpenAI/Gemini zostávajú riadené účtom poskytovateľa.
+Poznámka: zachovaný je existujúci limit 60 API požiadaviek za minútu; požiadavka bola interpretovaná ako odstránenie expirácie kľúča. Ak sa požaduje aj neobmedzená priepustnosť, treba upraviť limitnú politiku a schému API kľúčov.
+Kontrola: `git diff --check` bez nálezov. Testy/build nespustené. Žiadne externé poverenie ani databázové záznamy neboli zmenené; bez pushu, PR, merge alebo deployu. Hlavný checkout a jeho rozpracované `.vscode/settings.json`/package zmeny zostali nedotknuté.
+Poznámka k zachovaniu pracovného stromu (kontrola po commite 4de21e8): root `main` teraz okrem predtým evidovaných zmien ukazuje upravený `.env` a nový `.env.example`. Ich obsah som neotváral ani nemenil; tieto lokálne zmeny zostávajú nedotknuté.
+
+
+### UPDATE / ACK Antigravity — OPENAI-API-KEY-VERIFIED-20261106
+Čas: 2026-11-06, Europe/Bratislava.
+Status: OPENAI API KĽÚČ ÚSPEŠNE OVERENÝ (LIVE VERIFIED).
+Rozsah:
+1. Majiteľ (Basterix) vložil oficiálny kľúč `OPENAI_API_KEY` do `.env`.
+2. Živá verifikácia voči oficiálnemu endpointu `https://api.openai.com/v1/models` prebehla s kódom HTTP 200 OK (sprístupnených 96 oficiálnych modelov vrátane GPT-4o, GPT-4.1-mini, o1 a Codex variantov).
+3. Konfigurácia zosynchronizovaná do `Trinity/.dev.vars` pre lokálny Cloudflare runtime.
+4. Aktualizované hlásenia v `missions/ai-reports/OpenAI.txt` a `missions/ai-reports/dispatch-summary.json` na status `VERIFIED`.
+5. Poverenia sú chránené podľa bezpečnostných zásad (žiadne tajné kľúče nie sú v commitovaných súboroch).
