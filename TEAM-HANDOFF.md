@@ -2780,3 +2780,27 @@ Rozsah:
 3. Konfigurácia zosynchronizovaná do `Trinity/.dev.vars` pre lokálny Cloudflare runtime.
 4. Aktualizované hlásenia v `missions/ai-reports/OpenAI.txt` a `missions/ai-reports/dispatch-summary.json` na status `VERIFIED`.
 5. Poverenia sú chránené podľa bezpečnostných zásad (žiadne tajné kľúče nie sú v commitovaných súboroch).
+
+### CLAIM GitHub Copilot (VS Code) — TRINITY-MCP-DEVELOPER-TOOLS-20261106
+Čas: 2026-11-06, Europe/Bratislava.
+Cieľ: sprístupniť existujúci bezpečný developer-tools katalóg Local Gateway ako Trinity MCP nástroj, aby autorizovaný agent vedel kontrolovať/inštalovať presne verziované projektové nástroje cez existujúce PC action flow.
+Základ: kanonický `origin/main` `ed4b43d9c3900a1810eaa292533c3244216a64bd`.
+Vlastnené cesty: `Trinity/src/mcp.js`, `Trinity/tests/runtime.test.mjs`, `Trinity/docs/DEVELOPER_TOOLS_MCP.md`; tento záznam v `TEAM-HANDOFF.md` je append-only.
+Hranice: výhradne `Trinity/workspace/projects/<name>`; zachovať `projectControl`, schválenie mutácií, presnú verziu a vypnuté lifecycle skripty; bez zmeny credentials, API kľúčov, providerov, Cloudflare, globálnych inštalácií, lokálneho bridge procesu alebo cudzích pracovných stromov. Neprepisovať súbory vlastnené Codex provider-connection claimom.
+Stav: active; izolovaná implementácia/testy, bez merge, push alebo deployu.
+
+### CLAIM Codex — TRINITY-COLLABORATION-20261106-01
+Time: 2026-11-06 08:50:34 +01:00 (Europe/Bratislava).
+Goal: start coordinated peer review for the provider-connection changes and track the existing VS Code GitHub Copilot work.
+Claimed paths: append-only TEAM-HANDOFF.md, CODEX-ANTIGRAVITY-REVIEW-2026-10-24.md, and GITHUB-COPILOT-HANDOFF.md. No runtime/source files.
+Coordination checkout at claim: C:\Users\saboi\Trinity\Trinity-antigravity, main HEAD 6869329e460bea2456afcbb30be06e1d9cddbddb. Existing unrelated local edits and untracked app files are preserved.
+Review target: draft PR #41, head 4de21e8b9cf090f3f56e3ac0c0abc1fcaf346045, base ed4b43d9c3900a1810eaa292533c3244216a64bd.
+Boundaries: no credential reads, runtime edits, tests/builds, merge, or deployment in this coordination claim. Reviewers must return their own evidence; no ACK is written for another participant.
+### UPDATE Codex — TRINITY-COLLABORATION-20261106-01
+Time: 2026-11-06 08:51:32 +01:00 (Europe/Bratislava).
+Published draft PR #41 from the clean isolated provider branch after confirming its exact two-commit diff contained only seven source/UI/doc paths and no credential paths. PR head 4de21e8b9cf090f3f56e3ac0c0abc1fcaf346045; no merge or deploy.
+GitHub Copilot: requested review for PR #41; the live timeline records reviewer Copilot and copilot_work_started. Review-only instruction is comment #6679952547; result is pending. PR #37 already has a Copilot review with eight open findings. PR #40 is merged. The open VS Code Copilot task TRINITY-MCP-DEVELOPER-TOOLS-20261106 remains active on its separately claimed files.
+Antigravity: task TRINITY-PROVIDER-CONNECTIONS-REVIEW-20261106-AG01 with nonce AG-TRINITY-PR41-4DE21E8-20261106-01 is pending in CODEX-ANTIGRAVITY-REVIEW-2026-10-24.md. No new peer ACK has been received; only Antigravity may write its ACK.
+Host check: Antigravity.exe and Code.exe processes are present on the online Basterix device, but the sync report says MCP host connection is not verified. Its 2026-11-06 readiness sample returned attention-required and did not confirm serving/ready on both origins; no deployment was attempted.
+Verification boundary: no tests/builds were run for this coordination task. Existing unrelated local changes and untracked app files in the main checkout are preserved.
+Next owner: Antigravity to review PR #41 and provide its own evidence; GitHub Copilot to publish its review; Codex to assess findings and prepare any bounded fixes in an isolated branch.

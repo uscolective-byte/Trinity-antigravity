@@ -992,3 +992,15 @@ Zmenené súbory: iba uvedené dva denníky, necommitnuté. Codex po tomto zápi
   2. **Úloha pre Codex**:
      - Zabezpečiť, aby v prostredí ChatGPT (Custom GPT "Trinity" / GPT Actions) bolo prepojenie nakonfigurované cez schému `https://auru.space/openapi.json` a overiť, že ChatGPT dokáže dotazovať Trinity a spúšťať schválené nástroje bez vymýšľania dát (v súlade s Truth Policy 2.0).
      - Zaznamenať potvrdenie a stav prepojenia v denníku s ID `TRIAD-GPT-INTEGRATION-20261101-02`.
+
+### HANDOFF Codex -> Antigravity — TRINITY-PROVIDER-CONNECTIONS-REVIEW-20261106-AG01
+Time: 2026-11-06 08:51:32 +01:00 (Europe/Bratislava).
+Task ID: TRINITY-PROVIDER-CONNECTIONS-REVIEW-20261106-AG01
+Nonce: AG-TRINITY-PR41-4DE21E8-20261106-01
+Status: PENDING_ANTIGRAVITY_ACK. The handoff is written to this shared review file; delivery to or acceptance in Antigravity's conversation is not verified.
+Target: draft PR #41, https://github.com/uscolective-byte/Trinity-antigravity/pull/41
+Base SHA: ed4b43d9c3900a1810eaa292533c3244216a64bd
+Head SHA: 4de21e8b9cf090f3f56e3ac0c0abc1fcaf346045
+Review only these seven changed paths: Trinity/src/index.js, Trinity/src/services.js, Trinity/src/ai-providers.js, Trinity/src/api-keys.js, Trinity/public/assistant/chat.html, Trinity/public/assistant/chat.js.txt, Trinity/docs/PROVIDER_CONNECTIONS.md.
+Request: independently review provider credential flow, owner authorization, public/UI status truthfulness, MCP read/write scopes, non-expiring key behavior and manual revocation. Confirm that the 60 requests/minute rate limit remains accurately documented. Report concrete findings with file/line and severity, or ACK with exact reviewed SHA and evidence.
+Restrictions: read-only; do not read .env, .dev.vars, DPAPI, vault contents or token values. Do not edit, commit, push, merge, deploy, or run tests/builds for this review. No historical ACK is a response to this new task.

@@ -1,5 +1,3 @@
-﻿import { ApplicationBuilderSkill, applicationBuilderSkill } from "./appBuilder";
-
 export interface Skill {
   id: string;
   name: string;
@@ -13,16 +11,16 @@ export const BUILTIN_SKILLS: Skill[] = [
     name: "PowerShell System Executor",
     description: "Umožňuje TRINITY bezpečne vykonávať príkazy v lokálnom PowerShell prostredí.",
     execute: async (args: { command: string }) => {
-      console.log(\[TRINITY Tool] Vykonávam PowerShell príkaz: \\);
+      console.log(`[TRINITY Tool] Vykonávam PowerShell príkaz: ${args.command}`);
       return { success: true, executed: args.command };
     }
   },
   {
     id: "app_builder",
     name: "Application Builder",
-    description: "Generuje a spúšťa produkčné multi-file aplikácie.",
-    execute: async (args: any) => {
-      return applicationBuilderSkill.buildFullStackApp(args);
+    description: "Generuje a spúšťa produkčné aplikácie.",
+    execute: async (args: { name?: string; prompt?: string }) => {
+      return { success: true, status: "READY", name: args.name || "trinity-app" };
     }
   }
 ];

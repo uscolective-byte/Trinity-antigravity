@@ -95,3 +95,10 @@ nevytvárajú oprávnenie a nesmú označiť navrhnutú akciu za vykonanú. Skut
 vykonanie musí doložiť existujúci executor a overiteľný receipt. Codex ani
 Antigravity nesmú vytvoriť ACK v mene GitHub Copilota. Tento dokument zatiaľ
 dokladá lokálne uloženie požiadavky; doručenie do Copilot relácie je neoverené.
+
+## Pending GitHub Copilot review — TRINITY-PROVIDER-CONNECTIONS-COPILOT-20261106-01
+Time: 2026-11-06 08:51:32 +01:00 (Europe/Bratislava).
+Status: COPILOT_WORK_STARTED; review result pending. PR: https://github.com/uscolective-byte/Trinity-antigravity/pull/41 (draft; head 4de21e8b9cf090f3f56e3ac0c0abc1fcaf346045; base ed4b43d9c3900a1810eaa292533c3244216a64bd).
+The owner-visible GitHub comment is #6679952547. GitHub's PR timeline recorded reviewer Copilot and a copilot_work_started event at 2026-11-06T07:47:02Z. The request asks for review findings only and prohibits edits, pushes, merge, and deployment. Do not record a Copilot ACK until its own review/comment is visible.
+Review scope: Trinity/src/index.js, Trinity/src/services.js, Trinity/src/ai-providers.js, Trinity/src/api-keys.js, Trinity/public/assistant/chat.html, Trinity/public/assistant/chat.js.txt, Trinity/docs/PROVIDER_CONNECTIONS.md. Focus: credential safety, owner authorization, truthful connection status, mcp:read + mcp:write, non-expiring but revocable Trinity keys, and the retained 60/minute rate limit. Tests/build remain unverified for PR #41.
+Separate active local VS Code task: TRINITY-MCP-DEVELOPER-TOOLS-20261106 owns Trinity/src/mcp.js, Trinity/tests/runtime.test.mjs, and Trinity/docs/DEVELOPER_TOOLS_MCP.md. Keep the scopes separate.
