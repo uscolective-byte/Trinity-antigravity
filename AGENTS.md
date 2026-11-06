@@ -32,3 +32,13 @@ Pri práci s Cloudflare tajomstvami, bindingmi alebo modelmi si naštuduj zručn
 - **Lokálny Desktop:** `Local-Desktop/` (port 7788/7789) s pripojením na PC Workspace.
 - **Lokálna Brána:** `Local-Gateway/` pre bezpečné overenie systémových akcií.
 - **Azure AI Foundry:** Austrália Central tenant `ad443c2d-5bac-46b3-ad16-187e4ca37962`, Knowledge Index `trinity-omni-knowledge`.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
