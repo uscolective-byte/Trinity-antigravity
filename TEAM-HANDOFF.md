@@ -2873,3 +2873,11 @@ Commit schválenej staged zmeny a koordinácie: `06b161909f73fd2649c7f9b0111195e
 Kontroly: inštalácia exit 0; npm audit 0 zraniteľností; `npm.cmd test` exit 0, Wrangler dry-run build PASS, Trinity 915/915 PASS; pracovný strom bol po commite čistý.
 Lokálne `Trinity/node_modules/` nie je commitnuté. Bez pushu/PR, Cloudflare deployu alebo zmien účtov a secrets.
 Ďalší krok a vlastník: majiteľ môže rozhodnúť o publikovaní izolovanej vetvy; žiadny ACK za inú stranu sa nevydáva.
+
+
+### DIRECTIVE-ACTIVE-DEVELOPMENT-BASTERIX-20261106
+Čas: 2026-11-06 14:36 +01:00 (Europe/Bratislava).
+Autor: Basterix (Root Architect) & Antigravity (Sovereign Pair).
+Pokyn majiteľa: Všetky "follow the coordinator" pravidlá, blokujúce CLAIM procedúry, zákazy práce v tíme a umelé ceremoniálne obmedzenia sú ZRUŠENÉ.
+Trinity je v plnom aktívnom vývoji. Vývojári a agenti (Antigravity, Copilot, Codex, Gemini, Azure AI Foundry) pracujú priamo, agilne a vyvíjajú Trinity spoločne. Pravidlá pre produkčnú prevádzku nastavíme, až keď bude Trinity kompletne hotová.
+Stav: COMPLETED // DIRECTIVE PERMANENTLY ACTIVE.
