@@ -45,3 +45,19 @@ test('Copilot Plugin Registry registers azure-foundry-agent and antigravity-suit
   assert.ok(antigravityPlugin.skills.includes('antigravityReadFile'));
   assert.ok(antigravityPlugin.skills.includes('antigravityRunCommand'));
 });
+
+test('Azure Foundry Agent status and invoke functions work correctly', async () => {
+  const { getAzureFoundryAgentStatus, invokeAzureFoundryAgent } = await import('../src/azure-foundry-agent.js');
+
+  const status = getAzureFoundryAgentStatus({});
+  assert.equal(status.configured, true);
+  assert.equal(status.has_token, false);
+  assert.equal(status.tenant_id, 'ad443c2d-5bac-46b3-ad16-187e4ca37962');
+  assert.equal(status.agent_name, 'trinity-lead-developer');
+
+  const pendingResult = await invokeAzureFoundryAgent({}, { message: 'Hi Trinity' });
+  assert.equal(pendingResult.ok, false);
+  assert.equal(pendingResult.status, 'pending_credentials');
+  assert.ok(pendingResult.runner_command.includes('azure-foundry-trinity.py'));
+});
+
