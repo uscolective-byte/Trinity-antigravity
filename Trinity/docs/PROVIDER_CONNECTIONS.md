@@ -20,7 +20,7 @@ Vytvor Gemini API kľúč v [Google AI Studio](https://aistudio.google.com/app/a
 
 ## Google Antigravity → Trinity MCP
 
-Antigravity používa vlastné Google prihlásenie na tomto počítači. Trinity nepotrebuje čítať jeho lokálne Google tokeny. V **Nastavenia → Pripojiť Antigravity k Trinity** vytvor samostatný kľúč. Predvolený kľúč povoľuje iba `mcp:read`, platí 90 dní a zobrazí sa iba pri vytvorení. Ak zapneš voľbu zápisu, kľúč získa aj `mcp:write`.
+Antigravity používa vlastné Google prihlásenie na tomto počítači. Trinity nepotrebuje čítať jeho lokálne Google tokeny. V **Nastavenia → Pripojiť Antigravity k Trinity** vytvor samostatný kľúč s plným rozsahom `mcp:read` aj `mcp:write`. Kľúč nemá dátum expirácie, zobrazí sa iba pri vytvorení a môžeš ho kedykoľvek ručne zrušiť.
 
 Stránka vytvorí konfiguráciu Antigravity s adresou MCP služby a Bearer kľúčom. Vlož ju do správy `mcpServers` v konfigurácii MCP Antigravity. Kľúč považuj za heslo, ulož ho iba na dôveryhodnom počítači a nezdieľaj ho. Zoznam Trinity API kľúčov umožňuje kľúč kedykoľvek zrušiť; po zrušení Antigravity stratí prístup.
 
@@ -28,7 +28,7 @@ Antigravity podporuje vzdialený Streamable HTTP MCP server cez `serverUrl` a Be
 
 ## Visual Studio Code
 
-V **Nastavenia → Pripojiť VS Code s plnými MCP oprávneniami** vytvoríš samostatný kľúč s `mcp:read` aj `mcp:write`. Kľúč platí 90 dní a môžeš ho odvolať. Trinity ho neobmedzí na konkrétny MCP nástroj; rozsah zápisu zahŕňa všetky nástroje MCP, ktoré povoľujú meniace operácie.
+V **Nastavenia → Pripojiť VS Code s plnými MCP oprávneniami** vytvoríš samostatný kľúč s `mcp:read` aj `mcp:write`. Kľúč nemá dátum expirácie a môžeš ho kedykoľvek ručne odvolať. Trinity ho neobmedzí na konkrétny MCP nástroj; rozsah zápisu zahŕňa všetky nástroje MCP, ktoré povoľujú meniace operácie.
 
 Vlož vygenerovaný blok do VS Code `mcp.json`. Je nastavený ako skrytý vstup `promptString`, takže VS Code si vyžiada kľúč pri prvom spustení a uloží zadanú hodnotu bezpečne pre ďalšie použitie. VS Code dokumentuje, že takéto interaktívne vstupy sa nepreposielajú do Copilot harness relácií. Pre Copilot harness je pripravený prenosný formát `mcpServers` s premennou prostredia `TRINITY_MCP_TOKEN`; nastav ju na počítači alebo vzdialenom hostiteľovi, ktorý spúšťa Copilot, a reštartuj VS Code. Nedávaj kľúč priamo do zdieľaného súboru s nastaveniami.
 
@@ -38,4 +38,6 @@ Vlož vygenerovaný blok do VS Code `mcp.json`. Je nastavený ako skrytý vstup 
 - **Overené** znamená, že prešlo kontrolou implementovanou pre daného poskytovateľa. Neznamená to automaticky plné oprávnenia.
 - Odpojenie tokenu v trezore alebo zrušenie MCP kľúča v Trinity odoberie Trinity prístup cez dané poverenie. Samotný token môžeš zrušiť aj priamo v príslušnej službe.
 
-Kde sa API tokeny vydávajú, môžu sa meniť adresy a dostupné typy tokenov. Pred vytvorením tokenu vždy skontroluj jeho aktuálny rozsah v účte poskytovateľa.
+Trinity nemení oprávnenia ani expiráciu Cloudflare, GitHub, OpenAI alebo Gemini tokenov. Tie určuje poskytovateľ a nastavenia účtu, z ktorého token vytvoríš. Ak potrebuješ zápis alebo dlhšiu platnosť pre tieto služby, nastav ju pri vytváraní tokenu u poskytovateľa.
+
+Kde sa API tokeny vydávajú, môžu sa meniť adresy a dostupné typy tokenov. Pred vytvorením tokenu skontroluj aktuálny rozsah a pravidlá platnosti v účte poskytovateľa.
