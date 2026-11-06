@@ -38,6 +38,7 @@ jobs:
         working-directory: packages/contracts
         run: npm ci --ignore-scripts
       - run: npm ci
+      - run: node scripts/build-mcp-app.mjs
       - run: node --test tests/integration-providers.test.mjs
       - run: npx wrangler deploy --config wrangler.integrations.jsonc --dry-run --outdir dist-integrations
       - run: npm ci --prefix ../Integrations-Worker
