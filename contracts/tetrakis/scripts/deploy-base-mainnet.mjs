@@ -19,6 +19,7 @@ const secretPath = path.resolve(rootDir, '.secrets/tetrakis-treasury.json');
 
 const RAW_RPC_URL = process.env.BASE_MAINNET_RPC || 'https://mainnet.base.org';
 const EXPECTED_CHAIN_ID = 8453n; // Base Mainnet
+const BASTERIX_WALLET = '0x7e17f9072cfCbc7fE45973De0F11eC8db99281e4';
 const OFFICIAL_TREASURY = '0x4d308452a96D7dAbFd2f33d92677A3a2724f387e';
 
 function maskUrl(urlStr) {
@@ -40,7 +41,8 @@ async function main() {
   console.log(`Execution Mode:    ${isBroadcast ? 'LIVE BROADCAST (REAL ON-CHAIN)' : 'DRY-RUN / VERIFY ONLY'}`);
   console.log(`Network RPC:       ${maskUrl(RAW_RPC_URL)}`);
   console.log(`Expected ChainId:  ${EXPECTED_CHAIN_ID} (Base Mainnet)`);
-  console.log(`Official Treasury: ${OFFICIAL_TREASURY}`);
+  console.log(`Basterix Custody:  ${BASTERIX_WALLET} (1,000,000 TTK)`);
+  console.log(`Official Treasury: ${OFFICIAL_TREASURY} (999,000,000 TTK)`);
   console.log(`Total Supply:      1,000,000,000 TTK (10^27 wei)`);
 
   if (!fs.existsSync(artifactPath)) {
