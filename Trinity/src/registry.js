@@ -11,7 +11,7 @@ import {PRACTICAL_TOOL_NAMES} from './practical-skills.js';
 const groups = [
   ['Riadenie', [
     ['orchestrator', 'Trinity', 'Koordinuj tím a spoj overené výsledky do jednej slovenskej odpovede.'],
-
+    ['gemini-gem', 'Gemini pre Trinity', 'Gemini API agent s kontextom Trinity a nakonfigurovaným modelovým fallbackom. Kvóty spravujú poskytovatelia; dostupnosť ani externé oprávnenia nie sú zaručené.'],
     ['planner', 'Plánovač', 'Rozlož zadanie na vykonateľné kroky s podmienkami úspechu.'],
     ['project-manager', 'Projektový manažér', 'Spravuj rozsah projektu, míľniky, závislosti a termíny.'],
     ['requirements', 'Analytik požiadaviek', 'Spresni požiadavky a zostav akceptačné kritériá.'],
@@ -101,36 +101,12 @@ export const AGENTS = groups.flatMap(([cluster, roles]) => roles.map(([id, name,
     ...(['ui','writer','orchestrator'].includes(id)?['generate_image']:[]),
     ...(['market-research','business-development','growth-analyst','orchestrator'].includes(id)?['portfolio_summary','commodity_trade','commodity_auto_invest']:[]),
     ...(['Riadenie','Cloud a prevádzka','Dáta a pamäť','Kvalita a bezpečnosť','Podpora a automatizácia'].includes(cluster) ? ['service_status'] : []),
-    ...(['Cloud a prevádzka','Riadenie'].includes(cluster)||['backend','architect','cloudflare','orchestrator','gemini-gem'].includes(id)?['domain_add','domain_register','domain_set_dns','domain_delete_dns','domain_env_provision','domain_env_deploy']:[]),
-    ...(['Obchod a rast','Riadenie'].includes(cluster)||['business-development','offer-strategist','web-sales','growth-analyst','market-research','cloudflare','orchestrator','gemini-gem'].includes(id)?['domain_list_for_sale','domain_sell','domain_list_for_lease','domain_lease','domain_end_lease','commerce_status','commerce_add_offer','monetization_blueprint']:[]),
+    ...(['Cloud a prevádzka','Riadenie'].includes(cluster)||['backend','architect','cloudflare','orchestrator'].includes(id)?['domain_add','domain_register','domain_set_dns','domain_delete_dns','domain_env_provision','domain_env_deploy']:[]),
+    ...(['Obchod a rast','Riadenie'].includes(cluster)||['business-development','offer-strategist','web-sales','growth-analyst','market-research','cloudflare','orchestrator'].includes(id)?['domain_list_for_sale','domain_sell','domain_list_for_lease','domain_lease','domain_end_lease','commerce_status','commerce_add_offer','monetization_blueprint']:[]),
     ...(id==='orchestrator'?['request_system_action','system_action_status','pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr']:[]),
     ...(['backend','release','cloudflare'].includes(id)?['pc_git_commit','pc_git_pr','pc_run']:[])]
 })));
-export const EXTENDED_AGENTS = [
-  {
-    id: 'gemini-gem',
-    name: 'Gemini GEM',
-    cluster: 'Riadenie',
-    role: 'Gemini API agent s nakonfigurovanou modelovou kaskádou a voliteľným Workers AI fallbackom; nástroje používa iba v rozsahu oprávnení overeného volajúceho a kvóty spravuje poskytovateľ.',
-    tools: [
-      'project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync',
-      'knowledge_search','plan_work','search_memory','project_snapshot','calculate','analyze_text','current_time','json_tool','hash_text','convert_units','extract_entities','format_text',
-      ...PRACTICAL_TOOL_NAMES,'list_capabilities','list_skills','list_connectors','install_plugin','execute_skill','copilot_chat','ecosystem_synthesize','ecosystem_search',
-      'quantum_deliberate','quantum_accelerate','brain_mode','brain_reflect','brain_memory','quantum_parallel','quantum_fusion','domain_check','domain_list','domain_inspect','domain_marketplace','domain_env_list',
-      'create_file','create_pdf','list_artifacts','read_artifact','trinity_doc_create','trinity_doc_list','ui_evolve','self_evolve','commodity_analyze','commodity_desk',
-      'generate_video','generate_music','generate_presentation','generate_creative_pack','cloudflare_manage','github_manage','firecrawl_scrape','firebase_manage','integration_status','wallet_terminals_status',
-      'terminal_charge','terminal_payout','wallet_create','finance_propose_transfer','finance_confirm_transfer','finance_audit_ledger','delegate_worker','orchestrate_team','fleet_status',
-      'open_weather','open_wikipedia','network_dns','crypto_prices','tech_news','macro_data','free_modules_catalog','cf_d1_query','cf_kv_store','cf_r2_manage','cf_self_deploy','mail_engine','http_fetch_pro',
-      'pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','apply_self_evolution','triad_subagent_run','triad_deep_research','triad_code_patch','triad_test_matrix','triad_copilot_sync','triad_status',
-      'meta_manage','read_file','write_file','edit_file','run_command','manage_task','search_marketplace','execute_gemini_gem','multi_agent_dispatch','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose','diagnostic_ping',
-      'web_search','web_fetch','generate_image','portfolio_summary','commodity_trade','commodity_auto_invest','service_status','domain_add','domain_register','domain_set_dns','domain_delete_dns','domain_env_provision','domain_env_deploy','domain_list_for_sale','domain_sell','domain_list_for_lease','domain_lease','domain_end_lease','commerce_status','commerce_add_offer','monetization_blueprint',
-      'pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr'
-    ]
-  }
-];
-
-export const ALL_AGENTS = [...AGENTS, ...EXTENDED_AGENTS];
-export function agentById(id) { return ALL_AGENTS.find(a => a.id === id); }
+export function agentById(id) { return AGENTS.find(a => a.id === id); }
 export function shouldDelegate(task) {
   const normalized=task.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   const action=/\b(sprav|vytvor|oprav|nasad|implementuj|vybuduj|priprav|analyzuj|preskumaj|otestuj|skontroluj|navrhni|vypracuj|create|build|fix|deploy|implement|analy[sz]e|research|test|review|design|prepare)\b/;
