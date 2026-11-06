@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {sharedMutableBindings,reportEnvironmentIsolation} from '../scripts/cloudflare-env-audit.mjs';
 
-test('tracked staging config has distinct D1, KV, R2 and Vectorize identifiers',()=>{
+test('tracked staging config has no shared resources, service targets, or Secrets Store credentials',()=>{
   const cfg=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
   const report=reportEnvironmentIsolation(cfg);
   assert.equal(report.isolated,true);
@@ -28,6 +28,21 @@ test('staging audit still rejects shared mutable resources',()=>{
   assert.deepEqual(new Set(sharedMutableBindings(cfg).map(x=>x.type)),new Set(['D1','KV','R2','Vectorize']));
   assert.equal(report.shared_mutable_resources.filter(x=>x.type==='Vectorize').length,2);
   assert.ok(report.shared_mutable_resources.every(x=>x.isolation_verified===false));
+});
+test('staging audit rejects production service targets and Secrets Store credentials',()=>{
+ const cfg={
+  name:'trinity',
+  services:[{binding:'CORE',service:'trinity-core'}],
+  secrets_store_secrets:[{binding:'PROVIDER',store_id:'store-id',secret_name:'provider-key'}],
+  env:{staging:{
+   name:'trinity-staging',
+   services:[{binding:'CORE',service:'trinity-core'}],
+   secrets_store_secrets:[{binding:'PROVIDER',store_id:'store-id',secret_name:'provider-key'}]
+  }}
+ };
+ const collisions=sharedMutableBindings(cfg);
+ assert.deepEqual(collisions.map(c=>c.type),['Service','Secrets Store']);
+ assert.ok(collisions.every(c=>c.isolation_verified===false));
 });
 test('staging audit compares resources against explicit production profile bindings',()=>{
  const cfg={

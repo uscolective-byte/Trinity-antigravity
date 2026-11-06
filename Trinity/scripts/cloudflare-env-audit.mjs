@@ -10,7 +10,8 @@ export function sharedMutableBindings(config){
     ['D1','d1_databases','binding','database_id'],
     ['KV','kv_namespaces','binding','id'],
     ['R2','r2_buckets','binding','bucket_name'],
-    ['Vectorize','vectorize','binding','index_name']
+    ['Vectorize','vectorize','binding','index_name'],
+    ['Service','services','binding','service']
   ];
   const collisions=[];
   const productionProfiles=[config,config.env?.production].filter(Boolean);
@@ -33,6 +34,20 @@ export function sharedMutableBindings(config){
       }
     }
   }
+  const productionSecrets=productionProfiles.flatMap(profile=>Array.isArray(profile.secrets_store_secrets)?profile.secrets_store_secrets:[]);
+  for(const productionSecret of productionSecrets){
+    for(const stagingSecret of Array.isArray(staging.secrets_store_secrets)?staging.secrets_store_secrets:[]){
+      if(productionSecret.store_id&&productionSecret.secret_name&&productionSecret.store_id===stagingSecret.store_id&&productionSecret.secret_name===stagingSecret.secret_name){
+        collisions.push({
+          type:'Secrets Store',
+          production_binding:productionSecret.binding,
+          staging_binding:stagingSecret.binding,
+          shared_resource:true,
+          isolation_verified:false
+        });
+      }
+    }
+  }
   return collisions;
 }
 
@@ -45,8 +60,8 @@ export function reportEnvironmentIsolation(config){
     shared_mutable_resources:collisions,
     isolated:collisions.length===0,
     note:collisions.length
-      ?'Shared D1/KV/R2/Vectorize resources can leak staging writes into production. Provision distinct resources and migrate safely.'
-      :'No common D1/KV/R2/Vectorize identifiers detected in config; live deployment remains unverified.'
+      ?'Staging shares mutable resources, service targets, or Secrets Store credentials with production. Provision staging-owned resources and credentials before enabling integrations.'
+      :'No shared mutable resources, service targets, or Secrets Store credentials detected in config; live deployment remains unverified.'
   };
 }
 

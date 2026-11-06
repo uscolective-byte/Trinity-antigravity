@@ -12,6 +12,7 @@ export function diagnoseSecretsStoreConfig(config){
   const prod=Array.isArray(config?.secrets_store_secrets)?config.secrets_store_secrets:[];
   const staging=Array.isArray(config?.env?.staging?.secrets_store_secrets)
     ?config.env.staging.secrets_store_secrets:[];
+  const buildOnly=config?.env?.staging?.vars?.TRINITY_PREVIEW_MODE==='build-only';
   const expectedStaging=new Map([
     ['OLLAMA_SECRET','ollama'],
     [TRINITY_MASTER_BINDINGS.gemini,'apigoogle'],
@@ -41,9 +42,13 @@ export function diagnoseSecretsStoreConfig(config){
     errors.push('production: original OLLAMA_SECRET missing or changed');
   if(pm.has(TRINITY_MASTER_BINDINGS.gemini)||pm.has(TRINITY_MASTER_BINDINGS.copilot))
     errors.push('production: new TRINITY_MASTER credentials must remain staging-only');
-  for(const [binding,secretName] of expectedStaging){
-    if(!sm.has(binding)||sm.get(binding).secret_name!==secretName)
-      errors.push('staging: required binding missing or wrong secret name: '+binding);
+  if(buildOnly){
+    if(staging.length)errors.push('staging: build-only environment must not bind Secrets Store credentials');
+  }else{
+    for(const [binding,secretName] of expectedStaging){
+      if(!sm.has(binding)||sm.get(binding).secret_name!==secretName)
+        errors.push('staging: required binding missing or wrong secret name: '+binding);
+    }
   }
   const primary=pm.get('OLLAMA_SECRET')?.store_id;
   if(primary){

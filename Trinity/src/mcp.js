@@ -31,6 +31,7 @@ import {runBrainCycle} from './brain.js';
 import {runEvolutionCycle} from './evolution.js';
 import {sharedNotesInput,syncSharedNotes} from './shared-notes.js';
 import {recordLedgerEntry,queryLedger} from './os-registry.js';
+import {getAzureFoundryAgentStatus,invokeAzureFoundryAgent} from './azure-foundry-agent.js';
 
 const result=data=>({content:[{type:'text',text:JSON.stringify(data,null,2)}]});
 
@@ -297,6 +298,13 @@ export function handleMcp(request,env,ctx,access={}){
 
     server.registerTool('trigger_evolution_cycle',{description:'Spustí evolučný cyklus analýzy chýb a seba-zdokonaľovania.',inputSchema:{}},
       async()=>result(await runEvolutionCycle(env)));
+
+    server.registerTool('azure_foundry_agent_status',{description:'Zistí stav a konfiguráciu integrácie Microsoft Azure AI Foundry agenta Trinity.',inputSchema:{}},
+      async()=>result(getAzureFoundryAgentStatus(env)));
+
+    server.registerTool('azure_foundry_agent_invoke',{description:'Odošle požiadavku agentovi Trinity na Microsoft Azure AI Foundry.',
+      inputSchema:{message:z.string().min(1).max(12000),agent:z.string().optional(),conversation_id:z.string().optional()}},
+      async({message,agent,conversation_id})=>result(await invokeAzureFoundryAgent(env,{message,agentName:agent,conversationId:conversation_id})));
 
     return server;
   },{route:'/mcp'})(request,env,ctx);

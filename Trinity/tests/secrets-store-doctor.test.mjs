@@ -6,38 +6,37 @@ import {diagnoseSecretsStoreConfig} from '../scripts/secrets-store-doctor.mjs';
 const config=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
 const copy=()=>structuredClone(config);
 
-test('TRINITY_MASTER account binding preflight succeeds for tracked staging config',()=>{
+test('build-only staging preflight succeeds without exposing Store credentials',()=>{
   const result=diagnoseSecretsStoreConfig(copy());
   assert.equal(result.ok,true,JSON.stringify(result.errors));
   assert.equal(result.secret_values_accessed,false);
   assert.equal(result.remote_scope_verified,false);
-  assert.deepEqual(result.staging_bindings,[
-    'OLLAMA_SECRET','TRINITY_MASTER_GOOGLE','TRINITY_MASTER_COPILOT'
-  ]);
+  assert.deepEqual(result.staging_bindings,[]);
   assert.deepEqual(result.production_bindings,['OLLAMA_SECRET']);
   assert.match(result.warnings[0],/NOT verified/);
   assert.doesNotMatch(JSON.stringify(result),/[a-f0-9]{32}/i);
 });
 
-test('privileged GitHub token, duplicate binding and wrong secret mapping are rejected',()=>{
-  const c=copy(),st=c.env.staging.secrets_store_secrets;
-  st.push({...st[0],binding:'TRINITY_MASTER_GITHUB',secret_name:'GITHUBE_FINE_TOKEN'});
-  st.push({...st[0]});
-  st[1].secret_name='wrong-provider';
+test('build-only staging rejects all Store bindings, including privileged credentials',()=>{
+  const c=copy();
+  c.env.staging.secrets_store_secrets=[
+    {binding:'TRINITY_MASTER_GITHUB',store_id:c.secrets_store_secrets[0].store_id,secret_name:'GITHUBE_FINE_TOKEN'}
+  ];
   const diagnosis=diagnoseSecretsStoreConfig(c);
   assert.equal(diagnosis.ok,false);
   assert.match(diagnosis.errors.join(' '),/privileged/);
-  assert.match(diagnosis.errors.join(' '),/duplicated/);
-  assert.match(diagnosis.errors.join(' '),/TRINITY_MASTER_GOOGLE/);
+  assert.match(diagnosis.errors.join(' '),/build-only environment must not bind/);
 });
 
-test('malformed store ID or inconsistent store also fails closed',()=>{
+test('malformed Store metadata fails closed even when staging is build-only',()=>{
   const c=copy();
-  c.env.staging.secrets_store_secrets[1].store_id='not-a-store';
+  c.env.staging.secrets_store_secrets=[
+    {binding:'PROVIDER',store_id:'not-a-store',secret_name:'provider'}
+  ];
   const result=diagnoseSecretsStoreConfig(c);
   assert.equal(result.ok,false);
   assert.match(result.errors.join(' '),/invalid store ID/);
-  assert.match(result.errors.join(' '),/unexpected store/);
+  assert.match(result.errors.join(' '),/build-only environment must not bind/);
 });
 
 test('leaked credential in plaintext vars is detected but not echoed',()=>{
@@ -53,7 +52,9 @@ test('leaked credential in plaintext vars is detected but not echoed',()=>{
 test('wrong Wrangler environment and production privilege expansion are rejected',()=>{
   const c=copy();
   c.env.staging.vars.TRINITY_ENV='development';
-  c.secrets_store_secrets.push({...c.env.staging.secrets_store_secrets[1]});
+  c.secrets_store_secrets.push({
+    ...c.secrets_store_secrets[0],binding:'TRINITY_MASTER_GOOGLE',secret_name:'apigoogle'
+  });
   const result=diagnoseSecretsStoreConfig(c);
   assert.equal(result.ok,false);
   assert.match(result.errors.join(' '),/must equal staging/);

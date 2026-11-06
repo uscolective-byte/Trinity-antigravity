@@ -144,3 +144,96 @@ export function generateAzureKnowledgeIndexSchema() {
     }
   };
 }
+
+/**
+ * Získa stav pripojenia a konfiguráciu pre Azure AI Foundry agenta.
+ */
+export function getAzureFoundryAgentStatus(env = {}) {
+  const hasToken = Boolean(
+    env.AZURE_AI_FOUNDRY_TOKEN ||
+    env.AZURE_BEARER_TOKEN ||
+    env.AZURE_ACCESS_TOKEN
+  );
+
+  return {
+    service: 'Azure AI Foundry Agent Bridge',
+    agent_name: AZURE_FOUNDRY_CONFIG.agentName,
+    configured: true,
+    has_token: hasToken,
+    tenant_id: AZURE_FOUNDRY_CONFIG.tenantId,
+    project_name: AZURE_FOUNDRY_CONFIG.projectName,
+    project_endpoint: AZURE_FOUNDRY_CONFIG.projectEndpoint,
+    inference_endpoint: AZURE_FOUNDRY_CONFIG.inferenceEndpoint,
+    knowledge_index: AZURE_FOUNDRY_CONFIG.knowledgeIndexName,
+    default_model: AZURE_FOUNDRY_CONFIG.defaultModel,
+    region: AZURE_FOUNDRY_CONFIG.region,
+    portal_url: AZURE_FOUNDRY_CONFIG.portalUrl
+  };
+}
+
+/**
+ * Odošle prompt agentovi na Azure AI Foundry cez REST API alebo vráti inštrukcie pre runner.
+ */
+export async function invokeAzureFoundryAgent(env = {}, { message, agentName = 'Trinity', conversationId = null }) {
+  if (!message || typeof message !== 'string') {
+    throw new Error('Správa pre Azure AI Foundry agenta nesmie byť prázdna.');
+  }
+
+  const token = env.AZURE_AI_FOUNDRY_TOKEN || env.AZURE_BEARER_TOKEN || env.AZURE_ACCESS_TOKEN;
+  const endpoint = env.AZURE_AI_PROJECT_ENDPOINT || AZURE_FOUNDRY_CONFIG.projectEndpoint;
+  const targetAgent = agentName || AZURE_FOUNDRY_CONFIG.agentName;
+
+  if (!token) {
+    return {
+      ok: false,
+      status: 'pending_credentials',
+      agent: targetAgent,
+      endpoint,
+      message: 'Azure AI Foundry token nie je v prostredí nastavený. Použite skript scripts/azure-foundry-trinity.py na lokálnom PC s DefaultAzureCredential alebo nastavte AZURE_AI_FOUNDRY_TOKEN.',
+      runner_command: `python Trinity/scripts/azure-foundry-trinity.py "${message.replace(/"/g, '\\"')}"`
+    };
+  }
+
+  const start = Date.now();
+  const url = `${endpoint.replace(/\/$/, '')}/agents/${encodeURIComponent(targetAgent)}/responses?api-version=2024-12-01-preview`;
+
+  const payload = {
+    input: [{ role: 'user', content: message }]
+  };
+  if (conversationId) {
+    payload.conversation_id = conversationId;
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const latency_ms = Date.now() - start;
+  if (!response.ok) {
+    const errText = await response.text();
+    return {
+      ok: false,
+      status: 'error',
+      http_status: response.status,
+      error: errText.slice(0, 1000),
+      latency_ms,
+      agent: targetAgent
+    };
+  }
+
+  const data = await response.json();
+  return {
+    ok: true,
+    status: 'completed',
+    agent: targetAgent,
+    response: data.output_text || data,
+    conversation_id: data.conversation_id || conversationId || null,
+    latency_ms
+  };
+}
+

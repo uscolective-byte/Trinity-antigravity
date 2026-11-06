@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {TRINITY_SOURCE} from '../src/version.js';
 import {VERIFIED_ARCHITECTURE_CONTEXT} from '../src/architecture.js';
+import {UNIFIED_TRINITY_DIRECTIVE} from '../src/cognition.js';
 
 test('production and staging domains stay on their isolated Workers',()=>{
  const config=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
@@ -39,14 +40,16 @@ test('production and staging domains stay on their isolated Workers',()=>{
   assert.match(VERIFIED_ARCHITECTURE_CONTEXT,/Worker „trinity-staging“ je priradený k auru\.dev v režime build-only/);
   assert.match(VERIFIED_ARCHITECTURE_CONTEXT,/Konfigurácia sama osebe nepotvrdzuje nasadenie ani živé routovanie/);
   assert.doesNotMatch(VERIFIED_ARCHITECTURE_CONTEXT,/Obe domény auru\.space a auru\.dev zdieľajú rovnaký Worker/);
+  assert.match(UNIFIED_TRINITY_DIRECTIVE,/auru\.dev je nakonfigurovaná ako build-only staging/);
+  assert.doesNotMatch(UNIFIED_TRINITY_DIRECTIVE,/auru\.dev je súkromný riadiaci mostík/);
  });
  assert.equal(staging.d1_databases.some(binding=>binding.binding==='DB'&&binding.database_name==='trinity-v03'),false);
  assert.ok(staging.kv_namespaces.some(binding=>binding.binding==='Mastermind'));
  assert.ok(staging.r2_buckets.some(binding=>binding.binding==='ARTIFACTS'));
  assert.ok(staging.durable_objects.bindings.some(binding=>binding.name==='Brain'));
  assert.ok(staging.workflows.some(binding=>binding.binding==='OPS_WORKFLOW'));
- assert.equal(staging.services.length,29);
- assert.ok(staging.services.some(binding=>binding.binding==='KNOWLEDGE_SERVICE'));
+ assert.equal(staging.services,undefined,'build-only staging must not bind production services');
+ assert.equal(staging.secrets_store_secrets,undefined,'build-only staging must not expose production credentials');
  assert.equal(staging.vars.TRINITY_AUTO_IMPROVE,'false');
  assert.equal(staging.vars.TRINITY_AUTO_MERGE,'false');
 });

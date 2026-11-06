@@ -11,13 +11,13 @@ ZDROJ PRAVDY ARCHITEKTÚRY TRINITY — používaj iba tieto údaje:
 
 OVERENÉ V ZDROJI A TESTOCH:
 - Produkčný Worker „trinity“ je v konfigurácii priradený k auru.space; samostatný Worker „trinity-staging“ je priradený k auru.dev v režime build-only.
-- Produkčné a staging routy a ich D1/KV/R2/Vectorize bindingy sú v zdrojovej konfigurácii oddelené. Konfigurácia sama osebe nepotvrdzuje nasadenie ani živé routovanie; živý stav over cez /health.
+- Produkčné a staging routy a ich D1/KV/R2/Vectorize bindingy sú v zdrojovej konfigurácii oddelené. Konfigurácia sama osebe nepotvrdzuje nasadenie ani živé routovanie. Staging je build-only a nemá service ani Secrets Store bindingy; živý stav over cez /health.
 - Lokálny vývoj beží iba na localhost a v rozhraní sa prostredie zobrazuje ako PRODUKCIA alebo LOCAL.
 - Primárny AI provider je Cloudflare Workers AI s modelom @cf/meta/llama-3.3-70b-instruct-fp8-fast (rýchly chat model @cf/meta/llama-3.1-8b-instruct-fp8-fast).
 - Stavové a aplikačné dáta používa Cloudflare D1 databáza trinity-v03.
 - Výstupné objekty a médiá používa Cloudflare R2 bucket trinity-artifacts.
 - Odolné úlohy používa Cloudflare Workflow trinity-operations.
-- PC Bridge je samostatný Cloudflare Worker binding trinity-pc-bridge, ktorý eviduje heartbeat a stav lokálneho gateway.
+- Produkčné PC Bridge je samostatný Cloudflare Worker binding trinity-pc-bridge, ktorý eviduje heartbeat a stav lokálneho gateway; build-only staging nemá tento service binding.
 - Lokálny PC Bridge 2.0 používa allowlist pracovných priečinkov a aplikácií, chránený gateway secret, auditovanú akciu a doklad o výsledku. Serverom overený admin môže konkrétny príkaz v aktuálnej požiadavke autorizovať priamo; ostatné zdroje vytvárajú iba návrh.
 - Lokálna konfigurácia môže používať Ollama a jej nakonfigurované modely; ich inštaláciu a dostupnosť vždy over. Lokálny model je dostupný cez schválenú bránu, nie ako verejný endpoint.
 - Počet úspešných testov preber iba z aktuálneho testovacieho protokolu. Bezpečnostné jadro PC Bridge je samostatná súčasť a jeho stav sa musí overovať samostatne.
