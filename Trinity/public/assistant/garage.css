@@ -1,5 +1,5 @@
 /* ==========================================================================
-   TRINITY OMNI-CORE — UNDERGROUND CYBER-STREETWEAR & HIP-HOP REVOLUTION v11.1.4
+   TRINITY OMNI-CORE — UNDERGROUND CYBER-STREETWEAR & HIP-HOP REVOLUTION v11.1.5
    Exclusively engineered for Basterix (Sabo Ivan)
    ========================================================================== */
 
@@ -10,17 +10,17 @@
   --spray-orange: #ff3c00;
   --cyan-graffiti: #00f0ff;
   --street-purple: #c026d3;
-  --asphalt-black: #08090d;
-  --concrete-slate: #11131c;
-  --concrete-card: #151824;
+  --asphalt-black: #06080d;
+  --concrete-slate: #0f121a;
+  --concrete-card: #141824;
   --text-white: #f8fafc;
   --text-muted: #94a3b8;
   
-  --canvas: #08090d;
-  --paper: #11131c;
+  --canvas: #06080d;
+  --paper: #0f121a;
   --ink: #f8fafc;
   --muted: #94a3b8;
-  --line: rgba(212, 255, 0, 0.25);
+  --line: rgba(212, 255, 0, 0.3);
   --purple: #c026d3;
   --blue: #00f0ff;
   --teal: #d4ff00;
@@ -28,13 +28,13 @@
   --gold: #facc15;
 }
 
-/* Base Body: Asphalt Street Surface */
+/* Base Body: Deep Asphalt Street Surface */
 body.garage-ui {
-  background-color: #08090d !important;
+  background-color: #06080d !important;
   background-image: 
-    radial-gradient(circle at 15% 15%, rgba(212, 255, 0, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 85% 75%, rgba(255, 60, 0, 0.09) 0%, transparent 45%),
-    linear-gradient(to bottom, rgba(8, 9, 13, 0.96), rgba(8, 9, 13, 0.99)) !important;
+    radial-gradient(circle at 12% 15%, rgba(212, 255, 0, 0.09) 0%, transparent 40%),
+    radial-gradient(circle at 88% 80%, rgba(255, 60, 0, 0.10) 0%, transparent 45%),
+    linear-gradient(to bottom, rgba(6, 8, 13, 0.96), rgba(6, 8, 13, 0.99)) !important;
   color: #f1f5f9 !important;
   font-family: 'Space Grotesk', -apple-system, sans-serif !important;
   display: flex !important;
@@ -64,7 +64,7 @@ body.garage-ui::before {
   letter-spacing: 2.5px !important;
   text-align: center !important;
   padding: 3px 0 !important;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.9) !important;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.95) !important;
 }
 
 body.garage-ui::after {
@@ -81,10 +81,10 @@ body.garage-ui .sidebar {
   height: calc(100dvh - 38px) !important;
   margin: 0 !important;
   z-index: 1000 !important;
-  background: #0d0f17 !important;
-  border: 2px solid rgba(212, 255, 0, 0.35) !important;
+  background: #0c0e16 !important;
+  border: 2px solid rgba(212, 255, 0, 0.4) !important;
   border-radius: 0 !important;
-  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.95) !important;
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.95), 0 0 20px rgba(212, 255, 0, 0.08) !important;
   backdrop-filter: blur(12px) !important;
   padding: 16px 12px !important;
   flex-shrink: 0 !important;
@@ -106,17 +106,23 @@ body.garage-ui .brand {
 body.garage-ui .brand-mark {
   background: #d4ff00 !important;
   color: #000 !important;
-  border-radius: 0 !important;
+  border-radius: 50% !important;
   transform: rotate(-4deg) !important;
   font-family: 'Bebas Neue', sans-serif !important;
   font-weight: 900 !important;
   font-size: 26px !important;
-  box-shadow: 3px 3px 0 #ff3c00 !important;
+  box-shadow: 3px 3px 0 #ff3c00, 0 0 12px rgba(212, 255, 0, 0.6) !important;
   border: 2px solid #000 !important;
-  width: 38px !important;
-  height: 38px !important;
+  width: 40px !important;
+  height: 40px !important;
   display: grid !important;
   place-items: center !important;
+  animation: vinyl-spin 20s linear infinite !important;
+}
+
+@keyframes vinyl-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 body.garage-ui .brand > span:last-child {
@@ -145,9 +151,9 @@ body.garage-ui .main-nav {
 }
 
 body.garage-ui .main-nav button {
-  background: #141722 !important;
+  background: #131622 !important;
   color: #94a3b8 !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 0 !important;
   font-family: 'Bebas Neue', sans-serif !important;
   font-size: 1.15rem !important;
@@ -163,9 +169,10 @@ body.garage-ui .main-nav button {
 }
 
 body.garage-ui .main-nav button:hover {
-  background: #1d2232 !important;
+  background: #1b2030 !important;
   color: #00f0ff !important;
   border-color: #00f0ff !important;
+  box-shadow: 3px 3px 0 #00f0ff !important;
   transform: translate(-1px, -1px) !important;
 }
 
@@ -220,7 +227,7 @@ body.garage-ui #sessions {
 }
 
 body.garage-ui #sessions button {
-  background: #11131c !important;
+  background: #111420 !important;
   color: #cbd5e1 !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 0 !important;
@@ -234,11 +241,13 @@ body.garage-ui #sessions button {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+  border-left: 3px solid transparent !important;
 }
 
 body.garage-ui #sessions button:hover {
-  border-color: #d4ff00 !important;
+  border-left-color: #d4ff00 !important;
   color: #d4ff00 !important;
+  background: #161a29 !important;
 }
 
 body.garage-ui .sidebar-status-clean {
@@ -270,12 +279,12 @@ body.garage-ui main {
   overflow: hidden !important;
 }
 
-/* Header: Street Command Bar with Parental Advisory */
+/* Header: Street Command Bar */
 body.garage-ui header {
-  background: #11131c !important;
-  border: 2px solid rgba(212, 255, 0, 0.35) !important;
+  background: #0f121a !important;
+  border: 2px solid rgba(212, 255, 0, 0.4) !important;
   border-radius: 0 !important;
-  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.95) !important;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.95), 0 0 15px rgba(212, 255, 0, 0.06) !important;
   padding: 10px 18px !important;
   flex-shrink: 0 !important;
   display: flex !important;
@@ -301,9 +310,40 @@ body.garage-ui #page-kicker {
   letter-spacing: 1px !important;
 }
 
+/* Equalizer Visualizer */
+.street-equalizer {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 18px;
+  padding: 0 4px;
+}
+
+.street-equalizer .bar {
+  width: 4px;
+  background: #d4ff00;
+  border-radius: 1px;
+  animation: eq-pulse 0.9s ease-in-out infinite alternate;
+}
+
+.street-equalizer .b1 { height: 8px; animation-delay: 0.1s; background: #d4ff00; }
+.street-equalizer .b2 { height: 16px; animation-delay: 0.25s; background: #00f0ff; }
+.street-equalizer .b3 { height: 12px; animation-delay: 0.4s; background: #ff3c00; }
+.street-equalizer .b4 { height: 18px; animation-delay: 0.15s; background: #d4ff00; }
+.street-equalizer .b5 { height: 10px; animation-delay: 0.35s; background: #00f0ff; }
+.street-equalizer .b6 { height: 14px; animation-delay: 0.5s; background: #c026d3; }
+.street-equalizer .b7 { height: 16px; animation-delay: 0.2s; background: #d4ff00; }
+.street-equalizer .b8 { height: 6px; animation-delay: 0.45s; background: #ff3c00; }
+
+@keyframes eq-pulse {
+  0% { transform: scaleY(0.3); opacity: 0.5; }
+  50% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(0.6); opacity: 0.8; }
+}
+
 body.garage-ui .header-actions button,
 body.garage-ui #language {
-  background: #141722 !important;
+  background: #131622 !important;
   color: #f1f5f9 !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   font-family: 'JetBrains Mono', monospace !important;
@@ -337,10 +377,10 @@ body.garage-ui #chat-area {
 
 /* WELCOME BOX: RAW STREET CYPHER */
 body.garage-ui #welcome {
-  background: #11131c !important;
+  background: #0f121a !important;
   border: 2px solid #d4ff00 !important;
   border-radius: 0 !important;
-  box-shadow: 8px 8px 0 #000 !important;
+  box-shadow: 8px 8px 0 #000, 0 0 25px rgba(212, 255, 0, 0.08) !important;
   padding: 24px 28px !important;
   margin: 12px 4px 16px !important;
   position: relative !important;
@@ -360,6 +400,56 @@ body.garage-ui #welcome::before {
   letter-spacing: 1.5px;
   padding: 2px 8px;
   box-shadow: 3px 3px 0 #d4ff00;
+}
+
+/* Cassette Tape Header */
+.cassette-tape-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #000;
+  border: 2px solid #d4ff00;
+  padding: 8px 14px;
+  margin-bottom: 14px;
+  box-shadow: 4px 4px 0 #ff3c00;
+}
+
+.tape-spool {
+  width: 22px;
+  height: 22px;
+  border: 2px dashed #d4ff00;
+  border-radius: 50%;
+  animation: spool-spin 4s linear infinite;
+}
+
+.right-spool {
+  border-color: #ff3c00;
+  animation-direction: reverse;
+}
+
+@keyframes spool-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.tape-label {
+  text-align: center;
+}
+
+.tape-crew {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #00f0ff;
+  letter-spacing: 1.5px;
+  display: block;
+}
+
+.tape-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 15px;
+  color: #d4ff00;
+  letter-spacing: 2px;
+  font-weight: 900;
 }
 
 body.garage-ui #welcome .eyebrow {
@@ -394,17 +484,42 @@ body.garage-ui #welcome p {
   max-width: 750px !important;
 }
 
+/* MPC LEDs Bar */
+.mpc-leds-bar {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.mpc-led {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 2px 2px 0 #000;
+  letter-spacing: 1px;
+}
+
+.led-green { color: #d4ff00; border-color: #d4ff00; }
+.led-cyan { color: #00f0ff; border-color: #00f0ff; }
+.led-orange { color: #ff3c00; border-color: #ff3c00; }
+.led-purple { color: #c026d3; border-color: #c026d3; }
+
 /* Quick Suggestion Buttons: MPC Beat Trigger Pads */
 body.garage-ui .suggestions.mpc-grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
   gap: 10px !important;
-  margin-top: 18px !important;
+  margin-top: 12px !important;
 }
 
 body.garage-ui .suggestions.mpc-grid button {
-  background: #181c28 !important;
-  border: 2px solid #2d3448 !important;
+  background: #141724 !important;
+  border: 2px solid #282f44 !important;
   color: #f1f5f9 !important;
   font-family: 'Bebas Neue', sans-serif !important;
   padding: 12px 14px !important;
@@ -416,6 +531,7 @@ body.garage-ui .suggestions.mpc-grid button {
   display: flex !important;
   flex-direction: column !important;
   gap: 2px !important;
+  position: relative !important;
 }
 
 body.garage-ui .suggestions.mpc-grid button .mpc-pad-num {
@@ -443,8 +559,8 @@ body.garage-ui .suggestions.mpc-grid button:hover {
   background: #000 !important;
   border-color: #d4ff00 !important;
   color: #d4ff00 !important;
-  box-shadow: 4px 4px 0 #d4ff00 !important;
-  transform: translate(-1px, -1px) !important;
+  box-shadow: 5px 5px 0 #d4ff00 !important;
+  transform: translate(-2px, -2px) !important;
 }
 
 body.garage-ui .suggestions.mpc-grid button:hover b {
@@ -463,19 +579,35 @@ body.garage-ui .composer-wrap {
 }
 
 body.garage-ui #chat-form {
-  background: #11131c !important;
-  border: 2px solid #d4ff00 !important;
+  background: #0d1017 !important;
+  border: 3px solid #d4ff00 !important;
   border-radius: 0 !important;
-  box-shadow: 6px 6px 0 #000 !important;
-  padding: 12px 16px !important;
+  box-shadow: 8px 8px 0 #000, 0 0 20px rgba(212, 255, 0, 0.1) !important;
+  padding: 14px 18px !important;
   box-sizing: border-box !important;
+  position: relative !important;
+}
+
+body.garage-ui #chat-form::before {
+  content: "RECORDING CONSOLE // LIVE INPUT STREAM" !important;
+  position: absolute !important;
+  top: -11px !important;
+  left: 16px !important;
+  background: #000 !important;
+  color: #fff !important;
+  border: 1px solid #fff !important;
+  font-family: 'Bebas Neue', sans-serif !important;
+  font-size: 11px !important;
+  letter-spacing: 1.5px !important;
+  padding: 1px 7px !important;
+  box-shadow: 2px 2px 0 #d4ff00 !important;
 }
 
 body.garage-ui #message {
-  background: #06070a !important;
+  background: #050609 !important;
   color: #f1f5f9 !important;
   -webkit-text-fill-color: #f1f5f9 !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
   font-family: 'JetBrains Mono', monospace !important;
   font-size: 14px !important;
   padding: 10px !important;
@@ -486,7 +618,7 @@ body.garage-ui #message {
 
 body.garage-ui #message:focus {
   border-color: #d4ff00 !important;
-  box-shadow: 0 0 12px rgba(212, 255, 0, 0.25) !important;
+  box-shadow: 0 0 14px rgba(212, 255, 0, 0.3) !important;
 }
 
 body.garage-ui #message::placeholder {
@@ -498,13 +630,13 @@ body.garage-ui button.primary {
   background: #d4ff00 !important;
   color: #000 !important;
   font-family: 'Bebas Neue', sans-serif !important;
-  font-size: 1.25rem !important;
+  font-size: 1.3rem !important;
   font-weight: 900 !important;
   letter-spacing: 2px !important;
   border: 2px solid #000 !important;
   border-radius: 0 !important;
   box-shadow: 4px 4px 0 #ff3c00 !important;
-  padding: 8px 18px !important;
+  padding: 9px 20px !important;
   text-transform: uppercase !important;
   cursor: pointer !important;
   transition: all 0.12s ease !important;
@@ -513,41 +645,75 @@ body.garage-ui button.primary {
 body.garage-ui #send:hover,
 body.garage-ui button.primary:hover {
   background: #fff !important;
-  box-shadow: 4px 4px 0 #d4ff00 !important;
+  box-shadow: 5px 5px 0 #d4ff00 !important;
   transform: translate(-2px, -2px) !important;
 }
 
 body.garage-ui #engine {
-  background: #181c28 !important;
+  background: #141724 !important;
   color: #00f0ff !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
   font-family: 'JetBrains Mono', monospace !important;
   font-size: 11px !important;
   padding: 6px !important;
 }
 
-/* Chat Messages: Underground Boombox Mixtape Cards */
+/* Chat Messages: Mixtape Cassette Sleeve Cards */
 body.garage-ui .message {
+  position: relative !important;
   border-radius: 0 !important;
   box-shadow: 6px 6px 0 #000 !important;
-  margin-bottom: 16px !important;
-  padding: 18px 22px !important;
+  margin-bottom: 22px !important;
+  padding: 22px 24px 18px !important;
 }
 
 body.garage-ui .message.assistant {
-  background: #11131c !important;
-  border: 2px solid rgba(212, 255, 0, 0.35) !important;
+  background: #0f121a !important;
+  border: 2px solid rgba(212, 255, 0, 0.4) !important;
+  border-left: 6px solid #d4ff00 !important;
   color: #f1f5f9 !important;
+}
+
+body.garage-ui .message.assistant::before {
+  content: "[ SIDE B // TRINITY CYPHER 11.1 ]" !important;
+  position: absolute !important;
+  top: -12px !important;
+  left: 16px !important;
+  background: #000 !important;
+  color: #d4ff00 !important;
+  border: 1px solid #d4ff00 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  padding: 1px 8px !important;
+  letter-spacing: 1px !important;
 }
 
 body.garage-ui .message.assistant:hover {
   border-color: #d4ff00 !important;
+  box-shadow: 6px 6px 0 #d4ff00 !important;
 }
 
 body.garage-ui .message.user {
-  background: #181a12 !important;
+  background: #161311 !important;
   border: 2px solid #ff3c00 !important;
+  border-left: 6px solid #ff3c00 !important;
   color: #f1f5f9 !important;
+}
+
+body.garage-ui .message.user::before {
+  content: "[ SIDE A // BASTERIX MASTER VOICE ]" !important;
+  position: absolute !important;
+  top: -12px !important;
+  left: 16px !important;
+  background: #000 !important;
+  color: #ff3c00 !important;
+  border: 1px solid #ff3c00 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  padding: 1px 8px !important;
+  letter-spacing: 1px !important;
 }
 
 body.garage-ui .message .name {
@@ -594,8 +760,8 @@ body.garage-ui .message .content code.inline-code {
 }
 
 body.garage-ui .message .content pre.code-block {
-  background: #06070a !important;
-  border: 2px solid rgba(255, 255, 255, 0.15) !important;
+  background: #050609 !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
   border-radius: 0 !important;
 }
 
@@ -615,8 +781,8 @@ body.garage-ui .settings-card,
 body.garage-ui .domain-card,
 body.garage-ui .provider-card,
 body.garage-ui .docs-card {
-  background: #11131c !important;
-  border: 2px solid rgba(255, 255, 255, 0.12) !important;
+  background: #0f121a !important;
+  border: 2px solid rgba(255, 255, 255, 0.15) !important;
   border-radius: 0 !important;
   box-shadow: 6px 6px 0 #000 !important;
   color: #f1f5f9 !important;
