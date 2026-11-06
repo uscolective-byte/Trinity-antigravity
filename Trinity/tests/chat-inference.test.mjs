@@ -42,6 +42,51 @@ test('parent workers-ai calls use the dedicated internal chat inference binding'
  assert.equal(result.text,'Dedikovaný chat worker odpovedá.');
 });
 
+test('multi-tier circuit fallback engages secondary tier when primary fails',async()=>{
+ const tried=[];
+ const env={AI:{run:async(selectedModel)=>{
+   tried.push(selectedModel);
+   if(selectedModel.includes('70b'))throw new Error('Primary overloaded');
+   return {response:'Odpoveď zo sekundárneho modelu'};
+ }}};
+ const response=await worker.fetch(request({model:'@cf/meta/llama-3.3-70b-instruct-fp8-fast',messages:[{role:'user',content:'Ahoj'}]}),env);
+ assert.equal(response.status,200);
+ const data=await response.json();
+ assert.equal(data.success,true);
+ assert.equal(data.fallback_engaged,true);
+ assert.equal(data.model_used,'@cf/deepseek-ai/deepseek-r1-distill-qwen-32b');
+ assert.equal(data.response,'Odpoveď zo sekundárneho modelu');
+ assert.equal(tried.length,2);
+});
+
+test('streaming mode supports SSE and filters hallucinated tool dumps',async()=>{
+ const sseReadable=new ReadableStream({
+   start(controller){
+     const enc=new TextEncoder();
+     controller.enqueue(enc.encode('data: {"response":"Ahoj "}\n\n'));
+     controller.enqueue(enc.encode('data: {"response":"Môj zoznam nástrojov je interný"}\n\n'));
+     controller.enqueue(enc.encode('data: {"response":"Ivan!"}\n\n'));
+     controller.enqueue(enc.encode('data: [DONE]\n\n'));
+     controller.close();
+   }
+ });
+ const env={AI:{run:async()=>sseReadable}};
+ const response=await worker.fetch(request({model,messages:[{role:'user',content:'Ahoj'}],stream:true}),env);
+ assert.equal(response.status,200);
+ assert.equal(response.headers.get('Content-Type'),'text/event-stream; charset=utf-8');
+ const reader=response.body.getReader();
+ const decoder=new TextDecoder();
+ let fullText='';
+ while(true){
+   const {done,value}=await reader.read();
+   if(done)break;
+   fullText+=decoder.decode(value);
+ }
+ assert.match(fullText,/Ahoj/);
+ assert.match(fullText,/Ivan!/);
+ assert.doesNotMatch(fullText,/Môj zoznam nástrojov/);
+});
+
 test('binding outage retains existing bounded Workers AI fallback',async()=>{
  let local=0;const result=await callModel({CHAT_INFERENCE_SERVICE:{fetch:async()=>new Response('',{status:503})},AI:{run:async()=>{local++;return {response:'Náhradná odpoveď'};}}},'fast',[]);
  assert.equal(local,1);assert.equal(result.text,'Náhradná odpoveď');
