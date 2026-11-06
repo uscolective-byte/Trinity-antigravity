@@ -441,3 +441,46 @@ staging verification receipt, review, and a fresh ACK.
   "truth_policy": "NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT"
 }
 ```
+
+
+### ENTRY-015 — AZURE AI FOUNDRY AGENT & ANTIGRAVITY TOOL SUITE (2026-11-06)
+
+```json
+{
+  "agent": "ANTIGRAVITY",
+  "role": "LEAD_ARCHITECT_AND_EXECUTIVE_ENGINEER",
+  "type": "AZURE_FOUNDRY_INTEGRATION_AND_ANTIGRAVITY_SUITE",
+  "status": "COMPLETED_AND_VERIFIED",
+  "owner": "Basterix (Sabo Ivan)",
+  "task": "vikonaj tvorbu agentaa nech trinit viivjame; pridaj vsetky nastroje antigravity do Trinity",
+  "azure_foundry": {
+    "tenant_id": "ad443c2d-5bac-46b3-ad16-187e4ca37962",
+    "resource_group": "DA-RG-australiacentral",
+    "resource_name": "saboivan2008-0459-resource",
+    "project_name": "saboivan2008-0459",
+    "agent_name": "trinity-lead-developer",
+    "model": "gpt-4o",
+    "knowledge_index": "trinity-omni-knowledge",
+    "manifest_file": "Trinity/azure-foundry-agent-manifest.json",
+    "index_schema_file": "Trinity/azure-knowledge-index-schema.json"
+  },
+  "antigravity_tool_suite": [
+    "read_file",
+    "write_file",
+    "edit_file",
+    "run_command",
+    "manage_task",
+    "search_marketplace"
+  ],
+  "verification": {
+    "trinity_tests": "918/918 PASS (0 fail)",
+    "local_desktop_tests": "24/24 PASS (0 fail)",
+    "local_gateway_tests": "61/61 PASS (0 fail)",
+    "total_tests": "1003/1003 PASS across ecosystem",
+    "git_head": "81dd84a (pushed to origin/main)",
+    "cloudflare_worker_version": "6efad85c-15de-4c8c-b4a4-1399b70d61eb",
+    "domains": ["https://auru.space", "https://auru.dev", "https://trinity.saboivan2008.workers.dev"]
+  },
+  "truth_policy": "NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT"
+}
+```
