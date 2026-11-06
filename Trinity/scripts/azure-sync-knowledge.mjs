@@ -77,8 +77,8 @@ export async function syncToAzureSearch(endpoint, apiKey, indexName = 'trinity-o
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename)) {
-  const endpoint = process.env.AZURE_SEARCH_ENDPOINT;
-  const apiKey = process.env.AZURE_SEARCH_KEY;
+  const endpoint = process.env.AZURE_SEARCH_ENDPOINT || process.env.AZURE_FOUNDRY_ENDPOINT || 'https://saboivan2008-0459-resource.services.ai.azure.com';
+  const apiKey = process.env.AZURE_SEARCH_KEY || process.env.AZURE_FOUNDRY_API_KEY;
   syncToAzureSearch(endpoint, apiKey).catch(err => {
     console.error('[Azure Sync Error]', err.message);
     process.exit(1);

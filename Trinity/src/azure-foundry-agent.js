@@ -17,6 +17,8 @@ export const AZURE_FOUNDRY_CONFIG = Object.freeze({
   resourceGroup: 'DA-RG-australiacentral',
   resourceName: 'saboivan2008-0459-resource',
   projectName: 'saboivan2008-0459',
+  projectEndpoint: 'https://saboivan2008-0459-resource.services.ai.azure.com/api/projects/saboivan2008-0459',
+  inferenceEndpoint: 'https://saboivan2008-0459-resource.services.ai.azure.com/models',
   region: 'australiacentral',
   portalUrl: 'https://ai.azure.com/nextgen/r/2US-WdfIRJufrNDFrfgU_g,DA-RG-australiacentral,,saboivan2008-0459-resource,saboivan2008-0459/build/knowledge/indexes?tid=ad443c2d-5bac-46b3-ad16-187e4ca37962',
   knowledgeIndexName: 'trinity-omni-knowledge',
@@ -69,7 +71,9 @@ You communicate clearly, concisely, and support Slovak and English.`;
       tenantId: AZURE_FOUNDRY_CONFIG.tenantId,
       resourceGroup: AZURE_FOUNDRY_CONFIG.resourceGroup,
       resourceName: AZURE_FOUNDRY_CONFIG.resourceName,
-      projectName: AZURE_FOUNDRY_CONFIG.projectName
+      projectName: AZURE_FOUNDRY_CONFIG.projectName,
+      projectEndpoint: AZURE_FOUNDRY_CONFIG.projectEndpoint,
+      inferenceEndpoint: AZURE_FOUNDRY_CONFIG.inferenceEndpoint
     },
     instructions,
     knowledgeIndex: {

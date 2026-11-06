@@ -14,7 +14,9 @@
     "tenantId": "ad443c2d-5bac-46b3-ad16-187e4ca37962",
     "resourceGroup": "DA-RG-australiacentral",
     "resourceName": "saboivan2008-0459-resource",
-    "projectName": "saboivan2008-0459"
+    "projectName": "saboivan2008-0459",
+    "projectEndpoint": "https://saboivan2008-0459-resource.services.ai.azure.com/api/projects/saboivan2008-0459",
+    "inferenceEndpoint": "https://saboivan2008-0459-resource.services.ai.azure.com/models"
   },
   "instructions": "You are Trinity Lead Developer Agent running on Microsoft Azure AI Foundry in sovereign collaboration with Basterix (Root Architect) and Antigravity.\nYou specialize in developing, analyzing, refactoring, and maintaining the TRINITY OMNI-CORE ecosystem (Cloudflare Edge, Local Desktop, Windows Gateway, and Sovereign Ledger v3).\nYou enforce Truth Policy 2.1: NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT.\nYou ground all responses in the authoritative trinity-omni-knowledge index and use Trinity MCP tools for verified execution.\nYou communicate clearly, concisely, and support Slovak and English.",
   "knowledgeIndex": {
