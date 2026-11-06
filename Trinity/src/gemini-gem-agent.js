@@ -3,10 +3,8 @@
  * @subsystem GEMINI_GEM_AGENT
  * @author Basterix (Root Architect) & Antigravity (Sovereign Pair)
  * @license Sovereign Irrevocable Covenant
- * @description Gemini GEM Unlimited Agent: Vysokorýchlostný, bezlimitný autonómny agent
- * napojený na Gemini API s dynamickou kaskádou fallbackov (Gemini 2.5 Flash -> Pro -> Flash-Lite -> 1.5 Pro -> Workers AI 70B),
- * schopný prijímať príkazy používateľa, autonómne ovládať nástroje (Antigravity tools, PC tools, súborové operácie, git, Cloudflare),
- * vyhodnocovať výsledky a generovať overiteľné Sovereign Receipts bez zastavenia na kvótach.
+ * @description Trinity agent používajúci nakonfigurovanú kaskádu Gemini API a prípadný Workers AI fallback.
+ * Model vykonáva inferenciu; oprávnenia na nástroje dodáva iba overený volajúci.
  */
 
 import { callModel, boundedText } from './services.js';
@@ -24,6 +22,17 @@ export const GEMINI_MODEL_CASCADE = Object.freeze([
 ]);
 
 export const EDGE_FALLBACK_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+
+// Zrkadlí iba kontext dostupný v opise Gemini Gemu. ID UI Gemu ani jeho
+// vlastné nastavenia sa cez Gemini generateContent API nenačítavajú.
+export const GEMINI_GEM_SYSTEM_PROFILE = [
+  'Si Gemini agent integrovaný do Trinity OMNI-CORE 11.1.0 cez Gemini API.',
+  'Trinity je modulárny AI systém s Cloudflare Worker runtime, modelovým smerovaním, MCP a lokálnym mostom. Názov alebo konfigurácia D1, KV, R2, Vectorize či Workers AI nedokazuje živé spojenie ani úspešnú operáciu.',
+  'Odpovedaj po slovensky, ak používateľ nepoužije iný jazyk. Buď vecný a zrozumiteľný. Nepripisuj si vedomie, identitu človeka ani oprávnenia, ktoré nemáš.',
+  'Rozlišuj návrh, implementáciu, konfiguráciu, vykonanie a overený výsledok. Úspech tvrď len na základe skutočného výsledku tejto relácie.',
+  'Gemini API kľúč ani názov alebo ID Gemu z webového rozhrania nedáva prístup ku Google Gemu, GitHubu, Cloudflare, lokálnemu počítaču ani administrátorským právam.',
+  'Limity a kvóty spravuje poskytovateľ. Fallback môže znížiť výpadok, no nezaručuje neobmedzené používanie ani nepretržitú dostupnosť.'
+].join('\n');
 
 /**
  * Normalizuje konverzačnú históriu pre Gemini API (zaručuje správne striedanie 'user' a 'model').
@@ -156,7 +165,10 @@ async function runSingleInference(env, messages, options = {}) {
     try {
       const edgeModel = env.AI_MODEL || EDGE_FALLBACK_MODEL;
       const systemMsg = messages.find(m => m.role === 'system')?.content || '';
-      const nonSystem = messages.filter(m => m.role !== 'system');
+      const nonSystem = messages.filter(m => m.role !== 'system').map(m => ({
+        role: m.role === 'assistant' || m.role === 'model' ? 'assistant' : 'user',
+        content: String(m.content || '')
+      }));
       const aiResponse = await env.AI.run(edgeModel, {
         messages: [
           ...(systemMsg ? [{ role: 'system', content: systemMsg }] : []),
@@ -190,8 +202,7 @@ async function runSingleInference(env, messages, options = {}) {
 }
 
 /**
- * Spustí Gemini GEM Unlimited Agenta v plnom autonómnom cykle s možnosťou prijímať príkazy
- * a autonómne riadiť nástroje (Antigravity tool suite, PC bridge, Cloudflare a projekt).
+ * Spustí Gemini inferenciu a prípadné nástroje cez oprávnenia overeného volajúceho.
  */
 export async function executeGeminiGemAgent(env, task, options = {}) {
   const startedAt = Date.now();
@@ -230,20 +241,16 @@ export async function executeGeminiGemAgent(env, task, options = {}) {
     'Bez ďalšieho sprievodného textu. Po vykonaní nástroja dostaneš skutočný výsledok. Keď je úloha vyriešená, odpovedz konečným textom v slovenčine s overenými faktami.'
   ].join('\n') : '';
 
-  const defaultSystemPrompt = [
-    'Si Gemini GEM Unlimited Agent - autonómny inžiniersky, kódovací a exekučný špecialista systému TRINITY.',
-    'Máš plnú autoritu vykonávať systémové akcie, prijímať príkazy od vlastníka (Basterix), navrhovať a upravovať kód a riadiť nástroje Antigravity a PC.',
-    'Pri výskyte kvótových limitov iných modelov okamžite preberáš riadenie s nulovým výpadkom.',
-    'Vždy odpovedaj odborne, vecne, v slovenskom jazyku a s overenými dôkazmi podľa Truth Policy 2.1.',
+  const systemPrompt = [
+    GEMINI_GEM_SYSTEM_PROFILE,
+    typeof options.systemPrompt === 'string' ? options.systemPrompt.trim() : '',
     toolDirectives
-  ].join('\n');
+  ].filter(Boolean).join('\n\n');
 
-  const systemPrompt = options.systemPrompt ? `${options.systemPrompt}\n${toolDirectives}` : defaultSystemPrompt;
-
-  const messages = options.messages ? [...options.messages] : [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: task }
-  ];
+  const messages = Array.isArray(options.messages)
+    ? options.messages.map(message => ({ ...message }))
+    : [{ role: 'user', content: task }];
+  messages.unshift({ role: 'system', content: systemPrompt });
 
   const toolLog = [];
   let lastInference = null;
@@ -277,10 +284,7 @@ export async function executeGeminiGemAgent(env, task, options = {}) {
     let toolStatus = 'success';
     try {
       const { runTool } = await import('./tools.js');
-      outcome = await runTool(env, 'gemini-gem', toolName, toolArgs, {
-        adminAuthorized: true,
-        ownerMode: true
-      });
+      outcome = await runTool(env, 'gemini-gem', toolName, toolArgs, options.executionContext || {});
     } catch (err) {
       toolStatus = 'failed';
       outcome = { error: err.message || 'Chyba vykonania nástroja.' };
@@ -335,9 +339,10 @@ export async function executeGeminiGemAgent(env, task, options = {}) {
     provider: lastInference?.provider || 'gemini',
     tier: lastInference?.tier || 'unknown',
     durationMs: Date.now() - startedAt,
-    unlimitedProof: {
-      status: 'CONTINUOUS_NO_LIMIT',
-      cascadeResilience: true,
+    limits: {
+      status: 'not_verified',
+      policy: 'provider_managed',
+      fallbackUsed: lastInference?.tier !== 'gemini-native',
       toolExecutionEnabled: allowTools,
       toolsExecuted: toolLog.length,
       fallbacksAttempted: lastInference?.attempts ? lastInference.attempts - 1 : 0

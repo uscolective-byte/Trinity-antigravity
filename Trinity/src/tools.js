@@ -1266,7 +1266,13 @@ export async function runTool(env, agent, name, input, executionContext={}) {
         codex: { role: 'Background Developer', status: 'standby' },
         antigravity: { role: 'Agentic Controller', status: 'online' }
       },
-      gemini_gem_unlimited: { status: 'READY_NO_LIMIT' }
+      gemini_gem: {
+        status: 'configured_in_code',
+        provider: 'Gemini API',
+        user_gem_linked: false,
+        execution: 'inference_only',
+        quota: 'provider_managed_unverified'
+      }
     };
   }
   if(name==='meta_manage'){
@@ -1492,7 +1498,7 @@ export const TOOL_HELP={
   manage_task:'Správa asynchrónnych úloh a procesov: {Action:list|kill|status|send_input,TaskId?:string,Input?:string}',
   search_marketplace:'Prehľadáva pluginy a skilly v katalógu: {queries?:string[],kind?:all|plugin|skill,limit?:number}',
   multi_agent_dispatch:'Zaradí úlohu do prioritnej fronty a pridelí ju špecializovanému agentovi (Antigravity, Gemini, ChatGPT, Codex, Copilot, Trinity) so Sovereign Ledger zápisom; execute=false iba zaradí, execute=true vykoná cez nakonfigurovaný adaptér: {title:string,taskType?:architecture|research|coding|documentation|tests|planning|...,priority?:CRITICAL|HIGH|NORMAL|LOW,execute?:boolean}',
-  execute_gemini_gem:'Spustí bezlimitného Gemini GEM agenta s dynamickou kaskádou modelov a edge fallbackom: {task:string,systemPrompt?:string,maxTokens?:number}',
+  execute_gemini_gem:'Vykoná Gemini API inferenciu s Trinity profilom, modelovou kaskádou a prípadným Workers AI fallbackom. Limity spravuje poskytovateľ: {task:string,systemPrompt?:string,maxTokens?:number}',
   finance_propose_transfer:'Pripraví autorizovaný finančný príkaz s limitom 50€/200€ denne: {amount_eur:number,recipient:string,provider?:revolut|paypal|sepa,note?:string}',
   finance_confirm_transfer:'Potvrdí a kryptograficky zapíše prevod do auditného ledgera: {proposal_id:string,confirmation_token?:string}',
   finance_audit_ledger:'Zobrazí nemennú auditnú knihu finančných transakcií: {limit?:number}',

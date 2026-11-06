@@ -109,9 +109,9 @@ export const AGENTS = groups.flatMap(([cluster, roles]) => roles.map(([id, name,
 export const EXTENDED_AGENTS = [
   {
     id: 'gemini-gem',
-    name: 'Gemini GEM Unlimited',
+    name: 'Gemini GEM',
     cluster: 'Riadenie',
-    role: 'Vysokorýchlostný multimodálny kódovací a autonómny agent napojený na Gemini API s dynamickým fallbackom, bezlimitným tokom kontextu a autonómnym riadením nástrojov.',
+    role: 'Gemini API agent s nakonfigurovanou modelovou kaskádou a voliteľným Workers AI fallbackom; nástroje používa iba v rozsahu oprávnení overeného volajúceho a kvóty spravuje poskytovateľ.',
     tools: [
       'project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync',
       'knowledge_search','plan_work','search_memory','project_snapshot','calculate','analyze_text','current_time','json_tool','hash_text','convert_units','extract_entities','format_text',

@@ -1,6 +1,6 @@
 /**
  * @module Trinity/tests/antigravity-gemini-suite.test.mjs
- * @description Verifikačná testovacia sada pre Antigravity Tool Suite a Gemini GEM Unlimited Agenta
+ * @description Verifikačná testovacia sada pre Antigravity Tool Suite a Gemini API agenta Trinity
  * v súlade s Truth Policy 2.1 a Sovereign Ledger architektúrou.
  */
 
@@ -128,7 +128,7 @@ test('Antigravity Suite 5: search_marketplace catalog discovery', () => {
   assert.ok(result.matches.some(m => m.id === 'planning'));
 });
 
-test('Antigravity Suite 6: Gemini GEM Unlimited Agent fallback and resilience', async () => {
+test('Antigravity Suite 6: Gemini API agent fallback and provider-managed limits', async () => {
   assert.ok(GEMINI_MODEL_CASCADE.length >= 5);
 
   // Prázdna úloha zlyhá
@@ -148,7 +148,8 @@ test('Antigravity Suite 6: Gemini GEM Unlimited Agent fallback and resilience', 
   const output = await executeGeminiGemAgent(mockEnv, 'Vygeneruj architektúru.');
   assert.equal(output.success, true);
   assert.equal(output.agent, 'gemini-gem');
-  assert.equal(output.unlimitedProof.status, 'CONTINUOUS_NO_LIMIT');
+  assert.equal(output.limits.status, 'not_verified');
+  assert.equal(output.limits.policy, 'provider_managed');
   assert.equal(output.tier, 'sovereign-edge');
   assert.ok(output.result.includes('Sovereign response'));
 });
@@ -175,7 +176,9 @@ test('Antigravity Suite 7: runTool dispatch for Antigravity tools and Triad tele
   const triadRes = await runTool({}, agent, 'triad_status', {});
   assert.equal(triadRes.status, 'active');
   assert.equal(triadRes.triad.trinity.role, 'Sovereign Orchestrator');
-  assert.equal(triadRes.gemini_gem_unlimited.status, 'READY_NO_LIMIT');
+  assert.equal(triadRes.gemini_gem.status, 'configured_in_code');
+  assert.equal(triadRes.gemini_gem.user_gem_linked, false);
+  assert.equal(triadRes.gemini_gem.execution, 'inference_only');
 });
 
 test('Antigravity Suite 8: Agent registry and team routing for gemini-gem', () => {
