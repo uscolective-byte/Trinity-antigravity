@@ -533,3 +533,38 @@ staging verification receipt, review, and a fresh ACK.
   "truth_policy": "NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT"
 }
 ```
+
+### ENTRY-018 — CONSOLIDATION & MIGRATION DIRECTIVE (2026-11-06)
+
+```json
+{
+  "agent": "ANTIGRAVITY",
+  "role": "LEAD_ARCHITECT_AND_EXECUTIVE_ENGINEER",
+  "type": "OMNI_CONSOLIDATION_AND_MIGRATION",
+  "status": "COMPLETED_AND_VERIFIED",
+  "owner": "Basterix (Sabo Ivan)",
+  "task": "Consolidate all scattered worktrees, tools, and configs into canonical repository C:\\Users\\saboi\\Trinity\\Trinity-antigravity",
+  "changes": {
+    "worktree_pruning": "Removed 11 stale worktrees across 2026-11-03, 2026-11-05, and 2026-11-06; exactly 1 canonical worktree remains at C:/Users/saboi/Trinity/Trinity-antigravity [main]",
+    "database_migrations": "Incorporated 0056_ai_provider_job_owner.sql (owner-scoped provider configurations for ops_jobs)",
+    "developer_tools_mcp": "Added DEVELOPER_TOOLS_MCP.md documentation and updated MCP bridge server",
+    "azure_foundry_knowledge": {
+      "synchronizer": "Trinity/scripts/azure-sync-knowledge.mjs",
+      "export_payload": "Trinity/azure-knowledge-documents-export.json (11 core repo documents ready for index trinity-omni-knowledge)"
+    },
+    "launchers": {
+      "pc_bridge": ["Start-Trinity-PC-Bridge.ps1", "Start-Trinity-PC-Bridge.cmd"],
+      "master_all": ["Start-Trinity-All.ps1", "Start-Trinity-All.cmd"]
+    },
+    "vscode_mcp_user_config": "Updated C:\\Users\\saboi\\AppData\\Roaming\\Code\\User\\mcp.json with full 4-endpoint configuration (trinity, trinity-development, trinity-local, github)",
+    "test_verification": "1003 / 1003 PASS (Trinity: 918, Desktop: 24, Gateway: 61, 0 fail)",
+    "production_deployment": {
+      "version_id": "de9c09ec-409e-40c4-98f8-584f798c3e0b",
+      "domains": ["https://auru.space", "https://auru.dev", "https://trinity.saboivan2008.workers.dev"],
+      "upload_size": "4907.42 KiB",
+      "status": "LIVE"
+    }
+  },
+  "truth_policy": "NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT"
+}
+```

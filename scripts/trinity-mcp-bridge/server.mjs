@@ -11,7 +11,7 @@ import fs from "node:fs";
 const execAsync = promisify(exec);
 
 // Konfigurácia TRINITY Sandboxu
-export const DEFAULT_WORKSPACE = path.resolve("C:/Users/saboi/Trinity-antigravity");
+export const DEFAULT_WORKSPACE = path.resolve("C:/Users/saboi/Trinity/Trinity-antigravity");
 export const WORKSPACE_DIR = process.env.TRINITY_WORKSPACE ? path.resolve(process.env.TRINITY_WORKSPACE) : DEFAULT_WORKSPACE;
 export const BRIDGE_PORT = parseInt(process.env.TRINITY_PORT || "3333", 10);
 export const BRIDGE_TOKEN = process.env.TRINITY_TOKEN || (process.env.NODE_ENV === "test" || !process.env.NODE_ENV ? "trinity-local-secret" : "");
