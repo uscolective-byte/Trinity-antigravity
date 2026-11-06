@@ -2851,3 +2851,18 @@ Status: PENDING_COPILOT_ACK; this is a request recorded in the shared handoff, n
 Source: Copilot PR #41 review comment #4490274614, plus comment #4490274704 on the same draft PR head 4de21e8b9cf090f3f56e3ac0c0abc1fcaf346045.
 Request within Copilot's already-owned Trinity/src/mcp.js and Trinity/tests/runtime.test.mjs: ensure an MCP API key with mcp:write/projectControl cannot approve its own run/deploy/system action; require an authenticated owner approval channel and a required matching confirmation. Change propose_improvement so MCP only creates a pending proposal and cannot approve/apply it in the same call. Add/update focused tests and document exact evidence in Copilot's own ACK.
 Do not edit Codex-owned provider paths. Preserve read/write for ordinary approved project changes; no credential changes, merge, or deployment. Only VS Code GitHub Copilot may ACK its implementation.
+
+### CLAIM — TRINITY-LOCAL-DEPENDENCIES-AND-COMMIT-20261106-COPILOT-01
+Čas a časové pásmo: 2026-11-06, Europe/Bratislava.
+Autor a klient: GitHub Copilot, VS Code Copilot SDK host.
+Pokyn majiteľa: nainštalovať lokálne závislosti projektu Trinity a commitnúť jedinú existujúcu staged zmenu.
+Základný commit: `2632f5911b93522a03db8642194c5d8c92f7b5ef` na `main`.
+Vlastnené cesty: `Trinity/node_modules/` (lokálne, ignorované); append-only `TEAM-HANDOFF.md`; už staged `.github/act-history.json`, ktorého obsah bol skontrolovaný a ktorého commit majiteľ výslovne schválil.
+Plán: inštalovať deklarované závislosti iba v `Trinity/` cez npm s `--ignore-scripts --no-package-lock`; spustiť Trinity testy; commitnúť iba schválený act-history záznam a túto koordináciu. Bez runtime/config zmien, Cloudflare operácií, secrets, deployu, pushu alebo merge.
+Stav: active.
+
+### UPDATE — TRINITY-LOCAL-DEPENDENCIES-AND-COMMIT-20261106-COPILOT-01
+Lokálne závislosti nainštalované v `Trinity/` príkazom `npm.cmd install --ignore-scripts --no-package-lock` (exit 0; npm audit: 0 zraniteľností). `package.json` ani lockfile sa nemenili; inštalácia je v lokálnom `node_modules/`.
+Overenie: `npm.cmd test` (exit 0) spustilo Wrangler dry-run build a Trinity testy: 915/915 PASS, 0 fail; trvanie testov 142178.9 ms. `git diff --check` aj `git diff --cached --check` PASS.
+Stav pred commitom: jediná pôvodná staged zmena je schválený `.github/act-history.json`; druhá zmena je táto append-only koordinácia. Bez deployu, cloudových zmien, secretov alebo vzdialených PC akcií.
+Stav: ready_to_commit.
