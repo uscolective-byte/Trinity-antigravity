@@ -7,6 +7,9 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
+  "alias": {
+    "zod": "./node_modules/zod"
+  },
   "workers_dev": true,
   "keep_vars": true,
   "routes": [
