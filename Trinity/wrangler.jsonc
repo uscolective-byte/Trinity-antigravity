@@ -13,6 +13,10 @@
     {
       "pattern": "auru.space",
       "custom_domain": true
+    },
+    {
+      "pattern": "auru.dev",
+      "custom_domain": true
     }
   ],
   "triggers": {
@@ -364,6 +368,10 @@
         {
           "pattern": "auru.space",
           "custom_domain": true
+        },
+        {
+          "pattern": "auru.dev",
+          "custom_domain": true
         }
       ],
       "triggers": {
@@ -669,12 +677,7 @@
       "triggers": {
         "crons": []
       },
-      "routes": [
-        {
-          "pattern": "auru.dev",
-          "custom_domain": true
-        }
-      ],
+      "routes": [],
       "vars": {
         "ENVIRONMENT": "staging",
         "TRINITY_ENV": "staging",

@@ -5,19 +5,22 @@ import {verificationTarget,verifyDeployment} from '../scripts/verify-deployment.
 import {TRINITY_SOURCE,sourceMetadata} from '../src/version.js';
 const id='863ecc84-3985-4aea-9114-fdc18b723555';
 const commit='a'.repeat(40);
+const stagingOrigin='https://trinity-staging.account-subdomain.workers.dev';
 const config={origin:'https://auru.space',expectedVersionId:id,version:'11.0.0',attempts:1};
 const fake=(health={},ready={},environment='production')=>async url=>Response.json(url.endsWith('/health')?{version:'11.0.0',environment,source:TRINITY_SOURCE,deployment:{id,tag:null},...health}:{version:'11.0.0',environment,source:TRINITY_SOURCE,ready:true,...ready});
 
-test('both domains require the canonical repository and main branch',async()=>{
+test('both production domains and the staging Worker require canonical source metadata',async()=>{
  assert.deepEqual(sourceMetadata({}),TRINITY_SOURCE);
  assert.deepEqual(sourceMetadata({TRINITY_GITHUB_REPO:'another/repo',TRINITY_GITHUB_BRANCH:'other'}),{repository:'another/repo',branch:'other'});
  for(const source of [undefined,{...TRINITY_SOURCE,repository:'another/repo'},{...TRINITY_SOURCE,branch:'other'}]){
   await assert.rejects(verifyDeployment({...config,fetcher:fake({source})}),/verification failed/);
   await assert.rejects(verifyDeployment({...config,fetcher:fake({},{source})}),/verification failed/);
  }
- const result=await verifyDeployment({...config,origin:'https://auru.dev',fetcher:fake({}, {}, 'staging')});
- assert.equal(result.environment,'staging');assert.deepEqual(result.source,TRINITY_SOURCE);
- await assert.rejects(verifyDeployment({...config,origin:'https://auru.dev',fetcher:fake()}),/verification failed/);
+ const result=await verifyDeployment({...config,origin:'https://auru.dev',fetcher:fake()});
+ assert.equal(result.environment,'production');assert.deepEqual(result.source,TRINITY_SOURCE);
+ const staging=await verifyDeployment({...config,origin:stagingOrigin,fetcher:fake({}, {}, 'staging')});
+ assert.equal(staging.environment,'staging');
+ await assert.rejects(verifyDeployment({...config,origin:'https://auru.dev',fetcher:fake({}, {}, 'staging')}),/verification failed/);
  await assert.rejects(verifyDeployment({...config,origin:'https://auru.space',fetcher:fake({environment:'staging'},{environment:'staging'},'staging')}),/verification failed/);
 });
 test('deployment verifier accepts a real version receipt when Workers Builds has no commit tag',async()=>{
@@ -29,20 +32,22 @@ test('deployment verification requires readiness, correct environment, package v
  for(const [health,ready] of [[{version:'old'},{}],[{environment:'development'},{}],[{deployment:{id:crypto.randomUUID()}},{}],[{},{ready:false}],[{},{environment:'development'}],[{},{version:'old'}]])await assert.rejects(verifyDeployment({...config,fetcher:fake(health,ready)}),/verification failed/);
 });
 test('deployment CLI preserves commit-tag verification and rejects ambiguous or arbitrary targets',async()=>{
+ assert.deepEqual(verificationTarget([stagingOrigin,commit]),{origin:stagingOrigin,expectedTag:commit});
  assert.deepEqual(verificationTarget(['https://auru.dev',commit]),{origin:'https://auru.dev',expectedTag:commit});
  assert.equal((await verifyDeployment({...config,expectedVersionId:undefined,expectedTag:commit,fetcher:fake({deployment:{id,tag:commit}})})).verified,true);
- for(const args of [['https://evil.example',commit],['https://auru.space','--version-id','bad'],['https://auru.space',commit,'extra'],['https://auru.space','short']])assert.throws(()=>verificationTarget(args));
+ for(const args of [['https://evil.example',commit],['https://attacker.workers.dev',commit],['https://auru.space','--version-id','bad'],['https://auru.space',commit,'extra'],['https://auru.space','short']])assert.throws(()=>verificationTarget(args));
 });
-test('deployment verification rejects origins outside the production and staging domains',async()=>{
+test('deployment verification rejects origins outside production domains and the staging Worker',async()=>{
  await assert.rejects(verifyDeployment({...config,origin:'https://example.com',fetcher:fake()}),/Unsupported deployment origin/);
 });
 test('production rollout verifies staging before production migrations and only verifies production afterward',()=>{
  const script=readFileSync(new URL('../../scripts/trinity-environment.sh',import.meta.url),'utf8');
- const stagingVerify=script.indexOf('verify-deployment.mjs https://auru.dev "$TASK_RELEASE_SHA"');
+ const stagingVerify=script.indexOf('verify-deployment.mjs "$TRINITY_STAGING_ORIGIN" "$TASK_RELEASE_SHA"');
  const migration=script.indexOf('wrangler d1 migrations apply trinity-v03');
  const productionDeploy=script.indexOf('npm run deploy -- --tag "$TASK_RELEASE_SHA"');
  const productionVerify=script.indexOf('verify-deployment.mjs https://auru.space "$TASK_RELEASE_SHA"');
  assert.ok(stagingVerify>=0&&stagingVerify<migration,'staging must be verified before production migrations');
  assert.ok(productionDeploy>=0&&productionDeploy<productionVerify,'production must be verified after its deploy');
- assert.equal(script.slice(productionDeploy).includes('verify-deployment.mjs https://auru.dev'),false);
+ assert.equal(script.slice(productionDeploy).includes('verify-deployment.mjs "$TRINITY_STAGING_ORIGIN"'),false);
+ assert.match(script,/TRINITY_STAGING_ORIGIN:\?Set TRINITY_STAGING_ORIGIN/);
 });

@@ -22,6 +22,6 @@ Trinity je v plnom aktívnom vývoji. Pravidlá pre agentov (Antigravity, GitHub
 - **Truth Policy 2.1:** Dôkaz pred tvrdením (`NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT`). Kód musí reálne bežať a testy musia skončiť kódom 0.
 - **Zabezpečenie tajomstiev:** Nikdy necommituj kľúče, `.env`, `.dev.vars`, DPAPI súbory ani tokeny do Gitu.
 - **Platformy:**
-  - Cloudflare Edge (`Trinity/`): Produkcia `auru.space` a `auru.dev`.
+  - Cloudflare Edge (`Trinity/`): Produkčné hosty `auru.space` a `auru.dev`; build-only staging je samostatný Worker bez custom domény.
   - Local Desktop (`Local-Desktop/`): Port 7788/7789, lokálny workspace a PC brána.
   - Local Gateway (`Local-Gateway/`): Autentifikovaná Windows brána so skutočným SID.

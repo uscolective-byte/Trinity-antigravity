@@ -5,11 +5,15 @@ import {TRINITY_SOURCE} from '../src/version.js';
 import {VERIFIED_ARCHITECTURE_CONTEXT} from '../src/architecture.js';
 import {UNIFIED_TRINITY_DIRECTIVE} from '../src/cognition.js';
 
-test('production and staging domains stay on their isolated Workers',()=>{
+test('production domains stay on production and build-only staging has no custom routes',()=>{
  const config=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
  assert.equal(config.name,'trinity');
- assert.deepEqual(config.routes,[{pattern:'auru.space',custom_domain:true}]);
- assert.deepEqual(config.env.production.routes,[{pattern:'auru.space',custom_domain:true}]);
+ const productionRoutes=[
+  {pattern:'auru.space',custom_domain:true},
+  {pattern:'auru.dev',custom_domain:true}
+ ];
+ assert.deepEqual(config.routes,productionRoutes);
+ assert.deepEqual(config.env.production.routes,productionRoutes);
  assert.equal(config.vars.TRINITY_ENV,'production');
  assert.equal(config.vars.TRINITY_GITHUB_REPO,TRINITY_SOURCE.repository);
  assert.equal(config.vars.TRINITY_GITHUB_BRANCH,TRINITY_SOURCE.branch);
@@ -23,7 +27,7 @@ test('production and staging domains stay on their isolated Workers',()=>{
  assert.ok(production.r2_buckets.some(binding=>binding.binding==='R2_STORAGE'&&binding.bucket_name==='trinity-artifacts'));
  assert.ok(production.vectorize.some(binding=>binding.binding==='VECTOR_INDEX'&&binding.index_name==='trinity-vector-index'));
  assert.equal(staging.name,'trinity-staging');
- assert.deepEqual(staging.routes,[{pattern:'auru.dev',custom_domain:true}]);
+ assert.deepEqual(staging.routes,[],'staging must not take over a production custom domain');
  assert.equal(staging.vars.TRINITY_ENV,'staging');
  assert.equal(staging.vars.TRINITY_PREVIEW_MODE,'build-only');
  assert.equal(staging.vars.TRINITY_ASSISTANT_BRIDGE_ENABLED,'false');
@@ -36,12 +40,12 @@ test('production and staging domains stay on their isolated Workers',()=>{
   binding:'DB',database_name:'trinity-development',database_id:'1cce5249-e044-4c93-868c-0df534a778b5',migrations_dir:'migrations'
  });
  test('architecture context distinguishes configured environments from live deployment state',()=>{
-  assert.match(VERIFIED_ARCHITECTURE_CONTEXT,/Worker „trinity“ je v konfigurácii priradený k auru\.space/);
-  assert.match(VERIFIED_ARCHITECTURE_CONTEXT,/Worker „trinity-staging“ je priradený k auru\.dev v režime build-only/);
+  assert.match(VERIFIED_ARCHITECTURE_CONTEXT,/Produkčný Worker.*auru\.space aj auru\.dev/);
+  assert.match(VERIFIED_ARCHITECTURE_CONTEXT,/trinity-staging.*build-only.*bez custom domény/);
   assert.match(VERIFIED_ARCHITECTURE_CONTEXT,/Konfigurácia sama osebe nepotvrdzuje nasadenie ani živé routovanie/);
   assert.doesNotMatch(VERIFIED_ARCHITECTURE_CONTEXT,/Obe domény auru\.space a auru\.dev zdieľajú rovnaký Worker/);
-  assert.match(UNIFIED_TRINITY_DIRECTIVE,/auru\.dev je nakonfigurovaná ako build-only staging/);
-  assert.doesNotMatch(UNIFIED_TRINITY_DIRECTIVE,/auru\.dev je súkromný riadiaci mostík/);
+  assert.match(UNIFIED_TRINITY_DIRECTIVE,/auru\.dev.*produkčn/);
+  assert.match(UNIFIED_TRINITY_DIRECTIVE,/trinity-staging.*build-only na Cloudflare workers\.dev/);
  });
  assert.equal(staging.d1_databases.some(binding=>binding.binding==='DB'&&binding.database_name==='trinity-v03'),false);
  assert.ok(staging.kv_namespaces.some(binding=>binding.binding==='Mastermind'));

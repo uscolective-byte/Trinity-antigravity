@@ -8,7 +8,8 @@ Verzia zdroja: **11.1.0**. Repozitár: [uscolective-byte/Trinity-antigravity](ht
 | Doména | Prostredie | Worker |
 |---|---|---|
 | auru.space | production | `trinity` |
-| auru.dev | staging | `trinity-staging` |
+| auru.dev | production | `trinity` |
+| Cloudflare workers.dev URL | build-only staging | `trinity-staging` |
 
 Tieto údaje sa generujú zo zdrojov a konfigurácie. Aktuálne nasadenie over cez `/health`, `/ready` a commit tag; nejde o živý stav integrácií.
 <!-- trinity-release:end -->
@@ -20,7 +21,7 @@ Tieto údaje sa generujú zo zdrojov a konfigurácie. Aktuálne nasadenie over c
 
 <p align="center">
   <a href="https://auru.space"><img src="https://img.shields.io/badge/Production-auru.space-brightgreen?style=for-the-badge&logo=cloudflare" alt="Production"></a>
-  <a href="https://auru.dev"><img src="https://img.shields.io/badge/Staging%20(build--only)-auru.dev-yellow?style=for-the-badge&logo=cloudflare" alt="Staging build-only"></a>
+  <a href="https://auru.dev"><img src="https://img.shields.io/badge/Production-auru.dev-brightgreen?style=for-the-badge&logo=cloudflare" alt="Production"></a>
   <a href="#-ring-0-security--sovereign-lock"><img src="https://img.shields.io/badge/Security-Ring%200%20Verified-red?style=for-the-badge&logo=gnupg" alt="Security"></a>
   <a href="SOVEREIGN_CHARTER.md"><img src="https://img.shields.io/badge/License-Sovereign%20Covenant-blue?style=for-the-badge" alt="License"></a>
 </p>
@@ -39,12 +40,13 @@ The system is housed within a single canonical monorepository (`uscolective-byte
 
 ## 🌐 Ecosystem Topography & Routing
 
-Trinity's multi-tier deployment topology ensures absolute separation between production workloads and live staging diagnostics:
+Trinity's multi-tier deployment topology keeps both public domains on production and isolates build-only staging on its Cloudflare workers.dev endpoint:
 
 | Domain | ironment | Primary Worker | Operational Role |
 | :--- | :--- | :--- | :--- |
 | **`auru.space`** | `production` | `trinity` | Sovereign production gateway for the Root Architect; high-availability client interface. |
-| **`auru.dev`** | `staging` | `trinity-staging` | Isolated staging playground, Omni-Dev workspace, and mobile-optimized command center (`/mobile`). |
+| **`auru.dev`** | `production` | `trinity` | Production host retained for existing MCP and application clients. |
+| Cloudflare workers.dev URL | `build-only` | `trinity-staging` | Isolated packaging preview; integrations and data access are disabled. |
 
 > *Note: Runtime metadata and routing topologies are generated dynamically from code configurations. Verify live health state via `/health`, `/ready`, and active deployment commit tags.*
 

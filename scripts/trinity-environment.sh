@@ -14,6 +14,7 @@ case "${1:-check}" in
     npx --no-install wrangler login --device --browser=false
     ;;
   deploy)
+    : "${TRINITY_STAGING_ORIGIN:?Set TRINITY_STAGING_ORIGIN to the trinity-staging.<account>.workers.dev origin}"
     node scripts/source-policy.mjs
     git fetch origin main
     test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
@@ -21,7 +22,7 @@ case "${1:-check}" in
     # Unlike whoami, this command fails when deployment credentials are unavailable.
     (cd Trinity && npx --no-install wrangler deployments list --name trinity > /dev/null)
     TASK_RELEASE_SHA="$(git rev-parse HEAD)"
-    (cd Trinity && node scripts/verify-deployment.mjs https://auru.dev "$TASK_RELEASE_SHA")
+    (cd Trinity && node scripts/verify-deployment.mjs "$TRINITY_STAGING_ORIGIN" "$TASK_RELEASE_SHA")
     umask 077
     mkdir -p .deployment-backups
     TASK_BACKUP="$TASK_ROOT/.deployment-backups/trinity-$(date -u +%Y%m%dT%H%M%SZ).sql"

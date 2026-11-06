@@ -10,8 +10,8 @@ export const VERIFIED_ARCHITECTURE_CONTEXT = `
 ZDROJ PRAVDY ARCHITEKTÚRY TRINITY — používaj iba tieto údaje:
 
 OVERENÉ V ZDROJI A TESTOCH:
-- Produkčný Worker „trinity“ je v konfigurácii priradený k auru.space; samostatný Worker „trinity-staging“ je priradený k auru.dev v režime build-only.
-- Produkčné a staging routy a ich D1/KV/R2/Vectorize bindingy sú v zdrojovej konfigurácii oddelené. Konfigurácia sama osebe nepotvrdzuje nasadenie ani živé routovanie. Staging je build-only a nemá service ani Secrets Store bindingy; živý stav over cez /health.
+- Produkčný Worker „trinity“ obsluhuje auru.space aj auru.dev. Samostatný Worker „trinity-staging“ je build-only, bez custom domény a bez route na produkčných hostoch.
+- Produkčné a staging routy a ich D1/KV/R2/Vectorize bindingy sú v zdrojovej konfigurácii oddelené. Konfigurácia sama osebe nepotvrdzuje nasadenie ani živé routovanie. Staging je build-only, bez custom route, service ani Secrets Store bindingov; živý stav over cez /health.
 - Lokálny vývoj beží iba na localhost a v rozhraní sa prostredie zobrazuje ako PRODUKCIA alebo LOCAL.
 - Primárny AI provider je Cloudflare Workers AI s modelom @cf/meta/llama-3.3-70b-instruct-fp8-fast (rýchly chat model @cf/meta/llama-3.1-8b-instruct-fp8-fast).
 - Stavové a aplikačné dáta používa Cloudflare D1 databáza trinity-v03.

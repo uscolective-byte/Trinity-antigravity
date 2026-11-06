@@ -16,7 +16,7 @@ try {
 
 export function verificationTarget(args){
  const [origin,selector,value,...extra]=args;
- if(!/^https:\/\/(?:auru\.dev|auru\.space)$/.test(origin||'')||extra.length)throw new Error('Usage: verify-deployment.mjs ORIGIN COMMIT_SHA | ORIGIN --version-id VERSION_ID');
+ if(!isSupportedOrigin(origin)||extra.length)throw new Error('Usage: verify-deployment.mjs ORIGIN COMMIT_SHA | ORIGIN --version-id VERSION_ID');
  if(selector==='--version-id'){
   if(!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(value||''))throw new Error('A Cloudflare version UUID is required.');
   return {origin,expectedVersionId:value};
@@ -24,8 +24,13 @@ export function verificationTarget(args){
  if(value||!/^[0-9a-f]{7,40}$/i.test(selector||''))throw new Error('A commit SHA is required.');
  return {origin,expectedTag:selector};
 }
+function isSupportedOrigin(origin){
+ return /^https:\/\/(?:auru\.dev|auru\.space)$/.test(origin||'')||
+  /^https:\/\/trinity-staging\.[a-z0-9-]+\.workers\.dev$/i.test(origin||'');
+}
 export async function verifyDeployment({origin,expectedTag,expectedVersionId,version,attempts=6,delayMs=10000,fetcher=fetch}){
- const expectedEnvironment=origin==='https://auru.dev'?'staging':origin==='https://auru.space'?'production':null;
+ const expectedEnvironment=/^https:\/\/trinity-staging\.[a-z0-9-]+\.workers\.dev$/i.test(origin||'')
+  ?'staging':/^https:\/\/(?:auru\.dev|auru\.space)$/.test(origin||'')?'production':null;
  if(!expectedEnvironment)throw new Error('Unsupported deployment origin.');
  let last='No response';
  const headers={

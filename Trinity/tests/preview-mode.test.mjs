@@ -53,10 +53,14 @@ test('production and staging aliases stay isolated and previews fail closed', ()
   assert.equal(config.vars.TRINITY_ENV, 'production');
   assert.equal(config.ai.binding, 'AI');
   assert.ok(config.d1_databases.some(database => database.binding === 'DB'));
-  assert.deepEqual(config.routes, [{pattern:'auru.space',custom_domain:true}]);
-  assert.deepEqual(config.env.production.routes, [{pattern:'auru.space',custom_domain:true}]);
+  const productionRoutes=[
+    {pattern:'auru.space',custom_domain:true},
+    {pattern:'auru.dev',custom_domain:true}
+  ];
+  assert.deepEqual(config.routes, productionRoutes);
+  assert.deepEqual(config.env.production.routes, productionRoutes);
   assert.equal(config.env.staging.name,'trinity-staging');
-  assert.deepEqual(config.env.staging.routes,[{pattern:'auru.dev',custom_domain:true}]);
+  assert.deepEqual(config.env.staging.routes,[]);
   assert.equal(config.env.staging.vars.TRINITY_ENV,'staging');
   assert.equal(config.env.staging.vars.TRINITY_PREVIEW_MODE,'build-only');
   assert.equal(config.env.staging.vars.TRINITY_ASSISTANT_BRIDGE_ENABLED,'false');
