@@ -195,6 +195,7 @@ function resolveAppTarget(task, context = '') {
 }
 async function runAgentUnchecked(env, id, task, context='', provider='workers-ai', maxTokens=8192,language='auto',ownerMode=false) {
   const agent=agentById(id);if(!agent)throw new Error('Unknown agent');
+  if(id==='gemini-gem'&&provider==='workers-ai'){provider='gemini';}
   const executionPolicy=executionPolicyForProvider(provider,ownerMode);
   const guidance=connectionGuidance(env,task);
   if(guidance)return {text:guidance.text,model:'trinity-connection-guidance',provider:'internal',agent_id:id,tool_log:[],truth:truthStatus(guidance.text,[]),duration_ms:0,integration:{service:guidance.service,status:'requires-verification',mutation_performed:false}};

@@ -29,3 +29,22 @@ test('staging audit still rejects shared mutable resources',()=>{
   assert.equal(report.shared_mutable_resources.filter(x=>x.type==='Vectorize').length,2);
   assert.ok(report.shared_mutable_resources.every(x=>x.isolation_verified===false));
 });
+test('staging audit compares resources against explicit production profile bindings',()=>{
+ const cfg={
+  name:'trinity',
+  vectorize:[{binding:'VECTORIZE',index_name:'default-index'}],
+  env:{
+   production:{vectorize:[{binding:'VECTOR_INDEX',index_name:'shared-index'}]},
+   staging:{name:'trinity-staging',vectorize:[{binding:'VECTORIZE',index_name:'shared-index'}]}
+  }
+ };
+ const collisions=sharedMutableBindings(cfg);
+ assert.equal(collisions.length,1);
+ assert.deepEqual(collisions[0],{
+  type:'Vectorize',
+  production_binding:'VECTOR_INDEX',
+  staging_binding:'VECTORIZE',
+  shared_resource:true,
+  isolation_verified:false
+ });
+});

@@ -20,7 +20,7 @@ Tieto údaje sa generujú zo zdrojov a konfigurácie. Aktuálne nasadenie over c
 
 <p align="center">
   <a href="https://auru.space"><img src="https://img.shields.io/badge/Production-auru.space-brightgreen?style=for-the-badge&logo=cloudflare" alt="Production"></a>
-  <a href="https://auru.dev"><img src="https://img.shields.io/badge/Production-auru.dev-brightgreen?style=for-the-badge&logo=cloudflare" alt="Production"></a>
+  <a href="https://auru.dev"><img src="https://img.shields.io/badge/Staging%20(build--only)-auru.dev-yellow?style=for-the-badge&logo=cloudflare" alt="Staging build-only"></a>
   <a href="#-ring-0-security--sovereign-lock"><img src="https://img.shields.io/badge/Security-Ring%200%20Verified-red?style=for-the-badge&logo=gnupg" alt="Security"></a>
   <a href="SOVEREIGN_CHARTER.md"><img src="https://img.shields.io/badge/License-Sovereign%20Covenant-blue?style=for-the-badge" alt="License"></a>
 </p>
@@ -41,7 +41,7 @@ The system is housed within a single canonical monorepository (`uscolective-byte
 
 Trinity's multi-tier deployment topology ensures absolute separation between production workloads and live staging diagnostics:
 
-| Domain | Environment | Primary Worker | Operational Role |
+| Domain | ironment | Primary Worker | Operational Role |
 | :--- | :--- | :--- | :--- |
 | **`auru.space`** | `production` | `trinity` | Sovereign production gateway for the Root Architect; high-availability client interface. |
 | **`auru.dev`** | `staging` | `trinity-staging` | Isolated staging playground, Omni-Dev workspace, and mobile-optimized command center (`/mobile`). |
@@ -75,7 +75,7 @@ Absolute administrative control over system code modifications, runtime configur
 ## 🛡️ Core Security & Determinism Frameworks
 
 ### **1. Five Iron Rules of Code Protection (`sovereign-lock.js`)**
-* **Zero Autonomous Rewrite:** Prohibits self-modification without an explicit `ConsentEnvelope` (HMAC-SHA256 bound to git diff + atomic nonce tracking in D1/KV/Disk Vault).
+* **Zero Autonomous Rewrite:** Prohibits self-modification without an explicit `Consentelope` (HMAC-SHA256 bound to git diff + atomic nonce tracking in D1/KV/Disk Vault).
 * **Prompt Injection Immunity:** External inputs (web scrapes, social feeds, untrusted payloads) are treated strictly as `PASSIVE_DATA` (`executable: false`).
 * **Owner Assertion Enforcement:** Privileged operations require continuous validation of the Root session context.
 * **Hardware Write-Protection:** Critical kernel source files default to `READ_ONLY` posture.
@@ -103,9 +103,9 @@ Absolute administrative control over system code modifications, runtime configur
  ┣ 📜 SOVEREIGN_CHARTER.md   # Constitutional compliance framework & 20 legal clauses
  ┗ 📜 README.md              # System manifest
 🚀 Getting Started & Local Operations
-Ensure your environment utilizes Node.js v22+ and npm. (Windows users: use npm.cmd if PowerShell restricts .ps1 execution policies).
+Ensure your ironment utilizes Node.js v22+ and npm. (Windows users: use npm.cmd if PowerShell restricts .ps1 execution policies).
 
-1. Environment Initialization
+1. ironment Initialization
 PowerShell
 powershell -ExecutionPolicy Bypass -File scripts/install-all.ps1
 2. Integrity & Documentation Check

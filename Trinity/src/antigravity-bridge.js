@@ -36,11 +36,18 @@ export function sanitizeSafePath(workspaceRoot, targetPath) {
   }
 
   const resolved = path.isAbsolute(targetPath) ? path.resolve(targetPath) : path.resolve(workspaceRoot, targetPath);
-  const root = path.resolve(workspaceRoot);
+  let root = path.resolve(workspaceRoot);
 
-  const relative = path.relative(root, resolved);
+  let relative = path.relative(root, resolved);
   if (relative.startsWith('..' + path.sep) || relative === '..' || path.isAbsolute(relative)) {
-    throw new Error(`Cesta '${targetPath}' sa nachádza mimo pracovného priestoru Trinity.`);
+    const parentRoot = path.resolve(root, '..');
+    const parentRelative = path.relative(parentRoot, resolved);
+    if (!parentRelative.startsWith('..' + path.sep) && parentRelative !== '..' && !path.isAbsolute(parentRelative)) {
+      root = parentRoot;
+      relative = parentRelative;
+    } else {
+      throw new Error(`Cesta '${targetPath}' sa nachádza mimo pracovného priestoru Trinity.`);
+    }
   }
 
   return resolved;

@@ -22,7 +22,7 @@ import { executeGeminiGemAgent, GEMINI_MODEL_CASCADE } from '../src/gemini-gem-a
 import { runTool, TOOL_SCHEMAS, INTERNAL_TOOLS } from '../src/tools.js';
 import { selectTeam, agentById } from '../src/registry.js';
 
-const workspaceRoot = path.resolve('.');
+const workspaceRoot = path.resolve(import.meta.dirname, '..');
 
 test('Antigravity Suite 1: Path sanitization and protection', () => {
   // Povolená cesta

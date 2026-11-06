@@ -47,6 +47,6 @@ jobs:
           node --check scripts/morpheus-sync-policy.mjs
           node --test tests/morpheus-sync-policy.test.mjs
       - name: Preserve Morpheus Git refs and propose a guarded sync PR
-        env:
+        
           GH_TOKEN: ${{ github.token }}
         run: node scripts/morpheus-sync-runner.mjs

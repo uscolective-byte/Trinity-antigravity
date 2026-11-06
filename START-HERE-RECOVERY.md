@@ -25,6 +25,6 @@ Závislosti inštaluj podľa README jednotlivých balíkov a ich lockfiles. `nod
 
 ## Pred vymazaním počítača
 
-GitHub neobsahuje osobné súbory, ignorované databázy, .env, credentials, lokálne nastavenia aplikácií ani všetky projektové výstupy mimo repozitára. Tie potrebujú samostatnú šifrovanú zálohu mimo počítača. DPAPI kópia nemusí po reinštalácii fungovať bez pôvodnej Windows identity; poverenia musia mať bezpečný obnoviteľný zdroj.
+GitHub neobsahuje osobné súbory, ignorované databázy, .entials, lokálne nastavenia aplikácií ani všetky projektové výstupy mimo repozitára. Tie potrebujú samostatnú šifrovanú zálohu mimo počítača. DPAPI kópia nemusí po reinštalácii fungovať bez pôvodnej Windows identity; poverenia musia mať bezpečný obnoviteľný zdroj.
 
 Schválené upratanie vetiev nie je vymazaním disku. Úplná záloha osobných a ignorovaných dát sa v tejto úlohe neoverila.

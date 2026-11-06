@@ -1,5 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {verificationTarget,verifyDeployment} from '../scripts/verify-deployment.mjs';
 import {TRINITY_SOURCE,sourceMetadata} from '../src/version.js';
 const id='863ecc84-3985-4aea-9114-fdc18b723555';
@@ -34,4 +35,14 @@ test('deployment CLI preserves commit-tag verification and rejects ambiguous or 
 });
 test('deployment verification rejects origins outside the production and staging domains',async()=>{
  await assert.rejects(verifyDeployment({...config,origin:'https://example.com',fetcher:fake()}),/Unsupported deployment origin/);
+});
+test('production rollout verifies staging before production migrations and only verifies production afterward',()=>{
+ const script=readFileSync(new URL('../../scripts/trinity-environment.sh',import.meta.url),'utf8');
+ const stagingVerify=script.indexOf('verify-deployment.mjs https://auru.dev "$TASK_RELEASE_SHA"');
+ const migration=script.indexOf('wrangler d1 migrations apply trinity-v03');
+ const productionDeploy=script.indexOf('npm run deploy -- --tag "$TASK_RELEASE_SHA"');
+ const productionVerify=script.indexOf('verify-deployment.mjs https://auru.space "$TASK_RELEASE_SHA"');
+ assert.ok(stagingVerify>=0&&stagingVerify<migration,'staging must be verified before production migrations');
+ assert.ok(productionDeploy>=0&&productionDeploy<productionVerify,'production must be verified after its deploy');
+ assert.equal(script.slice(productionDeploy).includes('verify-deployment.mjs https://auru.dev'),false);
 });

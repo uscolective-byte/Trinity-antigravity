@@ -12,7 +12,7 @@ Tento súbor je prvý kontrolný bod pre nový chat alebo model. Pred pokračova
 - Kanonickou vetvou je `main`, pracovný strom je `c:\Users\saboi\OneDrive\trinity`.
 - Používaj slovenčinu pri komunikácii s vlastníkom (Sabo Ivan / Basterix).
 - Produkčné tvrdenie musí mať test, Cloudflare Version ID alebo živý výsledok.
-- Tajomstvá (`.env`, `.credentials`, `.dev.vars`, DPAPI) sa nikdy nečítajú, nevypisujú ani necommitujú.
+- Tajomstvá (`.`, `.credentials`, `.dev.vars`, DPAPI) sa nikdy nečítajú, nevypisujú ani necommitujú.
 - Jedna Trinity používa modely, 45 špecializácií a 7 modulov ako nástroje; nevytvárajú sa oddelené identity.
 - Pred nasadením produkcie vždy najprv overiť vývojové prostredie (`npm run build:development`, deploy development).
 

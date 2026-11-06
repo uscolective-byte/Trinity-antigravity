@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {TRINITY_SOURCE} from '../src/version.js';
+import {VERIFIED_ARCHITECTURE_CONTEXT} from '../src/architecture.js';
 
 test('production and staging domains stay on their isolated Workers',()=>{
  const config=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
@@ -32,6 +33,12 @@ test('production and staging domains stay on their isolated Workers',()=>{
  assert.equal(staging.vars.TRINITY_GITHUB_BRANCH,TRINITY_SOURCE.branch);
  assert.deepEqual(staging.d1_databases.find(binding=>binding.binding==='DB'),{
   binding:'DB',database_name:'trinity-development',database_id:'1cce5249-e044-4c93-868c-0df534a778b5',migrations_dir:'migrations'
+ });
+ test('architecture context distinguishes configured environments from live deployment state',()=>{
+  assert.match(VERIFIED_ARCHITECTURE_CONTEXT,/Worker „trinity“ je v konfigurácii priradený k auru\.space/);
+  assert.match(VERIFIED_ARCHITECTURE_CONTEXT,/Worker „trinity-staging“ je priradený k auru\.dev v režime build-only/);
+  assert.match(VERIFIED_ARCHITECTURE_CONTEXT,/Konfigurácia sama osebe nepotvrdzuje nasadenie ani živé routovanie/);
+  assert.doesNotMatch(VERIFIED_ARCHITECTURE_CONTEXT,/Obe domény auru\.space a auru\.dev zdieľajú rovnaký Worker/);
  });
  assert.equal(staging.d1_databases.some(binding=>binding.binding==='DB'&&binding.database_name==='trinity-v03'),false);
  assert.ok(staging.kv_namespaces.some(binding=>binding.binding==='Mastermind'));

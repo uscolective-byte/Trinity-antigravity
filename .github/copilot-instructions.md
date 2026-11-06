@@ -16,8 +16,8 @@ Review `Trinity/docs/AGENT_ACCESS_AND_AUTONOMY.md` for authenticated
 GitHub Copilot, Copilot Studio, ChatGPT, Codex, Gemini, Antigravity and Ollama access.
 Develop automatically on isolated branches, run tests and create PRs;
 do not bypass checks or claim that model provider credentials confer GitHub
-permissions. Staging is `trinity-staging` (`--env staging`), production
-is `trinity` (`--env=""`).
+permissions. Staging is `trinity-staging` (`--aging`), production
+is `trinity` (`--`).
 
 ## GitHub Copilot participant and handoff
 

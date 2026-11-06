@@ -40,7 +40,7 @@ tests/e2e/
 - **Tier 2.3 — Dangerous Scheme Rejection**: Strictly rejects `file:///`, `javascript:`, and `ftp://` schemes with clear error messaging.
 - **Tier 2.4 — Files with Spaces**: Safely resolves and opens files with spaces in both directory names and filenames without command injection or syntax errors.
 - **Tier 2.5 — Path Traversal Rejection**: Blocks `../../` attempts, keeping access strictly bounded within the Morhfeus workspace root.
-- **Tier 2.6 — Protected File Rejection**: Enforces access boundaries preventing disclosure of `.env` files and `.credentials` tokens.
+- **Tier 2.6 — Protected File Rejection**: Enforces access boundaries preventing disclosure of `.iles and `.credentials` tokens.
 - **Tier 2.7 — Unlisted App Rejection**: Rejects unauthorized binaries (`unauthorized_cmd_tool`, `powershell`) with allowlist violation errors.
 - **Tier 2.8 — Slovak & Colloquial App Aliases**: Normalizes colloquial aliases (`calc` -> `calculator`, `poznamkovyblok` -> `notepad`) and launches the correct target.
 

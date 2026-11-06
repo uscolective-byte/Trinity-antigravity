@@ -6,5 +6,5 @@
   "portsAttributes": {
     "8787": { "label": "Trinity local development", "onAutoForward": "notify", "visibility": "private" }
   },
-  "postCreateCommand": "bash scripts/trinity-environment.sh setup"
+  "postCreateCommand": "bash scripts/trinity-ironment.sh setup"
 }

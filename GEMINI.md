@@ -9,13 +9,13 @@ Use Slovak when communicating with the owner. The canonical branch is `main`.
 The current Worker source is `Trinity/`; historical copies and prototypes are not deployment targets.
 
 - Production: Worker `trinity`, domain `https://auru.space`.
-- Staging: Worker `trinity-staging`, domain `https://auru.dev` (`--env staging`).
+- Staging: Worker `trinity-staging`, domain `https://auru.dev` (`-- staging`).
 - Staging resource bindings are defined in `Trinity/wrangler.jsonc`; some auxiliary bindings can be shared. Never substitute production secrets or databases to make staging pass.
 - Start with the `trinity_status` MCP tool and inspect the real source and deployment version before editing.
 - Prefer the connected `trinity` MCP server for remote status, tasks and bounded project actions. A queued task is not a completed action; poll `get_task` and check its receipt.
 - Read existing changes before editing. Preserve dirty worktrees, local backups and stashes. Do not merge old prototypes wholesale into the product.
-- Keep authentication, approvals, origin checks and secret protection enabled. Never print or commit credentials or `.credentials`, `.env`, `.dev.vars`, or local configuration containing tokens.
-- Run `npm test` in `Trinity/`. Build staging with `npm run build:staging`. Deploy the staging environment first and verify the exact commit before production.
+- Keep authentication, approvals, origin checks and secret protection enabled. Never print or commit credentials or `.credentials`, `.`, `.dev.vars`, or local configuration containing tokens.
+- Run `npm test` in `Trinity/`. Build staging with `npm run build:staging`. Deploy the staging ironment first and verify the exact commit before production.
 - Tag deployments with the exact Git commit using Wrangler `--tag`. `/health` reports that tag and the Cloudflare version ID.
 - Browser availability, readiness, external provider inference, and PC connectivity are separate claims and need separate evidence.
 

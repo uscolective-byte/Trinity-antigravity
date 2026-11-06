@@ -64,21 +64,21 @@ Pri každej ďalšej spolupráci:
 
 Poradie práce od majiteľa: pôvodný garážový vzhľad a prehľadné UI, funkčný chat, potom nástroje Trinity.
 
-## 7. Spoločné lokálne kľúče (`C:\Users\saboi\.env`) — platí od 2026-10-27
+## 7. Spoločné lokálne kľúče (`C:\Users\saboi\.`) — platí od 2026-10-27
 
-Majiteľ rozhodol: Antigravity, Codex aj vývoj Trinity používajú jeden lokálny súbor `C:\Users\saboi\.env` (mimo repa, `.env` je v `.gitignore`, ACL len pre užívateľa `saboi`).
+Majiteľ rozhodol: Antigravity, Codex aj vývoj Trinity používajú jeden lokálny súbor `C:\Users\saboi\.` (mimo repa, `.` je v `.gitignore`, ACL len pre užívateľa `saboi`).
 
 **Čo robiť**
 1. Pred prácou, ktorá potrebuje kľúč, over jeho prítomnosť bez výpisu hodnoty:
-   `powershell -NoProfile -File scripts/shared-env.ps1 -Check`  → vypíše `NAME: set|EMPTY|MISSING`.
+   `powershell -NoProfile -File scripts/shared-.ps1 -Check`  → vypíše `NAME: set|EMPTY|MISSING`.
 2. Hodnoty do procesu načítaj len v rámci príkazu, ktorý ich potrebuje:
-   `. scripts/shared-env.ps1 -Load` (nastaví premenné prostredia pre aktuálny proces, nič nevypisuje).
+   `. scripts/shared-.ps1 -Load` (nastaví premenné prostredia pre aktuálny proces, nič nevypisuje).
 3. Chýbajúci kľúč pridáva **vždy majiteľ** sám (skrytý vstup alebo úprava súboru). Nikdy nežiadať o vloženie kľúča do chatu.
-4. Nový typ kľúča: pridať riadok `NAME=` ako komentár do `.env` + riadok do tabuľky nižšie, aby druhá strana vedela, čo je to a načo.
+4. Nový typ kľúča: pridať riadok `NAME=` ako komentár do `.` + riadok do tabuľky nižšie, aby druhá strana vedela, čo je to a načo.
 
 **Čo je zakázané**
-- Vypisovať, logovať, commitovať alebo vkladať do review/handoff súborov hodnoty kľúčov (`cat .env`, `echo $VAR`, `printenv`, `Get-Content .env` bez maskovania).
-- Kopírovať Cloudflare worker secrets do `.env` — sú write-only a workery ich majú vlastné; nastavujú sa cez `wrangler secret put` (skrytý vstup).
+- Vypisovať, logovať, commitovať alebo vkladať do review/handoff súborov hodnoty kľúčov (`cat .`, `echo $VAR`, `print`, `Get-Content .` bez maskovania).
+- Kopírovať Cloudflare worker secrets do `.` — sú write-only a workery ich majú vlastné; nastavujú sa cez `wrangler secret put` (skrytý vstup).
 - Používať kľúč na iný účel než zadal majiteľ; používať Global API Key (len scoped tokeny).
 
 **Inventár kľúčov** (názvy, nie hodnoty; aktualizovať pri zmene)
@@ -97,7 +97,7 @@ Trinity disponuje centrálnou Sovereign Pentad MCP Gateway na:
 - Podporuje protokol JSON-RPC 2.0 (Streamable SSE / POST).
 - **Autorizácia**: `Authorization: Bearer <TRINITY_MCP_API_KEY>` s hlavičkou `Accept: application/json, text/event-stream`.
 - **Kľúč pre Codexa a nástroje**:
-  - Uložený v `C:\Users\saboi\.env` ako `TRINITY_MCP_API_KEY`.
+  - Uložený v `C:\Users\saboi\.` ako `TRINITY_MCP_API_KEY`.
   - Windows DPAPI šifrovaný credential: `C:\Users\saboi\Trinity-antigravity\.credentials\codex-mcp.dpapi`.
 - **Overovací test MCP prepojenia**:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\saboi\Trinity-antigravity\Trinity\scripts\test-gemini-mcp.ps1`

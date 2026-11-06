@@ -1,0 +1,322 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&family=Space+Grotesk:wght@500;700;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg-asphalt: #08090d;
+  --bg-concrete: #10121a;
+  --bg-street-card: #151822;
+  --bg-pad: #1a1e2b;
+  
+  --acid-lime: #d4ff00;
+  --spray-orange: #ff3c00;
+  --cyan-graffiti: #00f0ff;
+  --street-purple: #c026d3;
+  --chrome-white: #f8fafc;
+  --tape-yellow: #facc15;
+  
+  --text-main: #f1f5f9;
+  --text-street: #94a3b8;
+  --text-dark: #08090d;
+  
+  --border-street: rgba(212, 255, 0, 0.3);
+  --border-tape: rgba(250, 204, 21, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-asphalt);
+  color: var(--text-main);
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 15% 20%, rgba(212, 255, 0, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 85% 70%, rgba(255, 60, 0, 0.06) 0%, transparent 45%),
+    linear-gradient(to bottom, rgba(8, 9, 13, 0.95), rgba(8, 9, 13, 0.98)),
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.25) 2px, rgba(0, 0, 0, 0.25) 4px);
+  background-attachment: fixed;
+}
+
+.font-street {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 1.5px;
+}
+
+.font-graffiti {
+  font-family: 'Permanent Marker', cursive;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom Scrollbar - Street Drill style */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-asphalt);
+}
+::-webkit-scrollbar-thumb {
+  background: #272a37;
+  border: 1px solid var(--border-street);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--acid-lime);
+}
+
+/* Hazard Warning Tape */
+.hazard-tape {
+  background: repeating-linear-gradient(
+    -45deg,
+    #000,
+    #000 12px,
+    var(--acid-lime) 12px,
+    var(--acid-lime) 24px
+  );
+  color: #000;
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 3px 0;
+  text-align: center;
+}
+
+/* Parental Advisory Badge */
+.parental-badge {
+  background: #000;
+  color: #fff;
+  border: 2px solid #fff;
+  padding: 4px 10px;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 1.5px;
+  line-height: 1;
+  text-align: center;
+  display: inline-block;
+  box-shadow: 4px 4px 0px rgba(212, 255, 0, 0.8);
+  transform: rotate(-1deg);
+  transition: transform 0.2s ease;
+}
+
+.parental-badge:hover {
+  transform: rotate(1deg) scale(1.03);
+}
+
+/* Street Sticker */
+.street-sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 3px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  box-shadow: 3px 3px 0px rgba(0,0,0,0.8);
+  font-weight: 800;
+  position: relative;
+}
+
+.sticker-lime {
+  background: var(--acid-lime);
+  color: #000;
+  border: 2px solid #000;
+}
+
+.sticker-orange {
+  background: var(--spray-orange);
+  color: #fff;
+  border: 2px solid #000;
+}
+
+.sticker-cyan {
+  background: var(--cyan-graffiti);
+  color: #000;
+  border: 2px solid #000;
+}
+
+.sticker-purple {
+  background: var(--street-purple);
+  color: #fff;
+  border: 2px solid #fff;
+}
+
+/* Concrete Heavy Panel */
+.concrete-panel {
+  background: var(--bg-street-card);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  position: relative;
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.9);
+  transition: all 0.2s ease;
+}
+
+.concrete-panel:hover {
+  border-color: var(--acid-lime);
+  box-shadow: 6px 6px 0px var(--acid-lime);
+}
+
+.concrete-panel.border-orange:hover {
+  border-color: var(--spray-orange);
+  box-shadow: 6px 6px 0px var(--spray-orange);
+}
+
+/* Equalizer VU Meter Animation */
+.eq-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+}
+
+.eq-bar {
+  width: 4px;
+  background: var(--acid-lime);
+  border-radius: 1px;
+  animation: eq-bounce 1.2s ease-in-out infinite alternate;
+}
+
+.eq-bar:nth-child(1) { height: 35%; animation-duration: 0.8s; }
+.eq-bar:nth-child(2) { height: 75%; animation-duration: 1.1s; }
+.eq-bar:nth-child(3) { height: 100%; animation-duration: 0.7s; background: var(--spray-orange); }
+.eq-bar:nth-child(4) { height: 50%; animation-duration: 1.3s; }
+.eq-bar:nth-child(5) { height: 85%; animation-duration: 0.9s; }
+.eq-bar:nth-child(6) { height: 30%; animation-duration: 1.2s; }
+.eq-bar:nth-child(7) { height: 90%; animation-duration: 0.6s; background: var(--cyan-graffiti); }
+.eq-bar:nth-child(8) { height: 60%; animation-duration: 1.0s; }
+
+@keyframes eq-bounce {
+  0% { transform: scaleY(0.2); }
+  50% { transform: scaleY(1); }
+  100% { transform: scaleY(0.4); }
+}
+
+/* MPC Sampler Beat Pad Button */
+.mpc-pad {
+  background: var(--bg-pad);
+  border: 2px solid #2d3345;
+  border-radius: 4px;
+  padding: 1rem 0.8rem;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: left;
+  box-shadow: 4px 4px 0px #0a0b10;
+  transition: all 0.12s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.mpc-pad::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: #3a4259;
+  transition: background 0.2s ease;
+}
+
+.mpc-pad:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #0a0b10;
+  border-color: var(--acid-lime);
+}
+
+.mpc-pad:hover::before {
+  background: var(--acid-lime);
+}
+
+.mpc-pad.active {
+  border-color: var(--acid-lime);
+  background: #1e2518;
+  box-shadow: 0 0 15px rgba(212, 255, 0, 0.3);
+}
+
+.mpc-pad.active::before {
+  background: var(--acid-lime);
+}
+
+/* Street Primary Action Button */
+.btn-street-drop {
+  background: var(--acid-lime);
+  color: #000;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+  border: 3px solid #000;
+  padding: 12px 24px;
+  border-radius: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 900;
+  box-shadow: 5px 5px 0px #fff;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+}
+
+.btn-street-drop:hover:not(:disabled) {
+  background: #fff;
+  box-shadow: 5px 5px 0px var(--spray-orange);
+  transform: translate(-2px, -2px);
+}
+
+.btn-street-drop:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Street Nav Pill */
+.nav-street-tab {
+  background: #141722;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 1.5px;
+  padding: 8px 18px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+}
+
+.nav-street-tab:hover {
+  color: #fff;
+  border-color: var(--cyan-graffiti);
+}
+
+.nav-street-tab.active {
+  background: #000;
+  color: var(--acid-lime);
+  border-color: var(--acid-lime);
+  box-shadow: 4px 4px 0px var(--acid-lime);
+  transform: translateY(-2px);
+}
+
+/* Container */
+.street-container {
+  max-width: 1650px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}

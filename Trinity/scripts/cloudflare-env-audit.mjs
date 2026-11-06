@@ -13,8 +13,9 @@ export function sharedMutableBindings(config){
     ['Vectorize','vectorize','binding','index_name']
   ];
   const collisions=[];
+  const productionProfiles=[config,config.env?.production].filter(Boolean);
   for(const [type,key,bindingKey,idKey] of categories){
-    const prod=Array.isArray(config[key])?config[key]:[];
+    const prod=productionProfiles.flatMap(profile=>Array.isArray(profile[key])?profile[key]:[]);
     const dev=Array.isArray(staging[key])?staging[key]:[];
     for(const p of prod){
       const identifier=p[idKey];
