@@ -81,6 +81,10 @@
     "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
     "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
     "TRINITY_ENV": "production",
+    "ENVIRONMENT": "production",
+    "STRICT_MODE": "true",
+    "DEBUG_LOGGING": "false",
+    "ENABLE_EXPERIMENTAL_MODELS": "false",
     "TRINITY_TAP_ENABLED": "true",
     "TRINITY_TAP_PRODUCTION": "diagnostic-only",
     "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
@@ -135,6 +139,10 @@
     },
     {
       "binding": "TRINITY_KV",
+      "id": "0b92ed2717d742daa860f1827797297f"
+    },
+    {
+      "binding": "TRINITY_KV_PROD",
       "id": "0b92ed2717d742daa860f1827797297f"
     }
   ],
@@ -343,6 +351,22 @@
     {
       "binding": "SEEDER_SERVICE",
       "service": "trinity-seeder"
+    },
+    {
+      "binding": "PROFILE_SERVICE",
+      "service": "trinity-profile"
+    },
+    {
+      "binding": "CORE_SERVICE",
+      "service": "trinity-core"
+    },
+    {
+      "binding": "DISPATCHER_SERVICE",
+      "service": "trinity-dispatcher"
+    },
+    {
+      "binding": "AI_INFERENCE_SERVICE",
+      "service": "trinity-chat-inference"
     }
   ],
   "secrets_store_secrets": [
@@ -390,6 +414,10 @@
         "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
         "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
         "TRINITY_ENV": "production",
+        "ENVIRONMENT": "production",
+        "STRICT_MODE": "true",
+        "DEBUG_LOGGING": "false",
+        "ENABLE_EXPERIMENTAL_MODELS": "false",
         "TRINITY_TAP_ENABLED": "true",
         "TRINITY_TAP_PRODUCTION": "diagnostic-only",
         "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
@@ -444,6 +472,10 @@
         },
         {
           "binding": "TRINITY_KV",
+          "id": "0b92ed2717d742daa860f1827797297f"
+        },
+        {
+          "binding": "TRINITY_KV_PROD",
           "id": "0b92ed2717d742daa860f1827797297f"
         }
       ],
@@ -638,6 +670,22 @@
         {
           "binding": "SEEDER_SERVICE",
           "service": "trinity-seeder"
+        },
+        {
+          "binding": "PROFILE_SERVICE",
+          "service": "trinity-profile"
+        },
+        {
+          "binding": "CORE_SERVICE",
+          "service": "trinity-core"
+        },
+        {
+          "binding": "DISPATCHER_SERVICE",
+          "service": "trinity-dispatcher"
+        },
+        {
+          "binding": "AI_INFERENCE_SERVICE",
+          "service": "trinity-chat-inference"
         }
       ],
       "secrets_store_secrets": [
@@ -684,6 +732,10 @@
         "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
         "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
         "TRINITY_ENV": "staging",
+        "ENVIRONMENT": "staging",
+        "STRICT_MODE": "false",
+        "DEBUG_LOGGING": "true",
+        "ENABLE_EXPERIMENTAL_MODELS": "true",
         "TRINITY_TAP_ENABLED": "true",
         "TRINITY_TAP_PRODUCTION": "disabled",
         "TRINITY_ASSISTANT_BRIDGE_ENABLED": "false",
@@ -738,6 +790,10 @@
         },
         {
           "binding": "TRINITY_KV",
+          "id": "759143cfa6fb44d6a0f4c8e4951945c8"
+        },
+        {
+          "binding": "TRINITY_KV_STAGING",
           "id": "759143cfa6fb44d6a0f4c8e4951945c8"
         }
       ],
@@ -932,6 +988,22 @@
         {
           "binding": "SEEDER_SERVICE",
           "service": "trinity-seeder"
+        },
+        {
+          "binding": "PROFILE_SERVICE",
+          "service": "trinity-profile"
+        },
+        {
+          "binding": "CORE_SERVICE",
+          "service": "trinity-core"
+        },
+        {
+          "binding": "DISPATCHER_SERVICE",
+          "service": "trinity-dispatcher"
+        },
+        {
+          "binding": "AI_INFERENCE_SERVICE",
+          "service": "trinity-chat-inference"
         }
       ],
       "secrets_store_secrets": [

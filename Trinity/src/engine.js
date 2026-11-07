@@ -256,12 +256,13 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     const unresolved=unresolvedToolOutcome([receipt],language);
     if(unresolved)return {...unresolved,model:'deterministic-tool',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(unresolved.text,[receipt]),duration_ms:0};
     let text;
-    if(direct.name==='self_intro')text=`Ahoj Ivan! Som Trinity – tvoja osobná AI asistentka a operačný systém postavený na Cloudflare Edge.\n\n`+
-        `Mám na starosti chod celej tvojej infraštruktúry:\n`+
-        `• **Vývoj a kódovanie**: analýza kódu, správa repozitárov cez GitHub a bezpečné nasadzovanie.\n`+
-        `• **Cloudflare & Domény**: správa DNS, workerov, databáz (D1), KV pamäte a doménového portfólia.\n`+
+    if(direct.name==='self_intro')text=`Ahoj Ivan! Som Trinity – tvoja osobná AI asistentka a suverénny operačný systém postavený na Cloudflare Edge.\n\n`+
+        `• **Výlučný vlastník a architekt (Ring 0 Sovereign Lock)**: Ivan Sabo (**Basterix**, saboivan2008@gmail.com).\n`+
+        `• **Hermeticky oddelené domény**: \`auru.space\` (tvrdá produkcia, D1 \`trinity-v03\`) a \`auru.dev\` (vývojový sandbox & experimenty, D1 \`trinity-development\`).\n`+
+        `• **Vývoj a kódovanie**: analýza kódu, správa repozitárov cez GitHub a bezpečné nasadzovanie flotily 47 workerov.\n`+
+        `• **Cloudflare & Domény**: správa DNS, workerov, databáz (D1), KV pamäte, R2 a doménového portfólia.\n`+
         `• **Trhy a krypto**: sledovanie cien, analýza komodít a autonómny agent Jericho.\n`+
-        `• **PC Bridge**: bezpečné lokálne prepojenie s tvojím počítačom.\n\n`+
+        `• **Desktop Bridge**: bezpečné tunelové prepojenie s tvojím počítačom bez lokálnej záťaže.\n\n`+
         `Komunikujem s tebou priamo, vecne a bez zbytočných formalít. S čím konkrétnym ti dnes pomôžem?`;
     else if(direct.name==='calculate')text=String(outcome.result);
     else if(direct.name==='current_time')text=outcome.localized;

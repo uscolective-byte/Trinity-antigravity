@@ -258,6 +258,26 @@ async function route(request,env,ctx){
     const state=await readiness(env);
     return json({service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),source:sourceMetadata(env),...state},state.ready?200:503);
   }
+  if(path==='/api/fast-chat'&&(request.method==='POST'||request.method==='GET')){
+    const edgeRes=await handleFastChatEdge(request,env);
+    if(edgeRes)return edgeRes;
+    return json({ok:false,matched:false,next:'inference-cascade'},202);
+  }
+  if(path==='/api/audit-ledger'&&request.method==='GET'){
+    await authenticate(request,env);
+    return json({ok:true,items:await listAuditLogs(env,Number(url.searchParams.get('limit')||50))});
+  }
+  if(path==='/api/audit-ledger'&&request.method==='POST'){
+    const auditActor=await authenticate(request,env);
+    const body=await readJSON(request,16000);
+    const receipt=recordAuditLog(env,ctx,{
+      actor:auditActor?.email||auditActor?.id||'Basterix',
+      environment:runtimeEnvironment(request,env),
+      action:String(body?.action||'MANUAL_AUDIT_ENTRY'),
+      payload:body?.payload||{}
+    });
+    return json({ok:true,receipt:{id:receipt.id,actor:receipt.actor,environment:receipt.environment,action:receipt.action,timestamp:receipt.timestamp,dispatched:receipt.dispatched}},202);
+  }
   if(path==='/api/status'&&request.method==='GET'){
     return json({
       status:'ONLINE',

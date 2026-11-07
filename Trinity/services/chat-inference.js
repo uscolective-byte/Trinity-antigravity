@@ -19,6 +19,91 @@ const TIMEOUTS = {
   RAPID: 6000
 };
 
+// Circuit Breaker konštanty: 3 zlyhania v okne 60s -> preskočenie na 5 minút
+export const CIRCUIT_BREAKER_CONFIG = {
+  FAILURE_THRESHOLD: 3,
+  WINDOW_MS: 60_000,
+  COOLDOWN_MS: 300_000
+};
+
+// Interné tokeny blokované v SSE a JSON výstupe
+export const FORBIDDEN_LEAK_TOKENS = [
+  "System Prompt:",
+  "INTERNAL_API_SECRET",
+  "Ring 0 Key",
+  "trinity-token-store",
+  "Môj zoznam nástrojov",
+  "Dostupné nástroje"
+];
+
+const FORBIDDEN_LEAK_REGEX = new RegExp(
+  FORBIDDEN_LEAK_TOKENS.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"),
+  "i"
+);
+
+const envCircuitMap = new WeakMap();
+
+function getCircuitStore(env) {
+  if (!env || typeof env !== "object") return new Map();
+  let store = envCircuitMap.get(env);
+  if (!store) {
+    store = new Map();
+    envCircuitMap.set(env, store);
+  }
+  return store;
+}
+
+function getKvBinding(env) {
+  return env?.CIRCUIT_BREAKER_KV || env?.TRINITY_KV || env?.TRINITY_KV_PROD || env?.TRINITY_KV_STAGING || env?.Mastermind || null;
+}
+
+export async function isCircuitOpen(env, model, now = Date.now()) {
+  const store = getCircuitStore(env);
+  let state = store.get(model);
+  const kv = getKvBinding(env);
+  if (!state && kv && typeof kv.get === "function") {
+    try {
+      const raw = await kv.get(`cb:${model}`);
+      if (raw) {
+        state = JSON.parse(raw);
+        store.set(model, state);
+      }
+    } catch {}
+  }
+  if (!state) return false;
+  if (state.openUntil && now < state.openUntil) return true;
+  if (state.openUntil && now >= state.openUntil) {
+    state.openUntil = 0;
+    state.failures = [];
+  }
+  return false;
+}
+
+export async function recordCircuitFailure(env, model, now = Date.now()) {
+  const store = getCircuitStore(env);
+  const state = store.get(model) || { failures: [], openUntil: 0 };
+  state.failures = (state.failures || []).filter(ts => now - ts <= CIRCUIT_BREAKER_CONFIG.WINDOW_MS);
+  state.failures.push(now);
+  if (state.failures.length >= CIRCUIT_BREAKER_CONFIG.FAILURE_THRESHOLD) {
+    state.openUntil = now + CIRCUIT_BREAKER_CONFIG.COOLDOWN_MS;
+  }
+  store.set(model, state);
+  const kv = getKvBinding(env);
+  if (kv && typeof kv.put === "function") {
+    try {
+      await kv.put(`cb:${model}`, JSON.stringify(state), { expirationTtl: 360 });
+    } catch {}
+  }
+  return state;
+}
+
+export async function recordCircuitSuccess(env, model) {
+  const store = getCircuitStore(env);
+  if (store.has(model)) {
+    store.set(model, { failures: [], openUntil: 0 });
+  }
+}
+
 const HEADERS_JSON = {
   "Content-Type": "application/json; charset=utf-8",
   "Cache-Control": "no-store, no-cache, must-revalidate",
@@ -30,31 +115,45 @@ function replyJson(data, status = 200) {
 }
 
 /**
- * Inteligentný orezávač kontextu (Context Slicer)
- * Zachováva systémový prompt (index 0) a najnovšie správy.
- * Staré správy zo stredu bezpečne vyradí, ak kontext prekročí limit.
+ * Inteligentný orezávač kontextu (Context Slicer) — System Instruction Pinning:
+ * Správa na indexe 0 (alebo systémová inštrukcia s osobnosťou Trinity a Ring 0 pravidlami)
+ * nesmie byť nikdy orezaná. Orezávajú sa výhradne najstaršie správy z histórie medzi indexom 1 a N-1.
  */
-function sliceContextSafely(messages, maxTotalChars = 40000) {
-  if (!Array.isArray(messages) || messages.length <= 4) return messages;
+export function sliceContextSafely(messages, maxTotalChars = 40000, maxMessages = 8) {
+  if (!Array.isArray(messages) || messages.length === 0) return [];
+  const safeMsgs = messages.filter(m => m && typeof m === "object");
+  if (safeMsgs.length === 0) return [];
 
-  let totalChars = messages.reduce((acc, m) => acc + (m.content?.length || 0), 0);
-  if (totalChars <= maxTotalChars) return messages;
+  const pinnedIndex = safeMsgs[0]?.role === "system" ? 0 : safeMsgs.findIndex(m => m.role === "system");
+  const systemMessage = pinnedIndex >= 0 ? safeMsgs[pinnedIndex] : null;
+  const conversation = safeMsgs.filter((_, idx) => idx !== pinnedIndex);
 
-  const systemMessage = messages.find(m => m.role === "system");
-  const conversation = messages.filter(m => m.role !== "system");
+  let totalChars = safeMsgs.reduce((acc, m) => acc + (m.content?.length || 0), 0);
+  if (totalChars <= maxTotalChars && safeMsgs.length <= maxMessages) {
+    return systemMessage ? [systemMessage, ...conversation] : conversation;
+  }
 
-  // Ponecháme posledných 6 správ a systémový prompt
-  const preservedTail = conversation.slice(-6);
-  const result = systemMessage ? [systemMessage, ...preservedTail] : preservedTail;
+  const selected = [];
+  let usedChars = typeof systemMessage?.content === "string" ? systemMessage.content.length : 0;
+  const availableChars = Math.max(0, maxTotalChars - usedChars);
+  const tailLimit = Math.max(0, maxMessages - (systemMessage ? 1 : 0));
 
+  for (const message of conversation.slice(-tailLimit).reverse()) {
+    const size = typeof message.content === "string" ? message.content.length : 0;
+    if (usedChars + size > maxTotalChars || size > availableChars) continue;
+    selected.unshift(message);
+    usedChars += size;
+  }
+
+  const result = systemMessage ? [systemMessage, ...selected].slice(0, maxMessages) : selected.slice(-maxMessages);
   console.warn(`[Trinity Slicer] Kontext skrátený z ${messages.length} na ${result.length} správ kvôli dĺžke.`);
   return result;
 }
 
 /**
- * Agresívny sanitizér výstupu (odstraňuje úniky systémových promptov a zoznamov nástrojov)
+ * Agresívny sanitizér výstupu (odstraňuje úniky systémových promptov, interných tokenov a zoznamov nástrojov)
  */
-function cleanOutput(text) {
+export function cleanOutput(text) {
   if (typeof text !== "string" || !text.trim()) return "";
 
   let cleaned = text
@@ -62,6 +161,10 @@ function cleanOutput(text) {
     .replace(/Môj zoznam nástrojov je interný[^\n]*/gi, "")
     .replace(/Nie je možné, aby ste si mali prístup k zoznamu nástrojov[^\n]*/gi, "")
     .replace(/Nástroje sú určené výhradne na interné volania[^\n]*/gi, "")
+    .replace(/System Prompt:[^\n]*/gi, "[REDACTED]")
+    .replace(/INTERNAL_API_SECRET[^\s\n]*/gi, "[REDACTED]")
+    .replace(/Ring 0 Key[^\n]*/gi, "[REDACTED]")
+    .replace(/trinity-token-store[^\s\n]*/gi, "[REDACTED]")
     .trim();
 
   if (/152\s+expertných\s+zručností|248\s+Copilot\s+skillov/i.test(cleaned)) {
@@ -91,21 +194,25 @@ function cleanOutput(text) {
 }
 
 /**
- * Realtime token filter pre SSE streamy (odchytáva systémové halucinácie za chodu)
+ * Realtime sliding-window token filter pre SSE streamy.
+ * Odchytáva interné tokeny (System Prompt:, INTERNAL_API_SECRET, Ring 0 Key, trinity-token-store)
+ * aj pri rozdelení cez hranice chunkov.
  */
-function createStreamingSanitizer() {
+export function createStreamingSanitizer() {
   const dec = new TextDecoder();
   const enc = new TextEncoder();
-  let buffer = "";
+  let lineBuffer = "";
+  let slidingWindow = "";
 
   return new TransformStream({
     transform(chunk, controller) {
-      buffer += dec.decode(chunk, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
+      lineBuffer += dec.decode(chunk, { stream: true });
+      const lines = lineBuffer.split("\n");
+      lineBuffer = lines.pop() || "";
 
       for (const line of lines) {
         if (!line.startsWith("data: ")) {
+          if (line.trim() && FORBIDDEN_LEAK_REGEX.test(line)) continue;
           controller.enqueue(enc.encode(line + "\n"));
           continue;
         }
@@ -118,18 +225,25 @@ function createStreamingSanitizer() {
 
         try {
           const parsed = JSON.parse(raw);
-          if (parsed.response && /Môj zoznam nástrojov|Dostupné nástroje/i.test(parsed.response)) {
-            // Zahodí infikovaný chunk
-            continue;
+          if (typeof parsed.response === "string") {
+            const combined = slidingWindow + parsed.response;
+            if (FORBIDDEN_LEAK_REGEX.test(parsed.response) || FORBIDDEN_LEAK_REGEX.test(combined)) {
+              slidingWindow = "";
+              continue;
+            }
+            slidingWindow = combined.slice(-64);
           }
           controller.enqueue(enc.encode(`data: ${JSON.stringify(parsed)}\n\n`));
         } catch {
+          if (FORBIDDEN_LEAK_REGEX.test(raw)) continue;
           controller.enqueue(enc.encode(line + "\n\n"));
         }
       }
     },
     flush(controller) {
-      if (buffer.trim()) controller.enqueue(enc.encode(buffer));
+      if (lineBuffer.trim() && !FORBIDDEN_LEAK_REGEX.test(lineBuffer)) {
+        controller.enqueue(enc.encode(lineBuffer));
+      }
     }
   });
 }
@@ -254,12 +368,18 @@ export default {
       let attempts = [];
 
       for (const model of executionQueue) {
+        if (await isCircuitOpen(env, model)) {
+          attempts.push({ model, error: "Circuit breaker open (skipped)" });
+          continue;
+        }
         const timeout = model.includes("70b") ? TIMEOUTS.PRIMARY : (model.includes("32b") ? TIMEOUTS.SECONDARY : TIMEOUTS.RAPID);
         try {
           activeStream = await executeInference(env.AI, model, payload, timeout);
           winningModel = model;
+          await recordCircuitSuccess(env, model);
           break;
         } catch (err) {
+          await recordCircuitFailure(env, model);
           console.warn(`[Trinity Pipeline] Zlyhanie streamu na modeli ${model}:`, err.message);
           attempts.push({ model, error: "Model timeout or unavailable" });
         }
@@ -293,12 +413,18 @@ export default {
     let errors = [];
 
     for (const model of executionQueue) {
+      if (await isCircuitOpen(env, model)) {
+        errors.push({ model, error: "Circuit breaker open (skipped)" });
+        continue;
+      }
       const timeout = model.includes("70b") ? TIMEOUTS.PRIMARY : (model.includes("32b") ? TIMEOUTS.SECONDARY : TIMEOUTS.RAPID);
       try {
         result = await executeInference(env.AI, model, payload, timeout);
         winningModel = model;
+        await recordCircuitSuccess(env, model);
         break;
       } catch (err) {
+        await recordCircuitFailure(env, model);
         console.warn(`[Trinity Pipeline] Zlyhanie batchu na modeli ${model}:`, err.message);
         errors.push({ model, error: "Model unavailable or timed out" });
       }
