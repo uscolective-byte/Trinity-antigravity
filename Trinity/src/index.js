@@ -690,17 +690,23 @@ async function route(request,env,ctx){
         try{ syncedState = JSON.parse(await env.Mastermind.get('cross_domain:state') || 'null'); }catch{}
       }
       const pcStatus = await getPCBridgeStatus(env);
+      const isStagingEnv = env.TRINITY_ENV === 'staging' || reqHostname === 'auru.dev';
       return json({
         ok: true,
         synchronized: true,
         domains: ['auru.dev', 'auru.space'],
         active_host: request.headers.get('Host') || 'unknown',
+        environment: isStagingEnv ? 'staging' : 'production',
+        domain_isolation: {
+          production: { domain: 'auru.space', worker: 'trinity', d1: 'trinity-v03', r2: 'trinity-artifacts' },
+          development: { domain: 'auru.dev', worker: 'trinity-staging', d1: 'trinity-development', r2: 'trinity-development-artifacts' }
+        },
         shared_core: {
-          unified_worker: 'trinity',
-          version: '11.0.0',
-          d1: 'trinity-v03',
+          unified_worker: isStagingEnv ? 'trinity-staging' : 'trinity',
+          version: TRINITY_VERSION,
+          d1: isStagingEnv ? 'trinity-development' : 'trinity-v03',
           kv: 'PC_STATE & Mastermind',
-          r2: 'trinity-artifacts'
+          r2: isStagingEnv ? 'trinity-development-artifacts' : 'trinity-artifacts'
         },
         pc_bridge: {
           ...pcStatus,
@@ -788,7 +794,7 @@ async function route(request,env,ctx){
       agent:'Morpheus',
       version:'1.0.0',
       role:'Social Media Autonomous Commander',
-      domain:env.TRINITY_ENV==='production'?'auru.space':'dev.auru.space',
+      domain:env.TRINITY_ENV==='production'?'auru.space':'auru.dev',
       service_url:'https://morpheus.auru.space',
       capabilities:['oauth_pkce','meta_graph','x_twitter_v2','linkedin_share','youtube_data','tiktok_creator','auto_posting','comment_moderation','link_shortening'],
       endpoints:{

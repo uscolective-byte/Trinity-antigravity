@@ -796,7 +796,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       agent:'Morpheus',
       version:'1.1.0',
       role:'Social Media Autonomous Commander',
-      domain:env.TRINITY_ENV==='production'?'auru.space':'dev.auru.space',
+      domain:env.TRINITY_ENV==='production'?'auru.space':'auru.dev',
       service_url:'https://morpheus.auru.space',
       dashboard:'https://morpheus.auru.space/dashboard',
       action:args.action,

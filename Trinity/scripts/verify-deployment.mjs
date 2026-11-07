@@ -34,7 +34,7 @@ export async function verifyDeployment({origin,expectedTag,expectedVersionId,ver
     'CF-Access-Client-Secret': process.env.CLOUDFLARE_ACCESS_CLIENT_SECRET
   } : {})
  };
- const allowedEnvironments=new Set(['production']);
+ const expectedEnvironment=origin==='https://auru.dev'?'staging':'production';
  for(let attempt=0;attempt<attempts;attempt++){
   try{
    const health=await fetcher(origin+'/health',{headers,signal:AbortSignal.timeout(10000),redirect:'error'});
@@ -43,11 +43,11 @@ export async function verifyDeployment({origin,expectedTag,expectedVersionId,ver
    const readiness=await ready.json();
    const matched=expectedVersionId?data.deployment?.id===expectedVersionId:data.deployment?.tag===expectedTag;
    const sourceMatches=[data,readiness].every(result=>result.source?.repository===TRINITY_SOURCE.repository&&result.source?.branch===TRINITY_SOURCE.branch);
-   const envMatches=allowedEnvironments.has(data.environment)&&data.environment===readiness.environment;
+   const envMatches=data.environment===expectedEnvironment&&readiness.environment===expectedEnvironment;
    if(health.ok&&ready.ok&&matched&&sourceMatches&&data.version===version&&readiness.version===version&&envMatches&&readiness.ready===true){
     return {verified:true,origin,version,environment:data.environment,source:data.source,...(expectedTag?{commit:expectedTag}:{}),deployment:data.deployment};
    }
-   last=`Expected ${version}/${expectedVersionId||expectedTag} from ${TRINITY_SOURCE.repository}@${TRINITY_SOURCE.branch}; got ${data.version}/${data.deployment?.id}/${data.deployment?.tag}; source=${JSON.stringify(data.source)}, readiness source=${JSON.stringify(readiness.source)}; ready HTTP ${ready.status}, ready=${readiness.ready}`;
+   last=`Expected ${version}/${expectedVersionId||expectedTag} (${expectedEnvironment}) from ${TRINITY_SOURCE.repository}@${TRINITY_SOURCE.branch}; got ${data.version}/${data.deployment?.id}/${data.deployment?.tag} (${data.environment}); source=${JSON.stringify(data.source)}, readiness source=${JSON.stringify(readiness.source)}; ready HTTP ${ready.status}, ready=${readiness.ready}`;
   }catch(error){last=error.message;}
   if(attempt<attempts-1)await new Promise(resolve=>setTimeout(resolve,delayMs));
  }

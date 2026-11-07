@@ -9,7 +9,9 @@ test('tracked staging config has distinct D1, KV and R2 identifiers',()=>{
   assert.equal(report.isolated,true);
   assert.equal(report.checked,'configuration-only');
   assert.deepEqual(report.shared_mutable_resources,[]);
-  assert.equal(cfg.env.staging.vars.TRINITY_PREVIEW_MODE,'build-only');
+  assert.deepEqual(cfg.routes,[{pattern:'auru.space',custom_domain:true}]);
+  assert.deepEqual(cfg.env.staging.routes,[{pattern:'auru.dev',custom_domain:true}]);
+  assert.equal(cfg.env.staging.vars.TRINITY_PREVIEW_MODE,undefined);
 });
 test('staging audit still rejects shared mutable resources',()=>{
   const cfg={

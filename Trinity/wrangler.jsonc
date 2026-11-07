@@ -16,10 +16,6 @@
     {
       "pattern": "auru.space",
       "custom_domain": true
-    },
-    {
-      "pattern": "auru.dev",
-      "custom_domain": true
     }
   ],
   "triggers": {
@@ -363,10 +359,6 @@
         {
           "pattern": "auru.space",
           "custom_domain": true
-        },
-        {
-          "pattern": "auru.dev",
-          "custom_domain": true
         }
       ],
       "triggers": {
@@ -664,7 +656,12 @@
       "triggers": {
         "crons": []
       },
-      "routes": [],
+      "routes": [
+        {
+          "pattern": "auru.dev",
+          "custom_domain": true
+        }
+      ],
       "vars": {
         "CF_ACCOUNT_ID": "b60342e5e52f5646fbd4e913bb409334",
         "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
@@ -689,7 +686,6 @@
         "TRINITY_ENV": "staging",
         "TRINITY_TAP_ENABLED": "true",
         "TRINITY_TAP_PRODUCTION": "disabled",
-        "TRINITY_PREVIEW_MODE": "build-only",
         "TRINITY_ASSISTANT_BRIDGE_ENABLED": "false",
         "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
         "TRINITY_GITHUB_BRANCH": "main",
