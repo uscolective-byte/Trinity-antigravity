@@ -66,7 +66,9 @@ import {loadDynamicSkills,registerDynamicSkill} from './skill-matrix.js';
 import {applySelfModification} from './self-evolution.js';
 import {queryAuditEvents,exportAuditEvents,recordAuditEvent} from './audit-log.js';
 import {recordAuditLog,listAuditLogs} from './audit-ledger.js';
-import {handleFastChatEdge} from './fast-chat.js';
+import {handleFastChatEdge,handleFastChat} from './fast-chat.js';
+import {executeInferenceCascade} from './inference-cascade.js';
+import {PINNED_SYSTEM_PROMPT,TRINITY_TOOL_DEFINITIONS,normalizeText,handleFastEdgeRoute,executeTool,runInferenceCascade} from './sovereign-monolith.js';
 import {getFleetClusterSummary} from './fleet-clusters.js';
 import tapProfileService from '../../services/trinity-profile/src/index.js';
 import jerichoCryptoService from '../../services/jericho123/src/index.js';
@@ -111,7 +113,7 @@ import authBootstrapJS from '../public/auth-bootstrap.js.txt';
 import themeCSS from '../public/assistant/theme.css';
 import garageCSS from '../public/assistant/garage.css';
 import garageArt from '../public/assistant/garage-v1.webp';
-export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
+export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations,PINNED_SYSTEM_PROMPT,TRINITY_TOOL_DEFINITIONS,normalizeText,handleFastEdgeRoute,executeTool,runInferenceCascade};
 const json=(data,status=200)=>Response.json(data,{status});
 const runtimeEnvironment=(request,env)=>['localhost','127.0.0.1','::1'].includes(new URL(request.url).hostname)?'local':env.TRINITY_ENV||'local';
 const uuid=z.string().uuid();
@@ -274,37 +276,73 @@ async function route(request,env,ctx){
     if(edgeRes)return edgeRes;
     return json({ok:false,matched:false,next:'inference-cascade'},202);
   }
-  if(request.method==='OPTIONS'&&(path==='/chat'||path==='/api/chat'||path.startsWith('/api/profiles')||path.startsWith('/profiles')||path.startsWith('/api/crypto')||path.startsWith('/crypto')||isOmniDevHost||env.STRICT_MODE==='false')){
+  if(request.method==='OPTIONS'&&(path==='/chat'||path==='/api/chat'||path==='/api/tools/execute'||path.startsWith('/api/profiles')||path.startsWith('/profiles')||path.startsWith('/api/crypto')||path.startsWith('/crypto')||isOmniDevHost||env.STRICT_MODE==='false')){
     return new Response(null,{
       headers:{
-        'Access-Control-Allow-Origin':'*',
-        'Access-Control-Allow-Methods':'*',
-        'Access-Control-Allow-Headers':'*'
+        'Access-Control-Allow-Origin':request.headers.get('Origin')||'*',
+        'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers':'Content-Type, Authorization, X-Trinity-Trace-Id',
+        'Access-Control-Max-Age':'86400'
       }
     });
   }
+  if(path==='/api/manifest'&&request.method==='GET'){
+    return new Response(JSON.stringify({
+      system:'TRINITY OMNI-CORE',
+      version:'11.2.0-SOVEREIGN',
+      environment:env.ENVIRONMENT||'staging',
+      owner:'Ivan Sabo (Basterix)',
+      ring_level:0,
+      active_fleet:47,
+      bindings:{
+        d1:Boolean(env.DB||env.TRINITY_D1),
+        kv:Boolean(env.TRINITY_KV||env.Mastermind),
+        ai:Boolean(env.AI),
+        profile_service:Boolean(env.PROFILE_SERVICE),
+        jericho_service:Boolean(env.JERICHO_SERVICE)
+      },
+      status:'ONLINE_OPERATIONAL'
+    },null,2),{headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
+  }
+  if(request.method==='POST'&&path==='/api/tools/execute'){
+    try{
+      const {tool,arguments:args}=await request.json();
+      const execOutput=await executeTool(tool,args||{},env);
+      return new Response(JSON.stringify(execOutput),{headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
+    }catch(err){
+      return new Response(JSON.stringify({error:err.message}),{status:400,headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
+    }
+  }
+  if(request.method==='GET'&&(path==='/api/crypto/prices'||path==='/crypto/prices')){
+    const prices=await executeTool('crypto_oracle_query',{asset:'ALL'},env);
+    return new Response(JSON.stringify({oracle:'jericho-edge',...prices}),{headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
+  }
   if(request.method==='POST'&&(path==='/chat'||path==='/api/chat')){
     let body={};
-    try{body=await request.clone().json();}catch{body={};}
+    try{body=await request.clone().json();}catch{
+      return new Response(JSON.stringify({error:'NEPLATNÝ JSON V TELE POŽIADAVKY'}),{status:400,headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
+    }
     const messages=Array.isArray(body?.messages)&&body.messages.length?body.messages:[{role:'user',content:body?.message||body?.prompt||'Ahoj Trinity'}];
     const latestMessage=messages[messages.length-1]?.content||'';
-    const fast=handleFastChat(latestMessage,env);
+    const fastEdge=handleFastEdgeRoute(latestMessage,env);
+    const fast=fastEdge.handled?{handled:true,response:fastEdge.text}:handleFastChat(latestMessage,env);
     if(fast.handled){
       recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'FAST_CHAT_EDGE_HIT',payload:{query:latestMessage}});
-      return new Response(JSON.stringify({reply:fast.response,mode:'fast-edge',route:'fast-chat-edge'}),{
+      return new Response(JSON.stringify({reply:fast.response,mode:'fast-edge',route:'fast-edge-sub10ms',timestamp:Date.now()}),{
         headers:{
           'Content-Type':'application/json',
           'Access-Control-Allow-Origin':'*',
-          'X-Trinity-Route':'fast-chat-edge'
+          'X-Trinity-Route':'fast-edge'
         }
       });
     }
-    recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'AI_INFERENCE_INVOKED',payload:{query:latestMessage}});
-    const stream=await executeInferenceCascade(messages,env);
+    recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'CHAT_INFERENCE_INVOKED',payload:{query:latestMessage.substring(0,100)}});
+    const stream=env.AI?await runInferenceCascade(messages,env):await executeInferenceCascade(messages,env);
     return new Response(stream,{
       headers:{
         'Content-Type':'text/event-stream',
         'Cache-Control':'no-cache',
+        'Connection':'keep-alive',
         'Access-Control-Allow-Origin':'*'
       }
     });

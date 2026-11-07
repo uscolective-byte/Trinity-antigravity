@@ -556,7 +556,7 @@ test('Module 9: DEV MODE (Zero Verification / Open Access) handleFastChat, execu
   assert.equal(fastChatHttp.headers.get('Access-Control-Allow-Origin'), '*');
   const fastChatBody = await fastChatHttp.json();
   assert.equal(fastChatBody.mode, 'fast-edge');
-  assert.equal(fastChatBody.reply, '10');
+  assert.equal(fastChatBody.reply, 'Výsledok výpočtu: 10');
 
   // 4. Zero-verification POST /api/chat on Trinity index.js (SSE stream)
   const cascadeHttp = await trinityWorker.fetch(
@@ -581,6 +581,107 @@ test('Module 9: DEV MODE (Zero Verification / Open Access) handleFastChat, execu
   const streamOut = await cascadeHttp.text();
   assert.match(streamOut, /Plán je 6 klastrov a 47 workerov/);
 });
+
+test('Module 10: Sovereign Monolith Tool Engine (execute_d1_sql, cloudflare_fleet_control, crypto_oracle_query, kv_memory_store)', async () => {
+  const {
+    PINNED_SYSTEM_PROMPT,
+    TRINITY_TOOL_DEFINITIONS,
+    handleFastEdgeRoute,
+    executeTool,
+    runInferenceCascade
+  } = await import('../src/sovereign-monolith.js');
+  const devGateway = (await import('../src/dev-gateway.js')).default;
+
+  assert.equal(PINNED_SYSTEM_PROMPT.role, 'system');
+  assert.match(PINNED_SYSTEM_PROMPT.content, /NULOVÁ FABRIKÁCIA A SIMULÁCIA/);
+  assert.equal(TRINITY_TOOL_DEFINITIONS.length, 4);
+
+  // 1. handleFastEdgeRoute
+  assert.equal(handleFastEdgeRoute('12 * 8').text, 'Výsledok výpočtu: 96');
+  assert.equal(handleFastEdgeRoute('kto je majiteľ?').handled, true);
+
+  // 2. execute_d1_sql
+  const kvMap = new Map();
+  const mockEnv = {
+    ENVIRONMENT: 'staging',
+    DB: {
+      prepare(sql) {
+        return {
+          bind(...params) {
+            return {
+              async all() {
+                return { results: [{ sql, params }], meta: { duration: 1 } };
+              }
+            };
+          },
+          async all() {
+            return { results: [{ sql }], meta: { duration: 1 } };
+          }
+        };
+      }
+    },
+    TRINITY_KV: {
+      async get(k) { return kvMap.get(k) ?? null; },
+      async put(k, v) { kvMap.set(k, v); },
+      async delete(k) { kvMap.delete(k); }
+    },
+    customFetcher: async () =>
+      new Response(
+        JSON.stringify([
+          { symbol: 'BTCUSDT', price: '93000.00' },
+          { symbol: 'ETHUSDT', price: '3200.00' },
+          { symbol: 'SOLUSDT', price: '200.00' }
+        ]),
+        { status: 200 }
+      ),
+    AI: {
+      async run(_model, payload) {
+        assert.equal(payload.messages[0].role, 'system');
+        assert.equal(payload.tools.length, 4);
+        return { response: 'Kaskáda s nástrojmi úspešná.' };
+      }
+    }
+  };
+
+  const d1Res = await executeTool('execute_d1_sql', { sql: 'SELECT * FROM profiles WHERE username = ?1', params: ['Basterix'] }, mockEnv);
+  assert.equal(d1Res.status, 'SUCCESS');
+  assert.equal(d1Res.rowCount, 1);
+
+  // 3. cloudflare_fleet_control
+  const cfRes = await executeTool('cloudflare_fleet_control', { worker_name: 'trinity-profile', operation: 'check_health' }, mockEnv);
+  assert.equal(cfRes.status, 'SIMULATED_LOCAL');
+  assert.equal(cfRes.worker, 'trinity-profile');
+
+  // 4. crypto_oracle_query & GET /api/crypto/prices
+  const pricesHttp = await devGateway.fetch(new Request('https://aura.dev/api/crypto/prices'), mockEnv);
+  assert.equal(pricesHttp.status, 200);
+  const pricesBody = await pricesHttp.json();
+  assert.equal(pricesBody.oracle, 'jericho-edge');
+  assert.equal(pricesBody.BTC_USD, 93000);
+  assert.equal(pricesBody.TETRAKIS_USD, 1.042);
+
+  // 5. kv_memory_store via POST /api/tools/execute
+  const kvPutHttp = await devGateway.fetch(
+    new Request('https://aura.dev/api/tools/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tool: 'kv_memory_store',
+        arguments: { action: 'put', key: 'ring0_state', value: 'LOCKED_ACTIVE', ttl_seconds: 60 }
+      })
+    }),
+    mockEnv
+  );
+  assert.equal(kvPutHttp.status, 200);
+  assert.equal((await kvPutHttp.json()).status, 'STORED');
+  assert.equal(kvMap.get('ring0_state'), 'LOCKED_ACTIVE');
+
+  // 6. runInferenceCascade with tools
+  const stream = await runInferenceCascade([{ role: 'user', content: 'Skontroluj D1' }], mockEnv);
+  const text = await new Response(stream).text();
+  assert.match(text, /Kaskáda s nástrojmi úspešná/);
+});
+
 
 
 
