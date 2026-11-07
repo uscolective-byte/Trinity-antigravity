@@ -1,6 +1,6 @@
 import serviceGuardian from '../../../Trinity/services/guardian.js';
 import { internalAuthorized } from '../../../Trinity/services/internal-auth.js';
-﻿/**
+/**
  * TRINITY SUPREME GUARDIAN & OMNI-TRUTH SENTINEL v3.0.0
  * Plná integrácia: D1 + KV + R2 + Workers AI + Multi-Agent Probe
  */
@@ -127,14 +127,50 @@ Vráť VÝHRADNE JSON v tomto formáte:
 }`;
 
   try {
-    const aiResp = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
-      messages: [
-        { role: 'system', content: systemInstructions },
-        { role: 'user', content: `Dáta na posúdenie:\n${JSON.stringify(items, null, 2)}` }
-      ],
-      response_format: { type: 'json_object' },
-      max_tokens: 3500
-    });
+    let aiResp;
+    if (env.CHAT_INFERENCE_SERVICE && typeof env.CHAT_INFERENCE_SERVICE.fetch === 'function') {
+      try {
+        const resp = await env.CHAT_INFERENCE_SERVICE.fetch('https://chat-inference.internal/infer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [
+              { role: 'system', content: systemInstructions },
+              { role: 'user', content: `Dáta na posúdenie:\n${JSON.stringify(items, null, 2)}` }
+            ]
+          })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          aiResp = { response: data.response || JSON.stringify(data) };
+        }
+      } catch {}
+    }
+    if (!aiResp && env.AI) {
+      try {
+        aiResp = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
+          messages: [
+            { role: 'system', content: systemInstructions },
+            { role: 'user', content: `Dáta na posúdenie:\n${JSON.stringify(items, null, 2)}` }
+          ],
+          response_format: { type: 'json_object' },
+          max_tokens: 3500
+        });
+      } catch {
+        aiResp = await env.AI.run('@cf/deepseek-ai/deepseek-r1-distill-qwen-32b', {
+          messages: [
+            { role: 'system', content: systemInstructions },
+            { role: 'user', content: `Dáta na posúdenie:\n${JSON.stringify(items, null, 2)}` }
+          ],
+          response_format: { type: 'json_object' },
+          max_tokens: 3500
+        });
+      }
+    }
+
+    if (!aiResp || typeof aiResp.response !== 'string') {
+      throw new Error('AI binding or chat inference service is unavailable');
+    }
 
     return JSON.parse(cleanAiJson(aiResp.response));
   } catch (err) {

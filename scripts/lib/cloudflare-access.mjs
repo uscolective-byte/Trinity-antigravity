@@ -1,6 +1,50 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+
 // Read-only Access diagnostics. Never serialize credentials or raw upstream bodies.
 export class AccessDiagnosticError extends Error {
   constructor(code) { super(code); this.code = code; }
+}
+
+export function resolveEnvCredentials(customEnv = process.env, customPath) {
+  const merged = { ...customEnv };
+  const hasAccessId = Boolean(merged.CLOUDFLARE_ACCESS_CLIENT_ID || merged.CF_ACCESS_CLIENT_ID);
+  const hasAccessSecret = Boolean(merged.CLOUDFLARE_ACCESS_CLIENT_SECRET || merged.CF_ACCESS_CLIENT_SECRET);
+  const hasToken = Boolean(merged.TRINITY_MCP_API_KEY || merged.TRINITY_MCP_TOKEN);
+
+  if (hasAccessId && hasAccessSecret && hasToken) {
+    return merged;
+  }
+
+  const candidates = [
+    customPath,
+    merged.SHARED_ENV_PATH,
+    path.join(os.homedir(), '.env')
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      try {
+        const content = fs.readFileSync(candidate, 'utf8');
+        for (const line of content.split(/\r?\n/)) {
+          const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+          if (match) {
+            const key = match[1];
+            let val = match[2].trim();
+            if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+              val = val.slice(1, -1);
+            }
+            if (!merged[key] && val) {
+              merged[key] = val;
+            }
+          }
+        }
+        break;
+      } catch {}
+    }
+  }
+  return merged;
 }
 
 export function accessCredentialState(env = process.env) {
@@ -111,9 +155,11 @@ export async function readAccessMetadata({accountId, appId, apiToken, fetcher = 
     policies: summarizePolicies(policies)};
 }
 
-export async function verifyMcp({origin, env, fetcher = fetch}) {
+export async function verifyMcp({origin, env = process.env, fetcher = fetch}) {
   origin = validateOrigin(origin);
-  if (!env.TRINITY_MCP_API_KEY) return {verified: false, reason: 'trinity_mcp_credential_missing'};
+  if (env === process.env) env = resolveEnvCredentials(process.env);
+  const mcpKey = env.TRINITY_MCP_API_KEY || env.TRINITY_MCP_TOKEN;
+  if (!mcpKey) return {verified: false, reason: 'trinity_mcp_credential_missing'};
   const {Client} = await import('@modelcontextprotocol/sdk/client/index.js');
   const {StreamableHTTPClientTransport} = await import('@modelcontextprotocol/sdk/client/streamableHttp.js');
   const endpoint = origin + '/mcp';
@@ -126,7 +172,7 @@ export async function verifyMcp({origin, env, fetcher = fetch}) {
   const client = new Client({name: 'trinity-access-diagnostic', version: '1.0.0'});
   const transport = new StreamableHTTPClientTransport(new URL(endpoint), {
     fetch: guardedFetch,
-    requestInit: {headers: {...accessHeaders(env), Authorization: `Bearer ${env.TRINITY_MCP_API_KEY}`}}
+    requestInit: {headers: {...accessHeaders(env), Authorization: `Bearer ${mcpKey}`}}
   });
   try {
     await client.connect(transport, {signal: timeout});
@@ -141,6 +187,7 @@ export async function verifyMcp({origin, env, fetcher = fetch}) {
 export async function diagnoseAccess({origin = 'https://auru.space', env = process.env, accountId, appId,
   includeMcp = false, fetcher = fetch}) {
   origin = validateOrigin(origin);
+  if (env === process.env) env = resolveEnvCredentials(process.env);
   const report = {origin, checked_at: new Date().toISOString(), read_only: true,
     credentials_configured: false, anonymous: [], authenticated: [], cloud_mutations_performed: false};
   let headers;

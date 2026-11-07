@@ -1,6 +1,7 @@
 import {calculateIntrinsicValuation,calculateTtkQuote,VALUATION_MILESTONES,VALUE_MECHANISMS} from './crypto-value-engine.js';
 import {authorizeBridgeProxy,authorizeBridgeRequest} from './bridge-proxy-auth.js';
 import {BRIDGE_AUTH_VERSION,registeredBridgeTunnelUrl} from '../../packages/contracts/src/bridge-auth.js';
+import {getProviderSecret,getEnvironmentOverview} from './env-vault.js';
 /**
  * @module TRINITY_OMNI_CORE
  * @subsystem EDGE_KERNEL_AND_HTTP_ROUTER
@@ -249,7 +250,7 @@ async function route(request,env,ctx){
     return json({status:'completed',tool,receipt_id,result:outcome.result});
   }
   if(path==='/health'||path==='/api/health'){
-    const response=json({service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),source:sourceMetadata(env),deployment:releaseMetadata(env),agents:AGENTS.length,status:'serving',truth_mode:'evidence-required'});const origin=request.headers.get('Origin');
+    const response=json({ok:true,service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),source:sourceMetadata(env),deployment:releaseMetadata(env),agents:AGENTS.length,status:'serving',truth_mode:'evidence-required'});const origin=request.headers.get('Origin');
     if(['https://trinity-morhfeus-20261001.web.app','https://trinity-morhfeus-20261001.firebaseapp.com'].includes(origin)){response.headers.set('Access-Control-Allow-Origin',origin);response.headers.set('Vary','Origin');}
     return response;
   }
@@ -335,6 +336,10 @@ async function route(request,env,ctx){
     const body=await readJSON(request,32000);
     const result=await invokeAzureFoundryAgent(env,body);
     return json(result,result.ok?200:400);
+  }
+  if(path==='/api/vault/overview'&&request.method==='GET'){
+    await authenticate(request,env);
+    return json(getEnvironmentOverview(env));
   }
   if(path==='/api/capabilities/500-improvements'&&request.method==='GET'){
     const layerFilter=url.searchParams.get('layer');

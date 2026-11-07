@@ -31,7 +31,7 @@ test('both public domains serve one production Worker and isolated previews own 
  assert.ok(staging.r2_buckets.some(binding=>binding.binding==='ARTIFACTS'));
  assert.ok(staging.durable_objects.bindings.some(binding=>binding.name==='Brain'));
  assert.ok(staging.workflows.some(binding=>binding.binding==='OPS_WORKFLOW'));
- assert.equal(staging.services.length,29);
+ assert.equal(staging.services.length,config.services.length);
  assert.ok(staging.services.some(binding=>binding.binding==='KNOWLEDGE_SERVICE'));
  assert.equal(staging.vars.TRINITY_AUTO_IMPROVE,'false');
  assert.equal(staging.vars.TRINITY_AUTO_MERGE,'false');

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {accessHeaders, diagnoseAccess, probeEndpoint, readAccessMetadata,
-  targetsWorker, validateOrigin, verifyMcp} from '../scripts/lib/cloudflare-access.mjs';
+  resolveEnvCredentials, targetsWorker, validateOrigin, verifyMcp} from '../scripts/lib/cloudflare-access.mjs';
 
 const credentials = {CLOUDFLARE_ACCESS_CLIENT_ID: 'fixture-client', CLOUDFLARE_ACCESS_CLIENT_SECRET: 'fixture-secret'};
 
@@ -133,4 +133,33 @@ test('real MCP SDK initialization and tool catalog use both layers of auth witho
   const result=await verifyMcp({origin:'https://auru.space',env:{...credentials,TRINITY_MCP_API_KEY:'fixture-mcp'},fetcher});
   assert.equal(result.verified,true);assert.equal(result.tools_count,1);assert.equal(result.mutating_tools_called,false);
   assert.deepEqual(methods,['initialize','notifications/initialized','tools/list']);
+});
+
+test('TRINITY_MCP_TOKEN alias is accepted for MCP verification', async () => {
+  const fetcher = async (_url, init) => {
+    const headers = new Headers(init.headers);
+    assert.equal(headers.get('Authorization'), 'Bearer token-alias');
+    if (init.method === 'GET') return new Response(null, {status: 405});
+    const request = JSON.parse(String(init.body));
+    if (request.method === 'notifications/initialized') return new Response(null, {status: 202});
+    const result = request.method === 'initialize'
+      ? {protocolVersion: '2025-11-25', capabilities: {tools: {}}, serverInfo: {name: 'fixture', version: '1'}}
+      : {tools: [{name: 'trinity_status', inputSchema: {type: 'object'}}]};
+    return Response.json({jsonrpc: '2.0', id: request.id, result});
+  };
+  const result = await verifyMcp({origin: 'https://auru.space', env: {...credentials, TRINITY_MCP_TOKEN: 'token-alias'}, fetcher});
+  assert.equal(result.verified, true);
+  assert.equal(result.tools_count, 1);
+});
+
+test('resolveEnvCredentials preserves existing environment credentials without mutating input', () => {
+  const custom = {
+    CLOUDFLARE_ACCESS_CLIENT_ID: 'custom-id',
+    CLOUDFLARE_ACCESS_CLIENT_SECRET: 'custom-secret',
+    TRINITY_MCP_API_KEY: 'custom-key'
+  };
+  const resolved = resolveEnvCredentials(custom);
+  assert.equal(resolved.CLOUDFLARE_ACCESS_CLIENT_ID, 'custom-id');
+  assert.equal(resolved.CLOUDFLARE_ACCESS_CLIENT_SECRET, 'custom-secret');
+  assert.equal(resolved.TRINITY_MCP_API_KEY, 'custom-key');
 });
