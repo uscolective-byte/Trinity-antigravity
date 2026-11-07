@@ -27,17 +27,17 @@ Východisková nezávislá diagnostika (`node scripts/check-trinity-domains.mjs`
 ## 2. Vyriešené konfiguračné úlohy
 
 ### A. Izolácia prostredí Jericho Worker (`Jericho-Worker/wrangler.jsonc`)
-Pôvodný stav: Obe vlastné domény (`jericho123.auru.space` aj `jericho123.auru.dev`) boli na najvyššej úrovni mapované na jeden worker `jericho123` s premennou `IRONMENT: "production"`.
+Pôvodný stav: Obe vlastné domény (`jericho123.auru.space` aj `jericho123.auru.dev`) boli na najvyššej úrovni mapované na jeden worker `jericho123` s premennou `ENVIRONMENT: "production"`.
 
 **Vykonaná úprava:**
 - **Produkcia (top-level):**
   - Meno: `jericho123`
   - Route: `jericho123.auru.space` (`custom_domain: true`)
-  - Premenná: `IRONMENT: "production"`
-- **Vývoj (`.development`):**
+  - Premenná: `ENVIRONMENT: "production"`
+- **Vývoj (`env.development`):**
   - Meno: `jericho123-development`
   - Route: `jericho123.auru.dev` (`custom_domain: true`)
-  - Premenná: `IRONMENT: "development"`
+  - Premenná: `ENVIRONMENT: "development"`
 
 ### B. Tetrakis ($TTK) Krypto Pokladňa & Kontrakt
 - **Smart kontrakt:** `contracts/tetrakis/TetrakisToken.sol` (OpenZeppelin v5.1.0, 1B TTK fixed supply mintnutých do Treasury, žiadne dane, žiadny blacklist, žiadny minting backdoor).

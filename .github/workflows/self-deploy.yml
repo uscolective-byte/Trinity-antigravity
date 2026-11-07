@@ -30,7 +30,7 @@ jobs:
     steps:
       - name: Require the canonical repository and main branch
         working-directory: .
-        :
+        env:
           SOURCE_REPOSITORY: ${{ github.repository }}
           SOURCE_REF: ${{ github.ref }}
         run: |
@@ -54,21 +54,21 @@ jobs:
         working-directory: .
         run: npm run docs:check
       - name: Run Sovereign Lock, Truth Guard & P0/P1 Security Audit Suite
-        run: node --test tests/security-audit-remediation.test.mjs tests/sovereign-lock-root.test.mjs tests/truth-ten-commandments.test.mjs tests/omni-core-500-registry.test.mjs tests/prislub-integrity.test.mjs
+        run: node --test tests/sovereign-lock.test.mjs tests/agent-sandbox-security.test.mjs tests/code-interpreter-security.test.mjs tests/truth-ten-commandments.test.mjs tests/omni-core-500-registry.test.mjs tests/prislub-integrity.test.mjs
       - name: Verify Secrets Store metadata and staging storage isolation
         working-directory: .
         run: |
           node Trinity/scripts/secrets-store-doctor.mjs
-          node Trinity/scripts/cloudflare--audit.mjs --strict
+          node Trinity/scripts/cloudflare-env-audit.mjs --strict
       - name: Run full build (dry-run) and unit test suite
         run: npm test
 
-  # GitHub ironment remains named 'development' to preserve existing
-  # ironment permissions and secrets; Wrangler's target is 'staging' (auru.dev).
+  # GitHub environment remains named 'development' to preserve existing
+  # environment permissions and secrets; Wrangler's target is 'staging' (auru.dev).
   deploy-development:
     needs: verify
     runs-on: ubuntu-latest
-    ironment:
+    environment:
       name: development
       url: https://auru.dev
     concurrency:
@@ -92,7 +92,7 @@ jobs:
       - run: npm ci
       - name: Check deployment credentials
         id: credentials
-        :
+        env:
           CF_TOKEN_PRIMARY: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_TOKEN_FALLBACK: ${{ secrets.CF_API_TOKEN }}
           CF_ACCT_PRIMARY: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -110,8 +110,8 @@ jobs:
           fi
       - name: Apply development migrations (D1 trinity-development)
         if: ${{ steps.credentials.outputs.available == 'true' }}
-        run: npx wrangler d1 migrations apply DB --remote -- staging
-        :
+        run: npx wrangler d1 migrations apply DB --remote --config wrangler.jsonc --env staging
+        env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ steps.credentials.outputs.account_id }}
       - name: Deploy development Worker (trinity-staging -> auru.dev)
@@ -120,7 +120,7 @@ jobs:
         run: |
           npm run deploy:staging -- --tag "$GITHUB_SHA"
           echo "deployed=true" >> "$GITHUB_OUTPUT"
-        :
+        env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ steps.credentials.outputs.account_id }}
       - name: Verify development readiness (auru.dev)
@@ -131,7 +131,7 @@ jobs:
     needs: [verify, deploy-development]
     if: ${{ needs.deploy-development.outputs.deployed == 'true' && github.event_name == 'workflow_dispatch' && inputs.deploy_production == true }}
     runs-on: ubuntu-latest
-    ironment:
+    environment:
       name: production
       url: https://auru.space
     concurrency:
@@ -154,21 +154,21 @@ jobs:
         run: npm ci --ignore-scripts
       - run: npm ci
       - name: Sovereign Lock Gate (Git diff SHA-256 & Basterix Approval Verification)
-        :
+        env:
           GITHUB_ACTOR_NAME: ${{ github.actor }}
           GIT_COMMIT_SHA: ${{ github.sha }}
         run: |
           DIFF_HASH=$(git diff HEAD~1 HEAD | sha256sum | awk '{print $1}')
           echo "Verified Git Diff SHA-256: $DIFF_HASH for commit $GIT_COMMIT_SHA by $GITHUB_ACTOR_NAME"
-          echo "DIFF_HASH=$DIFF_HASH" >> "$GITHUB_"
+          echo "DIFF_HASH=$DIFF_HASH" >> "$GITHUB_ENV"
       - name: Apply production migrations (D1 trinity-v03)
-        run: npx wrangler d1 migrations apply DB --remote --=""
-        :
+        run: npx wrangler d1 migrations apply DB --remote --config wrangler.jsonc --env=""
+        env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CF_ACCOUNT_ID || 'b60342e5e52f5646fbd4e913bb409334' }}
       - name: Deploy production Worker (trinity -> auru.space)
         run: npm run deploy -- --tag "$GITHUB_SHA"
-        :
+        env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CF_ACCOUNT_ID || 'b60342e5e52f5646fbd4e913bb409334' }}
       - name: Verify production readiness (https://auru.space)
@@ -180,9 +180,9 @@ jobs:
             const fs = require('fs');
             const receipt = {
               schema: 'TRINITY_SOVEREIGN_DEPLOYMENT_RECEIPT_V3',
-              commit_sha: process..GITHUB_SHA,
-              git_diff_sha256: process..DIFF_HASH,
-              actor: process..GITHUB_ACTOR,
+              commit_sha: process.env.GITHUB_SHA,
+              git_diff_sha256: process.env.DIFF_HASH,
+              actor: process.env.GITHUB_ACTOR,
               production_url: 'https://auru.space',
               staging_url: 'https://auru.dev',
               exit_code: 0,

@@ -41,7 +41,7 @@ The system is housed within a single canonical monorepository (`uscolective-byte
 
 Trinity's multi-tier deployment topology ensures absolute separation between production workloads and live staging diagnostics:
 
-| Domain | ironment | Primary Worker | Operational Role |
+| Domain | Environment | Primary Worker | Operational Role |
 | :--- | :--- | :--- | :--- |
 | **`auru.space`** | `production` | `trinity` | Sovereign production gateway for the Root Architect; high-availability client interface. |
 | **`auru.dev`** | `staging` | `trinity-staging` | Isolated staging playground, Omni-Dev workspace, and mobile-optimized command center (`/mobile`). |
@@ -75,7 +75,7 @@ Absolute administrative control over system code modifications, runtime configur
 ## 🛡️ Core Security & Determinism Frameworks
 
 ### **1. Five Iron Rules of Code Protection (`sovereign-lock.js`)**
-* **Zero Autonomous Rewrite:** Prohibits self-modification without an explicit `Consentelope` (HMAC-SHA256 bound to git diff + atomic nonce tracking in D1/KV/Disk Vault).
+* **Zero Autonomous Rewrite:** Prohibits self-modification without an explicit `ConsentEnvelope` (HMAC-SHA256 bound to git diff + atomic nonce tracking in D1/KV/Disk Vault).
 * **Prompt Injection Immunity:** External inputs (web scrapes, social feeds, untrusted payloads) are treated strictly as `PASSIVE_DATA` (`executable: false`).
 * **Owner Assertion Enforcement:** Privileged operations require continuous validation of the Root session context.
 * **Hardware Write-Protection:** Critical kernel source files default to `READ_ONLY` posture.
@@ -103,9 +103,9 @@ Absolute administrative control over system code modifications, runtime configur
  ┣ 📜 SOVEREIGN_CHARTER.md   # Constitutional compliance framework & 20 legal clauses
  ┗ 📜 README.md              # System manifest
 🚀 Getting Started & Local Operations
-Ensure your ironment utilizes Node.js v22+ and npm. (Windows users: use npm.cmd if PowerShell restricts .ps1 execution policies).
+Ensure your environment utilizes Node.js v22+ and npm. (Windows users: use npm.cmd if PowerShell restricts .ps1 execution policies).
 
-1. ironment Initialization
+1. Environment Initialization
 PowerShell
 powershell -ExecutionPolicy Bypass -File scripts/install-all.ps1
 2. Integrity & Documentation Check

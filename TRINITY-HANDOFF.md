@@ -20,7 +20,7 @@ Týmto dokumentom sa na základe priameho príkazu a vôle majiteľa **Saba Ivan
    - Každá zmena vyžaduje vzájomné odovzdanie (`HANDOFF`) a potvrdenie (`ACK`).
 3. **Nulové plytvanie externými kreditmi (Edge First Policy):**
    - Vzhľadom na minimalizáciu nákladov na externé API tokeny (ChatGPT / OpenAI) je **Cloudflare Trinity Sovereign Core** primárnym motorom.
-   - Všetky rutinné požiadavky, ukladanie dát, sémantická pamäť a lokálna inferencia bežia priamo na Cloudflare Workers AI (`.AI`), D1 a KV.
+   - Všetky rutinné požiadavky, ukladanie dát, sémantická pamäť a lokálna inferencia bežia priamo na Cloudflare Workers AI (`env.AI`), D1 a KV.
    - Antigravity a ChatGPT/Codex vystupujú ako špičkoví architekti a inšpektori.
 
 ---

@@ -25,7 +25,7 @@ reviewed, regression-tested and validated on staging before production.
 
 - Do not commit, print, copy into chat, put into URLs or expose via logs:
   passwords, API tokens, OAuth codes, session cookies or cryptographic keys.
-- Keep runtime credentials in per-ironment Cloudflare Worker Secrets or
+- Keep runtime credentials in per-environment Cloudflare Worker Secrets or
   an approved encrypted vault. CI and Vercel tokens remain in their own
   provider-managed secret stores.
 - Production and staging are separate trust boundaries. Never bulk-copy

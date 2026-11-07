@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   UnifiedReceiptSchema,
   ResonanceReceiptExtensionSchema,
@@ -229,33 +230,37 @@ test('10. 3-6-9 Resonance Receipt Extension spĺňa kmitočtovú štruktúru', (
 });
 
 test('11. Implementačné kritérium 1: vytvorenie súboru, výpočet hashu, nezávislé overenie a zápis do Sovereign Ledgeru', async () => {
-  const tempDir = path.resolve('C:/Users/saboi/Trinity/Trinity-antigravity/Trinity/workspace/receipt-test');
+  const tempDir = path.resolve(fileURLToPath(new URL('../workspace/receipt-test', import.meta.url)));
   const fileName = 'verified-evidence-doc.txt';
   const content = 'KRYPTOGRAFICKÝ DÔKAZ TRINITY: Každá akcia = Receipt = Overiteľný dôkaz.';
 
-  const outcome = await executeVerifiedFileCreation({
-    targetDir: tempDir,
-    fileName,
-    content,
-    actor: { type: 'agent', id: 'trinity-evidence-engine' }
-  });
+  try {
+    const outcome = await executeVerifiedFileCreation({
+      targetDir: tempDir,
+      fileName,
+      content,
+      actor: { type: 'agent', id: 'trinity-evidence-engine' }
+    });
 
-  // Overenie návratového stavu
-  assert.equal(outcome.status, 'SUCCESS');
-  assert.ok(outcome.receipt.receiptId.startsWith('RCP-'));
-  assert.ok(outcome.sha256.startsWith('sha256:'));
-  assert.ok(outcome.ledgerProof.hash.length >= 64);
+    // Overenie návratového stavu
+    assert.equal(outcome.status, 'SUCCESS');
+    assert.ok(outcome.receipt.receiptId.startsWith('RCP-'));
+    assert.ok(outcome.sha256.startsWith('sha256:'));
+    assert.ok(outcome.ledgerProof.hash.length >= 64);
 
-  // Nezávislé overenie, že súbor reálne existuje na disku
-  assert.ok(fs.existsSync(outcome.verifiedFile));
-  const directRead = fs.readFileSync(outcome.verifiedFile, 'utf8');
-  assert.equal(directRead, content);
+    // Nezávislé overenie, že súbor reálne existuje na disku
+    assert.ok(fs.existsSync(outcome.verifiedFile));
+    const directRead = fs.readFileSync(outcome.verifiedFile, 'utf8');
+    assert.equal(directRead, content);
 
-  // Nezávislé overenie, že záznam bol zapísaný do lokálneho Sovereign Ledgeru
-  const ledgerPath = path.join(tempDir, 'sovereign-receipt-ledger.jsonl');
-  assert.ok(fs.existsSync(ledgerPath));
-  const ledgerLines = fs.readFileSync(ledgerPath, 'utf8').trim().split(/\r?\n/);
-  const lastLedgerEntry = JSON.parse(ledgerLines[ledgerLines.length - 1]);
-  assert.equal(lastLedgerEntry.receiptId, outcome.receipt.receiptId);
-  assert.equal(lastLedgerEntry.evidence[0].afterHash, outcome.sha256);
+    // Nezávislé overenie, že záznam bol zapísaný do lokálneho Sovereign Ledgeru
+    const ledgerPath = path.join(tempDir, 'sovereign-receipt-ledger.jsonl');
+    assert.ok(fs.existsSync(ledgerPath));
+    const ledgerLines = fs.readFileSync(ledgerPath, 'utf8').trim().split(/\r?\n/);
+    const lastLedgerEntry = JSON.parse(ledgerLines[ledgerLines.length - 1]);
+    assert.equal(lastLedgerEntry.receiptId, outcome.receipt.receiptId);
+    assert.equal(lastLedgerEntry.evidence[0].afterHash, outcome.sha256);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
 });

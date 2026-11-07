@@ -5,11 +5,11 @@ Rozdelenie: Antigravity vlastní Cloudflare DNS/Worker konfiguráciu a DOMAIN-CO
 
 ## Východiskový stav
 
-- auru.space: DNS a HTTPS fungujú; root a /health HTTP 200. Trinity 11.0.0, ironment production, status serving. Pri poslednej kontrole deployment ID 8352f194-ee99-451f-9256-a823bad4d0fa, commit tag null.
-- auru.dev: DNS a HTTPS fungujú; root a /health HTTP 200. Trinity 11.0.0, ironment development, status serving. Deployment ID 658a1586-40c9-44de-8892-8538be820af8, commit tag null.
+- auru.space: DNS a HTTPS fungujú; root a /health HTTP 200. Trinity 11.0.0, environment production, status serving. Pri poslednej kontrole deployment ID 8352f194-ee99-451f-9256-a823bad4d0fa, commit tag null.
+- auru.dev: DNS a HTTPS fungujú; root a /health HTTP 200. Trinity 11.0.0, environment development, status serving. Deployment ID 658a1586-40c9-44de-8892-8538be820af8, commit tag null.
 - jericho123.auru.space a jericho123.auru.dev: DNS aj TLS fungujú. Verejné volania root a /health HTTP 302 na Cloudflare Access login. To je ochrana, nie dôkaz zlyhania domény. Funkčnosť originu za autentifikáciou nebola týmto preukázaná.
 - www.auru.space a www.auru.dev: DNS ENOTFOUND; HTTPS sa nedá nadviazať.
-- Jericho-Worker/wrangler.jsonc mapuje obe Jericho custom domains na jeden Worker jericho123 s IRONMENT production; neobsahuje .development. Samostatná vývojová inštancia teda nie je doložená touto konfiguráciou.
+- Jericho-Worker/wrangler.jsonc mapuje obe Jericho custom domains na jeden Worker jericho123 s ENVIRONMENT production; neobsahuje env.development. Samostatná vývojová inštancia teda nie je doložená touto konfiguráciou.
 
 ## Požadované výsledky
 
@@ -23,7 +23,7 @@ Rozdelenie: Antigravity vlastní Cloudflare DNS/Worker konfiguráciu a DOMAIN-CO
 
 Read-only skript: node scripts/check-trinity-domains.mjs.
 Testy: node --test scripts/check-trinity-domains.test.mjs -> 5/5 PASS.
-Kontrola nečíta žiadne credentials a nemení DNS ani nasadenie. Overuje všetkých šesť hostov, HTTP status oddelene od status poľa v JSON, ironment, canonical path/query a pravý Cloudflare Access redirect bez zapisovania login tokenov.
+Kontrola nečíta žiadne credentials a nemení DNS ani nasadenie. Overuje všetkých šesť hostov, HTTP status oddelene od status poľa v JSON, environment, canonical path/query a pravý Cloudflare Access redirect bez zapisovania login tokenov.
 Živé východiskové spustenie: 4 hosty prešli kontrolou dostupnosti/ochrany; obe www zlyhali v DNS. Tento výsledok neznamená overenie prihlásenej služby ani oddelenia dát.
 
 Stav: konkrétne nálezy a požiadavka na opravu doručené Antigravity; prijatie správ je potvrdené. DNS oprava a izolácia Jericho zatiaľ neboli nezávisle potvrdené.

@@ -39,8 +39,8 @@ crons = ["*/30 * * * *", "0 0 * * *", "0 11 * * *"]
 # Tajomstvá a API tokeny sa spravujú výhradne cez `wrangler secret put`
 # ------------------------------------------------------------------------------
 [vars]
-IRONMENT = "production"
-TRINITY_ = "production"
+ENVIRONMENT = "production"
+TRINITY_ENV = "production"
 SYSTEM_NAME = "TRINITY OMNI-CORE"
 SYSTEM_VERSION = "11.0.0"
 ROOT_OPERATOR_ALIAS = "Basterix"
@@ -147,18 +147,18 @@ name = "GUARDIAN_AGENT"
 class_name = "GuardianAgent"
 
 # ------------------------------------------------------------------------------
-# 8. STAGING IRONMENT (auru.dev — VÝVOJ, TESTOVANIE A BRIDGE)
-# Tento profil sa spúšťa príkazom: npx wrangler deploy -- staging
+# 8. STAGING ENVIRONMENT (auru.dev — VÝVOJ, TESTOVANIE A BRIDGE)
+# Tento profil sa spúšťa príkazom: npx wrangler deploy --env staging
 # ------------------------------------------------------------------------------
-[.staging]
+[env.staging]
 name = "trinity-staging"
 routes = [
   { pattern = "auru.dev", custom_domain = true }
 ]
 
-[.staging.vars]
-IRONMENT = "staging"
-TRINITY_ = "staging"
+[env.staging.vars]
+ENVIRONMENT = "staging"
+TRINITY_ENV = "staging"
 TRINITY_PREVIEW_MODE = "build-only"
 SYSTEM_NAME = "TRINITY STAGING & DEV BRIDGE"
 SYSTEM_VERSION = "11.0.0"
@@ -173,65 +173,65 @@ FIREBASE_PROJECT_ID = "trinity-morhfeus-20261001"
 TRINITY_GITHUB_REPO = "uscolective-byte/Trinity-antigravity"
 TRINITY_GITHUB_BRANCH = "main"
 
-[[.staging.d1_databases]]
+[[env.staging.d1_databases]]
 binding = "DB"
 database_name = "trinity-development"
 database_id = "1cce5249-e044-4c93-868c-0df534a778b5"
 migrations_dir = "Trinity/migrations"
 
-[[.staging.d1_databases]]
+[[env.staging.d1_databases]]
 binding = "TRINITY_D1"
 database_name = "trinity-development"
 database_id = "1cce5249-e044-4c93-868c-0df534a778b5"
 migrations_dir = "Trinity/migrations"
 
-[[.staging.d1_databases]]
+[[env.staging.d1_databases]]
 binding = "rea"
 database_name = "trinity-db"
 database_id = "5b792055-97cf-4d8a-8145-d588c83c54df"
 
-[[.staging.d1_databases]]
+[[env.staging.d1_databases]]
 binding = "trinity_basterix"
 database_name = "trinity-pc-bridge"
 database_id = "39be1f38-f710-4df4-9202-5bdbb8febf57"
 
-[[.staging.kv_namespaces]]
+[[env.staging.kv_namespaces]]
 binding = "TRINITY_KV"
 id = "0b92ed2717d742daa860f1827797297f"
 
-[[.staging.kv_namespaces]]
+[[env.staging.kv_namespaces]]
 binding = "Mastermind"
 id = "0b92ed2717d742daa860f1827797297f"
 
-[[.staging.kv_namespaces]]
+[[env.staging.kv_namespaces]]
 binding = "PC_STATE"
 id = "7eb48d414296418f9c60d87f8c602956"
 
-[[.staging.r2_buckets]]
+[[env.staging.r2_buckets]]
 binding = "R2_STORAGE"
 bucket_name = "trinity-artifacts"
 
-[[.staging.r2_buckets]]
+[[env.staging.r2_buckets]]
 binding = "TRINITY_STORAGE"
 bucket_name = "trinity-artifacts"
 
-[[.staging.r2_buckets]]
+[[env.staging.r2_buckets]]
 binding = "ARTIFACTS"
 bucket_name = "trinity-artifacts"
 
-[[.staging.vectorize]]
+[[env.staging.vectorize]]
 binding = "VECTOR_INDEX"
 index_name = "trinity-vector-index"
 
-[[.staging.vectorize]]
+[[env.staging.vectorize]]
 binding = "VECTORIZE"
 index_name = "trinity-vector-index"
 
-[[.staging.vectorize]]
+[[env.staging.vectorize]]
 binding = "AURA_MEMORY_VECTOR"
 index_name = "aura-memory"
 
-[.staging.ai]
+[env.staging.ai]
 binding = "AI"
 
 [exports.TrinityAgent]

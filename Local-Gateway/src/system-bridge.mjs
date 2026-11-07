@@ -150,7 +150,7 @@ export async function createSystemBridgeServer(options = {}) {
       }
 
       const url = new URL(request.url, 'http://127.0.0.1:7788');
-      const winSession = inspectWindowsSession();
+      const winSession = inspectWindowsSession(options.windowsSession || null);
 
       // 1. Public / Local Health & Status Check
       if ((request.method === 'GET' || request.method === 'HEAD') && (url.pathname === '/health' || url.pathname === '/api/status' || url.pathname === '/api/auth/status' || url.pathname === '/api/bridge' || url.pathname === '/api/bridge/status')) {
@@ -305,6 +305,7 @@ export async function createSystemBridgeServer(options = {}) {
           verifiedWebhookSignature: input.verifiedWebhookSignature === true && tokenOk,
           verifiedWindowsToken: input.verifiedWindowsToken === true && tokenOk,
           sid: input.sid || winSession.sid,
+          windowsSession: options.windowsSession || null,
           checkLocalWindows: tokenOk && !input.email && !input.phone && !input.windowsUser
         };
 
@@ -336,11 +337,11 @@ export async function createSystemBridgeServer(options = {}) {
                 try {
                   appResult = await executeDesktop({ task: 'desktop-control', operation: 'launch', app: appToOpen });
                 } catch (err) {
-                  const windows = await listDesktopWindows();
+                  const windows = await listDesktopWindows().catch(() => []);
                   appResult = { operation: 'launch_fallback_list', app: appToOpen, note: err.message, active_windows_count: windows.length };
                 }
               } else {
-                const windows = await listDesktopWindows();
+                const windows = await listDesktopWindows().catch(() => []);
                 appResult = { operation: 'list', active_windows_count: windows.length, sample_windows: windows.slice(0, 5) };
               }
               const localLedger = appendLocalSovereignLedger(targetDataDir, {

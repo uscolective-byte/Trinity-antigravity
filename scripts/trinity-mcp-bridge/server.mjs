@@ -7,11 +7,15 @@ import express from "express";
 import cors from "cors";
 import path from "node:path";
 import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const execAsync = promisify(exec);
 
 // Konfigurácia TRINITY Sandboxu
-export const DEFAULT_WORKSPACE = path.resolve("C:/Users/saboi/Trinity/Trinity-antigravity");
+const REPO_ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
+export const DEFAULT_WORKSPACE = fs.existsSync("C:/Users/saboi/Trinity/Trinity-antigravity")
+  ? path.resolve("C:/Users/saboi/Trinity/Trinity-antigravity")
+  : REPO_ROOT;
 export const WORKSPACE_DIR = process.env.TRINITY_WORKSPACE ? path.resolve(process.env.TRINITY_WORKSPACE) : DEFAULT_WORKSPACE;
 export const BRIDGE_PORT = parseInt(process.env.TRINITY_PORT || "3333", 10);
 export const BRIDGE_TOKEN = process.env.TRINITY_TOKEN || (process.env.NODE_ENV === "test" || !process.env.NODE_ENV ? "trinity-local-secret" : "");
@@ -42,7 +46,12 @@ export function auditCommand(cmd) {
 
 export async function runSafeCommand(command, subdir = ".", timeoutMs = 120000) {
   auditCommand(command);
-  const resolvedCwd = path.resolve(WORKSPACE_DIR, subdir);
+  const rawSubdir = String(subdir ?? ".");
+  if (/^[a-zA-Z]:[\\/]|^\\\\/.test(rawSubdir.trim())) {
+    throw new Error(`SANDBOX VIOLATION: Pokus o únik mimo TRINITY_WORKSPACE (${rawSubdir})`);
+  }
+  const normalizedSubdir = rawSubdir.replace(/\\/g, "/");
+  const resolvedCwd = path.resolve(WORKSPACE_DIR, normalizedSubdir);
   const normalizedRoot = path.resolve(WORKSPACE_DIR);
   const rel = path.relative(normalizedRoot, resolvedCwd);
 
