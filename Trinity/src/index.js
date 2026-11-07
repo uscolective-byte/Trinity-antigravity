@@ -274,6 +274,41 @@ async function route(request,env,ctx){
     if(edgeRes)return edgeRes;
     return json({ok:false,matched:false,next:'inference-cascade'},202);
   }
+  if(request.method==='OPTIONS'&&(path==='/chat'||path==='/api/chat'||path.startsWith('/api/profiles')||path.startsWith('/profiles')||path.startsWith('/api/crypto')||path.startsWith('/crypto')||isOmniDevHost||env.STRICT_MODE==='false')){
+    return new Response(null,{
+      headers:{
+        'Access-Control-Allow-Origin':'*',
+        'Access-Control-Allow-Methods':'*',
+        'Access-Control-Allow-Headers':'*'
+      }
+    });
+  }
+  if(request.method==='POST'&&(path==='/chat'||path==='/api/chat')){
+    let body={};
+    try{body=await request.clone().json();}catch{body={};}
+    const messages=Array.isArray(body?.messages)&&body.messages.length?body.messages:[{role:'user',content:body?.message||body?.prompt||'Ahoj Trinity'}];
+    const latestMessage=messages[messages.length-1]?.content||'';
+    const fast=handleFastChat(latestMessage,env);
+    if(fast.handled){
+      recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'FAST_CHAT_EDGE_HIT',payload:{query:latestMessage}});
+      return new Response(JSON.stringify({reply:fast.response,mode:'fast-edge',route:'fast-chat-edge'}),{
+        headers:{
+          'Content-Type':'application/json',
+          'Access-Control-Allow-Origin':'*',
+          'X-Trinity-Route':'fast-chat-edge'
+        }
+      });
+    }
+    recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'AI_INFERENCE_INVOKED',payload:{query:latestMessage}});
+    const stream=await executeInferenceCascade(messages,env);
+    return new Response(stream,{
+      headers:{
+        'Content-Type':'text/event-stream',
+        'Cache-Control':'no-cache',
+        'Access-Control-Allow-Origin':'*'
+      }
+    });
+  }
   if(path.startsWith('/api/profiles/')||path.startsWith('/profiles/')){
     const traceId=crypto.randomUUID();
     const targetUrl=new URL(request.url);

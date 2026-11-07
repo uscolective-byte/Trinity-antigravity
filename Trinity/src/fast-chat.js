@@ -245,8 +245,25 @@ export async function handleFastChatEdge(requestOrTask,env={}){
     headers:{
       'Content-Type':'application/json; charset=utf-8',
       'Cache-Control':'no-store',
+      'Access-Control-Allow-Origin':'*',
       'X-Trinity-Route':'fast-chat-edge'
     }
   });
 }
+
+/**
+ * Synchronný Fast-Chat helper pre priame volanie z routerov (vracia { handled, response }).
+ */
+export function handleFastChat(task,env={}){
+  const matched=matchFastChatEdge(task,env);
+  if(!matched){
+    return {handled:false,response:null};
+  }
+  return {
+    handled:true,
+    response:matched.reply,
+    ...matched
+  };
+}
+
 

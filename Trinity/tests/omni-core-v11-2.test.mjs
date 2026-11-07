@@ -510,4 +510,77 @@ test('Module 8: 6-Cluster 47-Worker Architecture & Worker #01 (trinity-gateway) 
   assert.equal(auditEntries[0][3], 'basterix-ring0');
 });
 
+test('Module 9: DEV MODE (Zero Verification / Open Access) handleFastChat, executeInferenceCascade & /chat', async () => {
+  const { handleFastChat } = await import('../src/fast-chat.js');
+  const { executeInferenceCascade } = await import('../src/inference-cascade.js');
+  const trinityWorker = (await import('../src/dev-gateway.js')).default;
+
+  // 1. Direct handleFastChat
+  const fastHit = handleFastChat('kto si?', { ENVIRONMENT: 'staging' });
+  assert.equal(fastHit.handled, true);
+  assert.match(fastHit.response, /Ivan Sabo \(Basterix/);
+
+  // 2. Direct executeInferenceCascade SSE stream with pinned Ring 0 prompt
+  const stream = await executeInferenceCascade(
+    [{ role: 'user', content: 'Vysvetli architektúru' }],
+    {
+      AI: {
+        async run(_model, payload) {
+          assert.equal(payload.messages[0].role, 'system');
+          assert.match(payload.messages[0].content, /Ivan Sabo \(Basterix/);
+          return { response: 'Architektúra Trinity beží na Cloudflare Edge.' };
+        }
+      }
+    }
+  );
+  const reader = stream.getReader();
+  const dec = new TextDecoder();
+  let sseText = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    sseText += dec.decode(value, { stream: true });
+  }
+  assert.match(sseText, /Architektúra Trinity beží na Cloudflare Edge/);
+
+  // 3. Zero-verification POST /chat on Trinity index.js (Fast-Edge)
+  const fastChatHttp = await trinityWorker.fetch(
+    new Request('https://auru.dev/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: '5+5' })
+    }),
+    { ENVIRONMENT: 'staging', STRICT_MODE: 'false' }
+  );
+  assert.equal(fastChatHttp.status, 200);
+  assert.equal(fastChatHttp.headers.get('Access-Control-Allow-Origin'), '*');
+  const fastChatBody = await fastChatHttp.json();
+  assert.equal(fastChatBody.mode, 'fast-edge');
+  assert.equal(fastChatBody.reply, '10');
+
+  // 4. Zero-verification POST /api/chat on Trinity index.js (SSE stream)
+  const cascadeHttp = await trinityWorker.fetch(
+    new Request('https://auru.dev/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: 'Aký je plán?' }] })
+    }),
+    {
+      ENVIRONMENT: 'staging',
+      STRICT_MODE: 'false',
+      AI: {
+        async run() {
+          return { response: 'Plán je 6 klastrov a 47 workerov.' };
+        }
+      }
+    }
+  );
+  assert.equal(cascadeHttp.status, 200);
+  assert.equal(cascadeHttp.headers.get('Access-Control-Allow-Origin'), '*');
+  assert.match(cascadeHttp.headers.get('Content-Type') || '', /text\/event-stream/);
+  const streamOut = await cascadeHttp.text();
+  assert.match(streamOut, /Plán je 6 klastrov a 47 workerov/);
+});
+
+
 
