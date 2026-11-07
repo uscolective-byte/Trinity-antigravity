@@ -98,3 +98,149 @@ export async function verifyReceipt(receipt, request, result) {
     && body.agent_id === request.receiver.id && body.tool_id === request.payload.tool_id
     && body.environment === request.environment;
 }
+
+// ============================================================================
+// TRINITY ASSURANCE PROTOCOL (TAP) - CRYPTO RUNTIME v11.2.0
+// ============================================================================
+
+const KEY_ALGO = {
+  name: "RSASSA-PKCS1-v1_5",
+  modulusLength: 2048,
+  publicExponent: new Uint8Array([1, 0, 1]),
+  hash: "SHA-256"
+};
+
+export function base64UrlEncode(str) {
+  const bytes = typeof str === "string" ? new TextEncoder().encode(str) : new Uint8Array(str);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+export function base64UrlDecode(str) {
+  let base64 = String(str).replace(/-/g, "+").replace(/_/g, "/");
+  while (base64.length % 4) {
+    base64 += "=";
+  }
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+export class TapKeyManager {
+  static async generateKeyPair() {
+    return await crypto.subtle.generateKey(
+      KEY_ALGO,
+      true,
+      ["sign", "verify"]
+    );
+  }
+
+  static async exportKeyPkcs8(privateKey) {
+    const exported = await crypto.subtle.exportKey("pkcs8", privateKey);
+    return base64UrlEncode(exported);
+  }
+
+  static async exportKeySpki(publicKey) {
+    const exported = await crypto.subtle.exportKey("spki", publicKey);
+    return base64UrlEncode(exported);
+  }
+
+  static async importPrivateKey(b64) {
+    const buffer = base64UrlDecode(b64);
+    return await crypto.subtle.importKey("pkcs8", buffer, KEY_ALGO, true, ["sign"]);
+  }
+
+  static async importPublicKey(b64) {
+    const buffer = base64UrlDecode(b64);
+    return await crypto.subtle.importKey("spki", buffer, KEY_ALGO, true, ["verify"]);
+  }
+}
+
+export class TapTokenEngine {
+  static async sign(payload, privateKey, kid = "trinity-root-01") {
+    const header = {
+      alg: "RS256",
+      typ: "JWT",
+      kid: kid
+    };
+
+    const encodedHeader = base64UrlEncode(JSON.stringify(header));
+    const encodedPayload = base64UrlEncode(JSON.stringify({
+      ...payload,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + (payload.exp_seconds ?? 86400),
+      iss: "trinity-ring0",
+      aud: "aura-fleet"
+    }));
+
+    const dataToSign = new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`);
+    const signatureBuffer = await crypto.subtle.sign(
+      "RSASSA-PKCS1-v1_5",
+      privateKey,
+      dataToSign
+    );
+
+    const encodedSignature = base64UrlEncode(signatureBuffer);
+    return `${encodedHeader}.${encodedPayload}.${encodedSignature}`;
+  }
+
+  static async verify(token, publicKey) {
+    const parts = String(token || "").split(".");
+    if (parts.length !== 3) {
+      throw new Error("TAP_MALFORMED_TOKEN");
+    }
+
+    const [headerB64, payloadB64, signatureB64] = parts;
+    const dataToVerify = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
+    const signature = base64UrlDecode(signatureB64);
+
+    const isValid = await crypto.subtle.verify(
+      "RSASSA-PKCS1-v1_5",
+      publicKey,
+      signature,
+      dataToVerify
+    );
+
+    if (!isValid) {
+      throw new Error("TAP_SIGNATURE_INVALID");
+    }
+
+    const payload = JSON.parse(new TextDecoder().decode(base64UrlDecode(payloadB64)));
+    const now = Math.floor(Date.now() / 1000);
+
+    if (payload.exp && payload.exp < now) {
+      throw new Error("TAP_TOKEN_EXPIRED");
+    }
+
+    return payload;
+  }
+}
+
+export function validateProfileInput(input) {
+  if (!input || typeof input !== "object") {
+    throw new Error("SCHEMA_ERROR: Payload must be JSON object");
+  }
+  const { username, email, role, permissions } = input;
+
+  if (!username || typeof username !== "string" || !/^[a-zA-Z0-9_\-\.]{3,32}$/.test(username)) {
+    throw new Error("SCHEMA_ERROR: Invalid username (3-32 alnum characters required)");
+  }
+  if (email && (typeof email !== "string" || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))) {
+    throw new Error("SCHEMA_ERROR: Invalid email format");
+  }
+  const allowedRoles = ["ring0_owner", "sub_agent", "auditor", "operator", "guest"];
+  if (role && !allowedRoles.includes(role)) {
+    throw new Error(`SCHEMA_ERROR: Invalid role. Allowed: ${allowedRoles.join(", ")}`);
+  }
+  if (permissions && (!Array.isArray(permissions) || !permissions.every(p => typeof p === "string"))) {
+    throw new Error("SCHEMA_ERROR: Permissions must be array of strings");
+  }
+  return true;
+}
+

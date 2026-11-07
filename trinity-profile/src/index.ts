@@ -1,8 +1,9 @@
 /**
  * TRINITY SOVEREIGN IDENTITY & PROFILE ENGINE
  * Subsystem: trinity-profile (Worker 47)
- * Endpoints: /api/profile/*, /api/auth/*, /init-schema, /health
+ * Endpoints: /api/profile/*, /profiles/*, /api/profiles/*, /api/auth/*, /init-schema, /health
  */
+import tapProfileService from "../../services/trinity-profile/src/index.js";
 
 export interface Env {
   DB?: D1Database;
@@ -297,6 +298,10 @@ export default {
     }
 
     try {
+      if (pathname.startsWith("/profiles/") || pathname.startsWith("/api/profiles/")) {
+        return await tapProfileService.fetch(request, env as any, ctx);
+      }
+
       // 1. Inicializácia rozšírenej databázovej schémy
       if (pathname === "/init-schema" || pathname === "/api/profile/init-schema") {
         if (env.DB) {

@@ -263,3 +263,144 @@ test('Module 5 & 6: Desktop Commander Bridge X-Trinity-Bridge-Secret & Pre-Deplo
   assert.equal(checkResult.production_d1, 'trinity-v03');
   assert.equal(checkResult.staging_d1, 'trinity-development');
 });
+
+test('Module 7: TAP Crypto Runtime (RSASSA-PKCS1-v1_5), ProfileMaker (#47) & Jericho123 Oracle/Vaults (#26)', async () => {
+  const { TapKeyManager, TapTokenEngine, validateProfileInput } = await import('../../packages/contracts/src/tap.js');
+  const tapProfileWorker = (await import('../../services/trinity-profile/src/index.js')).default;
+  const jerichoWorker = (await import('../../services/jericho123/src/index.js')).default;
+
+  // 1. Direct TAP KeyPair + JWT Sign & Verify
+  const pair = await TapKeyManager.generateKeyPair();
+  const pkcs8 = await TapKeyManager.exportKeyPkcs8(pair.privateKey);
+  const spki = await TapKeyManager.exportKeySpki(pair.publicKey);
+  const importedPriv = await TapKeyManager.importPrivateKey(pkcs8);
+  const importedPub = await TapKeyManager.importPublicKey(spki);
+
+  const jwt = await TapTokenEngine.sign({ sub: 'usr-1', usr: 'Basterix', rol: 'ring0_owner' }, importedPriv);
+  const verifiedClaims = await TapTokenEngine.verify(jwt, importedPub);
+  assert.equal(verifiedClaims.usr, 'Basterix');
+  assert.equal(verifiedClaims.rol, 'ring0_owner');
+  assert.equal(verifiedClaims.iss, 'trinity-ring0');
+  assert.equal(verifiedClaims.aud, 'aura-fleet');
+
+  assert.equal(validateProfileInput({ username: 'Basterix', email: 'saboivan2008@gmail.com', role: 'ring0_owner', permissions: ['RING0_ALL'] }), true);
+
+  // 2. ProfileMaker (Worker #47) POST /profiles/create & POST /profiles/verify
+  const kvStore = new Map();
+  const dbProfiles = [];
+  const dbVaults = [];
+  const mockEnv = {
+    ENVIRONMENT: 'staging',
+    TRINITY_KV: {
+      async get(k, opts) {
+        const val = kvStore.get(k) ?? null;
+        if (val && opts?.type === 'json') return JSON.parse(val);
+        return val;
+      },
+      async put(k, v) {
+        kvStore.set(k, v);
+      }
+    },
+    DB: {
+      prepare(sql) {
+        return {
+          bind(...args) {
+            return {
+              async run() {
+                if (sql.includes('INSERT INTO profiles')) dbProfiles.push(args);
+                if (sql.includes('INSERT INTO tetrakis_vaults')) dbVaults.push(args);
+                return { success: true };
+              },
+              async all() {
+                return { results: [] };
+              }
+            };
+          },
+          async run() {
+            return { success: true };
+          }
+        };
+      },
+      async batch(stmts) {
+        for (const s of stmts) await s.run();
+      }
+    },
+    customFetcher: async (url) => {
+      const u = String(url);
+      if (u.includes('binance.com')) {
+        return new Response(JSON.stringify([
+          { symbol: 'BTCUSDT', price: '92000.50' },
+          { symbol: 'ETHUSDT', price: '3100.25' },
+          { symbol: 'SOLUSDT', price: '195.80' }
+        ]), { status: 200 });
+      }
+      if (u.includes('BTC-USD')) return new Response(JSON.stringify({ data: { amount: '92100.50' } }), { status: 200 });
+      if (u.includes('ETH-USD')) return new Response(JSON.stringify({ data: { amount: '3110.25' } }), { status: 200 });
+      if (u.includes('SOL-USD')) return new Response(JSON.stringify({ data: { amount: '196.20' } }), { status: 200 });
+      return new Response('{}', { status: 404 });
+    }
+  };
+
+  const createRes = await tapProfileWorker.fetch(
+    new Request('https://aura.dev/profiles/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: 'Basterix',
+        email: 'saboivan2008@gmail.com',
+        role: 'ring0_owner',
+        permissions: ['RING0_ALL', 'OVERRIDE_KILLSWITCH']
+      })
+    }),
+    mockEnv
+  );
+  assert.equal(createRes.status, 201);
+  const created = await createRes.json();
+  assert.equal(created.success, true);
+  assert.equal(created.profile.role, 'ring0_owner');
+  assert.ok(created.profile.permissions.includes('RING0_ALL'));
+  assert.ok(created.token);
+
+  const verifyRes = await tapProfileWorker.fetch(
+    new Request('https://aura.dev/profiles/verify', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${created.token}` }
+    }),
+    mockEnv
+  );
+  assert.equal(verifyRes.status, 200);
+  const verifyBody = await verifyRes.json();
+  assert.equal(verifyBody.valid, true);
+  assert.equal(verifyBody.claims.usr, 'Basterix');
+  assert.equal(verifyBody.claims.rol, 'ring0_owner');
+
+  // 3. Jericho123 Consensus Crypto Oracle & Tetrakis Vault Deposit
+  const oracleRes = await jerichoWorker.fetch(new Request('https://aura.dev/crypto/oracle'), mockEnv);
+  assert.equal(oracleRes.status, 200);
+  const oracleBody = await oracleRes.json();
+  assert.equal(oracleBody.source, 'live_consensus');
+  assert.equal(oracleBody.BTC, 92050.5);
+  assert.equal(oracleBody.ETH, 3105.25);
+  assert.equal(oracleBody.SOL, 196);
+  assert.equal(oracleBody.TETRAKIS, 1.042);
+  assert.equal(oracleBody.sources_count, 2);
+
+  const depositRes = await jerichoWorker.fetch(
+    new Request('https://aura.dev/crypto/tetrakis/vault/deposit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        wallet: '0xBasterixSovereignVault',
+        amount: 1000,
+        profile_id: created.profile.id
+      })
+    }),
+    mockEnv
+  );
+  assert.equal(depositRes.status, 200);
+  const depositBody = await depositRes.json();
+  assert.equal(depositBody.success, true);
+  assert.equal(depositBody.deposited, 1000);
+  assert.equal(dbVaults.length, 1);
+});
+

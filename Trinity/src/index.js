@@ -65,6 +65,10 @@ import {generateRegistrationOptions,verifyRegistrationResponse,generateAuthentic
 import {loadDynamicSkills,registerDynamicSkill} from './skill-matrix.js';
 import {applySelfModification} from './self-evolution.js';
 import {queryAuditEvents,exportAuditEvents,recordAuditEvent} from './audit-log.js';
+import {recordAuditLog,listAuditLogs} from './audit-ledger.js';
+import {handleFastChatEdge} from './fast-chat.js';
+import tapProfileService from '../../services/trinity-profile/src/index.js';
+import jerichoCryptoService from '../../services/jericho123/src/index.js';
 import {createPortfolio,listPortfolios,getPortfolio,recordTrade,setQuote} from './trading.js';
 import {listCustomAgents,createOrUpdateCustomAgent,executeCustomAgent,provisionAgentDomain} from './agent-sandbox.js';
 import {getDevHubStatus,executeDevHubCommand} from './developer-hub.js';
@@ -262,6 +266,28 @@ async function route(request,env,ctx){
     const edgeRes=await handleFastChatEdge(request,env);
     if(edgeRes)return edgeRes;
     return json({ok:false,matched:false,next:'inference-cascade'},202);
+  }
+  if(path.startsWith('/api/profiles/')||path.startsWith('/profiles/')){
+    const traceId=crypto.randomUUID();
+    const targetUrl=new URL(request.url);
+    targetUrl.pathname=targetUrl.pathname.replace(/^\/api(?=\/profiles\/)/,'');
+    recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'ROUTE_PROFILE_MAKER',payload:{path,traceId}});
+    const forwarded=new Request(targetUrl.toString(),request);
+    if(env.PROFILE_SERVICE&&typeof env.PROFILE_SERVICE.fetch==='function'){
+      return await env.PROFILE_SERVICE.fetch(forwarded);
+    }
+    return await tapProfileService.fetch(forwarded,env,ctx);
+  }
+  if(path==='/api/crypto/oracle'||path==='/crypto/oracle'||path==='/api/crypto/tetrakis/vault/deposit'||path==='/crypto/tetrakis/vault/deposit'){
+    const traceId=crypto.randomUUID();
+    const targetUrl=new URL(request.url);
+    targetUrl.pathname=targetUrl.pathname.replace(/^\/api(?=\/crypto\/)/,'');
+    recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'ROUTE_CRYPTO_JERICHO',payload:{path,traceId}});
+    const forwarded=new Request(targetUrl.toString(),request);
+    if(env.JERICHO_SERVICE&&typeof env.JERICHO_SERVICE.fetch==='function'){
+      return await env.JERICHO_SERVICE.fetch(forwarded);
+    }
+    return await jerichoCryptoService.fetch(forwarded,env,ctx);
   }
   if(path==='/api/audit-ledger'&&request.method==='GET'){
     await authenticate(request,env);
