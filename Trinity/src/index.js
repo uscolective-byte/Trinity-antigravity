@@ -67,6 +67,7 @@ import {applySelfModification} from './self-evolution.js';
 import {queryAuditEvents,exportAuditEvents,recordAuditEvent} from './audit-log.js';
 import {recordAuditLog,listAuditLogs} from './audit-ledger.js';
 import {handleFastChatEdge} from './fast-chat.js';
+import {getFleetClusterSummary} from './fleet-clusters.js';
 import tapProfileService from '../../services/trinity-profile/src/index.js';
 import jerichoCryptoService from '../../services/jericho123/src/index.js';
 import {createPortfolio,listPortfolios,getPortfolio,recordTrade,setQuote} from './trading.js';
@@ -257,6 +258,12 @@ async function route(request,env,ctx){
     const response=json({ok:true,service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),source:sourceMetadata(env),deployment:releaseMetadata(env),agents:AGENTS.length,status:'serving',truth_mode:'evidence-required'});const origin=request.headers.get('Origin');
     if(['https://trinity-morhfeus-20261001.web.app','https://trinity-morhfeus-20261001.firebaseapp.com'].includes(origin)){response.headers.set('Access-Control-Allow-Origin',origin);response.headers.set('Vary','Origin');}
     return response;
+  }
+  if(path==='/v1/ping'&&request.method==='GET'){
+    return json({status:'ONLINE',worker:'trinity-gateway',ring:0,env:env.ENVIRONMENT||runtimeEnvironment(request,env),timestamp:Date.now()});
+  }
+  if(path==='/api/fleet/clusters'&&request.method==='GET'){
+    return json(getFleetClusterSummary());
   }
   if(path==='/ready'&&request.method==='GET'){
     const state=await readiness(env);

@@ -404,3 +404,110 @@ test('Module 7: TAP Crypto Runtime (RSASSA-PKCS1-v1_5), ProfileMaker (#47) & Jer
   assert.equal(dbVaults.length, 1);
 });
 
+test('Module 8: 6-Cluster 47-Worker Architecture & Worker #01 (trinity-gateway) Ring 0 TAP Gatekeeper', async () => {
+  const { TapKeyManager, TapTokenEngine, verifyTapToken } = await import('../../packages/contracts/src/tap.js');
+  const gatewayWorker = (await import('../../services/trinity-gateway/src/index.js')).default;
+  const { getFleetClusterSummary } = await import('../src/fleet-clusters.js');
+
+  // 1. Verify 6 clusters and 47 unique workers
+  const clusterSummary = getFleetClusterSummary();
+  assert.equal(clusterSummary.total_clusters, 6);
+  assert.equal(clusterSummary.total_workers, 47);
+  const workerNames = new Set(clusterSummary.clusters.flatMap((c) => c.workers.map((w) => w.name)));
+  assert.equal(workerNames.size, 47);
+
+  // 2. Verify TAP keypair + verifyTapToken
+  const pair = await TapKeyManager.generateKeyPair();
+  const pubB64 = await TapKeyManager.exportKeySpki(pair.publicKey);
+  const validToken = await TapTokenEngine.sign({ sub: 'basterix-ring0', usr: 'Basterix', rol: 'ring0_owner' }, pair.privateKey);
+
+  const checkOk = await verifyTapToken(validToken, pubB64);
+  assert.equal(checkOk.valid, true);
+  assert.equal(checkOk.payload.sub, 'basterix-ring0');
+
+  const checkBad = await verifyTapToken(validToken + 'tampered', pubB64);
+  assert.equal(checkBad.valid, false);
+
+  // 3. Test Worker #01 (services/trinity-gateway/src/index.js)
+  const auditEntries = [];
+  let waitedAudit = null;
+  const mockGatewayEnv = {
+    ENVIRONMENT: 'production',
+    TAP_PUBLIC_KEY: pubB64,
+    AUDIT_DB: {
+      prepare() {
+        return {
+          bind(...args) {
+            return {
+              async run() {
+                auditEntries.push(args);
+                return { success: true };
+              }
+            };
+          }
+        };
+      }
+    },
+    INFERENCE_SERVICE: {
+      async fetch() {
+        return Response.json({ ok: true, service: 'trinity-chat-inference' });
+      }
+    },
+    PROFILE_SERVICE: {
+      async fetch() {
+        return Response.json({ ok: true, service: 'trinity-profile' });
+      }
+    },
+    JERICHO_SERVICE: {
+      async fetch() {
+        return Response.json({ ok: true, service: 'jericho123' });
+      }
+    }
+  };
+  const mockCtx = {
+    waitUntil(p) {
+      waitedAudit = p;
+    }
+  };
+
+  // Health & Ping
+  const pingRes = await gatewayWorker.fetch(new Request('https://aura.space/v1/ping'), mockGatewayEnv, mockCtx);
+  assert.equal(pingRes.status, 200);
+  const pingBody = await pingRes.json();
+  assert.equal(pingBody.status, 'ONLINE');
+  assert.equal(pingBody.worker, 'trinity-gateway');
+  assert.equal(pingBody.ring, 0);
+
+  // Missing token -> 401
+  const unauthRes = await gatewayWorker.fetch(new Request('https://aura.space/api/chat', { method: 'POST' }), mockGatewayEnv, mockCtx);
+  assert.equal(unauthRes.status, 401);
+
+  // Invalid token -> 403
+  const forbidRes = await gatewayWorker.fetch(
+    new Request('https://aura.space/api/chat', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${validToken}corrupt` }
+    }),
+    mockGatewayEnv,
+    mockCtx
+  );
+  assert.equal(forbidRes.status, 403);
+
+  // Valid Ring 0 TAP token -> 200 Service Binding route + non-blocking audit
+  const chatRes = await gatewayWorker.fetch(
+    new Request('https://aura.space/api/chat', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${validToken}` }
+    }),
+    mockGatewayEnv,
+    mockCtx
+  );
+  assert.equal(chatRes.status, 200);
+  const chatBody = await chatRes.json();
+  assert.equal(chatBody.service, 'trinity-chat-inference');
+  await waitedAudit;
+  assert.equal(auditEntries.length, 1);
+  assert.equal(auditEntries[0][3], 'basterix-ring0');
+});
+
+

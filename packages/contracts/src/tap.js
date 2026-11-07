@@ -244,3 +244,23 @@ export function validateProfileInput(input) {
   return true;
 }
 
+export async function verifyTapToken(token, publicKeyOrB64) {
+  try {
+    if (!token || typeof token !== "string") {
+      return { valid: false, error: "TAP_MISSING_TOKEN" };
+    }
+    if (!publicKeyOrB64) {
+      return { valid: false, error: "TAP_MISSING_PUBLIC_KEY" };
+    }
+    const pubKey =
+      typeof publicKeyOrB64 === "string"
+        ? await TapKeyManager.importPublicKey(publicKeyOrB64)
+        : publicKeyOrB64;
+    const payload = await TapTokenEngine.verify(token, pubKey);
+    return { valid: true, payload };
+  } catch (err) {
+    return { valid: false, error: err?.message || "TAP_VERIFICATION_FAILED" };
+  }
+}
+
+
