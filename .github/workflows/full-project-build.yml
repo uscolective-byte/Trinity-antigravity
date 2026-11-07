@@ -1,0 +1,95 @@
+name: Full project build artifact
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-project-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build project and package ZIP
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            packages/contracts/package-lock.json
+            Trinity/package-lock.json
+            Capacity-Worker/package-lock.json
+            Integrations-Worker/package-lock.json
+            Knowledge-Worker/package-lock.json
+            PC-Bridge-Worker/package-lock.json
+
+      - name: Install root application dependencies
+        run: npm ci
+
+      - name: Build root application
+        run: npm run build
+
+      - name: Install contracts dependencies
+        working-directory: packages/contracts
+        run: npm ci --ignore-scripts
+
+      - name: Validate contracts
+        working-directory: packages/contracts
+        run: npm test && npm run schema:check
+
+      - name: Install Trinity dependencies
+        working-directory: Trinity
+        run: npm ci
+
+      - name: Build Trinity Worker (dry run)
+        working-directory: Trinity
+        run: npm run build
+
+      - name: Build Capacity Worker (dry run)
+        run: npm ci --prefix Capacity-Worker && npm run build --prefix Capacity-Worker
+
+      - name: Build Integrations Worker (dry run)
+        run: npm ci --prefix Integrations-Worker && npm run build --prefix Integrations-Worker
+
+      - name: Build Knowledge Worker (dry run)
+        run: npm ci --prefix Knowledge-Worker && npm run build --prefix Knowledge-Worker
+
+      - name: Build PC Bridge Worker (dry run)
+        run: npm ci --prefix PC-Bridge-Worker && npm run build --prefix PC-Bridge-Worker
+
+      - name: Assemble source and build outputs
+        env:
+          PACKAGE_DIR: ${{ runner.temp }}/trinity-project-package
+        run: |
+          mkdir -p "$PACKAGE_DIR/source" "$PACKAGE_DIR/build/web" "$PACKAGE_DIR/build/workers"
+          git archive HEAD | tar -x -C "$PACKAGE_DIR/source"
+          cp -a .next "$PACKAGE_DIR/build/web/.next"
+          cp -a Trinity/dist "$PACKAGE_DIR/build/workers/trinity"
+          cp -a Capacity-Worker/dist "$PACKAGE_DIR/build/workers/capacity"
+          cp -a Integrations-Worker/dist "$PACKAGE_DIR/build/workers/integrations"
+          cp -a Knowledge-Worker/dist "$PACKAGE_DIR/build/workers/knowledge"
+          cp -a PC-Bridge-Worker/dist "$PACKAGE_DIR/build/workers/pc-bridge"
+          printf 'Source SHA: %s\n' "$GITHUB_SHA" > "$PACKAGE_DIR/BUILD-INFO.txt"
+          printf 'Build outputs are dry-run artifacts; no deployment was performed.\n' >> "$PACKAGE_DIR/BUILD-INFO.txt"
+          cd "$RUNNER_TEMP"
+          zip -qr "trinity-project-${GITHUB_SHA}.zip" trinity-project-package
+
+      - name: Upload project ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: trinity-project-${{ github.sha }}
+          path: ${{ runner.temp }}/trinity-project-${{ github.sha }}.zip
+          if-no-files-found: error
+          retention-days: 7
