@@ -131,6 +131,51 @@ export function extractGeminiInteractionText(result){
   const blocks=(result?.steps||[]).flatMap(step=>Array.isArray(step?.content)?step.content:Array.isArray(step?.output)?step.output:[]);
   return blocks.filter(block=>block?.type==='text'||typeof block?.text==='string').map(block=>block.text||'').join('\n').trim();
 }
+export function deduplicateRepeatedParagraphs(text) {
+  if (typeof text !== 'string' || !text.trim()) return text;
+  // Rozdelenie na odstavce (dva a viac nových riadkov)
+  const paragraphs = text.split(/\n{2,}/);
+  if (paragraphs.length <= 1) return text;
+  
+  const seen = new Set();
+  const cleaned = [];
+  for (const p of paragraphs) {
+    const normalized = p.trim().replace(/\s+/g, ' ');
+    if (normalized.length > 20) {
+      if (seen.has(normalized)) continue;
+      seen.add(normalized);
+    }
+    cleaned.push(p);
+  }
+  return cleaned.join('\n\n');
+}
+
+export function stripInternalToolsDump(text) {
+  if (typeof text !== 'string') return '';
+  return text
+    // Odstránenie celého bloku číslovaného zoznamu nástrojov (napr. 1. knowledge_search: ... až po koniec zoznamu)
+    .replace(/(?:Môj zoznam nástrojov|Zoznam nástrojov|Dostupné nástroje)[^\n]*\n+(?:\s*\d+\.\s+[a-z0-9_-]+:[^\n]*\n*)+/gi, '')
+    // Odstránenie vety o interných JSON volaniach
+    .replace(/Môj zoznam nástrojov je interný[^\n]*/gi, '')
+    .replace(/Nie je možné, aby ste si mali prístup k zoznamu nástrojov[^\n]*/gi, '')
+    .replace(/Nástroje sú určené výhradne na interné volania[^\n]*/gi, '')
+    .trim();
+}
+
+export function cleanModelResponse(text) {
+  if (typeof text !== 'string') return '';
+  let cleaned = stripInternalToolsDump(text);
+  if (/152\s+expertných\s+zručností|248\s+Copilot\s+skillov/i.test(cleaned)) {
+    cleaned = cleaned.replace(/Sabo Ivan, rád sa ti oznam[^\n]*\n*/gi, '')
+      .replace(/Mám 152 expertných zručností[^\n]*\n*/gi, '')
+      .replace(/Som založená na Cloudflare Edge a mám 29 servisných workerov[^\n]*\n*/gi, '')
+      .replace(/Môj primárny AI provider je Cloudflare Workers AI[^\n]*\n*/gi, '')
+      .replace(/Môj účel je slúžiť vám, Sabo Ivanovi[^\n]*\n*/gi, '')
+      .replace(/Môj jazyk je prirodzený a komunikujem s vámi[^\n]*\n*/gi, '');
+  }
+  return deduplicateRepeatedParagraphs(cleaned).trim();
+}
+
 export function usableModelText(text) {
   const compact = text.replace(/\s/g, '');
   if (!compact) return false;
@@ -387,7 +432,7 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
   }
 
   if(['auto','deepseek-r1','llama','qwen','workers-ai','fast','cloud'].includes(provider)){
-    if(!env.AI)throw new Error('Cloudflare Workers AI nie je pripojené.');
+    if(!env.AI && !env.CHAT_INFERENCE_SERVICE)throw new Error('Cloudflare Workers AI nie je pripojené.');
     const defaultModel=provider==='deepseek-r1'?'@cf/deepseek-ai/deepseek-r1-distill-qwen-32b'
       :provider==='llama'?"@cf/meta/llama-3.3-70b-instruct-fp8-fast"
       :provider==='qwen'?'@cf/qwen/qwen2.5-72b-instruct'
@@ -395,7 +440,8 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
       :(env.AI_MODEL || '@cf/openai/gpt-oss-120b');
     const model=customModel || defaultModel;
     const invoke = async selectedModel => {
-      if(provider==='fast'&&env.CHAT_INFERENCE_SERVICE){
+      if(env.CHAT_INFERENCE_SERVICE){
+        // Route through dedicated chat inference worker (trinity-chat-inference)
         try{
           const response=await env.CHAT_INFERENCE_SERVICE.fetch('https://chat-inference.internal/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:selectedModel,messages,max_tokens:Math.min(maxTokens,600)}),signal:AbortSignal.timeout(20000)});
           if(response.ok)return JSON.parse(await boundedText(response,100000));
@@ -403,14 +449,14 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
         // Binding failure falls back to the already authorized Workers AI binding.
       }
       let timer;
-      try { return await Promise.race([env.AI.run(selectedModel,{messages,max_tokens:Math.min(maxTokens,8192),temperature:0.2}),
+      try { return await Promise.race([env.AI.run(selectedModel,{messages,max_tokens:Math.min(maxTokens,8192),temperature:0.5,top_p:0.9,repetition_penalty:1.15}),
         new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),provider==='fast'?30000:120000);})]); }
       finally {clearTimeout(timer);}
     };
     let result,fallbackReason='invalid-output';
     try{result=await invoke(model);}catch{result={};fallbackReason='provider-error';}
     const text = extractModelText(result);
-    if (usableModelText(text)) return {text,model,provider:'workers-ai',usage:result.usage||null};
+    if (usableModelText(text)) return {text:cleanModelResponse(text),model,provider:'workers-ai',usage:result.usage||null};
     // A successful HTTP response can still contain a broken generation (e.g. thousands of "!").
     // Retry once on a different bound model; never persist that output as a completed answer.
     const fallbackModel = (provider==='fast'?env.AI_FAST_FALLBACK_MODEL:env.AI_FALLBACK_MODEL) || "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
@@ -418,7 +464,7 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
     const fallback = await invoke(fallbackModel);
     const fallbackText = extractModelText(fallback);
     if (!usableModelText(fallbackText)) throw new Error('Ani záložný model nevrátil použiteľnú odpoveď. Skús požiadavku znova.');
-    return {text:fallbackText,model:fallbackModel,provider:'workers-ai',usage:fallback.usage||null,
+    return {text:cleanModelResponse(fallbackText),model:fallbackModel,provider:'workers-ai',usage:fallback.usage||null,
       model_fallback:{from:model,to:fallbackModel,reason:fallbackReason}};
   }
   throw new Error('Unknown provider');

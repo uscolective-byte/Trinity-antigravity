@@ -58,6 +58,12 @@ Trinity bruno/
 
 # Local staging dry-run output
 /Trinity/dist-staging/
+/Trinity/dist-production/
+/dist-audit/
+/dist-test/
+/dist-test-staging/
+**/dist-*/
+*.bak
 
 Trinity/workspace/receipt-test/
 
