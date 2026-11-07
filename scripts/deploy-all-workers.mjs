@@ -13,7 +13,16 @@ import { resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { checkSource } from './source-policy.mjs';
-import { WORKER_DEPLOYMENTS } from './lib/worker-deployments.mjs';
+import {
+  WORKER_DEPLOYMENTS,
+  AURA_WORKERS,
+  TRINITY_CORE_WORKERS,
+  STANDALONE_WORKERS,
+  AUXILIARY_WORKERS,
+  PROFILE_WORKER
+} from './lib/worker-deployments.mjs';
+
+// Canonical fleet includes all 46 Cloudflare workers plus trinity-profile (47 targets total).
 
 const ROOT_DIR = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const DRY_RUN = process.argv.includes('--dry-run') || !process.argv.includes('--deploy');

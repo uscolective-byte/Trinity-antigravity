@@ -229,13 +229,39 @@ async function verifyAdminAuthorization(request: Request, body: any, env: Env, s
           if (cached) {
             try { callerProfile = JSON.parse(cached); } catch {}
           }
-          if (!callerProfile && env.DB) {
-            const row: any = await env.DB.prepare("SELECT role FROM user_profiles WHERE id = ?").bind(profileId).first();
-            if (row && (row.role === "admin" || row.role === "superadmin")) {
-              return true;
+
+          // Authoritative D1 check: If env.DB is present
+          if (env.DB) {
+            try {
+              const row: any = await env.DB.prepare(
+                "SELECT role, email, status FROM user_profiles WHERE id = ?"
+              ).bind(profileId).first();
+
+              if (row) {
+                // Reconcile/self-heal KV cache if callerProfile && callerProfile.role !== row.role
+                if (callerProfile && callerProfile.role !== row.role) {
+                  callerProfile.role = row.role;
+                  if (row.email) callerProfile.email = row.email;
+                  if (row.status) callerProfile.status = row.status;
+                  callerProfile.updatedAt = Date.now();
+                  await env.TRINITY_KV.put(`profile:${profileId}`, JSON.stringify(callerProfile), { expirationTtl: 86400 * 30 });
+                }
+
+                if ((row.role === "admin" || row.role === "superadmin") && row.status !== "SUSPENDED") {
+                  return true;
+                }
+                return false;
+              } else {
+                return false;
+              }
+            } catch {
+              // Fail closed on D1 database errors
+              return false;
             }
           }
-          if (callerProfile && (callerProfile.role === "admin" || callerProfile.role === "superadmin")) {
+
+          // Fallback only if !env.DB (lightweight mock/test environments without D1)
+          if (!env.DB && callerProfile && (callerProfile.role === "admin" || callerProfile.role === "superadmin") && callerProfile.status !== "SUSPENDED") {
             return true;
           }
         }
@@ -460,28 +486,67 @@ export default {
         }
 
         const now = Date.now();
+        const isAdminAuthorized = await verifyAdminAuthorization(request, body, env, salt);
+
+        // Sanitize input fields:
+        const safeBody = { ...body };
+        if (!isAdminAuthorized) {
+          delete safeBody.role;
+          delete safeBody.apiKeyHash;
+          delete safeBody.email;
+          delete safeBody.status;
+          delete safeBody.ttkBalance;
+          delete safeBody.createdAt;
+        }
 
         if (env.DB) {
-          await env.DB.prepare(`
-            UPDATE user_profiles 
-            SET display_name = COALESCE(?, display_name),
-                alias = COALESCE(?, alias),
-                avatar_url = COALESCE(?, avatar_url),
-                organization = COALESCE(?, organization),
-                wallet_address = COALESCE(?, wallet_address),
-                preferences_json = COALESCE(?, preferences_json),
-                updated_at = ?
-            WHERE id = ?
-          `).bind(
-            body.displayName || null,
-            body.alias || null,
-            body.avatarUrl || null,
-            body.organization || null,
-            body.walletAddress || null,
-            body.preferences ? JSON.stringify(body.preferences) : null,
-            now,
-            body.id
-          ).run();
+          if (isAdminAuthorized && (body.role || body.status)) {
+            await env.DB.prepare(`
+              UPDATE user_profiles 
+              SET display_name = COALESCE(?, display_name),
+                  alias = COALESCE(?, alias),
+                  avatar_url = COALESCE(?, avatar_url),
+                  role = COALESCE(?, role),
+                  status = COALESCE(?, status),
+                  organization = COALESCE(?, organization),
+                  wallet_address = COALESCE(?, wallet_address),
+                  preferences_json = COALESCE(?, preferences_json),
+                  updated_at = ?
+              WHERE id = ?
+            `).bind(
+              safeBody.displayName || null,
+              safeBody.alias || null,
+              safeBody.avatarUrl || null,
+              body.role || null,
+              body.status || null,
+              safeBody.organization || null,
+              safeBody.walletAddress || null,
+              safeBody.preferences ? JSON.stringify(safeBody.preferences) : null,
+              now,
+              body.id
+            ).run();
+          } else {
+            await env.DB.prepare(`
+              UPDATE user_profiles 
+              SET display_name = COALESCE(?, display_name),
+                  alias = COALESCE(?, alias),
+                  avatar_url = COALESCE(?, avatar_url),
+                  organization = COALESCE(?, organization),
+                  wallet_address = COALESCE(?, wallet_address),
+                  preferences_json = COALESCE(?, preferences_json),
+                  updated_at = ?
+              WHERE id = ?
+            `).bind(
+              safeBody.displayName || null,
+              safeBody.alias || null,
+              safeBody.avatarUrl || null,
+              safeBody.organization || null,
+              safeBody.walletAddress || null,
+              safeBody.preferences ? JSON.stringify(safeBody.preferences) : null,
+              now,
+              body.id
+            ).run();
+          }
         }
 
         if (env.TRINITY_KV) {
@@ -490,8 +555,15 @@ export default {
             const current = JSON.parse(cached);
             const updated = {
               ...current,
-              ...body,
-              preferences: { ...(current.preferences || {}), ...(body.preferences || {}) },
+              ...safeBody,
+              role: isAdminAuthorized && body.role ? body.role : current.role,
+              status: isAdminAuthorized && body.status ? body.status : current.status,
+              email: current.email,
+              apiKeyHash: current.apiKeyHash,
+              ttkBalance: current.ttkBalance,
+              createdAt: current.createdAt,
+              id: current.id,
+              preferences: { ...(current.preferences || {}), ...(safeBody.preferences || {}) },
               updatedAt: now
             };
             await env.TRINITY_KV.put(`profile:${body.id}`, JSON.stringify(updated), { expirationTtl: 86400 * 30 });
