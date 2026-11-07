@@ -70,6 +70,9 @@ Trinity/workspace/receipt-test/
 # Next.js build and cache directory
 .next/
 
+# Archive scratch templates
+/Archive/templates/
+
 # Local secrets and environment variables
 .env
 .env*.local
