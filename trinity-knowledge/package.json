@@ -1,0 +1,15 @@
+{
+    "version":  "1.0.0",
+    "name":  "trinity-knowledge",
+    "description":  "Trinity Semantic Knowledge \u0026 Cloudflare Vectorize Engine",
+    "scripts":  {
+                    "deploy":  "wrangler deploy",
+                    "dev":  "wrangler dev"
+                },
+    "devDependencies":  {
+                            "typescript":  "^5.6.3",
+                            "@cloudflare/workers-types":  "^4.20241106.0",
+                            "wrangler":  "^3.86.0"
+                        },
+    "main":  "src/index.ts"
+}
