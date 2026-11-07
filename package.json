@@ -13,7 +13,8 @@
     "deploy:staging": "wrangler deploy --env staging",
     "deploy:prod": "node scripts/pre-deploy-check.mjs && wrangler deploy --env production",
     "tail:staging": "wrangler tail --env staging",
-    "tail:prod": "wrangler tail --env production"
+    "tail:prod": "wrangler tail --env production",
+    "docs:check": "node scripts/sync-release-docs.mjs --check"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
