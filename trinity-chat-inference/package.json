@@ -1,6 +1,7 @@
 {
     "version": "1.0.0",
     "name": "trinity-chat-inference",
+    "type": "module",
     "description": "Trinity Multi-Tier Fallback LLM Inference Engine",
     "scripts": {
         "deploy": "wrangler deploy",

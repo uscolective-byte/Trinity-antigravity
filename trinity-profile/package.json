@@ -1,6 +1,7 @@
 {
   "name": "trinity-profile",
   "version": "1.0.0",
+  "type": "module",
   "description": "Trinity Live User Profile & Preferences Engine",
   "main": "src/index.ts",
   "scripts": {

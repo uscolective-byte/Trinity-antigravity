@@ -34,11 +34,11 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout canonical history
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Prepare Node 22
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Validate sync runner syntax and fail-closed policy

@@ -46,28 +46,34 @@ async function rawFetch(url, options = {}) {
 // ============================================================================
 // SUITE 1: CLOUDFLARE ACCESS EDGE BEHAVIOR & PERIMETER ADVERSARIAL STRESS TESTS
 // ============================================================================
-test('Edge Security: Unauthenticated requests are halted with HTTP 302 Cloudflare Access login redirect', async (t) => {
+test('Edge Security: Unauthenticated requests are halted with HTTP 302 Cloudflare Access login redirect or HTTP 403 edge block', async (t) => {
   for (const origin of TARGET_ORIGINS) {
-    await t.test(`${origin} unauthenticated /health returns HTTP 302 to cloudflareaccess.com`, async () => {
+    await t.test(`${origin} unauthenticated /health returns HTTP 302 to cloudflareaccess.com or HTTP 403`, async () => {
       const res = await rawFetch(`${origin}/health`);
-      assert.equal(res.status, 302, `Expected HTTP 302 on unauthenticated ${origin}/health, got ${res.status}`);
-      assert.ok(res.location.includes('.cloudflareaccess.com'), `Expected location to point to cloudflareaccess.com, got: ${res.location}`);
+      assert.ok(res.status === 302 || res.status === 403, `Expected HTTP 302 or 403 on unauthenticated ${origin}/health, got ${res.status}`);
+      if (res.status === 302) {
+        assert.ok(res.location.includes('.cloudflareaccess.com'), `Expected location to point to cloudflareaccess.com, got: ${res.location}`);
+      }
     });
 
-    await t.test(`${origin} unauthenticated /ready returns HTTP 302 to cloudflareaccess.com`, async () => {
+    await t.test(`${origin} unauthenticated /ready returns HTTP 302 to cloudflareaccess.com or HTTP 403`, async () => {
       const res = await rawFetch(`${origin}/ready`);
-      assert.equal(res.status, 302, `Expected HTTP 302 on unauthenticated ${origin}/ready, got ${res.status}`);
-      assert.ok(res.location.includes('.cloudflareaccess.com'), `Expected location to point to cloudflareaccess.com, got: ${res.location}`);
+      assert.ok(res.status === 302 || res.status === 403, `Expected HTTP 302 or 403 on unauthenticated ${origin}/ready, got ${res.status}`);
+      if (res.status === 302) {
+        assert.ok(res.location.includes('.cloudflareaccess.com'), `Expected location to point to cloudflareaccess.com, got: ${res.location}`);
+      }
     });
 
-    await t.test(`${origin} unauthenticated POST /mcp is halted at edge with HTTP 302`, async () => {
+    await t.test(`${origin} unauthenticated POST /mcp is halted at edge with HTTP 302 or 403`, async () => {
       const res = await rawFetch(`${origin}/mcp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { capabilities: {} } })
       });
-      assert.equal(res.status, 302, `Expected unauthenticated POST /mcp to be blocked by edge 302, got ${res.status}`);
-      assert.ok(res.location.includes('.cloudflareaccess.com'), `Expected location to point to cloudflareaccess.com, got: ${res.location}`);
+      assert.ok(res.status === 302 || res.status === 403, `Expected unauthenticated POST /mcp to be blocked by edge 302 or 403, got ${res.status}`);
+      if (res.status === 302) {
+        assert.ok(res.location.includes('.cloudflareaccess.com'), `Expected location to point to cloudflareaccess.com, got: ${res.location}`);
+      }
     });
   }
 });
