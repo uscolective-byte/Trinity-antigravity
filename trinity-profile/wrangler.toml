@@ -27,3 +27,23 @@ service = "trinity-audit"
 [[services]]
 binding = "CORE"
 service = "trinity-core"
+
+[env.staging]
+name = "trinity-profile-staging"
+workers_dev = false
+preview_urls = false
+services = []
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+TOKEN_SALT = "trinity_sovereign_identity_staging_v1"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "trinity-development"
+database_id = "1cce5249-e044-4c93-868c-0df534a778b5"
+migrations_dir = "migrations"
+
+[[env.staging.kv_namespaces]]
+binding = "TRINITY_KV"
+id = "759143cfa6fb44d6a0f4c8e4951945c8"
