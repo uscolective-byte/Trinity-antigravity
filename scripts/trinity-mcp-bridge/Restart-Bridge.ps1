@@ -17,6 +17,7 @@ if ($listener) { throw "Port $port belongs to an existing process; refusing to t
 $logDir = Join-Path $bridgeDir 'logs'
 New-Item -ItemType Directory -Path $logDir -Force | Out-Null
 $env:TRINITY_WORKSPACE = Split-Path -Parent $bridgeDir
+$env:TRINITY_PORT = [string]$port
 # The HTTP launcher must not inherit an stdio transport switch from its parent.
 $mcpStdioWasSet = Test-Path -LiteralPath 'Env:\MCP_STDIO'
 $previousMcpStdio = $env:MCP_STDIO
