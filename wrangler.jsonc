@@ -45,7 +45,8 @@
     {
       "type": "Data",
       "globs": [
-        "**/*.webp"
+        "**/*.webp",
+        "**tetrakis-logo.png"
       ],
       "fallthrough": true
     },
