@@ -1,4 +1,6 @@
 export default {
+  // No-op: starý cron trigger v Cloudflare už nespôsobí chybu "Handler does not export a scheduled() function".
+  async scheduled(_event: ScheduledController, _env: unknown, _ctx: ExecutionContext): Promise<void> {},
   async fetch(req: Request): Promise<Response> {
     const url = new URL(req.url);
     if (req.method === "GET" && url.pathname === "/health") {

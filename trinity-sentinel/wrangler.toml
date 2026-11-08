@@ -13,3 +13,6 @@ service = "trinity-sentinel"
 [[services]]
 binding = "TRINITY_AUDIT"
 service = "trinity-audit"
+
+[triggers]
+crons = []
