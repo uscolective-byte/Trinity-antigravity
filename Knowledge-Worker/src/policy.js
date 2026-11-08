@@ -20,7 +20,7 @@ export function htmlText(html) {
 export async function download(sourceId, fetcher = fetch) {
   const url = catalog[sourceId];
   if (!Object.hasOwn(catalog,sourceId)) throw new Error('Unknown catalog source');
-  const response = await fetcher(url,{redirect:'error',signal:AbortSignal.timeout(15000),headers:{Accept:'text/html,text/plain'}});
+  const response = await fetcher(url,{redirect:'manual',signal:AbortSignal.timeout(15000),headers:{Accept:'text/html,text/plain'}});
   if (!response.ok) throw new Error('Source request failed');
   const type = response.headers.get('content-type') || '';
   if (!/^(text\/html|text\/plain)(;|$)/i.test(type)) throw new Error('Unsupported source format');

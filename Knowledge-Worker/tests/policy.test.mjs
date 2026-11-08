@@ -9,7 +9,7 @@ test('bounded import and multilingual query validation',()=>{
 });
 test('internet sources use fixed catalog and redirects are disabled',async()=>{
  let calls=0;
- const fetcher=async(url,opts)=>{calls++;assert.equal(url,'https://developers.cloudflare.com/workers/');assert.equal(opts.redirect,'error');return new Response('<p>Workers reference</p>',{headers:{'content-type':'text/html'}});};
+ const fetcher=async(url,opts)=>{calls++;assert.equal(url,'https://developers.cloudflare.com/workers/');assert.equal(opts.redirect,'manual');return new Response('<p>Workers reference</p>',{headers:{'content-type':'text/html'}});};
  assert.equal((await download('cloudflare-workers',fetcher)).text,'Workers reference');
  await assert.rejects(download('https://localhost/',fetcher));assert.equal(calls,1);
 });
