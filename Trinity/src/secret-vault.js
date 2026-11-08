@@ -261,7 +261,7 @@ export async function getSecretMaterial(env,{ownerId,id,provider}){const row=awa
 export async function resolveProviderSecret(env,provider){
   const envMap={
     cloudflare:[env?.CF_API_TOKEN,env?.CLOUDFLARE_API_TOKEN,env?.TRINITY_CF_TOKEN],
-    github:[env?.TRINITY_GITHUB_TOKEN,env?.GITHUB_TOKEN,env?.GITHUBE_API_KEY],
+    github:[env?.TRINITY_GITHUB_TOKEN,env?.GITHUB_TOKEN,env?.GITHUBE_API_KEY,env?.trinitygithube_key],
     firecrawl:[env?.FIRECRAWL_API_KEY,env?.TRINITY_FIRECRAWL_KEY,env?.firecrawl],
     firebase:[env?.FIREBASE_API_KEY,env?.FIREBASE_SERVICE_ACCOUNT,env?.TRINITY_FIREBASE_KEY],
     supabase:[env?.SUPABASE_KEY,env?.SUPABASE_SERVICE_ROLE_KEY],
