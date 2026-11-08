@@ -115,7 +115,6 @@ import garageCSS from '../public/assistant/garage.css';
 import garageArt from '../public/assistant/garage-v1.webp';
 export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations,PINNED_SYSTEM_PROMPT,TRINITY_TOOL_DEFINITIONS,normalizeText,handleFastEdgeRoute,executeTool,runInferenceCascade};
 import tetrakisLogo from '../public/assistant/tetrakis-logo.png';
-export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations};
 const json=(data,status=200)=>Response.json(data,{status});
 const runtimeEnvironment=(request,env)=>['localhost','127.0.0.1','::1'].includes(new URL(request.url).hostname)?'local':env.TRINITY_ENV||'local';
 const uuid=z.string().uuid();
