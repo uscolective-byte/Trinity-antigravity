@@ -14,14 +14,15 @@ Smart kontrakt **Tetrakis ($TTK)** je jadrom krypto-ekonomiky suverénneho syst�
 | **Solidity verzia** | `0.8.24` (Shanghai EVM target) |
 | **Celková zásoba (Fixed Cap)** | **1,000,000,000 TTK** (1 miliarda TTK) |
 | **Počet desatinných miest** | `18` |
-| **Počiatočná pokladnica (Treasury)** | `0x4d308452a96D7dAbFd2f33d92677A3a2724f387e` |
+| **Počiatočná pokladnica (Treasury)** | `0x4d308452a96D7dAbFd2f33d92677A3a2724f387e` (999,000,000 TTK) |
+| **Peňaženka Basterix** | `0x7e17f9072cfCbc7fE45973De0F11eC8db99281e4` (1,000,000 TTK) |
 | **Cieľové siete** | Base (Coinbase L2), Arbitrum, Polygon, Ethereum |
 
 ---
 
 ## 🔒 Bezpečnostné invarianty kontraktu
 
-1. **Jednorazová emisia (Single Mint)**: 100 % zásoby (presne $10^9 \times 10^{18}$ wei) je vygenerovaných pri konštrukcii kontraktu priamo na adresu oficiálnej pokladnice.
+1. **Jednorazová emisia (Single Mint)**: 100 % zásoby (presne $10^9 \times 10^{18}$ wei) je vygenerovaných pri konštrukcii: `1,000,000 TTK` na peňaženku Basterix (`0x7e17…81e4`), `999,000,000 TTK` na oficiálnu pokladnicu.
 2. **Žiadne dodatočné mintovanie**: Kontrakt neobsahuje žiadnu funkciu `mint()` po deployi.
 3. **Nulové poplatky (Zero Tax)**: Žiadne transakčné dane, redistribúcie ani skryté poplatky.
 4. **Nulová cenzúra (No Blacklist / No Pausable)**: Žiadny blacklist, pozastavenie (pausable) ani honeypot mechanizmy.
@@ -66,17 +67,16 @@ Testovacia sada overuje:
 
 ---
 
-## 🚀 Postup nasadenia (Base Sepolia & Base Mainnet)
+## 🚀 Postup nasadenia
 
-1. **Kompilácia**:
-   ```bash
-   node scripts/compile.mjs
-   ```
-2. **Overovací Dry-Run**:
-   ```bash
-   node scripts/deploy-base-sepolia.mjs --dry-run
-   ```
-3. **Ostré nasadenie (vyžaduje zostatok na gas)**:
-   ```bash
-   node scripts/deploy-base-sepolia.mjs --broadcast
-   ```
+Kompletný návod pre majiteľa (po slovensky, vrátane získania testovacieho ETH): [`docs/TETRAKIS-NASADENIE-SEPOLIA.md`](../../docs/TETRAKIS-NASADENIE-SEPOLIA.md).
+
+```bash
+npm ci
+npm test                                   # kompilácia + testy (anvil)
+npm run deploy:plan                        # len čítanie: plán, odhad gasu (Base Sepolia)
+npm run deploy:base-sepolia                # ostré nasadenie na TESTNET (kľúč z TTK_DEPLOYER_PRIVATE_KEY alebo TTK_DEPLOYER_KEY_FILE)
+TTK_CONTRACT_ADDRESS=0x... npm run verify:deployed -- --expect-initial-allocation
+```
+
+Skript pre Base Sepolia nikdy nepošle transakciu na inú sieť než chainId 84532. Mainnet (`deploy:base-mainnet:live`) vyžaduje explicitný príznak `--i-understand-mainnet-is-irreversible` a súhlas majiteľa.

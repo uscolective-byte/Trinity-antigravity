@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { verifyTetrakis, TREASURY, SUPPLY } from './verify-tetrakis.mjs';
+import { verifyTetrakis, TREASURY, BASTERIX, SUPPLY, BASTERIX_ALLOCATION, TREASURY_ALLOCATION } from './verify-tetrakis.mjs';
 import { keccak256 } from 'ethers';
 const ADDRESS = '0x1111111111111111111111111111111111111111';
 const CODE = '0x60006000';
@@ -20,11 +20,17 @@ function fixture(overrides = {}) {
     async getTransactionReceipt(hash) { return { status: 1, contractAddress: ADDRESS, blockNumber: 120, hash }; },
     ...overrides
   };
-  const values = { name: 'Tetrakis', symbol: 'TTK', decimals: 18n, totalSupply: SUPPLY, balanceOf: SUPPLY };
-  const factory = () => Object.fromEntries(Object.keys(values).map(key => [key, async (...args) => {
-    reads.push({ key, args });
-    return values[key];
-  }]));
+  const values = { name: 'Tetrakis', symbol: 'TTK', decimals: 18n, totalSupply: SUPPLY, treasuryBal: TREASURY_ALLOCATION, basterixBal: BASTERIX_ALLOCATION };
+  const factory = () => ({
+    ...Object.fromEntries(['name', 'symbol', 'decimals', 'totalSupply'].map(key => [key, async (...args) => {
+      reads.push({ key, args });
+      return values[key];
+    }])),
+    async balanceOf(holder, ...rest) {
+      reads.push({ key: 'balanceOf', args: [holder, ...rest] });
+      return holder === TREASURY ? values.treasuryBal : values.basterixBal;
+    }
+  });
   return { provider, values, factory, reads };
 }
 
@@ -35,6 +41,9 @@ test('checks token, initial allocation, receipt and runtime against one block', 
   assert.equal(result.network, 'Base Sepolia TESTNET');
   assert.equal(result.bytecodeMatched, true);
   assert.equal(result.treasury, TREASURY);
+  assert.equal(result.basterix, BASTERIX);
+  assert.equal(result.treasuryBalance, TREASURY_ALLOCATION.toString());
+  assert.equal(result.basterixBalance, BASTERIX_ALLOCATION.toString());
   assert.equal(result.totalSupply, SUPPLY.toString());
   for (const read of f.reads) assert.deepEqual(read.args.at(-1), { blockTag: 123 });
 });
@@ -65,7 +74,7 @@ test('rejects failed or unrelated deployment receipt', async () => {
 });
 
 test('does not confuse later treasury transfers with invalid total supply', async () => {
-  const f = fixture(); f.values.balanceOf = SUPPLY - 5n;
+  const f = fixture(); f.values.treasuryBal = TREASURY_ALLOCATION - 5n;
   const result = await verifyTetrakis(f.provider, { address: ADDRESS }, f.factory);
   assert.equal(result.ok, true); assert.equal(result.initialAllocationChecked, false);
   await assert.rejects(verifyTetrakis(f.provider, { address: ADDRESS, expectInitialAllocation: true }, f.factory), /INITIAL_ALLOCATION_MISMATCH/);
@@ -74,4 +83,9 @@ test('does not confuse later treasury transfers with invalid total supply', asyn
 test('rejects receipt from a block newer than verification snapshot', async () => {
   const f = fixture({ async getTransactionReceipt(hash) { return { status: 1, contractAddress: ADDRESS, blockNumber: 124, hash }; } });
   await assert.rejects(verifyTetrakis(f.provider, { address: ADDRESS, transactionHash: '0xabc' }, f.factory), /RECEIPT_NEWER_THAN_VERIFICATION_BLOCK/);
+});
+
+test('rejects initial allocation when Basterix balance is wrong even if treasury is right', async () => {
+  const f = fixture(); f.values.basterixBal = 0n;
+  await assert.rejects(verifyTetrakis(f.provider, { address: ADDRESS, expectInitialAllocation: true }, f.factory), /INITIAL_ALLOCATION_MISMATCH/);
 });

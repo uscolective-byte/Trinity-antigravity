@@ -12,9 +12,9 @@
 
 | Deliverable | File Path | Verification & Digest |
 |---|---|---|
-| **Tetrakis (`$TTK`) Smart Contract** | `packages/crypto-core/contracts/TetrakisToken.sol` & `contracts/TetrakisToken.sol` | `HARD_CAP = 10_000_000 * 10**18`, `sovereignOwner`, `treasuryWorker`, `burn`, `mint` (`onlySovereign`), `updateTreasuryWorker`, `transferSovereignOwnership`. Zero external runtime dependencies. |
-| **Compiled Artifact & ABI** | `packages/crypto-core/build/TetrakisToken.json` & `packages/crypto-core/artifacts/contracts/TetrakisToken.sol/TetrakisToken.json` | Compiler: `0.8.24+commit.e11b9ed9.Emscripten.clang` (`shanghai`, `optimizer.runs = 200`)<br>Bytecode SHA-256: `0x51783e809cffb8b5318402e27f9bd181ea0578404feffcc17dcf9d1c236aef93`<br>Runtime Keccak256: `0x6130b013de4971ca4102f4d330144fbfc72fd8316a6f17c842a47d3a2260eb84` |
-| **Hardhat & EVM Audit Suite** | `packages/crypto-core/test/TetrakisToken.test.cjs` | `7/7` EVM tests PASS on local Shanghai EVM (`Anvil 31337`): initial supply `2,000,000 TTK`, `HARD_CAP` `10,000,000 TTK`, unauthorized `mint` revert (`ERR_RING0_SOVEREIGN_ONLY`), cap overflow revert (`ERR_CAP_EXCEEDED`), `burn`, `transferFrom`, `onlySovereign` guards, and `deploy.cjs` verification. |
+| **Tetrakis (`$TTK`) Smart Contract** | `contracts/tetrakis/TetrakisToken.sol` (jediný kanonický zdroj; overená kópia `packages/crypto-core/contracts/TetrakisToken.sol`) | OpenZeppelin ERC20 v5.1.0, **fixná zásoba `1,000,000,000 TTK`** (`TOTAL_SUPPLY_CAP`), pri nasadení `1,000,000 TTK` → Basterix, `999,000,000 TTK` → pokladnica, **bez `mint`/`burn`/owner/pause/proxy**. Predchádzajúca verzia s `HARD_CAP 10M` + `mint` bola odstránená (korekcia 2026-11-08). **Stav: NENASADENÝ on-chain.** |
+| **Compiled Artifact & ABI** | `contracts/tetrakis/build/TetrakisToken.json` (generuje `npm run compile` v `contracts/tetrakis`) | Compiler: `0.8.24+commit.e11b9ed9.Emscripten.clang` (`shanghai`, `optimizer.runs = 200`)<br>Bytecode SHA-256: `0x5212f569578e0379edc4f0228663d72aaa3a6bff3bfa99d7266c5c4b657edbb6`<br>Runtime Keccak256: `0x3d8a3c7a764f1b12aa17052d6d8772e1924a3395c1ffd52024891f5e794bb705` |
+| **Hardhat & EVM Audit Suite** | `packages/crypto-core/test/*.test.cjs` | Skutočný Hardhat (`hardhat test`, `13/13` PASS): metadáta, fixná zásoba 1 mld, rozdelenie 1M/999M, žiadne `mint`/`burn`/owner funkcie, transfery, `approve`/`transferFrom`, revert prípady, zachovanie zásoby, zhoda zdroja s `contracts/tetrakis`. Nasadenie rieši `contracts/tetrakis/scripts/deploy-base-sepolia.mjs` (postup: `docs/TETRAKIS-NASADENIE-SEPOLIA.md`). |
 | **WebCrypto TAP Runtime** | `packages/contracts/src/tap.js` | Pure WebCrypto `RSASSA-PKCS1-v1_5` / `SHA-256` (`2048-bit`) in-memory key generation, PKCS8/SPKI base64url import/export, and JWT signing/verification (`TapKeyManager`, `TapTokenEngine`, `verifyTapToken`). |
 
 ---
@@ -63,7 +63,7 @@ Všetky vývojové a dependabot vetvy boli úspešne a bezpečne zlúčené do `
 
 ### Testovacie pokrytie po zjednotení vetiev:
 - `npm test`: **940 / 940 PASS** (0 failures)
-- `npm run test:crypto`: **42 / 42 PASS** (0 failures: 8 verify-tetrakis, 12 Jericho, 15 tetrakis-token, 7 crypto-core EVM)
+- `npm run test:crypto`: viď aktuálny výstup (prepočítané 2026-11-08 po zjednotení kontraktu; staré číslo 42/42 platilo pre dvojitú verziu kontraktu).
 - `node --test Trinity/tests/omni-core-v11-2.test.mjs`: **10 / 10 PASS** (0 failures)
 - `node --test Trinity/tests/assistant-login.integration.test.mjs`: **19 / 19 PASS** (0 failures)
 - `node --test scripts/trinity-mcp-bridge/test/stdio.test.mjs`: **1 / 1 PASS** (0 failures)

@@ -19,11 +19,12 @@
   "scripts": {
     "compile": "node scripts/compile.mjs",
     "test": "node scripts/compile.mjs && node --test tests/*.test.mjs",
-    "deploy:plan": "node scripts/deploy-base-sepolia.mjs --dry-run",
-    "deploy:plan:mainnet": "node scripts/deploy-base-mainnet.mjs --dry-run",
-    "deploy:base-sepolia": "node scripts/deploy-base-sepolia.mjs",
+    "deploy:plan": "node scripts/deploy-base-sepolia.mjs",
+    "deploy:plan:mainnet": "node scripts/deploy-base-mainnet.mjs",
+    "deploy:base-sepolia": "node scripts/deploy-base-sepolia.mjs --broadcast",
     "deploy:base-mainnet": "node scripts/deploy-base-mainnet.mjs",
-    "deploy:base-mainnet:live": "node scripts/deploy-base-mainnet.mjs --broadcast"
+    "deploy:base-mainnet:live": "node scripts/deploy-base-mainnet.mjs --broadcast --i-understand-mainnet-is-irreversible",
+    "verify:deployed": "node scripts/verify-deployed.mjs"
   },
   "author": "Basterix (Sabo Ivan) <saboivan2008@gmail.com>",
   "license": "MIT",

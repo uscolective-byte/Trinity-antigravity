@@ -5,7 +5,7 @@
   "architect": "Ivan Sabo (Basterix) [Ring 0 Sovereign]",
   "symbol": "TTK",
   "network": "Base L2 (Chain ID 8453)",
-  "hardCap": "10,000,000 TTK",
+  "totalSupply": "1,000,000,000 TTK",
   "logo": {
     "path": "public/assets/tetrakis-logo.png",
     "packagePath": "packages/crypto-core/assets/tetrakis-logo.png",
@@ -90,8 +90,8 @@
     {
       "drop": 4,
       "channel": ["X", "Telegram"],
-      "headline": "LORE DROP #04 — Kinetická energia autonómie (Fixný Hard Cap 10,000,000 $TTK)",
-      "post": "$TTK nie je len ďalšou mincou. Je to kinetická energia autonómie, ktorou Trinity vykonáva arbitráž, uzatvára trezory a vyrovnáva transakcie v milisekundách.\n\nFixný on-chain Hard Cap: 10 000 000 $TTK. Nulová inflačná zadná brána.\n\n#Tetrakis #TTK #Base"
+      "headline": "LORE DROP #04 — Kinetická energia autonómie (Fixná zásoba 1 000 000 000 $TTK)",
+      "post": "$TTK nie je len ďalšou mincou. Je to kinetická energia autonómie, ktorou Trinity vykonáva arbitráž, uzatvára trezory a vyrovnáva transakcie v milisekundách.\n\nFixná on-chain zásoba: 1 000 000 000 $TTK, bez funkcie mint. Nulová inflačná zadná brána.\n\n#Tetrakis #TTK #Base"
     },
     {
       "drop": 5,

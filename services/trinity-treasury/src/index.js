@@ -1,7 +1,7 @@
 // services/trinity-treasury/src/index.js
 // WORKER #24: TRINITY TREASURY ($TTK Base L2 & Polygon Sovereign Controller)
 
-import tetrakisArtifact from "../../../packages/crypto-core/build/TetrakisToken.json" with { type: "json" };
+import tetrakisArtifact from "../../../contracts/tetrakis/build/TetrakisToken.json" with { type: "json" };
 import tetrakisManifesto from "../../../packages/crypto-core/lore/manifesto.json" with { type: "json" };
 import { verifyTapToken } from "../../../packages/contracts/src/tap.js";
 
@@ -27,9 +27,7 @@ const SELECTORS = {
   symbol: "0x95d89b41",
   decimals: "0x313ce567",
   totalSupply: "0x18160ddd",
-  HARD_CAP: "0x59bf1abe",
-  sovereignOwner: "0x90d9834f",
-  treasuryWorker: "0x183c637c",
+  TOTAL_SUPPLY_CAP: "0x48931352",
   balanceOf: "0x70a08231"
 };
 
@@ -42,9 +40,9 @@ export const LISTING_PIPELINE = [
     details: {
       contract: "TetrakisToken ($TTK)",
       compiler: "solc 0.8.24 (optimizer runs: 200)",
-      hardCap: "10,000,000 TTK",
-      initialSupply: "2,000,000 TTK",
-      antiBackdoor: "Infinite minting disabled; HARD_CAP enforced on-chain"
+      totalSupply: "1,000,000,000 TTK (fixed)",
+      initialAllocation: "1,000,000 TTK Basterix + 999,000,000 TTK Treasury",
+      antiBackdoor: "No mint function exists; supply is fixed at deployment"
     }
   },
   {
@@ -215,7 +213,9 @@ export default {
     }
 
     const url = new URL(request.url);
-    const contractAddress = env.TTK_CONTRACT_ADDRESS || "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    // Empty/unset = the token has NOT been deployed yet. Never fall back to a placeholder address.
+    const contractAddress = /^0x[0-9a-fA-F]{40}$/.test(env.TTK_CONTRACT_ADDRESS || "") ? env.TTK_CONTRACT_ADDRESS : null;
+    const deployed = contractAddress !== null;
     const baseChainId = String(env.BASE_CHAIN_ID || "8453");
     const baseRpcUrl = env.BASE_RPC_URL || "https://mainnet.base.org";
     const polygonChainId = String(env.POLYGON_CHAIN_ID || "137");
@@ -246,8 +246,9 @@ export default {
             name: "Tetrakis",
             symbol: "TTK",
             decimals: 18,
-            hardCapTokens: Number(env.TTK_HARD_CAP || 10000000),
-            initialSupplyTokens: Number(env.TTK_INITIAL_SUPPLY || 2000000),
+            totalSupplyTokens: 1_000_000_000,
+            mintable: false,
+            deployed,
             contractAddress,
             baseChainId,
             baseRpcUrl,
@@ -307,8 +308,9 @@ export default {
             name: "Tetrakis",
             symbol: "TTK",
             decimals: 18,
-            hardCapWei: (10_000_000n * 10n ** 18n).toString(),
-            initialSupplyWei: (2_000_000n * 10n ** 18n).toString(),
+            totalSupplyWei: (1_000_000_000n * 10n ** 18n).toString(),
+            mintable: false,
+            deployed,
             contractAddress,
             baseChainId: Number(baseChainId),
             baseRpcUrl,
@@ -347,6 +349,9 @@ export default {
         const targetRpc = network === "polygon" ? polygonRpcUrl : baseRpcUrl;
         const targetChainId = network === "polygon" ? Number(polygonChainId) : Number(baseChainId);
 
+        if (!deployed) {
+          return new Response(JSON.stringify({ error: "CONTRACT_NOT_DEPLOYED", message: "TTK_CONTRACT_ADDRESS is not configured; the token is not deployed on-chain." }), { status: 409, headers: CORS_HEADERS });
+        }
         let dataHex = SELECTORS[method];
         if (!dataHex) {
           return new Response(JSON.stringify({ error: "UNSUPPORTED_METHOD" }), { status: 400, headers: CORS_HEADERS });

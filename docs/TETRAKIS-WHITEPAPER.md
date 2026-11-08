@@ -48,12 +48,12 @@ Je to energia, ktorú Trinity využíva na exekúciu rozhodnutí, arbitráž, uz
 | **Symbol** | `TTK` |
 | **Desatinné miesta** | `18` |
 | **Štandard** | `ERC-20` (EIP-20, Solidity `0.8.24`, Shanghai EVM) |
-| **Maximálny strop (`HARD_CAP`)** | `10,000,000 TTK` (`10_000_000 * 10**18`) — nemenný on-chain limit (bez infinite mint backdooru) |
-| **Počiatočný obeh (`Initial Supply`)** | `2,000,000 TTK` (vyrazených priamo do Ring 0 trezoru) |
-| **Deflačný mechanizmus** | `burn(uint256 amount)` — trvalé zníženie celkovej ponuky |
-| **Správa (Governance)** | `sovereignOwner` (Ring 0 Basterix) + `treasuryWorker` (Cloudflare Worker #24 `trinity-treasury`) |
-| **Bytecode SHA-256** | `0x51783e809cffb8b5318402e27f9bd181ea0578404feffcc17dcf9d1c236aef93` |
-| **Runtime Keccak256** | `0x6130b013de4971ca4102f4d330144fbfc72fd8316a6f17c842a47d3a2260eb84` |
+| **Celková zásoba (fixná)** | `1,000,000,000 TTK` (`1_000_000_000 * 10**18`) — vyrazená celá pri nasadení, **žiadna funkcia `mint`** |
+| **Počiatočná alokácia** | `1,000,000 TTK` osobná peňaženka Basterix (`0x7e17…81e4`) + `999,000,000 TTK` pokladnica (`0x4d30…f387e`) |
+| **Mechanizmy** | žiadny mint, burn, pause, blacklist, dane ani proxy/upgrade — kontrakt je nemenný (OpenZeppelin ERC20 v5.1.0) |
+| **Stav nasadenia** | **NENASADENÝ on-chain** (overené 2026-11-08: pokladnica 0 transakcií). Adresa kontraktu sa zapíše až po reálnom nasadení a overení cez `scripts/verify-tetrakis.mjs` |
+| **Bytecode SHA-256** | `0x5212f569578e0379edc4f0228663d72aaa3a6bff3bfa99d7266c5c4b657edbb6` (skutočný výstup `solc 0.8.24`, `npm run compile` v `contracts/tetrakis`) |
+| **Runtime Keccak256** | `0x3d8a3c7a764f1b12aa17052d6d8772e1924a3395c1ffd52024891f5e794bb705` |
 
 ---
 

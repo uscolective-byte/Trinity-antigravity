@@ -3,16 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "compile": "node scripts/compile.cjs",
-    "test": "node scripts/compile.cjs && node scripts/run-tests.cjs",
-    "deploy:sepolia": "HARDHAT_NETWORK=baseSepolia node scripts/deploy.cjs --network baseSepolia",
-    "deploy:mainnet": "HARDHAT_NETWORK=baseMainnet node scripts/deploy.cjs --network baseMainnet",
-    "verify:sepolia": "HARDHAT_NETWORK=baseSepolia node scripts/verify.cjs --network baseSepolia",
-    "verify:mainnet": "HARDHAT_NETWORK=baseMainnet node scripts/verify.cjs --network baseMainnet"
+    "compile": "hardhat compile",
+    "test": "hardhat test"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "dotenv": "^16.4.5",
-    "hardhat": "^2.22.0"
+    "@nomicfoundation/hardhat-chai-matchers": "^2.1.2",
+    "@nomicfoundation/hardhat-ethers": "^3.1.3",
+    "@nomicfoundation/hardhat-network-helpers": "^1.1.2",
+    "@openzeppelin/contracts": "^5.1.0",
+    "chai": "^4.5.0",
+    "dotenv": "^16.6.1",
+    "ethers": "^6.17.0",
+    "hardhat": "^2.29.1"
   }
 }

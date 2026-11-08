@@ -55,7 +55,8 @@ Kryptomena bez reálnej úžitkovej hodnoty je len prázdnym špekulatívnym tok
 - **Symbol**: `TTK`
 - **Decimals**: `18`
 - **Fixná celková zásoba**: `1,000,000,000 TTK` (1 miliarda tokenov = $10^{27}$ wei)
-- **Počiatočná alokácia**: 100% supply mintnutých priamo pri deployi do Trinity Treasury: `0x4d308452a96D7dAbFd2f33d92677A3a2724f387e`
+- **Počiatočná alokácia** (mint pri deployi, nasleduje žiadny ďalší): `1,000,000 TTK` do osobnej peňaženky Basterix `0x7e17f9072cfCbc7fE45973De0F11eC8db99281e4` a `999,000,000 TTK` do Trinity Treasury `0x4d308452a96D7dAbFd2f33d92677A3a2724f387e`
+- **Stav**: kontrakt zatiaľ **nie je nasadený on-chain** (overené 2026-11-08). Nasadenie na Base Sepolia: `docs/TETRAKIS-NASADENIE-SEPOLIA.md`.
 - **Bezpečnostné invarianty**:
   - Žiadna dodatočná funkcia `mint()` neexistuje (zásoba je navždy nemenná).
   - Žiadne transakčné dane, žiadny skrytý burn, žiadny blacklist, žiadny honeypot.
@@ -66,8 +67,8 @@ Kryptomena bez reálnej úžitkovej hodnoty je len prázdnym špekulatívnym tok
 - **Kompilátor**: `solc 0.8.24+commit.e11b9ed9.Emscripten.clang`
 - **EVM Target**: `shanghai` (plne kompatibilné s Ganache a Base L2)
 - **Optimalizátor**: Zapnutý (200 behov)
-- **Bytecode SHA-256**: `0xfb9db665171c88a8b085a7825e25616573760776079f612cacd6f398d0edf004`
-- **Runtime Bytecode Keccak-256**: `0x5db6aa4e0b155cc4eb54b45ce1ecde5ec0feb55c12e4fc75153b1615c5c9652c`
+- **Bytecode SHA-256**: `0x5212f569578e0379edc4f0228663d72aaa3a6bff3bfa99d7266c5c4b657edbb6`
+- **Runtime Bytecode Keccak-256**: `0x3d8a3c7a764f1b12aa17052d6d8772e1924a3395c1ffd52024891f5e794bb705`
 
 ---
 
