@@ -1689,7 +1689,7 @@ async function route(request,env,ctx){
         plugin_installation: true,
         source_inspection: true,
         code_changes: 'GitHub branch + PR + CI; no in-place runtime rewrite',
-        github_configured: Boolean(env.TRINITY_GITHUB_TOKEN||env.GITHUB_TOKEN),
+        github_configured: Boolean(env.TRINITY_GITHUB_TOKEN||env.GITHUB_TOKEN||env.trinitygithube_key||env.GITHUBE_API_KEY),
         audited_approval: true,
         self_modifying_runtime: true,
         live_ui_evolution: true,

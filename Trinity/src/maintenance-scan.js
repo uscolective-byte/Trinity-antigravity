@@ -19,7 +19,7 @@ function parseModelJson(text){
  return undefined;
 }
 export async function scanForImprovements(env){
- if(env.TRINITY_AUTO_IMPROVE!=='true'||!(env.TRINITY_GITHUB_TOKEN||env.GITHUB_TOKEN))return {status:'not_configured'};
+ if(env.TRINITY_AUTO_IMPROVE!=='true'||!(env.TRINITY_GITHUB_TOKEN||env.GITHUB_TOKEN||env.trinitygithube_key||env.GITHUBE_API_KEY))return {status:'not_configured'};
  const key='evolution/source-scan';
  const saved=await env.DB.prepare('SELECT value FROM ops_memory WHERE key=?').bind(key).first();
  let state={offset:0,next_scan:0};try{if(saved)state=JSON.parse(saved.value);}catch{}
