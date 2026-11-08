@@ -3,26 +3,33 @@ export interface Env {
 }
 
 export default {
-  // No-op: starý cron trigger v Cloudflare už nespôsobí chybu "Handler does not export a scheduled() function".
   async scheduled(_event: ScheduledController, _env: unknown, _ctx: ExecutionContext): Promise<void> {},
+
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
-    if (req.method === "GET" && url.pathname === "/health") {
+    if (req.method === "GET" && (url.pathname === "/health" || url.pathname === "/")) {
       return Response.json({ ok: true, service: "trinity-sentinel", version: "10.3.0", status: "serving" });
     }
-    if (req.method !== "POST") return Response.json({ error: "POST required" }, { status: 405 });
-    let metrics: any;
+    if (req.method !== "POST") return Response.json({ ok: false, error: "POST required" }, { status: 405 });
+
+    let body: any = {};
     try {
-      metrics = await req.json();
+      body = await req.json();
     } catch {
-      return Response.json({ error: "Invalid JSON" }, { status: 400 });
+      return Response.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
     }
-    const { workerName = "generic", tokens = 0, isError = false } = metrics;
+
+    // Podpora pre probe serviceStatus action: 'monitor.health'
+    if (body.action === "monitor.health") {
+      return Response.json({ ok: true, status: "healthy", service: "trinity-sentinel", timestamp: Date.now() });
+    }
+
+    const { workerName = "generic", tokens = 0, isError = false } = body;
     const today = new Date().toISOString().slice(0, 10);
     const k = `metrics:${workerName}:${today}`;
     if (env.METRICS_KV) {
       await env.METRICS_KV.put(k, JSON.stringify({ tokens, isError, recordedAt: Date.now() }), { expirationTtl: 2592000 });
     }
-    return Response.json({ worker: "trinity-sentinel", status: "RECORDED", workerName, today });
+    return Response.json({ ok: true, worker: "trinity-sentinel", status: "RECORDED", workerName, today });
   }
 };
