@@ -3,31 +3,16 @@
 -- Run against: trinity-v03 (D1 database ca8ea24e-f7db-431e-b8bf-97f713ae4533)
 -- ═══════════════════════════════════════════════════════════════════════
 
--- core_tool_receipts already exists — verify/extend columns
--- (Safe to run: uses INSERT OR IGNORE / CREATE TABLE IF NOT EXISTS)
-
-CREATE TABLE IF NOT EXISTS core_tool_receipts (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  call_id       TEXT NOT NULL UNIQUE,
-  tool_name     TEXT NOT NULL,
-  executor      TEXT NOT NULL,        -- 'pc_bridge' | 'browser' | 'd1' | 'kv'
-  action        TEXT NOT NULL,
-  arguments     TEXT,                  -- JSON string
-  status        TEXT NOT NULL DEFAULT 'PENDING',  -- PENDING | SUCCESS | ERROR | OFFLINE
-  result        TEXT,                  -- JSON string
-  user_id       TEXT,
-  session_id    TEXT,
-  created_at    TEXT DEFAULT (datetime('now')),
-  completed_at  TEXT
-);
-
--- Index for fast lookups
-CREATE INDEX IF NOT EXISTS idx_receipts_session ON core_tool_receipts(session_id);
-CREATE INDEX IF NOT EXISTS idx_receipts_status ON core_tool_receipts(status);
-CREATE INDEX IF NOT EXISTS idx_receipts_created ON core_tool_receipts(created_at);
-
 -- ── Tool Registry: seed known tools ──────────────────────────────────
--- trinity_tool_registry already exists — insert tool definitions
+CREATE TABLE IF NOT EXISTS trinity_tool_registry (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  name          TEXT NOT NULL UNIQUE,
+  executor      TEXT NOT NULL,
+  action        TEXT NOT NULL,
+  description   TEXT,
+  enabled       INTEGER DEFAULT 1,
+  created_at    TEXT DEFAULT (datetime('now'))
+);
 
 INSERT OR IGNORE INTO trinity_tool_registry (name, executor, action, description, enabled) VALUES
   ('pc_open_file',   'pc_bridge', 'open_file',  'Open a file on the user PC with default app or editor', 1),
@@ -47,7 +32,3 @@ INSERT OR IGNORE INTO trinity_tool_registry (name, executor, action, description
   ('db_execute',     'd1', 'execute', 'Run an INSERT/UPDATE/DELETE on D1', 1),
   ('kv_get',         'kv', 'get',    'Get a value from KV',              1),
   ('kv_put',         'kv', 'put',    'Put a value into KV',              1);
-
--- ── Verify tables ────────────────────────────────────────────────────
--- SELECT * FROM trinity_tool_registry WHERE enabled = 1;
--- SELECT * FROM core_tool_receipts ORDER BY created_at DESC LIMIT 10;

@@ -540,6 +540,10 @@
       ],
       "services": [
         {
+          "binding": "TRINITY_BROWSER",
+          "service": "trinity-browser"
+        },
+        {
           "binding": "KNOWLEDGE_SERVICE",
           "service": "trinity-knowledge"
         },
@@ -857,6 +861,10 @@
         }
       ],
       "services": [
+        {
+          "binding": "TRINITY_BROWSER",
+          "service": "trinity-browser"
+        },
         {
           "binding": "KNOWLEDGE_SERVICE",
           "service": "trinity-knowledge"
