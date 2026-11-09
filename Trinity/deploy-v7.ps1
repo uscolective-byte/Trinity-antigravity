@@ -92,7 +92,9 @@ if (-not $SkipBuild) {
         "--platform=browser",
         "--target=es2022",
         "--outfile=dist/worker.js",
-        "--external:cloudflare:workers"
+        "--external:cloudflare:*",
+        "--external:node:*",
+        "--external:@cloudflare/puppeteer"
     )
 
     if ($DryRun) {

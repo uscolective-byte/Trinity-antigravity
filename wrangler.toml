@@ -245,3 +245,10 @@ storage = "sqlite"
 [exports.GuardianAgent]
 type = "durable-object"
 storage = "sqlite"
+
+[browser]
+binding = "BROWSER"
+
+[[services]]
+binding = "TRINITY_BROWSER"
+service = "trinity-browser"

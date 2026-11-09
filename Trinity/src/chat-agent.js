@@ -1,5 +1,6 @@
 // src/chat-agent.js - Durable Object ChatAgent
-// + Fallback kaskáda modelov + D1 system prompty + Trace logovanie
+// + Fallback kaskáda modelov + D1 system prompty + Trace logovanie + Tool-Calling Engine
+import { executeToolCalls, TOOL_CALLING_SYSTEM_PROMPT } from './trinity-tools/tool-calling-engine.js';
 
 export class ChatAgent {
   constructor(state, env) {
@@ -144,6 +145,7 @@ export class ChatAgent {
     if (!systemPrompt) {
       systemPrompt = "Si Trinity. Pokročilý AI asistent. Komunikuj v slovenčine alebo angličtine. Nikdy v češtine. Buď prirodzený a ústretový.";
     }
+    systemPrompt += "\n\n" + TOOL_CALLING_SYSTEM_PROMPT;
 
     const messages = [{ role: "system", content: systemPrompt }];
     for (const m of history) {
@@ -165,12 +167,44 @@ export class ChatAgent {
       const resp = await this.env.AI.run(primaryModel, {
         messages, max_tokens: maxTokens, temperature: 0.7
       });
+      let finalResponse = resp.response;
+      let toolReceipts = [];
+      try {
+        const toolResult = await executeToolCalls(finalResponse, this.env, {
+          userId: 'basterix',
+          sessionId: traceId,
+          traceId,
+        });
+
+        if (toolResult.hasToolCalls) {
+          toolReceipts = toolResult.results;
+          await this._log(traceId, "chat-agent", "tools.executed", "info",
+            `Executed ${toolResult.calls.length} tool(s)`, { calls: toolResult.calls, receipts: toolReceipts });
+
+          try {
+            const summary = await this.env.AI.run(primaryModel, {
+              messages: [
+                ...messages,
+                { role: 'assistant', content: finalResponse },
+                { role: 'system', content: `Tool results: ${JSON.stringify(toolReceipts)}` },
+                { role: 'user', content: 'Zhrň výsledok vykonaných operácií prirodzene v slovenčine.' }
+              ],
+              max_tokens: maxTokens,
+              temperature: 0.7
+            });
+            finalResponse = summary.response || summary;
+          } catch (_) {}
+        }
+      } catch (toolErr) {
+        await this._log(traceId, "chat-agent", "tools.error", "warn", toolErr.message);
+      }
+
       const ms = Date.now() - start;
 
       // Store response in history
       history.push({
         role: "assistant",
-        content: resp.response,
+        content: finalResponse,
         timestamp: Date.now(),
         model: "llama-3.3-70b",
       });
@@ -181,9 +215,10 @@ export class ChatAgent {
       await this._updateRoute("route-chat", true, ms);
 
       return new Response(JSON.stringify({
-        response: resp.response,
+        response: finalResponse,
         model: "Llama 3.3 70B",
         fallbackUsed: false,
+        tools: toolReceipts,
         trace_id: traceId,
         latencyMs: ms,
       }), {
@@ -204,11 +239,44 @@ export class ChatAgent {
         const resp = await this.env.AI.run(fallbackModel, {
           messages, max_tokens: maxTokens, temperature: 0.7
         });
+
+        let finalResponse = resp.response;
+        let toolReceipts = [];
+        try {
+          const toolResult = await executeToolCalls(finalResponse, this.env, {
+            userId: 'basterix',
+            sessionId: traceId,
+            traceId,
+          });
+
+          if (toolResult.hasToolCalls) {
+            toolReceipts = toolResult.results;
+            await this._log(traceId, "chat-agent", "tools.executed", "info",
+              `Executed ${toolResult.calls.length} tool(s) on fallback`, { calls: toolResult.calls, receipts: toolReceipts });
+
+            try {
+              const summary = await this.env.AI.run(fallbackModel, {
+                messages: [
+                  ...messages,
+                  { role: 'assistant', content: finalResponse },
+                  { role: 'system', content: `Tool results: ${JSON.stringify(toolReceipts)}` },
+                  { role: 'user', content: 'Zhrň výsledok vykonaných operácií prirodzene v slovenčine.' }
+                ],
+                max_tokens: maxTokens,
+                temperature: 0.7
+              });
+              finalResponse = summary.response || summary;
+            } catch (_) {}
+          }
+        } catch (toolErr) {
+          await this._log(traceId, "chat-agent", "tools.error", "warn", toolErr.message);
+        }
+
         const ms = Date.now() - start;
 
         history.push({
           role: "assistant",
-          content: resp.response,
+          content: finalResponse,
           timestamp: Date.now(),
           model: "llama-3.1-8b",
         });
@@ -219,10 +287,11 @@ export class ChatAgent {
         await this._updateRoute("route-chat", false, ms, primaryErr.message);
 
         return new Response(JSON.stringify({
-          response: resp.response,
+          response: finalResponse,
           model: "Llama 3.1 8B (fallback)",
           fallbackUsed: true,
           primaryError: primaryErr.message,
+          tools: toolReceipts,
           trace_id: traceId,
           latencyMs: ms,
         }), {

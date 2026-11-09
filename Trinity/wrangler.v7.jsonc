@@ -18,6 +18,7 @@
     ]
   },
   "services": [
+    { "binding": "TRINITY_BROWSER", "service": "trinity-browser" },
     { "binding": "CHAT_INFERENCE_SERVICE", "service": "trinity-chat-inference" },
     { "binding": "AI_INFERENCE_SERVICE", "service": "trinity-chat-inference" },
     { "binding": "DISPATCHER", "service": "trinity-dispatcher" },
@@ -49,6 +50,9 @@
   ],
   "ai": {
     "binding": "AI"
+  },
+  "browser": {
+    "binding": "BROWSER"
   },
   "queues": {
     "producers": [

@@ -52,9 +52,9 @@ if [ "$SKIP_BUILD" = false ]; then
   rm -rf dist && mkdir -p dist
 
   if [ "$DRY_RUN" = true ]; then
-    echo "  [DRY RUN] npx --yes esbuild $WORKER_FILE --bundle --minify --format=esm --platform=browser --target=es2022 --outfile=dist/worker.js --external:cloudflare:workers"
+    echo "  [DRY RUN] npx --yes esbuild $WORKER_FILE --bundle --minify --format=esm --platform=browser --target=es2022 --outfile=dist/worker.js --external:cloudflare:* --external:node:* --external:@cloudflare/puppeteer"
   else
-    npx --yes esbuild "$WORKER_FILE" --bundle --minify --format=esm --platform=browser --target=es2022 --outfile=dist/worker.js --external:cloudflare:workers 2>&1
+    npx --yes esbuild "$WORKER_FILE" --bundle --minify --format=esm --platform=browser --target=es2022 --outfile=dist/worker.js '--external:cloudflare:*' '--external:node:*' '--external:@cloudflare/puppeteer' 2>&1
 
     SIZE=$(du -b dist/worker.js | cut -f1)
     SIZE_MB=$(echo "scale=2; $SIZE / 1048576" | bc)
