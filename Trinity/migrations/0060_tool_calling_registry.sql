@@ -31,4 +31,5 @@ INSERT OR IGNORE INTO trinity_tool_registry (name, executor, action, description
   ('db_query',       'd1', 'query',   'Run a SELECT query against D1',   1),
   ('db_execute',     'd1', 'execute', 'Run an INSERT/UPDATE/DELETE on D1', 1),
   ('kv_get',         'kv', 'get',    'Get a value from KV',              1),
-  ('kv_put',         'kv', 'put',    'Put a value into KV',              1);
+  ('kv_put',         'kv', 'put',    'Put a value into KV',              1),
+  ('domain_orchestrator', 'ring0', 'orchestrate_domains', 'Generate, configure DNS, reserve and list strategic domains on $TTK escrow', 1);

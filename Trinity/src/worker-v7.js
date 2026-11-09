@@ -244,6 +244,32 @@ function createRouter() {
     return json(await d1.getSettingsByCategory(query.category));
   });
 
+  // === DOMAINS & ESCROW (RING 0) ===
+  r.post("/api/domains/orchestrate", async (req, env) => {
+    const body = await req.json().catch(() => ({}));
+    const { handleDomainOrchestration } = await import("./tools/domain-orchestrator.js");
+    return json(await handleDomainOrchestration(env, body));
+  });
+
+  r.get("/api/domains", async (req, env) => {
+    try {
+      const domains = await env.DB.prepare("SELECT * FROM managed_domains ORDER BY created_at DESC").all();
+      const dns = await env.DB.prepare("SELECT * FROM domain_dns_records ORDER BY created_at DESC").all();
+      return json({ domains: domains.results || [], dns: dns.results || [] });
+    } catch (err) {
+      return json({ error: err.message, domains: [], dns: [] });
+    }
+  });
+
+  r.get("/api/domains/escrow", async (req, env) => {
+    try {
+      const deals = await env.DB.prepare("SELECT * FROM domain_escrow_deals ORDER BY created_at DESC").all();
+      return json({ deals: deals.results || [], count: deals.results?.length || 0 });
+    } catch (err) {
+      return json({ error: err.message, deals: [] });
+    }
+  });
+
   return r;
 }
 

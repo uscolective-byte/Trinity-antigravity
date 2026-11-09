@@ -269,6 +269,46 @@ router.get("/api/tools/receipts", async ({ env, url }) => {
 });
 
 // ═══════════════════════════════════════════════════════════
+// DOMAIN ORCHESTRATION & ESCROW (RING 0)
+// ═══════════════════════════════════════════════════════════
+
+router.post("/api/domains/orchestrate", async ({ request, env }) => {
+  try {
+    const body = await request.json().catch(() => ({}));
+    const { handleDomainOrchestration } = await import("./tools/domain-orchestrator.js");
+    const result = await handleDomainOrchestration(env, body);
+    return json(result);
+  } catch (err) {
+    return json({ error: err.message }, 500);
+  }
+});
+
+router.get("/api/domains", async ({ env }) => {
+  try {
+    const domains = await env.DB.prepare(
+      "SELECT * FROM managed_domains ORDER BY created_at DESC"
+    ).all();
+    const dns = await env.DB.prepare(
+      "SELECT * FROM domain_dns_records ORDER BY created_at DESC"
+    ).all();
+    return json({ domains: domains.results || [], dns: dns.results || [] });
+  } catch (err) {
+    return json({ error: err.message, domains: [], dns: [] });
+  }
+});
+
+router.get("/api/domains/escrow", async ({ env }) => {
+  try {
+    const deals = await env.DB.prepare(
+      "SELECT * FROM domain_escrow_deals ORDER BY created_at DESC"
+    ).all();
+    return json({ deals: deals.results || [], count: deals.results?.length || 0 });
+  } catch (err) {
+    return json({ error: err.message, deals: [] });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
 // MODEL HEALTH
 // ═══════════════════════════════════════════════════════════
 

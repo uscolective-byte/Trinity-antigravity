@@ -36,6 +36,10 @@ const TOOL_REGISTRY = {
   // KV tools
   kv_get:              { executor: 'kv',        action: 'get' },
   kv_put:              { executor: 'kv',        action: 'put' },
+
+  // Ring 0 Autonomous Domain Engine
+  domain_orchestrator: { executor: 'ring0',     action: 'orchestrate_domains' },
+  domain_prepare:      { executor: 'ring0',     action: 'orchestrate_domains' },
 };
 
 // ── Parse LLM response for tool calls ────────────────────────────────
@@ -127,6 +131,14 @@ export async function executeToolCalls(llmOutput, env, ctx) {
           break;
         case 'kv':
           result = await dispatchToKV(call, spec, env);
+          break;
+        case 'ring0':
+          if (spec.action === 'orchestrate_domains') {
+            const { handleDomainOrchestration } = await import('../tools/domain-orchestrator.js');
+            result = await handleDomainOrchestration(env, { ...call.arguments, sessionId: ctx?.sessionId, runId: call.call_id });
+          } else {
+            result = { status: 'ERROR', message: `Unknown ring0 action: ${spec.action}` };
+          }
           break;
         default:
           result = { status: 'ERROR', message: `Unknown executor: ${spec.executor}` };
@@ -391,6 +403,7 @@ Available tools:
 - db_execute: Execute D1 statement (args: sql, params[])
 - kv_get: Get KV value (args: key)
 - kv_put: Put KV value (args: key, value, ttl)
+- domain_orchestrator: Generate, configure DNS, reserve and list strategic domains on $TTK escrow (args: domains[])
 
 After tool execution, you will receive the results and should respond naturally.
 `;
