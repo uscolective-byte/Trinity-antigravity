@@ -106,6 +106,29 @@ function createRouter() {
     return json({ version: VERSION, status: "online", db: { ok: dbOk }, ai: { ok: aiOk }, timestamp: new Date().toISOString() });
   });
 
+  r.get("/api/status", async (req, env) => {
+    return json({
+      status: "active",
+      system: "Trinity Omni-Core Sovereign AI OS",
+      version: VERSION,
+      pc_bridge: "http://127.0.0.1:7777/",
+      mcp_endpoint: "https://auru.space/mcp"
+    });
+  });
+
+  r.get("/api/bootstrap", async (req, env) => {
+    return json({
+      status: "bootstrap_ready",
+      system: "Trinity Omni-Core",
+      version: VERSION,
+      owner: env.TRINITY_OWNER_EMAIL || "saboivan2008@gmail.com",
+      pc_bridge_url: "http://127.0.0.1:7777/",
+      mcp_url: "https://auru.space/mcp",
+      primary_domain: "auru.space",
+      staging_domain: "auru.dev"
+    });
+  });
+
   // === CHAT ===
   r.post("/api/chat", async (req, env, ctx) => {
     const traceId = crypto.randomUUID();

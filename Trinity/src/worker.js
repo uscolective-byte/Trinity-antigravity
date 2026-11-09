@@ -27,6 +27,39 @@ router.get("/api/health", async ({ env }) => {
   });
 });
 
+router.get("/api/status", async ({ env }) => {
+  return json({
+    status: "active",
+    system: "Trinity Omni-Core Sovereign AI OS",
+    version: "7.0.0",
+    architecture: "Edge Hypervisor + Multi-Agent Swarm",
+    pc_bridge: { target: "http://127.0.0.1:7777/", status: "ready" },
+    mcp_endpoint: "https://auru.space/mcp",
+    bound_workers_count: 30,
+    timestamp: Date.now()
+  });
+});
+
+router.get("/api/bootstrap", async ({ env }) => {
+  return json({
+    status: "bootstrap_ready",
+    system: "Trinity Omni-Core",
+    version: "7.0.0",
+    owner: env.TRINITY_OWNER_EMAIL || "saboivan2008@gmail.com",
+    pc_bridge_url: "http://127.0.0.1:7777/",
+    mcp_url: "https://auru.space/mcp",
+    primary_domain: "auru.space",
+    staging_domain: "auru.dev",
+    models: {
+      primary: env.AI_MODEL || "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+      fast: env.AI_FAST_MODEL || "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
+      openai: env.OPENAI_MODEL || "gpt-4.1-mini",
+      gemini: env.GEMINI_MODEL || "gemini-3.8-flash"
+    },
+    initialized_at: new Date().toISOString()
+  });
+});
+
 // ═══════════════════════════════════════════════════════════
 // CHAT
 // ═══════════════════════════════════════════════════════════
