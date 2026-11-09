@@ -3,38 +3,590 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trinity v7.0.0</title>
+<title>Trinity v7.0.0 — Sovereign AI Operating System</title>
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<div id="app">
-  <div class="header">
-    <h1>AURA Trinity v7.0.0</h1>
-    <span class="badge" id="status">connecting...</span>
-  </div>
-  <div class="chat-container">
-    <div id="conversation" aria-live="polite"></div>
-    <form id="task-form">
-      <textarea id="task" placeholder="Napíš správu..." rows="3"></textarea>
-      <select id="mode">
-        <option value="single">Single</option>
-        <option value="team">Team</option>
-        <option value="control">Control</option>
-      </select>
-      <select id="agent">
-        <option value="ORCHESTRATOR">Orchestrator</option>
-      </select>
-      <select id="provider">
-        <option value="workers-ai">Workers AI</option>
-        <option value="local">Local</option>
-        <option value="gemini">Gemini</option>
-        <option value="openai">OpenAI</option>
-        <option value="ollama">Ollama</option>
-      </select>
-      <button type="submit" id="send">Odoslať</button>
-    </form>
-  </div>
+<div id="app" class="trinity-layout">
+  <!-- Sidebar / Navigácia -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 2a10 10 0 0 1 10 10M12 2a10 10 0 0 0-10 10"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </div>
+      <div class="brand-info">
+        <h2>TRINITY</h2>
+        <span class="version-badge">v7.0.0 OMNI-CORE</span>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <button class="nav-btn active" data-tab="chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Konzola & Chat</span>
+      </button>
+      <button class="nav-btn" data-tab="architecture">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span>Architektúra v7</span>
+      </button>
+      <button class="nav-btn" data-tab="agents">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Flotila Agentov</span>
+        <span class="nav-counter">61</span>
+      </button>
+      <button class="nav-btn" data-tab="tools">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <span>Nástroje & Schopnosti</span>
+        <span class="nav-counter">57</span>
+      </button>
+      <button class="nav-btn" data-tab="database">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        <span>D1 Databáza</span>
+        <span class="nav-counter">170+</span>
+      </button>
+      <button class="nav-btn" data-tab="telemetry">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Telemetria & Traces</span>
+      </button>
+      <button class="nav-btn" data-tab="charter">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>Identita & Pravidlá</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-indicator">
+        <span class="status-dot" id="system-status-dot"></span>
+        <span class="status-text" id="status">Pripájam k Edge...</span>
+      </div>
+      <div class="system-meta">
+        <small>Owner: <strong>Basterix (Ivan Sabo)</strong></small>
+        <small id="edge-target">Host: auru.space / auru.dev</small>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Hlavný obsah -->
+  <main class="main-content">
+    <!-- HORNÁ LIŠTA -->
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1 id="tab-heading">Konzola & Asistent</h1>
+        <p class="tab-subtitle" id="tab-subheading">Autonómna komunikácia cez Durable Objects a Workers AI</p>
+      </div>
+      <div class="topbar-actions">
+        <div class="env-chip" id="env-badge">PRODUCTION / STAGING READY</div>
+        <button class="btn-refresh" id="btn-refresh-status" title="Obnoviť stav systému">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Sync
+        </button>
+      </div>
+    </header>
+
+    <!-- TAB 1: CHAT A KONZOLA -->
+    <section class="tab-pane active" id="pane-chat">
+      <div class="chat-wrapper">
+        <div class="chat-history" id="conversation" aria-live="polite">
+          <div class="msg system-welcome">
+            <div class="msg-author">
+              <span class="bot-badge">TRINITY v7.0</span>
+              <small>System Kernel</small>
+            </div>
+            <p>Ahoj Ivan! Som <strong>Trinity</strong>, tvoj autonómny operačný systém na Cloudflare Workers. Architektúra v7.0.0 je aktivovaná: sub-megabajtový runtime, Durable Object <code>ChatAgent</code> a fallback kaskáda modelov sú pripravené.</p>
+            <div class="quick-chips">
+              <button class="chip-btn" data-prompt="Aký je stav systému a modelov?">⚡ Stav systému</button>
+              <button class="chip-btn" data-prompt="Zobraz zoznam aktívnych agentov.">🤖 Zoznam agentov</button>
+              <button class="chip-btn" data-prompt="Aké nástroje máš v registri?">🛠️ Katalóg nástrojov</button>
+            </div>
+          </div>
+        </div>
+
+        <form id="task-form" class="chat-form">
+          <div class="controls-bar">
+            <div class="control-group">
+              <label for="agent">Agent:</label>
+              <select id="agent">
+                <option value="ORCHESTRATOR">Orchestrator Agent</option>
+                <option value="TRINITY_CORE">Trinity Core Kernel</option>
+                <option value="TRINITY_MEMORY">Memory Node</option>
+                <option value="AURA_ARCHITECT">AURA Architect</option>
+                <option value="AURA_CODEGEN">AURA Codegen</option>
+                <option value="AURA_DEPLOYER">AURA Deployer</option>
+                <option value="AURA_SENTINEL">AURA Sentinel</option>
+                <option value="AURA_TESTER">AURA Tester</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label for="mode">Režim:</label>
+              <select id="mode">
+                <option value="single">Single Agent</option>
+                <option value="team">Team Cluster</option>
+                <option value="control">Control Panel</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label for="provider">Model Provider:</label>
+              <select id="provider">
+                <option value="workers-ai">Workers AI (Llama 3.3 70B Fast)</option>
+                <option value="local">Local PC Bridge</option>
+                <option value="gemini">Google Gemini 3.8</option>
+                <option value="openai">OpenAI GPT-4.1 Mini</option>
+                <option value="ollama">Ollama Local (Gemma 4)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-row">
+            <textarea id="task" placeholder="Napíš príkaz alebo otázku pre Trinity... (Enter = odoslať, Shift+Enter = nový riadok)" rows="2"></textarea>
+            <button type="submit" id="send" class="btn-send">
+              <span>Odoslať</span>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 2: ARCHITEKTÚRA V7 -->
+    <section class="tab-pane" id="pane-architecture">
+      <div class="doc-container">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-num">17.6 KB</div>
+            <div class="stat-label">Veľkosť bundla (esbuild)</div>
+            <div class="stat-desc">Zníženie z 13 MB monolitu o 99.8 %</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">44</div>
+            <div class="stat-label">Cloudflare Bindings</div>
+            <div class="stat-desc">Durable Objects, D1, KV, R2, Vectorize, Queues</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">24</div>
+            <div class="stat-label">Service Bindings</div>
+            <div class="stat-desc">Zero-latency priame prepojenia medzi workermi</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">0 ms</div>
+            <div class="stat-label">CPU pre statické assets</div>
+            <div class="stat-desc">Cloudflare CDN Assets (`env.ASSETS`)</div>
+          </div>
+        </div>
+
+        <div class="card mt-20">
+          <h3>Architektonický diagram Trinity v7.0.0</h3>
+          <div class="arch-flow">
+            <div class="flow-box client-box">
+              <strong>Client / Browser</strong>
+              <small>https://auru.space & https://auru.dev</small>
+            </div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-box router-box">
+              <strong>Edge Router & Asset Proxy</strong>
+              <small>src/router.js & env.ASSETS</small>
+            </div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-box do-box">
+              <strong>Durable Object (CHAT_AGENT)</strong>
+              <small>src/chat-agent.js (Bounded History & Session State)</small>
+            </div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-box service-box">
+              <strong>Service Bindings & AI</strong>
+              <small>CHAT_INFERENCE, DISPATCHER, CORE, GUARDIAN</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mt-20">
+          <h3>Kľúčové Cloudflare Bindings (44 Celkom)</h3>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Typ</th>
+                  <th>Binding</th>
+                  <th>Cieľ / Služba</th>
+                  <th>Účel</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><span class="badge badge-do">Durable Object</span></td><td><code>CHAT_AGENT</code></td><td>ChatAgent</td><td>Stavové relácie chatu & ohraničená pamäť</td></tr>
+                <tr><td><span class="badge badge-service">Service</span></td><td><code>CHAT_INFERENCE_SERVICE</code></td><td>trinity-chat-inference</td><td>AI model inferencia pre chat</td></tr>
+                <tr><td><span class="badge badge-service">Service</span></td><td><code>DISPATCHER</code></td><td>trinity-dispatcher</td><td>Smerovanie úloh medzi agentmi</td></tr>
+                <tr><td><span class="badge badge-service">Service</span></td><td><code>CORE</code></td><td>trinity-core</td><td>Hlavná operačná logika Trinity</td></tr>
+                <tr><td><span class="badge badge-service">Service</span></td><td><code>CONNECTORS</code></td><td>trinity-connectors</td><td>Integrácie na externé platformy</td></tr>
+                <tr><td><span class="badge badge-service">Service</span></td><td><code>PC_BRIDGE_V2</code></td><td>trinity-pc-bridge-v2</td><td>Bezpečná brána na lokálne PC</td></tr>
+                <tr><td><span class="badge badge-service">Service</span></td><td><code>AURA_MEMORY</code></td><td>trinity-memory</td><td>Trvalá pamäť agentov</td></tr>
+                <tr><td><span class="badge badge-d1">D1 Database</span></td><td><code>DB / TRINITY_D1</code></td><td>trinity-v03</td><td>Hlavná relačná databáza (170+ tabuliek)</td></tr>
+                <tr><td><span class="badge badge-kv">KV Namespace</span></td><td><code>TRINITY_KV</code></td><td>a3b3e5...</td><td>Rýchla kľúč-hodnota pamäť</td></tr>
+                <tr><td><span class="badge badge-r2">R2 Storage</span></td><td><code>R2</code></td><td>trinity-storage</td><td>Neobmedzené úložisko súborov a receiptov</td></tr>
+                <tr><td><span class="badge badge-ai">Workers AI</span></td><td><code>AI</code></td><td>Cloudflare AI</td><td>Llama 3.3 70B Fast, Whisper, Flux</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: AGENTI FLOTILA -->
+    <section class="tab-pane" id="pane-agents">
+      <div class="doc-container">
+        <h3>Infraštruktúrni Agenti (21 Core & AURA špecialistov)</h3>
+        <p class="section-intro">Systémoví agenti viazaní priamo na Cloudflare Worker service bindings:</p>
+        <div class="agent-cards-grid">
+          <div class="agent-card">
+            <div class="agent-header">
+              <span class="agent-avatar">👑</span>
+              <div>
+                <h4>ORCHESTRATOR</h4>
+                <small class="agent-type">Riadiaci mozog</small>
+              </div>
+              <span class="status-pill active">Active</span>
+            </div>
+            <p>Koordinuje delegovanie úloh, rieši konflikty, riadi celkový cyklus Trinity.</p>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-header">
+              <span class="agent-avatar">🛡️</span>
+              <div>
+                <h4>AURA_SENTINEL</h4>
+                <small class="agent-type">Bezpečnosť & Lock</small>
+              </div>
+              <span class="status-pill active">Active</span>
+            </div>
+            <p>Truth Policy 2.1 verifikácia, ochrana pred neoprávneným prístupom a únikmi kľúčov.</p>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-header">
+              <span class="agent-avatar">🏛️</span>
+              <div>
+                <h4>AURA_ARCHITECT</h4>
+                <small class="agent-type">Systémový dizajn</small>
+              </div>
+              <span class="status-pill active">Active</span>
+            </div>
+            <p>Navrhuje štruktúru modulov, rozhrania a schémy pre škálovanie systému.</p>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-header">
+              <span class="agent-avatar">⚡</span>
+              <div>
+                <h4>AURA_CODEGEN</h4>
+                <small class="agent-type">Generovanie kódu</small>
+              </div>
+              <span class="status-pill active">Active</span>
+            </div>
+            <p>Syntetizuje nové funkcie, píše TypeScript/JavaScript bez externých závislostí.</p>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-header">
+              <span class="agent-avatar">🚀</span>
+              <div>
+                <h4>AURA_DEPLOYER</h4>
+                <small class="agent-type">CI/CD a nasadzovanie</small>
+              </div>
+              <span class="status-pill active">Active</span>
+            </div>
+            <p>Wrangler nasadzovanie na Cloudflare, zero-footprint skripty, správa prostredí.</p>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-header">
+              <span class="agent-avatar">🧪</span>
+              <div>
+                <h4>AURA_TESTER</h4>
+                <small class="agent-type">Testy a kvalita</small>
+              </div>
+              <span class="status-pill active">Active</span>
+            </div>
+            <p>Spúšťa 920+ testov, kontroluje health checky všetkých 47 cieľov a zmluvné kontrakty.</p>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-header">
+              <span class="agent-avatar">🧠</span>
+              <div>
+                <h4>AURA_MEMORY</h4>
+                <small class="agent-type">Sémantická pamäť</small>
+              </div>
+              <span class="status-pill active">Active</span>
+            </div>
+            <p>Prepája D1 grafové uzly a Vectorize index pre dlhodobú kontextovú kontinuitu.</p>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-header">
+              <span class="agent-avatar">🌱</span>
+              <div>
+                <h4>AURA_EVOLVER</h4>
+                <small class="agent-type">Samo-zlepšovanie</small>
+              </div>
+              <span class="status-pill active">Active</span>
+            </div>
+            <p>Analyzuje logy chýb, navrhuje zlepšenia a udržiava systém v neustálom vývoji.</p>
+          </div>
+        </div>
+
+        <h3 class="mt-30">Tímoví Ops Agenti (40 agentov v 8 klastroch)</h3>
+        <div class="clusters-grid">
+          <div class="cluster-card">
+            <h4>1. Riadenie</h4>
+            <ul>
+              <li>Plánovač úloh</li>
+              <li>Projektový manažér</li>
+              <li>Analytik požiadaviek</li>
+              <li>Analytik rizík</li>
+              <li>Trinity (Hlavný Orchestrator)</li>
+            </ul>
+          </div>
+
+          <div class="cluster-card">
+            <h4>2. Vývoj</h4>
+            <ul>
+              <li>Softvérový Architekt</li>
+              <li>Backend Node.js vývojár</li>
+              <li>Frontend & UI vývojár</li>
+              <li>Python dátový špecialista</li>
+              <li>Revízor kódu (Code Reviewer)</li>
+            </ul>
+          </div>
+
+          <div class="cluster-card">
+            <h4>3. Tvorba & Médiá</h4>
+            <ul>
+              <li>Autor textov & Copywriter</li>
+              <li>Prekladateľ (SK / EN)</li>
+              <li>Technický redaktor</li>
+              <li>UI / Visual dizajnér</li>
+              <li>UX výskumník</li>
+            </ul>
+          </div>
+
+          <div class="cluster-card">
+            <h4>4. Výskum & Znalosti</h4>
+            <ul>
+              <li>Technický rešeršér</li>
+              <li>Trhový & Business analytik</li>
+              <li>Overovateľ faktov (Truth Guardian)</li>
+              <li>Dokumentačný analytik</li>
+              <li>Web Intelligence Crawler</li>
+            </ul>
+          </div>
+
+          <div class="cluster-card">
+            <h4>5. Dáta a Pamäť</h4>
+            <ul>
+              <li>D1 Databázový inžinier</li>
+              <li>Dátový analytik</li>
+              <li>Integračný špecialista</li>
+              <li>Správca grafovej pamäte</li>
+              <li>Znalostný inžinier</li>
+            </ul>
+          </div>
+
+          <div class="cluster-card">
+            <h4>6. Cloud & Prevádzka</h4>
+            <ul>
+              <li>Cloudflare Edge inžinier</li>
+              <li>Site Reliability Engineer</li>
+              <li>Analytik nákladov & limitov</li>
+              <li>Optimalizátor latencie</li>
+              <li>Release Manager</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: NÁSTROJE & SCHOPNOSTI -->
+    <section class="tab-pane" id="pane-tools">
+      <div class="doc-container">
+        <div class="section-header-row">
+          <div>
+            <h3>Katalóg 57 Nástrojov (Tool Registry)</h3>
+            <p>Každý nástroj má deterministický handler, trace audit a zápis do <code>core_tool_receipts</code>.</p>
+          </div>
+          <button class="btn-primary" id="btn-ping-tools">Otestovať stav nástrojov</button>
+        </div>
+
+        <div class="tools-grid">
+          <div class="tool-item">
+            <span class="tool-badge">AI Core</span>
+            <h4>llm_chat</h4>
+            <p>Inferenčný hovor s fallback kaskádou (Llama 70B ➔ Llama 8B) s automatickým meraním latencie.</p>
+          </div>
+
+          <div class="tool-item">
+            <span class="tool-badge">D1 SQL</span>
+            <h4>execute_d1_sql</h4>
+            <p>Bezpečný parametrizovaný dotaz na produkčnú D1 databázu s auditom zmien a ochranou pred injection.</p>
+          </div>
+
+          <div class="tool-item">
+            <span class="tool-badge">Health</span>
+            <h4>model_health_check</h4>
+            <p>Cyklický health check všetkých 5 routov (Chat, Fast, Reasoning, Code, Embeddings) s D1 zápisom.</p>
+          </div>
+
+          <div class="tool-item">
+            <span class="tool-badge">Audit</span>
+            <h4>trace_inspect</h4>
+            <p>Hĺbková inšpekcia toku požiadavky naprieč Workermi podľa unikátneho <code>trace_id</code>.</p>
+          </div>
+
+          <div class="tool-item">
+            <span class="tool-badge">Domain</span>
+            <h4>domain_dns_manage</h4>
+            <p>Správa DNS záznamov na Cloudflare pre <code>auru.space</code> a <code>auru.dev</code>.</p>
+          </div>
+
+          <div class="tool-item">
+            <span class="tool-badge">PC Bridge</span>
+            <h4>pc_bridge_execute</h4>
+            <p>Zabezpečený príkaz na lokálny PC cez loopback HTTP na porte 7788/7789 s overením SID.</p>
+          </div>
+
+          <div class="tool-item">
+            <span class="tool-badge">Memory</span>
+            <h4>graph_memory_store</h4>
+            <p>Zápis vzťahov do grafovej znalostnej bázy (entities, edges, observations).</p>
+          </div>
+
+          <div class="tool-item">
+            <span class="tool-badge">Storage</span>
+            <h4>r2_receipt_write</h4>
+            <p>Kryptografické uloženie nespochybniteľného dôkazu o vykonaní operácie do R2 storage.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: D1 DATABÁZA -->
+    <section class="tab-pane" id="pane-database">
+      <div class="doc-container">
+        <h3>D1 Databáza: trinity-v03</h3>
+        <p><strong>UUID:</strong> <code>ca8ea24e-f7db-431e-b8bf-97f713ae4533</code> | <strong>170+ tabuliek</strong></p>
+
+        <div class="db-section mt-20">
+          <h4>Kľúčové relačné entity</h4>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Tabuľka</th>
+                  <th>Stav v v7</th>
+                  <th>Účel v Trinity</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>trinity_trace_log</code></td><td><span class="badge badge-new">Nová</span></td><td>Štruktúrované JSON logy s <code>trace_id</code> a <code>session_id</code></td></tr>
+                <tr><td><code>trinity_tool_registry</code></td><td><span class="badge badge-new">Nová</span></td><td>Register 57 systémových nástrojov s priemernou latenciou</td></tr>
+                <tr><td><code>trinity_model_health</code></td><td><span class="badge badge-new">Nová</span></td><td>Zdravie a dostupnosť primárnych aj fallback modelov</td></tr>
+                <tr><td><code>system_prompts</code></td><td><span class="badge badge-active">Upravená</span></td><td>4 aktívne prompty vrátane pravidla slovenčiny a zákazu češtiny</td></tr>
+                <tr><td><code>model_routes</code></td><td><span class="badge badge-active">Upravená</span></td><td>Smerovanie a sledovanie fallback_triggered štatistík</td></tr>
+                <tr><td><code>core_tool_receipts</code></td><td><span class="badge badge-active">Aktívna</span></td><td>Dôkazy o vykonaní nástrojov podľa Truth Policy 2.1</td></tr>
+                <tr><td><code>conversations / messages</code></td><td><span class="badge badge-active">Aktívna</span></td><td>História relácií prepojená s Durable Object storage</td></tr>
+                <tr><td><code>graph_memory_nodes</code></td><td><span class="badge badge-active">Aktívna</span></td><td>Znalostný graf a kognitívna pamäť systému</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: TELEMETRIA & TRACES -->
+    <section class="tab-pane" id="pane-telemetry">
+      <div class="doc-container">
+        <h3>Živá Telemetria a Trace Inšpektor</h3>
+        <div class="telemetry-grid mt-20">
+          <div class="telemetry-card">
+            <h4>Edge Worker</h4>
+            <div class="metric-val" id="metric-worker">v7.0.0 Online</div>
+            <small>Cloudflare Workers Edge Runtime</small>
+          </div>
+          <div class="telemetry-card">
+            <h4>D1 Database</h4>
+            <div class="metric-val" id="metric-db">Pripájam...</div>
+            <small>trinity-v03 (D1 SQL)</small>
+          </div>
+          <div class="telemetry-card">
+            <h4>Workers AI Inferencia</h4>
+            <div class="metric-val" id="metric-ai">Pripájam...</div>
+            <small>Llama 3.3 70B / 3.1 8B</small>
+          </div>
+        </div>
+
+        <div class="card mt-20">
+          <div class="section-header-row">
+            <h4>Posledné Trace Logy (Live Feed)</h4>
+            <button class="btn-refresh" id="btn-refresh-traces">Obnoviť logy</button>
+          </div>
+          <div class="traces-log" id="traces-log-container">
+            <div class="trace-row"><span class="trace-time">Práve teraz</span> <span class="trace-tag ok">READY</span> Inicializácia rozhrania Trinity v7.0.0 úspešná.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 7: IDENTITA & PRAVIDLÁ -->
+    <section class="tab-pane" id="pane-charter">
+      <div class="doc-container">
+        <div class="charter-box">
+          <h3>Pravidlá Komunikácie a Identity Trinity</h3>
+          <blockquote>
+            „Si Trinity. Pokročilý autonómny AI operačný systém vytvorený Ivanom Sabom (Basterix). Komunikuješ prirodzene, priateľsky a odborne.“
+          </blockquote>
+
+          <div class="rules-list mt-20">
+            <div class="rule-item">
+              <span class="rule-num">1</span>
+              <div>
+                <strong>Jazyková integrita:</strong>
+                <p>Predvolený jazyk je <strong>SLOVENČINA</strong>. Angličtina je povolená pre kód a technické termíny. <strong>ČEŠTINA JE ZAKÁZANÁ</strong> (najdôležitejšie pravidlo majiteľa).</p>
+              </div>
+            </div>
+
+            <div class="rule-item">
+              <span class="rule-num">2</span>
+              <div>
+                <strong>Truth Policy 2.1:</strong>
+                <p><em>NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT.</em> Trinity nikdy nevymýšľa výsledky príkazov ani stav nasadenia bez reálneho kryptografického alebo systémového dôkazu.</p>
+              </div>
+            </div>
+
+            <div class="rule-item">
+              <span class="rule-num">3</span>
+              <div>
+                <strong>Režim Priameho Vývoja:</strong>
+                <p>Žiadne umelé čakanie na syntetických koordinátorov ani ceremoniálne handoffy počas vývoja. Spolupráca s majiteľom priamo, agilne a pragmaticky.</p>
+              </div>
+            </div>
+
+            <div class="rule-item">
+              <span class="rule-num">4</span>
+              <div>
+                <strong>Ochrana Tajomstiev:</strong>
+                <p>Nikdy nevypisovať, nelogovať a necommitovať API kľúče, DPAPI tokeny, privátne heslá ani credentials do repozitára.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
+
 <script src="/auth-bootstrap.js"></script>
 <script src="/app.js"></script>
 </body>
