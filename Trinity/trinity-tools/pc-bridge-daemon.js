@@ -31,7 +31,29 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // ── Configuration ─────────────────────────────────────────────────────
 const PORT = 7777;
 const HOST = '127.0.0.1'; // localhost only — never expose externally
-const BRIDGE_SECRET = process.env.BRIDGE_SECRET || 'CHANGE_ME_TO_MATCH_PC_BRIDGE_KEY';
+
+function resolveBridgeSecret() {
+  if (process.env.BRIDGE_SECRET) return process.env.BRIDGE_SECRET;
+  if (process.env.TRINITY_BRIDGE_SECRET) return process.env.TRINITY_BRIDGE_SECRET;
+  if (process.env.PC_BRIDGE_KEY) return process.env.PC_BRIDGE_KEY;
+
+  const keyFile = path.join(__dirname, '.bridge-key');
+  if (fs.existsSync(keyFile)) {
+    try {
+      const saved = fs.readFileSync(keyFile, 'utf8').trim();
+      if (saved) return saved;
+    } catch (_) {}
+  }
+
+  // Auto-generate stable secret for developer convenience
+  const generated = 'trinity_' + crypto.randomBytes(16).toString('hex');
+  try {
+    fs.writeFileSync(keyFile, generated, { encoding: 'utf8' });
+  } catch (_) {}
+  return generated;
+}
+
+const BRIDGE_SECRET = resolveBridgeSecret();
 const AUDIT_LOG = path.join(__dirname, 'bridge-audit.log');
 
 // ── Allowlist: only these actions are permitted ──────────────────────
