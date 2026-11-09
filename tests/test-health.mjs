@@ -26,7 +26,10 @@ let passCount = 0;
 let failCount = 0;
 
 for (const w of workers) {
-  const p = path.join(rootDir, w, 'src', 'index.ts');
+  let p = path.join(rootDir, w, 'src', 'index.ts');
+  if (!fs.existsSync(p)) {
+    p = path.join(rootDir, 'Archive', 'legacy-templates', w, 'src', 'index.ts');
+  }
   if (!fs.existsSync(p)) {
     console.error(`MISSING: ${p}`);
     failCount++;
