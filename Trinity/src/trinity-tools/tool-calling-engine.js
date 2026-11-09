@@ -195,11 +195,29 @@ async function dispatchToPcBridge(call, spec, env, ctx) {
 
 // ── Browser Rendering dispatcher ─────────────────────────────────────
 async function dispatchToBrowser(call, spec, env, ctx) {
-  // Dynamic import — only loaded when a browser tool is called
-  const puppeteer = await import('@cloudflare/puppeteer');
-
   const { action, arguments: args } = { action: spec.action, arguments: call.arguments };
 
+  // Priority 1: Forward to dedicated trinity-browser service binding if configured
+  const browserService = env.TRINITY_BROWSER;
+  if (browserService) {
+    try {
+      const resp = await browserService.fetch('https://internal/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, args })
+      });
+      if (resp.ok) return await resp.json();
+    } catch (_) {
+      // Fall through to direct BROWSER binding
+    }
+  }
+
+  // Priority 2: Direct browser rendering binding
+  if (!env.BROWSER) {
+    return { status: 'ERROR', message: 'Neither TRINITY_BROWSER service nor BROWSER binding is configured' };
+  }
+
+  const puppeteer = await import('@cloudflare/puppeteer');
   const browser = await puppeteer.launch(env.BROWSER);
   try {
     const page = await browser.newPage();
