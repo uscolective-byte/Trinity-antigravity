@@ -56,6 +56,19 @@ test("Trinity Bridge: Destructive Command Audit", () => {
   assert.doesNotThrow(() => auditCommand("echo hello"));
 });
 
+test("Trinity Bridge: Commands execute without shell interpretation", async () => {
+  const result = await runSafeCommand(
+    `node -e "process.stdout.write(process.argv[1])" "two words; still one argument"`
+  );
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "two words; still one argument");
+
+  await assert.rejects(
+    () => runSafeCommand(`node -e "console.log('safe')"; node -e "console.log('injected')"`),
+    /Shell operators are not supported/
+  );
+});
+
 test("Trinity Bridge: Workspace Boundary & Path Traversal Guard", async () => {
   // Attempting to break out of WORKSPACE_DIR must fail
   await assert.rejects(

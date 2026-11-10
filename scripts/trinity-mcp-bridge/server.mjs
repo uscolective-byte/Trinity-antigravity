@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { exec } from "node:child_process";
+import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import express from "express";
 import cors from "cors";
@@ -9,7 +9,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 // Konfigurácia TRINITY Sandboxu
 const REPO_ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
@@ -44,8 +44,59 @@ export function auditCommand(cmd) {
   }
 }
 
+function parseCommand(command) {
+  const args = [];
+  let arg = "";
+  let quote = null;
+  let started = false;
+
+  for (let i = 0; i < command.length; i++) {
+    const char = command[i];
+    const next = command[i + 1];
+    if (char === "\\" && quote !== "'" && next && (/\s/.test(next) || "\\\"';&|<>".includes(next))) {
+      arg += next;
+      i++;
+      started = true;
+    } else if (char === "\\") {
+      arg += char;
+      started = true;
+    } else if (quote) {
+      if (char === quote) {
+        quote = null;
+      } else {
+        arg += char;
+      }
+      started = true;
+    } else if (char === "'" || char === '"') {
+      quote = char;
+      started = true;
+    } else if (/\s/.test(char)) {
+      if (started) {
+        args.push(arg);
+        arg = "";
+        started = false;
+      }
+    } else if (";&|<>".includes(char)) {
+      throw new Error("Shell operators are not supported; provide one executable and its arguments.");
+    } else {
+      arg += char;
+      started = true;
+    }
+  }
+
+  if (quote) {
+    throw new Error("Malformed command: unmatched quote.");
+  }
+  if (started) args.push(arg);
+  if (!args.length || !args[0]) {
+    throw new Error("Command must include an executable.");
+  }
+  return args;
+}
+
 export async function runSafeCommand(command, subdir = ".", timeoutMs = 120000) {
   auditCommand(command);
+  const [executable, ...args] = parseCommand(command);
   const rawSubdir = String(subdir ?? ".");
   if (/^[a-zA-Z]:[\\/]|^\\\\/.test(rawSubdir.trim())) {
     throw new Error(`SANDBOX VIOLATION: Pokus o únik mimo TRINITY_WORKSPACE (${rawSubdir})`);
@@ -60,7 +111,7 @@ export async function runSafeCommand(command, subdir = ".", timeoutMs = 120000) 
   }
 
   try {
-    const { stdout, stderr } = await execAsync(command, {
+    const { stdout, stderr } = await execFileAsync(executable, args, {
       cwd: resolvedCwd,
       timeout: timeoutMs,
       maxBuffer: 20 * 1024 * 1024,
