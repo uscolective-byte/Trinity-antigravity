@@ -733,6 +733,37 @@ test('Module 11: Tetrakis ($TTK) Base L2 Smart Contract, Hardhat Config & Worker
 
   const manifestoRes = await treasuryWorker.fetch(new Request('https://auru.space/api/treasury/manifesto'), treasuryWrangler.vars);
   assert.equal(manifestoRes.status, 200);
+
+  // Test Proof-of-Execution (PoE) & Merkle Epoch Compression
+  const { createExecutionReceipt, MerkleExecutionTree } = await import('../../packages/crypto-core/src/proof-of-execution.js');
+  const receipts = [
+    createExecutionReceipt({ taskId: 'task-poe-1', agentId: 'jericho123', gasUnits: 50, exitCode: 0 }),
+    createExecutionReceipt({ taskId: 'task-poe-2', agentId: 'aura_sentinel', gasUnits: 80, exitCode: 0 })
+  ];
+  const tree = new MerkleExecutionTree(receipts);
+  const rootHash = tree.getRoot();
+  const proof0 = tree.getProof(0);
+
+  const poeVerifyRes = await treasuryWorker.fetch(new Request('https://auru.space/api/treasury/poe/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ receipt: receipts[0], proof: proof0, rootHash })
+  }), treasuryWrangler.vars);
+  assert.equal(poeVerifyRes.status, 200);
+  const poeVerifyBody = await poeVerifyRes.json();
+  assert.equal(poeVerifyBody.ok, true);
+  assert.equal(poeVerifyBody.status, 'VERIFIED');
+
+  const poeEpochRes = await treasuryWorker.fetch(new Request('https://auru.space/api/treasury/poe/epoch/commit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ receipts, epochNumber: 101 })
+  }), treasuryWrangler.vars);
+  assert.equal(poeEpochRes.status, 200);
+  const poeEpochBody = await poeEpochRes.json();
+  assert.equal(poeEpochBody.ok, true);
+  assert.equal(poeEpochBody.rootHash, rootHash);
+  assert.equal(poeEpochBody.compressedState, true);
   const manifestoBody = await manifestoRes.json();
   assert.equal(manifestoBody.slogan, 'Tetrakis ($TTK) – Fuel of the Autonomous Edge.');
   assert.equal(manifestoBody.tetrahedronPillars.length, 4);

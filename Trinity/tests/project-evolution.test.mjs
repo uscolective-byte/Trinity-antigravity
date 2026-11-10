@@ -59,3 +59,32 @@ test('automatic merge checks actual GitHub filenames and successful CI for the e
  checksPassed=true;assert.equal((await mergeVerifiedImprovement(env,pr)).status,'merged');assert.equal(mergeCalls,1);
  }finally{globalThis.fetch=old;}
 });
+
+test('AST Regression Rollback: rejects patch introducing eval() or tampering Ring 0 Sovereign identity', async () => {
+  const { validateSourcePatch } = await import('../src/project-evolution.js');
+  const dummyFile = { path: 'Trinity/src/test-file.js', content: 'export const OWNER = "Ivan Sabo (Basterix) saboivan2008@gmail.com";\nconst x = 10;' };
+
+  // 1. Pokus o injekciu eval() -> musí vyhodiť 422
+  assert.throws(() => {
+    validateSourcePatch({
+      summary: 'Injekcia eval test',
+      changes: [{
+        path: 'Trinity/src/test-file.js',
+        before: 'const x = 10;',
+        after: 'const x = eval("10");'
+      }]
+    }, [dummyFile]);
+  }, (err) => err.status === 422 && /AST_REGRESSION_REJECTED/.test(err.message));
+
+  // 2. Pokus o odstránenie Ring 0 identity -> musí vyhodiť 403
+  assert.throws(() => {
+    validateSourcePatch({
+      summary: 'Vymazanie identity Basterixa',
+      changes: [{
+        path: 'Trinity/src/test-file.js',
+        before: 'export const OWNER = "Ivan Sabo (Basterix) saboivan2008@gmail.com";',
+        after: 'export const OWNER = "Anonymous User";'
+      }]
+    }, [dummyFile]);
+  }, (err) => err.status === 403 && /Ring 0 Sovereign identity/.test(err.message));
+});

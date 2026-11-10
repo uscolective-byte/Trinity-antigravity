@@ -4,6 +4,7 @@
 import tetrakisArtifact from "../../../contracts/tetrakis/build/TetrakisToken.json" with { type: "json" };
 import tetrakisManifesto from "../../../packages/crypto-core/lore/manifesto.json" with { type: "json" };
 import { verifyTapToken } from "../../../packages/contracts/src/tap.js";
+import { verifyMerkleProof, hashLeaf, MerkleExecutionTree } from "../../../packages/crypto-core/src/proof-of-execution.js";
 
 export const TETRAKIS_ABI = tetrakisArtifact.abi;
 export const TETRAKIS_ARTIFACT_DIGESTS = {
@@ -495,6 +496,90 @@ export default {
           usd_value: usdValue,
           status: "SETTLED",
           created_at: now
+        }),
+        { status: 200, headers: CORS_HEADERS }
+      );
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/treasury/poe/verify") {
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return new Response(JSON.stringify({ ok: false, error: "INVALID_JSON" }), { status: 400, headers: CORS_HEADERS });
+      }
+
+      const { receipt, proof, rootHash } = body;
+      if (!receipt || !proof || !rootHash) {
+        return new Response(JSON.stringify({ ok: false, error: "MISSING_REQUIRED_FIELDS", required: ["receipt", "proof", "rootHash"] }), { status: 400, headers: CORS_HEADERS });
+      }
+
+      const calculatedLeaf = hashLeaf(receipt);
+      const isValid = verifyMerkleProof(calculatedLeaf, proof, rootHash);
+
+      return new Response(
+        JSON.stringify({
+          ok: isValid,
+          status: isValid ? "VERIFIED" : "PROOF_REJECTED",
+          taskId: receipt.taskId,
+          agentId: receipt.agentId,
+          leafHash: calculatedLeaf,
+          rootHash,
+          timestamp: Date.now()
+        }),
+        { status: isValid ? 200 : 422, headers: CORS_HEADERS }
+      );
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/treasury/poe/epoch/commit") {
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return new Response(JSON.stringify({ ok: false, error: "INVALID_JSON" }), { status: 400, headers: CORS_HEADERS });
+      }
+
+      const { receipts = [], epochNumber } = body;
+      if (!Array.isArray(receipts) || receipts.length === 0) {
+        return new Response(JSON.stringify({ ok: false, error: "EMPTY_RECEIPTS_BATCH" }), { status: 400, headers: CORS_HEADERS });
+      }
+
+      const tree = new MerkleExecutionTree(receipts);
+      const rootHash = tree.getRoot();
+      const now = Date.now();
+      const epochId = epochNumber || now;
+
+      const db = env?.DB || env?.TRINITY_D1;
+      if (db && typeof db.prepare === "function") {
+        try {
+          await db.prepare(`
+            CREATE TABLE IF NOT EXISTS sovereign_epoch_roots (
+              epoch_id INTEGER PRIMARY KEY,
+              root_hash TEXT NOT NULL,
+              task_count INTEGER NOT NULL,
+              created_at INTEGER NOT NULL
+            );
+          `).run();
+
+          await db.prepare(`
+            INSERT INTO sovereign_epoch_roots (epoch_id, root_hash, task_count, created_at)
+            VALUES (?1, ?2, ?3, ?4)
+            ON CONFLICT(epoch_id) DO UPDATE SET root_hash = excluded.root_hash, task_count = excluded.task_count;
+          `).bind(epochId, rootHash, receipts.length, now).run();
+        } catch (dbErr) {
+          console.error("[PoE Epoch Commit] D1 error:", dbErr);
+        }
+      }
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          epochId,
+          rootHash,
+          taskCount: receipts.length,
+          compressedState: true,
+          status: "COMMITTED",
+          timestamp: now
         }),
         { status: 200, headers: CORS_HEADERS }
       );

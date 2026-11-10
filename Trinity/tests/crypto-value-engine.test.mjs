@@ -81,3 +81,18 @@ test('TTK payment stays disabled when bytecode or RPC network differs', async ()
   assert.equal((await getTetrakisStatus(env, { fetchImpl: wrongNetwork })).deployment_status, 'network_mismatch');
   assert.equal((await getTetrakisStatus({ ...env, TTK_PAYMENT_RECIPIENT: 'invalid' })).payments.enabled, false);
 });
+
+test('Proof-of-Execution re-exports: create receipt, build Merkle tree and verify proof', async () => {
+  const { createExecutionReceipt, hashExecutionReceipt, MerkleExecutionTree, verifyExecutionProof } = await import('../src/crypto-value-engine.js');
+  const r1 = createExecutionReceipt({ taskId: 'ttk-task-1', agentId: 'jericho123', gasUnits: 25, exitCode: 0 });
+  const r2 = createExecutionReceipt({ taskId: 'ttk-task-2', agentId: 'aura_codegen', gasUnits: 75, exitCode: 0 });
+
+  assert.equal(r1.receiptHash, hashExecutionReceipt(r1));
+
+  const tree = new MerkleExecutionTree([r1, r2]);
+  const root = tree.getRoot();
+  const proof1 = tree.getProof(1);
+
+  assert.ok(verifyExecutionProof(r2.receiptHash, proof1, root));
+  assert.equal(verifyExecutionProof(r1.receiptHash, proof1, root), false);
+});

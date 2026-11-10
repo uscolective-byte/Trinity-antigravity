@@ -1,4 +1,4 @@
-import { keccak_256 } from '@noble/hashes/sha3.js';
+import { keccak_256 } from '@noble/hashes/sha3';
 import { normalizeEvmAddress } from './wallet-terminals.js';
 
 export const TTK_TOKEN = Object.freeze({
@@ -172,3 +172,10 @@ export async function getTetrakisStatus(env, { fetchImpl = globalThis.fetch } = 
     }
   };
 }
+
+export {
+  createExecutionReceipt,
+  hashLeaf as hashExecutionReceipt,
+  MerkleExecutionTree,
+  verifyMerkleProof as verifyExecutionProof
+} from '../../packages/crypto-core/src/proof-of-execution.js';

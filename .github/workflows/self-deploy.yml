@@ -51,7 +51,12 @@ jobs:
       - name: Install TAP contracts dependencies
         working-directory: packages/contracts
         run: npm ci --ignore-scripts
+      - name: Install crypto-core dependencies
+        working-directory: packages/crypto-core
+        run: npm ci --legacy-peer-deps --ignore-scripts || npm i --legacy-peer-deps --ignore-scripts
+
       - run: npm ci
+
       - name: Check synchronized release documentation
         working-directory: .
         run: npm run docs:check

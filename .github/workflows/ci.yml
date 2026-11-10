@@ -27,9 +27,12 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npm --prefix packages/contracts ci --ignore-scripts
+          npm --prefix packages/crypto-core ci --legacy-peer-deps --ignore-scripts || npm --prefix packages/crypto-core i --legacy-peer-deps --ignore-scripts
           npm --prefix Jericho-Worker ci
+
           npm --prefix contracts/tetrakis ci
           npm --prefix Trinity ci
+
 
       - name: Run Full Test Suite
         run: npm test

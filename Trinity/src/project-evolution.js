@@ -47,7 +47,17 @@ export function validateSourcePatch(input,files){
     if(!editableSource(change.path)||!updated.has(change.path))throw new HttpError(400,'Oprava smeruje mimo načítané zdrojové súbory.');
     const content=updated.get(change.path);
     if(content.split(change.before).length!==2||change.before===change.after)throw new HttpError(409,'Oprava nemá jednoznačný pôvodný úsek alebo nič nemení.');
-    updated.set(change.path,content.replace(change.before,()=>change.after));
+    const newContent = content.replace(change.before,()=>change.after);
+    
+    // AST Invariant Guard: Detekcia nebezpečných regresí pred aplikáciou (Bod 6)
+    if(/\b(?:eval|new\s+Function)\s*\(/.test(change.after)){
+      throw new HttpError(422, 'AST_REGRESSION_REJECTED: Oprava obsahuje zakázanú dynamickú exekúciu (eval/Function).');
+    }
+    if(/RING_0_SOVEREIGN|saboivan2008@gmail\.com/i.test(change.before) && !/saboivan2008@gmail\.com/i.test(change.after)){
+      throw new HttpError(403, 'AST_REGRESSION_REJECTED: Pokus o narušenie Ring 0 Sovereign identity Basterixa.');
+    }
+    
+    updated.set(change.path, newContent);
   }
   const changed=[...updated].filter(([path,content])=>files.find(f=>f.path===path).content!==content).map(([path,content])=>({path,content}));
   if(!changed.length)throw new HttpError(409,'Oprava nemení výsledný obsah.');
