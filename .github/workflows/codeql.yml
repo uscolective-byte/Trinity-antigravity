@@ -34,6 +34,9 @@ jobs:
       - name: Install TAP contracts dependencies
         working-directory: packages/contracts
         run: npm ci --ignore-scripts
+      - name: Install shared crypto-core dependencies
+        working-directory: packages/crypto-core
+        run: npm ci --legacy-peer-deps --ignore-scripts || npm install --legacy-peer-deps --ignore-scripts
       - name: Install application dependencies
         working-directory: Trinity
         run: npm ci
