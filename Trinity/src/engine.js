@@ -337,8 +337,11 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     const started=Date.now();
     const outcome=await runTool(env,agent,'generate_video',{prompt:task.slice(0,1500),style,duration_sec:16,scenes_count:4});
     const receipt={tool:'generate_video',status:'completed',effect:'mutation',action:'create_file',actions:['create_file'],receipt_id:outcome._evidence?.receipt_id||`video:${outcome.id}`,verified_at:new Date().toISOString()};
-    const text=`🎬 Vytvorila som interaktívne 16:9 animované video **${outcome.title}** (${outcome.scenes_count} scény · ${outcome.duration_sec}s · 60fps Canvas + WebM export).\n\nPrehrať a stiahnuť video: ${outcome.url}`;
-    return {text,model:'trinity-cinema-engine',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
+    const videoStreamUrl=outcome.video_url||outcome.url||`/api/assistant/media/video/${outcome.id}`;
+    const downloadUrl=outcome.download_url||`${videoStreamUrl}?download=1`;
+    const playerUrl=outcome.player_url||outcome.url;
+    const text=`🎬 Vygenerovala som skutočné 16:9 video **${outcome.title}** (${outcome.scenes_count||4} scény · ${outcome.duration_sec||16}s · ${outcome.provider||'Trinity Sovereign Video Engine'}).\n\n- **Prehrať video stream:** ${videoStreamUrl}\n- **Stiahnuť súbor .webm:** ${downloadUrl}\n- **Interaktívne kino & Storyboard:** ${playerUrl}`;
+    return {text,model:'trinity-cinema-engine',provider:outcome.provider||'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};
   }
   if(activeTools.includes('generate_presentation')&&isPresentationRequest(task)){
     const norm=task.toLowerCase();

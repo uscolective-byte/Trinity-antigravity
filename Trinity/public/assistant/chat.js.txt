@@ -168,7 +168,7 @@ function renderReply(target,raw){
       if(!target.querySelector(`video[src="${vUrl}"]`)){
         const box = document.createElement('div');
         box.className = 'embedded-media-box';
-        box.innerHTML = `<video controls playsinline preload="metadata" src="${vUrl}"></video><div class="media-card-bar"><span>🎬 Video záznam Trinity</span><button type="button">🔍 Otvoriť v kine (Fullscreen)</button></div>`;
+        box.innerHTML = `<video controls playsinline preload="metadata" src="${vUrl}"></video><div class="media-card-bar"><span>🎬 Video záznam Trinity</span><a href="${vUrl}?download=1" download class="media-dl-link" style="color:var(--accent,#00e5ff);font-size:12px;text-decoration:none;font-weight:600;">⬇ Stiahnuť .webm</a><button type="button">🔍 Otvoriť v kine (Fullscreen)</button></div>`;
         box.querySelector('button').onclick = () => openTrinityLightbox({type:'video',src:vUrl,title:'Video záznam Trinity'});
         target.append(box);
       }
@@ -2050,26 +2050,30 @@ function displayMultimediaStage(creation, type) {
 
     wrap.append(audio, info, dl);
   } else if (type === 'video') {
-    const videoUrl = creation.url || creation.player_url || creation.video_url || creation.download_url || (creation.artifact_id ? `/api/assistant/artifacts/${creation.artifact_id}` : '');
-    const downloadUrl = creation.download_url || videoUrl;
+    const videoStreamUrl = creation.video_url || creation.url || (creation.id ? `/api/assistant/media/video/${creation.id}` : '');
+    const downloadUrl = creation.download_url || `${videoStreamUrl}?download=1`;
+    const playerUrl = creation.player_url;
 
-    if (videoUrl) {
-      const frame = document.createElement('iframe');
-      frame.src = videoUrl;
-      frame.title = `Trinity Video Prehrávač · ${creation.title || '16:9 Video'}`;
-      frame.style.width = '100%';
-      frame.style.aspectRatio = '16/9';
-      frame.style.minHeight = '420px';
-      frame.style.borderRadius = '12px';
-      frame.style.border = '1px solid rgba(255,255,255,0.18)';
-      frame.style.boxShadow = '0 16px 50px rgba(0,0,0,0.6)';
-      frame.setAttribute('allow', 'autoplay; fullscreen');
-      wrap.append(frame);
+    if (videoStreamUrl) {
+      const vid = document.createElement('video');
+      vid.src = videoStreamUrl;
+      vid.controls = true;
+      vid.playsInline = true;
+      vid.preload = 'metadata';
+      vid.style.width = '100%';
+      vid.style.aspectRatio = '16/9';
+      vid.style.borderRadius = '12px';
+      vid.style.backgroundColor = '#000';
+      vid.style.border = '1px solid rgba(255,255,255,0.18)';
+      vid.style.boxShadow = '0 16px 50px rgba(0,0,0,0.6)';
+      wrap.append(vid);
     }
 
     const playerBox = node('div', undefined, 'mm-scene-card');
     const scenesList = creation.scenes || creation.meta?.scenes || [];
-    playerBox.innerHTML = `<b>🎬 Video animácia 16:9: ${escapeHtml(creation.title || 'Trinity Video')}</b><p>${escapeHtml(creation.prompt || '')}</p><small>Štýl: ${escapeHtml(creation.style || 'cinematic')} · Počet scén: ${scenesList.length} · Dĺžka: ${creation.duration_sec || 16}s · Rozlíšenie: 1280×720 (16:9 HD 60fps Canvas + WebM Export)</small>`;
+    const sizeStr = creation.size_bytes ? ` · Veľkosť: ${(creation.size_bytes / 1024).toFixed(1)} KB` : '';
+    const provStr = creation.provider || creation.meta?.provider || 'Trinity Sovereign Video Engine';
+    playerBox.innerHTML = `<b>🎬 Skutočné 16:9 Video: ${escapeHtml(creation.title || 'Trinity Video')}</b><p>${escapeHtml(creation.prompt || '')}</p><small>Engine: ${escapeHtml(provStr)} · Štýl: ${escapeHtml(creation.style || 'cinematic')} · Počet scén: ${scenesList.length} · Dĺžka: ${creation.duration_sec || 16}s · Formát: WebM VP8${sizeStr}</small>`;
 
     const scenesGrid = node('div', undefined, 'mm-scene-grid');
     scenesList.forEach((sc, i) => {
@@ -2078,27 +2082,22 @@ function displayMultimediaStage(creation, type) {
       const sceneTitle = sc.heading || sc.title || sc.badge || `Scéna 0${idx}`;
       const sceneDesc = sc.subtitle || sc.caption || sc.visual_prompt || '';
       const mood = sc.audio_mood || sc.badge || creation.style || 'ambient';
-      card.innerHTML = `<b>${idx}. ${escapeHtml(sceneTitle)} (${sc.duration_sec || 4}s)</b><p>${escapeHtml(sceneDesc)}</p><small>Zvuk / Nálada: ${escapeHtml(mood)}</small>`;
+      card.innerHTML = `<b>${idx}. ${escapeHtml(sceneTitle)} (${sc.duration_sec || 4}s)</b><p>${escapeHtml(sceneDesc)}</p><small>Nálada / Tón: ${escapeHtml(mood)}</small>`;
       scenesGrid.append(card);
     });
 
     const actRow = node('div', undefined, 'commerce-offer-actions');
-    if (videoUrl) {
-      const openBtn = node('button', '⛶ Otvoriť v plnom okne', 'primary');
-      openBtn.type = 'button';
-      openBtn.onclick = () => window.open(videoUrl, '_blank');
-      actRow.append(openBtn);
-
-      const dlHtml = node('a', '⬇ Stiahnuť video prehrávač (.html)', 'button-link');
-      dlHtml.href = downloadUrl;
-      dlHtml.download = `${(creation.title || 'trinity-video').replace(/[^a-z0-9_-]/gi, '_')}.html`;
-      actRow.append(dlHtml);
-    }
-    if (creation.data_uri) {
+    if (downloadUrl) {
       const dl = node('a', '⬇ Stiahnuť .WEBM video', 'primary');
-      dl.href = creation.data_uri;
+      dl.href = downloadUrl;
       dl.download = `${(creation.title || 'trinity-video').replace(/[^a-z0-9_-]/gi, '_')}.webm`;
       actRow.append(dl);
+    }
+    if (playerUrl) {
+      const openBtn = node('button', '🎬 Otvoriť interaktívne kino a storyboard', 'button-link');
+      openBtn.type = 'button';
+      openBtn.onclick = () => window.open(playerUrl, '_blank');
+      actRow.append(openBtn);
     }
     wrap.append(playerBox, scenesGrid, actRow);
   } else if (type === 'photo') {
