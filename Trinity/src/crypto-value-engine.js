@@ -1,4 +1,4 @@
-import { keccak_256 } from '@noble/hashes/sha3.js';
+import { keccak_256 } from '@noble/hashes/sha3';
 import { normalizeEvmAddress } from './wallet-terminals.js';
 
 export const TTK_TOKEN = Object.freeze({

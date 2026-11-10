@@ -5,8 +5,8 @@
  * Truth Policy: No fabricated trades, no synthetic prices used as live signals.
  */
 
-import { keccak_256 } from '@noble/hashes/sha3.js';
-import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { keccak_256 } from '@noble/hashes/sha3';
+import { secp256k1 } from '@noble/curves/secp256k1';
 
 export const TRACKED_ASSETS = [
   { symbol: 'BTC', name: 'Bitcoin', pair: 'BTCUSDT', defaultPrice: 67500.0 },
