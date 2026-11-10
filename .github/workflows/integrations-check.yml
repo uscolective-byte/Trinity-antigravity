@@ -37,6 +37,9 @@ jobs:
       - name: Install TAP contracts dependencies
         working-directory: packages/contracts
         run: npm ci --ignore-scripts
+      - name: Install shared crypto-core dependencies
+        working-directory: packages/crypto-core
+        run: npm ci --legacy-peer-deps --ignore-scripts || npm install --legacy-peer-deps --ignore-scripts
       - run: npm ci
       - run: node scripts/build-mcp-app.mjs
       - run: node --test tests/integration-providers.test.mjs
