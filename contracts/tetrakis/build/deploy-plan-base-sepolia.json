@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-11-08T20:46:51.318Z",
+  "network": "Base Sepolia TESTNET",
+  "chainId": 84532,
+  "contract": "TetrakisToken",
+  "symbol": "TTK",
+  "totalSupply": "1,000,000,000 TTK (10^27 wei, fixed, no mint)",
+  "allocations": {
+    "0x7e17f9072cfCbc7fE45973De0F11eC8db99281e4": "1,000,000 TTK",
+    "0x4d308452a96D7dAbFd2f33d92677A3a2724f387e": "999,000,000 TTK"
+  },
+  "deployerAddress": null,
+  "deployerBalanceWei": null,
+  "estimatedGasUnits": "623431",
+  "maxCostWei": "8229287000000",
+  "bytecodeSha256": "0x5212f569578e0379edc4f0228663d72aaa3a6bff3bfa99d7266c5c4b657edbb6",
+  "runtimeKeccak256": "0x3d8a3c7a764f1b12aa17052d6d8772e1924a3395c1ffd52024891f5e794bb705",
+  "status": "PLAN_NO_DEPLOYER_KEY_SUPPLIED"
+}

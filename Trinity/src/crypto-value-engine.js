@@ -172,3 +172,10 @@ export async function getTetrakisStatus(env, { fetchImpl = globalThis.fetch } = 
     }
   };
 }
+
+export {
+  createExecutionReceipt,
+  hashLeaf as hashExecutionReceipt,
+  MerkleExecutionTree,
+  verifyMerkleProof as verifyExecutionProof
+} from '../../packages/crypto-core/src/proof-of-execution.js';

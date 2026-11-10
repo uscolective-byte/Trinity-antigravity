@@ -1,16 +1,14 @@
 {
   "name": "@trinity/crypto-core",
-  "version": "1.0.0",
-  "private": true,
+  "version": "11.2.0",
+  "description": "Trinity Omni-Core Ring 0 Cryptographic Engine & Tetrakis ($TTK) Base L2 Smart Contracts",
+  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "compile": "hardhat compile",
-    "test": "hardhat test"
+    "test": "node --test test/*.test.mjs"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-chai-matchers": "^3.0.0",
-    "@nomicfoundation/hardhat-ethers": "^4.2.2",
-    "@nomicfoundation/hardhat-network-helpers": "^3.0.12",
-    "@openzeppelin/contracts": "^5.1.0",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "chai": "^4.5.0",
     "dotenv": "^16.6.1",
     "ethers": "^6.17.0",
