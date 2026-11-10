@@ -39,7 +39,7 @@ import {createTrinityDocument,listTrinityDocuments,createDocumentSchema,DOCUMENT
 import {ownerLearnBehaviorRule,listActiveBehaviorRules} from './self-improvement.js';
 import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk,commodityAnalyzeSchema,commodityTradeSchema,commodityAutoInvestSchema} from './commodities-engine.js';
 import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,generateCreativePack,generateMusicSchema,generateVideoSchema,generatePresentationSchema,generateCreativePackSchema} from './multimedia-studio.js';
-import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,listAllIntegrations} from './external-integrations.js';
+import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,manageOneDrive,manageGoogleCloud,manageLocalBridge,listAllIntegrations} from './external-integrations.js';
 import {getWalletTerminalOverview,createPaymentTerminalCharge,executeWalletPayout,saveWalletTerminalConfig,createCryptoWallet,terminalConfigSchema,terminalChargeSchema,terminalPayoutSchema} from './wallet-terminals.js';
 import {FREE_MODULES_CATALOG,fetchWeather,fetchWikipedia,resolveDns,fetchCryptoMarkets,fetchTechNews,fetchWorldBankIndicator} from './free-modules.js';
 import {cfD1Query,cfKVStore,cfR2Manage,cfSelfDeploy,mailEngine,httpFetchPro,pcFsRead,pcFsWrite,pcFsPatch,pcShellExec,pcSystemTelemetry} from './omni-tools.js';
@@ -64,7 +64,8 @@ export const OWNER_BUSINESS_TOOLS=new Set(['finance_propose_transfer','finance_c
 export const requiresVerifiedAdminForIntegrationTool=(name,args={})=>
   name==='cloudflare_manage'&&args?.action==='purge_cache'
   ||name==='github_manage'&&['create_issue','update_issue','dispatch_workflow'].includes(args?.action)
-  ||name==='firebase_manage'&&args?.action==='set_document';
+  ||name==='firebase_manage'&&args?.action==='set_document'
+  ||name==='onedrive_manage'&&args?.action==='upload_file';
 export const TOOL_SCHEMAS={
   web_fetch:z.object({url:z.string().url()}).strict(),
   project_inspect:z.object({query:z.string().max(2000).default('')}).strict(),
@@ -239,6 +240,21 @@ export const TOOL_SCHEMAS={
     collection:z.string().optional(),
     documentId:z.string().optional(),
     data:z.record(z.string(),z.unknown()).optional()
+  }).strict()
+  ,onedrive_manage:z.object({
+    action:z.enum(['status','drive_info','list_files','get_file','upload_file']).default('status'),
+    path:z.string().optional(),
+    itemId:z.string().optional(),
+    content:z.union([z.string(),z.record(z.string(),z.unknown())]).optional(),
+    contentType:z.string().optional(),
+    profile:z.string().optional()
+  }).strict()
+  ,google_cloud_manage:z.object({
+    action:z.enum(['status','list_models']).default('status'),
+    projectId:z.string().optional()
+  }).strict()
+  ,local_bridge_manage:z.object({
+    action:z.enum(['status','ping']).default('status')
   }).strict()
   ,integration_status:z.object({}).strict()
   ,wallet_terminals_status:z.object({}).strict()
@@ -877,6 +893,19 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const isMut=Boolean(args.action==='set_document');
     return {...res,_evidence:{effect:isMut?'mutation':'read',actions:isMut?['change']:undefined,receipt_id:`firebase:${args.action}:${crypto.randomUUID()}`}};
   }
+  if(name==='onedrive_manage'){
+    const res=await manageOneDrive(env,`agent:${agent.id||'trinity'}`,args.action,args);
+    const isMut=Boolean(args.action==='upload_file');
+    return {...res,_evidence:{effect:isMut?'mutation':'read',actions:isMut?['change','publish']:undefined,receipt_id:`onedrive:${args.action}:${crypto.randomUUID()}`}};
+  }
+  if(name==='google_cloud_manage'){
+    const res=await manageGoogleCloud(env,`agent:${agent.id||'trinity'}`,args.action,args);
+    return {...res,_evidence:{effect:'read',receipt_id:`google_cloud:${args.action}:${crypto.randomUUID()}`}};
+  }
+  if(name==='local_bridge_manage'){
+    const res=await manageLocalBridge(env,`agent:${agent.id||'trinity'}`,args.action,args);
+    return {...res,_evidence:{effect:'read',receipt_id:`local_bridge:${args.action}:${crypto.randomUUID()}`}};
+  }
   if(name==='integration_status'){
     const integrations=await listAllIntegrations(env);
     return {integrations,total:integrations.length,_evidence:{effect:'read',receipt_id:`integrations:list:${crypto.randomUUID()}`}};
@@ -1477,7 +1506,10 @@ export const TOOL_HELP={
   github_manage:'Prepojenie a správa GitHub repozitára (uscolective-byte/Trinity-antigravity, uscolective-byte/trinity-morhfeus), čítanie súborov, stromu projektu, commits, issues, PR a spúšťanie GitHub Actions: {action:status|repo_info|list_commits|list_issues|get_file|read_file|list_files|list_tree|create_issue|dispatch_workflow, repo?:string, path?:string, ref?:string, limit?:number}',
   firecrawl_scrape:'Hĺbkový web scraping, crawling a extrakcia obsahu z ľubovoľnej URL do čistého Markdownu: {url:string, mode?:scrape|crawl|map, onlyMainContent?:boolean}',
   firebase_manage:'Integrácia s Google Firebase (trinity-morhfeus-20261001), kontrola hostingu, čítanie a ukladanie Firestore dokumentov: {action:status|get_document|set_document, projectId?:string, collection?:string, documentId?:string, data?:object}',
-  integration_status:'Prehľad všetkých pripojených externých modulov a platforiem (Cloudflare, GitHub, Firecrawl, Firebase, Supabase): {}',
+  onedrive_manage:'Integrácia s Microsoft OneDrive a Office 365 (Microsoft Graph API), čítanie zložiek, sťahovanie súborov a ukladanie dokumentov: {action:status|drive_info|list_files|get_file|upload_file, path?:string, itemId?:string, content?:string|object, profile?:string}',
+  google_cloud_manage:'Správa a diagnostika Google Cloud Platform (tangential-osprey-dl7cp), Vertex AI a Gemini modelov: {action:status|list_models, projectId?:string}',
+  local_bridge_manage:'Diagnostika a stav lokálneho PC mosta Trinity (Local-Desktop port 8795, Local-Gateway port 7789, pracovné priečinky PC stanice): {action:status|ping}',
+  integration_status:'Prehľad všetkých pripojených externých platforiem a pilierov (Cloudflare, GitHub, OneDrive, Google Cloud, Local PC Bridge, Firebase, Supabase): {}',
   wallet_terminals_status:'Prehľad peňaženky Trinity, zostatok a pripojené platobné terminály (SEPA IBAN, Revolut, PayPal, Web3 krypto): {}',
   terminal_charge:'Vytvorí požiadavku na platbu a vygeneruje terminálový SEPA EPC QR kód, Revolut odkaz, PayPal odkaz a krypto adresu na príjem peňazí: {amount_eur, purpose, terminal_type?, variable_symbol?, payer_name?}',
   terminal_payout:'Vytvorí príkaz na výber peňazí z peňaženky Trinity na bankový IBAN, PayPal alebo Revolut: {amount_eur, destination_type:bank_iban|paypal|revolut|crypto, target, note?}',

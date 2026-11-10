@@ -16,7 +16,7 @@ import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnviro
 import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,generatePhotoCreation,generateCreativePack,listMultimediaCreations} from './multimedia-studio.js';
 import {createTrinityDocument,listTrinityDocuments,getTrinityDocument,deleteTrinityDocument,exportTrinityDocument} from './trinity-documents.js';
 import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk,listBankConnections,configureBankConnection,deleteBankConnection,syncLiveMarketFeeds,getCommodityChart} from './commodities-engine.js';
-import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,listAllIntegrations} from './external-integrations.js';
+import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,manageOneDrive,manageGoogleCloud,manageLocalBridge,listAllIntegrations} from './external-integrations.js';
 import {trinityMasterStatus} from './trinity-master-status.js';
 import {adviseTrinityMaster} from './trinity-master-agent.js';
 import {scanForImprovements} from './maintenance-scan.js';
@@ -1976,6 +1976,21 @@ async function route(request,env,ctx){
     requireAdmin(user);
     const body=await readJSON(request,50000);
     return json(await manageFirebase(env,user.email||user.id,body.action||'status',body));
+  }
+  if(path==='/api/assistant/integrations/onedrive'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,50000);
+    return json(await manageOneDrive(env,user.email||user.id,body.action||'status',body));
+  }
+  if(path==='/api/assistant/integrations/google-cloud'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,25000);
+    return json(await manageGoogleCloud(env,user.email||user.id,body.action||'status',body));
+  }
+  if(path==='/api/assistant/integrations/local-bridge'&&request.method==='POST'){
+    requireAdmin(user);
+    const body=await readJSON(request,25000);
+    return json(await manageLocalBridge(env,user.email||user.id,body.action||'status',body));
   }
   if(path==='/api/modules/catalog'&&request.method==='GET'){
     return json({modules:FREE_MODULES_CATALOG});
