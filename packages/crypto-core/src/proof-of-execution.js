@@ -7,7 +7,8 @@
  * Implementuje Proof-of-Execution (PoE) a Merkle Tree kompresiu pre Sovereign Ledger.
  */
 
-import { keccak_256 } from '@noble/hashes/sha3';
+import { keccak_256 } from '@noble/hashes/sha3.js';
+
 
 
 function bytesToHex(bytes) {
