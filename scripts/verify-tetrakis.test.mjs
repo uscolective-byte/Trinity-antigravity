@@ -7,8 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { verifyTetrakis, TREASURY, BASTERIX, SUPPLY, BASTERIX_ALLOCATION, TREASURY_ALLOCATION } from './verify-tetrakis.mjs';
-import { keccak256 } from 'ethers';
+import { verifyTetrakis, TREASURY, BASTERIX, SUPPLY, BASTERIX_ALLOCATION, TREASURY_ALLOCATION, keccak256 } from './verify-tetrakis.mjs';
 const ADDRESS = '0x1111111111111111111111111111111111111111';
 const CODE = '0x60006000';
 function fixture(overrides = {}) {

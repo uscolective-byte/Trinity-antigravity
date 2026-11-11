@@ -18,7 +18,7 @@ let ethersLib;
 try { ethersLib = await import('ethers'); } catch {
   ethersLib = await import(pathToFileURL(resolve(here, '../contracts/tetrakis/node_modules/ethers/lib.esm/index.js')).href);
 }
-const { Contract, JsonRpcProvider, getAddress, keccak256 } = ethersLib;
+export const { Contract, JsonRpcProvider, getAddress, keccak256 } = ethersLib;
 
 export const TREASURY = '0x4d308452a96D7dAbFd2f33d92677A3a2724f387e';
 export const BASTERIX = '0x7e17f9072cfCbc7fE45973De0F11eC8db99281e4';

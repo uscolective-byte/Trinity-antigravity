@@ -102,34 +102,52 @@ Absolute administrative control over system code modifications, runtime configur
  ┣ 📂 Dokumentacia/          # Complete system specifications, 500-item catalog, & legal charters
  ┣ 📜 SOVEREIGN_CHARTER.md   # Constitutional compliance framework & 20 legal clauses
  ┗ 📜 README.md              # System manifest
-🚀 Getting Started & Local Operations
-Ensure your environment utilizes Node.js v22+ and npm. (Windows users: use npm.cmd if PowerShell restricts .ps1 execution policies).
+```
 
-1. Environment Initialization
-PowerShell
+---
+
+## 🚀 Getting Started & Local Operations
+
+Ensure your environment utilizes Node.js v22+ and npm. (Windows users: use `npm.cmd` if PowerShell restricts `.ps1` execution policies).
+
+### 1. Environment Initialization
+```powershell
 powershell -ExecutionPolicy Bypass -File scripts/install-all.ps1
-2. Integrity & Documentation Check
-PowerShell
-node scripts/sync-release-docs.mjs --check
-3. Local Build & Test Suite Verification
-PowerShell
-npm.cmd run build
-npm.cmd run check
-4. Repository Synchronization
-To synchronize the working tree cleanly with origin/main without risking uncommitted local work:
+```
 
-PowerShell
-npm.cmd run sync
-⚖️ Legal & Compliance Framework
-Trinity operates under an explicit multi-clause legal and compliance framework detailed in SOVEREIGN_CHARTER.md, covering:
+### 2. Integrity & Documentation Check
+```powershell
+npm run check
+```
 
-Sovereign Ownership & Commercial Dual-Core
+### 3. Local Test Suite Verification
+```powershell
+npm test
+```
 
-EU AI Act & GDPR Data Processing Compliance
+### 4. Running the Local PC Daemon (Desktop Commander Bridge)
+```powershell
+# One-shot verification
+.\scripts\start-pc-daemon.ps1 -Once
 
-Zero Third-Party Telemetry & Cryptographic Audit Treaties
+# Continuous production daemon (or add -Staging for auru.dev)
+.\scripts\start-pc-daemon.ps1
+```
 
-Autonomous Agent Liability & Emergency Safe-Kill Protocols
+### 5. Architecture Compendium & Reference
+Full reference catalog of 500 improvements, 75 architectural pillars, and code specifications is available in:
+[`docs/TRINITY_OMNI_CORE_MASTER_COMPENDIUM.md`](docs/TRINITY_OMNI_CORE_MASTER_COMPENDIUM.md).
 
-📜 License & Intellectual Property
-Protected under the Sovereign Irrevocable Covenant and proprietary Open-Core guidelines managed exclusively by Basterix (Ivan Sabo). All rights reserved.
+---
+
+## ⚖️ Legal & Compliance Framework
+Trinity operates under an explicit multi-clause legal and compliance framework detailed in [SOVEREIGN_CHARTER.md](SOVEREIGN_CHARTER.md), covering:
+- Sovereign Ownership & Commercial Dual-Core
+- EU AI Act & GDPR Data Processing Compliance
+- Zero Third-Party Telemetry & Cryptographic Audit Treaties
+- Autonomous Agent Liability & Emergency Safe-Kill Protocols
+
+---
+
+## 📜 License & Intellectual Property
+Protected under the Sovereign Irrevocable Covenant and proprietary Open-Core guidelines managed exclusively by **Basterix (Ivan Sabo)**. All rights reserved.

@@ -14,8 +14,12 @@
     "deploy:staging": "npm --prefix Trinity run deploy:staging",
     "deploy:prod": "npm --prefix Trinity run deploy:prod",
     "tail:staging": "npm --prefix Trinity run tail:staging",
-    "tail:prod": "npm --prefix Trinity run tail:prod",
-    "docs:check": "node scripts/sync-release-docs.mjs --check"
+    "docs:check": "node scripts/sync-release-docs.mjs --check",
+    "docs:sync": "node scripts/sync-release-docs.mjs",
+    "check": "npm run docs:check && node --test Local-Desktop/tests/*.test.mjs Local-Gateway/tests/*.test.mjs scripts/verify-tetrakis.test.mjs",
+    "pc:daemon": "node scripts/trinity-pc-daemon.mjs",
+    "pc:daemon:staging": "node scripts/trinity-pc-daemon.mjs",
+    "pc:daemon:once": "node scripts/trinity-pc-daemon.mjs --once"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
