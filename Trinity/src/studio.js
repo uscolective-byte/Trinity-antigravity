@@ -12,15 +12,29 @@ import {callModel} from './services.js';
 import {HttpError} from './security.js';
 import {auditHtmlQuality, recordStudioReview} from './studio-review.js';
 
-const studioOptions={provider:z.enum(['auto','workers-ai','ollama','gemini','openai']).default('auto'),quality:z.enum(['fast','balanced','high']).default('balanced')};
+const studioOptions={provider:z.enum(['auto','workers-ai','ollama','gemini','openai','anthropic','groq','deepseek']).default('auto'),quality:z.enum(['fast','balanced','high']).default('balanced')};
 const createSchema=z.object({name:z.string().trim().min(1).max(80).optional(),prompt:z.string().trim().min(8).max(8000),...studioOptions}).strict();
 const reviseSchema=z.object({prompt:z.string().trim().min(3).max(8000),...studioOptions}).strict();
 const CSP='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data: https:; style-src \'unsafe-inline\'; script-src \'unsafe-inline\'; font-src data:; media-src data:; connect-src \'none\'; form-action \'none\'; base-uri \'none\'">';
-function extractHtml(text){
-  let html=String(text||'').trim().replace(/^\`\`\`(?:html)?\s*/i,'').replace(/\s*\`\`\`$/,'');
-  const start=html.search(/<!doctype html>|<html[\s>]/i),end=html.toLowerCase().lastIndexOf('</html>');
-  if(start<0||end<0)throw new Error('Generátor nevrátil úplnú HTML stránku.');html=html.slice(start,end+7);
+export function extractHtml(text){
+  const raw=String(text||'').trim();
+  const fenced=raw.match(/```(?:html)?\s*([\s\S]*?)```/i);
+  let html=(fenced?fenced[1]:raw).trim().replace(/^```(?:html)?\s*/i,'').replace(/\s*```$/,'');
+  const start=html.search(/<!doctype html>|<html[\s>]/i);
+  if(start<0)throw new Error('Generátor nevrátil úplnú HTML stránku.');
+  html=html.slice(start);
+  let end=html.toLowerCase().lastIndexOf('</html>');
+  if(end>=0){
+    html=html.slice(0,end+7);
+  }else if(/<body[\s>]/i.test(html)&&html.length>200){
+    if(!/<\/body>/i.test(html))html+='\n</body>';
+    html+='\n</html>';
+  }else{
+    throw new Error('Generátor nevrátil úplnú HTML stránku.');
+  }
+  if(!/^\s*<!doctype html>/i.test(html))html='<!doctype html>\n'+html;
   if(Buffer.byteLength(html)>180000)throw new Error('Vygenerovaná stránka je príliš veľká.');
+  if(!/<head[\s>]/i.test(html))html=html.replace(/<html([^>]*)>/i,'<html$1><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>');
   if(!/content-security-policy/i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1>'+CSP);
   return html;
 }
@@ -33,13 +47,20 @@ export function studioGenerationPlan(provider='auto',quality='balanced',env={}){
 }
 async function generate(env,prompt,current='',options={}){
   const plan=studioGenerationPlan(options.provider,options.quality,env);
+  const candidates=[...plan.providers];
+  if((options.provider||'auto')==='auto'){
+    if(env.GEMINI_API_KEY||env.TRINITY_MASTER_GOOGLE)candidates.push('gemini');
+    if(env.OPENAI_API_KEY)candidates.push('openai');
+    if(env.ANTHROPIC_API_KEY)candidates.push('anthropic');
+  }
+  const uniqueProviders=[...new Set(candidates)];
   const system=`Si Trinity Web Studio. Vráť iba jeden kompletný dokument <!doctype html>...</html>, bez markdownu a bez vysvetlenia. Vytvor profesionálny responzívny web so slovenským textom, prístupnou typografiou a výrazným vizuálnym smerom. CSS a voliteľný JavaScript musia byť inline. Nepoužívaj externé knižnice, iframe, formuláre odosielajúce dáta, fetch, externé skripty ani tajomstvá. ${plan.directive}`;
   const user=current?('Uprav tento existujúci web podľa pokynu. Zachovaj funkčné časti.\nPOKYN: '+prompt+'\nAKTUÁLNY HTML:\n'+current.slice(0,90000)):prompt;
   const messages=[{role:'system',content:system},{role:'user',content:user}];
   let lastError;
-  for(const provider of plan.providers){
-    if(provider==='workers-ai'&&!env.AI)continue;
-    try{const response=await callModel(env,provider,messages,plan.maxTokens);return {html:extractHtml(response.text),model:response.model,provider:response.provider||provider,quality:options.quality||'balanced'};}
+  for(const provider of uniqueProviders){
+    if(provider==='workers-ai'&&!env.AI&&!env.CHAT_INFERENCE_SERVICE)continue;
+    try{const response=await callModel(env,provider,messages,plan.maxTokens,null,{directAI:true});return {html:extractHtml(response.text),model:response.model,provider:response.provider||provider,quality:options.quality||'balanced'};}
     catch(error){lastError=error;}
   }
   const diag=diagnoseOmniDevStackTrace(String(lastError?.message||lastError||'Studio generation failed'),{filePath:'Trinity/src/studio.js'});

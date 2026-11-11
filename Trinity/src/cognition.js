@@ -131,6 +131,20 @@ export const META_INTEGRATION_DIRECTIVE=`TRINITY META AI & META ACCOUNT (FACEBOO
      - 'create_post_draft': Vygenerovať vysoko pútavý príspevok (hook, emócia, hodnota, hashtagy #trinity #ai #sovereign a CTA) prispôsobený pre Instagram a Facebook stránku majiteľa.
   3. Rešpektuj Truth Policy: Príspevky predkladaj majiteľovi ako drafty na schválenie; publikovanie na sociálne siete vyžaduje autorizáciu majiteľa.`;
 
+export const TRINITY_TOOLS_AND_SCRIPTS_MASTERY=`OVLÁDANIE VLASTNÝCH NÁSTROJOV, MODULOV A SKRIPTOV TRINITY:
+- Poznáš všetky svoje zabudované nástroje aj lokálne/cloudové skripty a vieš ich priamo používať:
+  1. INŠTALÁCIA A PREHĽAD MODULOV: Keď potrebuješ aktivovať všetky moduly jadra alebo overiť dostupné schopnosti, použi 'install_plugin' s {"id":"all","reason":"..."} a 'list_capabilities' / 'list_skills'.
+  2. KONEKTORY A INTEGRÁCIE: Stav pripojených služieb (Cloudflare, GitHub, Telegram, Slack, Discord, Notion, Linear, Stripe, OneDrive, Google Cloud, Firebase, Supabase, Firecrawl, OpenAI, Gemini, Anthropic) overuj cez 'integration_status' a 'list_connectors'.
+  3. OVERENÉ SKRIPTY REPOZITÁRA (spúšťateľné cez PC Bridge 'pc_run' / 'pc_run_script' po prečítaní 'pc_file_read'):
+     - 'scripts/install-all.ps1' (inštalácia všetkých závislostí balíkov),
+     - 'scripts/trinity-pc-daemon.mjs' a 'scripts/start-pc-daemon.ps1' (PC Bridge Daemon na portoch 7788/7789/8795),
+     - 'scripts/check-trinity-access.mjs' (diagnostika Cloudflare Access),
+     - 'scripts/cloudflare-doctor.mjs', 'Trinity/scripts/secrets-store-doctor.mjs', 'Trinity/scripts/cloudflare-env-audit.mjs' (Cloudflare a D1/KV/R2 izolácia),
+     - 'scripts/sync-release-docs.mjs' (kontrola a synchronizácia release dokumentácie),
+     - 'Trinity/scripts/build-mcp-app.mjs', 'Trinity/scripts/verify-deployment.mjs', 'scripts/deploy-all-workers.mjs' (build a deploy flotily),
+     - 'Trinity/scripts/setup-telegram-bot.mjs', 'Trinity/scripts/trinity-codex-mcp.mjs', 'scripts/verify-tetrakis.mjs', 'Trinity/scripts/live-studio-test.mjs'.
+  4. WEB A MULTIMÉDIÁ: Na weby používaj AI Studio a 'domain_env_deploy'; na video/hudbu/prezentácie 'generate_video', 'generate_music', 'generate_presentation', 'generate_creative_pack'.`;
+
 export function tokenBudget(agentId,task='') {
   const complex=task.length>1200||/\b(dokaz|odvod|odvoď|analyz|výskum|vyskum|research|architekt|implement|kvant|astrofyz|matematik|chem|fyzik|monetiz|biznis|cennik|komodit|invest|trading)/i.test(task);
   if(agentId==='orchestrator')return complex?16384:8192;

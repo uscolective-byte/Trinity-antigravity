@@ -36,7 +36,8 @@ import {createJob,getJob} from './jobs.js';
 import {authenticate,checkOrigin,hash,HttpError,rateLimit,readJSON,secure,validKey,issueSession,allowDevConnection,sessionCookie} from './security.js';
 import {callModel,serviceStatus,runScheduledHealth,readiness} from './services.js';
 import {handleTelegramWebhook,activateTelegramWebhook,telegramIntegrationStatus} from './telegram-bridge.js';
-import {searchMemory,runTool} from './tools.js';
+import {searchMemory,runTool,TOOL_HELP} from './tools.js';
+import {TRINITY_SCRIPTS_CATALOG,COMMON_CONNECTORS_CATALOG} from './scripts-catalog.js';
 import {PLUGINS,listPlugins,pluginEnabled,installPlugin,installAllPlugins} from './plugins.js';
 import {handleMcp} from './mcp.js';
 import {TRUTH_POLICY_VERSION,ExecutionLifecycleGuard,bridgeExecutionVerified} from './truth.js';
@@ -1458,8 +1459,41 @@ async function route(request,env,ctx){
       env.DB.prepare("SELECT COUNT(*) AS count FROM ops_api_access_keys WHERE owner_id=? AND status='active'").bind(ownerId).first(),
       env.DB.prepare('SELECT COUNT(*) AS count FROM trading_portfolios WHERE owner_id=?').bind(ownerId).first(),getPCBridgeStatus(env),listSecrets(env,ownerId),commerceStatus(env).catch(()=>({revolut:{configured:false},paypal:{configured:false},accounts:{}}))
     ]);
-    const secretStatus=provider=>secrets.find(item=>item.provider===provider)?.status||'not-configured';
-    return json({plugins,truth_policy_version:TRUTH_POLICY_VERSION,version:TRINITY_VERSION,model:env.AI_MODEL||'@cf/openai/gpt-oss-120b',image_model:env.IMAGE_MODEL||'@cf/black-forest-labs/flux-1-schnell',permissions:{manage_api_keys:['admin','owner'].includes(user.role),manage_secrets:['admin','owner'].includes(user.role),manage_users:user.role==='owner',manage_trading:['admin','owner'].includes(user.role),use_local_ai:['admin','owner'].includes(user.role),manage_domains:['admin','owner'].includes(user.role)},storage:{database:'Cloudflare D1',cache:'Workers KV · Mastermind',artifacts:'Cloudflare R2 · trinity-artifacts',strategy:'indexed-relational + cache + object archive',scalable:true,memory_records:memory.count||0},counts:{api_projects:apis.count||0,active_api_keys:keys.count||0,paper_portfolios:portfolios.count||0},internet:{web_search:plugins.some(p=>p.id==='web'&&p.enabled),mode:'outbound-only',always_on_gateway:pcBridge.connected===true},pc_bridge:pcBridge,integrations:[{id:'mcp',name:'MCP most',status:plugins.some(p=>p.id==='mcp'&&p.enabled)?'ready':'disabled'},{id:'api',name:'Trinity API',status:'ready'},{id:'web',name:'Webový výskum',status:plugins.some(p=>p.id==='web'&&p.enabled)?'ready':'disabled'},{id:'cloudflare',name:'Cloudflare',status:secretStatus('cloudflare')},{id:'openai',name:'OpenAI / ChatGPT API',status:env.OPENAI_API_KEY?'configured':secretStatus('openai')},{id:'ollama',name:'Ollama Cloud',status:env.OLLAMA_SECRET||env.OLLAMA_API_KEY?'configured':'not-configured'},{id:'gemini',name:'Google Gemini',status:env.GEMINI_API_KEY?'configured':secretStatus('gemini')},{id:'google',name:'Google OAuth',status:googleOAuthConfigured(env)?'configured':'not-configured'},{id:'github',name:'GitHub',status:secretStatus('github')},{id:'antigravity-mcp',name:'Google Antigravity · Trinity MCP',status:plugins.some(item=>item.id==='mcp'&&item.enabled)?'available':'disabled'},{id:'vscode-mcp',name:'Visual Studio Code · Trinity MCP',status:plugins.some(item=>item.id==='mcp'&&item.enabled)?'available':'disabled'},{id:'revolut-pro',name:'Revolut Pro platby',status:commerce.revolut?.configured||commerce.accounts?.revolut_url?'configured':'not-configured'},{id:'paypal',name:'PayPal platby',status:commerce.paypal?.configured||commerce.accounts?.paypal_url?'configured':'not-configured'}]});
+    const secretEntry=provider=>secrets.find(item=>item.provider===provider)||null;
+    const secretStatus=provider=>secretEntry(provider)?.status||'not-configured';
+    const metaConnected=Boolean(env.META_ACCESS_TOKEN||env.FACEBOOK_ACCESS_TOKEN||secretEntry('meta'));
+    const resolveConnectorStatus=connector=>{
+      if(connector.provider==='openai')return env.OPENAI_API_KEY?'configured':secretStatus('openai');
+      if(connector.provider==='gemini')return env.GEMINI_API_KEY?'configured':secretStatus('gemini');
+      if(connector.provider==='anthropic')return env.ANTHROPIC_API_KEY?'configured':secretStatus('anthropic');
+      if(connector.provider==='groq')return env.GROQ_API_KEY?'configured':secretStatus('groq');
+      if(connector.provider==='deepseek')return env.DEEPSEEK_API_KEY?'configured':secretStatus('deepseek');
+      if(connector.provider==='telegram')return env.TELEGRAM_BOT_TOKEN?'configured':secretStatus('telegram');
+      if(connector.provider==='firecrawl')return env.FIRECRAWL_API_KEY?'configured':secretStatus('firecrawl');
+      if(connector.provider==='meta')return metaConnected?'configured':'not-configured';
+      if(connector.provider==='revolut')return commerce.revolut?.configured||commerce.accounts?.revolut_url?'configured':secretStatus('revolut');
+      if(connector.provider==='paypal')return commerce.paypal?.configured||commerce.accounts?.paypal_url?'configured':secretStatus('paypal');
+      return secretStatus(connector.provider);
+    };
+    const connectors_catalog=COMMON_CONNECTORS_CATALOG.map(c=>{
+      const sec=secretEntry(c.provider);
+      return {...c,status:resolveConnectorStatus(c),secret_id:sec?.id||null,secret_hint:sec?.secret_hint||null,secret_name:sec?.name||null};
+    });
+    return json({plugins,truth_policy_version:TRUTH_POLICY_VERSION,version:TRINITY_VERSION,model:env.AI_MODEL||'@cf/openai/gpt-oss-120b',image_model:env.IMAGE_MODEL||'@cf/black-forest-labs/flux-1-schnell',permissions:{manage_api_keys:['admin','owner'].includes(user.role),manage_secrets:['admin','owner'].includes(user.role),manage_users:user.role==='owner',manage_trading:['admin','owner'].includes(user.role),use_local_ai:['admin','owner'].includes(user.role),manage_domains:['admin','owner'].includes(user.role)},storage:{database:'Cloudflare D1',cache:'Workers KV · Mastermind',artifacts:'Cloudflare R2 · trinity-artifacts',strategy:'indexed-relational + cache + object archive',scalable:true,memory_records:memory.count||0},counts:{api_projects:apis.count||0,active_api_keys:keys.count||0,paper_portfolios:portfolios.count||0,tools:Object.keys(TOOL_HELP).length,scripts:TRINITY_SCRIPTS_CATALOG.length,connectors:connectors_catalog.length},internet:{web_search:plugins.some(p=>p.id==='web'&&p.enabled),mode:'outbound-only',always_on_gateway:pcBridge.connected===true},pc_bridge:pcBridge,connectors_catalog,integrations:[{id:'mcp',name:'MCP most',provider:'mcp_server',status:plugins.some(p=>p.id==='mcp'&&p.enabled)?'ready':'disabled'},{id:'api',name:'Trinity API',status:'ready'},{id:'web',name:'Webový výskum',status:plugins.some(p=>p.id==='web'&&p.enabled)?'ready':'disabled'},{id:'cloudflare',name:'Cloudflare',provider:'cloudflare',status:secretStatus('cloudflare')},{id:'openai',name:'OpenAI / ChatGPT API',provider:'openai',status:env.OPENAI_API_KEY?'configured':secretStatus('openai')},{id:'ollama',name:'Ollama Cloud',status:env.OLLAMA_SECRET||env.OLLAMA_API_KEY?'configured':'not-configured'},{id:'gemini',name:'Google Gemini',provider:'gemini',status:env.GEMINI_API_KEY?'configured':secretStatus('gemini')},{id:'anthropic',name:'Anthropic Claude',provider:'anthropic',status:env.ANTHROPIC_API_KEY?'configured':secretStatus('anthropic')},{id:'google',name:'Google OAuth',provider:'google_cloud',status:googleOAuthConfigured(env)?'configured':secretStatus('google_cloud')},{id:'github',name:'GitHub',provider:'github',status:secretStatus('github')},{id:'slack',name:'Slack',provider:'slack',status:secretStatus('slack')},{id:'discord',name:'Discord',provider:'discord',status:secretStatus('discord')},{id:'telegram',name:'Telegram Bot',provider:'telegram',status:env.TELEGRAM_BOT_TOKEN?'configured':secretStatus('telegram')},{id:'notion',name:'Notion',provider:'notion',status:secretStatus('notion')},{id:'linear',name:'Linear',provider:'linear',status:secretStatus('linear')},{id:'stripe',name:'Stripe',provider:'stripe',status:secretStatus('stripe')},{id:'meta',name:'Meta (FB & Instagram)',provider:'meta',status:metaConnected?'configured':'not-configured'},{id:'antigravity-mcp',name:'Google Antigravity · Trinity MCP',status:plugins.some(item=>item.id==='mcp'&&item.enabled)?'available':'disabled'},{id:'vscode-mcp',name:'Visual Studio Code · Trinity MCP',status:plugins.some(item=>item.id==='mcp'&&item.enabled)?'available':'disabled'},{id:'revolut-pro',name:'Revolut Pro platby',provider:'revolut',status:commerce.revolut?.configured||commerce.accounts?.revolut_url?'configured':'not-configured'},{id:'paypal',name:'PayPal platby',provider:'paypal',status:commerce.paypal?.configured||commerce.accounts?.paypal_url?'configured':'not-configured'}]});
+  }
+  if(path==='/api/assistant/scripts-and-tools'&&request.method==='GET'){
+    const plugins=await listPlugins(env);
+    const tools=Object.entries(TOOL_HELP).map(([name,description])=>({name,description}));
+    return json({plugins,tools,scripts:TRINITY_SCRIPTS_CATALOG,connectors:COMMON_CONNECTORS_CATALOG,counts:{plugins:plugins.length,installed_plugins:plugins.filter(p=>p.installed).length,enabled_plugins:plugins.filter(p=>p.enabled).length,tools:tools.length,scripts:TRINITY_SCRIPTS_CATALOG.length}});
+  }
+  if(path==='/api/assistant/plugins/install-all'&&request.method==='POST'){
+    requireAdmin(user);
+    const installed=await installAllPlugins(env);
+    const toolNames=Object.keys(TOOL_HELP);
+    const scriptPaths=TRINITY_SCRIPTS_CATALOG.map(s=>`${s.path} (${s.command})`);
+    const learnedSummary=`Nainštalovaných ${installed.installed} modulov jadra Trinity (${toolNames.length} nástrojov). Overené skripty: ${scriptPaths.join('; ')}.`;
+    await env.DB.prepare("INSERT INTO ops_memory(key,value,source) VALUES('profil/trinity-tools-and-scripts',?,'system') ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=datetime('now')").bind(learnedSummary.slice(0,9000)).run();
+    return json({...installed,tools_count:toolNames.length,scripts_count:TRINITY_SCRIPTS_CATALOG.length,memory_key:'profil/trinity-tools-and-scripts'},201);
   }
   const settingPlugin=path.match(/^\/api\/assistant\/settings\/plugins\/([a-z0-9-]+)$/);
   if(settingPlugin&&request.method==='POST'){

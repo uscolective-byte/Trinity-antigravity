@@ -200,7 +200,7 @@ async function readModelResponse(response,provider) {
   catch{throw new Error(`${provider} vrátil neplatnú odpoveď.`);}
 }
 
-export async function callModel(env, provider, messages, maxTokens = 8192, customModel = null) {
+export async function callModel(env, provider, messages, maxTokens = 8192, customModel = null, opts = {}) {
   if(provider==='local'){
     if(!env.TRINITY_GATEWAY_KEY)throw new Error('Lokálna brána nie je nakonfigurovaná.');
     const recent=messages.filter(message=>message.role!=='system').slice(-6).map(message=>({role:message.role,content:message.content.slice(0,5000)}));
@@ -446,8 +446,8 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
       :(env.AI_MODEL || '@cf/openai/gpt-oss-120b');
     const model=customModel || defaultModel;
     const invoke = async selectedModel => {
-      if(env.CHAT_INFERENCE_SERVICE){
-        // Route through dedicated chat inference worker (trinity-chat-inference)
+      if(env.CHAT_INFERENCE_SERVICE && !opts?.directAI){
+        // Route through dedicated chat inference worker (trinity-chat-inference); directAI bypasses its 600-token cap for full HTML generation.
         try{
           const response=await env.CHAT_INFERENCE_SERVICE.fetch('https://chat-inference.internal/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:selectedModel,messages,max_tokens:Math.min(maxTokens,600)}),signal:AbortSignal.timeout(20000)});
           if(response.ok)return JSON.parse(await boundedText(response,100000));

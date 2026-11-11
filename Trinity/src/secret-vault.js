@@ -12,7 +12,7 @@ import {HttpError} from './security.js';
 
 export const secretInputSchema=z.object({
   provider:z.enum([
-    'github','cloudflare','gemini','google_cloud','onedrive','local_bridge','openai','firecrawl','firebase','supabase','vercel','telegram','slack','discord','notion','dataverse','microsoft','powerplatform','custom','groq','deepseek','anthropic','claude','mistral','openrouter','revolut','paypal'
+    'github','cloudflare','gemini','google_cloud','onedrive','local_bridge','openai','firecrawl','firebase','supabase','vercel','telegram','slack','discord','notion','linear','stripe','wordpress','resend','webhook','mcp_server','meta','dataverse','microsoft','powerplatform','custom','groq','deepseek','anthropic','claude','mistral','openrouter','revolut','paypal'
   ]),
   name:z.string().trim().min(2).max(80),
   secret:z.string().trim().min(8).max(4096)
@@ -130,17 +130,101 @@ export async function verifyTelegramBot(secret,{fetcher=fetch}={}){
     bot_username:typeof data.result.username==='string'?data.result.username:null,
     status:'verified',permission_verified:'bot:getMe',webhook_verified:false};
 }
+function assertPublicHttpsUrl(rawUrl, providerLabel){
+  let parsed;
+  try{parsed=new URL(String(rawUrl||'').trim());}catch{throw new Error(`${providerLabel} vyžaduje platnú HTTPS URL adresu.`);}
+  if(parsed.protocol!=='https:')throw new Error(`${providerLabel} vyžaduje šifrovaný HTTPS protokol.`);
+  const host=parsed.hostname.toLowerCase();
+  if(!host||host==='localhost'||host.endsWith('.local')||/^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|::1$|fc00:|fe80:)/.test(host)){
+    throw new Error(`${providerLabel} nepovoľuje lokálne alebo privátne sieťové adresy.`);
+  }
+  return parsed;
+}
+
 async function verifyGenericProvider(provider,secret){
-  if(provider==='telegram')return verifyTelegramBot(secret);
+  const clean=String(secret||'').trim();
+  if(provider==='telegram')return verifyTelegramBot(clean);
   if(provider==='vercel'){
-    const r=await fetch('https://api.vercel.com/v2/user',{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(12000)});
+    const r=await fetch('https://api.vercel.com/v2/user',{headers:{Authorization:`Bearer ${clean}`},signal:AbortSignal.timeout(12000)});
     if(!r.ok)throw new Error(`Vercel odmietol token (HTTP ${r.status}).`);
     return {connected:true,provider:'vercel'};
   }
   if(provider==='notion'){
-    const r=await fetch('https://api.notion.com/v1/users/me',{headers:{Authorization:`Bearer ${secret}`,'Notion-Version':'2022-06-28'},signal:AbortSignal.timeout(12000)});
+    const r=await fetch('https://api.notion.com/v1/users/me',{headers:{Authorization:`Bearer ${clean}`,'Notion-Version':'2022-06-28'},signal:AbortSignal.timeout(12000)});
     if(!r.ok)throw new Error(`Notion odmietol token (HTTP ${r.status}).`);
     return {connected:true,provider:'notion'};
+  }
+  if(provider==='slack'){
+    if(/^https:\/\/hooks\.slack\.com\/services\//i.test(clean)){
+      assertPublicHttpsUrl(clean,'Slack Webhook');
+      return {connected:true,provider:'slack',mode:'incoming-webhook'};
+    }
+    const r=await fetch('https://slack.com/api/auth.test',{method:'POST',headers:{Authorization:`Bearer ${clean}`},signal:AbortSignal.timeout(12000),redirect:'manual'});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok||data?.ok!==true)throw new Error(`Slack odmietol token (${data?.error||'HTTP '+r.status}).`);
+    return {connected:true,provider:'slack',team:data.team||null,user:data.user||null};
+  }
+  if(provider==='discord'){
+    if(/^https:\/\/(?:discord\.com|discordapp\.com)\/api\/webhooks\//i.test(clean)){
+      const target=assertPublicHttpsUrl(clean,'Discord Webhook');
+      const r=await fetch(target.toString(),{method:'GET',signal:AbortSignal.timeout(12000),redirect:'manual'});
+      if(!r.ok)throw new Error(`Discord Webhook neodpovedal úspešne (HTTP ${r.status}).`);
+      const hook=await r.json().catch(()=>({}));
+      return {connected:true,provider:'discord',mode:'webhook',webhook_name:hook.name||null};
+    }
+    const r=await fetch('https://discord.com/api/v10/users/@me',{headers:{Authorization:`Bot ${clean}`},signal:AbortSignal.timeout(12000),redirect:'manual'});
+    if(!r.ok)throw new Error(`Discord Bot token nebol overený (HTTP ${r.status}).`);
+    const bot=await r.json().catch(()=>({}));
+    return {connected:true,provider:'discord',mode:'bot',username:bot.username||null};
+  }
+  if(provider==='linear'){
+    const r=await fetch('https://api.linear.app/graphql',{
+      method:'POST',
+      headers:{Authorization:clean,'Content-Type':'application/json'},
+      body:JSON.stringify({query:'{ viewer { id name email } }'}),
+      signal:AbortSignal.timeout(12000),redirect:'manual'
+    });
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok||!data?.data?.viewer?.id)throw new Error(`Linear odmietol API kľúč (HTTP ${r.status}).`);
+    return {connected:true,provider:'linear',viewer:data.data.viewer.name||data.data.viewer.id};
+  }
+  if(provider==='stripe'){
+    const r=await fetch('https://api.stripe.com/v1/account',{headers:{Authorization:`Bearer ${clean}`},signal:AbortSignal.timeout(12000),redirect:'manual'});
+    if(!r.ok)throw new Error(`Stripe odmietol tajný kľúč (HTTP ${r.status}).`);
+    const acct=await r.json().catch(()=>({}));
+    return {connected:true,provider:'stripe',account_id:acct.id||null};
+  }
+  if(provider==='resend'){
+    const r=await fetch('https://api.resend.com/domains',{headers:{Authorization:`Bearer ${clean}`},signal:AbortSignal.timeout(12000),redirect:'manual'});
+    if(!r.ok)throw new Error(`Resend odmietol API kľúč (HTTP ${r.status}).`);
+    return {connected:true,provider:'resend'};
+  }
+  if(provider==='supabase'){
+    let url='',apiKey='';
+    try{const p=JSON.parse(clean);url=p.url||'';apiKey=p.key||p.anon_key||p.service_role_key||'';}catch{}
+    if(!url&&clean.includes('|')){[url,apiKey]=clean.split('|',2).map(s=>s.trim());}
+    const target=assertPublicHttpsUrl(url,'Supabase');
+    if(!apiKey)throw new Error('Supabase vyžaduje URL a API kľúč vo formáte URL|API_KEY alebo JSON {"url","key"}.');
+    const r=await fetch(`${target.origin}/rest/v1/`,{headers:{apikey:apiKey,Authorization:`Bearer ${apiKey}`},signal:AbortSignal.timeout(12000),redirect:'manual'});
+    if(!r.ok)throw new Error(`Supabase odmietol pripojenie (HTTP ${r.status}).`);
+    return {connected:true,provider:'supabase',host:target.hostname};
+  }
+  if(provider==='wordpress'){
+    let url=clean;
+    try{const p=JSON.parse(clean);if(p.url)url=p.url;}catch{}
+    const target=assertPublicHttpsUrl(url,'WordPress');
+    const r=await fetch(`${target.origin}/wp-json/wp/v2/posts?per_page=1`,{signal:AbortSignal.timeout(12000),redirect:'manual'});
+    if(!r.ok)throw new Error(`WordPress REST API nedostupné (HTTP ${r.status}).`);
+    return {connected:true,provider:'wordpress',site:target.origin};
+  }
+  if(provider==='webhook'||provider==='mcp_server'){
+    let url=clean,token='';
+    try{const p=JSON.parse(clean);url=p.url||'';token=p.token||'';}catch{}
+    const target=assertPublicHttpsUrl(url,provider==='mcp_server'?'MCP Server':'Webhook');
+    const headers=token?{Authorization:`Bearer ${token}`}:{};
+    const r=await fetch(target.toString(),{method:provider==='mcp_server'?'POST':'HEAD',headers:provider==='mcp_server'?{...headers,'Content-Type':'application/json',Accept:'application/json, text/event-stream'}:headers,body:provider==='mcp_server'?JSON.stringify({jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'trinity-verify',version:'1.0'}}}):undefined,signal:AbortSignal.timeout(12000),redirect:'manual'});
+    if(r.status>=500||(provider==='mcp_server'&&!r.ok))throw new Error(`Endpoint neodpovedal úspešne (HTTP ${r.status}).`);
+    return {connected:true,provider,endpoint:target.origin,http_status:r.status};
   }
   throw new Error(`Poskytovateľ ${provider} nemá implementovaný živý test oprávnenia. Uložené poverenie samo nie je pripojenie.`);
 }
