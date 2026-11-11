@@ -9,11 +9,16 @@ for (let i = 0; i < args.length; i++) {
   else if (args[i] === '--output' && args[i + 1]) output = args[++i];
   else if (args[i] !== '--mcp') throw new Error('Usage: node scripts/check-trinity-access.mjs [--origin https://auru.space|https://auru.dev] [--mcp] [--output FILE]');
 }
+const DEFAULT_APP_IDS = {
+  'https://auru.space': '96df8ed6-5c3c-4ef5-b4ba-148918f170d1',
+  'https://auru.dev': 'e64eea7b-f82c-49e3-b138-9b7051934528'
+};
 try {
   const config = JSON.parse(readFileSync(fileURLToPath(new URL('../Trinity/wrangler.jsonc', import.meta.url)), 'utf8'));
+  const normalizedOrigin = origin.replace(/\/$/, '');
   const report = await diagnoseAccess({origin, env: process.env,
     accountId: config.account_id,
-    appId: process.env.TRINITY_ACCESS_APP_ID || (origin.replace(/\/$/, '') === 'https://auru.space' ? '018042bf-984f-4cf6-bf68-cbb760d9a6da' : undefined),
+    appId: process.env.TRINITY_ACCESS_APP_ID || DEFAULT_APP_IDS[normalizedOrigin],
     includeMcp: args.includes('--mcp')});
   const json = JSON.stringify(report, null, 2) + '\n';
   if (output) writeFileSync(output, json, {flag: 'wx', mode: 0o600});
