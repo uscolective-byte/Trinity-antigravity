@@ -20,7 +20,7 @@
       </div>
       <div class="brand-info">
         <h2>TRINITY</h2>
-        <span class="version-badge">v7.0.0 OMNI-CORE</span>
+        <span class="version-badge">v12.0.0 OMNI-CORE</span>
       </div>
     </div>
 
@@ -93,14 +93,17 @@
         <div class="chat-history" id="conversation" aria-live="polite">
           <div class="msg system-welcome">
             <div class="msg-author">
-              <span class="bot-badge">TRINITY v7.0</span>
-              <small>System Kernel</small>
+              <span class="bot-badge">TRINITY v12.0</span>
+              <small>Sovereign Kernel • Ring 0</small>
             </div>
-            <p>Ahoj Ivan! Som <strong>Trinity</strong>, tvoj autonómny operačný systém na Cloudflare Workers. Architektúra v7.0.0 je aktivovaná: sub-megabajtový runtime, Durable Object <code>ChatAgent</code> a fallback kaskáda modelov sú pripravené.</p>
+            <p>Ahoj Ivan! Som <strong>Trinity Omni-Core v12.0</strong>, tvoj zvrchovaný autonómny operačný systém na Cloudflare Workers a lokálnom PC Bridge. Multimodálna federácia (Antigravity, Gemini, Copilot Studio, OpenAI Codex/GPT, Meta Llama, DeepSeek a Ollama) spolu s Truth Policy 3.0 je plne aktivovaná.</p>
             <div class="quick-chips">
-              <button class="chip-btn" data-prompt="Aký je stav systému a modelov?">⚡ Stav systému</button>
-              <button class="chip-btn" data-prompt="Zobraz zoznam aktívnych agentov.">🤖 Zoznam agentov</button>
-              <button class="chip-btn" data-prompt="Aké nástroje máš v registri?">🛠️ Katalóg nástrojov</button>
+              <button class="chip-btn" data-prompt="⚡ Vykonaj benchmark kaskády modelov (Antigravity, Gemini, GPT, Llama, Ollama).">⚡ Kaskáda Modelov</button>
+              <button class="chip-btn" data-prompt="🛡️ Over exekučnú integritu podľa Truth Policy 3.0 a pravidla exitCode === 0.">🛡️ Truth Policy 3.0</button>
+              <button class="chip-btn" data-prompt="🪙 Zobraz stav likvidity a zostatky trezoru Tetrakis ($TTK) na Base Sepolia.">🪙 Tetrakis ($TTK)</button>
+              <button class="chip-btn" data-prompt="🖥️ Skontroluj stav lokálneho PC Daemona na porte 7788 a Windows SID.">🖥️ PC Daemon (7788)</button>
+              <button class="chip-btn" data-prompt="🤖 Zobraz prehľad flotily 47 Cloudflare Workerov a ich zdravie.">🤖 Flotila 47 Workerov</button>
+              <button class="chip-btn" data-prompt="🛠️ Vypíš kompletný katalóg 57+ exekučných nástrojov Trinity.">🛠️ Katalóg Nástrojov</button>
             </div>
           </div>
         </div>
@@ -110,34 +113,44 @@
             <div class="control-group">
               <label for="agent">Agent:</label>
               <select id="agent">
-                <option value="ORCHESTRATOR">Orchestrator Agent</option>
-                <option value="TRINITY_CORE">Trinity Core Kernel</option>
-                <option value="TRINITY_MEMORY">Memory Node</option>
-                <option value="AURA_ARCHITECT">AURA Architect</option>
-                <option value="AURA_CODEGEN">AURA Codegen</option>
-                <option value="AURA_DEPLOYER">AURA Deployer</option>
-                <option value="AURA_SENTINEL">AURA Sentinel</option>
-                <option value="AURA_TESTER">AURA Tester</option>
+                <option value="ORCHESTRATOR">👑 TMAC Sovereign Orchestrator</option>
+                <option value="ANTIGRAVITY_PAIR">🛡️ Antigravity Root Pair Engine</option>
+                <option value="COPILOT_STUDIO">🔷 Copilot Studio Bridge Agent</option>
+                <option value="CODEX_ENGINEER">💻 Codex Architecture & AST Guard</option>
+                <option value="GEMINI_OMNI">🌐 Gemini Knowledge Explorer</option>
+                <option value="TRINITY_CORE">⚡ Trinity Core Kernel (Ring 0)</option>
+                <option value="AURA_SENTINEL">🛡️ AURA Sentinel (Truth Guard)</option>
+                <option value="JERICHO_TREASURY">🪙 Jericho123 ($TTK Crypto Desk)</option>
+                <option value="AURA_ARCHITECT">🏛️ AURA System Architect</option>
+                <option value="AURA_CODEGEN">⚙️ AURA Codegen Synthesizer</option>
+                <option value="AURA_DEPLOYER">🚀 AURA Deployer Fleet Controller</option>
+                <option value="AURA_TESTER">🧪 AURA Automated Tester</option>
               </select>
             </div>
 
             <div class="control-group">
               <label for="mode">Režim:</label>
               <select id="mode">
-                <option value="single">Single Agent</option>
-                <option value="team">Team Cluster</option>
-                <option value="control">Control Panel</option>
+                <option value="single">Single Agent Execution</option>
+                <option value="team">Team Cluster Federation</option>
+                <option value="control">Sovereign Control Panel</option>
+                <option value="code">Autonomous Code Synthesizer</option>
               </select>
             </div>
 
             <div class="control-group">
               <label for="provider">Model Provider:</label>
               <select id="provider">
-                <option value="workers-ai">Workers AI (Llama 3.3 70B Fast)</option>
-                <option value="local">Local PC Bridge</option>
-                <option value="gemini">Google Gemini 3.8</option>
-                <option value="openai">OpenAI GPT-4.1 Mini</option>
-                <option value="ollama">Ollama Local (Gemma 4)</option>
+                <option value="auto">⚡ Auto Sovereign Cascade (Všetky Modely)</option>
+                <option value="antigravity">🛡️ Antigravity Sovereign AI (Root Co-Pilot)</option>
+                <option value="gemini">🌐 Google Gemini 3.8 Flash / Pro</option>
+                <option value="copilot">🔷 Microsoft Copilot Studio</option>
+                <option value="openai">🟢 OpenAI GPT-4.1 / GPT-4o Mini</option>
+                <option value="codex">💻 OpenAI Codex Refactor Engine</option>
+                <option value="workers-ai">🦙 Meta Llama 3.3 70B (Edge FP8)</option>
+                <option value="deepseek">👁️ DeepSeek R1 Distill 32B (Reasoning)</option>
+                <option value="local">🖥️ Local PC Bridge Daemon (Windows 7788)</option>
+                <option value="ollama">🦙 Ollama Local (Gemma 4 / DeepSeek)</option>
               </select>
             </div>
           </div>

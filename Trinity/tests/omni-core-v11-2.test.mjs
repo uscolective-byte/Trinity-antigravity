@@ -594,7 +594,7 @@ test('Module 10: Sovereign Monolith Tool Engine (execute_d1_sql, cloudflare_flee
 
   assert.equal(PINNED_SYSTEM_PROMPT.role, 'system');
   assert.match(PINNED_SYSTEM_PROMPT.content, /NULOVÁ FABRIKÁCIA A SIMULÁCIA/);
-  assert.equal(TRINITY_TOOL_DEFINITIONS.length, 4);
+  assert.equal(TRINITY_TOOL_DEFINITIONS.length, 8);
 
   // 1. handleFastEdgeRoute
   assert.equal(handleFastEdgeRoute('12 * 8').text, 'Výsledok výpočtu: 96');
@@ -637,7 +637,7 @@ test('Module 10: Sovereign Monolith Tool Engine (execute_d1_sql, cloudflare_flee
     AI: {
       async run(_model, payload) {
         assert.equal(payload.messages[0].role, 'system');
-        assert.equal(payload.tools.length, 4);
+        assert.equal(payload.tools.length, 8);
         return { response: 'Kaskáda s nástrojmi úspešná.' };
       }
     }

@@ -1,15 +1,15 @@
-// Trinity v7.0.0 — Modern Sovereign Client & Architecture Console
+// Trinity v12.0.0 — Sovereign Client & Multi-Model Architecture Console
 const API = '/api';
 
 // ─── TAB NAVIGATION ───
 const tabHeadings = {
-  chat: { title: "Konzola & Asistent", sub: "Autonómna komunikácia cez Durable Objects a Workers AI" },
-  architecture: { title: "Architektúra v7.0.0", sub: "44 Cloudflare Bindings, Durable Objects & sub-megabajtový runtime" },
+  chat: { title: "Konzola & Multimodálny Asistent", sub: "Federácia: Antigravity, Gemini, Copilot Studio, Codex, GPT-4, Llama 3.3 a Ollama" },
+  architecture: { title: "Architektúra v12.0.0 OMNI-CORE", sub: "47 Cloudflare Workerov, Ring 0 Sovereign Lock, D1 & Base Sepolia" },
   agents: { title: "Flotila Agentov", sub: "21 infraštruktúrnych agentov a 40 tímových Ops agentov" },
-  tools: { title: "Nástroje & Schopnosti", sub: "Katalóg 57 nástrojov s deterministickým auditom v D1" },
-  database: { title: "D1 Databáza trinity-v03", sub: "170+ relačných tabuliek, trace logy a sémantická pamäť" },
-  telemetry: { title: "Živá Telemetria & Traces", sub: "Monitorovanie zdravia Edge runtime, D1 a AI inferencie" },
-  charter: { title: "Identita & Zásady Trinity", sub: "Pravidlá komunikácie Basterixa: slovenčina, zákaz češtiny, Truth Policy 2.1" }
+  tools: { title: "Nástroje & Schopnosti", sub: "Katalóg 57+ exekučných nástrojov s deterministickým auditom v D1" },
+  database: { title: "D1 Databáza trinity-v03", sub: "170+ relačných tabuliek, trace logy, MMR ledger a sémantická pamäť" },
+  telemetry: { title: "Živá Telemetria & Traces", sub: "Monitorovanie zdravia Edge runtime, D1, PC Bridge Daemon a AI inferencie" },
+  charter: { title: "Identita & Zásady Trinity", sub: "Pravidlá komunikácie Basterixa: slovenčina, zákaz češtiny, Truth Policy 3.0" }
 };
 
 document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -158,14 +158,36 @@ function addMsg(role, content, meta = {}) {
   textNode.textContent = content;
   div.appendChild(textNode);
 
+  if (meta.tools && Array.isArray(meta.tools) && meta.tools.length > 0) {
+    const toolsContainer = document.createElement('div');
+    toolsContainer.style.marginTop = '8px';
+    toolsContainer.style.display = 'flex';
+    toolsContainer.style.flexWrap = 'wrap';
+    toolsContainer.style.gap = '6px';
+
+    for (const t of meta.tools) {
+      const badge = document.createElement('span');
+      badge.style.fontSize = '10px';
+      badge.style.padding = '2px 6px';
+      badge.style.borderRadius = '4px';
+      badge.style.background = 'rgba(56, 189, 248, 0.15)';
+      badge.style.color = '#38bdf8';
+      badge.style.border = '1px solid rgba(56, 189, 248, 0.3)';
+      badge.style.fontFamily = 'var(--font-mono)';
+      badge.textContent = `🛠️ ${t.name || t.tool || 'tool'}`;
+      toolsContainer.appendChild(badge);
+    }
+    div.appendChild(toolsContainer);
+  }
+
   if (meta.model || meta.trace) {
     const m = document.createElement('div');
     m.style.fontSize = '11px';
     m.style.color = 'var(--text-dim)';
     m.style.marginTop = '6px';
     m.style.fontFamily = 'var(--font-mono)';
-    const fallbackTxt = meta.fallback ? ' (⚡ Fallback aktivovaný)' : '';
-    m.textContent = `Model: ${meta.model || 'Llama 3.3 70B'}${fallbackTxt} | ${meta.ms || 0}ms | trace: ${meta.trace ? meta.trace.slice(0, 8) : 'ok'}`;
+    const fallbackTxt = meta.fallback ? ' (⚡ Fallback)' : '';
+    m.textContent = `Federácia: ${meta.model || 'Sovereign Cascade'}${fallbackTxt} • ${meta.ms || 0}ms • trace: ${meta.trace ? meta.trace.slice(0, 8) : 'ok'}`;
     div.appendChild(m);
   }
 
