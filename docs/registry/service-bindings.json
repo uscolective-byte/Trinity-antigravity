@@ -1,0 +1,696 @@
+{
+  "schema_version": "1.0.0",
+  "source": "wrangler.jsonc",
+  "evidence_scope": "Repository configuration only; not Cloudflare live state.",
+  "generated_at": "2026-11-10T11:00:17.098Z",
+  "worker_configs": [
+    {
+      "name": "trinity-audit",
+      "path": "Audit-Worker\\wrangler.jsonc",
+      "environment": "default"
+    },
+    {
+      "name": "trinity-capacity",
+      "path": "Capacity-Worker\\wrangler.jsonc",
+      "environment": "default"
+    },
+    {
+      "name": "trinity-integrations",
+      "path": "Integrations-Worker\\wrangler.jsonc",
+      "environment": "default"
+    },
+    {
+      "name": "jericho123",
+      "path": "Jericho-Worker\\wrangler.jsonc",
+      "environment": "default"
+    },
+    {
+      "name": "trinity-knowledge",
+      "path": "Knowledge-Worker\\wrangler.jsonc",
+      "environment": "default"
+    },
+    {
+      "name": "trinity-pc-bridge",
+      "path": "PC-Bridge-Worker\\wrangler.jsonc",
+      "environment": "default"
+    },
+    {
+      "name": "trinity-treasury",
+      "path": "services\\trinity-treasury\\wrangler.jsonc",
+      "environment": "default"
+    },
+    {
+      "name": "trinity-treasury-staging",
+      "path": "services\\trinity-treasury\\wrangler.jsonc",
+      "environment": "staging"
+    },
+    {
+      "name": "trinity",
+      "path": "Trinity\\wrangler.jsonc",
+      "environment": "default"
+    },
+    {
+      "name": "trinity-staging",
+      "path": "Trinity\\wrangler.jsonc",
+      "environment": "staging"
+    },
+    {
+      "name": "trinity",
+      "path": "wrangler.jsonc",
+      "environment": "default"
+    },
+    {
+      "name": "trinity-staging",
+      "path": "wrangler.jsonc",
+      "environment": "staging"
+    }
+  ],
+  "production": [
+    {
+      "binding": "KNOWLEDGE_SERVICE",
+      "service": "trinity-knowledge",
+      "worker_config_found": true,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "PC_BRIDGE_V2",
+      "service": "trinity-pc-bridge-v2",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "PC_BRIDGE_SERVICE",
+      "service": "trinity-pc-bridge",
+      "worker_config_found": true,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "CORE",
+      "service": "trinity-core",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "BUILDER",
+      "service": "trinity-builder",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "DISPATCHER",
+      "service": "trinity-dispatcher",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "CONNECTORS",
+      "service": "trinity-connectors",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "GUARDIAN",
+      "service": "trinity-guardian",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "MEMORY",
+      "service": "trinity-memory",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "SENTINEL",
+      "service": "trinity-sentinel",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "SKILLS",
+      "service": "trinity-skills",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "admin",
+      "service": "aura_sentinel",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "admino",
+      "service": "aura_architect",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "Trinity",
+      "service": "aura_deployer",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_ANALYZER",
+      "service": "aura_analyzer",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_ARCHITECT",
+      "service": "aura_architect",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_CODEGEN",
+      "service": "aura_codegen",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_DEPLOYER",
+      "service": "aura_deployer",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_EVOLVER",
+      "service": "aura_evolver",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_MEMORY",
+      "service": "aura_memory",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_OPTIMIZER",
+      "service": "aura_optimizer",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_PLANNER",
+      "service": "aura_planner",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_SENTINEL",
+      "service": "aura_sentinel",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_TESTER",
+      "service": "aura_tester",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "CHAT_INFERENCE_SERVICE",
+      "service": "trinity-chat-inference",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "CAPACITY_SERVICE",
+      "service": "trinity-capacity",
+      "worker_config_found": true,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "INTEGRATIONS_SERVICE",
+      "service": "trinity-integrations",
+      "worker_config_found": true,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AUDIT_SERVICE",
+      "service": "trinity-audit",
+      "worker_config_found": true,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "JERICHO_SERVICE",
+      "service": "jericho123",
+      "worker_config_found": true,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "RESEARCHER_SERVICE",
+      "service": "trinity-agent-researcher",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "GEMINI_BRIDGE_SERVICE",
+      "service": "trinity-gemini",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "OPS_SERVICE",
+      "service": "trinity-ops",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "CHAT_MAINTAINER_SERVICE",
+      "service": "trinity-chat-maintainer",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "DEPLOYER_SERVICE",
+      "service": "trinity-deployer",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "SEEDER_SERVICE",
+      "service": "trinity-seeder",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "PROFILE_SERVICE",
+      "service": "trinity-profile",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "CORE_SERVICE",
+      "service": "trinity-core",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "DISPATCHER_SERVICE",
+      "service": "trinity-dispatcher",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AI_INFERENCE_SERVICE",
+      "service": "trinity-chat-inference",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    }
+  ],
+  "staging": [
+    {
+      "binding": "KNOWLEDGE_SERVICE",
+      "service": "trinity-knowledge",
+      "worker_config_found": true,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "PC_BRIDGE_V2",
+      "service": "trinity-pc-bridge-v2",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "PC_BRIDGE_SERVICE",
+      "service": "trinity-pc-bridge",
+      "worker_config_found": true,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "CORE",
+      "service": "trinity-core",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "BUILDER",
+      "service": "trinity-builder",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "DISPATCHER",
+      "service": "trinity-dispatcher",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "CONNECTORS",
+      "service": "trinity-connectors",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "GUARDIAN",
+      "service": "trinity-guardian",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "MEMORY",
+      "service": "trinity-memory",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "SENTINEL",
+      "service": "trinity-sentinel",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "SKILLS",
+      "service": "trinity-skills",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "admin",
+      "service": "aura_sentinel",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "admino",
+      "service": "aura_architect",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "Trinity",
+      "service": "aura_deployer",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_ANALYZER",
+      "service": "aura_analyzer",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_ARCHITECT",
+      "service": "aura_architect",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_CODEGEN",
+      "service": "aura_codegen",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_DEPLOYER",
+      "service": "aura_deployer",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_EVOLVER",
+      "service": "aura_evolver",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_MEMORY",
+      "service": "aura_memory",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_OPTIMIZER",
+      "service": "aura_optimizer",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_PLANNER",
+      "service": "aura_planner",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_SENTINEL",
+      "service": "aura_sentinel",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AURA_TESTER",
+      "service": "aura_tester",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "CHAT_INFERENCE_SERVICE",
+      "service": "trinity-chat-inference",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "CAPACITY_SERVICE",
+      "service": "trinity-capacity",
+      "worker_config_found": true,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "INTEGRATIONS_SERVICE",
+      "service": "trinity-integrations",
+      "worker_config_found": true,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AUDIT_SERVICE",
+      "service": "trinity-audit",
+      "worker_config_found": true,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "JERICHO_SERVICE",
+      "service": "jericho123",
+      "worker_config_found": true,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "RESEARCHER_SERVICE",
+      "service": "trinity-agent-researcher",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "GEMINI_BRIDGE_SERVICE",
+      "service": "trinity-gemini",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "OPS_SERVICE",
+      "service": "trinity-ops",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "CHAT_MAINTAINER_SERVICE",
+      "service": "trinity-chat-maintainer",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "DEPLOYER_SERVICE",
+      "service": "trinity-deployer",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "SEEDER_SERVICE",
+      "service": "trinity-seeder",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "PROFILE_SERVICE",
+      "service": "trinity-profile",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "CORE_SERVICE",
+      "service": "trinity-core",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "DISPATCHER_SERVICE",
+      "service": "trinity-dispatcher",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    },
+    {
+      "binding": "AI_INFERENCE_SERVICE",
+      "service": "trinity-chat-inference",
+      "worker_config_found": false,
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE"
+    }
+  ]
+}

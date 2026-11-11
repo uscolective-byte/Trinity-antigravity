@@ -111,3 +111,10 @@ Trinity/workspace/receipt-test/
 /schema.sql
 /migrations/
 /.vscode/agent-plugins/
+
+# MkDocs generated site and local documentation virtualenv
+/site/
+/.venv-docs/
+
+# Local consolidation backups
+/_backups/

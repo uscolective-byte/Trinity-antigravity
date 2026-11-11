@@ -1,0 +1,31 @@
+site_name: Trinity Omni-Core Engineering Manual
+site_description: Architecture, ledger, bridge, runbooks and fleet registry
+site_url: https://auru.space/docs/
+docs_dir: docs
+site_dir: site
+theme:
+  name: readthedocs
+plugins:
+  - search
+validation:
+  links:
+    not_found: ignore
+nav:
+  - Home: index.md
+  - Architecture:
+      - Seven layers: architecture/overview.md
+      - Tool contracts: architecture/tool-contracts.md
+      - Fleet registry: architecture/fleet-registry.md
+  - Ledger:
+      - MMR audit: ledger/mmr-audit.md
+  - Bridge:
+      - Local bridge protocol: bridge/protocol.md
+  - Runbooks:
+      - Build and migrations: runbooks/deploy-and-migrate.md
+      - Ring 0 key rotation: runbooks/ring0-key-rotation.md
+      - AST self-healing: runbooks/self-healing.md
+  - Registry:
+      - Catalogue status: registry/catalogue-status.md
+      - Full 500 improvements and 75 pillars: registry/KATALOG-500-VYLEPSENI-TRINITY-OMNI-CORE.md
+      - 47 Worker matrix: registry/fleet-workers.md
+      - Documentation build: site-build.md

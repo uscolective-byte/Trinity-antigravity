@@ -1,0 +1,1410 @@
+{
+  "schema_version": "1.0.0",
+  "source": "Trinity/src/fleet-clusters.js + wrangler.jsonc",
+  "evidence_scope": "Declared fleet manifest and repository Wrangler configuration only; not Cloudflare live deployment state.",
+  "generated_at": "2026-11-10T11:00:17.098Z",
+  "declared_cluster_count": 6,
+  "declared_worker_count": 47,
+  "wrangler_config_count": 9,
+  "service_binding_count": {
+    "production": 39,
+    "staging": 39
+  },
+  "unknown_fields_policy": "Timeout, compute budget, fallback and live status remain null/UNSPECIFIED/NOT_QUERIED unless source code or a live probe provides evidence.",
+  "clusters": [
+    {
+      "cluster_id": "01",
+      "name": "Core & Routing",
+      "range": "#01 – #06",
+      "responsibility": "Fast-Chat router, TAP Gatekeeper, SSE Streamer, Domain Dispatcher",
+      "bindings": [
+        "KV (SESSION_STORE / TRINITY_KV)",
+        "Service Bindings"
+      ]
+    },
+    {
+      "cluster_id": "02",
+      "name": "Cognition & AI Engine",
+      "range": "#07 – #15",
+      "responsibility": "Workers AI kaskáda (Llama 70B, DeepSeek-R1, 8B), Vectorize pamäť, RAG syntéza",
+      "bindings": [
+        "AI",
+        "Vectorize (trinity-embeddings / trinity-vector-index)",
+        "R2"
+      ]
+    },
+    {
+      "cluster_id": "03",
+      "name": "Security & Ring 0",
+      "range": "#16 – #22",
+      "responsibility": "Autentifikácia kľúčov, D1 Audit Ledger, TAP token rotation, Leak Filter",
+      "bindings": [
+        "D1 (audit_logs)",
+        "WebCrypto RSASSA-PKCS1-v1_5"
+      ]
+    },
+    {
+      "cluster_id": "04",
+      "name": "Financial & Krypto",
+      "range": "#23 – #28",
+      "responsibility": "Jericho123 orákulum, Tetrakis ($TTK) trezor, transakčná validácia",
+      "bindings": [
+        "D1 (crypto_ledger / tetrakis_vaults)",
+        "KV (price_cache)"
+      ]
+    },
+    {
+      "cluster_id": "05",
+      "name": "Autonomy & Agents",
+      "range": "#29 – #38",
+      "responsibility": "Agent Morpheus (sociálne siete), Desktop Bridge, Tool Executor, Cron watchdogs",
+      "bindings": [
+        "KV",
+        "D1",
+        "External Webhooks",
+        "Cloudflared Tunnel (agent.auru.dev)"
+      ]
+    },
+    {
+      "cluster_id": "06",
+      "name": "System & Profile",
+      "range": "#39 – #47",
+      "responsibility": "Profilový manažér (#47), Telemetria, Canary Deploy, System Health",
+      "bindings": [
+        "D1 (trinity-v03 / trinity-development)",
+        "KV (TRINITY_KV_PROD / TRINITY_KV_STAGING)"
+      ]
+    }
+  ],
+  "workers": [
+    {
+      "worker_number": 1,
+      "worker_id": "#01",
+      "name": "trinity",
+      "role": "Fast-Chat Edge Router & TAP Gatekeeper (Prod auru.space)",
+      "cluster_id": "01",
+      "cluster_name": "Core & Routing",
+      "cluster_range": "#01 – #06",
+      "worker_config_found": true,
+      "worker_configs": [
+        {
+          "name": "trinity",
+          "path": "Trinity\\wrangler.jsonc",
+          "environment": "default"
+        },
+        {
+          "name": "trinity",
+          "path": "wrangler.jsonc",
+          "environment": "default"
+        }
+      ],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 2,
+      "worker_id": "#02",
+      "name": "trinity-staging",
+      "role": "Staging Omni-Dev Edge Gateway (auru.dev)",
+      "cluster_id": "01",
+      "cluster_name": "Core & Routing",
+      "cluster_range": "#01 – #06",
+      "worker_config_found": true,
+      "worker_configs": [
+        {
+          "name": "trinity-staging",
+          "path": "Trinity\\wrangler.jsonc",
+          "environment": "staging"
+        },
+        {
+          "name": "trinity-staging",
+          "path": "wrangler.jsonc",
+          "environment": "staging"
+        }
+      ],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 3,
+      "worker_id": "#03",
+      "name": "trinity-core",
+      "role": "Core Kernel & Sovereign State Coordinator",
+      "cluster_id": "01",
+      "cluster_name": "Core & Routing",
+      "cluster_range": "#01 – #06",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "CORE",
+            "service": "trinity-core"
+          },
+          {
+            "binding": "CORE_SERVICE",
+            "service": "trinity-core"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "CORE",
+            "service": "trinity-core"
+          },
+          {
+            "binding": "CORE_SERVICE",
+            "service": "trinity-core"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 4,
+      "worker_id": "#04",
+      "name": "trinity-dispatcher",
+      "role": "Domain & Task Dispatcher",
+      "cluster_id": "01",
+      "cluster_name": "Core & Routing",
+      "cluster_range": "#01 – #06",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "DISPATCHER",
+            "service": "trinity-dispatcher"
+          },
+          {
+            "binding": "DISPATCHER_SERVICE",
+            "service": "trinity-dispatcher"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "DISPATCHER",
+            "service": "trinity-dispatcher"
+          },
+          {
+            "binding": "DISPATCHER_SERVICE",
+            "service": "trinity-dispatcher"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 5,
+      "worker_id": "#05",
+      "name": "trinity-builder",
+      "role": "Edge Build & Artifact Streamer",
+      "cluster_id": "01",
+      "cluster_name": "Core & Routing",
+      "cluster_range": "#01 – #06",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "BUILDER",
+            "service": "trinity-builder"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "BUILDER",
+            "service": "trinity-builder"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 6,
+      "worker_id": "#06",
+      "name": "trinity-connectors",
+      "role": "External Protocol & Service Connector Router",
+      "cluster_id": "01",
+      "cluster_name": "Core & Routing",
+      "cluster_range": "#01 – #06",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "CONNECTORS",
+            "service": "trinity-connectors"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "CONNECTORS",
+            "service": "trinity-connectors"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 7,
+      "worker_id": "#07",
+      "name": "trinity-chat-inference",
+      "role": "3-Tier LLM Inference Cascade & Circuit Breaker",
+      "cluster_id": "02",
+      "cluster_name": "Cognition & AI Engine",
+      "cluster_range": "#07 – #15",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "CHAT_INFERENCE_SERVICE",
+            "service": "trinity-chat-inference"
+          },
+          {
+            "binding": "AI_INFERENCE_SERVICE",
+            "service": "trinity-chat-inference"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "CHAT_INFERENCE_SERVICE",
+            "service": "trinity-chat-inference"
+          },
+          {
+            "binding": "AI_INFERENCE_SERVICE",
+            "service": "trinity-chat-inference"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 8,
+      "worker_id": "#08",
+      "name": "trinity-knowledge",
+      "role": "Vectorize RAG & Knowledge Synthesis",
+      "cluster_id": "02",
+      "cluster_name": "Cognition & AI Engine",
+      "cluster_range": "#07 – #15",
+      "worker_config_found": true,
+      "worker_configs": [
+        {
+          "name": "trinity-knowledge",
+          "path": "Knowledge-Worker\\wrangler.jsonc",
+          "environment": "default"
+        }
+      ],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "KNOWLEDGE_SERVICE",
+            "service": "trinity-knowledge"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "KNOWLEDGE_SERVICE",
+            "service": "trinity-knowledge"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 9,
+      "worker_id": "#09",
+      "name": "trinity-memory",
+      "role": "Episodic & Semantic Memory Engine",
+      "cluster_id": "02",
+      "cluster_name": "Cognition & AI Engine",
+      "cluster_range": "#07 – #15",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "MEMORY",
+            "service": "trinity-memory"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "MEMORY",
+            "service": "trinity-memory"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 10,
+      "worker_id": "#10",
+      "name": "trinity-gemini",
+      "role": "Google Gemini Interactions & Multimodal Bridge",
+      "cluster_id": "02",
+      "cluster_name": "Cognition & AI Engine",
+      "cluster_range": "#07 – #15",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "GEMINI_BRIDGE_SERVICE",
+            "service": "trinity-gemini"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "GEMINI_BRIDGE_SERVICE",
+            "service": "trinity-gemini"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 11,
+      "worker_id": "#11",
+      "name": "trinity-agent-researcher",
+      "role": "Deep Research & Evidence Synthesis Agent",
+      "cluster_id": "02",
+      "cluster_name": "Cognition & AI Engine",
+      "cluster_range": "#07 – #15",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "RESEARCHER_SERVICE",
+            "service": "trinity-agent-researcher"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "RESEARCHER_SERVICE",
+            "service": "trinity-agent-researcher"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 12,
+      "worker_id": "#12",
+      "name": "trinity-chat-maintainer",
+      "role": "Context Window & Conversation Hygiene Worker",
+      "cluster_id": "02",
+      "cluster_name": "Cognition & AI Engine",
+      "cluster_range": "#07 – #15",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "CHAT_MAINTAINER_SERVICE",
+            "service": "trinity-chat-maintainer"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "CHAT_MAINTAINER_SERVICE",
+            "service": "trinity-chat-maintainer"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 13,
+      "worker_id": "#13",
+      "name": "aura_analyzer",
+      "role": "Aura Semantic & AST Analyzer",
+      "cluster_id": "02",
+      "cluster_name": "Cognition & AI Engine",
+      "cluster_range": "#07 – #15",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "AURA_ANALYZER",
+            "service": "aura_analyzer"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "AURA_ANALYZER",
+            "service": "aura_analyzer"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 14,
+      "worker_id": "#14",
+      "name": "aura_architect",
+      "role": "Aura System Architecture Planner",
+      "cluster_id": "02",
+      "cluster_name": "Cognition & AI Engine",
+      "cluster_range": "#07 – #15",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "admino",
+            "service": "aura_architect"
+          },
+          {
+            "binding": "AURA_ARCHITECT",
+            "service": "aura_architect"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "admino",
+            "service": "aura_architect"
+          },
+          {
+            "binding": "AURA_ARCHITECT",
+            "service": "aura_architect"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 15,
+      "worker_id": "#15",
+      "name": "aura_memory",
+      "role": "Aura Vector Memory Synchronizer",
+      "cluster_id": "02",
+      "cluster_name": "Cognition & AI Engine",
+      "cluster_range": "#07 – #15",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "AURA_MEMORY",
+            "service": "aura_memory"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "AURA_MEMORY",
+            "service": "aura_memory"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 16,
+      "worker_id": "#16",
+      "name": "trinity-guardian",
+      "role": "Ring 0 Security Gate & Policy Enforcer",
+      "cluster_id": "03",
+      "cluster_name": "Security & Ring 0",
+      "cluster_range": "#16 – #22",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "GUARDIAN",
+            "service": "trinity-guardian"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "GUARDIAN",
+            "service": "trinity-guardian"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 17,
+      "worker_id": "#17",
+      "name": "trinity-sentinel",
+      "role": "Anomaly Detection & Intrusion Shield",
+      "cluster_id": "03",
+      "cluster_name": "Security & Ring 0",
+      "cluster_range": "#16 – #22",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "SENTINEL",
+            "service": "trinity-sentinel"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "SENTINEL",
+            "service": "trinity-sentinel"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 18,
+      "worker_id": "#18",
+      "name": "trinity-audit",
+      "role": "Asynchronous D1 Audit Ledger & Receipt Verifier",
+      "cluster_id": "03",
+      "cluster_name": "Security & Ring 0",
+      "cluster_range": "#16 – #22",
+      "worker_config_found": true,
+      "worker_configs": [
+        {
+          "name": "trinity-audit",
+          "path": "Audit-Worker\\wrangler.jsonc",
+          "environment": "default"
+        }
+      ],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "AUDIT_SERVICE",
+            "service": "trinity-audit"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "AUDIT_SERVICE",
+            "service": "trinity-audit"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 19,
+      "worker_id": "#19",
+      "name": "trinityguardiantruthverifierworker",
+      "role": "Truth Policy 2.1 Cryptographic Receipt Verifier",
+      "cluster_id": "03",
+      "cluster_name": "Security & Ring 0",
+      "cluster_range": "#16 – #22",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 20,
+      "worker_id": "#20",
+      "name": "aura_sentinel",
+      "role": "Aura Perimeter & Leak Filter Sentinel",
+      "cluster_id": "03",
+      "cluster_name": "Security & Ring 0",
+      "cluster_range": "#16 – #22",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "admin",
+            "service": "aura_sentinel"
+          },
+          {
+            "binding": "AURA_SENTINEL",
+            "service": "aura_sentinel"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "admin",
+            "service": "aura_sentinel"
+          },
+          {
+            "binding": "AURA_SENTINEL",
+            "service": "aura_sentinel"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 21,
+      "worker_id": "#21",
+      "name": "aura_tester",
+      "role": "Adversarial Security & Contract Tester",
+      "cluster_id": "03",
+      "cluster_name": "Security & Ring 0",
+      "cluster_range": "#16 – #22",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "AURA_TESTER",
+            "service": "aura_tester"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "AURA_TESTER",
+            "service": "aura_tester"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 22,
+      "worker_id": "#22",
+      "name": "trinity-capacity",
+      "role": "Rate Limiting, Quota & Circuit Protection",
+      "cluster_id": "03",
+      "cluster_name": "Security & Ring 0",
+      "cluster_range": "#16 – #22",
+      "worker_config_found": true,
+      "worker_configs": [
+        {
+          "name": "trinity-capacity",
+          "path": "Capacity-Worker\\wrangler.jsonc",
+          "environment": "default"
+        }
+      ],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "CAPACITY_SERVICE",
+            "service": "trinity-capacity"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "CAPACITY_SERVICE",
+            "service": "trinity-capacity"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 23,
+      "worker_id": "#23",
+      "name": "aura_optimizer",
+      "role": "Quant & Resource Execution Optimizer",
+      "cluster_id": "04",
+      "cluster_name": "Financial & Krypto",
+      "cluster_range": "#23 – #28",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "AURA_OPTIMIZER",
+            "service": "aura_optimizer"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "AURA_OPTIMIZER",
+            "service": "aura_optimizer"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 24,
+      "worker_id": "#24",
+      "name": "aura_planner",
+      "role": "Financial & Strategic Execution Planner",
+      "cluster_id": "04",
+      "cluster_name": "Financial & Krypto",
+      "cluster_range": "#23 – #28",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "AURA_PLANNER",
+            "service": "aura_planner"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "AURA_PLANNER",
+            "service": "aura_planner"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 25,
+      "worker_id": "#25",
+      "name": "trinity-seeder",
+      "role": "D1 Ledger & Market State Seeder",
+      "cluster_id": "04",
+      "cluster_name": "Financial & Krypto",
+      "cluster_range": "#23 – #28",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "SEEDER_SERVICE",
+            "service": "trinity-seeder"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "SEEDER_SERVICE",
+            "service": "trinity-seeder"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 26,
+      "worker_id": "#26",
+      "name": "jericho123",
+      "role": "Consensus Crypto Oracle (Binance/Coinbase Median) & Tetrakis ($TTK) Vaults",
+      "cluster_id": "04",
+      "cluster_name": "Financial & Krypto",
+      "cluster_range": "#23 – #28",
+      "worker_config_found": true,
+      "worker_configs": [
+        {
+          "name": "jericho123",
+          "path": "Jericho-Worker\\wrangler.jsonc",
+          "environment": "default"
+        }
+      ],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "JERICHO_SERVICE",
+            "service": "jericho123"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "JERICHO_SERVICE",
+            "service": "jericho123"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 27,
+      "worker_id": "#27",
+      "name": "chanfana-openapi-template",
+      "role": "OpenAPI Financial & Settlement Schema Gateway",
+      "cluster_id": "04",
+      "cluster_name": "Financial & Krypto",
+      "cluster_range": "#23 – #28",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 28,
+      "worker_id": "#28",
+      "name": "saas-admin-template",
+      "role": "Treasury & Merchant Administration Portal",
+      "cluster_id": "04",
+      "cluster_name": "Financial & Krypto",
+      "cluster_range": "#23 – #28",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 29,
+      "worker_id": "#29",
+      "name": "trinity-morhfeus",
+      "role": "Autonomous Agent Morpheus & Social/External Orchestrator",
+      "cluster_id": "05",
+      "cluster_name": "Autonomy & Agents",
+      "cluster_range": "#29 – #38",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 30,
+      "worker_id": "#30",
+      "name": "trinity-pc-bridge",
+      "role": "Cloud-to-Local PC Bridge v1",
+      "cluster_id": "05",
+      "cluster_name": "Autonomy & Agents",
+      "cluster_range": "#29 – #38",
+      "worker_config_found": true,
+      "worker_configs": [
+        {
+          "name": "trinity-pc-bridge",
+          "path": "PC-Bridge-Worker\\wrangler.jsonc",
+          "environment": "default"
+        }
+      ],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "PC_BRIDGE_SERVICE",
+            "service": "trinity-pc-bridge"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "PC_BRIDGE_SERVICE",
+            "service": "trinity-pc-bridge"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 31,
+      "worker_id": "#31",
+      "name": "trinity-pc-bridge-v2",
+      "role": "Zero-Footprint Desktop Commander Bridge v2",
+      "cluster_id": "05",
+      "cluster_name": "Autonomy & Agents",
+      "cluster_range": "#29 – #38",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "PC_BRIDGE_V2",
+            "service": "trinity-pc-bridge-v2"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "PC_BRIDGE_V2",
+            "service": "trinity-pc-bridge-v2"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 32,
+      "worker_id": "#32",
+      "name": "trinity-skills",
+      "role": "Dynamic Skill Matrix & Tool Executor",
+      "cluster_id": "05",
+      "cluster_name": "Autonomy & Agents",
+      "cluster_range": "#29 – #38",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "SKILLS",
+            "service": "trinity-skills"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "SKILLS",
+            "service": "trinity-skills"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 33,
+      "worker_id": "#33",
+      "name": "trinity-integrations",
+      "role": "External Webhooks, GitHub, Firecrawl & Workspace Integrations",
+      "cluster_id": "05",
+      "cluster_name": "Autonomy & Agents",
+      "cluster_range": "#29 – #38",
+      "worker_config_found": true,
+      "worker_configs": [
+        {
+          "name": "trinity-integrations",
+          "path": "Integrations-Worker\\wrangler.jsonc",
+          "environment": "default"
+        }
+      ],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "INTEGRATIONS_SERVICE",
+            "service": "trinity-integrations"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "INTEGRATIONS_SERVICE",
+            "service": "trinity-integrations"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 34,
+      "worker_id": "#34",
+      "name": "trinity-ops",
+      "role": "Cron Watchdogs & 5-Min Desktop Commander Heartbeat",
+      "cluster_id": "05",
+      "cluster_name": "Autonomy & Agents",
+      "cluster_range": "#29 – #38",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "OPS_SERVICE",
+            "service": "trinity-ops"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "OPS_SERVICE",
+            "service": "trinity-ops"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 35,
+      "worker_id": "#35",
+      "name": "trinity-deployer",
+      "role": "Autonomous Worker & Domain Deployment Agent",
+      "cluster_id": "05",
+      "cluster_name": "Autonomy & Agents",
+      "cluster_range": "#29 – #38",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "DEPLOYER_SERVICE",
+            "service": "trinity-deployer"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "DEPLOYER_SERVICE",
+            "service": "trinity-deployer"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 36,
+      "worker_id": "#36",
+      "name": "aura_codegen",
+      "role": "Autonomous Code Synthesis Worker",
+      "cluster_id": "05",
+      "cluster_name": "Autonomy & Agents",
+      "cluster_range": "#29 – #38",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "AURA_CODEGEN",
+            "service": "aura_codegen"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "AURA_CODEGEN",
+            "service": "aura_codegen"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 37,
+      "worker_id": "#37",
+      "name": "aura_deployer",
+      "role": "Aura Continuous Deployment Worker",
+      "cluster_id": "05",
+      "cluster_name": "Autonomy & Agents",
+      "cluster_range": "#29 – #38",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "Trinity",
+            "service": "aura_deployer"
+          },
+          {
+            "binding": "AURA_DEPLOYER",
+            "service": "aura_deployer"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "Trinity",
+            "service": "aura_deployer"
+          },
+          {
+            "binding": "AURA_DEPLOYER",
+            "service": "aura_deployer"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 38,
+      "worker_id": "#38",
+      "name": "aura_evolver",
+      "role": "Self-Evolution & Mutation Proposal Worker",
+      "cluster_id": "05",
+      "cluster_name": "Autonomy & Agents",
+      "cluster_range": "#29 – #38",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "AURA_EVOLVER",
+            "service": "aura_evolver"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "AURA_EVOLVER",
+            "service": "aura_evolver"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 39,
+      "worker_id": "#39",
+      "name": "muddy-wind-42e2",
+      "role": "Canary Edge Telemetry Node A",
+      "cluster_id": "06",
+      "cluster_name": "System & Profile",
+      "cluster_range": "#39 – #47",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 40,
+      "worker_id": "#40",
+      "name": "my-react-app",
+      "role": "Edge UI & Component Sandbox",
+      "cluster_id": "06",
+      "cluster_name": "System & Profile",
+      "cluster_range": "#39 – #47",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 41,
+      "worker_id": "#41",
+      "name": "noisy-hat-011e",
+      "role": "Canary Edge Telemetry Node B",
+      "cluster_id": "06",
+      "cluster_name": "System & Profile",
+      "cluster_range": "#39 – #47",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 42,
+      "worker_id": "#42",
+      "name": "react-router-starter-templates",
+      "role": "SSR Routing & Edge App Template",
+      "cluster_id": "06",
+      "cluster_name": "System & Profile",
+      "cluster_range": "#39 – #47",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 43,
+      "worker_id": "#43",
+      "name": "small-pine-596d",
+      "role": "Canary Edge Telemetry Node C",
+      "cluster_id": "06",
+      "cluster_name": "System & Profile",
+      "cluster_range": "#39 – #47",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 44,
+      "worker_id": "#44",
+      "name": "snowy-fire-3605",
+      "role": "Canary Edge Telemetry Node D",
+      "cluster_id": "06",
+      "cluster_name": "System & Profile",
+      "cluster_range": "#39 – #47",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 45,
+      "worker_id": "#45",
+      "name": "vite-react-template",
+      "role": "Vite Edge Asset Preview Worker A",
+      "cluster_id": "06",
+      "cluster_name": "System & Profile",
+      "cluster_range": "#39 – #47",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 46,
+      "worker_id": "#46",
+      "name": "vite-react-templates",
+      "role": "Vite Edge Asset Preview Worker B",
+      "cluster_id": "06",
+      "cluster_name": "System & Profile",
+      "cluster_range": "#39 – #47",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [],
+        "staging": []
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    },
+    {
+      "worker_number": 47,
+      "worker_id": "#47",
+      "name": "trinity-profile",
+      "role": "ProfileMaker (#47) — Ring 0 TAP Keys, RS256 JWT & D1 Profiles",
+      "cluster_id": "06",
+      "cluster_name": "System & Profile",
+      "cluster_range": "#39 – #47",
+      "worker_config_found": false,
+      "worker_configs": [],
+      "service_bindings": {
+        "production": [
+          {
+            "binding": "PROFILE_SERVICE",
+            "service": "trinity-profile"
+          }
+        ],
+        "staging": [
+          {
+            "binding": "PROFILE_SERVICE",
+            "service": "trinity-profile"
+          }
+        ]
+      },
+      "timeout_ms": null,
+      "compute_budget": null,
+      "fallback_policy": "UNSPECIFIED_IN_SOURCE",
+      "live_status": "NOT_QUERIED"
+    }
+  ]
+}

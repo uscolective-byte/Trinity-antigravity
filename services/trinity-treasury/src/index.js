@@ -4,7 +4,8 @@
 import tetrakisArtifact from "../../../contracts/tetrakis/build/TetrakisToken.json" with { type: "json" };
 import tetrakisManifesto from "../../../packages/crypto-core/lore/manifesto.json" with { type: "json" };
 import { verifyTapToken } from "../../../packages/contracts/src/tap.js";
-import { verifyMerkleProof, hashLeaf, MerkleExecutionTree } from "../../../packages/crypto-core/src/proof-of-execution.js";
+import { verifyMerkleProof, verifyExecutionReceipt } from "../../../packages/crypto-core/src/proof-of-execution.js";
+import { MerkleMountainRange, verifyMmrProof } from "../../../packages/crypto-core/src/merkle-mountain-range.js";
 
 export const TETRAKIS_ABI = tetrakisArtifact.abi;
 export const TETRAKIS_ARTIFACT_DIGESTS = {
@@ -514,8 +515,15 @@ export default {
         return new Response(JSON.stringify({ ok: false, error: "MISSING_REQUIRED_FIELDS", required: ["receipt", "proof", "rootHash"] }), { status: 400, headers: CORS_HEADERS });
       }
 
-      const calculatedLeaf = hashLeaf(receipt);
-      const isValid = verifyMerkleProof(calculatedLeaf, proof, rootHash);
+      const receiptCheck = verifyExecutionReceipt(receipt, { requireSuccess: true });
+      if (!receiptCheck.ok) {
+        return new Response(JSON.stringify({ ok: false, status: "RECEIPT_REJECTED", error: receiptCheck.reason }), { status: 422, headers: CORS_HEADERS });
+      }
+      const calculatedLeaf = receiptCheck.leafHash;
+      const isMmrProof = proof?.format === "trinity-mmr-v1";
+      const isValid = isMmrProof
+        ? verifyMmrProof(calculatedLeaf, proof, rootHash)
+        : Array.isArray(proof) && verifyMerkleProof(calculatedLeaf, proof, rootHash);
 
       return new Response(
         JSON.stringify({
@@ -543,13 +551,28 @@ export default {
       if (!Array.isArray(receipts) || receipts.length === 0) {
         return new Response(JSON.stringify({ ok: false, error: "EMPTY_RECEIPTS_BATCH" }), { status: 400, headers: CORS_HEADERS });
       }
+      if (receipts.length > 1000) {
+        return new Response(JSON.stringify({ ok: false, error: "EPOCH_BATCH_TOO_LARGE", maxReceipts: 1000 }), { status: 413, headers: CORS_HEADERS });
+      }
 
-      const tree = new MerkleExecutionTree(receipts);
-      const rootHash = tree.getRoot();
+      const receiptChecks = receipts.map((receipt) => verifyExecutionReceipt(receipt, { requireSuccess: true }));
+      const invalidIndex = receiptChecks.findIndex((result) => !result.ok);
+      if (invalidIndex !== -1) {
+        return new Response(JSON.stringify({ ok: false, error: "INVALID_EXECUTION_RECEIPT", index: invalidIndex, reason: receiptChecks[invalidIndex].reason }), { status: 422, headers: CORS_HEADERS });
+      }
+
+      const mmr = new MerkleMountainRange(receiptChecks.map((result) => result.leafHash));
+      const rootHash = mmr.getRoot();
       const now = Date.now();
-      const epochId = epochNumber || now;
+      const requestedEpochId = epochNumber === undefined ? now : Number(epochNumber);
+      if (!Number.isSafeInteger(requestedEpochId) || requestedEpochId <= 0) {
+        return new Response(JSON.stringify({ ok: false, error: "INVALID_EPOCH_ID" }), { status: 400, headers: CORS_HEADERS });
+      }
+      const epochId = requestedEpochId;
 
       const db = env?.DB || env?.TRINITY_D1;
+      let persisted = false;
+      let alreadyCommitted = false;
       if (db && typeof db.prepare === "function") {
         try {
           await db.prepare(`
@@ -560,14 +583,37 @@ export default {
               created_at INTEGER NOT NULL
             );
           `).run();
-
           await db.prepare(`
-            INSERT INTO sovereign_epoch_roots (epoch_id, root_hash, task_count, created_at)
-            VALUES (?1, ?2, ?3, ?4)
-            ON CONFLICT(epoch_id) DO UPDATE SET root_hash = excluded.root_hash, task_count = excluded.task_count;
-          `).bind(epochId, rootHash, receipts.length, now).run();
+            CREATE TRIGGER IF NOT EXISTS sovereign_epoch_roots_no_update
+            BEFORE UPDATE ON sovereign_epoch_roots BEGIN
+              SELECT RAISE(ABORT, 'SOVEREIGN_EPOCHS_ARE_IMMUTABLE');
+            END;
+          `).run();
+          await db.prepare(`
+            CREATE TRIGGER IF NOT EXISTS sovereign_epoch_roots_no_delete
+            BEFORE DELETE ON sovereign_epoch_roots BEGIN
+              SELECT RAISE(ABORT, 'SOVEREIGN_EPOCHS_ARE_IMMUTABLE');
+            END;
+          `).run();
+
+          const existing = await db.prepare(
+            "SELECT root_hash, task_count FROM sovereign_epoch_roots WHERE epoch_id = ?1"
+          ).bind(epochId).first();
+          if (existing) {
+            if (existing.root_hash !== rootHash || Number(existing.task_count) !== receipts.length) {
+              return new Response(JSON.stringify({ ok: false, error: "EPOCH_ID_CONFLICT", epochId }), { status: 409, headers: CORS_HEADERS });
+            }
+            alreadyCommitted = true;
+          } else {
+            await db.prepare(`
+              INSERT INTO sovereign_epoch_roots (epoch_id, root_hash, task_count, created_at)
+              VALUES (?1, ?2, ?3, ?4);
+            `).bind(epochId, rootHash, receipts.length, now).run();
+          }
+          persisted = true;
         } catch (dbErr) {
           console.error("[PoE Epoch Commit] D1 error:", dbErr);
+          return new Response(JSON.stringify({ ok: false, error: "EPOCH_PERSISTENCE_FAILED" }), { status: 503, headers: CORS_HEADERS });
         }
       }
 
@@ -577,8 +623,13 @@ export default {
           epochId,
           rootHash,
           taskCount: receipts.length,
+          rootFormat: "trinity-mmr-v1",
+          nodeCount: mmr.getNodeCount(),
+          peaks: mmr.getPeaks().map(({ hash, height }) => ({ hash, height })),
+          inclusionProofs: receipts.map((receipt, leafIndex) => ({ taskId: receipt.taskId, proof: mmr.getProof(leafIndex) })),
           compressedState: true,
-          status: "COMMITTED",
+          persisted,
+          status: persisted ? (alreadyCommitted ? "ALREADY_COMMITTED" : "COMMITTED") : "PREPARED",
           timestamp: now
         }),
         { status: 200, headers: CORS_HEADERS }

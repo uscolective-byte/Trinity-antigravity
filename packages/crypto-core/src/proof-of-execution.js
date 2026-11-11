@@ -142,3 +142,23 @@ export function createExecutionReceipt({ taskId, agentId, caller, gasUnits, exit
   receipt.receiptHash = hashLeaf(receipt);
   return receipt;
 }
+
+export function verifyExecutionReceipt(receipt, { requireSuccess = true } = {}) {
+  try {
+    if (!receipt || typeof receipt !== 'object') return { ok: false, reason: 'INVALID_RECEIPT' };
+    if (!/^0x[0-9a-f]{64}$/i.test(String(receipt.payloadHash || ''))) return { ok: false, reason: 'INVALID_PAYLOAD_HASH' };
+    if (!/^0x[0-9a-f]{64}$/i.test(String(receipt.receiptHash || ''))) return { ok: false, reason: 'INVALID_RECEIPT_HASH' };
+    const gasUnits = Number(receipt.gasUnits);
+    const exitCode = Number(receipt.exitCode);
+    const timestamp = Number(receipt.timestamp);
+    if (!Number.isSafeInteger(gasUnits) || gasUnits < 0 || !Number.isSafeInteger(exitCode) || exitCode < 0 || !Number.isSafeInteger(timestamp) || timestamp < 0) {
+      return { ok: false, reason: 'INVALID_RECEIPT_FIELDS' };
+    }
+    const leafHash = hashLeaf(receipt);
+    if (leafHash.toLowerCase() !== String(receipt.receiptHash).toLowerCase()) return { ok: false, reason: 'RECEIPT_HASH_MISMATCH' };
+    if (requireSuccess && exitCode !== 0) return { ok: false, reason: 'EXECUTION_FAILED', leafHash };
+    return { ok: true, successful: exitCode === 0, leafHash };
+  } catch {
+    return { ok: false, reason: 'INVALID_RECEIPT' };
+  }
+}

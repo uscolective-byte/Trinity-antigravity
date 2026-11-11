@@ -735,12 +735,13 @@ test('Module 11: Tetrakis ($TTK) Base L2 Smart Contract, Hardhat Config & Worker
   assert.equal(manifestoRes.status, 200);
 
   // Test Proof-of-Execution (PoE) & Merkle Epoch Compression
-  const { createExecutionReceipt, MerkleExecutionTree } = await import('../../packages/crypto-core/src/proof-of-execution.js');
+  const { createExecutionReceipt } = await import('../../packages/crypto-core/src/proof-of-execution.js');
+  const { MerkleMountainRange } = await import('../../packages/crypto-core/src/merkle-mountain-range.js');
   const receipts = [
     createExecutionReceipt({ taskId: 'task-poe-1', agentId: 'jericho123', gasUnits: 50, exitCode: 0 }),
     createExecutionReceipt({ taskId: 'task-poe-2', agentId: 'aura_sentinel', gasUnits: 80, exitCode: 0 })
   ];
-  const tree = new MerkleExecutionTree(receipts);
+  const tree = new MerkleMountainRange(receipts.map((receipt) => receipt.receiptHash));
   const rootHash = tree.getRoot();
   const proof0 = tree.getProof(0);
 
@@ -764,6 +765,8 @@ test('Module 11: Tetrakis ($TTK) Base L2 Smart Contract, Hardhat Config & Worker
   assert.equal(poeEpochBody.ok, true);
   assert.equal(poeEpochBody.rootHash, rootHash);
   assert.equal(poeEpochBody.compressedState, true);
+  assert.equal(poeEpochBody.rootFormat, 'trinity-mmr-v1');
+  assert.equal(poeEpochBody.nodeCount, 3);
   const manifestoBody = await manifestoRes.json();
   assert.equal(manifestoBody.slogan, 'Tetrakis ($TTK) – Fuel of the Autonomous Edge.');
   assert.equal(manifestoBody.tetrahedronPillars.length, 4);

@@ -1,0 +1,19 @@
+{
+  "@context": {
+    "@vocab": "https://auru.space/ontology/trinity#",
+    "schema": "https://schema.org/",
+    "toolId": "tool_id",
+    "schemaVersion": "schema_version",
+    "requestId": "request_id",
+    "idempotencyKey": "idempotency_key",
+    "issuedAt": {
+      "@id": "schema:dateCreated",
+      "@type": "schema:DateTime"
+    },
+    "timeoutMs": {
+      "@id": "https://auru.space/ontology/trinity#timeoutMs",
+      "@type": "http://www.w3.org/2001/XMLSchema#integer"
+    },
+    "arguments": "schema:additionalProperty"
+  }
+}

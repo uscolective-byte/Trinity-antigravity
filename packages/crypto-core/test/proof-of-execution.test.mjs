@@ -94,3 +94,16 @@ test('Proof-of-Execution: MMR Epoch Compression compresses 100 receipts into sin
   assert.equal(compressedRecord.taskCount, 100);
   assert.ok(verifyMerkleProof(batch[42].receiptHash, tree.getProof(42), compressedRecord.epochRootHash));
 });
+
+test('Proof-of-Execution: rejects failed or tampered receipts before a success claim', async () => {
+  const { verifyExecutionReceipt } = await import('../src/proof-of-execution.js');
+  const success = createExecutionReceipt({ taskId: 'task-success', exitCode: 0, payload: { result: 'ok' } });
+  assert.equal(verifyExecutionReceipt(success).ok, true);
+
+  const failed = createExecutionReceipt({ taskId: 'task-failed', exitCode: 1, payload: { error: 'failed' } });
+  assert.equal(verifyExecutionReceipt(failed).ok, false);
+  assert.equal(verifyExecutionReceipt(failed, { requireSuccess: false }).successful, false);
+
+  const tampered = { ...success, gasUnits: success.gasUnits + 1 };
+  assert.equal(verifyExecutionReceipt(tampered).reason, 'RECEIPT_HASH_MISMATCH');
+});

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://auru.space/schemas/trinity-tool-invocation-1.0.0.json",
+  "title": "Trinity Tool Invocation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol",
+    "tool_id",
+    "schema_version",
+    "request_id",
+    "idempotency_key",
+    "issued_at",
+    "timeout_ms",
+    "arguments"
+  ],
+  "properties": {
+    "protocol": {
+      "const": "trinity.tool.v1"
+    },
+    "tool_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "timeout_ms": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 120000
+    },
+    "arguments": {
+      "type": "object"
+    }
+  }
+}
