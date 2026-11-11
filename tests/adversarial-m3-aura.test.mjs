@@ -29,7 +29,8 @@ test('Universal Non-AI GET /health probe contract on all root worker stubs', asy
   for (const workerName of targets) {
     if (workerName === 'Trinity') continue; // Trinity has full suite tested separately
 
-    const workerDir = path.join(ROOT_DIR, workerName);
+    let workerDir = path.join(ROOT_DIR, workerName);
+    if (!fs.existsSync(workerDir)) workerDir = path.join(ROOT_DIR, 'Archive', 'legacy-templates', workerName);
     const tsFile = path.join(workerDir, 'src', 'index.ts');
     assert.ok(fs.existsSync(tsFile), `Entrypoint missing for ${workerName}`);
 
@@ -92,7 +93,7 @@ test('aura_codegen genuine logic: emits typescript interfaces and D1 tables', as
 });
 
 test('small-pine-596d genuine logic: clean template literal preserves query string', async () => {
-  const filePath = path.join(ROOT_DIR, 'small-pine-596d/src/index.ts');
+  const filePath = path.join(ROOT_DIR, 'Archive/legacy-templates/small-pine-596d/src/index.ts');
   const code = fs.readFileSync(filePath, 'utf8');
 
   assert.ok(!code.includes('$wu.search'), 'Syntax error $wu.search still present');
