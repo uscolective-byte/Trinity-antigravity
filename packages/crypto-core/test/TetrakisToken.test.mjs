@@ -1,5 +1,7 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+import { expect } from "chai";
+import { network } from "hardhat";
+
+const { ethers } = await network.create();
 
 const BASTERIX = "0x7e17f9072cfCbc7fE45973De0F11eC8db99281e4";
 const TREASURY = "0x4d308452a96D7dAbFd2f33d92677A3a2724f387e";
