@@ -447,10 +447,10 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
       :(env.AI_MODEL || '@cf/openai/gpt-oss-120b');
     const model=customModel || defaultModel;
     const invoke = async selectedModel => {
-      if(env.CHAT_INFERENCE_SERVICE && !opts?.directAI){
-        // Route through dedicated chat inference worker (trinity-chat-inference); directAI bypasses its 600-token cap for full HTML generation.
+      if(env.CHAT_INFERENCE_SERVICE && !opts?.directAI && JSON.stringify(messages).length <= 52000){
+        // Route through dedicated chat inference worker (trinity-chat-inference); directAI or oversized multi-turn payloads run directly on Workers AI.
         try{
-          const response=await env.CHAT_INFERENCE_SERVICE.fetch('https://chat-inference.internal/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:selectedModel,messages,max_tokens:Math.min(maxTokens,600)}),signal:AbortSignal.timeout(20000)});
+          const response=await env.CHAT_INFERENCE_SERVICE.fetch('https://chat-inference.internal/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:selectedModel,messages,max_tokens:provider==='fast'?Math.min(maxTokens,600):Math.min(maxTokens,2000),temperature:Number.isFinite(opts?.temperature)?opts.temperature:0.65}),signal:AbortSignal.timeout(25000)});
           if(response.ok)return JSON.parse(await boundedText(response,100000));
         }catch{}
         // Binding failure falls back to the already authorized Workers AI binding.

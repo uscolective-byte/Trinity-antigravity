@@ -320,7 +320,7 @@ export default {
 
     // Overenie správ a rolí
     const validRoles = new Set(["system", "user", "assistant"]);
-    if (body.messages.some(item => !item || !validRoles.has(item.role) || typeof item.content !== "string" || item.content.length > 20000)) {
+    if (body.messages.some(item => !item || !validRoles.has(item.role) || typeof item.content !== "string" || item.content.length > (item.role === "system" ? 45000 : 20000))) {
       return replyJson({ error: "Neplatné správy v požiadavke." }, 400);
     }
 
@@ -333,7 +333,7 @@ export default {
     }
 
     const isStreaming = Boolean(body.stream);
-    const sanitizedMessages = sliceContextSafely(body.messages);
+    const sanitizedMessages = sliceContextSafely(body.messages, 56000, 20);
 
     const tokenCount = Number.isInteger(body.max_tokens) ? body.max_tokens : 1200;
     const maxTokens = Math.max(16, Math.min(tokenCount > 2048 ? 600 : tokenCount, 4096));
@@ -341,7 +341,7 @@ export default {
     const payload = {
       messages: sanitizedMessages,
       max_tokens: maxTokens,
-      temperature: typeof body.temperature === "number" ? body.temperature : 0.45,
+      temperature: typeof body.temperature === "number" ? body.temperature : 0.65,
       top_p: 0.9,
       repetition_penalty: 1.15,
       stream: isStreaming

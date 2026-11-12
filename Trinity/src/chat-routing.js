@@ -9,6 +9,7 @@
 import {planTask} from './planner.js';
 import {getConfiguredAIProvider} from './ai-providers.js';
 import {QuantumRouter} from './quantum-router.js';
+import {FAST_TOOLS,directChatTool} from './fast-chat.js';
 import {ResonanceMatrix369, RESONANCE_FREQUENCIES} from './resonance-matrix.js';
 import {globalEntanglementBridge, EntanglementBridge} from './entanglement-sync.js';
 
@@ -49,7 +50,7 @@ export async function pickChatProvider(env,engine,message,options={}){
   const base=selectChatProvider(engine,message,options);
   if(engine!=='auto')return base;
   const text=String(message||'').trim();
-  if(base==='fast'&&text.length<=80)return 'fast';
+  if(base==='fast'&&text.length<=80&&directChatTool(text,[...FAST_TOOLS]))return 'fast';
   for(const provider of BEST_PROVIDER_ORDER){
     try{
       const configured=await getConfiguredAIProvider(env,provider);
@@ -58,6 +59,7 @@ export async function pickChatProvider(env,engine,message,options={}){
     const key=ENV_KEYS[provider];
     if(key&&typeof env[key]==='string'&&env[key].trim().length>=8)return provider;
   }
+  if(base==='fast'&&text.length<=80)return 'fast';
   return 'workers-ai';
 }
 
