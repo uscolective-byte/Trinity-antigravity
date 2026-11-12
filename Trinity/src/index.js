@@ -42,6 +42,7 @@ import {PLUGINS,listPlugins,pluginEnabled,installPlugin,installAllPlugins} from 
 import {handleMcp} from './mcp.js';
 import {TRUTH_POLICY_VERSION,ExecutionLifecycleGuard,bridgeExecutionVerified} from './truth.js';
 import {SOVEREIGN_IDENTITY,ROOT_REGISTRY,SOVEREIGN_LEGAL_CHARTER_20} from './sovereign-lock.js';
+import {handleLiveChatStream} from './chat-stream.js';
 import {verifyTrinityIdentity} from './trinity-auth-core.js';
 import {SovereignLedgerV3} from './sovereign-core-v3.js';
 import {OMNI_CORE_500_IMPROVEMENTS,OMNI_CORE_75_FOUNDATIONAL_PILLARS,getOmniCore500Summary,listOmniCoreImprovementsByLayer} from './omni-core-500-registry.js';
@@ -117,7 +118,6 @@ import serviceWorkerJS from '../public/assistant/sw.js.txt';
 import authBootstrapJS from '../public/auth-bootstrap.js.txt';
 import themeCSS from '../public/assistant/theme.css';
 import garageCSS from '../public/assistant/garage.css';
-import garageArt from '../public/assistant/garage-v1.webp';
 export {TrinityAgent,ChatAgent,GuardianAgent,TrinityOperations,PINNED_SYSTEM_PROMPT,TRINITY_TOOL_DEFINITIONS,normalizeText,handleFastEdgeRoute,executeTool,runInferenceCascade};
 import tetrakisLogo from '../public/assistant/tetrakis-logo.png';
 const json=(data,status=200)=>Response.json(data,{status});
@@ -205,7 +205,6 @@ async function route(request,env,ctx){
   if(request.method==='GET'&&path==='/chat.css')return new Response(assistantCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/builder.css')return new Response(builderCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/garage.css')return new Response(garageCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
-  if(request.method==='GET'&&path==='/garage-v1.webp')return new Response(garageArt,{headers:{'Content-Type':'image/webp'}});
   if(request.method==='GET'&&path==='/tetrakis-logo.png')return new Response(tetrakisLogo,{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=86400'}});
     if(request.method==='GET'&&path==='/manifest.json')return new Response(typeof manifestJSON==='string'?manifestJSON:JSON.stringify(manifestJSON),{headers:{'Content-Type':'application/manifest+json; charset=utf-8','Cache-Control':'no-cache'}});
   if(request.method==='GET'&&path==='/sw.js')return new Response(serviceWorkerJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache'}});
@@ -1678,6 +1677,13 @@ async function route(request,env,ctx){
     const ownerMode=['owner','admin'].includes(user.role)||user.email==='saboivan2008@gmail.com'||user.email===env.TRINITY_OWNER_EMAIL||(env.TRINITY_ADMIN_EMAILS&&env.TRINITY_ADMIN_EMAILS.split(',').map(s=>s.trim()).includes(user.email));
     const teamMode=/\b(t[ií]mov[yý]\s+re[zž]im|team\s+mode)\b/i.test(d.message);
     return json(await createJob(env,{task:d.message,session_id:d.session,agent:teamMode?'auto':'orchestrator',mode:teamMode?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,idempotency_key:crypto.randomUUID()}),202);
+  }
+  if(path==='/api/assistant/chat/stream'&&request.method==='POST'){
+    await rateLimit(env,`stream:${user.id}`,20);
+    const d=z.object({message:z.string().min(1).max(12000),session:z.string().uuid(),language:z.string().max(35).default('auto').transform(normalizeLanguage),engine:z.preprocess(normalizeChatEngine,z.enum(CHAT_ENGINE_VALUES)).default('auto'),remember:z.boolean().optional(),allow_files:z.boolean().optional()}).strict().parse(await readJSON(request));
+    if(d.engine==='local')requireAdmin(user);
+    const ownerMode=['owner','admin'].includes(user.role)||user.email==='saboivan2008@gmail.com'||user.email===env.TRINITY_OWNER_EMAIL||(env.TRINITY_ADMIN_EMAILS&&env.TRINITY_ADMIN_EMAILS.split(',').map(s=>s.trim()).includes(user.email));
+    return handleLiveChatStream(env,ctx,{...d,ownerMode});
   }
   if(path==='/api/assistant/consensus'&&request.method==='POST'){
     await rateLimit(env,`consensus:${user.id}`,10);

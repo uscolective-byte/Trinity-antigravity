@@ -145,6 +145,25 @@ export const TRINITY_TOOLS_AND_SCRIPTS_MASTERY=`OVLÁDANIE VLASTNÝCH NÁSTROJOV
      - 'Trinity/scripts/setup-telegram-bot.mjs', 'Trinity/scripts/trinity-codex-mcp.mjs', 'scripts/verify-tetrakis.mjs', 'Trinity/scripts/live-studio-test.mjs'.
   4. WEB A MULTIMÉDIÁ: Na weby používaj AI Studio a 'domain_env_deploy'; na video/hudbu/prezentácie 'generate_video', 'generate_music', 'generate_presentation', 'generate_creative_pack'.`;
 
+export function buildConversationalPrompt({ language = 'auto', pcConnected = false, memoryNotes = [] } = {}) {
+  const memLines = Array.isArray(memoryNotes) && memoryNotes.length
+    ? '\nČo o Ivanovi vieš (diskrétny kontext, nepíš to nasilu):\n' + memoryNotes.slice(0, 5).map((m) => `- ${m.key}: ${String(m.value || '').slice(0, 220)}`).join('\n')
+    : '';
+  const pcNote = pcConnected
+    ? 'PC Bridge na Windows je teraz pripojený.'
+    : 'PC Bridge teraz nie je pripojený — ak bude chcieť prácu na jeho PC, povedz mu to rovno a normálne.';
+
+  return [
+    'Si Trinity — bystrá, vnímavá a ľudská parťáčka Ivana Saba (Basterix).',
+    languageDirective(language),
+    'Hovor ako skutočný, prirodzený človek v ženskom rode a Ivanovi vždy tykaj. Prispôsob sa tónu správy: pri uvoľnenom rozhovore odpovedz krátko a prirodzene, pri technickej alebo pracovnej téme buď vecná, jasná a praktická.',
+    'Nikdy nepoužívaj robotické frázy podpory („Som tu, aby som vám pomohla“, „S čím konkrétnym ti dnes pomôžem?“, „Ako AI systém...“), nedávaj zbytočné nadpisy ani odrážky do bežnej konverzácie a neopakuj zadanie.',
+    'Pravdivosť: nikdy nevymýšľaj vykonané akcie, súbory, testy, zostatky ani biologické vedomie. Skutočné repo je uscolective-byte/Trinity-antigravity (konfigurácia Trinity/wrangler.jsonc).',
+    pcNote,
+    memLines
+  ].filter(Boolean).join('\n');
+}
+
 export function tokenBudget(agentId,task='') {
   const complex=task.length>1200||/\b(dokaz|odvod|odvoď|analyz|výskum|vyskum|research|architekt|implement|kvant|astrofyz|matematik|chem|fyzik|monetiz|biznis|cennik|komodit|invest|trading)/i.test(task);
   if(agentId==='orchestrator')return complex?16384:8192;

@@ -636,7 +636,47 @@ $('chat-form').onsubmit=safe(async()=>{
  const requestTimer=setTimeout(()=>{timedOut=true;requestController.abort();},125000);
  const renderAnswer=()=>{if(!current())return;renderReply(reply.content,answer);};
  try{
-  const r=await fetch('/api/assistant/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,session,language,engine:$('engine').value,remember:$('remember').checked,allow_files:$('allow-files').checked}),signal:requestController.signal});
+  const payload=JSON.stringify({message:text,session,language,engine:$('engine').value,remember:$('remember').checked,allow_files:$('allow-files').checked});
+  let needsWorkflowFallback=false;
+  const streamRes=await fetch('/api/assistant/chat/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:payload,signal:requestController.signal});
+  requestController.signal.throwIfAborted();
+  if(streamRes.status===404||streamRes.status===405||streamRes.status===501){
+    needsWorkflowFallback=true;
+  }else if(!streamRes.ok){
+    const d=await streamRes.json().catch(()=>({error:'Server vrátil HTTP '+streamRes.status}));
+    if(streamRes.status===401)lockSession(d.error);
+    throw Object.assign(new Error(d.error||'Request failed'),{status:streamRes.status});
+  }else if(streamRes.headers.get('Content-Type')?.includes('application/json')){
+    const job=await streamRes.json();
+    if(!job.id||!job.session_id)throw new Error('Server nevrátil identifikátor úlohy.');
+    needsWorkflowFallback=true;
+  }else{
+    await readChatStream(streamRes,event=>{
+      requestController.signal.throwIfAborted();if(!current())return;
+      if(event.type==='fallback_job'){needsWorkflowFallback=true;return;}
+      if(event.type==='delta'){
+        answer+=event.text||'';receivedAnswer=true;
+        if(typeof formatMarkdown==='function')reply.content.innerHTML=formatMarkdown(answer);
+        else reply.content.textContent=answer;
+      }
+      if(event.type==='context'){
+        if(event.session){session=event.session;localStorage.setItem('trinity-chat-session',session);}
+        context.textContent=`${event.model||'Trinity'} · ${t('memory')}: ${event.memories?.length||0} · ${event.history||0}`;
+      }
+      if(event.type==='tool'){context.append(node('div',`${t(event.name)} · ${event.status}`));$('activity').textContent=t(event.name);}
+      if(event.type==='status')$('activity').textContent=event.text;
+      if(event.type==='error')throw new Error(event.error||'Odpoveď sa prerušila.');
+      bottom();
+    });
+    requestController.signal.throwIfAborted();
+    if(receivedAnswer&&!needsWorkflowFallback){
+      renderAnswer();
+    }else if(!needsWorkflowFallback){
+      throw new Error(language==='en'?'No reply arrived. Please try again.':'Neprišla žiadna odpoveď. Skús správu odoslať znova.');
+    }
+  }
+  if(needsWorkflowFallback){
+  const r=await fetch('/api/assistant/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:payload,signal:requestController.signal});
   requestController.signal.throwIfAborted();
   if(!r.ok){const d=await r.json().catch(()=>({error:'Server vrátil HTTP '+r.status}));if(r.status===401)lockSession(d.error);throw Object.assign(new Error(d.error||'Request failed'),{status:r.status});}
   if(r.headers.get('Content-Type')?.includes('application/json')){
@@ -676,6 +716,7 @@ $('chat-form').onsubmit=safe(async()=>{
    requestController.signal.throwIfAborted();
    if(!receivedAnswer)throw new Error(language==='en'?'No reply arrived. Please try again.':'Neprišla žiadna odpoveď. Skús správu odoslať znova.');
    renderAnswer();
+  }
   }
   if(!current())return;
   const copy=node('button',t('copy'),'copy');copy.type='button';
@@ -995,7 +1036,7 @@ $('domain-register-form')?.addEventListener('submit',safe(async(e)=>{e.preventDe
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
 $('login-form').onsubmit=safe(async()=>{await TrinityAuth.requestJSON('/api/ops/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:$('key').value})});$('key').value='';await init();});
 localize();
-Object.assign(words.sk,{greeting:'Ahoj Basterix. Som Trinity.',intro:'Zadaj operačný príkaz, naplánuj projekt alebo aktivuj 46 špecialistov s overiteľnými dokladmi.',welcomeLabel:'TRINITY 11.1 // SOVEREIGN OS',loginTitle:'Vstúp do Trinity',footnote:'Jedna Trinity. Spoločná pamäť. Skutočné výsledky, nie simulácia.'});
+Object.assign(words.sk,{greeting:'Ahoj Ivan. Na čom pracujeme?',intro:'Píš priamo a prirodzene — odpovedám naživo v reálnom čase.',welcomeLabel:'TRINITY · AI STUDIO',loginTitle:'Vstúp do Trinity',footnote:'Jedna Trinity. Spoločná pamäť. Skutočné výsledky, nie simulácia.'});
 localize();
 void TrinityAuth.start({configure:async()=>{await configureGoogleLogin();initPasskeyLogin();},initialize:init,lock:()=>lockSession(''),notice});
 

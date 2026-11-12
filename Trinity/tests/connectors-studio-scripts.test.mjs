@@ -129,19 +129,23 @@ test('assistant UI HTML and JS include connectors catalog, studio controls, and 
   assert.ok(builderPos > 0 && workflowPos > builderPos);
 });
 
-test('assistant UI stylesheets enforce Underground Garage Hip-Hop theme without icon-wiping or light leaks', () => {
+test('assistant UI stylesheets enforce Minimalist AI Studio theme without icon-wiping or legacy garage clutter', () => {
   const html = readFileSync(resolve(trinityDir, 'public/assistant/chat.html'), 'utf8');
   const garageCss = readFileSync(resolve(trinityDir, 'public/assistant/garage.css'), 'utf8');
   const builderCss = readFileSync(resolve(trinityDir, 'public/assistant/builder.css'), 'utf8');
   const mobileCss = readFileSync(resolve(trinityDir, 'public/assistant/mobile.css'), 'utf8');
+  const landingJs = readFileSync(resolve(trinityDir, 'src/landing-page.js'), 'utf8');
 
-  assert.ok(html.includes('class="garage-ui sovereign-ui"'), 'chat.html should use garage-ui + sovereign-ui classes');
-  assert.ok(/UNDERGROUND\s*\/\s*GARAGE\s*\/\s*HIP-HOP/i.test(html), 'chat.html should display Underground Garage Hip-Hop brand subtitle');
+  assert.ok(html.includes('class="studio-ui"'), 'chat.html should use studio-ui class');
+  assert.ok(html.includes('<small>AI STUDIO</small>'), 'chat.html should display clean AI STUDIO brand subtitle');
   assert.ok(!/content:\s*['"]↗['"]/i.test(garageCss), 'garage.css must not overwrite sidebar icons with arrows');
-  assert.ok(garageCss.includes('/garage-v1.webp'), 'garage.css should use the underground garage backdrop');
+  assert.ok(!garageCss.includes('/garage-v1.webp'), 'garage.css must not include legacy garage wallpaper');
+  assert.ok(!/Impact/i.test(garageCss), 'garage.css must not use Impact brutalist display font');
   assert.ok(garageCss.includes('--trinity-live-primary'), 'garage.css should respect ui-evolution primary CSS var');
+  assert.ok(garageCss.includes('[data-theme="light"]'), 'garage.css should support clean daylight theme');
   assert.ok(builderCss.includes('[data-theme="light"] .builder-shell'), 'builder.css should support light theme toggle cleanly');
   assert.ok(mobileCss.includes('@media (max-width: 760px)'), 'mobile.css must retain mobile breakpoint');
+  assert.ok(!landingJs.includes('/garage-v1.webp') && !landingJs.includes('#d4ff2a'), 'landing-page.js should use clean Minimalist AI Studio styling');
 });
 
 test('Trinity conversation prompts & greetings use warm natural human tone without robotic boilerplate', () => {
@@ -175,15 +179,15 @@ test('runMultiModelConsensus queries providers truthfully without fabricating un
   assert.ok(result.receipt?.receiptId);
 });
 
-test('renderLandingHtml serves Underground Garage showcase for auru.space and auru.dev and UI exposes consensus & landing', () => {
-  const prodHtml = renderLandingHtml({ host: 'auru.space', environment: 'production', version: '12.0.0' });
-  const devHtml = renderLandingHtml({ host: 'auru.dev', environment: 'staging', version: '12.0.0' });
+test('renderLandingHtml serves Minimalist AI Studio showcase for auru.space and auru.dev and UI exposes consensus & landing', () => {
+  const prodHtml = renderLandingHtml({ host: 'auru.space', environment: 'production', version: '13.0.0' });
+  const devHtml = renderLandingHtml({ host: 'auru.dev', environment: 'staging', version: '13.0.0' });
   const html = readFileSync(resolve(trinityDir, 'public/assistant/chat.html'), 'utf8');
   const js = readFileSync(resolve(trinityDir, 'public/assistant/chat.js.txt'), 'utf8');
 
-  assert.match(prodHtml, /PRODUCTION LIVE · AURU\.SPACE/);
-  assert.match(devHtml, /STAGING LAB · AURU\.DEV/);
-  assert.ok(prodHtml.includes('/garage-v1.webp') && prodHtml.includes('#d4ff2a'));
+  assert.match(prodHtml, /PRODUCTION · AURU\.SPACE/);
+  assert.match(devHtml, /STAGING · AURU\.DEV/);
+  assert.ok(!prodHtml.includes('/garage-v1.webp') && !prodHtml.includes('#d4ff2a') && prodHtml.includes('#0b0d12'));
   assert.ok(typeof TOOL_HELP.multi_model_consensus === 'string');
   assert.ok(html.includes('id="plus-opt-tool-consensus"') && js.includes('plus-opt-tool-consensus'));
   assert.ok(html.includes('id="plus-opt-tool-landing"') && js.includes('plus-opt-tool-landing'));

@@ -6,6 +6,8 @@ import { conversationsToMessages } from '../src/conversation-history.js';
 import { pickChatProvider } from '../src/chat-routing.js';
 import { extractDurableMemoryInsights, persistAutoMemory } from '../src/memory-extractor.js';
 import inferenceWorker from '../services/chat-inference.js';
+import { handleLiveChatStream } from '../src/chat-stream.js';
+import { buildConversationalPrompt } from '../src/cognition.js';
 
 test('runAgent passes real alternating multi-turn historyMessages to inference model', async () => {
   let capturedMessages = null;
@@ -118,4 +120,69 @@ test('CHAT_INFERENCE_SERVICE accepts realistic system prompts (>20KB) and preser
   assert.equal(seenPayload.max_tokens, 2000);
   assert.equal(seenPayload.temperature, 0.65);
   assert.equal(seenPayload.messages[0].content.length, longSystem.length);
+});
+
+test('buildConversationalPrompt stays lean (< 3000 chars) and natural', () => {
+  const prompt = buildConversationalPrompt({
+    language: 'sk',
+    pcConnected: true,
+    memoryNotes: [{ key: 'design_style', value: 'Ivan má rád čistý minimalistický dizajn.' }]
+  });
+  assert.ok(prompt.length < 3000, `Expected lean prompt < 3000 chars, got ${prompt.length}`);
+  assert.ok(prompt.includes('Trinity'), 'Prompt should identify Trinity');
+  assert.ok(prompt.includes('čistý minimalistický dizajn'), 'Prompt should include relevant memory notes');
+});
+
+test('handleLiveChatStream streams context + live delta chunks from Workers AI SSE', async () => {
+  const encoder = new TextEncoder();
+  const sseStream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode('data: {"response":"Ahoj "}\n\n'));
+      controller.enqueue(encoder.encode('data: {"response":"Ivan!"}\n\n'));
+      controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+      controller.close();
+    }
+  });
+
+  const waited = [];
+  const ctx = { waitUntil(p) { waited.push(p); } };
+  const env = {
+    AI: {
+      async run(_model, payload) {
+        assert.equal(payload.stream, true);
+        return sseStream;
+      }
+    }
+  };
+
+  const res = await handleLiveChatStream(env, ctx, {
+    message: 'Ahoj Trinity, ako sa máš?',
+    session: '11111111-1111-4111-8111-111111111111',
+    language: 'sk',
+    engine: 'auto',
+    ownerMode: true
+  });
+
+  assert.equal(res.status, 200);
+  const raw = await res.text();
+  const events = raw.trim().split('\n').map(line => JSON.parse(line));
+  assert.ok(events.some(e => e.type === 'context'), 'Should emit context event');
+  const deltas = events.filter(e => e.type === 'delta').map(e => e.text).join('');
+  assert.equal(deltas, 'Ahoj Ivan!');
+  await Promise.allSettled(waited);
+});
+
+test('handleLiveChatStream returns fallback_job when heavy workflow/PC actions are requested', async () => {
+  const res = await handleLiveChatStream({}, { waitUntil() {} }, {
+    message: 'Spusti na mojom PC build a nasaď web na Cloudflare.',
+    session: '22222222-2222-4222-8222-222222222222',
+    language: 'sk',
+    engine: 'auto',
+    allow_files: true,
+    ownerMode: true
+  });
+
+  assert.equal(res.status, 200);
+  const events = (await res.text()).trim().split('\n').map(line => JSON.parse(line));
+  assert.equal(events[0]?.type, 'fallback_job');
 });
