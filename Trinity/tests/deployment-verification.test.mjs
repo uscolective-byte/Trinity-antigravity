@@ -14,9 +14,9 @@ test('both domains require the canonical repository and main branch',async()=>{
   await assert.rejects(verifyDeployment({...config,fetcher:fake({source})}),/verification failed/);
   await assert.rejects(verifyDeployment({...config,fetcher:fake({},{source})}),/verification failed/);
  }
- const result=await verifyDeployment({...config,origin:'https://auru.dev',fetcher:fake({environment:'staging'},{environment:'staging'})});
- assert.equal(result.environment,'staging');assert.deepEqual(result.source,TRINITY_SOURCE);
- await assert.rejects(verifyDeployment({...config,origin:'https://auru.dev',fetcher:fake({environment:'production'},{environment:'production'})}),/verification failed/);
+ const result=await verifyDeployment({...config,origin:'https://auru.dev',fetcher:fake({environment:'production'},{environment:'production'})});
+ assert.equal(result.environment,'production');assert.deepEqual(result.source,TRINITY_SOURCE);
+ await assert.rejects(verifyDeployment({...config,origin:'https://auru.dev',fetcher:fake({environment:'staging'},{environment:'staging'})}),/verification failed/);
  await assert.rejects(verifyDeployment({...config,origin:'https://auru.space',fetcher:fake({environment:'staging'},{environment:'staging'})}),/verification failed/);
 });
 test('deployment verifier accepts a real version receipt when Workers Builds has no commit tag',async()=>{

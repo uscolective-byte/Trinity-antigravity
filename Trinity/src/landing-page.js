@@ -21,8 +21,8 @@ export function renderLandingHtml({
 } = {}) {
   const safeHost = escapeHtml(host);
   const safeVer = escapeHtml(String(version).split('.').slice(0, 2).join('.') || '13.0');
-  const isStaging = environment === 'staging' || host === 'auru.dev';
-  const envBadge = isStaging ? 'STAGING · AURU.DEV' : 'PRODUCTION · AURU.SPACE';
+  const envLabel = String(environment || 'production').toUpperCase();
+  const envBadge = `${escapeHtml(envLabel)} · ${safeHost.toUpperCase()}`;
 
   return `<!doctype html>
 <html lang="sk">
@@ -129,7 +129,7 @@ export function renderLandingHtml({
       </p>
       <div class="cta-row">
         <a href="/" class="btn btn-primary">⚡ Otvoriť Workspace (${safeHost})</a>
-        <a href="https://auru.dev" class="btn btn-secondary">🛠️ Staging Lab (auru.dev)</a>
+        <a href="https://auru.dev" class="btn btn-secondary">⚡ Edge Mirror (auru.dev)</a>
         <a href="https://auru.space" class="btn btn-secondary">🌐 Produkcia (auru.space)</a>
         <a href="/docs" class="btn btn-secondary">📚 Dokumentácia</a>
       </div>

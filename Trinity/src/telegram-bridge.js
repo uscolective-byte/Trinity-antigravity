@@ -89,7 +89,7 @@ export async function clearChatHistory(env, chatId) {
 export async function buildSystemGroundingContext(env, userQuestion = '') {
   let context = '\n[AKTUÁLNY STAV A VEDOMOSTI TRINITY 11.1]:\n';
   context += '• Majiteľ a suverénny architekt: Sabo Ivan (Basterix).\n';
-  context += '• Cloudflare Edge domény: https://auru.space (produkcia) a https://auru.dev (vývoj).\n';
+  context += '• Cloudflare Edge domény: https://auru.space a https://auru.dev (jednotná produkcia Worker trinity).\n';
   context += '• Flotila workerov: 35 prepojených Cloudflare Workerov (10× AURA špecialisti, 8× Core, 8× RPC, 6× Rozšírené).\n';
   context += '• Databázy: D1 trinity-v03, KV Mastermind, R2 trinity-artifacts.\n';
 

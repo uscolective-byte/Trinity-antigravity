@@ -438,11 +438,39 @@ export async function handlePaypalPublic(request,env){
 }
 
 export async function handleCommercePublic(request,env){
+ const url=new URL(request.url),path=url.pathname;
+ if(path==='/api/webhook/revolut'){
+  if(request.method!=='POST')return new Response('Method not allowed',{status:405,headers:{Allow:'POST'}});
+  let webhookSecret=env?.REVOLUT_WEBHOOK_SECRET||null;
+  if(!webhookSecret){try{webhookSecret=await resolveProviderSecret(env,'revolut_webhook');}catch{}}
+  if(!webhookSecret){
+   return Response.json({ok:false,error:'REVOLUT_WEBHOOK_SECRET nie je nastavený v Cloudflare Secrets.'},{status:503,headers:{'Cache-Control':'no-store'}});
+  }
+  const rawBody=await request.text();
+  const sigHeader=request.headers.get('Revolut-Signature')||'';
+  const tsHeader=request.headers.get('Revolut-Request-Timestamp')||'';
+  const v1=sigHeader.split(',').map(p=>p.trim()).find(p=>p.startsWith('v1='))?.slice(3)||'';
+  if(!v1||!tsHeader){
+   return Response.json({ok:false,error:'Chýba Revolut-Signature alebo Revolut-Request-Timestamp hlavička.'},{status:401});
+  }
+  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(webhookSecret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+  const mac=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(`v1.${tsHeader}.${rawBody}`));
+  const expected=Array.from(new Uint8Array(mac)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(expected!==v1.toLowerCase()){
+   return Response.json({ok:false,error:'Neplatný podpis Revolut webhooku.'},{status:401});
+  }
+  let event={};
+  try{event=JSON.parse(rawBody);}catch{return Response.json({ok:false,error:'Neplatný JSON payload.'},{status:400});}
+  const receiptId=`revwh_${Date.now()}_${crypto.randomUUID().slice(0,8)}`;
+  if(env?.DB){
+   await env.DB.prepare("INSERT INTO ops_events (action, details) VALUES (?, ?)").bind('revolut_webhook_verified',JSON.stringify({receipt_id:receiptId,event:event?.event||null,order_id:event?.order_id||null,received_at:new Date().toISOString()})).run().catch(()=>{});
+  }
+  return Response.json({ok:true,verified:true,receipt_id:receiptId,event:event?.event||null},{status:200,headers:{'Cache-Control':'no-store'}});
+ }
  const rev=await handleRevolutProPublic(request,env);
  if(rev)return rev;
  const pp=await handlePaypalPublic(request,env);
  if(pp)return pp;
- const url=new URL(request.url),path=url.pathname;
  if(path!=='/api/payments/catalog')return null;
  if(request.method!=='GET')return new Response('Method not allowed',{status:405,headers:{Allow:'GET'}});
  const [revData,ppData,accounts]=await Promise.all([catalog(env),paypalCatalog(env),commerceAccounts(env)]);

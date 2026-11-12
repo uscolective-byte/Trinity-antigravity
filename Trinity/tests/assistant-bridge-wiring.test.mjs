@@ -24,8 +24,8 @@ test('Assistant Bridge is gated before browser session authentication',()=>{
   assert.match(source,/return handleAssistantBridge\(request,env\)/);
 });
 
-test('Shared notes bridge is not switched on before staging migrations/authorization',()=>{
+test('Shared notes bridge stays disabled in production config until explicitly enabled',()=>{
   const wrangler=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
-  assert.equal(wrangler.env.staging.vars.TRINITY_ASSISTANT_BRIDGE_ENABLED,'false');
+  assert.equal(wrangler.env?.staging,undefined);
   assert.notEqual(wrangler.vars.TRINITY_ASSISTANT_BRIDGE_ENABLED,'true');
 });

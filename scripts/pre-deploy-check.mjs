@@ -43,33 +43,25 @@ export function runPreDeployCheck() {
   }
 
   const config = parseJsonc(fs.readFileSync(trinityWranglerPath, 'utf8'));
-  const prod = config.env?.production;
-  const staging = config.env?.staging;
+  const prod = config.env?.production || config;
 
-  if (!prod || !staging) {
-    throw new Error('wrangler.jsonc musí obsahovať env.production aj env.staging');
+  if (!prod) {
+    throw new Error('wrangler.jsonc musí obsahovať produkčnú konfiguráciu');
   }
 
   if (prod.vars?.ENVIRONMENT !== 'production' || prod.vars?.STRICT_MODE !== 'true') {
     throw new Error('env.production musí mať ENVIRONMENT="production" a STRICT_MODE="true"');
   }
-  if (staging.vars?.ENVIRONMENT !== 'staging' || staging.vars?.STRICT_MODE !== 'false') {
-    throw new Error('env.staging musí mať ENVIRONMENT="staging" a STRICT_MODE="false"');
-  }
 
   const prodDb = prod.d1_databases?.find((d) => d.binding === 'DB')?.database_name;
-  const stagingDb = staging.d1_databases?.find((d) => d.binding === 'DB')?.database_name;
-  if (prodDb !== 'trinity-v03' || stagingDb !== 'trinity-development') {
-    throw new Error(`Neplatná D1 izolácia: prod=${prodDb}, staging=${stagingDb}`);
+  if (prodDb !== 'trinity-v03') {
+    throw new Error(`Neplatná produkčná D1 databáza: prod=${prodDb}`);
   }
 
   const requiredServices = ['PROFILE_SERVICE', 'CORE_SERVICE', 'DISPATCHER_SERVICE', 'AI_INFERENCE_SERVICE'];
   for (const binding of requiredServices) {
     if (!prod.services?.some((s) => s.binding === binding)) {
       throw new Error(`env.production postráda servisnú väzbu ${binding}`);
-    }
-    if (!staging.services?.some((s) => s.binding === binding)) {
-      throw new Error(`env.staging postráda servisnú väzbu ${binding}`);
     }
   }
 
@@ -82,7 +74,6 @@ export function runPreDeployCheck() {
     ok: true,
     checked_at: new Date().toISOString(),
     production_d1: prodDb,
-    staging_d1: stagingDb,
     service_bindings_verified: requiredServices
   };
 }

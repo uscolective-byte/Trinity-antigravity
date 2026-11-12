@@ -191,9 +191,9 @@ export function matchFastChatEdge(task,env={}){
       fleet_workers:47,
       domains:{
         production:{domain:'auru.space',alias:'aura.space',worker:'trinity',d1:'trinity-v03',environment:'production'},
-        staging:{domain:'auru.dev',alias:'aura.dev',worker:'trinity-staging',d1:'trinity-development',environment:'staging'}
+        mirror:{domain:'auru.dev',alias:'aura.dev',worker:'trinity',d1:'trinity-v03',environment:'production'}
       },
-      reply:`Všetkých 47 Cloudflare Workerov máme pripravených (bežíme na ${activeEnv}). Produkcia auru.space (aura.space) fičí čisto na Workeri trinity s databázou trinity-v03 a testovací sandbox auru.dev (aura.dev) beží zvlášť na trinity-staging s databázou trinity-development.`
+      reply:`Flotila všetkých 47 Cloudflare Workerov je pripravená (bežíme v režime ${activeEnv}). Domény auru.space aj auru.dev obsluhuje jednotný produkčný Worker trinity s databázou trinity-v03.`
     };
   }
 

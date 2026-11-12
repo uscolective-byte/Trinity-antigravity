@@ -184,7 +184,7 @@ async function route(request,env,ctx){
   const isMobileRequested = path === '/mobile' || (['/', '/index.html'].includes(path) && url.searchParams.get('device') === 'mobile');
   if(request.method === 'GET' && isMobileRequested) return renderMobileChatUI(env, reqHostname);
   if(request.method==='GET'&&['/landing','/welcome','/about'].includes(path)){
-    return new Response(renderLandingHtml({host:reqHostname,environment:isOmniDevHost?'staging':'production',version:TRINITY_VERSION}),{headers:{
+    return new Response(renderLandingHtml({host:reqHostname,environment:env.TRINITY_ENV||'production',version:TRINITY_VERSION}),{headers:{
       'Content-Type':'text/html; charset=utf-8',
       'X-Trinity-Host':reqHostname,
       'Cache-Control':'no-cache, must-revalidate',
@@ -304,7 +304,7 @@ async function route(request,env,ctx){
     return new Response(JSON.stringify({
       system:'TRINITY OMNI-CORE',
       version:'11.2.0-SOVEREIGN',
-      environment:env.ENVIRONMENT||'staging',
+      environment:env.ENVIRONMENT||env.TRINITY_ENV||'production',
       owner:'Ivan Sabo (Basterix)',
       ring_level:0,
       active_fleet:47,
@@ -830,23 +830,23 @@ async function route(request,env,ctx){
         try{ syncedState = JSON.parse(await env.Mastermind.get('cross_domain:state') || 'null'); }catch{}
       }
       const pcStatus = await getPCBridgeStatus(env);
-      const isStagingEnv = env.TRINITY_ENV === 'staging' || reqHostname === 'auru.dev';
+      const activeEnvironment = env.TRINITY_ENV || env.ENVIRONMENT || 'production';
       return json({
         ok: true,
         synchronized: true,
         domains: ['auru.dev', 'auru.space'],
         active_host: request.headers.get('Host') || 'unknown',
-        environment: isStagingEnv ? 'staging' : 'production',
+        environment: activeEnvironment,
         domain_isolation: {
           production: { domain: 'auru.space', worker: 'trinity', d1: 'trinity-v03', r2: 'trinity-artifacts' },
-          development: { domain: 'auru.dev', worker: 'trinity-staging', d1: 'trinity-development', r2: 'trinity-development-artifacts' }
+          edge_mirror: { domain: 'auru.dev', worker: 'trinity', d1: 'trinity-v03', r2: 'trinity-artifacts' }
         },
         shared_core: {
-          unified_worker: isStagingEnv ? 'trinity-staging' : 'trinity',
+          unified_worker: 'trinity',
           version: TRINITY_VERSION,
-          d1: isStagingEnv ? 'trinity-development' : 'trinity-v03',
+          d1: 'trinity-v03',
           kv: 'PC_STATE & Mastermind',
-          r2: isStagingEnv ? 'trinity-development-artifacts' : 'trinity-artifacts'
+          r2: 'trinity-artifacts'
         },
         pc_bridge: {
           ...pcStatus,

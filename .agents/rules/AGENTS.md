@@ -6,9 +6,8 @@ Všetky reštriktívne čakania na koordinátora, blokujúce CLAIM procedúry a 
 - Always communicate with the owner (Sabo Ivan / Basterix) in Slovak.
 - Canonical repository: `C:\Users\saboi\Trinity-antigravity` (`main` branch).
 - **Aktuálna Cloudflare konfigurácia (overiť Wrangler pred deployom):**
-  - Staging: env key **staging**, Worker **trinity-staging**, doména https://auru.dev; hlavná D1 má názov trinity-development.
-  - Produkcia: Worker **trinity**, doména https://auru.space; hlavná D1 trinity-v03.
-  - Staré pokyny s env development a Worker trinity-development sú historické, nie aktuálny deploy target.
+  - Jednotná produkcia: Worker **trinity**, domény https://auru.space a https://auru.dev; hlavná D1 **trinity-v03**.
+  - Staré pokyny s `env.staging` (`trinity-staging`), `development` (`trinity-development`) sú odstránené po konsolidácii na jediný produkčný Worker `trinity`.
   - Na Secrets Store používaj .agents/skills/cloudflare-secrets-store/SKILL.md a npm run secrets:doctor v Trinity. Oprávnenie na binding vyžaduje Account Secrets Store Edit alebo rolu Deployer a secret scope workers; konfigurovaný binding nie je overený token.
 - **29 Bound Cloudflare Workers on Trinity**:
   - 10× AURA specialists (`AURA_ANALYZER`, `AURA_ARCHITECT`, `AURA_CODEGEN`, `AURA_DEPLOYER`, `AURA_EVOLVER`, `AURA_MEMORY`, `AURA_OPTIMIZER`, `AURA_PLANNER`, `AURA_SENTINEL`, `AURA_TESTER` + aliases `admin`, `admino`, `Trinity`).

@@ -29,30 +29,21 @@ function parseJsonc(raw) {
   return JSON.parse(raw.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, ''));
 }
 
-test('Module 1: Hermetická konfigurácia Wrangler (Staging vs Production)', () => {
+test('Module 1: Jednotná produkčná konfigurácia Wrangler (bez staging duplicity)', () => {
   const config = parseJsonc(fs.readFileSync(path.join(trinityDir, 'wrangler.jsonc'), 'utf8'));
-  const prod = config.env.production;
-  const staging = config.env.staging;
+  const prod = config.env?.production || config;
 
+  assert.equal(config.env?.staging, undefined);
   assert.equal(prod.vars.ENVIRONMENT, 'production');
   assert.equal(prod.vars.STRICT_MODE, 'true');
   assert.equal(prod.vars.DEBUG_LOGGING, 'false');
   assert.equal(prod.vars.ENABLE_EXPERIMENTAL_MODELS, 'false');
 
-  assert.equal(staging.vars.ENVIRONMENT, 'staging');
-  assert.equal(staging.vars.STRICT_MODE, 'false');
-  assert.equal(staging.vars.DEBUG_LOGGING, 'true');
-  assert.equal(staging.vars.ENABLE_EXPERIMENTAL_MODELS, 'true');
-
   assert.equal(prod.d1_databases.find((d) => d.binding === 'DB')?.database_name, 'trinity-v03');
-  assert.equal(staging.d1_databases.find((d) => d.binding === 'DB')?.database_name, 'trinity-development');
-
   assert.ok(prod.kv_namespaces.some((k) => k.binding === 'TRINITY_KV_PROD'));
-  assert.ok(staging.kv_namespaces.some((k) => k.binding === 'TRINITY_KV_STAGING'));
 
   for (const binding of ['PROFILE_SERVICE', 'CORE_SERVICE', 'DISPATCHER_SERVICE', 'AI_INFERENCE_SERVICE']) {
     assert.ok(prod.services.some((s) => s.binding === binding), `Prod missing ${binding}`);
-    assert.ok(staging.services.some((s) => s.binding === binding), `Staging missing ${binding}`);
   }
 });
 
@@ -261,7 +252,6 @@ test('Module 5 & 6: Desktop Commander Bridge X-Trinity-Bridge-Secret & Pre-Deplo
   const checkResult = runPreDeployCheck();
   assert.equal(checkResult.ok, true);
   assert.equal(checkResult.production_d1, 'trinity-v03');
-  assert.equal(checkResult.staging_d1, 'trinity-development');
 });
 
 test('Module 7: TAP Crypto Runtime (RSASSA-PKCS1-v1_5), ProfileMaker (#47) & Jericho123 Oracle/Vaults (#26)', async () => {

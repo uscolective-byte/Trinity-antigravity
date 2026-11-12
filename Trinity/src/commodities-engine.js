@@ -430,7 +430,8 @@ function normalizeCommoditySymbol(raw) {
 }
 
 function computeTechnicalProfile(commodity, livePrice, strategy = 'balanced') {
-  const price = Number((livePrice || commodity.base_price).toFixed(2));
+  const hasLivePrice = Number.isFinite(Number(livePrice)) && Number(livePrice) > 0;
+  const price = Number((hasLivePrice ? Number(livePrice) : commodity.base_price).toFixed(2));
   const sma20 = Number((price / (1 + (commodity.change_7d_pct / 100) * 0.45)).toFixed(2));
   const sma50 = Number((price / (1 + (commodity.change_30d_pct / 100) * 0.55)).toFixed(2));
   const support = Number((price * (1 - (commodity.volatility_atr_pct * 1.8) / 100)).toFixed(2));
@@ -480,6 +481,7 @@ function computeTechnicalProfile(commodity, livePrice, strategy = 'balanced') {
     sector_label: COMMODITY_SECTOR_LABELS[commodity.sector] || commodity.sector,
     unit: commodity.unit,
     price_eur: price,
+    price_source: hasLivePrice ? 'live_quote' : 'static_baseline',
     change_24h_pct: commodity.change_24h_pct,
     change_7d_pct: commodity.change_7d_pct,
     change_30d_pct: commodity.change_30d_pct,
@@ -686,6 +688,37 @@ export async function syncLiveMarketFeeds(env, actor) {
     }
   } catch {}
 
+  const YAHOO_COMMODITY_TICKERS = [
+    ['PL=F', 'XPT-EUR'],
+    ['PA=F', 'XPD-EUR'],
+    ['BZ=F', 'BRENT-EUR'],
+    ['CL=F', 'WTI-EUR'],
+    ['NG=F', 'NGAS-EUR'],
+    ['HG=F', 'COPPER-EUR'],
+    ['ZW=F', 'WHEAT-EUR'],
+    ['ZC=F', 'CORN-EUR'],
+    ['ZS=F', 'SOY-EUR'],
+    ['KC=F', 'COFFEE-EUR'],
+    ['CC=F', 'COCOA-EUR'],
+    ['SB=F', 'SUGAR-EUR']
+  ];
+  await Promise.allSettled(YAHOO_COMMODITY_TICKERS.map(async ([ticker, symbol]) => {
+    try {
+      const yRes = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=1d&interval=1d`, {
+        headers: { 'User-Agent': 'Trinity-Commodities-Feed/1.0' },
+        signal: AbortSignal.timeout(3500)
+      });
+      if (!yRes.ok) return;
+      const yData = await yRes.json();
+      const usdPrice = Number(yData?.chart?.result?.[0]?.meta?.regularMarketPrice);
+      if (Number.isFinite(usdPrice) && usdPrice > 0) {
+        const eurPrice = Number((usdPrice / eurUsd).toFixed(2));
+        await setQuote(env, ownerId, { symbol, currency: 'EUR', price: eurPrice, source: 'yahoo-finance-live' });
+        updated.push({ symbol, price_eur: eurPrice, source: 'yahoo-finance-live' });
+      }
+    } catch {}
+  }));
+
   return {
     ok: true,
     synced_at: new Date().toISOString(),
@@ -760,11 +793,14 @@ export async function analyzeCommodities(env, actor, rawInput = {}) {
     });
   }
 
+  const liveQuotesCount = analyzed.filter(c => c.price_source === 'live_quote').length;
   return {
     ok: true,
     paper_only: true,
     strategy: input.strategy,
     total_commodities: analyzed.length,
+    live_quotes_count: liveQuotesCount,
+    static_baseline_count: analyzed.length - liveQuotesCount,
     market_regime: marketRegime,
     average_market_score: avgScore,
     top_buys: topBuys,

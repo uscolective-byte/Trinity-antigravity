@@ -28,10 +28,8 @@ changing staging tests against those until separate resources are verified.
 
 ## Wrangler environments
 
-- Production auru.space: default config, Worker trinity.
-- Staging auru.dev: Wrangler environment **staging**, Worker trinity-staging.
-- Older docs mention development or trinity-development; these are historical,
-  **not instructions to invent or deploy an environment**.
+- Unified Production (`auru.space` + `auru.dev`): default config, Worker `trinity`, D1 `trinity-v03`.
+- Older docs mention `staging` (`trinity-staging`) or `development` (`trinity-development`); these were consolidated away into the single production Worker `trinity`.
 - Do not infer live version or external connection from configuration.
 
 After successful checks and authorization:
@@ -39,7 +37,7 @@ After successful checks and authorization:
 ~~~powershell
 Set-Location C:\Users\saboi\Trinity-antigravity\Trinity
 node scripts/build-mcp-app.mjs
-npx wrangler deploy --env staging --dry-run
+npx wrangler deploy --dry-run
 ~~~
 
 Actual staging deploy requires explicit approved access and verified

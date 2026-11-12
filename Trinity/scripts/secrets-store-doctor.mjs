@@ -33,23 +33,26 @@ export function diagnoseSecretsStoreConfig(config){
     }
     return new Map(bindings.map(item=>[item.binding,item]));
   }
+  const hasStaging=Boolean(config?.env?.staging);
   const pm=inspect(prod,'production');
-  const sm=inspect(staging,'staging');
-  if(config?.env?.staging?.vars?.TRINITY_ENV!=='staging')
+  const sm=hasStaging?inspect(staging,'staging'):new Map();
+  if(hasStaging&&config?.env?.staging?.vars?.TRINITY_ENV!=='staging')
     errors.push('staging: TRINITY_ENV must equal staging');
   if(!pm.has('OLLAMA_SECRET')||pm.get('OLLAMA_SECRET').secret_name!=='ollama')
     errors.push('production: original OLLAMA_SECRET missing or changed');
   if(pm.has(TRINITY_MASTER_BINDINGS.gemini)||pm.has(TRINITY_MASTER_BINDINGS.copilot))
     errors.push('production: new TRINITY_MASTER credentials must remain staging-only');
-  for(const [binding,secretName] of expectedStaging){
-    if(!sm.has(binding)||sm.get(binding).secret_name!==secretName)
-      errors.push('staging: required binding missing or wrong secret name: '+binding);
-  }
-  const primary=pm.get('OLLAMA_SECRET')?.store_id;
-  if(primary){
-    for(const [name,item] of sm){
-      if(item.store_id!==primary)
-        errors.push('staging: binding uses an unexpected store: '+name);
+  if(hasStaging){
+    for(const [binding,secretName] of expectedStaging){
+      if(!sm.has(binding)||sm.get(binding).secret_name!==secretName)
+        errors.push('staging: required binding missing or wrong secret name: '+binding);
+    }
+    const primary=pm.get('OLLAMA_SECRET')?.store_id;
+    if(primary){
+      for(const [name,item] of sm){
+        if(item.store_id!==primary)
+          errors.push('staging: binding uses an unexpected store: '+name);
+      }
     }
   }
   for(const [environment,vars] of [

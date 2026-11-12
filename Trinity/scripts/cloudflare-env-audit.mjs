@@ -5,7 +5,7 @@ const configFile=fileURLToPath(new URL('../wrangler.jsonc',import.meta.url));
 
 export function sharedMutableBindings(config){
   const staging=config?.env?.staging;
-  if(!staging)throw new Error('Staging environment not defined.');
+  if(!staging)return [];
   const categories=[
     ['D1','d1_databases','binding','database_id'],
     ['KV','kv_namespaces','binding','id'],
@@ -35,16 +35,20 @@ export function sharedMutableBindings(config){
 }
 
 export function reportEnvironmentIsolation(config){
+  const hasStaging=Boolean(config?.env?.staging);
   const collisions=sharedMutableBindings(config);
   return {
     checked:'configuration-only',
-    staging:config.env.staging?.name||'unknown',
+    mode:hasStaging?'dual-environment':'single-production',
+    staging:config?.env?.staging?.name||null,
     production:config.name||'unknown',
     shared_mutable_resources:collisions,
     isolated:collisions.length===0,
     note:collisions.length
       ?'Shared D1/KV/R2 resources can leak staging writes into production. Provision distinct resources and migrate safely.'
-      :'No common D1/KV/R2 identifiers detected in config; live deployment remains unverified.'
+      :hasStaging
+        ?'No common D1/KV/R2 identifiers detected in config; live deployment remains unverified.'
+        :'Single production environment active (staging consolidated).'
   };
 }
 

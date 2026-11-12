@@ -12,7 +12,7 @@ export const TRINITY_FLEET_CLUSTERS = [
     bindings: ["KV (SESSION_STORE / TRINITY_KV)", "Service Bindings"],
     workers: [
       { number: 1, name: "trinity", alias: "trinity-gateway", role: "Fast-Chat Edge Router & TAP Gatekeeper (Prod auru.space)" },
-      { number: 2, name: "trinity-staging", role: "Staging Omni-Dev Edge Gateway (auru.dev)" },
+      { number: 2, name: "trinity-dev-alias", role: "Unified Production Mirror Alias (auru.dev -> trinity)" },
       { number: 3, name: "trinity-core", role: "Core Kernel & Sovereign State Coordinator" },
       { number: 4, name: "trinity-dispatcher", role: "Domain & Task Dispatcher" },
       { number: 5, name: "trinity-builder", role: "Edge Build & Artifact Streamer" },

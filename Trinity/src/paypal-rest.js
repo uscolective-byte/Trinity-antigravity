@@ -330,6 +330,54 @@ export async function handlePayPalCheckoutApi(request, env) {
     }
   }
 
+  // 5. POST /api/webhook/paypal (Verified via PayPal Webhook Signature API)
+  if (path === '/api/webhook/paypal') {
+    if (request.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: { Allow: 'POST' } });
+    const webhookId = env?.PAYPAL_WEBHOOK_ID || null;
+    const { clientId, clientSecret } = await resolvePayPalCredentials(env);
+    if (!webhookId || !clientId || !clientSecret) {
+      return Response.json({
+        ok: false,
+        error: 'PAYPAL_WEBHOOK_ID alebo PayPal API kredenciály nie sú nakonfigurované.'
+      }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
+    }
+    const rawBody = await request.text();
+    let webhookEvent = {};
+    try { webhookEvent = JSON.parse(rawBody); } catch {
+      return Response.json({ ok: false, error: 'Neplatný JSON payload.' }, { status: 400 });
+    }
+    const accessToken = await getPayPalAccessToken(env);
+    const verifyRes = await fetch(`${getPayPalBaseUrl(env)}/v1/notifications/verify-webhook-signature`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        auth_algo: request.headers.get('PAYPAL-AUTH-ALGO') || '',
+        cert_url: request.headers.get('PAYPAL-CERT-URL') || '',
+        transmission_id: request.headers.get('PAYPAL-TRANSMISSION-ID') || '',
+        transmission_sig: request.headers.get('PAYPAL-TRANSMISSION-SIG') || '',
+        transmission_time: request.headers.get('PAYPAL-TRANSMISSION-TIME') || '',
+        webhook_id: webhookId,
+        webhook_event: webhookEvent
+      }),
+      signal: AbortSignal.timeout(10_000)
+    });
+    const verifyData = await verifyRes.json().catch(() => ({}));
+    if (!verifyRes.ok || verifyData?.verification_status !== 'SUCCESS') {
+      return Response.json({ ok: false, verified: false, error: 'Overenie podpisu PayPal webhooku zlyhalo.' }, { status: 401 });
+    }
+    const receiptId = `ppwh_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
+    if (env?.DB) {
+      await env.DB.prepare("INSERT INTO ops_events (action, details) VALUES (?, ?)").bind(
+        'paypal_webhook_verified',
+        JSON.stringify({ receipt_id: receiptId, event_type: webhookEvent?.event_type || null, event_id: webhookEvent?.id || null, received_at: new Date().toISOString() })
+      ).run().catch(() => {});
+    }
+    return Response.json({ ok: true, verified: true, receipt_id: receiptId, event_type: webhookEvent?.event_type || null }, { status: 200, headers: { 'Cache-Control': 'no-store' } });
+  }
+
   return null;
 }
 

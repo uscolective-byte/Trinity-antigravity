@@ -9,15 +9,15 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { assessDomainResponse as assess } from './check-trinity-domains.mjs';
 
-test('rejects development hostname serving production environment', () => {
-  const result = assess('app', 'auru.dev', '/health', { httpStatus: 200, body: { service: 'Trinity', status: 'serving', environment: 'production' } });
+test('rejects hostname serving non-production environment', () => {
+  const result = assess('app', 'auru.dev', '/health', { httpStatus: 200, body: { service: 'Trinity', status: 'serving', environment: 'staging' } });
   assert.equal(result.ok, false);
 });
 
-test('accepts development hostname only when it reports staging', () => {
-  const result = assess('app', 'auru.dev', '/health', { httpStatus: 200, body: { service: 'Trinity', status: 'serving', environment: 'staging', version: '11.0.0' } });
+test('accepts consolidated production hostname on auru.dev', () => {
+  const result = assess('app', 'auru.dev', '/health', { httpStatus: 200, body: { service: 'Trinity', status: 'serving', environment: 'production', version: '11.1.0' } });
   assert.equal(result.ok, true);
-  assert.equal(result.environment, 'staging');
+  assert.equal(result.environment, 'production');
 });
 
 test('health result preserves actual HTTP status separately from application status', () => {

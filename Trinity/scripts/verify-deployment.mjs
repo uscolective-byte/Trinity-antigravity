@@ -34,7 +34,7 @@ export async function verifyDeployment({origin,expectedTag,expectedVersionId,ver
     'CF-Access-Client-Secret': process.env.CLOUDFLARE_ACCESS_CLIENT_SECRET
   } : {})
  };
- const expectedEnvironment=origin==='https://auru.dev'?'staging':'production';
+ const expectedEnvironment='production';
  for(let attempt=0;attempt<attempts;attempt++){
   try{
    const health=await fetcher(origin+'/health',{headers,signal:AbortSignal.timeout(10000),redirect:'error'});

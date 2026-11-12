@@ -3,15 +3,15 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {sharedMutableBindings,reportEnvironmentIsolation} from '../scripts/cloudflare-env-audit.mjs';
 
-test('tracked staging config has distinct D1, KV and R2 identifiers',()=>{
+test('tracked config uses unified single-production architecture without staging drift',()=>{
   const cfg=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
   const report=reportEnvironmentIsolation(cfg);
   assert.equal(report.isolated,true);
+  assert.equal(report.mode,'single-production');
   assert.equal(report.checked,'configuration-only');
   assert.deepEqual(report.shared_mutable_resources,[]);
-  assert.deepEqual(cfg.routes,[{pattern:'auru.space',custom_domain:true}]);
-  assert.deepEqual(cfg.env.staging.routes,[{pattern:'auru.dev',custom_domain:true}]);
-  assert.equal(cfg.env.staging.vars.TRINITY_PREVIEW_MODE,undefined);
+  assert.equal(cfg.env?.staging,undefined);
+  assert.deepEqual(cfg.routes,[{pattern:'auru.space',custom_domain:true},{pattern:'auru.dev',custom_domain:true}]);
 });
 test('staging audit still rejects shared mutable resources',()=>{
   const cfg={

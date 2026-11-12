@@ -251,22 +251,91 @@ export async function githubSuite(env, { action = 'repo_info', repo, path, conte
 export async function mailEngine(env, { action = 'send', to, subject, body, html, target, payload }) {
   const start = Date.now();
   if (action === 'send') {
-    const ownerEmail = env.TRINITY_OWNER_EMAIL || 'saboivan2008@gmail.com';
+    const ownerEmail = env?.TRINITY_OWNER_EMAIL || 'saboivan2008@gmail.com';
     const recipient = to || ownerEmail;
-    // Store in D1 ops_events as verified notification receipt
-    const receipt_id = `mail_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
-    if (env.DB) {
+    if (!subject && !body && !html) {
+      return { ok: false, action: 'send', error: 'Chýba predmet alebo text e-mailu.', duration_ms: Date.now() - start };
+    }
+    let resendKey = env?.RESEND_API_KEY || null;
+    if (!resendKey) {
+      try { resendKey = await resolveProviderSecret(env, 'resend'); } catch {}
+    }
+    if (!resendKey) {
+      if (env?.DB) {
+        await env.DB.prepare(
+          "INSERT INTO ops_events (action, details) VALUES (?, ?)"
+        ).bind('mail_unconfigured', JSON.stringify({ to: recipient, subject: subject || '(bez predmetu)', at: new Date().toISOString() })).run().catch(() => {});
+      }
+      return {
+        ok: false,
+        action: 'send',
+        status: 'not_configured',
+        recipient,
+        subject: subject || '',
+        delivered_via: null,
+        error: 'Chýba RESEND_API_KEY v Cloudflare Secrets alebo Secret Vault. Skutočný e-mail nebol odoslaný.',
+        duration_ms: Date.now() - start,
+        _evidence: { receipt_id: null, effect: 'none', actions: ['send'] }
+      };
+    }
+
+    const fromAddress = env?.RESEND_FROM_EMAIL || 'Trinity <noreply@auru.space>';
+    let res;
+    try {
+      res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${String(resendKey).trim()}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'Trinity-Mail-Engine/1.0'
+        },
+        body: JSON.stringify({
+          from: fromAddress,
+          to: [recipient],
+          subject: subject || 'Správa z Trinity',
+          ...(html ? { html } : {}),
+          text: body || ''
+        }),
+        signal: AbortSignal.timeout(12_000)
+      });
+    } catch (err) {
+      return {
+        ok: false,
+        action: 'send',
+        status: 'network_error',
+        recipient,
+        subject: subject || '',
+        error: `Sieťová chyba Resend API: ${err.message}`,
+        duration_ms: Date.now() - start
+      };
+    }
+
+    const resData = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return {
+        ok: false,
+        action: 'send',
+        status: res.status,
+        recipient,
+        subject: subject || '',
+        error: resData?.message || `Resend API vrátilo HTTP ${res.status}`,
+        duration_ms: Date.now() - start
+      };
+    }
+
+    const receipt_id = resData?.id || `resend_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
+    if (env?.DB) {
       await env.DB.prepare(
         "INSERT INTO ops_events (action, details) VALUES (?, ?)"
-      ).bind('mail_dispatched', JSON.stringify({ to: recipient, subject, body: body?.slice(0, 500), receipt_id, at: new Date().toISOString() })).run().catch(() => {});
+      ).bind('mail_dispatched', JSON.stringify({ to: recipient, subject, body: body?.slice(0, 500), receipt_id, provider: 'resend', at: new Date().toISOString() })).run().catch(() => {});
     }
     return {
       ok: true,
       action: 'send',
       recipient,
-      subject,
+      subject: subject || '',
       receipt_id,
-      delivered_via: 'trinity-mail-engine',
+      delivered_via: 'resend-api',
       duration_ms: Date.now() - start,
       _evidence: { receipt_id, effect: 'mutation', actions: ['send'] }
     };

@@ -18,7 +18,7 @@ const workers = [
   'trinity-dispatcher', 'trinity-gemini', 'trinity-guardian', 'trinity-integrations',
   'trinity-knowledge', 'trinity-memory', 'trinity-morhfeus', 'trinity-ops',
   'trinity-pc-bridge', 'trinity-pc-bridge-v2', 'trinity-seeder', 'trinity-sentinel',
-  'trinity-skills', 'trinity-staging', 'trinityguardiantruthverifierworker',
+  'trinity-skills', 'trinityguardiantruthverifierworker',
   'vite-react-template', 'vite-react-templates', 'trinity-profile'
 ];
 

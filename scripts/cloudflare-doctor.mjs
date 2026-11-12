@@ -68,8 +68,8 @@ export async function checkCloudflare(){
    },
    next_action: !whoami.available?'Install Trinity dependencies: cd Trinity; npm ci':
      !whoami.ok?'Authenticate Wrangler locally with npx wrangler login or configure a scoped CLOUDFLARE_API_TOKEN':
-     !production.ok||!staging.ok?'Check account/Worker scope of the active Wrangler session; do not replace the token blindly':
-     'Wrangler can list secret metadata for both Workers. Validate CI GitHub secret separately and test stage deployment.'
+     !production.ok||(config.env?.staging&&!staging.ok)?'Check account/Worker scope of the active Wrangler session; do not replace the token blindly':
+     config.env?.staging?'Wrangler can list secret metadata for both Workers. Validate CI GitHub secret separately and test stage deployment.':'Wrangler can list secret metadata for unified production Worker trinity.'
  };
  return result;
 }

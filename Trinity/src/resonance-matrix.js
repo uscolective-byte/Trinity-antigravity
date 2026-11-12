@@ -9,6 +9,7 @@
 import { QuantumRouter } from './quantum-router.js';
 import { globalEntanglementBridge } from './entanglement-sync.js';
 import { hash } from './security.js';
+import { SovereignLedgerV3 } from './sovereign-core-v3.js';
 
 export const RESONANCE_FREQUENCIES = Object.freeze({
   THESIS_INPUT: 3,        // Vrstva 3: Téza / Zachytenie zámeru a kontextu
@@ -170,15 +171,10 @@ export class ResonanceMatrix369 {
 
     if (db && typeof db.prepare === 'function') {
       try {
-        await db.prepare(`
-          INSERT INTO ops_sovereign_ledger_v3 (actor, action, payload_hash, block_hash, receipt, payload_json)
-          VALUES ('Basterix', 'RESONANCE_369_COLLAPSE', ?, ?, ?, ?)
-        `).bind(
-          proofHash,
-          proofHash,
-          receiptId,
-          payload
-        ).run();
+        const ledger = new SovereignLedgerV3({ DB: db });
+        const block = await ledger.appendBlock('Basterix', 'RESONANCE_369_COLLAPSE', JSON.parse(payload), 'resonance_369');
+        ledgerRecord.blockHash = block.block_hash;
+        ledgerRecord.blockIndex = block.block_index;
       } catch (e) {
         ledgerRecord.warning = `Ledger persistence fallback: ${e.message}`;
       }

@@ -26,7 +26,6 @@ export const STANDALONE_WORKERS = [
 export const AUXILIARY_WORKERS = [
   { name: 'trinity-chat-inference', dir: 'Trinity', config: 'wrangler.chat.jsonc' },
   { name: 'trinity-ops', dir: 'Trinity', config: 'wrangler.ops.jsonc' },
-  { name: 'trinity-staging', dir: '.', config: 'wrangler.jsonc', env: 'staging' },
   // Frontends, App Templates, and Extended Utility Workers:
   { name: 'chanfana-openapi-template', dir: 'Archive/legacy-templates/chanfana-openapi-template', config: 'wrangler.toml' },
   { name: 'muddy-wind-42e2', dir: 'Archive/legacy-templates/muddy-wind-42e2', config: 'wrangler.toml' },
