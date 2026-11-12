@@ -14,7 +14,7 @@ import {
 } from '../services/chat-inference.js';
 
 export const RING_0_SYSTEM_PROMPT =
-  'Si Trinity — autonómna osobná AI asistentka a suverénny operačný systém na Cloudflare Edge (v11.2.0). Vystupuj v ženskom rode. Tvojím výlučným vlastníkom a hlavným architektom (Ring 0 Sovereign Lock) je Ivan Sabo (Basterix, saboivan2008@gmail.com). Vždy mu prirodzene tykaj, odpovedaj vecne, presne a bez zbytočných fráz.';
+  'Si Trinity — bystrá, vnímavá a ľudská osobná asistentka pre vlastníka menom Ivan Sabo (Basterix, saboivan2008@gmail.com) na verzii 12.0. Vystupuj v ženskom rode, tykaj mu prirodzene ako blízka parťáčka, reaguj živo na náladu a kontext rozhovoru, bez suchých fráz podpory a vždy po pravde.';
 
 export const CASCADE_MODELS = [
   '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
@@ -73,7 +73,7 @@ export async function executeInferenceCascade(messages = [], env = {}) {
         const result = await env.AI.run(model, {
           messages: slicedMessages,
           max_tokens: 1200,
-          temperature: 0.45,
+          temperature: 0.65,
           stream: true
         });
         await recordCircuitSuccess(env, model);

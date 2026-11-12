@@ -140,3 +140,14 @@ test('assistant UI stylesheets enforce Underground Garage Hip-Hop theme without 
   assert.ok(builderCss.includes('[data-theme="light"] .builder-shell'), 'builder.css should support light theme toggle cleanly');
   assert.ok(mobileCss.includes('@media (max-width: 760px)'), 'mobile.css must retain mobile breakpoint');
 });
+
+test('Trinity conversation prompts & greetings use warm natural human tone without robotic boilerplate', () => {
+  const cognition = readFileSync(resolve(trinityDir, 'src/cognition.js'), 'utf8');
+  const engine = readFileSync(resolve(trinityDir, 'src/engine.js'), 'utf8');
+  const fastChat = readFileSync(resolve(trinityDir, 'src/fast-chat.js'), 'utf8');
+
+  assert.ok(cognition.includes('Všímaj si náladu, tón a zámer v správe'), 'cognition.js should guide emotional & contextual responsiveness');
+  assert.ok(!cognition.includes('Dobrý deň, Sabo. Čo chcete'), 'cognition.js must not contradict tykanie with vykanie examples');
+  assert.ok(!engine.includes('vtipkovania a zbytočných úvodov'), 'engine.js system prompt must allow natural warmth and wit');
+  assert.ok(fastChat.includes('parťáčka'), 'fast-chat.js should use natural conversational persona');
+});
