@@ -125,3 +125,17 @@ test('assistant UI HTML and JS include connectors catalog, studio controls, and 
   const workflowPos = html.indexOf('class="workflow-builder"');
   assert.ok(builderPos > 0 && workflowPos > builderPos);
 });
+
+test('assistant UI stylesheets enforce Sovereign Unified theme without icon-wiping or broken tilts', () => {
+  const html = readFileSync(resolve(trinityDir, 'public/assistant/chat.html'), 'utf8');
+  const garageCss = readFileSync(resolve(trinityDir, 'public/assistant/garage.css'), 'utf8');
+  const builderCss = readFileSync(resolve(trinityDir, 'public/assistant/builder.css'), 'utf8');
+  const mobileCss = readFileSync(resolve(trinityDir, 'public/assistant/mobile.css'), 'utf8');
+
+  assert.ok(html.includes('<body class="sovereign-ui">'), 'chat.html should use sovereign-ui class');
+  assert.ok(!/content:\s*['"]↗['"]/i.test(garageCss), 'garage.css must not overwrite sidebar icons with arrows');
+  assert.ok(!garageCss.includes('/garage-v1.webp'), 'garage.css must not inject legacy street-art wallpaper');
+  assert.ok(garageCss.includes('--trinity-live-primary'), 'garage.css should respect ui-evolution primary CSS var');
+  assert.ok(builderCss.includes('[data-theme="light"] .builder-shell'), 'builder.css should support light theme toggle cleanly');
+  assert.ok(mobileCss.includes('@media (max-width: 760px)'), 'mobile.css must retain mobile breakpoint');
+});
