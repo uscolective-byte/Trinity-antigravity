@@ -1,5 +1,7 @@
 # Architektúra Trinity Omni-Core
 
+Kompletný zdrojovo podložený systémový opis a prevádzkové hranice sú v [Trinity architektúre](trinity-complete-architecture.md). Právne a súkromné požiadavky sa sledujú v [právnom audite](../../Trinity/docs/PRAVNE-A-SUKROMIE-POUZITIE-AUDIT.md); dokumenty nie sú potvrdením právneho súladu.
+
 ## Referenčný model 7 vrstiev
 
 | Vrstva | Zodpovednosť | Zdrojové dôkazy |

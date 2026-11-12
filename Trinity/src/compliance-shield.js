@@ -113,19 +113,27 @@ export const TRINITY_POLICIES = Object.freeze({
     code: 'PRIVACY-GDPR-2026.11',
     title: 'Ochrana osobných údajov (Privacy Policy & GDPR)',
     effective_date: '2026-11-12',
-    summary: 'Transparentné spracovanie údajov na Cloudflare Edge (D1, KV, R2), šifrovanie AES-GCM a nulový predaj dát.',
+    summary: 'Informácie o spracúvaní osobných údajov. Presné poskytovateľské, retenčné a prevádzkové údaje sa musia potvrdiť pred právnym vyhlásením súladu.',
     sections: [
       {
-        heading: '1. Spracúvané údaje a účel',
-        body: 'Spracúvame iba údaje nevyhnutné na autentifikáciu (e-mail, Passkey/WebAuthn kľúč, hashované relácie), históriu konverzácií uloženú používateľom, fakturačné/licenčné záznamy a bezpečnostné logy proti spamu (jednosmerne hashované IP identifikátory).'
+        heading: '1. Prevádzkovateľ a kontakt',
+        body: 'Prevádzkovateľ, jeho právna identita, adresa, kontaktné údaje a prípadná zodpovedná osoba musia byť pred používaním služby potvrdené a zverejnené. Názov značky alebo e-mail v zdrojovom kóde samy osebe neurčujú právneho prevádzkovateľa.'
       },
       {
-        heading: '2. Šifrovanie a žiadny predaj tretím stranám',
-        body: 'API kľúče tretích strán sú v trezore Trinity šifrované pomocou AES-GCM. Údaje nepredávame reklamným sieťam ani nepoužívame telemetriu tretích strán.'
+        heading: '2. Kategórie údajov a účely',
+        body: 'Funkcie môžu spracúvať identifikačné a prihlasovacie údaje, obsah promptov a konverzácií, používateľské súbory/projekty, integračné údaje, bezpečnostné a auditné udalosti a údaje o platbách, ak sa daná funkcia používa. Presné polia, účel a právny základ sa určujú pre každú funkciu; nie všetky účely stoja na súhlase.'
       },
       {
-        heading: '3. Práva dotknutej osoby (GDPR)',
-        body: 'Používateľ má právo na prístup k údajom, export auditu (/api/assistant/audit/export) a vymazanie relácií alebo osobných záznamov z D1 databázy na požiadanie.'
+        heading: '3. Poskytovatelia, prenosy a uchovávanie',
+        body: 'Pri AI alebo integračných funkciách môžu byť údaje odoslané zvolenému externému poskytovateľovi. Úplný zoznam príjemcov, spracovateľov, subprocesorov, krajín, záruk transferu a retenčných lehôt sa musí zosúladiť s produkčnou konfiguráciou a zmluvami poskytovateľov. Neuvádza sa žiadna pevná lehota, kým nie je technicky a právne overená.'
+      },
+      {
+        heading: '4. Bezpečnosť a práva',
+        body: 'Používaj len doložené bezpečnostné opatrenia; ochrana sa líši podľa dátovej cesty a poskytovateľa. Dotknutá osoba môže podľa okolností uplatniť právo na prístup, opravu, výmaz, obmedzenie, prenosnosť, námietku, odvolanie súhlasu a podať sťažnosť dozornému orgánu. Žiadosť smeruj na potvrdený kontakt prevádzkovateľa. Proces, lehota odpovede a rozsah exportu/výmazu musia byť reálne zavedené.'
+      },
+      {
+        heading: '5. Stav overenia',
+        body: 'Toto rozhranie nezaručuje súlad Trinity s GDPR. Pred finálnym právnym vyhlásením treba doplniť právnu identitu prevádzkovateľa, dátový register, právne základy, lehoty, zmluvy so sprostredkovateľmi, transfery a funkčné procesy práv dotknutých osôb; finálne znenie má skontrolovať slovenský právnik.'
       }
     ]
   },
@@ -165,6 +173,21 @@ export const TRINITY_POLICIES = Object.freeze({
         heading: '2. Človek v slučke (Human-in-the-Loop)',
         body: 'Citlivé systémové príkazy na hostiteľskom PC, finančné prevody, zmeny DNS a udeľovanie prístupov vyžadujú autorizáciu oprávneného vlastníka/administrátora a kryptografický záznam v D1 ledgeri.'
       }
+    ]
+  }
+  ,architecture: {
+    id: 'architecture',
+    code: 'TRINITY-ARCHITECTURE',
+    title: 'Architektúra Trinity a prevádzkové hranice',
+    effective_date: 'Technický opis · aktualizované 2026-11-12',
+    summary: 'Mapa runtime, rozhraní, dátových služieb, integrácií, bezpečnosti a toho, čo musí byť osobitne overené.',
+    sections: [
+      { heading: 'Runtime a prostredia', body: 'Hlavným zdrojom je Trinity Worker a jeho wrangler konfigurácia. Produkcia, vývoj a lokálne spustenie sú samostatné režimy. Konfigurácia, build dry-run alebo service binding nepreukazuje, že cieľový Worker žije alebo je dostupný.' },
+      { heading: 'Aplikačné vrstvy', body: 'HTTP/API a UI obsluhuje Trinity runtime; orchestration a tools vyberajú modely a vykonávajú povolené operácie; D1/KV/R2 a workflow poskytujú úložisko a úlohy; konektory volajú externé služby; Local Gateway/PC Bridge vykonávajú samostatne autorizované lokálne operácie.' },
+      { heading: 'Autorizácia a dôkazy', body: 'Každá požiadavka sa validuje na serveri. Rola používateľa sama osebe neznamená, že každá integrácia alebo write akcia je dostupná. Úspech sa deklaruje len po potvrdenom dôkaze z cieľového systému; návrh, enqueue, lokálny dry-run ani deklarovaný binding nie sú potvrdením vykonania.' },
+      { heading: 'Dáta a tajomstvá', body: 'Tajomstvá patria do Cloudflare Secrets/Secrets Store alebo aplikáciou šifrovaného vaultu, nie do Gitu, logov ani dokumentácie. Reálne retention, regióny, poskytovatelia a prenosy sa určujú z produkčnej konfigurácie a zmlúv; technická architektúra ich sama nepotvrdzuje.' },
+      { heading: 'Výpadky a rollback', body: 'Pri nedostupnom providerovi, databáze, gateway alebo chýbajúcom dôkaze sa výsledok označí ako zlyhaný alebo nepotvrdený. Produkčná zmena musí mať commit SHA, cieľ, kontroly, migrácie a cestu rollbacku.' },
+      { heading: 'Podrobný technický opis', body: 'Zdrojový dokument je v repozitári: docs/architecture/trinity-complete-architecture.md. Právne a súkromné otázky sú rozpracované v Trinity/docs/PRAVNE-A-SUKROMIE-POUZITIE-AUDIT.md; tieto podklady nie sú vyhlásením o právnom súlade.' }
     ]
   }
 });
@@ -691,7 +714,7 @@ function esc(value = '') {
 }
 
 /**
- * Vygeneruje čistú verejnú právnu a licenčnú stránku (/legal, /terms, /privacy, /aup, /license).
+ * Vygeneruje verejné právne, licenčné a architektonické stránky.
  */
 export function renderLegalHtml({ docId = 'legal', host = 'auru.space', version = '13.0.0' } = {}) {
   const safeHost = esc(host);
@@ -702,11 +725,13 @@ export function renderLegalHtml({ docId = 'legal', host = 'auru.space', version 
     { href: '/aup', id: 'aup', label: 'Anti-Spam & AUP' },
     { href: '/privacy', id: 'privacy', label: 'Súkromie (GDPR)' },
     { href: '/license', id: 'license', label: 'Licencia' },
-    { href: '/security-policy', id: 'ai_act', label: 'AI Act & Bezpečnosť' }
+    { href: '/security-policy', id: 'ai_act', label: 'AI Act & Bezpečnosť' },
+    { href: '/architecture', id: 'architecture', label: 'Architektúra' }
   ];
 
   const mainContent = doc
     ? `<article class="doc-card">
+        <aside class="review-notice"><strong>Stav právneho overenia:</strong> texty sa zosúlaďujú s aktuálnym správaním a zmluvnými údajmi. Zverejnenie tejto stránky samo osebe nepotvrdzuje právny súlad. Pred záväzným používaním treba doplniť a overiť chýbajúce údaje prevádzkovateľa, spracovateľov a obchodného modelu.</aside>
         <div class="doc-meta">
           <span class="pill">${esc(doc.code)}</span>
           <span>Účinnosť od ${esc(doc.effective_date)}</span>
@@ -719,6 +744,7 @@ export function renderLegalHtml({ docId = 'legal', host = 'auru.space', version 
         </div>
       </article>`
     : `<article class="doc-card">
+        <aside class="review-notice"><strong>Stav právneho overenia:</strong> portál je prehľadom aktuálnych technických/politických textov, nie potvrdením súladu. Údaje o prevádzkovateľovi, poskytovateľoch, retenčných lehotách, transferoch a právach spotrebiteľa musia byť overené voči reálnej prevádzke a zmluvám.</aside>
         <div class="doc-meta">
           <span class="pill">GOVERNANCE · ${esc(POLICY_VERSION)}</span>
           <span>${esc(PLATFORM_LEGAL_ENTITY)}</span>
@@ -769,6 +795,7 @@ export function renderLegalHtml({ docId = 'legal', host = 'auru.space', version 
     .nav a { text-decoration:none; color:var(--muted); font-size:12.5px; padding:6px 10px; border-radius:8px; border:1px solid transparent; transition:.15s ease; }
     .nav a:hover, .nav a.active { color:var(--ink); background:rgba(255,255,255,0.06); border-color:var(--line); }
     .doc-card { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:32px; }
+    .review-notice { margin-bottom:22px; padding:14px 16px; border:1px solid rgba(251,191,36,.35); border-radius:10px; background:rgba(251,191,36,.08); color:#fde68a; font-size:13px; }
     .doc-meta { display:flex; flex-wrap:wrap; gap:12px; align-items:center; font-size:12px; color:var(--muted); margin-bottom:14px; }
     .pill { display:inline-block; padding:3px 9px; border-radius:999px; font:600 11px/1.2 ui-monospace,Consolas,monospace; background:rgba(99,102,241,0.16); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); }
     h1 { font-size:clamp(24px,3.2vw,32px); letter-spacing:-0.025em; margin-bottom:10px; }

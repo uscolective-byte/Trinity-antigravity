@@ -1147,19 +1147,41 @@ header {
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 240, 255, 0.15);
 }
 
+.composer-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 2px 8px;
+  color: var(--text-primary, #f1f5f9);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.composer-heading span {
+  color: var(--text-secondary, #aab4c0);
+  font-size: 11px;
+  font-weight: 400;
+}
+
 #message {
   width: 100%;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
   resize: none;
   padding: 4px 0 10px;
   min-height: 58px;
   max-height: 180px;
   font-size: 14.5px;
   line-height: 1.6;
-  background: transparent;
+  background: #111820;
   color: #ffffff;
   outline: none !important;
 }
+
+html[data-theme="light"] .composer-heading { color: #26312c; }
+html[data-theme="light"] .composer-heading span { color: #626d66; }
+html[data-theme="light"] #message { background: #f5f7f2; color: #26312c; }
 
 #message::placeholder {
   color: var(--text-dim);

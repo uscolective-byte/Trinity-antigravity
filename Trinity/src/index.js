@@ -217,8 +217,8 @@ async function route(request,env,ctx){
   const isOmniDevHost = reqHostname === 'auru.dev' || reqHostname === 'dev.auru.space' || new URL(request.url).searchParams.get('mode') === 'omni-dev';
   const isMobileRequested = path === '/mobile' || (['/', '/index.html'].includes(path) && url.searchParams.get('device') === 'mobile');
   if(request.method === 'GET' && isMobileRequested) return renderMobileChatUI(env, reqHostname);
-  if(request.method==='GET'&&['/legal','/terms','/privacy','/aup','/license','/security-policy'].includes(path)){
-    const docMap={'/legal':'legal','/terms':'terms','/privacy':'privacy','/aup':'aup','/license':'license','/security-policy':'ai_act'};
+  if(request.method==='GET'&&['/legal','/terms','/privacy','/aup','/license','/security-policy','/architecture'].includes(path)){
+    const docMap={'/legal':'legal','/terms':'terms','/privacy':'privacy','/aup':'aup','/license':'license','/security-policy':'ai_act','/architecture':'architecture'};
     return new Response(renderLegalHtml({docId:docMap[path],host:reqHostname,version:TRINITY_VERSION}),{headers:{
       'Content-Type':'text/html; charset=utf-8',
       'X-Trinity-Host':reqHostname,

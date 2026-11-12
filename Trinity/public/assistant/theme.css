@@ -2167,3 +2167,5 @@ html[data-theme="light"] .main-nav button.active,html[data-theme="light"] .messa
 body #welcome .avatar,body #welcome .avatar.large{background:#395c51!important;color:#e3ece6!important;box-shadow:none!important;animation:none!important}
 body .main-nav button.active{box-shadow:none!important}
 body .composer-wrap{background:transparent!important}
+body .composer-wrap #message{background:#111820!important;color:#f1f5f9!important;border:1px solid #46515c!important}
+html[data-theme="light"] body .composer-wrap #message{background:#f5f7f2!important;color:#26312c!important;border-color:#bdcbbb!important}

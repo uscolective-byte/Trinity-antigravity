@@ -166,6 +166,7 @@ export function renderLandingHtml({
         <a href="/aup">Anti-Spam &amp; AUP</a>
         <a href="/privacy">Súkromie (GDPR)</a>
         <a href="/terms">Podmienky</a>
+        <a href="/architecture">Architektúra</a>
         <span class="badge">${envBadge}</span>
       </nav>
     </header>
@@ -245,6 +246,7 @@ export function renderLandingHtml({
         <a href="/privacy">Ochrana súkromia</a>
         <a href="/license">Licencia</a>
         <a href="/security-policy">EU AI Act</a>
+        <a href="/architecture">Architektúra Trinity</a>
       </div>
     </footer>
   </div>
