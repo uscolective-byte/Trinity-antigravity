@@ -215,7 +215,7 @@ test('Telegram setup registers and verifies webhook only with the temporary secr
     const options=JSON.parse(t.requests.find(item=>item.url.endsWith('/setWebhook')).body);
     assert.equal(options.url,'https://auru.space/api/telegram/webhook');
     assert.equal(options.secret_token,secret);
-    assert.deepEqual(options.allowed_updates,['message']);
+    assert.deepEqual(options.allowed_updates,['message','callback_query']);
   } finally {t.restore();}
 });
 

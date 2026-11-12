@@ -8,6 +8,7 @@
 import {callModel} from './services.js';
 import {equal,rateLimit,readJSON} from './security.js';
 import {getPCBridgeStatus} from './system-actions.js';
+import {decideAndExecuteHitlApproval} from './hitl-approvals.js';
 
 // Telegram is an independent, text-only entrypoint. It never authenticates as a Trinity admin.
 const reply = (data, status = 200) => Response.json(data, {status});
@@ -387,8 +388,54 @@ export async function handleTelegramWebhook(request, env, ctx) {
   try { update = await readJSON(request, 16000); }
   catch { return reply({error: 'Invalid update'}, 400); }
   if (!Number.isSafeInteger(update?.update_id) || update.update_id < 0) return reply({error: 'Invalid update id'}, 400);
-  const message = update.message;
   const allowed = await getAllowedUserIds(env);
+
+  if (update.callback_query) {
+    const cq = update.callback_query;
+    if (!Number.isSafeInteger(cq.from?.id) || !allowed.has(String(cq.from.id))) {
+      return reply({ok: true, ignored: true});
+    }
+    await rateLimit(env, 'telegram:callback:' + cq.from.id, 20, 60);
+    const cbKey = 'telegram:cb:' + update.update_id;
+    const insertedCb = await env.DB.prepare(
+      "INSERT INTO ops_memory(key,value,source,updated_at) VALUES(?,?,'telegram-callback',datetime('now')) ON CONFLICT(key) DO NOTHING RETURNING key"
+    ).bind(cbKey, String(cq.from.id)).first();
+    if (!insertedCb) return reply({ok: true, duplicate: true});
+
+    const match = String(cq.data || '').match(/^hitl:(approve|reject):([0-9a-f-]+)$/i);
+    const runCb = (async () => {
+      let note = 'Neznáma HITL požiadavka.';
+      if (match) {
+        try {
+          const result = await decideAndExecuteHitlApproval(env, {
+            id: match[2],
+            decision: match[1].toLowerCase(),
+            actor: 'telegram:' + cq.from.id,
+            channel: 'telegram'
+          });
+          note = result.status === 'executed'
+            ? 'Schválené a vykonané!'
+            : result.status === 'rejected'
+              ? 'Požiadavka bola zamietnutá.'
+              : `Stav: ${result.status}`;
+        } catch (err) {
+          note = err instanceof Error ? err.message.slice(0, 180) : 'Spracovanie zlyhalo.';
+        }
+      }
+      if (cq.id) {
+        await telegramApi(env, 'answerCallbackQuery', {
+          callback_query_id: String(cq.id),
+          text: note,
+          show_alert: false
+        }).catch(() => {});
+      }
+    })();
+    if (ctx?.waitUntil) ctx.waitUntil(runCb);
+    else await runCb;
+    return reply({ok: true, callback_handled: Boolean(match)});
+  }
+
+  const message = update.message;
   if (!message || typeof message.text !== 'string' || message.chat?.type !== 'private' ||
       !Number.isSafeInteger(message.from?.id) || !Number.isSafeInteger(message.chat?.id) ||
       message.from.id !== message.chat.id ||
@@ -457,7 +504,7 @@ export async function activateTelegramWebhook(request, env) {
   try {
     await telegramApi(env,'setWebhook',{url:webhookUrl,
       secret_token:env.TELEGRAM_WEBHOOK_SECRET,
-      allowed_updates:['message'],drop_pending_updates:false,max_connections:10});
+      allowed_updates:['message','callback_query'],drop_pending_updates:false,max_connections:10});
     const registered = await telegramApi(env,'getWebhookInfo');
     if (registered?.url !== webhookUrl) throw new Error('Webhook verification failed');
     const recipient=[...allowedIds(env.TELEGRAM_ALLOWED_USER_IDS)][0];
@@ -470,4 +517,27 @@ export async function activateTelegramWebhook(request, env) {
   } catch {
     return reply({error:'Webhook registration or verification failed'},502);
   }
+}
+
+export async function syncTelegramWebhookForOwner(env, host = 'auru.space') {
+  const status = telegramIntegrationStatus(env);
+  if (!status.bot_token || !status.webhook_secret || !status.allowed_users) {
+    throw new Error('Telegram integrácia nemá nastavený BOT_TOKEN, WEBHOOK_SECRET alebo ALLOWED_USER_IDS.');
+  }
+  const safeHost = host === 'auru.dev' ? 'auru.dev' : 'auru.space';
+  const webhookUrl = `https://${safeHost}/api/telegram/webhook`;
+  await telegramApi(env, 'setWebhook', {
+    url: webhookUrl,
+    secret_token: env.TELEGRAM_WEBHOOK_SECRET,
+    allowed_updates: ['message', 'callback_query'],
+    drop_pending_updates: false,
+    max_connections: 10
+  });
+  const registered = await telegramApi(env, 'getWebhookInfo');
+  return {
+    ok: registered?.url === webhookUrl,
+    url: registered?.url || webhookUrl,
+    allowed_updates: registered?.allowed_updates || ['message', 'callback_query'],
+    pending_update_count: registered?.pending_update_count || 0
+  };
 }

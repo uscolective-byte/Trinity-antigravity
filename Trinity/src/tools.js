@@ -18,6 +18,7 @@ import {boundedText,getOllamaKey,serviceStatus,SERVICES} from './services.js';
 import {ensureToolEnabled,pluginEnabled,listPlugins,installPlugin} from './plugins.js';
 import {SKILLS, agentById} from './registry.js';
 import {createSystemAction,getSystemAction,actionEvidence,getPCBridgeStatus} from './system-actions.js';
+import {createHitlApproval,createHitlRequestSchema} from './hitl-approvals.js';
 import {getPortfolio} from './trading.js';
 import {PRACTICAL_TOOL_NAMES,PRACTICAL_TOOL_SCHEMAS,PRACTICAL_TOOL_HELP,runPracticalTool} from './practical-skills.js';
 import {planTask} from './planner.js';
@@ -60,7 +61,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {antigravityReadFile,antigravityWriteFile,antigravityEditFile,antigravityRunCommand,antigravityManageTask,antigravitySearchMarketplace} from './antigravity-bridge.js';
 
-export const INTERNAL_TOOLS=new Set(['diagnostic_ping','request_system_action','system_action_status','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose','cf_d1_query','cf_kv_store','cf_r2_manage','cf_self_deploy','mail_engine','http_fetch_pro','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','apply_self_evolution','triad_subagent_run','triad_deep_research','triad_code_patch','triad_test_matrix','triad_copilot_sync','triad_status','read_file','write_file','edit_file','run_command','manage_task','search_marketplace','execute_gemini_gem','execute_claude','dual_engine_deliberate','multi_agent_dispatch']);
+export const INTERNAL_TOOLS=new Set(['diagnostic_ping','request_system_action','system_action_status','request_owner_approval','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose','cf_d1_query','cf_kv_store','cf_r2_manage','cf_self_deploy','mail_engine','http_fetch_pro','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','apply_self_evolution','triad_subagent_run','triad_deep_research','triad_code_patch','triad_test_matrix','triad_copilot_sync','triad_status','read_file','write_file','edit_file','run_command','manage_task','search_marketplace','execute_gemini_gem','execute_claude','dual_engine_deliberate','multi_agent_dispatch']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
 export const OWNER_BUSINESS_TOOLS=new Set(['finance_propose_transfer','finance_confirm_transfer','finance_audit_ledger','prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
@@ -123,6 +124,7 @@ export const TOOL_SCHEMAS={
   ,install_plugin:z.object({id:z.string().regex(/^(?:[a-z0-9-]{1,40}|all)$/),reason:z.string().min(3).max(300)}).strict()
   ,request_system_action:z.object({action:z.enum(['read','write','edit','selfwrite','run','deploy','share','upload','upgrade','screenshot','open_app','open_url','open_file','notify','system_info','scrape','web_fetch','download','git_commit','git_pr']),payload:z.record(z.string(),z.unknown()).default({}),rationale:z.string().min(3).max(1000)}).strict()
   ,system_action_status:z.object({id:z.string().uuid()}).strict()
+  ,request_owner_approval:createHitlRequestSchema
   ,portfolio_summary:z.object({portfolio_id:z.string().uuid().optional()}).strict()
   ,json_tool:z.object({operation:z.enum(['validate','format','minify','get']),json:z.string().max(20000),path:z.string().max(200).optional()}).strict()
   ,hash_text:z.object({text:z.string().max(100000),algorithm:z.literal('SHA-256').default('SHA-256')}).strict()
@@ -552,6 +554,21 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(name==='system_action_status'){
     const action=await getSystemAction(env,args.id);if(!action)throw new Error('Systémová akcia neexistuje.');
     return {id:action.id,action:action.action,status:action.status,receipt:action.receipt,error:action.error,_evidence:action.status==='completed'?{effect:'mutation',actions:actionEvidence(action.action),receipt_id:action.id}:null};
+  }
+  if(name==='request_owner_approval'){
+    const requestedBy=agent?.id?`agent:${agent.id}`:'trinity';
+    const created=await createHitlApproval(env,{requestUrl:env.TRINITY_BASE_URL||'https://auru.space',requestedBy,input:args});
+    return {
+      id:created.approval.id,
+      status:created.approval.status,
+      action_type:created.approval.action_type,
+      title:created.approval.title,
+      approve_url:created.approve_url,
+      channels:created.channels,
+      expires_at:created.approval.expires_at,
+      note:'Požiadavka bola odoslaná vlastníkovi na mobilné schválenie (Telegram / auru.space / E-mail).',
+      _evidence:{effect:'proposal'}
+    };
   }
   if(name==='calculate'){
     const v=args.values;let result;
@@ -1565,5 +1582,6 @@ export const TOOL_HELP={
   finance_propose_transfer:'Pripraví autorizovaný finančný príkaz s limitom 50€/200€ denne: {amount_eur:number,recipient:string,provider?:revolut|paypal|sepa,note?:string}',
   finance_confirm_transfer:'Potvrdí a kryptograficky zapíše prevod do auditného ledgera: {proposal_id:string,confirmation_token?:string}',
   finance_audit_ledger:'Zobrazí nemennú auditnú knihu finančných transakcií: {limit?:number}',
+  request_owner_approval:'Vytvorí Human-in-the-Loop (HITL) požiadavku a pošle notifikáciu s tlačidlami Schváliť/Zamietnuť do Telegramu a na auru.space: {action_type:provision_trinity_api_key|issue_license|provision_cloudflare_token|provision_openai_project_key|system_action|custom_operation, title:string, rationale:string, payload?:object, ttl_minutes?:number}',
   meta_manage:'Správa a využitie Meta AI (Llama 3.3/3.1/3.2) a pripojeného Meta účtu (Facebook stránky a Instagram profily): {action?:status|connect_url|pages|ai_generate|create_post_draft, prompt?:string, model?:llama-3.3-70b|llama-3.1-8b|llama-3.2-11b-vision, topic?:string, target_platform?:facebook|instagram|all}'
 };

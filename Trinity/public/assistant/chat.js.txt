@@ -5045,7 +5045,8 @@ async function loadGovernancePanel(){
   if(!$('settings-governance-panel'))return;
   const isOwner=state?.account?.role==='owner';
   if($('license-issue-form'))$('license-issue-form').hidden=!isOwner;
-  const [licRes,shieldRes]=await Promise.allSettled([legalApi('/api/legal/license'),legalApi('/api/security/shield-status')]);
+  if($('hitl-sync-telegram-btn'))$('hitl-sync-telegram-btn').hidden=!isOwner;
+  const [licRes,shieldRes,hitlRes]=await Promise.allSettled([legalApi('/api/legal/license'),legalApi('/api/security/shield-status'),legalApi('/api/hitl/approvals?limit=20')]);
   if(licRes.status==='fulfilled'){
     const data=licRes.value,lic=data.active_license||{};
     if($('gov-policy-version-chip'))$('gov-policy-version-chip').textContent=`Verzia: ${data.policy_version||'2026.11'}`;
@@ -5088,6 +5089,36 @@ async function loadGovernancePanel(){
       if(!items.length)incEl.append(node('p','Žiadne spamové ani zneužívajúce požiadavky neboli zachytené.','skeleton'));
     }
   }
+  const hitlEl=$('hitl-approvals-list');
+  if(hitlEl){
+    hitlEl.replaceChildren();
+    if(hitlRes.status==='fulfilled'){
+      const items=hitlRes.value?.items||[];
+      for(const item of items){
+        const row=node('div',undefined,'api-key-item');
+        row.append(
+          node('b',`${item.title} (${item.action_type})`),
+          node('code',`${item.status} · ${String(item.id||'').slice(0,8)}`),
+          node('small',`${item.requested_by||'trinity'}${item.decision_channel?' · '+item.decision_channel:''}`)
+        );
+        const openLink=node('a','Otvoriť');
+        openLink.href=`/approve/${item.id}`;openLink.target='_blank';openLink.rel='noopener noreferrer';
+        openLink.className='button-link';
+        row.append(openLink);
+        if(isOwner&&item.status==='pending'){
+          const okBtn=node('button','✅ Schváliť');okBtn.type='button';
+          okBtn.onclick=safe(async()=>{await legalApi(`/api/approve/${item.id}`,{decision:'approve'});notice('HITL požiadavka bola schválená.');await loadGovernancePanel();});
+          const noBtn=node('button','❌ Zamietnuť');noBtn.type='button';
+          noBtn.onclick=safe(async()=>{await legalApi(`/api/approve/${item.id}`,{decision:'reject'});notice('HITL požiadavka bola zamietnutá.');await loadGovernancePanel();});
+          row.append(okBtn,noBtn);
+        }
+        hitlEl.append(row);
+      }
+      if(!items.length)hitlEl.append(node('p','Zatiaľ neexistujú žiadne HITL schvaľovacie požiadavky.','skeleton'));
+    }else{
+      hitlEl.append(node('p','HITL schválenia sú dostupné po prihlásení správcu/vlastníka.','skeleton'));
+    }
+  }
 }
 function initGovernanceControls(){
   document.querySelectorAll('[data-toast]').forEach(btn=>btn.onclick=()=>notice(btn.dataset.toast||''));
@@ -5097,6 +5128,21 @@ function initGovernanceControls(){
   if($('accept-policies-btn'))$('accept-policies-btn').onclick=safe(acceptAllPolicies);
   if($('legal-dialog-accept-btn'))$('legal-dialog-accept-btn').onclick=safe(acceptAllPolicies);
   if($('refresh-governance-btn'))$('refresh-governance-btn').onclick=safe(loadGovernancePanel);
+  if($('hitl-test-btn'))$('hitl-test-btn').onclick=safe(async()=>{
+    const res=await legalApi('/api/hitl/request',{
+      action_type:'custom_operation',
+      title:'Test mobilnej HITL autorizácie Trinity',
+      rationale:'Overenie živého prepojenia medzi Trinity, Telegram inline tlačidlami a auru.space.',
+      payload:{source:'governance_panel',verified_at:new Date().toISOString()}
+    });
+    const tgSent=res?.channels?.telegram?.sent;
+    notice(tgSent?'HITL test bol vytvorený a odoslaný do Telegramu v mobile!':'HITL požiadavka vytvorená v D1 (skontroluj Telegram konfiguráciu).');
+    await loadGovernancePanel();
+  });
+  if($('hitl-sync-telegram-btn'))$('hitl-sync-telegram-btn').onclick=safe(async()=>{
+    const res=await legalApi('/api/hitl/telegram/sync-webhook',{});
+    notice(res?.ok?`Telegram webhook synchronizovaný (${res.url})`:'Telegram webhook sa nepodarilo synchronizovať.');
+  });
   if($('license-issue-form'))$('license-issue-form').onsubmit=safe(async()=>{
     const subject_id=$('lic-subject-id')?.value.trim();
     const tier=$('lic-tier')?.value||'pro_studio';

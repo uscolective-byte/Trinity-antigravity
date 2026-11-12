@@ -90,6 +90,14 @@ import {
   verifyTurnstileIfConfigured,
   withRateLimitHeaders
 } from './compliance-shield.js';
+import {
+  createHitlApproval,
+  decideAndExecuteHitlApproval,
+  getHitlApproval,
+  listHitlApprovals,
+  renderHitlApproveHtml
+} from './hitl-approvals.js';
+import {syncTelegramWebhookForOwner} from './telegram-bridge.js';
 import {PINNED_SYSTEM_PROMPT,TRINITY_TOOL_DEFINITIONS,normalizeText,handleFastEdgeRoute,executeTool,runInferenceCascade} from './sovereign-monolith.js';
 import {getFleetClusterSummary} from './fleet-clusters.js';
 import tapProfileService from '../../services/trinity-profile/src/index.js';
@@ -235,6 +243,21 @@ async function route(request,env,ctx){
       'X-Trinity-Host':reqHostname,
       'Cache-Control':'no-cache, must-revalidate',
       'Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+    }});
+  }
+  const hitlPageMatch=path.match(/^\/approve\/([0-9a-f-]{36})$/i);
+  if(hitlPageMatch&&request.method==='GET'){
+    let authUser=null;
+    try{authUser=await authenticate(request,env);}catch{}
+    const authenticatedOwner=authUser?.role==='owner';
+    const record=authenticatedOwner?await getHitlApproval(env,hitlPageMatch[1]):null;
+    const ownerMail=env.TRINITY_OWNER_EMAIL||'saboivan2008@gmail.com';
+    const pageStatus=!authUser?200:(!authenticatedOwner?403:(record?200:404));
+    return new Response(renderHitlApproveHtml({record,host:reqHostname,authenticatedOwner,ownerMail}),{status:pageStatus,headers:{
+      'Content-Type':'text/html; charset=utf-8',
+      'X-Trinity-Host':reqHostname,
+      'Cache-Control':'no-store',
+      'Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
     }});
   }
   if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
@@ -1751,6 +1774,63 @@ async function route(request,env,ctx){
   if(path==='/api/security/shield-status'&&request.method==='GET'){
     requireAdmin(user);
     return json(await getShieldStatus(env));
+  }
+  if(path==='/api/hitl/approvals'&&request.method==='GET'){
+    requireAdmin(user);
+    return json({ok:true,items:await listHitlApprovals(env,{limit:Number(url.searchParams.get('limit')||30)})});
+  }
+  if(path==='/api/hitl/request'&&request.method==='POST'){
+    checkOrigin(request,env);
+    requireAdmin(user);
+    const body=await readJSON(request,20000);
+    const created=await createHitlApproval(env,{requestUrl:request.url,requestedBy:user.email||user.id||'admin',input:body});
+    return json({ok:true,...created},201);
+  }
+  if(path==='/api/hitl/telegram/sync-webhook'&&request.method==='POST'){
+    checkOrigin(request,env);
+    requireOwner(user);
+    return json({ok:true,...(await syncTelegramWebhookForOwner(env,reqHostname))});
+  }
+  const hitlApiMatch=path.match(/^\/api\/approve\/([0-9a-f-]{36})$/i);
+  if(hitlApiMatch&&request.method==='POST'){
+    checkOrigin(request,env);
+    requireOwner(user);
+    const ct=String(request.headers.get('Content-Type')||'').toLowerCase();
+    let decision='';
+    if(ct.includes('application/json')){
+      const body=await readJSON(request,8000);
+      decision=body?.decision;
+    }else if(ct.includes('application/x-www-form-urlencoded')){
+      const params=new URLSearchParams(await request.text());
+      decision=params.get('decision')||'';
+    }else{
+      throw new HttpError(415,'Vyžaduje sa JSON alebo HTML formulár.');
+    }
+    const updated=await decideAndExecuteHitlApproval(env,{
+      id:hitlApiMatch[1],
+      decision,
+      actor:user.email||user.id||'owner',
+      channel:'web'
+    });
+    const accept=String(request.headers.get('Accept')||'').toLowerCase();
+    const wantsHtml=ct.includes('application/x-www-form-urlencoded')||accept.includes('text/html');
+    if(wantsHtml&&!accept.includes('application/json')){
+      const ownerMail=env.TRINITY_OWNER_EMAIL||'saboivan2008@gmail.com';
+      return new Response(renderHitlApproveHtml({
+        record:updated,
+        host:reqHostname,
+        authenticatedOwner:true,
+        ownerMail,
+        message:updated?.status==='executed'?'Požiadavka bola schválená a vykonaná.':(updated?.status==='rejected'?'Požiadavka bola zamietnutá vlastníkom.':''),
+        error:updated?.status==='failed'?(updated.error_message||'Vykonanie zlyhalo.'):''
+      }),{status:updated?.status==='failed'?502:200,headers:{
+        'Content-Type':'text/html; charset=utf-8',
+        'X-Trinity-Host':reqHostname,
+        'Cache-Control':'no-store',
+        'Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+      }});
+    }
+    return json({ok:updated?.status!=='failed',item:updated,error:updated?.error_message||null},updated?.status==='failed'?502:200);
   }
   if(path==='/api/assistant/chat'&&request.method==='POST'){
     await rateLimit(env,`job:${user.id}`,12);
