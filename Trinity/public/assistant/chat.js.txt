@@ -4651,6 +4651,37 @@ function initChatPlusMenu(){
     notice('Nástroj Domény & DNS aktivovaný.');
   });
 
+  $('plus-opt-tool-consensus')?.addEventListener('click', safe(async () => {
+    toggleMenu(false);
+    const msg = $('message');
+    const prompt = msg?.value.trim();
+    if (!prompt) {
+      if (msg) {
+        msg.value = 'Použi multi_model_consensus a porovnaj pohľady modelov na: ';
+        msg.focus();
+      }
+      notice('Napíš otázku do chatu alebo ju dokonči a spusti Multi-Model Konsenzus.');
+      return;
+    }
+    msg.value = '';
+    resizeChatInput();
+    bubble('user', `🧠 Multi-Model Konsenzus: ${prompt}`);
+    const out = bubble('assistant', 'Spúšťam paralelný dopyt naprieč nakonfigurovanými modelmi…');
+    try {
+      const res = await api('/consensus', { task: prompt });
+      const breakdown = (res.responses || []).map(r => r.ok ? `• **${r.provider}** (\`${r.model}\`, ${r.duration_ms} ms)` : `• ${r.provider}: *nedostupný (${r.error})*`).join('\n');
+      const full = `${res.consensus_text}\n\n---\n**Zapojené modely (${res.responded_count}/${res.attempted_count}):**\n${breakdown}`;
+      renderReply(out.content, full);
+    } catch (err) {
+      out.content.textContent = `Multi-Model Konsenzus hlási: ${err.message}`;
+    }
+  }));
+
+  $('plus-opt-tool-landing')?.addEventListener('click', () => {
+    toggleMenu(false);
+    window.open('/landing', '_blank', 'noopener,noreferrer');
+  });
+
   $('plus-opt-tool-gdpr')?.addEventListener('click', () => {
     toggleMenu(false);
     const msg = $('message');

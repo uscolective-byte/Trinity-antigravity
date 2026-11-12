@@ -53,6 +53,7 @@ import {diagnoseOmniDevStackTrace,proposeOmniDevRecoveryPatch} from './omnidev-d
 import {executeGeminiGemAgent} from './gemini-gem-agent.js';
 import {executeClaudeAgent} from './claude-agent.js';
 import {dualEngineDeliberate} from './dual-engine-orchestrator.js';
+import {runMultiModelConsensus} from './multi-model-bus.js';
 import {TrinityMultiAgentOrchestrator,TASK_PRIORITIES} from './multi-agent-orchestrator.js';
 let sharedOrchestrator=null;
 import fs from 'node:fs';
@@ -347,6 +348,7 @@ export const TOOL_SCHEMAS={
   execute_gemini_gem:z.object({task:z.string().min(1).max(20000),systemPrompt:z.string().max(10000).optional(),maxTokens:z.number().int().optional()}).strict(),
   execute_claude:z.object({task:z.string().min(1).max(50000),model:z.string().optional(),systemPrompt:z.string().max(10000).optional(),maxTokens:z.number().int().optional()}).strict(),
   dual_engine_deliberate:z.object({task:z.string().min(1).max(50000),mode:z.enum(['deliberate','parallel','claude_only','gemini_only']).optional().default('deliberate'),geminiModel:z.string().optional(),claudeModel:z.string().optional(),systemPrompt:z.string().max(10000).optional(),maxTokens:z.number().int().optional()}).strict(),
+  multi_model_consensus:z.object({task:z.string().min(1).max(12000),providers:z.array(z.string().max(30)).max(8).optional(),synthesize:z.boolean().optional().default(true),maxTokens:z.number().int().optional()}).strict(),
   multi_agent_dispatch:z.object({title:z.string().min(1).max(4000),taskType:z.enum(['architecture','subsystems','scaling','research','analysis','comparison','documentation','refactoring','solutions','coding','patching','tests','implementation','dev_assistance','orchestration','coordination','planning']).default('orchestration'),priority:z.enum(['CRITICAL','HIGH','NORMAL','LOW']).default('NORMAL'),execute:z.boolean().default(false)}).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
@@ -1286,6 +1288,9 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(name==='dual_engine_deliberate'){
     return dualEngineDeliberate(env, args.task, args);
   }
+  if(name==='multi_model_consensus'){
+    return runMultiModelConsensus(env, args.task, args);
+  }
   if(name==='triad_subagent_run'){
     const roleMap = {
       researcher: 'Výskumný špecialista Triády',
@@ -1556,6 +1561,7 @@ export const TOOL_HELP={
   execute_gemini_gem:'Vykoná Gemini API inferenciu s Trinity profilom, modelovou kaskádou a prípadným Workers AI fallbackom. Limity spravuje poskytovateľ: {task:string,systemPrompt?:string,maxTokens?:number}',
   execute_claude:'Vykoná Anthropic Claude Messages API inferenciu (3.7 Sonnet, 3.5 Sonnet, Haiku, Opus) s modelovou kaskádou a fallbackom na Gemini: {task:string,model?:string,systemPrompt?:string,maxTokens?:number}',
   dual_engine_deliberate:'Krížová deliberácia a konsenzus medzi Google Gemini (analytik) a Anthropic Claude (syntetizér) s Truth Policy 2.1 receiptom: {task:string,mode?:deliberate|parallel|claude_only|gemini_only,geminiModel?:string,claudeModel?:string}',
+  multi_model_consensus:'Paralelne osloví všetky nakonfigurované AI modely (Workers AI, Gemini, OpenAI, Claude, Groq, DeepSeek) a vytvorí overený konsenzus bez vymyslených odpovedí: {task:string,providers?:string[],synthesize?:boolean}',
   finance_propose_transfer:'Pripraví autorizovaný finančný príkaz s limitom 50€/200€ denne: {amount_eur:number,recipient:string,provider?:revolut|paypal|sepa,note?:string}',
   finance_confirm_transfer:'Potvrdí a kryptograficky zapíše prevod do auditného ledgera: {proposal_id:string,confirmation_token?:string}',
   finance_audit_ledger:'Zobrazí nemennú auditnú knihu finančných transakcií: {limit?:number}',

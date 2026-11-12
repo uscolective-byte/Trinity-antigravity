@@ -7,6 +7,9 @@ import { extractHtml } from '../src/studio.js';
 import { callModel } from '../src/services.js';
 import { secretInputSchema, storeSecret, verifySecret } from '../src/secret-vault.js';
 import { TRINITY_SCRIPTS_CATALOG, COMMON_CONNECTORS_CATALOG } from '../src/scripts-catalog.js';
+import { runMultiModelConsensus } from '../src/multi-model-bus.js';
+import { renderLandingHtml } from '../src/landing-page.js';
+import { TOOL_HELP } from '../src/tools.js';
 
 const trinityDir = fileURLToPath(new URL('..', import.meta.url));
 const repoRoot = resolve(trinityDir, '..');
@@ -150,4 +153,38 @@ test('Trinity conversation prompts & greetings use warm natural human tone witho
   assert.ok(!cognition.includes('Dobrý deň, Sabo. Čo chcete'), 'cognition.js must not contradict tykanie with vykanie examples');
   assert.ok(!engine.includes('vtipkovania a zbytočných úvodov'), 'engine.js system prompt must allow natural warmth and wit');
   assert.ok(fastChat.includes('parťáčka'), 'fast-chat.js should use natural conversational persona');
+});
+
+test('runMultiModelConsensus queries providers truthfully without fabricating unconfigured models', async () => {
+  const env = {
+    AI: {
+      async run() {
+        return { response: 'Overená odpoveď z Workers AI bez halucinácií.' };
+      }
+    }
+  };
+  const result = await runMultiModelConsensus(env, 'Navrhni krátky slogan pre Trinity', {
+    providers: ['workers-ai', 'openai', 'gemini']
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.attempted_count, 3);
+  assert.equal(result.responded_count, 1);
+  assert.match(result.consensus_text, /Overená odpoveď z Workers AI/);
+  const openaiRow = result.responses.find((r) => r.provider === 'openai');
+  assert.equal(openaiRow?.ok, false);
+  assert.ok(result.receipt?.receiptId);
+});
+
+test('renderLandingHtml serves Underground Garage showcase for auru.space and auru.dev and UI exposes consensus & landing', () => {
+  const prodHtml = renderLandingHtml({ host: 'auru.space', environment: 'production', version: '12.0.0' });
+  const devHtml = renderLandingHtml({ host: 'auru.dev', environment: 'staging', version: '12.0.0' });
+  const html = readFileSync(resolve(trinityDir, 'public/assistant/chat.html'), 'utf8');
+  const js = readFileSync(resolve(trinityDir, 'public/assistant/chat.js.txt'), 'utf8');
+
+  assert.match(prodHtml, /PRODUCTION LIVE · AURU\.SPACE/);
+  assert.match(devHtml, /STAGING LAB · AURU\.DEV/);
+  assert.ok(prodHtml.includes('/garage-v1.webp') && prodHtml.includes('#d4ff2a'));
+  assert.ok(typeof TOOL_HELP.multi_model_consensus === 'string');
+  assert.ok(html.includes('id="plus-opt-tool-consensus"') && js.includes('plus-opt-tool-consensus'));
+  assert.ok(html.includes('id="plus-opt-tool-landing"') && js.includes('plus-opt-tool-landing'));
 });

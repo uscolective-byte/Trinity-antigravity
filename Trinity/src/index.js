@@ -71,6 +71,8 @@ import {handleFastChatEdge,handleFastChat} from './fast-chat.js';
 import {executeInferenceCascade} from './inference-cascade.js';
 import {executeClaudeAgent} from './claude-agent.js';
 import {dualEngineDeliberate} from './dual-engine-orchestrator.js';
+import {runMultiModelConsensus} from './multi-model-bus.js';
+import {renderLandingHtml} from './landing-page.js';
 import {PINNED_SYSTEM_PROMPT,TRINITY_TOOL_DEFINITIONS,normalizeText,handleFastEdgeRoute,executeTool,runInferenceCascade} from './sovereign-monolith.js';
 import {getFleetClusterSummary} from './fleet-clusters.js';
 import tapProfileService from '../../services/trinity-profile/src/index.js';
@@ -181,6 +183,14 @@ async function route(request,env,ctx){
   const isOmniDevHost = reqHostname === 'auru.dev' || reqHostname === 'dev.auru.space' || new URL(request.url).searchParams.get('mode') === 'omni-dev';
   const isMobileRequested = path === '/mobile' || (['/', '/index.html'].includes(path) && url.searchParams.get('device') === 'mobile');
   if(request.method === 'GET' && isMobileRequested) return renderMobileChatUI(env, reqHostname);
+  if(request.method==='GET'&&['/landing','/welcome','/about'].includes(path)){
+    return new Response(renderLandingHtml({host:reqHostname,environment:isOmniDevHost?'staging':'production',version:TRINITY_VERSION}),{headers:{
+      'Content-Type':'text/html; charset=utf-8',
+      'X-Trinity-Host':reqHostname,
+      'Cache-Control':'no-cache, must-revalidate',
+      'Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+    }});
+  }
   if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
     'X-Trinity-Host': reqHostname,
     'X-Trinity-Mode': isOmniDevHost ? 'omni-dev' : 'production',
@@ -1668,6 +1678,11 @@ async function route(request,env,ctx){
     const ownerMode=['owner','admin'].includes(user.role)||user.email==='saboivan2008@gmail.com'||user.email===env.TRINITY_OWNER_EMAIL||(env.TRINITY_ADMIN_EMAILS&&env.TRINITY_ADMIN_EMAILS.split(',').map(s=>s.trim()).includes(user.email));
     const teamMode=/\b(t[ií]mov[yý]\s+re[zž]im|team\s+mode)\b/i.test(d.message);
     return json(await createJob(env,{task:d.message,session_id:d.session,agent:teamMode?'auto':'orchestrator',mode:teamMode?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,idempotency_key:crypto.randomUUID()}),202);
+  }
+  if(path==='/api/assistant/consensus'&&request.method==='POST'){
+    await rateLimit(env,`consensus:${user.id}`,10);
+    const d=z.object({task:z.string().min(1).max(12000),providers:z.array(z.string().max(30)).max(8).optional(),synthesize:z.boolean().optional().default(true)}).strict().parse(await readJSON(request));
+    return json(await runMultiModelConsensus(env,d.task,{providers:d.providers,synthesize:d.synthesize}));
   }
   if(path==='/api/copilot/chat'&&request.method==='POST'){
     await rateLimit(env,`copilot:${user.id}`,30,60);
