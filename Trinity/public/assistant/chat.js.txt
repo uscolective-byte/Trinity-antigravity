@@ -549,7 +549,7 @@ async function loadToolsAndScriptsCatalog(){
     }
   }catch(err){if(summary)summary.textContent='Katalóg sa nepodarilo načítať';}
 }
-async function loadSettings(){const data=await api('/settings');const admin=data.permissions||{};const [keyData,apiData,secretData,providerData,walletData,userData,selfImprovementData]=await Promise.all([admin.manage_api_keys?api('/api-keys'):Promise.resolve({items:[]}),api('/apis'),admin.manage_secrets?api('/secrets'):Promise.resolve({items:[]}),admin.manage_secrets?api('/ai-providers'):Promise.resolve({items:[]}),admin.manage_trading?api('/wallet'):Promise.resolve(null),admin.manage_users?opsApi('/users'):Promise.resolve({items:[],owner_email:null}),admin.manage_secrets?api('/self-improvement'):Promise.resolve({items:[],capabilities:{}})]);$('settings-api-key-panel').hidden=!admin.manage_api_keys;$('settings-antigravity-panel').hidden=!admin.manage_api_keys;$('settings-vscode-panel').hidden=!admin.manage_api_keys;$('settings-secret-panel').hidden=!admin.manage_secrets;$('settings-ai-provider-panel').hidden=!admin.manage_secrets;$('settings-self-improvement-panel').hidden=!admin.manage_secrets;$('settings-wallet-panel').hidden=!admin.manage_trading;$('settings-users-panel').hidden=!admin.manage_users;$('settings-model').textContent=data.model;$('settings-internet').textContent=data.internet.web_search?'Webový výskum zapnutý':'Základné pripojenie';$('settings-gateway').textContent=data.pc_bridge.connected?'Pripojený':'Nepripojený';renderPCBridgeStatus(data.pc_bridge);const seen=data.pc_bridge.last_seen_at||data.pc_bridge.last_seen;$('settings-gateway-seen').textContent=seen?'Posledný kontakt: '+(typeof seen==='number'?new Date(seen).toLocaleString('sk-SK'):seen):'Bez potvrdeného heartbeat';$('settings-database').textContent=data.storage.database;$('settings-version').textContent=data.version;applyVersionToUI(data.version);$('settings-truth').textContent=data.truth_policy_version;$('settings-storage').textContent=data.storage.strategy;$('settings-memory-count').textContent=data.storage.memory_records;$('settings-portfolio-count').textContent=data.counts.paper_portfolios;$('settings-module-count').textContent=`${data.plugins.filter(plugin=>plugin.enabled).length}/${data.plugins.length} aktívnych`;const list=$('settings-modules');list.replaceChildren();for(const plugin of data.plugins){const row=node('label',undefined,'setting-row'),text=node('span'),toggle=node('input'),meta=node('small',plugin.required?t('requiredModule'):plugin.description),tools=node('span',undefined,'module-tools');text.append(node('b',plugin.name),meta);for(const tool of (plugin.tools||[]).slice(0,4))tools.append(node('code',tool));if((plugin.tools||[]).length>4)tools.append(node('code','+'+(plugin.tools.length-4)));text.append(tools);toggle.type='checkbox';toggle.checked=plugin.enabled;toggle.disabled=plugin.required||!admin.manage_secrets;toggle.onchange=safe(async()=>{await api('/settings/plugins/'+plugin.id,{enabled:toggle.checked});});row.append(text,toggle);list.append(row);}renderConnectorsCatalog(data.connectors_catalog||[],secretData.items,admin.manage_secrets);const integrations=$('settings-integrations');integrations.replaceChildren();for(const item of data.integrations){const row=node('div',undefined,'integration-item'),mark=node('span','●','integration-mark '+item.status),info=node('span');info.append(node('b',item.name),node('small',statusLabel(item.status)));const isConnected=['verified','ready','configured','platform-connected','available'].includes(item.status);const actionBtn=node('button',isConnected?'Spravovať':'Pripojiť','connection-action-btn');actionBtn.type='button';actionBtn.onclick=()=>{const target=(data.connectors_catalog||[]).find(c=>c.provider===item.provider||c.id===item.id);if(target){openConnectorQuickForm(target);}else if(item.id==='antigravity-mcp'){$('settings-antigravity-panel')?.scrollIntoView({behavior:'smooth'});}else if(item.id==='vscode-mcp'){$('settings-vscode-panel')?.scrollIntoView({behavior:'smooth'});}else{$('settings-secret-panel')?.scrollIntoView({behavior:'smooth'});}};row.append(mark,info,actionBtn);integrations.append(row);}renderApiKeys(keyData.items);renderSecrets(secretData.items);if(admin.manage_secrets){renderAIProviders(providerData,secretData.items);renderSelfImprovement(selfImprovementData);}if(walletData)renderWallet(walletData);renderUsers(userData.items,userData.owner_email);$('settings-api-count').textContent=`${apiData.items.length} projektov`;const projects=$('settings-api-projects');projects.replaceChildren();for(const item of apiData.items){const row=node('div',undefined,'api-project-item'),path=node('code',`${item.method} /api/v1/generated/${item.slug}`);row.append(node('b',item.name),path,node('small',statusLabel(item.status)));projects.append(row);}if(!apiData.items.length)projects.append(node('p','API projekt vytvoríš cez Trinity alebo technické centrum.','skeleton'));loadLocalPreferences();applySettingsFilter();loadToolsAndScriptsCatalog();loadDomains();loadCommerce();loadPasskeys();initPasskeyRegistration();loadAuditEvents();}
+async function loadSettings(){const data=await api('/settings');const admin=data.permissions||{};const [keyData,apiData,secretData,providerData,walletData,userData,selfImprovementData]=await Promise.all([admin.manage_api_keys?api('/api-keys'):Promise.resolve({items:[]}),api('/apis'),admin.manage_secrets?api('/secrets'):Promise.resolve({items:[]}),admin.manage_secrets?api('/ai-providers'):Promise.resolve({items:[]}),admin.manage_trading?api('/wallet'):Promise.resolve(null),admin.manage_users?opsApi('/users'):Promise.resolve({items:[],owner_email:null}),admin.manage_secrets?api('/self-improvement'):Promise.resolve({items:[],capabilities:{}})]);$('settings-api-key-panel').hidden=!admin.manage_api_keys;$('settings-antigravity-panel').hidden=!admin.manage_api_keys;$('settings-vscode-panel').hidden=!admin.manage_api_keys;$('settings-secret-panel').hidden=!admin.manage_secrets;$('settings-ai-provider-panel').hidden=!admin.manage_secrets;$('settings-self-improvement-panel').hidden=!admin.manage_secrets;$('settings-wallet-panel').hidden=!admin.manage_trading;$('settings-users-panel').hidden=!admin.manage_users;$('settings-model').textContent=data.model;$('settings-internet').textContent=data.internet.web_search?'Webový výskum zapnutý':'Základné pripojenie';$('settings-gateway').textContent=data.pc_bridge.connected?'Pripojený':'Nepripojený';renderPCBridgeStatus(data.pc_bridge);const seen=data.pc_bridge.last_seen_at||data.pc_bridge.last_seen;$('settings-gateway-seen').textContent=seen?'Posledný kontakt: '+(typeof seen==='number'?new Date(seen).toLocaleString('sk-SK'):seen):'Bez potvrdeného heartbeat';$('settings-database').textContent=data.storage.database;$('settings-version').textContent=data.version;applyVersionToUI(data.version);$('settings-truth').textContent=data.truth_policy_version;$('settings-storage').textContent=data.storage.strategy;$('settings-memory-count').textContent=data.storage.memory_records;$('settings-portfolio-count').textContent=data.counts.paper_portfolios;$('settings-module-count').textContent=`${data.plugins.filter(plugin=>plugin.enabled).length}/${data.plugins.length} aktívnych`;const list=$('settings-modules');list.replaceChildren();for(const plugin of data.plugins){const row=node('label',undefined,'setting-row'),text=node('span'),toggle=node('input'),meta=node('small',plugin.required?t('requiredModule'):plugin.description),tools=node('span',undefined,'module-tools');text.append(node('b',plugin.name),meta);for(const tool of (plugin.tools||[]).slice(0,4))tools.append(node('code',tool));if((plugin.tools||[]).length>4)tools.append(node('code','+'+(plugin.tools.length-4)));text.append(tools);toggle.type='checkbox';toggle.checked=plugin.enabled;toggle.disabled=plugin.required||!admin.manage_secrets;toggle.onchange=safe(async()=>{await api('/settings/plugins/'+plugin.id,{enabled:toggle.checked});});row.append(text,toggle);list.append(row);}renderConnectorsCatalog(data.connectors_catalog||[],secretData.items,admin.manage_secrets);const integrations=$('settings-integrations');integrations.replaceChildren();for(const item of data.integrations){const row=node('div',undefined,'integration-item'),mark=node('span','●','integration-mark '+item.status),info=node('span');info.append(node('b',item.name),node('small',statusLabel(item.status)));const isConnected=['verified','ready','configured','platform-connected','available'].includes(item.status);const actionBtn=node('button',isConnected?'Spravovať':'Pripojiť','connection-action-btn');actionBtn.type='button';actionBtn.onclick=()=>{const target=(data.connectors_catalog||[]).find(c=>c.provider===item.provider||c.id===item.id);if(target){openConnectorQuickForm(target);}else if(item.id==='antigravity-mcp'){$('settings-antigravity-panel')?.scrollIntoView({behavior:'smooth'});}else if(item.id==='vscode-mcp'){$('settings-vscode-panel')?.scrollIntoView({behavior:'smooth'});}else{$('settings-secret-panel')?.scrollIntoView({behavior:'smooth'});}};row.append(mark,info,actionBtn);integrations.append(row);}renderApiKeys(keyData.items);renderSecrets(secretData.items);if(admin.manage_secrets){renderAIProviders(providerData,secretData.items);renderSelfImprovement(selfImprovementData);}if(walletData)renderWallet(walletData);renderUsers(userData.items,userData.owner_email);$('settings-api-count').textContent=`${apiData.items.length} projektov`;const projects=$('settings-api-projects');projects.replaceChildren();for(const item of apiData.items){const row=node('div',undefined,'api-project-item'),path=node('code',`${item.method} /api/v1/generated/${item.slug}`);row.append(node('b',item.name),path,node('small',statusLabel(item.status)));projects.append(row);}if(!apiData.items.length)projects.append(node('p','API projekt vytvoríš cez Trinity alebo technické centrum.','skeleton'));loadLocalPreferences();applySettingsFilter();loadToolsAndScriptsCatalog();loadDomains();loadCommerce();loadPasskeys();initPasskeyRegistration();loadAuditEvents();void loadGovernancePanel();}
 async function loadProjects(){const data=await api('/projects');const projects=$('project-list'),tasks=$('task-list');projects.replaceChildren();tasks.replaceChildren();for(const item of data.projects){const card=node('article',undefined,'project-card');card.append(node('div','▦','project-mark'),node('h2',item.name),node('p',item.description||''),node('small',item.status||''));projects.append(card);}if(!data.projects.length)projects.append(node('p',t('emptyProjects'),'skeleton'));for(const item of data.tasks){const row=node('div',undefined,'task-row');row.append(node('b',item.title),node('span',item.assigned_agent||'Trinity'),node('small',item.status||''));tasks.append(row);}if(!data.tasks.length)tasks.append(node('p',t('emptyTasks'),'skeleton'));}
 async function loadHistory(){const generation=++chatGeneration;controller?.abort();const rows=await api('/history?session='+encodeURIComponent(session));if(generation!==chatGeneration)return;$('messages').replaceChildren();$('welcome').hidden=rows.length>0;for(const row of rows){const item=bubble(row.role);if(row.role==='user')item.content.textContent=row.content;else renderReply(item.content,row.content);}bottom(true);}
 function renderEnvironment(){
@@ -600,6 +600,7 @@ async function init(){
   const preferred=localStorage.getItem('trinity-engine')||'auto';$('engine').value=preferred==='local'&&!state.local_available&&!state.pc_bridge?.connected?'auto':preferred;
   $('allow-files').disabled=true;$('allow-files-setting').hidden=true;loadLocalPreferences();localize();
   await refreshUiEvolutionLive();try{await sessions();}catch(err){}try{await loadHistory();}catch(err){}try{await syncCrossDomain();}catch(err){}
+  void syncSidebarLicenseBadge();
   await setView(location.hash.slice(1)||localStorage.getItem('trinity-start-view')||'chat',false);
  }catch(error){lockSession(error.message);}
 }
@@ -1033,7 +1034,7 @@ $('domain-register-form')?.addEventListener('submit',safe(async(e)=>{e.preventDe
   const res=await api('/domains/register',{domain_name:name,years:live?1:Number($('domain-reg-years').value),notes:$('domain-reg-notes').value.trim()||undefined,live_register:live,purchase_confirmed:live,max_price:live?price:undefined,currency});
   notice(res.registration_receipt.completed?'Registrátor potvrdil dokončenú registráciu.':live?'Registrácia bola prijatá; jej dokončenie ešte treba overiť.':'Doména je iba v evidencii; nákup sa nevykonal.');$('domain-register-form').reset();$('domain-register-wrap').hidden=true;await loadDomains();}));
 
-document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{const target=$(b.dataset.close);if(!target)return;if(typeof target.close==='function')target.close();else target.open=false;});
 $('login-form').onsubmit=safe(async()=>{await TrinityAuth.requestJSON('/api/ops/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:$('key').value})});$('key').value='';await init();});
 localize();
 Object.assign(words.sk,{greeting:'Ahoj Ivan. Na čom pracujeme?',intro:'Píš priamo a prirodzene — odpovedám naživo v reálnom čase.',welcomeLabel:'TRINITY · AI STUDIO',loginTitle:'Vstúp do Trinity',footnote:'Jedna Trinity. Spoločná pamäť. Skutočné výsledky, nie simulácia.'});
@@ -4988,3 +4989,163 @@ async function loadCryptoView() {
   }
   await refreshTtkWallet();
 }
+
+function openDialogSafe(dialog){
+  if(!dialog)return;
+  try{if(typeof dialog.showModal==='function'){if(!dialog.open)dialog.showModal();}else dialog.open=true;}catch{dialog.open=true;}
+}
+function closeDialogSafe(dialog){
+  if(!dialog)return;
+  try{if(typeof dialog.close==='function'){if(dialog.open)dialog.close();}else dialog.open=false;}catch{dialog.open=false;}
+}
+async function legalApi(path,body){
+  const r=await fetch(path,{method:body===undefined?'GET':'POST',headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
+  const d=await r.json().catch(()=>({error:'HTTP '+r.status}));
+  if(!r.ok){if(r.status===401)lockSession(d.error);throw Object.assign(new Error(d.error||('HTTP '+r.status)),{status:r.status});}
+  return d;
+}
+async function syncSidebarLicenseBadge(){
+  const badge=$('sidebar-license-tier');
+  if(!badge)return;
+  try{
+    const data=await legalApi('/api/legal/license');
+    const lic=data?.active_license;
+    if(lic?.tier_name){
+      badge.textContent=`Licencia: ${lic.tier_name}${lic.max_rpm>=999?' · Neobmedzená':' · '+lic.max_rpm+' req/min'}`;
+    }
+  }catch{}
+}
+async function openLegalDialog(){
+  const dialog=$('legal-dialog'),body=$('legal-dialog-body');
+  if(!dialog||!body)return;
+  body.replaceChildren(node('p','Načítavam právnu dokumentáciu a licenčné pravidlá…','skeleton'));
+  openDialogSafe(dialog);
+  try{
+    const data=await legalApi('/api/legal/policies');
+    body.replaceChildren();
+    body.append(node('p',`Aktívna verzia pravidiel: ${data.policy_version||'2026.11'}. Trinity AI Studio chráni API a používateľov aktívnym Anti-Spam štítom a komerčnou licenciou.`,'settings-lead'));
+    for(const item of (data.policies||[])){
+      const card=node('article',undefined,'legal-doc-card');
+      const link=node('a','Otvoriť celý dokument ↗');
+      link.href=item.path||'/legal';link.target='_blank';link.rel='noopener noreferrer';
+      card.append(node('b',item.title||item.id),node('small',item.summary||''),link);
+      body.append(card);
+    }
+  }catch(err){
+    body.replaceChildren(node('p',err?.message||'Dokumenty sa nepodarilo načítať.','skeleton'));
+  }
+}
+async function acceptAllPolicies(){
+  const res=await legalApi('/api/legal/accept',{documents:['terms','aup','privacy','license','ai_act']});
+  notice(`Právne pravidlá verzie ${res.policy_version||'2026.11'} boli zaznamenané do auditu.`);
+  closeDialogSafe($('legal-dialog'));
+  await Promise.allSettled([syncSidebarLicenseBadge(),loadGovernancePanel()]);
+}
+async function loadGovernancePanel(){
+  if(!$('settings-governance-panel'))return;
+  const isOwner=state?.account?.role==='owner';
+  if($('license-issue-form'))$('license-issue-form').hidden=!isOwner;
+  const [licRes,shieldRes]=await Promise.allSettled([legalApi('/api/legal/license'),legalApi('/api/security/shield-status')]);
+  if(licRes.status==='fulfilled'){
+    const data=licRes.value,lic=data.active_license||{};
+    if($('gov-policy-version-chip'))$('gov-policy-version-chip').textContent=`Verzia: ${data.policy_version||'2026.11'}`;
+    if($('gov-license-name'))$('gov-license-name').textContent=lic.tier_name||lic.tier||'Aktívna';
+    if($('gov-license-limits'))$('gov-license-limits').textContent=`${lic.max_rpm??'—'} req/min · ${(lic.daily_requests_limit??0).toLocaleString('sk-SK')}/deň`;
+    if($('sidebar-license-tier')&&lic.tier_name)$('sidebar-license-tier').textContent=`Licencia: ${lic.tier_name}`;
+    const grantsEl=$('license-grants-list');
+    if(grantsEl){
+      grantsEl.replaceChildren();
+      const grants=data.grants||[];
+      for(const g of grants){
+        const row=node('div',undefined,'api-key-item');
+        row.append(node('b',`${g.subject_id} · ${g.tier}`),node('code',g.license_prefix||g.id),node('small',`${g.status}${g.expires_at?' · do '+g.expires_at:''}`));
+        if(isOwner&&g.status==='active'){
+          const revoke=node('button','Zrušiť');
+          revoke.type='button';
+          revoke.onclick=safe(async()=>{if(!confirm(`Zrušiť licenciu ${g.license_prefix||g.id}?`))return;await legalApi('/api/legal/license/revoke',{id:g.id});notice('Licencia bola zneplatnená.');await loadGovernancePanel();});
+          row.append(revoke);
+        }
+        grantsEl.append(row);
+      }
+      if(!grants.length)grantsEl.append(node('p','Zatiaľ neboli vydané žiadne externé licenčné kľúče.','skeleton'));
+    }
+  }
+  if(shieldRes.status==='fulfilled'){
+    const s=shieldRes.value;
+    if($('gov-shield-status'))$('gov-shield-status').textContent=s.shield_active?(s.turnstile_configured?'Aktívny + Turnstile':'Aktívny (Rate + Spam)'):'Vypnutý';
+    if($('gov-shield-bans'))$('gov-shield-bans').textContent=`${s.active_bans??0} aktívnych blokácií`;
+    if($('gov-grants-count'))$('gov-grants-count').textContent=String(s.active_licenses_count??0);
+    if($('gov-acceptances-count'))$('gov-acceptances-count').textContent=`${s.policy_acceptances_count??0} potvrdení`;
+    const incEl=$('shield-incidents-list');
+    if(incEl){
+      incEl.replaceChildren();
+      const items=s.incidents_recent||[];
+      for(const inc of items.slice(0,12)){
+        const row=node('div',undefined,'api-key-item');
+        row.append(node('b',`${inc.severity||'medium'} · ${inc.route||'/'}`),node('code',String(inc.actor_hash||'-').slice(0,16)),node('small',inc.reason||''));
+        incEl.append(row);
+      }
+      if(!items.length)incEl.append(node('p','Žiadne spamové ani zneužívajúce požiadavky neboli zachytené.','skeleton'));
+    }
+  }
+}
+function initGovernanceControls(){
+  document.querySelectorAll('[data-toast]').forEach(btn=>btn.onclick=()=>notice(btn.dataset.toast||''));
+  document.querySelectorAll('[data-omni-jump]').forEach(btn=>btn.onclick=()=>document.querySelector(`[data-omni-tab="${btn.dataset.omniJump}"]`)?.click());
+  if($('open-legal-center-btn'))$('open-legal-center-btn').onclick=safe(openLegalDialog);
+  if($('open-legal-header-btn'))$('open-legal-header-btn').onclick=safe(openLegalDialog);
+  if($('accept-policies-btn'))$('accept-policies-btn').onclick=safe(acceptAllPolicies);
+  if($('legal-dialog-accept-btn'))$('legal-dialog-accept-btn').onclick=safe(acceptAllPolicies);
+  if($('refresh-governance-btn'))$('refresh-governance-btn').onclick=safe(loadGovernancePanel);
+  if($('license-issue-form'))$('license-issue-form').onsubmit=safe(async()=>{
+    const subject_id=$('lic-subject-id')?.value.trim();
+    const tier=$('lic-tier')?.value||'pro_studio';
+    const expires_days=Number($('lic-days')?.value||365);
+    if(!subject_id)return;
+    const res=await legalApi('/api/legal/license/issue',{subject_id,tier,expires_days});
+    const out=$('license-issue-output');
+    if(out){out.hidden=false;out.textContent=`Licenčný kľúč vydaný pre ${subject_id} (${tier}): ${res.grant?.license_key||''}`;}
+    if($('lic-subject-id'))$('lic-subject-id').value='';
+    notice('Nový komerčný licenčný kľúč bol vydaný.');
+    await loadGovernancePanel();
+  });
+}
+function initCommandPalette(){
+  const dialog=$('command-palette-dialog'),input=$('cmdk-input'),list=$('cmdk-list');
+  if(!dialog||!input||!list)return;
+  const commands=[
+    {label:'Nový rozhovor',hint:'Chat',run:()=>$('new-chat')?.click()},
+    {label:'Otvoriť Chat & Operácie',hint:'#chat',run:()=>setView('chat')},
+    {label:'Otvoriť AI Studio (Web & Multimedia)',hint:'#studio',run:()=>setView('studio')},
+    {label:'Otvoriť Prehľad systému',hint:'#dashboard',run:()=>setView('dashboard')},
+    {label:'Domény, DNS a Hosting',hint:'#domains',run:()=>setView('domains')},
+    {label:'Projekty & Úlohy',hint:'#projects',run:()=>setView('projects')},
+    {label:'Finančné centrum & Terminály',hint:'#wallet',run:()=>setView('wallet')},
+    {label:'Komodity & Trhy',hint:'#commodities',run:()=>setView('commodities')},
+    {label:'Právne centrum, Licencie & AUP',hint:'Legal',run:openLegalDialog},
+    {label:'Nastavenia · Governance & Anti-Spam',hint:'#settings',run:async()=>{await setView('settings');const btn=document.querySelector('[data-settings-filter="governance"]');btn?.click();}},
+    {label:'Otvoriť Nastavenia a Kľúče',hint:'#settings',run:()=>setView('settings')},
+    {label:'Prepnúť vzhľad (Tmavý / Svetlý)',hint:'UI',run:()=>$('theme')?.click()},
+  ];
+  const render=q=>{
+    const needle=(q||'').trim().toLocaleLowerCase('sk');
+    list.replaceChildren();
+    const matched=commands.filter(c=>!needle||c.label.toLocaleLowerCase('sk').includes(needle)||c.hint.toLocaleLowerCase('sk').includes(needle));
+    for(const cmd of matched){
+      const btn=node('button',undefined,'cmdk-item');
+      btn.type='button';
+      btn.append(node('span',cmd.label),node('kbd',cmd.hint));
+      btn.onclick=safe(async()=>{closeDialogSafe(dialog);await cmd.run();});
+      list.append(btn);
+    }
+    if(!matched.length)list.append(node('p','Žiadna zodpovedajúca akcia.','skeleton'));
+  };
+  const openPalette=()=>{openDialogSafe(dialog);input.value='';render('');setTimeout(()=>input.focus(),0);};
+  if($('cmdk-trigger'))$('cmdk-trigger').onclick=openPalette;
+  input.oninput=()=>render(input.value);
+  document.addEventListener?.('keydown',e=>{
+    if((e.metaKey||e.ctrlKey)&&String(e.key||'').toLowerCase()==='k'){e.preventDefault();if(dialog.open)closeDialogSafe(dialog);else openPalette();}
+  });
+}
+initGovernanceControls();
+initCommandPalette();

@@ -74,6 +74,22 @@ import {executeClaudeAgent} from './claude-agent.js';
 import {dualEngineDeliberate} from './dual-engine-orchestrator.js';
 import {runMultiModelConsensus} from './multi-model-bus.js';
 import {renderLandingHtml} from './landing-page.js';
+import {
+  POLICY_VERSION,
+  LICENSE_TIERS,
+  TRINITY_POLICIES,
+  enforceAntiSpamShield,
+  getShieldStatus,
+  inspectEscrowInquirySpam,
+  issueLicenseGrant,
+  listLicenseGrants,
+  recordPolicyAcceptance,
+  renderLegalHtml,
+  resolveLicenseContext,
+  revokeLicenseGrant,
+  verifyTurnstileIfConfigured,
+  withRateLimitHeaders
+} from './compliance-shield.js';
 import {PINNED_SYSTEM_PROMPT,TRINITY_TOOL_DEFINITIONS,normalizeText,handleFastEdgeRoute,executeTool,runInferenceCascade} from './sovereign-monolith.js';
 import {getFleetClusterSummary} from './fleet-clusters.js';
 import tapProfileService from '../../services/trinity-profile/src/index.js';
@@ -176,13 +192,43 @@ async function route(request,env,ctx){
     if(domain)return new Response(generateEscrowLandingHtml({domain}),{headers:{'Content-Type':'text/html; charset=utf-8'}});
   }
   if(path==='/api/domains/escrow/inquire'&&request.method==='POST'){
-    const body=await readJSON(request,10000);
-    return json(await createEscrowDeal(env,body),201);
+    const rawBody=await readJSON(request,10000);
+    const spamCheck=inspectEscrowInquirySpam(rawBody);
+    if(!spamCheck.ok)throw new HttpError(400,spamCheck.reason);
+    const shield=await enforceAntiSpamShield(request,env,{
+      route:path,
+      promptText:`${rawBody.domain_name||''} ${rawBody.buyer_notes||''}`,
+      maxRpmOverride:5,
+      windowSeconds:600
+    });
+    await verifyTurnstileIfConfigured(request,env,rawBody);
+    const {website:_w,company_url:_cu,_hp:_hp,hp_field:_hpf,turnstile_token:_tt,'cf-turnstile-response':_ctr,...cleanBody}=rawBody;
+    return withRateLimitHeaders(json(await createEscrowDeal(env,cleanBody),201),shield.rateLimitHeaders);
   }
   const reqHostname = new URL(request.url).hostname;
   const isOmniDevHost = reqHostname === 'auru.dev' || reqHostname === 'dev.auru.space' || new URL(request.url).searchParams.get('mode') === 'omni-dev';
   const isMobileRequested = path === '/mobile' || (['/', '/index.html'].includes(path) && url.searchParams.get('device') === 'mobile');
   if(request.method === 'GET' && isMobileRequested) return renderMobileChatUI(env, reqHostname);
+  if(request.method==='GET'&&['/legal','/terms','/privacy','/aup','/license','/security-policy'].includes(path)){
+    const docMap={'/legal':'legal','/terms':'terms','/privacy':'privacy','/aup':'aup','/license':'license','/security-policy':'ai_act'};
+    return new Response(renderLegalHtml({docId:docMap[path],host:reqHostname,version:TRINITY_VERSION}),{headers:{
+      'Content-Type':'text/html; charset=utf-8',
+      'X-Trinity-Host':reqHostname,
+      'X-Trinity-Policy-Version':POLICY_VERSION,
+      'Cache-Control':'public, max-age=300',
+      'Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+    }});
+  }
+  if(request.method==='GET'&&path==='/api/legal/policies'){
+    return json({
+      ok:true,
+      policy_version:POLICY_VERSION,
+      turnstile_enabled:Boolean(env.TURNSTILE_SITE_KEY&&env.TURNSTILE_SECRET_KEY),
+      turnstile_site_key:env.TURNSTILE_SITE_KEY||null,
+      license_tiers:Object.values(LICENSE_TIERS),
+      policies:Object.values(TRINITY_POLICIES)
+    });
+  }
   if(request.method==='GET'&&['/landing','/welcome','/about'].includes(path)){
     return new Response(renderLandingHtml({host:reqHostname,environment:env.TRINITY_ENV||'production',version:TRINITY_VERSION}),{headers:{
       'Content-Type':'text/html; charset=utf-8',
@@ -286,9 +332,10 @@ async function route(request,env,ctx){
     return json({service:'Trinity',version:TRINITY_VERSION,environment:runtimeEnvironment(request,env),source:sourceMetadata(env),...state},state.ready?200:503);
   }
   if(path==='/api/fast-chat'&&(request.method==='POST'||request.method==='GET')){
+    const shield=await enforceAntiSpamShield(request,env,{route:path,maxRpmOverride:20});
     const edgeRes=await handleFastChatEdge(request,env);
-    if(edgeRes)return edgeRes;
-    return json({ok:false,matched:false,next:'inference-cascade'},202);
+    if(edgeRes)return withRateLimitHeaders(edgeRes,shield.rateLimitHeaders);
+    return withRateLimitHeaders(json({ok:false,matched:false,next:'inference-cascade'},202),shield.rateLimitHeaders);
   }
   if(request.method==='OPTIONS'&&(path==='/chat'||path==='/api/chat'||path==='/api/tools/execute'||path.startsWith('/api/profiles')||path.startsWith('/profiles')||path.startsWith('/api/crypto')||path.startsWith('/crypto')||isOmniDevHost||env.STRICT_MODE==='false')){
     return new Response(null,{
@@ -319,10 +366,17 @@ async function route(request,env,ctx){
     },null,2),{headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
   }
   if(request.method==='POST'&&path==='/api/tools/execute'){
+    let toolReq={};
+    try{toolReq=await readJSON(request,32000);}catch(err){return json({error:err.message},err.status||400);}
+    const shield=await enforceAntiSpamShield(request,env,{
+      route:path,
+      promptText:JSON.stringify(toolReq?.arguments||{}).slice(0,4000),
+      maxRpmOverride:30
+    });
     try{
-      const {tool,arguments:args}=await request.json();
+      const {tool,arguments:args}=toolReq;
       const execOutput=await executeTool(tool,args||{},env);
-      return new Response(JSON.stringify(execOutput),{headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
+      return withRateLimitHeaders(new Response(JSON.stringify(execOutput),{headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}}),shield.rateLimitHeaders);
     }catch(err){
       return new Response(JSON.stringify({error:err.message}),{status:400,headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
     }
@@ -337,29 +391,34 @@ async function route(request,env,ctx){
       return new Response(JSON.stringify({error:'NEPLATNÝ JSON V TELE POŽIADAVKY'}),{status:400,headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
     }
     const messages=Array.isArray(body?.messages)&&body.messages.length?body.messages:[{role:'user',content:body?.message||body?.prompt||'Ahoj Trinity'}];
-    const latestMessage=messages[messages.length-1]?.content||'';
+    const latestMessage=String(messages[messages.length-1]?.content||'');
+    const shield=await enforceAntiSpamShield(request,env,{
+      route:path,
+      promptText:latestMessage,
+      maxRpmOverride:15
+    });
     const fastEdge=handleFastEdgeRoute(latestMessage,env);
     const fast=fastEdge.handled?{handled:true,response:fastEdge.text}:handleFastChat(latestMessage,env);
     if(fast.handled){
       recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'FAST_CHAT_EDGE_HIT',payload:{query:latestMessage}});
-      return new Response(JSON.stringify({reply:fast.response,mode:'fast-edge',route:'fast-edge-sub10ms',timestamp:Date.now()}),{
+      return withRateLimitHeaders(new Response(JSON.stringify({reply:fast.response,mode:'fast-edge',route:'fast-edge-sub10ms',timestamp:Date.now()}),{
         headers:{
           'Content-Type':'application/json',
           'Access-Control-Allow-Origin':'*',
           'X-Trinity-Route':'fast-edge'
         }
-      });
+      }),shield.rateLimitHeaders);
     }
     recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'CHAT_INFERENCE_INVOKED',payload:{query:latestMessage.substring(0,100)}});
     const stream=env.AI?await runInferenceCascade(messages,env):await executeInferenceCascade(messages,env);
-    return new Response(stream,{
+    return withRateLimitHeaders(new Response(stream,{
       headers:{
         'Content-Type':'text/event-stream',
         'Cache-Control':'no-cache',
         'Connection':'keep-alive',
         'Access-Control-Allow-Origin':'*'
       }
-    });
+    }),shield.rateLimitHeaders);
   }
   if(path.startsWith('/api/profiles/')||path.startsWith('/profiles/')){
     const traceId=crypto.randomUUID();
@@ -474,8 +533,13 @@ async function route(request,env,ctx){
   }
   if(path==='/api/azure/agent'&&request.method==='POST'){
     const body=await readJSON(request,32000);
+    const shield=await enforceAntiSpamShield(request,env,{
+      route:path,
+      promptText:String(body?.message||body?.prompt||body?.task||''),
+      maxRpmOverride:15
+    });
     const result=await invokeAzureFoundryAgent(env,body);
-    return json(result,result.ok?200:400);
+    return withRateLimitHeaders(json(result,result.ok?200:400),shield.rateLimitHeaders);
   }
   if(path==='/api/vault/overview'&&request.method==='GET'){
     await authenticate(request,env);
@@ -1666,24 +1730,48 @@ async function route(request,env,ctx){
     const rows=(await env.DB.prepare('SELECT task,result,error FROM ops_jobs WHERE session_id=? ORDER BY created_at,rowid LIMIT 50').bind(id).all()).results;
     return json(rows.flatMap(r=>[{role:'user',content:r.task},...(r.result?[{role:'assistant',content:r.result}]:r.error?[{role:'assistant',content:'Úloha zlyhala: '+r.error}]:[])]));
   }
+  if(path==='/api/legal/license'&&request.method==='GET'){
+    const lic=await resolveLicenseContext(request,env,user);
+    const grants=user.role==='owner'?await listLicenseGrants(env):[];
+    return json({ok:true,active_license:lic,policy_version:POLICY_VERSION,tiers:Object.values(LICENSE_TIERS),grants});
+  }
+  if(path==='/api/legal/license/issue'&&request.method==='POST'){
+    requireOwner(user);
+    return json({ok:true,grant:await issueLicenseGrant(env,user.email||user.id,await readJSON(request,8000))},201);
+  }
+  if(path==='/api/legal/license/revoke'&&request.method==='POST'){
+    requireOwner(user);
+    const {id}=z.object({id:z.string().uuid()}).strict().parse(await readJSON(request,4000));
+    return json({ok:true,grant:await revokeLicenseGrant(env,id)});
+  }
+  if(path==='/api/legal/accept'&&request.method==='POST'){
+    const body=await readJSON(request,4000).catch(()=>({}));
+    return json(await recordPolicyAcceptance(request,env,user.email||user.id,body?.documents));
+  }
+  if(path==='/api/security/shield-status'&&request.method==='GET'){
+    requireAdmin(user);
+    return json(await getShieldStatus(env));
+  }
   if(path==='/api/assistant/chat'&&request.method==='POST'){
     await rateLimit(env,`job:${user.id}`,12);
     const d=z.object({message:z.string().min(1).max(12000),session:z.string().uuid(),language:z.string().max(35).default('auto').transform(normalizeLanguage),engine:z.preprocess(normalizeChatEngine,z.enum(CHAT_ENGINE_VALUES)).default('auto'),remember:z.boolean().optional(),allow_files:z.boolean().optional()}).strict().parse(await readJSON(request));
     if(d.engine==='local')requireAdmin(user);
+    const shield=await enforceAntiSpamShield(request,env,{route:path,user,promptText:d.message});
     const wantsMemory=/^(zapamätaj si|zapamataj si|remember)\s*[:,-]?\s+/i.test(d.message);
     const delegated=shouldDelegate(d.message);
     const routed=await routeChatWithResonance(env,d.engine,d.message,{sessionId:d.session,user});
     const provider=routed.provider;
     const ownerMode=['owner','admin'].includes(user.role)||user.email==='saboivan2008@gmail.com'||user.email===env.TRINITY_OWNER_EMAIL||(env.TRINITY_ADMIN_EMAILS&&env.TRINITY_ADMIN_EMAILS.split(',').map(s=>s.trim()).includes(user.email));
     const teamMode=/\b(t[ií]mov[yý]\s+re[zž]im|team\s+mode)\b/i.test(d.message);
-    return json(await createJob(env,{task:d.message,session_id:d.session,agent:teamMode?'auto':'orchestrator',mode:teamMode?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,idempotency_key:crypto.randomUUID()}),202);
+    return withRateLimitHeaders(json(await createJob(env,{task:d.message,session_id:d.session,agent:teamMode?'auto':'orchestrator',mode:teamMode?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,idempotency_key:crypto.randomUUID()}),202),shield.rateLimitHeaders);
   }
   if(path==='/api/assistant/chat/stream'&&request.method==='POST'){
     await rateLimit(env,`stream:${user.id}`,20);
     const d=z.object({message:z.string().min(1).max(12000),session:z.string().uuid(),language:z.string().max(35).default('auto').transform(normalizeLanguage),engine:z.preprocess(normalizeChatEngine,z.enum(CHAT_ENGINE_VALUES)).default('auto'),remember:z.boolean().optional(),allow_files:z.boolean().optional()}).strict().parse(await readJSON(request));
     if(d.engine==='local')requireAdmin(user);
+    const shield=await enforceAntiSpamShield(request,env,{route:path,user,promptText:d.message});
     const ownerMode=['owner','admin'].includes(user.role)||user.email==='saboivan2008@gmail.com'||user.email===env.TRINITY_OWNER_EMAIL||(env.TRINITY_ADMIN_EMAILS&&env.TRINITY_ADMIN_EMAILS.split(',').map(s=>s.trim()).includes(user.email));
-    return handleLiveChatStream(env,ctx,{...d,ownerMode});
+    return withRateLimitHeaders(await handleLiveChatStream(env,ctx,{...d,ownerMode}),shield.rateLimitHeaders);
   }
   if(path==='/api/assistant/consensus'&&request.method==='POST'){
     await rateLimit(env,`consensus:${user.id}`,10);

@@ -68,6 +68,8 @@
   .side-label,
   #sessions,
   .sidebar-status-clean,
+  .sidebar-quick-actions,
+  .sidebar-legal-bar,
   .sidebar-bottom {
     display: none !important;
   }
@@ -87,6 +89,7 @@
   .dashboard-grid,
   .admin-grid,
   .settings-grid,
+  .governance-grid,
   .omni-split-container {
     grid-template-columns: 1fr !important;
     height: auto !important;

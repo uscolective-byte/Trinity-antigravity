@@ -1,38 +1,53 @@
 <!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b0d12"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="stylesheet" href="/chat.css?v=13.0.0"><link rel="stylesheet" href="/builder.css?v=13.0.0"><link rel="stylesheet" href="/theme.css?v=13.0.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=13.0.0" defer></script><link rel="stylesheet" href="/garage.css?v=13.0.0"><link rel="stylesheet" href="/mobile.css?v=13.0.0"><script src="/mobile-device.js?v=1" defer></script></head><body class="studio-ui">
 <aside class="sidebar">
   <a href="#chat" class="brand" data-view-link="chat"><span class="brand-mark">T</span><span>Trinity<small>AI STUDIO</small></span></a>
-  <nav class="main-nav" aria-label="Hlavné menu">
-    <button data-view="chat" class="active"><span>💬</span><b data-i18n="chat">Chat & Práca</b></button>
-    <button id="owner-overview-nav" data-view="dashboard" hidden><span>⚡</span><b data-i18n="overview">Prehľad & Stav</b></button>
-    <button data-view="omnidev" id="omnidev-nav-btn"><span>⚡</span><b>Omni-Dev Studio</b></button>
-    <button data-view="crypto" id="crypto-nav-btn"><span>💎</span><b>Tetrakis Crypto ($TTK)</b></button>
-    <button data-view="studio"><span>✦</span><b>AI Studio (Weby)</b></button>
-    <button data-view="domains"><span>◈</span><b>Domény & Hosting</b></button>
-    <button data-view="wallet"><span>💳</span><b>Platby & Peňaženka</b></button>
-    <button data-view="documents"><span aria-hidden="true">≡</span><b>Dokumentácia</b></button>
-    <button data-view="settings"><span>⚙</span><b data-i18n="settings">Nastavenia</b></button>
-  </nav>
-  <button id="new-chat" class="new"><span>＋</span><span data-i18n="newChatPlain">Nová úloha</span></button>
-  <div class="side-label" data-i18n="recent">HISTÓRIA ÚLOH</div><div id="sessions"></div>
-  <div class="sidebar-status-clean">
-    <div class="status-pill-clean"><span class="signal-dot"></span> <b>Trinity Online</b></div>
-    <small>Zjednotené jadro · auru.dev / auru.space</small>
+  <div class="sidebar-quick-actions">
+    <button id="new-chat" class="new"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="newChatPlain">Nová úloha</span></button>
+    <button id="cmdk-trigger" class="cmdk-trigger" type="button" title="Príkazová paleta (Ctrl+K)">⌘K</button>
   </div>
-  <div class="sidebar-bottom"><div><span class="signal"></span><span id="engine-state">…</span></div><small data-i18n="boundary">Citlivé zmeny len s tvojím súhlasom.</small><span id="operations" hidden></span></div>
+  <div class="nav-group-label">WORKSPACE</div>
+  <nav class="main-nav" aria-label="Hlavné menu">
+    <button data-view="chat" class="active"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><b data-i18n="chat">Chat &amp; Práca</b></button>
+    <button id="owner-overview-nav" data-view="dashboard" hidden><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span><b data-i18n="overview">Prehľad &amp; Stav</b></button>
+    <button data-view="studio"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 20V10"/></svg></span><b>AI Studio (Weby)</b></button>
+    <button data-view="omnidev" id="omnidev-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span><b>Omni-Dev Studio</b></button>
+    <button data-view="domains"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><b>Domény &amp; Hosting</b></button>
+    <button data-view="wallet"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span><b>Platby &amp; Peňaženka</b></button>
+    <button data-view="crypto" id="crypto-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><polygon points="12 2 21 8.5 21 15.5 12 22 3 15.5 3 8.5 12 2"/></svg></span><b>Tetrakis ($TTK)</b></button>
+    <button data-view="documents"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><b>Dokumentácia</b></button>
+    <button data-view="settings"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><b data-i18n="settings">Nastavenia &amp; Licencie</b></button>
+  </nav>
+  <div class="side-label" data-i18n="recent">HISTÓRIA ÚLOH</div><div id="sessions"></div>
+  <div class="sidebar-legal-bar">
+    <div class="shield-badge-row"><span><span class="shield-dot"></span>Anti-Spam Shield</span><strong id="sidebar-license-tier">TRINITY</strong></div>
+    <div class="sidebar-legal-links">
+      <button type="button" id="open-legal-center-btn">Licencie &amp; Politiky</button>
+      <a href="/terms" target="_blank" rel="noopener">Podmienky</a>
+      <a href="/aup" target="_blank" rel="noopener">AUP</a>
+      <a href="/privacy" target="_blank" rel="noopener">GDPR</a>
+    </div>
+  </div>
+  <div class="sidebar-status-clean" hidden>
+    <div class="status-pill-clean"><span class="signal-dot"></span> <b>Trinity Online</b></div>
+    <small>auru.dev / auru.space</small>
+  </div>
+  <div class="sidebar-bottom" hidden><div><span class="signal"></span><span id="engine-state">…</span></div><small data-i18n="boundary">Citlivé zmeny len s tvojím súhlasom.</small><span id="operations" hidden></span></div>
 </aside>
 <main>
-  <header><div class="page-heading"><span id="page-kicker">AI STUDIO</span><strong id="page-title">Trinity</strong><small id="subtitle" data-i18n="dashboardHere">Inteligentný pracovný priestor.</small></div><div class="header-actions"><span id="environment-badge" class="environment-badge" title="Aktívne prostredie">AI STUDIO</span><div class="domain-bridge-switch" title="Jednotná Trinity: Prepojenie medzi Owner Labom a Klientskym Portálom"><a href="https://auru.dev" class="bridge-link dev-link" title="Súkromný Owner Lab (Sovereign OS)">auru.dev</a><span class="bridge-sep">⇄</span><a href="https://auru.space" class="bridge-link space-link" title="Verejný Klientsky Portál (Asistent)">auru.space</a><span class="sync-live-badge" id="sync-live-badge" title="D1 / KV / R2 Zdieľané & Zosúladené">● Zosúladené</span></div><span class="fast-model-pill" title="Meta Llama 3.3 70B Turbo aktívny"><span class="fast-dot"></span> ⚡ <b>Turbo AI</b></span><span id="pc-bridge-badge" class="pc-bridge-badge" title="Stav lokálneho PC Bridge"><span class="pc-dot"></span> <b id="pc-bridge-text">PC: Kontrola…</b></span><div id="account-state" class="account-state" role="status" aria-live="polite" hidden><span class="account-dot" aria-hidden="true"></span><span><b id="account-label">Prihlásený</b><small id="account-detail">—</small></span></div><button id="theme" type="button" aria-label="Prepnúť farebný režim">◐ Vzhľad</button><button id="memory-button" data-i18n="memory" style="display:none">◇ Pamäť</button><button id="tools-button" data-i18n="tools" style="display:none">✦ Schopnosti</button><select id="language" aria-label="Language"><option value="auto">AUTO</option><option value="sk">SK</option><option value="en">EN</option><option value="cs">CS</option><option value="de">DE</option><option value="fr">FR</option><option value="es">ES</option><option value="it">IT</option><option value="pl">PL</option><option value="uk">UK</option><option value="ja">JA</option><option value="ko">KO</option><option value="zh">ZH</option></select><button id="logout" type="button" hidden>Odhlásiť</button></div></header>
+  <header><div class="page-heading"><span id="page-kicker">AI STUDIO</span><strong id="page-title">Trinity</strong><small id="subtitle" data-i18n="dashboardHere">Inteligentný pracovný priestor.</small></div><div class="header-actions"><span id="environment-badge" class="environment-badge" title="Aktívne prostredie">AI STUDIO</span><div class="domain-bridge-switch" hidden><a href="https://auru.dev" class="bridge-link dev-link">auru.dev</a><span class="bridge-sep">⇄</span><a href="https://auru.space" class="bridge-link space-link">auru.space</a><span class="sync-live-badge" id="sync-live-badge">Sync</span></div><span class="fast-model-pill" hidden><span class="fast-dot"></span><b>Turbo AI</b></span><span id="pc-bridge-badge" class="pc-bridge-badge" title="Stav lokálneho PC Bridge"><span class="pc-dot"></span> <b id="pc-bridge-text">PC: Kontrola…</b></span><div id="account-state" class="account-state" role="status" aria-live="polite" hidden><span class="account-dot" aria-hidden="true"></span><span><b id="account-label">Prihlásený</b><small id="account-detail">—</small></span></div><button id="open-legal-header-btn" type="button" title="Licenčná zmluva, Podmienky & Anti-Spam">Licencie &amp; AUP</button><button id="theme" type="button" aria-label="Prepnúť farebný režim">Vzhľad</button><button id="memory-button" data-i18n="memory" style="display:none">Pamäť</button><button id="tools-button" data-i18n="tools" style="display:none">Schopnosti</button><select id="language" aria-label="Language"><option value="auto">AUTO</option><option value="sk">SK</option><option value="en">EN</option><option value="cs">CS</option><option value="de">DE</option><option value="fr">FR</option><option value="es">ES</option><option value="it">IT</option><option value="pl">PL</option><option value="uk">UK</option><option value="ja">JA</option><option value="ko">KO</option><option value="zh">ZH</option></select><button id="logout" type="button" hidden>Odhlásiť</button></div></header>
   <div id="notice" role="status" hidden></div>
   <section id="login" hidden>
-    <h2 data-i18n="loginTitle">Vitaj v Trinity</h2>
-    <p data-i18n="loginHint">Prihlás sa svojím schváleným Google účtom alebo biometrickým Passkey.</p>
+    <span class="eyebrow" style="display:inline-block;font:600 10.5px ui-monospace,monospace;letter-spacing:.08em;color:var(--accent);margin-bottom:8px;">TRINITY AI STUDIO · SECURE ACCESS</span>
+    <h2 data-i18n="loginTitle">Prihlásenie do Trinity</h2>
+    <p data-i18n="loginHint">Prihlás sa svojím schváleným Google účtom, hardvérovým Passkey alebo prístupovým kľúčom.</p>
     <button id="google-login" class="primary" type="button" hidden>Pokračovať cez Google</button>
-    <div style="margin: 10px 0;">
-      <button id="passkey-login-btn" class="secondary" type="button" style="display:inline-flex; align-items:center; gap:8px;">🔑 Prihlásiť sa cez Passkey (TouchID / Windows Hello)</button>
-    </div>
-    <p id="passkey-login-status" class="muted" style="font-size:13px; margin:4px 0;" role="status"></p>
+    <button id="passkey-login-btn" class="secondary" type="button">Prihlásiť sa cez Passkey (TouchID / Windows Hello)</button>
+    <p id="passkey-login-status" class="muted" style="font-size:12.5px; margin:4px 0 8px;" role="status"></p>
     <p id="google-login-note" role="status"></p>
     <form id="login-form"><input id="key" type="password" autocomplete="current-password" aria-label="Access key" placeholder="Prístupový kľúč"><button class="primary" data-i18n="login">Prihlásiť</button></form>
+    <div class="login-legal-note">
+      Chránené aktívnym Anti-Spam štítom a rate-limitingom. Vstupom potvrdzuješ <a href="/terms" target="_blank" rel="noopener">Podmienky používania</a>, <a href="/aup" target="_blank" rel="noopener">Anti-Spam &amp; AUP</a>, <a href="/privacy" target="_blank" rel="noopener">GDPR</a> a <a href="/license" target="_blank" rel="noopener">Licenciu Trinity</a>.
+    </div>
   </section>
   <div id="app-views">
     <section id="omnidev-view" class="view omnidev-view" hidden>
@@ -186,88 +201,88 @@ Pripravené na spustenie príkazu na hostiteľskom PC...</div>
                   </div>
                   <small style="color:#94a3b8;font-size:10px;">Webhook: /api/telegram/webhook · Kognitívna pamäť aktívna</small>
                   <div style="display:flex;gap:4px;margin-top:4px;">
-                    <button class="secondary" onclick="notice('Telegram Bot Trinity_Telegram je aktívny.')" style="font-size:9px;padding:3px 8px;">Overiť status</button>
-                    <button class="primary" onclick="window.open('https://t.me/Trinity_Telegram_Bot','_blank')" style="font-size:9px;padding:3px 8px;">Otvoriť Telegram</button>
+                    <button type="button" class="secondary" data-toast="Telegram Bot Trinity_Telegram je aktívny." style="font-size:9px;padding:3px 8px;">Overiť status</button>
+                    <a class="primary" href="https://t.me/Trinity_Telegram_Bot" target="_blank" rel="noopener noreferrer" style="font-size:9px;padding:3px 8px;text-decoration:none;">Otvoriť Telegram</a>
                   </div>
                 </div>
 
                 <!-- GitHub -->
                 <div class="app-connector-card" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
                   <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <b style="color:#f8fafc;">🐙 GitHub Suite</b>
+                    <b style="color:#f8fafc;">GitHub Suite</b>
                     <span style="color:#4ade80;font-size:10px;font-weight:700;">● Pripojené</span>
                   </div>
                   <small style="color:#94a3b8;font-size:10px;">Repo: @uscolective-byte/Trinity-antigravity (main)</small>
                   <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
-                    <button class="secondary" onclick="notice('GitHub Suite je pripojené k vetve main.')" style="font-size:9px;padding:3px 8px;">Stav vetvy</button>
-                    <span style="color:#f59e0b;font-size:9px;">🛡️ Zápis = Auth Majiteľa</span>
+                    <button type="button" class="secondary" data-toast="GitHub Suite je pripojené k vetve main." style="font-size:9px;padding:3px 8px;">Stav vetvy</button>
+                    <span style="color:#f59e0b;font-size:9px;">Zápis = Auth Majiteľa</span>
                   </div>
                 </div>
 
                 <!-- Microsoft Copilot Studio & Entra ID -->
                 <div class="app-connector-card" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
                   <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <b style="color:#00a4ef;">🪟 Microsoft Copilot Studio (Trinitys)</b>
+                    <b style="color:#00a4ef;">Microsoft Copilot Studio (Trinitys)</b>
                     <span style="color:#4ade80;font-size:10px;font-weight:700;">● Active</span>
                   </div>
                   <small style="color:#94a3b8;font-size:10px;">Tenant: usc31@saboivan2008gmail.onmicrosoft.com · Osobný: saboivan2008@gmail.com · Bot: 767f155a-5b45</small>
                   <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
-                    <button class="secondary" onclick="notice('Trinitys (Copilot Studio) je prepojený. Tenant Object ID: d77169b1-e300-42da-88c3-e8df11b82604.')" style="font-size:9px;padding:3px 8px;">Overiť status</button>
-                    <button class="primary" onclick="window.open('https://copilot.cloud.microsoft/chat/share/eyJzaGFyZUlkIjoiZDYxMTRkMTEtOTMxNi00NDI4LWI0MDktYjYxNTQxY2JiNzU3IiwiY29udmVyc2F0aW9uSWQiOiIyNDE0MGI3YS0yNjc5LTQxZGItYmQzYi0zZTQ1ZGI3MzEyNjMifQ%3D%3D','_blank')" style="font-size:9px;padding:3px 8px;background:#00a4ef;color:#fff;border:none;border-radius:4px;cursor:pointer;">Otvoriť Zdieľaný Chat ↗</button>
-                    <span style="color:#f59e0b;font-size:9px;">🛡️ Auth = Potvrdenie</span>
+                    <button type="button" class="secondary" data-toast="Trinitys (Copilot Studio) je prepojený. Tenant Object ID: d77169b1-e300-42da-88c3-e8df11b82604." style="font-size:9px;padding:3px 8px;">Overiť status</button>
+                    <a class="primary" href="https://copilot.cloud.microsoft/chat/share/eyJzaGFyZUlkIjoiZDYxMTRkMTEtOTMxNi00NDI4LWI0MDktYjYxNTQxY2JiNzU3IiwiY29udmVyc2F0aW9uSWQiOiIyNDE0MGI3YS0yNjc5LTQxZGItYmQzYi0zZTQ1ZGI3MzEyNjMifQ%3D%3D" target="_blank" rel="noopener noreferrer" style="font-size:9px;padding:3px 8px;background:#00a4ef;color:#fff;border:none;border-radius:4px;text-decoration:none;">Otvoriť Zdieľaný Chat ↗</a>
+                    <span style="color:#f59e0b;font-size:9px;">Auth = Potvrdenie</span>
                   </div>
                 </div>
 
                 <!-- Google Workspace / Gmail -->
                 <div class="app-connector-card" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
                   <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <b style="color:#ea4335;">🌐 Google Workspace</b>
+                    <b style="color:#ea4335;">Google Workspace</b>
                     <span style="color:#38bdf8;font-size:10px;font-weight:700;">● Pripravené</span>
                   </div>
                   <small style="color:#94a3b8;font-size:10px;">Gmail, Drive & Docs cez OAuth a Mail Engine</small>
                   <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
-                    <button class="secondary" onclick="notice('Google Workspace je nakonfigurované pre saboivan2008@gmail.com.')" style="font-size:9px;padding:3px 8px;">Overiť účet</button>
-                    <span style="color:#f59e0b;font-size:9px;">🛡️ Odoslanie = Súhlas</span>
+                    <button type="button" class="secondary" data-toast="Google Workspace je nakonfigurované pre saboivan2008@gmail.com." style="font-size:9px;padding:3px 8px;">Overiť účet</button>
+                    <span style="color:#f59e0b;font-size:9px;">Odoslanie = Súhlas</span>
                   </div>
                 </div>
 
                 <!-- X / Twitter -->
                 <div class="app-connector-card" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
                   <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <b style="color:#f8fafc;">🕊️ X / Twitter (Morpheus)</b>
+                    <b style="color:#f8fafc;">X / Twitter (Morpheus)</b>
                     <span style="color:#38bdf8;font-size:10px;font-weight:700;">● OAuth 2.0 PKCE</span>
                   </div>
                   <small style="color:#94a3b8;font-size:10px;">Autonómne publikovanie príspevkov a čítanie metrík</small>
                   <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
-                    <button class="secondary" onclick="notice('Morpheus X Commander je pripravený v trezore.')" style="font-size:9px;padding:3px 8px;">Stav tokenu</button>
-                    <span style="color:#f59e0b;font-size:9px;">🛡️ Post = Potvrdenie</span>
+                    <button type="button" class="secondary" data-toast="Morpheus X Commander je pripravený v trezore." style="font-size:9px;padding:3px 8px;">Stav tokenu</button>
+                    <span style="color:#f59e0b;font-size:9px;">Post = Potvrdenie</span>
                   </div>
                 </div>
 
                 <!-- Meta AI & Meta Connect -->
                 <div class="app-connector-card" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
                   <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <b style="color:#0081fb;">♾️ Meta AI &amp; Meta Account</b>
+                    <b style="color:#0081fb;">Meta AI &amp; Meta Account</b>
                     <span style="color:#4ade80;font-size:10px;font-weight:700;">● Llama 3.3 + Graph</span>
                   </div>
                   <small style="color:#94a3b8;font-size:10px;">Llama 3.3 70B &amp; Vision · Stránka: underground Street collective · IG: @old_dirty_bastard013</small>
                   <div style="display:flex;gap:4px;margin-top:4px;align-items:center;flex-wrap:wrap;">
-                    <button class="primary" onclick="window.open('/connect/meta','_blank')" style="font-size:9px;padding:3px 8px;cursor:pointer;background:#0081fb;border:none;border-radius:4px;color:#fff;">🔗 Pripojiť Meta účet</button>
-                    <button class="secondary" onclick="notice('Meta AI (Llama 3.3 70B FP8 Fast) je aktívny v Edge AI jadre Trinity.')" style="font-size:9px;padding:3px 8px;">Stav Meta AI</button>
-                    <span style="color:#f59e0b;font-size:9px;">🛡️ Post = Súhlas</span>
+                    <a class="primary" href="/connect/meta" target="_blank" rel="noopener noreferrer" style="font-size:9px;padding:3px 8px;background:#0081fb;border:none;border-radius:4px;color:#fff;text-decoration:none;">Pripojiť Meta účet</a>
+                    <button type="button" class="secondary" data-toast="Meta AI (Llama 3.3 70B FP8 Fast) je aktívny v Edge AI jadre Trinity." style="font-size:9px;padding:3px 8px;">Stav Meta AI</button>
+                    <span style="color:#f59e0b;font-size:9px;">Post = Súhlas</span>
                   </div>
                 </div>
 
                 <!-- Local PC Execution Bridge -->
                 <div class="app-connector-card" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
                   <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <b style="color:#4ade80;">💻 Local PC Execution Bridge</b>
+                    <b style="color:#4ade80;">Local PC Execution Bridge</b>
                     <span style="color:#4ade80;font-size:10px;font-weight:700;">● Hostiteľ: Basterix</span>
                   </div>
                   <small style="color:#94a3b8;font-size:10px;">PowerShell, CMD, FS Read/Write/Patch na Windows disku</small>
                   <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
-                    <button class="secondary" onclick="document.querySelector('[data-omni-tab=terminal]').click()" style="font-size:9px;padding:3px 8px;">Otvoriť terminál</button>
-                    <span style="color:#f59e0b;font-size:9px;">🛡️ Zápis = Auth Majiteľa</span>
+                    <button type="button" class="secondary" data-omni-jump="terminal" style="font-size:9px;padding:3px 8px;">Otvoriť terminál</button>
+                    <span style="color:#f59e0b;font-size:9px;">Zápis = Auth Majiteľa</span>
                   </div>
                 </div>
               </div>
@@ -339,175 +354,140 @@ Pripravené na spustenie príkazu na hostiteľskom PC...</div>
       <div id="ui-custom-widgets-slot" class="ui-custom-widgets-grid" hidden></div>
     </section>
     <section id="chat-view" class="view chat-view"><div id="chat-area"><section id="welcome" class="welcome-zen">
-        <div class="avatar large">✦</div>
-        <span class="eyebrow" data-i18n="welcomeLabel">TRINITY · AI STUDIO</span>
-        <h1 data-i18n="greeting">Ahoj Ivan. Na čom pracujeme?</h1>
-        <p data-i18n="intro">Píš priamo a prirodzene — odpovedám naživo v reálnom čase.</p>
+        <div class="avatar large"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <span class="eyebrow" data-i18n="welcomeLabel">TRINITY · AI STUDIO WORKSPACE</span>
+        <h1 data-i18n="greeting">Čo dnes postavíme?</h1>
+        <p data-i18n="intro">Streamovaná multi-model AI, tvorba webov, domény a overené nástroje v jednom čistom rozhraní.</p>
         <div class="suggestions">
-          <button type="button" data-open-chat data-prompt="Vytvor modernú webovú stránku v AI Studiu s čistým dizajnom.">✦ Vytvoriť web</button>
-          <button type="button" data-open-chat data-prompt="Skontroluj stav mojich domén auru.dev a auru.space a over DNS.">◈ Overiť domény</button>
-          <button type="button" data-open-chat data-prompt="Vygeneruj platobný odkaz a SEPA EPC QR kód pre klienta.">💳 Pripraviť platbu</button>
-          <button type="button" data-open-chat data-prompt="Spusti diagnostiku cez PC Bridge a skontroluj stav systému.">💻 Spustiť PC akciu</button>
+          <button type="button" data-open-chat data-prompt="Vytvor modernú webovú stránku v AI Studiu s čistým dizajnom.">Vytvoriť web v AI Studiu</button>
+          <button type="button" data-open-chat data-prompt="Skontroluj stav mojich domén auru.dev a auru.space a over DNS.">Overiť domény &amp; DNS</button>
+          <button type="button" data-open-chat data-prompt="Vygeneruj platobný odkaz a SEPA EPC QR kód pre klienta.">Pripraviť platbu &amp; faktúru</button>
+          <button type="button" data-open-chat data-prompt="Spusti diagnostiku cez PC Bridge a skontroluj stav systému.">Systémová diagnostika PC</button>
+        </div>
+        <div class="welcome-trust-bar">
+          <span>Rate-Limited &amp; Anti-Spam Active</span>
+          <span>·</span>
+          <span>EU AI Act Transparent</span>
+          <span>·</span>
+          <span>⌘K Command Palette</span>
         </div>
       </section><section id="messages" aria-live="polite" aria-label="Conversation"></section></div><section class="composer-wrap"><div id="activity" role="status"></div><form id="chat-form"><label class="sr-only" for="message" data-i18n="message">Správa pre Trinity</label><div id="composer-attachment-tray" class="composer-attachment-tray" hidden></div>
-<textarea id="message" rows="2" maxlength="12000" required data-placeholder="placeholder" placeholder="Zadaj úlohu pre Trinity (napr. Vytvor web, Spravuj domény, Priprav platbu, PC akcia)…"></textarea><div id="media-preview" class="media-preview" hidden></div><div class="compose-bottom"><div class="compose-settings">
+<textarea id="message" rows="2" maxlength="12000" required data-placeholder="placeholder" placeholder="Zadaj príkaz alebo otázku pre Trinity (Enter odošle, Shift+Enter nový riadok)…"></textarea><div id="media-preview" class="media-preview" hidden></div><div class="compose-bottom"><div class="compose-settings">
 <div class="chat-plus-container">
   <button id="chat-plus-btn" type="button" class="chat-plus-btn" aria-label="Pridať prílohu alebo nástroj" title="Pridať súbor, fotku, video, zvuk alebo nástroj">+</button>
   <div id="chat-plus-menu" class="chat-plus-menu" hidden>
     <div class="plus-menu-header">
-      <span class="plus-menu-title">Pridať do rozhovoru</span>
-      <span class="plus-menu-subtitle">Nástroje & Prílohy Trinity</span>
+      <span class="plus-menu-title">Pridať do kontextu</span>
+      <span class="plus-menu-subtitle">Súbory, médiá &amp; konektory</span>
     </div>
     <div class="plus-menu-items">
       <button type="button" class="plus-item" id="plus-opt-file">
-        <span class="plus-item-icon">📄</span>
+        <span class="plus-item-icon">DOC</span>
         <div class="plus-item-text">
-          <b>Pridať súbor / dokument</b>
-          <small>PDF, TXT, MD, JSON, CSV, Kód</small>
+          <b>Dokument / Kód</b>
+          <small>PDF, TXT, MD, JSON, CSV</small>
         </div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-photo">
-        <span class="plus-item-icon">📸</span>
+        <span class="plus-item-icon">IMG</span>
         <div class="plus-item-text">
-          <b>Pridať fotku / obrázok</b>
-          <small>PNG, JPG, WebP · Vision analýza</small>
+          <b>Obrázok / Vision</b>
+          <small>PNG, JPG, WebP analýza</small>
         </div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-video">
-        <span class="plus-item-icon">🎬</span>
+        <span class="plus-item-icon">VID</span>
         <div class="plus-item-text">
-          <b>Pridať video záznam</b>
-          <small>MP4, WebM · Prehratie a rozbor</small>
+          <b>Video záznam</b>
+          <small>MP4, WebM náhľad</small>
         </div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-audio">
-        <span class="plus-item-icon">🎵</span>
+        <span class="plus-item-icon">AUD</span>
         <div class="plus-item-text">
-          <b>Pridať zvuk / nahrávku</b>
-          <small>MP3, WAV · Prepis reči Whisper</small>
+          <b>Zvuk / Prepis</b>
+          <small>MP3, WAV Whisper STT</small>
         </div>
       </button>
       <div class="plus-menu-divider"></div>
-      <div class="plus-menu-section-title">🌐 Prepojenia & Integrácie</div>
+      <div class="plus-menu-section-title">Prepojenia &amp; Integrácie</div>
       <button type="button" class="plus-item" id="plus-opt-tool-github">
-        <span class="plus-item-icon">🐙</span>
-        <div class="plus-item-text">
-          <b>GitHub Suite</b>
-          <small>Repo, commits, PR, kód a issues</small>
-        </div>
+        <span class="plus-item-icon">GH</span>
+        <div class="plus-item-text"><b>GitHub Suite</b><small>Repo, PR, kód a issues</small></div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-tool-notion">
-        <span class="plus-item-icon">📓</span>
-        <div class="plus-item-text">
-          <b>Notion Workspace</b>
-          <small>Poznámky, databázy, dokumentácia a úlohy</small>
-        </div>
+        <span class="plus-item-icon">NT</span>
+        <div class="plus-item-text"><b>Notion Workspace</b><small>Databázy a dokumentácia</small></div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-tool-vercel">
-        <span class="plus-item-icon">▲</span>
-        <div class="plus-item-text">
-          <b>Vercel Deployer</b>
-          <small>Webové nasadenia, buildy a live domény</small>
-        </div>
+        <span class="plus-item-icon">VC</span>
+        <div class="plus-item-text"><b>Vercel Deployer</b><small>Nasadenia a domény</small></div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-tool-gmail">
-        <span class="plus-item-icon">✉️</span>
-        <div class="plus-item-text">
-          <b>Gmail & E-maily</b>
-          <small>Kontrola a odoslanie saboivan2008@gmail.com</small>
-        </div>
+        <span class="plus-item-icon">EM</span>
+        <div class="plus-item-text"><b>E-maily &amp; Resend</b><small>Odosielanie a kontrola</small></div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-tool-google">
-        <span class="plus-item-icon">🔍</span>
-        <div class="plus-item-text">
-          <b>Google Workspace</b>
-          <small>Disk, tabuľky, dokumenty a hľadanie</small>
-        </div>
+        <span class="plus-item-icon">GW</span>
+        <div class="plus-item-text"><b>Google Workspace</b><small>Disk, tabuľky a dokumenty</small></div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-tool-meta">
-        <span class="plus-item-icon">📸</span>
-        <div class="plus-item-text">
-          <b>Meta (Instagram & Facebook)</b>
-          <small>@old_dirty_bastard013 & FB stránky</small>
-        </div>
+        <span class="plus-item-icon">MT</span>
+        <div class="plus-item-text"><b>Meta Graph</b><small>Instagram &amp; Facebook</small></div>
       </button>
       <div class="plus-menu-divider"></div>
-      <div class="plus-menu-section-title">⚡ Inteligentné Nástroje & Pluginy</div>
+      <div class="plus-menu-section-title">Nástroje &amp; Platforma</div>
       <button type="button" class="plus-item" id="plus-opt-tool-web">
-        <span class="plus-item-icon">🌐</span>
-        <div class="plus-item-text">
-          <b>Web Search & Prieskum</b>
-          <small>Živé internetové hľadanie zdrojov</small>
-        </div>
+        <span class="plus-item-icon">WEB</span>
+        <div class="plus-item-text"><b>Web Search</b><small>Živé vyhľadávanie zdrojov</small></div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-tool-imagegen">
-        <span class="plus-item-icon">🎨</span>
-        <div class="plus-item-text">
-          <b>Generovať AI fotku / obrázok</b>
-          <small>Black Forest Flux 1 Schnell</small>
-        </div>
+        <span class="plus-item-icon">GEN</span>
+        <div class="plus-item-text"><b>Generovať obrázok</b><small>Flux 1 Schnell</small></div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-tool-videogen">
-        <span class="plus-item-icon">🎥</span>
-        <div class="plus-item-text">
-          <b>Generovať AI video (16:9 WebM)</b>
-          <small>Multimediálne filmové štúdio</small>
-        </div>
+        <span class="plus-item-icon">MOV</span>
+        <div class="plus-item-text"><b>Generovať video (16:9)</b><small>WebM export</small></div>
       </button>
-            <button type="button" class="plus-item" id="plus-opt-tool-pc">
-        <span class="plus-item-icon">💻</span>
-        <div class="plus-item-text">
-          <b>Local PC Bridge (Hostiteľ)</b>
-          <small>Príkazy, skripty a súbory na PC</small>
-        </div>
+      <button type="button" class="plus-item" id="plus-opt-tool-pc">
+        <span class="plus-item-icon">PC</span>
+        <div class="plus-item-text"><b>Local PC Bridge</b><small>Hostiteľské akcie a súbory</small></div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-tool-domains">
-        <span class="plus-item-icon">🏷️</span>
-        <div class="plus-item-text">
-          <b>Domény & DNS Manažér</b>
-          <small>Správa auru.space, DNS a portfólia</small>
-        </div>
+        <span class="plus-item-icon">DNS</span>
+        <div class="plus-item-text"><b>Domény &amp; DNS</b><small>Správa auru.space a portfólia</small></div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-tool-consensus">
-        <span class="plus-item-icon">🧠</span>
-        <div class="plus-item-text">
-          <b>Multi-Model Konsenzus</b>
-          <small>Paralelná odpoveď Gemini, OpenAI, Claude, Groq &amp; Llama</small>
-        </div>
+        <span class="plus-item-icon">BUS</span>
+        <div class="plus-item-text"><b>Multi-Model Konsenzus</b><small>Paralelná odpoveď modelov</small></div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-tool-landing">
-        <span class="plus-item-icon">🏴</span>
-        <div class="plus-item-text">
-          <b>Landing &amp; Showcase (/landing)</b>
-          <small>Otvorí živú prezentačnú stránku Trinity</small>
-        </div>
+        <span class="plus-item-icon">URL</span>
+        <div class="plus-item-text"><b>Landing &amp; Showcase (/landing)</b><small>Verejná prezentácia platformy</small></div>
       </button>
       <button type="button" class="plus-item" id="plus-opt-tool-gdpr">
-        <span class="plus-item-icon">🛡️</span>
-        <div class="plus-item-text">
-          <b>GDPR & Ochrana údajov</b>
-          <small>Vyhlásenie a správa súhlasu</small>
-        </div>
+        <span class="plus-item-icon">AUP</span>
+        <div class="plus-item-text"><b>GDPR, Licencie &amp; AUP</b><small>Pravidlá, anti-spam a súhlas</small></div>
       </button>
     </div>
   </div>
 </div>
 <select id="engine" aria-label="AI engine">
-<option value="auto" selected>⚪ Auto Pentad Router (Blesková inteligentná voľba)</option>
-<option value="cloud">🟢 Edge AI (Cloudflare Workers AI)</option>
-<option value="gemini">🔵 Google Gemini API</option>
-<option value="openai">🟠 OpenAI API / Codex model</option>
-<option value="fast">⚡ Trinity Ultra-Fast (Sub-sekundový Meta Llama 3.1 8B)</option>
-<option value="deepseek-r1">🧠 DeepSeek R1 Reasoning (Workers AI / 32B)</option>
-<option value="llama">🦙 Meta Llama 3.3 Turbo (70B Instruct)</option>
-<option value="qwen">🌐 Qwen 2.5 Instruct (72B)</option>
-<option value="groq">⚡ Groq LPU (Ultra-Fast Llama / DeepSeek)</option>
-<option value="deepseek">🐳 DeepSeek API (Reasoner & Chat)</option>
-<option value="anthropic">🟣 Anthropic Claude (3.5 / 3.7 Sonnet)</option>
-<option value="mistral">🔴 Mistral AI (Large / Codestral)</option>
-<option value="openrouter">🪐 OpenRouter (100+ Free & Pro Modely)</option>
-<option value="local">💻 Môj počítač · PC Bridge (Lokálne akcie)</option>
-</select><button id="attach-image" type="button" title="Analyzovať obrázok">📎 Obrázok</button><button id="record-voice" type="button" title="Nahrať hlas">🎤 Hlas</button><button id="read-answer" type="button" title="Prečítať poslednú odpoveď">🔊 Čítať</button><button id="voice-dialogue-btn" type="button" title="Obojsmerný handsfree hovor s Trinity" class="voice-live-btn">🎙️ Live Hovor</button><button id="memory-graph-open-btn" type="button" title="Kontextový pamäťový graf">🕸️ Graf</button><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><input id="audio-input" type="file" accept="audio/*" hidden><input id="file-doc-input" type="file" accept=".pdf,.doc,.docx,.txt,.md,.json,.js,.py,.csv,.zip,.html,.css" hidden><input id="file-video-input" type="file" accept="video/mp4,video/webm,video/quicktime" hidden><label><input type="checkbox" id="remember"><span data-i18n="remember">Pamäť</span></label><label id="allow-files-setting"><input type="checkbox" id="allow-files"><span data-i18n="allowFiles">Súbory</span></label></div><button id="stop" type="button" hidden data-i18n="stop">Zastaviť</button><button id="send" class="primary" data-i18n="send">Odoslať ↑</button></div></form><audio id="speech-player" controls hidden></audio><small class="footnote" data-i18n="footnote">Trinity 11.1 · Pokojný priestor pre tvorbu a prácu</small></section></section>
+<option value="auto" selected>Auto Pentad Router</option>
+<option value="cloud">Cloudflare Workers AI</option>
+<option value="gemini">Google Gemini</option>
+<option value="openai">OpenAI GPT / Codex</option>
+<option value="fast">Llama 3.1 8B (Ultra-Fast)</option>
+<option value="deepseek-r1">DeepSeek R1 Reasoning</option>
+<option value="llama">Meta Llama 3.3 70B</option>
+<option value="qwen">Qwen 2.5 72B Instruct</option>
+<option value="groq">Groq LPU</option>
+<option value="deepseek">DeepSeek API</option>
+<option value="anthropic">Anthropic Claude</option>
+<option value="mistral">Mistral AI</option>
+<option value="openrouter">OpenRouter</option>
+<option value="local">Local PC Bridge</option>
+</select><button id="attach-image" type="button" title="Analyzovať obrázok">Obrázok</button><button id="record-voice" type="button" title="Nahrať hlas">Hlas</button><button id="read-answer" type="button" title="Prečítať poslednú odpoveď">Čítať</button><button id="voice-dialogue-btn" type="button" title="Obojsmerný hlasový hovor" class="voice-live-btn">Hovor</button><button id="memory-graph-open-btn" type="button" title="Pamäťový graf">Graf</button><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><input id="audio-input" type="file" accept="audio/*" hidden><input id="file-doc-input" type="file" accept=".pdf,.doc,.docx,.txt,.md,.json,.js,.py,.csv,.zip,.html,.css" hidden><input id="file-video-input" type="file" accept="video/mp4,video/webm,video/quicktime" hidden><label><input type="checkbox" id="remember"><span data-i18n="remember">Pamäť</span></label><label id="allow-files-setting"><input type="checkbox" id="allow-files"><span data-i18n="allowFiles">Súbory</span></label></div><button id="stop" type="button" hidden data-i18n="stop">Zastaviť</button><button id="send" class="primary" data-i18n="send">Odoslať</button></div></form><audio id="speech-player" controls hidden></audio><div class="composer-legal-footer"><small class="footnote" data-i18n="footnote">Trinity AI · Overované odpovede · Anti-Spam &amp; Rate Limiting aktívny</small><span><a href="/terms" target="_blank" rel="noopener">Podmienky</a> · <a href="/aup" target="_blank" rel="noopener">AUP</a> · <a href="/privacy" target="_blank" rel="noopener">GDPR</a> · <a href="/license" target="_blank" rel="noopener">Licencia</a></span></div></section></section>
     <section id="studio-view" class="view studio-view" hidden>
       <div class="studio-top"><div><span class="eyebrow">TRINITY AI & MULTIMEDIÁLNE ŠTÚDIO</span><h1 data-i18n="builderTitle">Tvorba Videí, Hudby, Fotiek, Prezentácií a Webov</h1><p data-i18n="builderIntro">Generuj 16:9 animované videá so zvukom a WebM exportom, polyfonickú WAV hudbu, AI fotky, interaktívne prezentácie (HTML5 + PDF), kreatívne balíky aj živé weby.</p></div><button id="studio-new" class="primary" data-i18n="newStudioProject">＋ Nový webový projekt</button></div>
       <section id="multimedia-studio-panel" class="panel domain-env-panel" style="margin-bottom:18px">
@@ -1457,7 +1437,7 @@ Pripravené na spustenie príkazu na hostiteľskom PC...</div>
               <small style="color:var(--text-muted, #94a3b8)">Zvrchovaný tvorca a majiteľ: Ivan Sabo (alias <b>Basterix</b>) · Platnosť: NEODVOLATEĽNÉ</small>
             </div>
             <div style="display:flex;gap:8px">
-              <button type="button" class="primary" onclick="window.open('/api/assistant/documents','_blank')">Otvoriť archív dokumentov</button>
+              <a class="primary" href="/api/assistant/documents" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:inline-flex;align-items:center;">Otvoriť archív dokumentov</a>
             </div>
           </div>
           <div style="line-height:1.7;font-size:1rem;color:#e2e8f0;background:rgba(0,0,0,0.3);padding:20px;border-radius:8px;border:1px solid rgba(245,158,11,0.25)">
@@ -1949,8 +1929,45 @@ Pripravené na spustenie príkazu na hostiteľskom PC...</div>
         <article class="settings-status"><span>DATABÁZA</span><b id="settings-database">—</b><small>Indexovaná D1 + KV cache + R2 archív</small></article>
         <article class="settings-status commerce-status-card"><span>OBCHOD A PLATBY</span><b id="settings-commerce-summary">—</b><small id="settings-commerce-detail">Revolut Pro & PayPal odkazy</small></article>
       </div>
-      <div class="settings-commandbar"><label class="settings-search"><span>⌕</span><input id="settings-search" type="search" placeholder="Hľadať nastavenia, moduly a pripojenia…" autocomplete="off"></label><nav id="settings-sections" aria-label="Kategórie nastavení"><button type="button" class="active" data-settings-filter="all">Všetko</button><button type="button" data-settings-filter="audit">📜 Audit &amp; história</button><button type="button" data-settings-filter="ui-evolution">🎨 Živý vzhľad & UI</button><button type="button" data-settings-filter="commerce">💳 Obchod a platby</button><button type="button" data-settings-filter="general">Všeobecné</button><button type="button" data-settings-filter="studio">AI Studio</button><button type="button" data-settings-filter="capabilities">Schopnosti</button><button type="button" data-settings-filter="connections">Pripojenia</button><button type="button" data-settings-filter="data">Dáta a bezpečnosť</button><button type="button" data-settings-filter="developer">Vývojár</button><button type="button" data-settings-filter="admin">Admin</button></nav></div>
+      <div class="settings-commandbar"><label class="settings-search"><span>⌕</span><input id="settings-search" type="search" placeholder="Hľadať nastavenia, moduly a pripojenia…" autocomplete="off"></label><nav id="settings-sections" aria-label="Kategórie nastavení"><button type="button" class="active" data-settings-filter="all">Všetko</button><button type="button" data-settings-filter="governance">Licencie &amp; Anti-Spam</button><button type="button" data-settings-filter="audit">Audit &amp; história</button><button type="button" data-settings-filter="ui-evolution">Živý vzhľad &amp; UI</button><button type="button" data-settings-filter="commerce">Obchod a platby</button><button type="button" data-settings-filter="general">Všeobecné</button><button type="button" data-settings-filter="studio">AI Studio</button><button type="button" data-settings-filter="capabilities">Schopnosti</button><button type="button" data-settings-filter="connections">Pripojenia</button><button type="button" data-settings-filter="data">Dáta a bezpečnosť</button><button type="button" data-settings-filter="developer">Vývojár</button><button type="button" data-settings-filter="admin">Admin</button></nav></div>
       <div class="settings-grid wide-settings">
+        <section id="settings-governance-panel" class="panel admin-panel" data-settings-section="governance" data-settings-keywords="licencia licencie policy politiky anti-spam rate limit abuse aup gdpr terms privacy ai act">
+          <div class="panel-head">
+            <div><span class="eyebrow">LICENSING, POLICIES &amp; ANTI-SPAM SHIELD</span><h2>Licencie, Právne politiky &amp; Ochrana proti spamu</h2></div>
+            <span id="gov-policy-version-chip" class="detail-chip">POLICY 2026.11</span>
+          </div>
+          <p class="settings-help">Reálne vynucované licenčné kvóty, ochrana proti zahlcovaniu tokenov, automatické banovanie spamu a kompletné právne dokumenty AI platformy.</p>
+          <div class="governance-grid">
+            <div class="gov-stat"><span>AKTÍVNA LICENCIA</span><b id="gov-license-name">Načítavam…</b><small id="gov-license-limits">—</small></div>
+            <div class="gov-stat"><span>ANTI-SPAM ŠTÍT</span><b id="gov-shield-status">Aktívny</b><small id="gov-shield-bans">0 blokovaných IP</small></div>
+            <div class="gov-stat"><span>UDELENÉ LICENCIE</span><b id="gov-grants-count">0</b><small>trn_lic_* granty v D1</small></div>
+            <div class="gov-stat"><span>SÚHLAS S POLITIKAMI</span><b id="gov-acceptances-count">0</b><small>Zaznamenané potvrdenia</small></div>
+          </div>
+          <div class="gov-policy-list">
+            <div class="gov-policy-row"><div><b>Podmienky používania (Terms of Service)</b><small class="muted"> — Zodpovednosť, AI výstupy, pozastavenie pri zneužití</small></div><a href="/terms" target="_blank" rel="noopener" class="button-link">Otvoriť /terms</a></div>
+            <div class="gov-policy-row"><div><b>Zásady prijateľného používania (AUP &amp; Anti-Spam)</b><small class="muted"> — Zákaz floodingu, token-bombingu, scrapingu a útokov</small></div><a href="/aup" target="_blank" rel="noopener" class="button-link">Otvoriť /aup</a></div>
+            <div class="gov-policy-row"><div><b>Ochrana súkromia (Privacy Policy &amp; GDPR)</b><small class="muted"> — D1/KV/R2 uloženie, AES-GCM šifrovanie, práva dotknutej osoby</small></div><a href="/privacy" target="_blank" rel="noopener" class="button-link">Otvoriť /privacy</a></div>
+            <div class="gov-policy-row"><div><b>Licenčná zmluva platformy (Commercial 2.0)</b><small class="muted"> — Komerčné vlastníctvo AI Studio výstupov &amp; kvóty</small></div><a href="/license" target="_blank" rel="noopener" class="button-link">Otvoriť /license</a></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px;">
+            <button type="button" id="accept-policies-btn" class="primary">Potvrdiť a zaznamenať súhlas s politikami</button>
+            <button type="button" id="refresh-governance-btn">Obnoviť stav štítu</button>
+            <a href="/legal" target="_blank" rel="noopener" class="button-link">Celý Právny portál (/legal)</a>
+          </div>
+          <form id="license-issue-form" class="secret-form commerce-form" style="margin-top:8px;">
+            <strong>Vydať novú komerčnú licenciu (trn_lic_*) — Owner</strong>
+            <div class="commerce-form-grid">
+              <label><span>Príjemca (e-mail / firma / projekt)</span><input id="lic-subject-id" required maxlength="160" placeholder="klient@firma.sk"></label>
+              <label><span>Licenčná úroveň</span><select id="lic-tier"><option value="pro_studio">Pro AI Studio (60 RPM / 5 000 denne)</option><option value="enterprise_sovereign">Enterprise Sovereign (300 RPM / 100k denne)</option><option value="free_sandbox">Free Sandbox (15 RPM / 250 denne)</option></select></label>
+              <label><span>Platnosť (dni)</span><input id="lic-days" type="number" min="1" max="3650" value="365"></label>
+            </div>
+            <button type="submit" class="primary" style="margin-top:10px;">Vydať licenčný kľúč</button>
+          </form>
+          <pre id="license-issue-output" hidden style="margin-top:10px;"></pre>
+          <div id="license-grants-list" class="api-key-list" style="margin-top:12px;"></div>
+          <div class="commerce-catalog-head" style="margin-top:14px;"><strong>Posledné zablokované spam / abuse incidenty</strong></div>
+          <div id="shield-incidents-list" class="incident-list" style="margin-top:8px;"></div>
+        </section>
         <section id="settings-ui-evolution-panel" class="panel admin-panel commerce-panel" data-settings-section="ui-evolution" data-settings-keywords="živý vzhľad ui samorozvoj téma farby písmo nadpis css widgety dizajn trinity">
           <div class="panel-head"><div><span class="eyebrow">TRINITY LIVE UI EVOLUTION</span><h2>Živá úprava vzhľadu a autonómny dizajn UI</h2></div><span id="ui-evolution-active-badge" class="detail-chip">AKTÍVNY ŠTÝL</span></div>
           <p class="settings-help">Trinity si dokáže sama upravovať a vylepšovať vlastné používateľské rozhranie (farby, témy, mierku písma, nadpisy, vlastné widgety na Prehľade aj bezpečné CSS) priamo počas behu — stačí jej napísať v chate (napr. <i>„Trinity, zmeň svoje UI na zlatú kyber tému a pridaj widget“</i>) alebo použi štúdio nižšie. Každá zmena vytvorí <b>Trinity Dokument</b> a dá sa vrátiť späť (Rollback).</p>
@@ -2343,6 +2360,30 @@ Pripravené na spustenie príkazu na hostiteľskom PC...</div>
 </main>
 <dialog id="memory-dialog"><div class="dialog-head"><div><span class="eyebrow" data-i18n="memoryLabel">ČO SI O TEBE PAMÄTÁM</span><h2 data-i18n="memoryTitle">Pamäť Trinity</h2></div><button data-close="memory-dialog" aria-label="Close">×</button></div><p id="memory-location"></p><form id="memory-form"><input id="memory-key" required maxlength="120" data-placeholder="memoryName" placeholder="Názov poznámky"><textarea id="memory-value" rows="3" required maxlength="10000" data-placeholder="memoryValue" placeholder="Čo si mám zapamätať?"></textarea><button class="primary" data-i18n="saveMemory">Uložiť do pamäte</button></form><div id="memory-list"></div><p class="muted" data-i18n="memorySafety">Nevkladaj heslá ani API kľúče.</p></dialog>
 <dialog id="tools-dialog"><div class="dialog-head"><h2 data-i18n="toolsTitle">Moje schopnosti</h2><button data-close="tools-dialog" aria-label="Close">×</button></div><div id="tool-list"></div><section id="changes-section"><h3 data-i18n="changesTitle">Zmeny vzhľadu na schválenie</h3><p data-i18n="changesHint">Nič sa nemení automaticky.</p><div id="change-list"></div></section></dialog>
+
+<dialog id="command-palette-dialog" aria-label="Príkazová paleta">
+  <div class="cmdk-header">
+    <span style="color:var(--text-dim);font-family:var(--font-mono);font-size:12px;">⌘K</span>
+    <input id="cmdk-input" type="search" placeholder="Prepnúť pohľad, otvoriť licencie, zmeniť vzhľad, spustiť akciu…" autocomplete="off">
+    <button type="button" data-close="command-palette-dialog" aria-label="Zavrieť" style="padding:3px 8px;">Esc</button>
+  </div>
+  <div id="cmdk-list" class="cmdk-list"></div>
+</dialog>
+
+<dialog id="legal-dialog" aria-label="Licencie, politiky a anti-spam">
+  <div class="dialog-head">
+    <div><span class="eyebrow">TRINITY GOVERNANCE</span><h2>Licencie, Politiky &amp; Anti-Spam Ochrana</h2></div>
+    <button data-close="legal-dialog" aria-label="Close">×</button>
+  </div>
+  <div id="legal-dialog-body" style="margin-top:10px;max-height:56vh;overflow-y:auto;">Načítavam politiky…</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:12px;border-top:1px solid var(--line);">
+    <a href="/legal" target="_blank" rel="noopener" class="button-link">Otvoriť celý portál /legal</a>
+    <div style="display:flex;gap:8px;">
+      <button type="button" id="legal-dialog-accept-btn" class="primary">Súhlasím s podmienkami</button>
+      <button type="button" data-close="legal-dialog">Zavrieť</button>
+    </div>
+  </div>
+</dialog>
 
 <div id="trinity-media-lightbox" class="trinity-lightbox" hidden>
   <div class="lightbox-overlay" id="lightbox-backdrop"></div>
