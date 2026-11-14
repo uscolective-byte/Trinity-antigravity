@@ -20,6 +20,11 @@ export function isOwnerEmail(env,email){
   if(primary)owners.add(primary);
   return owners.has(String(email||'').trim().toLowerCase());
 }
+export function isAdminEmail(env,email){
+  if(isOwnerEmail(env,email))return true;
+  const admins=normalizedEmails(env.TRINITY_ADMIN_EMAILS);
+  return admins.has(String(email||'').trim().toLowerCase());
+}
 export async function validKey(token, env) {
   token=typeof token==='string'?token.trim():token;
   if (!token || token.length > 2048) return false;
@@ -71,11 +76,16 @@ export async function authenticate(request, env) {
       }
     }
     if(googleOnly){
-      if(row&&row.expires_at>Date.now()&&row.email&&(row.status===undefined||row.status==='active'))return {id:digest.slice(0,24),email:row.email,role:isOwnerEmail(env,row.email)?'owner':(row.role||'user')};
+      if(row&&row.expires_at>Date.now()&&row.email&&(row.status===undefined||row.status==='active')){
+        const owner=isOwnerEmail(env,row.email);
+        const admin=owner||isAdminEmail(env,row.email)||row.role==='admin';
+        return {id:digest.slice(0,24),email:row.email,role:owner?'owner':(admin?'admin':(row.role||'user'))};
+      }
     }else{
       if (row && row.expires_at > Date.now()) {
         const owner=isOwnerEmail(env,row.email);
-        const role=owner?'owner':(row.role||'user');
+        const admin=owner||isAdminEmail(env,row.email)||row.role==='admin';
+        const role=owner?'owner':(admin?'admin':(row.role||'user'));
         return { id: digest.slice(0, 24),email:row.email||null,role,owner };
       }
     }
