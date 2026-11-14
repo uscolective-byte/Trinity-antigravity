@@ -560,8 +560,9 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   }
   if(name==='request_system_action'){
     const adminAuthorized=executionContext.adminAuthorized===true;
+    const targetUser=executionContext.userEmail || (executionContext.ownerMode ? (env.TRINITY_OWNER_EMAIL || 'saboivan2008@gmail.com') : null);
     const requester=adminAuthorized?`admin:agent:${agent.id||'trinity'}`:`agent:${agent.id||'trinity'}`;
-    const action=await createSystemAction(env,args,requester,{adminAuthorized});
+    const action=await createSystemAction(env,args,requester,{adminAuthorized,targetUser});
     const current=adminAuthorized?await waitForSystemAction(env,action):action;
     if(current.status==='completed')return {id:current.id,action:current.action,status:current.status,receipt:current.receipt,approval_required:false,_evidence:{effect:actionEffect(current.action),actions:actionEvidence(current.action),receipt_id:current.id}};
     return {id:current.id,action:current.action,status:current.status,approval_required:current.status==='proposed',expires_at:current.expires_at,note:current.status==='proposed'?`Čaká na samostatné schválenie používateľa príkazom SCHVÁĽ ${current.id}.`:'Admin príkaz bol autorizovaný, ale lokálna brána zatiaľ neposlala potvrdenie výsledku.',_evidence:{effect:'proposal'}};
@@ -1115,8 +1116,9 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     if(name==='pc_directory_create')payload={path:parsedArgs.path,operation:'mkdir'};
     const rationale=`Trinity tool: ${name}`;
     const adminAuthorized=executionContext.adminAuthorized===true;
+    const targetUser=executionContext.userEmail || (executionContext.ownerMode ? (env.TRINITY_OWNER_EMAIL || 'saboivan2008@gmail.com') : null);
     const requester=adminAuthorized?'admin:agent:trinity':'agent:trinity';
-    const action=await createSystemAction(env,{action:pcAction,payload,rationale},requester,{adminAuthorized});
+    const action=await createSystemAction(env,{action:pcAction,payload,rationale},requester,{adminAuthorized,targetUser});
     const pcStatus=await getPCBridgeStatus(env);
     const maxAttempts=pcStatus.connected?12:2;
     const current=await waitForSystemAction(env,action,{attempts:maxAttempts,intervalMs:1000});

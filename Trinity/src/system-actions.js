@@ -74,9 +74,10 @@ export async function createSystemAction(env,input,requestedBy='trinity',options
   const adminAuthorized=options.adminAuthorized===true&&requestedBy.startsWith('admin:');
   const status=!definition.approval||adminAuthorized?'approved':'proposed';
   const approvedBy=adminAuthorized?requestedBy:definition.approval?null:'policy:auto-read';
-  await env.DB.prepare(`INSERT INTO ops_system_actions(id,action,payload_json,rationale,status,requested_by,approved_by,approved_at,expires_at,created_at,updated_at)
-    VALUES(?,?,?,?,?,?,?,?,?,datetime('now'),datetime('now'))`).bind(id,data.action,JSON.stringify(data.payload),data.rationale,status,requestedBy,approvedBy,status==='approved'?now:null,now+30*60_000).run();
-  await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES(?,?)").bind(adminAuthorized?'system_action_admin_authorized':'system_action_proposed',JSON.stringify({id,action:data.action,status,requested_by:requestedBy,admin_authorized:adminAuthorized})).run();
+  const targetUser=options.targetUser||(requestedBy.startsWith('admin:user:')?requestedBy.replace('admin:user:',''):(options.userEmail||null));
+  await env.DB.prepare(`INSERT INTO ops_system_actions(id,action,payload_json,rationale,status,requested_by,approved_by,approved_at,expires_at,target_user,created_at,updated_at)
+    VALUES(?,?,?,?,?,?,?,?,?,?,datetime('now'),datetime('now'))`).bind(id,data.action,JSON.stringify(data.payload),data.rationale,status,requestedBy,approvedBy,status==='approved'?now:null,now+30*60_000,targetUser).run();
+  await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES(?,?)").bind(adminAuthorized?'system_action_admin_authorized':'system_action_proposed',JSON.stringify({id,action:data.action,status,requested_by:requestedBy,admin_authorized:adminAuthorized,target_user:targetUser})).run();
   const row=await getSystemAction(env,id);await mirrorBridge(env,row);return row;
 }
 
@@ -95,14 +96,35 @@ export async function rejectSystemAction(env,id,rejectedBy='user'){
   if(!row)throw new HttpError(409,'Akciu už nemožno odmietnuť.');const parsed=parseRow(row);await mirrorBridge(env,parsed);return parsed;
 }
 
-export async function claimSystemAction(env,gatewayId){
+export async function claimSystemAction(env,gatewayInfo){
+  const gatewayId = typeof gatewayInfo === 'object' && gatewayInfo !== null ? gatewayInfo.gatewayId : String(gatewayInfo);
+  const targetUser = typeof gatewayInfo === 'object' && gatewayInfo !== null ? gatewayInfo.userEmail : null;
+  const isOwner = typeof gatewayInfo === 'object' && gatewayInfo !== null ? gatewayInfo.isOwner : false;
   const now=Date.now(),lease=now+90_000;
   const expired=await env.DB.prepare(`UPDATE ops_system_actions SET status='failed',error='Platnosť systémovej akcie vypršala pred dokončením.',lease_until=NULL,completed_at=?,updated_at=datetime('now')
     WHERE expires_at<=? AND status IN ('proposed','approved','claimed') RETURNING *`).bind(now,now).all();
   for(const item of expired.results||[])await mirrorBridge(env,parseRow(item));
-  const row=await env.DB.prepare(`UPDATE ops_system_actions SET status='claimed',claimed_by=?,lease_until=?,attempts=attempts+1,updated_at=datetime('now')
-    WHERE id=(SELECT id FROM ops_system_actions WHERE expires_at>? AND (status='approved' OR (status='claimed' AND lease_until<?)) ORDER BY created_at LIMIT 1)
-    RETURNING *`).bind(gatewayId,lease,now,now).first();
+
+  let row = null;
+  if (targetUser) {
+    if (isOwner) {
+      row = await env.DB.prepare(`UPDATE ops_system_actions SET status='claimed',claimed_by=?,lease_until=?,attempts=attempts+1,updated_at=datetime('now')
+        WHERE id=(SELECT id FROM ops_system_actions WHERE expires_at>? AND (status='approved' OR (status='claimed' AND lease_until<?))
+          AND (target_user IS NULL OR lower(target_user)=lower(?) OR lower(requested_by) LIKE ?)
+          ORDER BY created_at LIMIT 1)
+        RETURNING *`).bind(gatewayId,lease,now,now,targetUser,`%${targetUser.toLowerCase()}%`).first();
+    } else {
+      row = await env.DB.prepare(`UPDATE ops_system_actions SET status='claimed',claimed_by=?,lease_until=?,attempts=attempts+1,updated_at=datetime('now')
+        WHERE id=(SELECT id FROM ops_system_actions WHERE expires_at>? AND (status='approved' OR (status='claimed' AND lease_until<?))
+          AND (lower(coalesce(target_user,''))=lower(?) OR lower(coalesce(requested_by,'')) LIKE ?)
+          ORDER BY created_at LIMIT 1)
+        RETURNING *`).bind(gatewayId,lease,now,now,targetUser,`%${targetUser.toLowerCase()}%`).first();
+    }
+  } else {
+    row = await env.DB.prepare(`UPDATE ops_system_actions SET status='claimed',claimed_by=?,lease_until=?,attempts=attempts+1,updated_at=datetime('now')
+      WHERE id=(SELECT id FROM ops_system_actions WHERE expires_at>? AND (status='approved' OR (status='claimed' AND lease_until<?)) ORDER BY created_at LIMIT 1)
+      RETURNING *`).bind(gatewayId,lease,now,now).first();
+  }
   const parsed=parseRow(row);await mirrorBridge(env,parsed);return parsed;
 }
 
@@ -118,9 +140,35 @@ export async function finishSystemAction(env,id,gatewayId,input){
 
 export async function authenticateGateway(request,env){
   const token=request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||request.headers.get('X-Trinity-Gateway');
-  if(typeof token!=='string'||token.length<32||typeof env.TRINITY_GATEWAY_KEY!=='string'||env.TRINITY_GATEWAY_KEY.length<32)throw new HttpError(401,'Lokálna brána nie je autorizovaná.');
-  if(!await equal(token,env.TRINITY_GATEWAY_KEY))throw new HttpError(401,'Lokálna brána nie je autorizovaná.');
-  return `gateway:${(await hash(token)).slice(0,16)}`;
+  if(typeof token!=='string'||token.length<24)throw new HttpError(401,'Lokálna brána nie je autorizovaná.');
+
+  // 1. Root gateway key (Owner: saboivan2008@gmail.com)
+  if(typeof env.TRINITY_GATEWAY_KEY==='string'&&env.TRINITY_GATEWAY_KEY.length>=16&&await equal(token,env.TRINITY_GATEWAY_KEY)){
+    return {
+      gatewayId: `gateway:${(await hash(token)).slice(0,16)}`,
+      userEmail: env.TRINITY_OWNER_EMAIL || 'saboivan2008@gmail.com',
+      isOwner: true
+    };
+  }
+
+  // 2. Personal device gateway token from ops_device_gateways
+  if(env.DB){
+    const digest = await hash(token);
+    try {
+      const row = await env.DB.prepare('SELECT id, user_email, device_name, status FROM ops_device_gateways WHERE token_hash=? AND status="active"').bind(digest).first();
+      if(row){
+        await env.DB.prepare('UPDATE ops_device_gateways SET last_seen=?, updated_at=datetime("now") WHERE token_hash=?').bind(Date.now(), digest).run().catch(()=>{});
+        return {
+          gatewayId: row.id,
+          userEmail: row.user_email,
+          deviceName: row.device_name,
+          isOwner: row.user_email === (env.TRINITY_OWNER_EMAIL || 'saboivan2008@gmail.com')
+        };
+      }
+    } catch {}
+  }
+
+  throw new HttpError(401,'Lokálna brána nie je autorizovaná.');
 }
 
 export function actionEvidence(action){

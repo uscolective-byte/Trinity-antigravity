@@ -901,21 +901,57 @@ async function route(request,env,ctx){
     const response=json({ok:true});response.headers.set('Set-Cookie',sessionCookie('',0,request,env));return response;
   }
   if(path==='/api/system/actions/claim'&&request.method==='POST'){
-    const gateway=await authenticateGateway(request,env);await rateLimit(env,`gateway-claim:${gateway}`,120);
+    const gateway=await authenticateGateway(request,env);
+    const gatewayKey = typeof gateway === 'object' ? gateway.gatewayId : String(gateway);
+    await rateLimit(env,`gateway-claim:${gatewayKey}`,120);
     return json({action:await claimSystemAction(env,gateway)});
   }
   if(['/api/pc-bridge', '/api/assistant/pc-bridge'].includes(path)&&request.method==='GET'){
     const status = await getPCBridgeStatus(env);
     let kvTelemetry = null;
+    let userEmail = null;
+    try {
+      const u = await authenticate(request, env);
+      userEmail = u?.email;
+    } catch {}
     if(env.PC_STATE){
-      try{ kvTelemetry = JSON.parse(await env.PC_STATE.get('telemetry:latest') || 'null'); }catch{}
+      if(userEmail){
+        try{ kvTelemetry = JSON.parse(await env.PC_STATE.get(`telemetry:user:${userEmail.toLowerCase()}`) || 'null'); }catch{}
+      }
+      if(!kvTelemetry){
+        try{ kvTelemetry = JSON.parse(await env.PC_STATE.get('telemetry:latest') || 'null'); }catch{}
+      }
     }
-    return json({ ok: true, status, telemetry: kvTelemetry });
+    return json({ ok: true, status, telemetry: kvTelemetry, user_email: userEmail });
+  }
+  if(path==='/api/pc-bridge/token'&&request.method==='GET'){
+    const u = await authenticate(request, env);
+    if(!['owner','admin'].includes(u.role)) throw new HttpError(403, 'PC Bridge vyžaduje rolu administrátora.');
+    const rows = await env.DB.prepare('SELECT id, device_name, status, last_seen, created_at FROM ops_device_gateways WHERE lower(user_email)=lower(?)').bind(u.email).all();
+    return json({ user_email: u.email, devices: rows.results });
+  }
+  if(path==='/api/pc-bridge/token'&&request.method==='POST'){
+    const u = await authenticate(request, env);
+    if(!['owner','admin'].includes(u.role)) throw new HttpError(403, 'PC Bridge vyžaduje rolu administrátora.');
+    const body = await readJSON(request, 10000).catch(()=>({}));
+    const deviceName = body.device_name || `PC-${u.email.split('@')[0]}`;
+    const token = `trinity_pc_${u.email.split('@')[0].replace(/[^a-zA-Z0-9]/g,'')}_${crypto.randomUUID().replace(/-/g,'')}`;
+    const digest = await hash(token);
+    const gatewayId = `gateway:${digest.slice(0,16)}`;
+    await env.DB.prepare('INSERT INTO ops_device_gateways (id, user_email, device_name, token_hash, status, created_at, updated_at) VALUES (?, ?, ?, ?, "active", datetime("now"), datetime("now"))')
+      .bind(gatewayId, u.email, deviceName, digest).run();
+    return json({ ok: true, token, gateway_id: gatewayId, device_name: deviceName, user_email: u.email });
   }
   if(['/api/pc-bridge/telemetry', '/api/assistant/pc-bridge/telemetry'].includes(path)&&request.method==='POST'){
     const body = await readJSON(request, 64000);
+    let gatewayInfo = null;
+    try { gatewayInfo = await authenticateGateway(request, env); } catch {}
+    const userEmail = gatewayInfo?.userEmail || body.user_email || 'saboivan2008@gmail.com';
+    const gatewayId = gatewayInfo?.gatewayId || body.gateway_id || 'gateway:pc';
     if(env.PC_STATE){
       await env.PC_STATE.put('telemetry:latest', JSON.stringify(body), { expirationTtl: 300 });
+      await env.PC_STATE.put(`telemetry:user:${userEmail.toLowerCase()}`, JSON.stringify(body), { expirationTtl: 300 });
+      await env.PC_STATE.put(`telemetry:gateway:${gatewayId}`, JSON.stringify(body), { expirationTtl: 300 });
     }
     if(env.trinity_basterix){
       await env.trinity_basterix.prepare(
@@ -1883,7 +1919,7 @@ async function route(request,env,ctx){
     const provider=routed.provider;
     const ownerMode=['owner','admin'].includes(user.role)||user.email==='saboivan2008@gmail.com'||user.email===env.TRINITY_OWNER_EMAIL||(env.TRINITY_ADMIN_EMAILS&&env.TRINITY_ADMIN_EMAILS.split(',').map(s=>s.trim()).includes(user.email));
     const teamMode=/\b(t[ií]mov[yý]\s+re[zž]im|team\s+mode)\b/i.test(d.message);
-    return withRateLimitHeaders(json(await createJob(env,{task:d.message,session_id:d.session,agent:teamMode?'auto':'orchestrator',mode:teamMode?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,idempotency_key:crypto.randomUUID()}),202),shield.rateLimitHeaders);
+    return withRateLimitHeaders(json(await createJob(env,{task:d.message,session_id:d.session,agent:teamMode?'auto':'orchestrator',mode:teamMode?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,user_email:user.email,idempotency_key:crypto.randomUUID()}),202),shield.rateLimitHeaders);
   }
   if(path==='/api/assistant/chat/stream'&&request.method==='POST'){
     await rateLimit(env,`stream:${user.id}`,20);
@@ -1891,7 +1927,7 @@ async function route(request,env,ctx){
     if(d.engine==='local')requireAdmin(user);
     const shield=await enforceAntiSpamShield(request,env,{route:path,user,promptText:d.message});
     const ownerMode=['owner','admin'].includes(user.role)||user.email==='saboivan2008@gmail.com'||user.email===env.TRINITY_OWNER_EMAIL||(env.TRINITY_ADMIN_EMAILS&&env.TRINITY_ADMIN_EMAILS.split(',').map(s=>s.trim()).includes(user.email));
-    return withRateLimitHeaders(await handleLiveChatStream(env,ctx,{...d,ownerMode}),shield.rateLimitHeaders);
+    return withRateLimitHeaders(await handleLiveChatStream(env,ctx,{...d,ownerMode,userEmail:user.email}),shield.rateLimitHeaders);
   }
   if(path==='/api/assistant/consensus'&&request.method==='POST'){
     await rateLimit(env,`consensus:${user.id}`,10);

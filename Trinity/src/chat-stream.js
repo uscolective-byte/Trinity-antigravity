@@ -212,7 +212,7 @@ async function persistStreamTurn(env, { jobId, sessionId, message, answer, provi
   }
 }
 
-export async function handleLiveChatStream(env, ctx, { message, session, language = 'auto', engine = 'auto', remember = false, allow_files = false, ownerMode = false }) {
+export async function handleLiveChatStream(env, ctx, { message, session, language = 'auto', engine = 'auto', remember = false, allow_files = false, ownerMode = false, userEmail = null }) {
   const sessionId = session || crypto.randomUUID();
   const jobId = crypto.randomUUID();
 
@@ -234,7 +234,7 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
         const direct = directChatTool(message, ['calculate', 'current_time']);
         if (direct) {
           const agent = agentById('orchestrator');
-          const outcome = await runTool(env, agent, direct.name, direct.arguments, { adminAuthorized: ownerMode, ownerMode });
+          const outcome = await runTool(env, agent, direct.name, direct.arguments, { adminAuthorized: ownerMode, ownerMode, userEmail });
           const text = direct.name === 'calculate' ? String(outcome.result) : String(outcome.localized || outcome.result || '');
           send({ type: 'context', session: sessionId, model: 'deterministic-tool', memories: [], history: 0 });
           send({ type: 'delta', text });
