@@ -59,15 +59,24 @@ export async function authenticate(request, env) {
   const session = request.headers.get('Cookie')?.match(/(?:^|;\s*)trinity_session=([a-f0-9]{64})(?:;|$)/)?.[1];
   if (session) {
     const digest = await hash(session);
-    if(googleOnly){
-      const row=await env.DB.prepare(`SELECT s.expires_at,s.email,u.role,u.status FROM ops_sessions s
+    let row = null;
+    try {
+      row = await env.DB.prepare(`SELECT s.expires_at,s.email,u.role,u.status FROM ops_sessions s
         LEFT JOIN ops_users u ON lower(u.email)=lower(s.email) WHERE s.token_hash=?`).bind(digest).first();
-      if(row&&row.expires_at>Date.now()&&row.email&&row.status==='active')return {id:digest.slice(0,24),email:row.email,role:isOwnerEmail(env,row.email)?'owner':row.role};
+    } catch {
+      try {
+        row = await env.DB.prepare('SELECT expires_at,email FROM ops_sessions WHERE token_hash=?').bind(digest).first();
+      } catch {
+        row = null;
+      }
+    }
+    if(googleOnly){
+      if(row&&row.expires_at>Date.now()&&row.email&&(row.status===undefined||row.status==='active'))return {id:digest.slice(0,24),email:row.email,role:isOwnerEmail(env,row.email)?'owner':(row.role||'user')};
     }else{
-      const row = await env.DB.prepare('SELECT expires_at,email FROM ops_sessions WHERE token_hash = ?').bind(digest).first();
       if (row && row.expires_at > Date.now()) {
         const owner=isOwnerEmail(env,row.email);
-        return { id: digest.slice(0, 24),email:row.email||null,role:owner?'owner':null,owner };
+        const role=owner?'owner':(row.role||'user');
+        return { id: digest.slice(0, 24),email:row.email||null,role,owner };
       }
     }
   }

@@ -66,10 +66,10 @@ export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_su
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
 export const OWNER_BUSINESS_TOOLS=new Set(['finance_propose_transfer','finance_confirm_transfer','finance_audit_ledger','prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
 export const requiresVerifiedAdminForIntegrationTool=(name,args={})=>
-  name==='cloudflare_manage'&&args?.action==='purge_cache'
-  ||name==='github_manage'&&['create_issue','update_issue','dispatch_workflow'].includes(args?.action)
-  ||name==='firebase_manage'&&args?.action==='set_document'
-  ||name==='onedrive_manage'&&args?.action==='upload_file';
+  name==='cloudflare_manage'&&['purge_cache','create_dns_record','update_dns_record','delete_dns_record'].includes(args?.action)
+  ||name==='github_manage'&&['create_issue','update_issue','dispatch_workflow','create_or_update_file','write_file','create_pull_request'].includes(args?.action)
+  ||name==='firebase_manage'&&['set_document','delete_document'].includes(args?.action)
+  ||name==='onedrive_manage'&&['upload_file','create_folder','delete_file','delete_item'].includes(args?.action);
 export const TOOL_SCHEMAS={
   web_fetch:z.object({url:z.string().url()}).strict(),
   project_inspect:z.object({query:z.string().max(2000).default('')}).strict(),
@@ -217,12 +217,19 @@ export const TOOL_SCHEMAS={
   ,generate_presentation:generatePresentationSchema
   ,generate_creative_pack:generateCreativePackSchema
   ,cloudflare_manage:z.object({
-    action:z.enum(['status','list_dns_zones','purge_cache','list_workers']).default('status'),
+    action:z.enum(['status','list_dns_zones','purge_cache','list_workers','create_dns_record','update_dns_record','delete_dns_record']).default('status'),
     zoneId:z.string().optional(),
-    accountId:z.string().optional()
+    accountId:z.string().optional(),
+    recordId:z.string().optional(),
+    type:z.enum(['A','AAAA','CNAME','TXT','MX','NS','SRV','LOC','CAA']).optional(),
+    name:z.string().optional(),
+    content:z.string().optional(),
+    ttl:z.number().int().optional(),
+    proxied:z.boolean().optional(),
+    priority:z.number().int().optional()
   }).strict()
   ,github_manage:z.object({
-    action:z.enum(['status','repo_info','list_commits','list_issues','create_issue','update_issue','dispatch_workflow','get_file','read_file','list_files','list_tree']).default('status'),
+    action:z.enum(['status','repo_info','list_commits','list_issues','create_issue','update_issue','dispatch_workflow','get_file','read_file','list_files','list_tree','create_or_update_file','write_file','create_pull_request']).default('status'),
     repo:z.string().optional(),
     limit:z.number().int().min(1).max(250).optional(),
     path:z.string().optional(),
@@ -232,7 +239,14 @@ export const TOOL_SCHEMAS={
     ref:z.string().optional(),
     issue_number:z.number().int().optional(),
     labels:z.array(z.string()).optional(),
-    inputs:z.record(z.string(),z.unknown()).optional()
+    inputs:z.record(z.string(),z.unknown()).optional(),
+    message:z.string().optional(),
+    content:z.union([z.string(),z.record(z.string(),z.unknown())]).optional(),
+    branch:z.string().optional(),
+    sha:z.string().optional(),
+    is_base64:z.boolean().optional(),
+    head:z.string().optional(),
+    base:z.string().optional()
   }).strict()
   ,firecrawl_scrape:z.object({
     url:z.string().url(),
@@ -240,16 +254,17 @@ export const TOOL_SCHEMAS={
     onlyMainContent:z.boolean().default(true)
   }).strict()
   ,firebase_manage:z.object({
-    action:z.enum(['status','get_document','set_document']).default('status'),
+    action:z.enum(['status','get_document','set_document','delete_document']).default('status'),
     projectId:z.string().optional(),
     collection:z.string().optional(),
     documentId:z.string().optional(),
     data:z.record(z.string(),z.unknown()).optional()
   }).strict()
   ,onedrive_manage:z.object({
-    action:z.enum(['status','drive_info','list_files','get_file','upload_file']).default('status'),
+    action:z.enum(['status','drive_info','list_files','get_file','upload_file','create_folder','delete_file','delete_item']).default('status'),
     path:z.string().optional(),
     itemId:z.string().optional(),
+    name:z.string().optional(),
     content:z.union([z.string(),z.record(z.string(),z.unknown())]).optional(),
     contentType:z.string().optional(),
     profile:z.string().optional()
@@ -899,11 +914,12 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   }
   if(name==='cloudflare_manage'){
     const res=await manageCloudflare(env,`agent:${agent.id||'trinity'}`,args.action,args);
-    return {...res,_evidence:{effect:args.action==='purge_cache'?'mutation':'read',actions:args.action==='purge_cache'?['change']:undefined,receipt_id:`cloudflare:${args.action}:${crypto.randomUUID()}`}};
+    const isMut=Boolean(['purge_cache','create_dns_record','update_dns_record','delete_dns_record'].includes(args.action));
+    return {...res,_evidence:{effect:isMut?'mutation':'read',actions:isMut?['change']:undefined,receipt_id:`cloudflare:${args.action}:${crypto.randomUUID()}`}};
   }
   if(name==='github_manage'){
     const res=await manageGitHub(env,`agent:${agent.id||'trinity'}`,args.action,args);
-    const isMut=Boolean(args.action==='create_issue'||args.action==='update_issue'||args.action==='dispatch_workflow');
+    const isMut=Boolean(['create_issue','update_issue','dispatch_workflow','create_or_update_file','write_file','create_pull_request'].includes(args.action));
     const issueNum=res?.issue?.number||(args.action==='update_issue'?(args.issue_number||args.number):undefined);
     return {...res,_evidence:{effect:isMut?'mutation':'read',actions:isMut?['change','publish']:undefined,receipt_id:`github:${args.action}:${crypto.randomUUID()}`,issue_number:issueNum}};
   }
@@ -913,12 +929,12 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   }
   if(name==='firebase_manage'){
     const res=await manageFirebase(env,`agent:${agent.id||'trinity'}`,args.action,args);
-    const isMut=Boolean(args.action==='set_document');
+    const isMut=Boolean(['set_document','delete_document'].includes(args.action));
     return {...res,_evidence:{effect:isMut?'mutation':'read',actions:isMut?['change']:undefined,receipt_id:`firebase:${args.action}:${crypto.randomUUID()}`}};
   }
   if(name==='onedrive_manage'){
     const res=await manageOneDrive(env,`agent:${agent.id||'trinity'}`,args.action,args);
-    const isMut=Boolean(args.action==='upload_file');
+    const isMut=Boolean(['upload_file','create_folder','delete_file','delete_item'].includes(args.action));
     return {...res,_evidence:{effect:isMut?'mutation':'read',actions:isMut?['change','publish']:undefined,receipt_id:`onedrive:${args.action}:${crypto.randomUUID()}`}};
   }
   if(name==='google_cloud_manage'){
@@ -1547,11 +1563,11 @@ export const TOOL_HELP={
   generate_video:'Vygeneruje skutočné prehrávateľné 16:9 WebM video (VP8 stream + sprievodný storyboard a kino v R2): {prompt:string, title?:string, style?:cyberpunk|cinematic|business|space|nature|abstract, duration_sec?:8..60, scenes_count?:3..8}',
   generate_presentation:'Vytvorí profesionálnu 16:9 interaktívnu prezentáciu (HTML5 Slide Deck s ovládaním šípkami) + tlačový PDF dokument v R2 archíve: {topic:string, title?:string, subtitle?:string, audience?:string, theme?:midnight-tech|cyber-gold|emerald-growth|clean-light|royal-violet, slides_count?:4..10, key_points?:string[]}',
   generate_creative_pack:'Vytvorí kreatívny vizuálny balík (infografiku, kampaň pre sociálne siete, storyboard alebo brand kit) v R2 archíve: {prompt:string, title?:string, pack_type?:infographic|social_pack|storyboard|brand_kit, theme?:midnight-tech|cyber-gold|emerald-growth|clean-light|royal-violet}',
-  cloudflare_manage:'Spravuje a diagnostikuje Cloudflare Edge infraštruktúru (Workers, D1, KV, R2, DNS zóny, premazanie cache): {action:status|list_dns_zones|purge_cache|list_workers, zoneId?:string, accountId?:string}',
-  github_manage:'Prepojenie a správa GitHub repozitára (uscolective-byte/Trinity-antigravity, uscolective-byte/trinity-morhfeus), čítanie súborov, stromu projektu, commits, issues, PR a spúšťanie GitHub Actions: {action:status|repo_info|list_commits|list_issues|get_file|read_file|list_files|list_tree|create_issue|dispatch_workflow, repo?:string, path?:string, ref?:string, limit?:number}',
+  cloudflare_manage:'Spravuje a riadi Cloudflare Edge infraštruktúru (Read & Write: Workers, D1, KV, R2, DNS zóny, vytváranie a úprava DNS záznamov, premazanie cache): {action:status|list_dns_zones|create_dns_record|update_dns_record|delete_dns_record|purge_cache|list_workers, zoneId?:string, accountId?:string, type?:string, name?:string, content?:string, ttl?:number, proxied?:boolean, recordId?:string}',
+  github_manage:'Plná správa a riadenie GitHub repozitára (Read & Write: commits, priamy zápis a úprava súborov, tvorba PR, správa issues a GitHub Actions): {action:status|repo_info|list_commits|list_issues|get_file|read_file|list_files|list_tree|create_issue|update_issue|create_or_update_file|write_file|create_pull_request|dispatch_workflow, repo?:string, path?:string, content?:string, message?:string, branch?:string, title?:string, head?:string, base?:string, limit?:number}',
   firecrawl_scrape:'Hĺbkový web scraping, crawling a extrakcia obsahu z ľubovoľnej URL do čistého Markdownu: {url:string, mode?:scrape|crawl|map, onlyMainContent?:boolean}',
-  firebase_manage:'Integrácia s Google Firebase (trinity-morhfeus-20261001), kontrola hostingu, čítanie a ukladanie Firestore dokumentov: {action:status|get_document|set_document, projectId?:string, collection?:string, documentId?:string, data?:object}',
-  onedrive_manage:'Integrácia s Microsoft OneDrive a Office 365 (Microsoft Graph API), čítanie zložiek, sťahovanie súborov a ukladanie dokumentov: {action:status|drive_info|list_files|get_file|upload_file, path?:string, itemId?:string, content?:string|object, profile?:string}',
+  firebase_manage:'Integrácia s Google Firebase (Read & Write: hosting, čítanie, ukladanie a mazanie Firestore dokumentov + D1 mirror): {action:status|get_document|set_document|delete_document, projectId?:string, collection?:string, documentId?:string, data?:object}',
+  onedrive_manage:'Plná správa Microsoft OneDrive a Office 365 (Read & Write: čítanie, sťahovanie, nahrávanie súborov, vytváranie priečinkov a mazanie súborov): {action:status|drive_info|list_files|get_file|upload_file|create_folder|delete_file|delete_item, path?:string, itemId?:string, name?:string, content?:string|object, profile?:string}',
   google_cloud_manage:'Správa a diagnostika Google Cloud Platform (tangential-osprey-dl7cp), Vertex AI a Gemini modelov: {action:status|list_models, projectId?:string}',
   local_bridge_manage:'Diagnostika a stav lokálneho PC mosta Trinity (Local-Desktop port 8795, Local-Gateway port 7789, pracovné priečinky PC stanice): {action:status|ping}',
   integration_status:'Prehľad všetkých pripojených externých platforiem a pilierov (Cloudflare, GitHub, OneDrive, Google Cloud, Local PC Bridge, Firebase, Supabase): {}',

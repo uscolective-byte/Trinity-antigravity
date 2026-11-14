@@ -11,6 +11,22 @@ import {z} from 'zod';
 import {callModel} from './services.js';
 import {HttpError} from './security.js';
 import {auditHtmlQuality, recordStudioReview} from './studio-review.js';
+import {resolveProviderSecret} from './secret-vault.js';
+
+const STUDIO_PROVIDERS=['ollama','gemini','openai','anthropic','groq','deepseek'];
+export async function studioCapabilities(env){
+  const providers=await Promise.all(STUDIO_PROVIDERS.map(async id=>({id,configured:!!(await resolveProviderSecret(env,id)),verified:false})));
+  providers.unshift({id:'workers-ai',configured:!!(env.AI||env.CHAT_INFERENCE_SERVICE),verified:false});
+  return {providers,storage:{projects:!!env.DB,artifacts:!!env.ARTIFACTS},tools:['web','html-export','quality-audit','version-history','photo','music','video','presentation','creative-pack'],note:'Konfigurácia nepotvrdzuje úspešné volanie modelu. Multimediálne nástroje môžu používať lokálnu syntézu.'};
+}
+
+export async function configuredStudioProviders(env,options={}){
+  const capabilities=await studioCapabilities(env);
+  const configured=capabilities.providers.filter(item=>item.configured).map(item=>item.id);
+  const plan=studioGenerationPlan(options.provider,options.quality,env);
+  const candidates=options.provider&&options.provider!=='auto'?[options.provider,...plan.providers,...configured]:[...plan.providers,...configured];
+  return [...new Set(candidates)].filter(id=>configured.includes(id));
+}
 
 const studioOptions={provider:z.enum(['auto','workers-ai','ollama','gemini','openai','anthropic','groq','deepseek']).default('auto'),quality:z.enum(['fast','balanced','high']).default('balanced')};
 const createSchema=z.object({name:z.string().trim().min(1).max(80).optional(),prompt:z.string().trim().min(8).max(8000),...studioOptions}).strict();
@@ -47,13 +63,7 @@ export function studioGenerationPlan(provider='auto',quality='balanced',env={}){
 }
 async function generate(env,prompt,current='',options={}){
   const plan=studioGenerationPlan(options.provider,options.quality,env);
-  const candidates=[...plan.providers];
-  if((options.provider||'auto')==='auto'){
-    if(env.GEMINI_API_KEY||env.TRINITY_MASTER_GOOGLE)candidates.push('gemini');
-    if(env.OPENAI_API_KEY)candidates.push('openai');
-    if(env.ANTHROPIC_API_KEY)candidates.push('anthropic');
-  }
-  const uniqueProviders=[...new Set(candidates)];
+  const uniqueProviders=await configuredStudioProviders(env,options);
   const system=`Si Trinity Web Studio. Vráť iba jeden kompletný dokument <!doctype html>...</html>, bez markdownu a bez vysvetlenia. Vytvor profesionálny responzívny web so slovenským textom, prístupnou typografiou a výrazným vizuálnym smerom. CSS a voliteľný JavaScript musia byť inline. Nepoužívaj externé knižnice, iframe, formuláre odosielajúce dáta, fetch, externé skripty ani tajomstvá. ${plan.directive}`;
   const user=current?('Uprav tento existujúci web podľa pokynu. Zachovaj funkčné časti.\nPOKYN: '+prompt+'\nAKTUÁLNY HTML:\n'+current.slice(0,90000)):prompt;
   const messages=[{role:'system',content:system},{role:'user',content:user}];

@@ -1,5 +1,7 @@
 $ErrorActionPreference='Stop'
 try {
+ $env:PSModulePath=@((Join-Path $PSHOME 'Modules'),(Join-Path $env:ProgramFiles 'WindowsPowerShell\Modules')) -join ';'
+ Import-Module Microsoft.PowerShell.Security -ErrorAction Stop
  $inputData=[Console]::In.ReadToEnd() | ConvertFrom-Json
  if($inputData.name -notmatch '^[a-z][a-z0-9-]{0,50}$'){throw 'name'}
  $directory=[string]$inputData.directory

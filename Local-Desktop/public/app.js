@@ -14,6 +14,25 @@ let session=localStorage.getItem('trinity-session')||crypto.randomUUID(),sha=nul
 localStorage.setItem('trinity-session',session);
 async function api(path,body){const response=await fetch(path,{method:body===undefined?'GET':'POST',headers:{Authorization:'Bearer '+token,...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body)});const value=await response.json();if(!response.ok)throw new Error(value.error||'Operácia zlyhala.');return value;}
 function notice(text,success=false){$('notice').hidden=false;$('notice').textContent=text;$('notice').classList.toggle('success',success);}
+function showWorkflowStep(bubble,event){
+  const article=bubble.parentElement;
+  if(!article)return;
+  let details=article.querySelector('.workflow-details');
+  if(!details){details=document.createElement('details');details.className='workflow-details';details.open=true;const summary=document.createElement('summary');summary.textContent='Priebeh práce Trinity';const list=document.createElement('ol');list.className='workflow-steps';details.append(summary,list);article.append(details);}
+  const list=details.querySelector('.workflow-steps');
+  const row=document.createElement('li');row.className='workflow-step '+(event.status||'done');
+  const marker=document.createElement('span');marker.className='workflow-marker';marker.textContent=event.status==='running'?'◌':event.status==='failed'?'!':'✓';
+  const text=document.createElement('span');text.textContent=event.label||'Pracujem';row.append(marker,text);
+  if(event.path){const path=document.createElement('code');path.textContent=event.path;row.append(path);}
+  if(event.detail){const detail=document.createElement('small');detail.textContent=event.detail;row.append(detail);}
+  list.append(row);details.open=true;$('messages').scrollTop=$('messages').scrollHeight;
+}
+function finishAssistant(bubble,result){
+  const wrapper=bubble.parentElement;wrapper.querySelector('.speak-btn')?.parentElement?.remove();bubble.textContent=result.content;renderMediaInBubble(bubble,result.content);
+  const footer=document.createElement('div');footer.style.cssText='display:flex;gap:8px;align-items:center;margin-top:6px;';const spBtn=document.createElement('button');spBtn.type='button';spBtn.className='speak-btn';spBtn.textContent='🔊 Prehrať';spBtn.onclick=()=>speakText(result.content,spBtn);footer.append(spBtn);wrapper.append(footer);
+  if($('auto-speak')?.checked)speakText(result.content,spBtn);
+  if(result.receipts?.length){const receipt=document.createElement('div');receipt.className='receipts';receipt.textContent=result.receipts.map(r=>(r.success?'✓ ':'✕ ')+r.tool+(r.path?' · '+r.path:'')+(r.error?' · '+r.error:'')).join(' | ');wrapper.append(receipt);}
+}
 async function streamTrinityChat(input,bubble){
   const response=await fetch('/api/chat/stream',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(input)});
   if(!response.ok){const value=await response.json();throw new Error(value.error||'Trinity odmietla požiadavku.');}
@@ -22,6 +41,7 @@ async function streamTrinityChat(input,bubble){
     for(const block of blocks){const data=block.split(/\r?\n/).filter(line=>line.startsWith('data:')).map(line=>line.slice(5).trimStart()).join('\n');if(!data)continue;const event=JSON.parse(data);
       if(event.type==='trinity.chat.error')throw new Error(event.error);
       if(event.type==='trinity.chat.result')result=event.result;
+      if(event.type==='workflow.step')showWorkflowStep(bubble,event);
       if(event.type==='agent.session.turn.output_text.delta'||event.type==='agent.session.turn.output_text.done'){
         const key=[event.item_id,event.output_index,event.content_index].join(':');parts.set(key,event.type.endsWith('.done')?event.text:(parts.get(key)||'')+(event.delta||''));bubble.textContent=[...parts.values()].join('\n');
       }
@@ -140,6 +160,7 @@ function append(role,text,receipts=[]){
 }
 async function loadStatus(){const state=await api('/api/status');const active=state.connections.provider;const ready=active==='ollama'?(state.ollama.available&&state.ollama.model_installed):!!state.connections.configured[active==='cloud'?'cloud-'+state.connections.environment:active];$('connection').textContent=ready?'● '+state.ollama.model+' · lokálne':'○ AI čaká na nastavenie';$('connection').classList.toggle('ready',ready);$('model').value=state.ollama.model;$('model-detail').textContent=ready?'Model je stiahnutý a Ollama odpovedá.':state.ollama.available?'Ollama beží, ale zvolený model nie je stiahnutý. Spusti 2-NASTAVIT-AI.cmd.':state.ollama.error;const c=state.connections;activeProvider=c.provider;$('provider').value=c.provider;$('environment').value=c.environment;$('gemini-model').value=c.gemini_model;$('auto-sync').checked=c.cloud_sync;$('mcp-writes').checked=c.mcp_writes;$('connection-details').textContent=JSON.stringify(c,null,2);if(c.provider!=='ollama'){$('connection').textContent='Trinity · '+c.provider+' · over v Prepojeniach';} $('models').replaceChildren(...state.ollama.models.map(name=>{const option=document.createElement('option');option.value=name;return option;}));$('workspace-path').textContent='Pracovný priestor: '+state.workspace;if(!ready)notice(active==='ollama'?'Rozhranie, súbory a pamäť fungujú. Pre AI chat spusti 2-NASTAVIT-AI.cmd.':'Nastav prístupový kľúč pre zvolený model v Prepojeniach.');if(c.provider==='trinity'){const a=c.trinity_agent;$('connection').textContent=a?.last_error?'Trinity · API zablokované':a?.api_key_configured?'Trinity · API nastavené':'Trinity · chýba API kľúč';$('connection').classList.toggle('ready',a?.last_outcome==='completed');$('model-detail').textContent='OpenAI agent · '+(a?.model||'gpt-6-astra')+'. Prístupový kľúč je uložený na serveri.';if(a?.last_error)notice(a.last_error);}return state;}
 $('chat-form').addEventListener('submit',protect(async event=>{event.preventDefault();if(pending)return;
+  const selectedAttachments=desktopAttachments.map(att=>String(att.name||'Príloha').slice(0,180)).slice(0,8);
   if(desktopAttachments.length){
     let attText = '';
     for(const att of desktopAttachments){
@@ -158,7 +179,7 @@ $('chat-form').addEventListener('submit',protect(async event=>{event.preventDefa
       desktopAttachments = [];
       renderDesktopAttachmentTray();
     }
-  }const message=$('message').value.trim();if(!message)return;pending=true;$('send').disabled=true;append('user',message);$('message').value='';const bubble=append('assistant','Premýšľam…');try{const input={message,session_id:session,allow_writes:$('allow-writes').checked};const result=activeProvider==='trinity'?await streamTrinityChat(input,bubble):await api('/api/chat',input);bubble.parentElement.remove();append('assistant',result.content,result.receipts);$('notice').hidden=true;}catch(error){bubble.textContent=error.message;notice(error.message);}finally{pending=false;$('send').disabled=false;$('message').focus();}}));
+  }const message=$('message').value.trim();if(!message)return;pending=true;$('send').disabled=true;append('user',message);$('message').value='';const bubble=append('assistant','Pripravujem pracovný postup…');try{const input={message,session_id:session,allow_writes:$('allow-writes').checked,attachments:selectedAttachments};const result=await streamTrinityChat(input,bubble);finishAssistant(bubble,result);$('notice').hidden=true;}catch(error){bubble.parentElement.querySelector('.speak-btn')?.parentElement?.remove();bubble.textContent=error.message;showWorkflowStep(bubble,{label:'Úloha sa zastavila',status:'failed',detail:error.message});notice(error.message);}finally{pending=false;$('send').disabled=false;$('message').focus();}}));
 $('message').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();$('chat-form').requestSubmit();}});
 for(const button of document.querySelectorAll('[data-prompt]'))button.addEventListener('click',()=>{$('message').value=button.dataset.prompt;$('message').focus();});
 $('new-chat').addEventListener('click',()=>{if(pending)return;session=crypto.randomUUID();localStorage.setItem('trinity-session',session);$('messages').replaceChildren();append('assistant','Nový rozhovor je pripravený.');});

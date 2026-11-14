@@ -3049,3 +3049,41 @@ Stav: completed / pending_ack (Codex)
 Ďalší krok a vlastník: Codex môže vykonať nezávislé code review `packages/crypto-core` a `services/trinity-treasury` a zapísať `ACK — TETRAKIS-CRYPTO-CORE-BASE-L2-20261107-ANTIGRAVITY-01`. Pri živom broadcast nasadení na Base Mainnet (`8453`) po dodaní `DEPLOYER_PRIVATE_KEY` a `BASESCAN_API_KEY` sa adresa zapíše do `TTK_CONTRACT_ADDRESS` v `services/trinity-treasury/wrangler.jsonc`.
 
 
+
+
+## UPDATE / HANDOFF — Codex AI Studio — 2026-11-13
+
+Zmenené: Trinity/src/studio.js, Trinity/src/index.js, Trinity/public/assistant/chat.html, Trinity/public/assistant/chat.js.txt, Trinity/tests/studio-capabilities.test.mjs, Trinity/tests/runtime.test.mjs. Automatický výber providerov používa centrálny resolver vrátane Secrets Store, Groq a DeepSeek. Nový autentifikovaný endpoint /api/assistant/studio/capabilities a panel pripravenosti odlišujú konfiguráciu od overeného volania. Bez nových závislostí a bez zmien poverení.
+
+Overenie: npm test 1012/1012; doplnený runtime test endpointu 1/1; syntax JS a predeploy PASS. Deploy na explicitné zadanie majiteľa do online Trinity: a618dfb4-b012-44bb-93f1-6f9e0fe40d21, auru.space + auru.dev. Health oboch 200 s novým deployment ID; auru.dev nový skript a 401 bez prihlásenia. auru.space štúdio chráni Cloudflare Access (302). Guardian zostáva 401; 18/19 služieb reachable. Autentifikované živé generovanie nebolo overené. Zdroj necommitnutý; nesúvisiace lokálne zmeny zachované. Doklad: Trinity/verification/studio-upgrade-20261113.json.
+
+---
+
+## UPDATE / HANDOFF — AUTH-PORTAL, READ-WRITE-INTEGRATIONS & PC-BRIDGE — 2026-11-14
+
+Autor: Antigravity (Ring 0 Architecture & Integrations)
+Príjemca: Codex, GitHub Copilot, Ivan Sabo (Basterix)
+
+Rozsah zmien:
+1. **Autentifikačný portál a profil používateľa (Login / Sign Up)**:
+   - Cloudflare D1 migrácia `Trinity/migrations/0065_user_credentials.sql` aplikovaná na produkčnú DB (`ops_users` rozšírená o `password_hash`, `password_salt`, `avatar_url`, `last_login_at`).
+   - Web Crypto PBKDF2-SHA256 heshovanie hesiel (100k iterácií, 16-bajtová soľ, `timingSafeEqual`) v `Trinity/src/user-auth.js`.
+   - Endpointy `/api/auth/config`, `/api/auth/register`, `/api/auth/login`, `/api/auth/me`, `/api/auth/profile` v `Trinity/src/index.js` a integrácia rolí v `Trinity/src/security.js`.
+   - Moderné ChatGPT-style prihlasovacie a registratívne UI (`.auth-card-wrapper`) v `Trinity/public/assistant/chat.html`, `chat.js.txt`, `chat.css` s prepínaním prihlásenia/registrácie, Google OAuth a Passkey alternatívou.
+2. **Rozšírenie externých prepojení na Read & Write (`Trinity/src/external-integrations.js` & `Trinity/src/tools.js`)**:
+   - Cloudflare: pridané `create_dns_record`, `update_dns_record`, `delete_dns_record`.
+   - GitHub: pridané `create_or_update_file`, `create_pull_request`.
+   - OneDrive: pridané `create_folder`, `delete_file` / `delete_item`.
+   - Firebase: pridané `delete_document` (D1 mirror + Firestore REST).
+   - Všetky prepojenia v `listAllIntegrations` deklarujú `access_mode: 'read_write'` a `capabilities`.
+   - Ochrana cez `requiresVerifiedAdminForIntegrationTool` pre všetky mutačné akcie.
+3. **PC Bridge & Lokálna synchronizácia**:
+   - Modernizovaný `Start-Trinity-PC-Bridge.ps1` a spúšťač `SPUSTIT-PC-BRIDGE.cmd`.
+   - Zosúladené porty: Local-Gateway (8791), Local-Desktop (8795), PC Bridge Daemon (7777). Všetky 3 uzly overené a bežiace.
+   - Automatická telemetria stanice (CPU, RAM, Uptime, Gateway ID) odoslaná na Cloudflare Worker (`/api/pc-bridge/telemetry`), potvrdená v KV `PC_STATE`.
+
+Overenie a testy:
+- Unit & integračné testy: 39/39 PASS (`user-auth.test.mjs`, `google-auth.test.mjs`, `hitl-approvals.test.mjs`, `unified-five-pillar-integrations.test.mjs`, `external-integrations-write.test.mjs`, `integration-mutation-auth.test.mjs`, `meta-connector.test.mjs`).
+- Nasadenie Cloudflare: Version ID `855107f4-4137-4523-b9eb-9c273765e821` na `auru.space`, `auru.dev` a `trinity.saboivan2008.workers.dev`.
+- Overené živé endpointy: `/health` (serving), `/api/auth/config` (`credentials_enabled: true`), `/api/pc-bridge` (`stored: true`, telemetria v KV).
+

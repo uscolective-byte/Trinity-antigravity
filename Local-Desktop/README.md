@@ -6,11 +6,16 @@ Jedna Trinity pre lokálny počítač a Cloudflare. Lokálny panel používa exi
 
 Rozbaľ celý release do priečinka. `1-SPUSTIT-TRINITY.cmd` otvorí panel bez Gitu, npm alebo systémovej inštalácie Node. Release obsahuje overený Node Windows x64 v22.23.3. Samotný Git checkout binárku neobsahuje.
 
+V tomto repozitári možno otvoriť aj `SPUSTIT-TRINITY-LOKALNE.cmd`. Spustí alebo znovu použije lokálnu Ollamu, Local Gateway a Desktop panel; vypíše ich živý stav a otvorí panel.
+
 - `2-NASTAVIT-AI.cmd`: inštalácia Ollama a modelu qwen3:4b; prvé stiahnutie potrebuje internet.
 - Prepojenia: nastavenie Gemini API kľúča, Copilot Studio Direct Line secretu, cloudového MCP kľúča a samostatného Gateway kľúča. Hodnoty sa chránia Windows DPAPI, neposielajú sa späť do UI.
 - `3-PREPOJIT-KLIENTOV.cmd`: projektové MCP konfigurácie pre Gemini CLI a GitHub Copilot. Klient musí byť samostatne nainštalovaný/prihlásený; spustená Trinity poskytuje tie isté Workspace súbory a poznámky. Zápis sa zapína v Prepojeniach.
+- Chat priebežne zobrazuje prijatie zadania, modelové kroky, volané nástroje a ich výsledok. Trinity môže otvárať textové súbory v pracovnom priestore a spracovať prílohy vybrané používateľom.
 
 Gemini API a Gemini CLI sú dve samostatné cesty. Microsoft Copilot Studio používa priamy chat bez lokálnych nástrojov; GitHub Copilot používa MCP. Bežný Windows Copilot nie je vyhlásený za pripojený.
+
+Panel vie používať len uvedené adaptéry. Antigravity, Codex/GPT, Anthropic, Telegram a Meta nemajú v tomto lokálnom paneli hotové priame adaptéry; samotný spúšťač ich neprihlási ani im nevytvorí poverenia. Každý externý konektor potrebuje vlastnú implementáciu a autorizáciu v príslušnej službe.
 
 ## Cloud a lokálne dáta
 
@@ -21,6 +26,7 @@ Cloudový MCP kľúč potrebuje mcp:read + mcp:write. Produkcia a vývoj majú o
 - Automatická synchronizácia každú minútu je voliteľná. Zmena prostredia zneplatní lokálne revízne mapovanie; obsah sa nikdy automaticky neprepíše cez konflikt.
 - PC most: zapína sa explicitne s existujúcim Gateway kľúčom. Používa pôvodný claim/receipt protokol a ProposalStore vrátane obnovy po reštarte a opätovného odoslania dokladu. Nezapínaj súčasne druhý konzument nad tou istou frontou, ak používaš plnú Local Gateway.
 - Desktop executor poskytuje read/write/edit v samostatnom Workspace, system_info a lokálnu inferenciu. Shell, Git, deploy a ostatné desktopové akcie patria plnej Local Gateway; Desktop nepredstiera ich vykonanie.
+- Chat zobrazuje živý postup: prijatie zadania, vybraný model, každý volaný nástroj a jeho výsledok. Súbory otvára cez Workspace alebo z prílohy, ktorú používateľ sám vyberie; neprezerá svojvoľne celý disk.
 
 Lokálny chat môže používať Ollama, Gemini API alebo zaraďovať cloudové úlohy. Pri Gemini sa odosielajú správy a výsledky použitých nástrojov Googlu. Synchronizácia odosiela vybrané spoločné poznámky cloudu. Copilot Studio dostáva aktuálnu správu, nie celú lokálnu pamäť.
 

@@ -636,6 +636,25 @@ h2 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px
   color: #00f0ff;
 }
 
+.workflow-details {
+  width: min(100%, 760px);
+  margin: 6px 0 4px;
+  padding: 9px 12px;
+  border: 1px solid rgba(0, 240, 255, 0.24);
+  background: rgba(0, 240, 255, 0.035);
+  color: #cbd5e1;
+  font-size: 12px;
+}
+.workflow-details summary { cursor: pointer; color: #00f0ff; font-weight: 700; }
+.workflow-steps { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.workflow-step { display: grid; grid-template-columns: 18px auto 1fr; align-items: baseline; gap: 7px; line-height: 1.5; }
+.workflow-marker { color: #d4ff00; font-weight: 800; }
+.workflow-step.running .workflow-marker { color: #00f0ff; animation: workflow-pulse 1s ease-in-out infinite alternate; }
+.workflow-step.failed .workflow-marker { color: #ff6b6b; }
+.workflow-step code { color: #a5b4fc; overflow-wrap: anywhere; }
+.workflow-step small { grid-column: 2 / -1; color: #94a3b8; overflow-wrap: anywhere; }
+@keyframes workflow-pulse { to { opacity: .35; } }
+
 .editor input, .editor textarea { width: 100%; }
 .editor textarea { min-height: 310px; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 13px; }
 .row { display: flex; gap: 10px; margin-top: 12px; }

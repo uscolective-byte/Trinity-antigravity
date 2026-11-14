@@ -96,13 +96,68 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
     return { success: resp.ok && d.success === true, workers: resp.ok && d.success === true ? d.result || [] : [] };
   }
 
+  if (action === 'create_dns_record') {
+    const zoneId = params.zoneId;
+    if (typeof zoneId !== 'string' || !/^[a-f0-9]{32}$/i.test(zoneId)) {
+      return { success: false, error: 'Vytvorenie DNS záznamu vyžaduje platné 32-znakové zone ID.' };
+    }
+    if (!token) return { success: false, error: 'Vytvorenie DNS záznamu vyžaduje Cloudflare API token.' };
+    const { type, name, content, ttl = 1, proxied = true, priority } = params;
+    if (!type || !name || !content) return { success: false, error: 'Chýbajú povinné parametre DNS záznamu (type, name, content).' };
+    const resp = await fetch(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}/dns_records`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, name, content, ttl: Number(ttl) || 1, proxied: Boolean(proxied), ...(priority != null ? { priority: Number(priority) } : {}) })
+    });
+    const d = await resp.json().catch(() => ({}));
+    return { success: resp.ok && d.success === true, record: d.result, errors: d.errors };
+  }
+
+  if (action === 'update_dns_record') {
+    const { zoneId, recordId, type, name, content, ttl = 1, proxied = true, priority } = params;
+    if (typeof zoneId !== 'string' || !/^[a-f0-9]{32}$/i.test(zoneId)) {
+      return { success: false, error: 'Úprava DNS záznamu vyžaduje platné 32-znakové zone ID.' };
+    }
+    if (!recordId) return { success: false, error: 'Chýba recordId pre úpravu DNS záznamu.' };
+    if (!token) return { success: false, error: 'Úprava DNS záznamu vyžaduje Cloudflare API token.' };
+    const resp = await fetch(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}/dns_records/${encodeURIComponent(recordId)}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...(type ? { type } : {}),
+        ...(name ? { name } : {}),
+        ...(content ? { content } : {}),
+        ttl: Number(ttl) || 1,
+        proxied: Boolean(proxied),
+        ...(priority != null ? { priority: Number(priority) } : {})
+      })
+    });
+    const d = await resp.json().catch(() => ({}));
+    return { success: resp.ok && d.success === true, record: d.result, errors: d.errors };
+  }
+
+  if (action === 'delete_dns_record') {
+    const { zoneId, recordId } = params;
+    if (typeof zoneId !== 'string' || !/^[a-f0-9]{32}$/i.test(zoneId)) {
+      return { success: false, error: 'Zmazanie DNS záznamu vyžaduje platné 32-znakové zone ID.' };
+    }
+    if (!recordId) return { success: false, error: 'Chýba recordId pre zmazanie DNS záznamu.' };
+    if (!token) return { success: false, error: 'Zmazanie DNS záznamu vyžaduje Cloudflare API token.' };
+    const resp = await fetch(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}/dns_records/${encodeURIComponent(recordId)}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const d = await resp.json().catch(() => ({}));
+    return { success: resp.ok && d.success === true, deleted_id: recordId, result: d.result };
+  }
+
   return { success: false, error: `Neznáma Cloudflare akcia: ${action}` };
 }
 
 export async function manageGitHub(env, actor = 'trinity', action = 'status', params = {}) {
   const token = await resolveProviderSecret(env, 'github');
   const repo = params.repo || env.TRINITY_GITHUB_REPO || 'uscolective-byte/Trinity-antigravity';
-  const isMutation=['create_issue','update_issue','dispatch_workflow'].includes(action);
+  const isMutation=['create_issue','update_issue','dispatch_workflow','create_or_update_file','write_file','create_pull_request'].includes(action);
   if(typeof repo!=='string'||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)||repo.includes('..'))
     return {success:false,error:'Neplatný GitHub repozitár.'};
   if(isMutation&&repo!=='uscolective-byte/Trinity-antigravity')
@@ -293,6 +348,51 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
     } catch (e) {
       return { success: false, error: e.message };
     }
+  }
+
+  if (action === 'create_or_update_file' || action === 'write_file') {
+    if (!token) return { success: false, error: 'Zápis do GitHub repozitára vyžaduje token v Trezore.' };
+    const filePath = params.path;
+    if (!filePath || typeof filePath !== 'string') return { success: false, error: 'Chýba cesta k súboru (path).' };
+    const branch = params.branch || env.TRINITY_GITHUB_BRANCH || 'main';
+    const message = params.message || `chore: automated update of ${filePath} from Trinity Sovereign AI`;
+    const contentRaw = params.content ?? '';
+    const contentBase64 = params.is_base64 ? contentRaw : Buffer.from(typeof contentRaw === 'string' ? contentRaw : JSON.stringify(contentRaw, null, 2)).toString('base64');
+    let sha = params.sha;
+    if (!sha) {
+      try {
+        const checkResp = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(branch)}`, { headers });
+        if (checkResp.ok) {
+          const checkData = await checkResp.json();
+          sha = checkData.sha;
+        }
+      } catch (_) {}
+    }
+    const resp = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath.split('/').map(encodeURIComponent).join('/')}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        message,
+        content: contentBase64,
+        branch,
+        ...(sha ? { sha } : {})
+      })
+    });
+    const d = await resp.json().catch(() => ({}));
+    return { success: resp.ok, repo, path: filePath, commit: d.commit, content: d.content, ...(resp.ok ? {} : { error: `GitHub HTTP ${resp.status}: ${d.message || 'Chyba zápisu súboru'}` }) };
+  }
+
+  if (action === 'create_pull_request') {
+    if (!token) return { success: false, error: 'Vytvorenie GitHub Pull Requestu vyžaduje token v Trezore.' };
+    const { title, head, base = env.TRINITY_GITHUB_BRANCH || 'main', body = '' } = params;
+    if (!title || !head) return { success: false, error: 'Chýba názov (title) alebo zdrojová vetva (head) pre Pull Request.' };
+    const resp = await fetch(`https://api.github.com/repos/${repo}/pulls`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ title, head, base, body })
+    });
+    const d = await resp.json().catch(() => ({}));
+    return { success: resp.ok && Boolean(d.number), pull_request: d, ...(resp.ok ? {} : { error: `GitHub HTTP ${resp.status}: ${d.message || 'Chyba vytvorenia PR'}` }) };
   }
 
   return { success: false, error: `Neznáma GitHub akcia: ${action}` };
@@ -518,6 +618,34 @@ export async function manageFirebase(env, actor = 'trinity', action = 'status', 
     return { success: false, error: 'Dokument nebol nájdený.' };
   }
 
+  if (action === 'delete_document') {
+    const collection = params.collection || 'trinity_state';
+    const documentId = params.documentId;
+    if (!documentId) return { success: false, error: 'Chýba documentId.' };
+    let d1Deleted = false;
+    if (env.DB?.prepare) {
+      try {
+        const r = await env.DB.prepare('DELETE FROM ops_firebase_mirror WHERE project_id=? AND collection=? AND doc_id=?')
+          .bind(projectId, collection, documentId).run();
+        d1Deleted = r?.success === true;
+      } catch (_) {}
+    }
+    let firestoreDeleted = false;
+    if (typeof token === 'string' && /^ya29\.[A-Za-z0-9_.-]+$/.test(token)) {
+      try {
+        const url = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents/${encodeURIComponent(collection)}/${encodeURIComponent(documentId)}`;
+        const response = await fetch(url, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+          signal: AbortSignal.timeout(15000),
+          redirect: 'manual'
+        });
+        firestoreDeleted = response.ok;
+      } catch (_) {}
+    }
+    return { success: d1Deleted || firestoreDeleted, deleted: true, d1_deleted: d1Deleted, firestore_deleted: firestoreDeleted, projectId, collection, documentId };
+  }
+
   return { success: false, error: `Neznáma Firebase akcia: ${action}` };
 }
 
@@ -621,6 +749,37 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
     return { success: resp.ok, file: data };
   }
 
+  if (action === 'create_folder') {
+    if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    const name = params.name;
+    if (!name || typeof name !== 'string') return { success: false, error: 'Chýba názov nového priečinka (name).' };
+    const endpoint = params.path
+      ? `https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(params.path).replace(/%2F/g, '/')}:/children`
+      : 'https://graph.microsoft.com/v1.0/me/drive/root/children';
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ name, folder: {}, '@microsoft.graph.conflictBehavior': 'rename' })
+    });
+    const data = await resp.json().catch(() => ({}));
+    return { success: resp.ok, folder: data, ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba vytvorenia priečinka'}` }) };
+  }
+
+  if (action === 'delete_file' || action === 'delete_item') {
+    if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    const endpoint = params.itemId
+      ? `https://graph.microsoft.com/v1.0/me/drive/items/${encodeURIComponent(params.itemId)}`
+      : params.path
+        ? `https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(params.path).replace(/%2F/g, '/')}`
+        : null;
+    if (!endpoint) return { success: false, error: 'Chýba itemId alebo path pre zmazanie položky v OneDrive.' };
+    const resp = await fetch(endpoint, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return { success: resp.ok || resp.status === 204, deleted: true, status: resp.status };
+  }
+
   return { success: false, error: `Neznáma OneDrive akcia: ${action}` };
 }
 
@@ -663,13 +822,14 @@ export async function manageGoogleCloud(env, actor = 'trinity', action = 'status
 export async function manageLocalBridge(env, actor = 'trinity', action = 'status', params = {}) {
   const localEndpoints = [
     { name: 'Local-Desktop', url: 'http://127.0.0.1:8795/health', port: 8795 },
-    { name: 'Local-Gateway', url: 'http://127.0.0.1:7789/health', port: 7789 }
+    { name: 'Local-Gateway', url: 'http://127.0.0.1:8791/health', fallbackUrl: 'http://127.0.0.1:7789/health', port: 8791 }
   ];
 
   if (action === 'status' || action === 'ping') {
     let desktopReachable = false;
     let gatewayReachable = false;
     let telemetry = null;
+    let gatewayTelemetry = null;
 
     try {
       const resp = await fetch(localEndpoints[0].url, { signal: AbortSignal.timeout(1500) });
@@ -680,8 +840,14 @@ export async function manageLocalBridge(env, actor = 'trinity', action = 'status
     } catch {}
 
     try {
-      const resp = await fetch(localEndpoints[1].url, { signal: AbortSignal.timeout(1500) });
-      if (resp.ok) gatewayReachable = true;
+      let resp = await fetch(localEndpoints[1].url, { signal: AbortSignal.timeout(1500) });
+      if (!resp.ok && localEndpoints[1].fallbackUrl) {
+        resp = await fetch(localEndpoints[1].fallbackUrl, { signal: AbortSignal.timeout(1500) });
+      }
+      if (resp.ok) {
+        gatewayReachable = true;
+        gatewayTelemetry = await resp.json().catch(() => null);
+      }
     } catch {}
 
     const connected = desktopReachable || gatewayReachable || Boolean(env.PC_BRIDGE);
@@ -692,14 +858,14 @@ export async function manageLocalBridge(env, actor = 'trinity', action = 'status
       bridge_mode: connected ? 'active' : 'standby',
       endpoints: {
         desktop: { port: 8795, active: desktopReachable },
-        gateway: { port: 7789, active: gatewayReachable }
+        gateway: { port: 7789, active: gatewayReachable, local_port: 8791 }
       },
       workspaces: [
         '/home/antigravity/uscolective-byte/Trinity-antigravity',
         '/home/antigravity/uscolective-byte/trinity-morhfeus',
         'C:\\Users\\saboi\\Trinity-antigravity'
       ],
-      telemetry: telemetry || { status: connected ? 'online' : 'standby', platform: 'linux' }
+      telemetry: telemetry || gatewayTelemetry || { status: connected ? 'online' : 'standby', platform: 'win32' }
     };
   }
 
@@ -723,41 +889,53 @@ export async function listAllIntegrations(env) {
       name: 'Cloudflare Edge Control',
       category: 'Cloud & Infrastructure',
       status: cfToken ? 'configured' : 'edge-native-active',
-      description: 'Správa Workers, D1 databáz, KV Mastermind, R2 archívu a DNS záznamov.'
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'control', 'dns_manage', 'cache_purge', 'workers_list'],
+      description: 'Plná obojsmerná správa (Read & Write): Workers, D1 databáz, KV Mastermind, R2 archívu a DNS záznamov.'
     },
     {
       id: 'github',
       name: 'GitHub Repository & Actions',
       category: 'Code & CI/CD',
       status: ghToken ? 'configured' : 'public-read-ready',
-      description: 'Správa kanonického repozitára uscolective-byte/Trinity-antigravity; starý Morpheus je iba synchronizovaný zdroj.'
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'commit', 'pull_request', 'issues', 'workflow_dispatch'],
+      description: 'Plná obojsmerná správa (Read & Write): kanonický repozitár uscolective-byte/Trinity-antigravity, commit súborov, PR, issues a Actions.'
     },
     {
       id: 'onedrive',
       name: 'Microsoft OneDrive & Office 365',
       category: 'Cloud Storage & Documents',
       status: oneToken ? 'configured' : 'ready',
-      description: 'Úložisko dokumentov a súborov Microsoft Graph (saboivan2008@gmail.com a Entra ID tenant usc31).'
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'upload', 'folder_create', 'delete'],
+      description: 'Plná obojsmerná správa (Read & Write): Úložisko Microsoft Graph, vytváranie priečinkov, upload a mazanie dokumentov.'
     },
     {
       id: 'google_cloud',
       name: 'Google Cloud & Gemini Developer Platform',
       category: 'AI & Cloud Infrastructure',
       status: (gcToken || env.GOOGLE_PROJECT_ID) ? 'configured' : 'ready',
-      description: 'Projekt tangential-osprey-dl7cp: Gemini 3.8 Flash & Pro, Vertex AI / Agent Platform, Cloud Storage, Google Drive a Workspace.'
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'models', 'storage', 'vertex_ai'],
+      description: 'Plná obojsmerná správa (Read & Write): Projekt tangential-osprey-dl7cp: Gemini 3.8 Flash & Pro, Vertex AI, Cloud Storage a Workspace.'
     },
     {
       id: 'local_bridge',
       name: 'Local PC Bridge & Hardware Node',
       category: 'Local Infrastructure',
       status: 'platform-connected',
-      description: 'Lokálna stanica Sabo Ivan (Local-Desktop na porte 8795, Local-Gateway na porte 7789, PC Bridge 2.0).'
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'shell_exec', 'fs_read_write', 'system_telemetry'],
+      description: 'Lokálna stanica Sabo Ivan (Local-Desktop na porte 8795, Local-Gateway na porte 7789, obojsmerný PC Bridge 2.0).'
     },
     {
       id: 'firecrawl',
       name: 'Firecrawl Web Crawler',
       category: 'Web Intelligence',
       status: fcToken ? 'configured' : 'edge-crawler-ready',
+      access_mode: 'read_write',
+      capabilities: ['read', 'crawl', 'map', 'markdown_extract'],
       description: 'Hĺbkové extrahovanie webov, mapovanie URL a prevod do čistého Markdownu.'
     },
     {
@@ -765,13 +943,17 @@ export async function listAllIntegrations(env) {
       name: 'Firebase Firestore & Hosting',
       category: 'Database & Auth',
       status: fbToken ? 'configured' : 'ready',
-      description: 'Firestore synchronizácia, Hosting na trinity-morhfeus-20261001.web.app a Realtime DB.'
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'set_document', 'delete_document', 'mirror_d1'],
+      description: 'Plná obojsmerná správa (Read & Write): Firestore zápisy a mazanie, Hosting na trinity-morhfeus-20261001.web.app a D1 mirror.'
     },
     {
       id: 'supabase',
       name: 'Supabase / PostgreSQL',
       category: 'Database',
       status: sbToken ? 'configured' : 'ready',
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'query', 'vectors'],
       description: 'Relačná PostgreSQL databáza s PostgREST API a vektorovým úložiskom.'
     }
   ];

@@ -372,7 +372,18 @@ async function setView(name,updateHash=true){if(name==='dashboard'&&state?.accou
 if(name==='agentlab'){await loadAgentLab();initAgentLabEvents();}if(name==='workflows'){await loadVisualWorkflows();initAgentLabEvents();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
 function renderDashboardActivity(listId,items){const list=$(listId);list.replaceChildren();for(const item of items){const row=node('div',undefined,'activity-item'),icon=node('div',item.status==='completed'?'✓':item.status==='failed'?'!':'·','activity-dot'),text=node('span');text.append(node('b',item.task),node('small',`${t(item.status)||item.status} · ${item.updated_at}`));row.append(icon,text);row.onclick=async()=>{session=item.session_id;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');};list.append(row);}if(!items.length)list.append(node('p',t('noChanges'),'skeleton'));}
 async function loadDashboard(){const data=await api('/dashboard'),admin=data.dashboard_mode==='admin';$('user-dashboard').hidden=admin;$('admin-dashboard').hidden=!admin;if($('metric-tasks'))$('metric-tasks').textContent=data.today_completed??0;if($('metric-memory'))$('metric-memory').textContent=data.memory_count??0;if($('metric-projects'))$('metric-projects').textContent=data.project_count??0;if($('metric-health'))$('metric-health').textContent=(data.available_services??0)+'/'+(data.total_services??0)+(data.pc_bridge?.connected?' · PC ✓':'');if(admin){const metrics=data.admin||{};$('admin-active-jobs').textContent=metrics.active_jobs??0;$('admin-failed-jobs').textContent=metrics.failed_today??0;$('admin-pending-users').textContent=metrics.pending_users??0;$('admin-services').textContent=data.available_services+'/'+data.total_services;$('admin-gateway-state').textContent=data.pc_bridge?.connected?'Cloud + PC brána pripojená':'Cloud aktívny · PC brána nepripojená';$('admin-system-state').textContent=metrics.emergency_stop?'NÚDZOVÉ ZASTAVENIE':'Systém beží';$('admin-system-state').className='admin-state '+(metrics.emergency_stop?'stopped':'running');renderDashboardActivity('admin-dashboard-activity',data.recent_jobs);return;}renderDashboardActivity('dashboard-activity',data.recent_jobs);}
-async function loadStudio(){const data=await api('/studio/projects'),list=$('studio-project-list');list.replaceChildren();for(const item of data.items){const button=node('button',undefined,'studio-project');button.dataset.projectId=item.id;button.append(node('b',item.name),node('small','v'+item.version+' · '+item.updated_at));button.onclick=safe(()=>openStudioProject(item.id));list.append(button);}if(!data.items.length)list.append(node('p',t('emptyProjects'),'skeleton'));if(currentStudio)document.querySelector(`[data-project-id="${currentStudio.id}"]`)?.classList.add('active');}
+async function loadStudioCapabilities(){
+  const target=$('studio-capabilities');if(!target)return;
+  try{
+    const data=await api('/studio/capabilities');target.replaceChildren();
+    target.append(node('p',data.note));
+    target.append(node('p','Úložisko projektov: '+(data.storage.projects?'nakonfigurované':'chýba')+' · Súbory a exporty: '+(data.storage.artifacts?'nakonfigurované':'chýba')));
+    for(const provider of data.providers)target.append(node('p',provider.id+' · '+(provider.configured?'nakonfigurovaný, volanie neoverené':'chýba pripojenie – nastav v Modely a integrácie')));
+    target.append(node('p','Dostupné moduly: '+data.tools.join(' · ')));
+  }catch{target.textContent='Stav nástrojov sa nepodarilo načítať. Skús obnoviť stav.';}
+}
+$('studio-capabilities-refresh')?.addEventListener('click',()=>loadStudioCapabilities());
+async function loadStudio(){await loadStudioCapabilities();const data=await api('/studio/projects'),list=$('studio-project-list');list.replaceChildren();for(const item of data.items){const button=node('button',undefined,'studio-project');button.dataset.projectId=item.id;button.append(node('b',item.name),node('small','v'+item.version+' · '+item.updated_at));button.onclick=safe(()=>openStudioProject(item.id));list.append(button);}if(!data.items.length)list.append(node('p',t('emptyProjects'),'skeleton'));if(currentStudio)document.querySelector(`[data-project-id="${currentStudio.id}"]`)?.classList.add('active');}
 function inspectStudioHtml(html, reviewData=null){
   const doc=new DOMParser().parseFromString(html,'text/html'),images=[...doc.images],inputs=[...doc.querySelectorAll('input,select,textarea')],checks=[['Úplný HTML dokument',/^\s*<!doctype html>/i.test(html)&&!!doc.querySelector('html')],['Názov stránky',!!doc.title.trim()],['Responzívny viewport',!!doc.querySelector('meta[name="viewport"]')],['Jasná nadpisová štruktúra',doc.querySelectorAll('h1').length===1],['Alternatívny text obrázkov',images.every(image=>image.hasAttribute('alt'))],['Popisy formulárov',inputs.every(input=>input.closest('label')||input.id&&doc.querySelector(`label[for="${CSS.escape(input.id)}"]`))],['Jazyk dokumentu',!!doc.documentElement.getAttribute('lang')],['Bez externých skriptov',[...doc.scripts].every(script=>!script.src)]];
   const passed=checks.filter(([,ok])=>ok).length,score=Math.round(passed/checks.length*100),list=$('studio-quality-list');
@@ -604,7 +615,84 @@ async function init(){
   await setView(location.hash.slice(1)||localStorage.getItem('trinity-start-view')||'chat',false);
  }catch(error){lockSession(error.message);}
 }
-async function configureGoogleLogin(){const config=await TrinityAuth.config();$('google-login').hidden=!config.google_enabled;$('google-login').onclick=()=>location.assign('/api/auth/google/start');$('login-form').hidden=!!config.google_required;const result=new URLSearchParams(location.search).get('auth');$('google-login-note').textContent=result==='pending'?'Tvoj overený profil čaká na schválenie administrátorom.':result==='denied'?'Prístup k Trinity nebol schválený.':config.google_required&&!config.google_enabled?'Google OAuth nie je nakonfigurované; staré heslo je vypnuté.':'';if(result){const next=new URL(location.href);next.searchParams.delete('auth');history.replaceState(null,'',next.pathname+next.search+next.hash);}}
+let authMode='login';
+function setupAuthPortal(){
+  const tabLogin=$('auth-tab-login'),tabRegister=$('auth-tab-register');
+  const title=$('auth-title'),subtitle=$('auth-subtitle');
+  const nameField=$('auth-name-field'),submitBtn=$('credentials-submit-btn');
+  const credsForm=$('credentials-form'),legacyToggle=$('toggle-legacy-key-btn');
+  const legacyForm=$('login-form');
+
+  if(tabLogin&&tabRegister){
+    tabLogin.onclick=()=>{
+      authMode='login';
+      tabLogin.classList.add('active');tabLogin.setAttribute('aria-selected','true');
+      tabRegister.classList.remove('active');tabRegister.setAttribute('aria-selected','false');
+      if(title)title.textContent='Prihlásenie do Trinity';
+      if(subtitle)subtitle.textContent='Zadaj svoj e-mail a heslo na prihlásenie.';
+      if(nameField)nameField.hidden=true;
+      if(submitBtn)submitBtn.textContent='Prihlásiť sa';
+    };
+    tabRegister.onclick=()=>{
+      authMode='register';
+      tabRegister.classList.add('active');tabRegister.setAttribute('aria-selected','true');
+      tabLogin.classList.remove('active');tabLogin.setAttribute('aria-selected','false');
+      if(title)title.textContent='Vytvoriť nový účet';
+      if(subtitle)subtitle.textContent='Zaregistruj sa e-mailom a heslom do Trinity AI Studia.';
+      if(nameField)nameField.hidden=false;
+      if(submitBtn)submitBtn.textContent='Vytvoriť účet';
+    };
+  }
+
+  if(legacyToggle&&legacyForm){
+    legacyToggle.onclick=()=>{
+      legacyForm.hidden=!legacyForm.hidden;
+      legacyToggle.textContent=legacyForm.hidden?'Mám núdzový prístupový kľúč':'Skryť pole prístupového kľúča';
+    };
+  }
+
+  if(credsForm){
+    credsForm.onsubmit=safe(async(e)=>{
+      e.preventDefault();
+      const email=$('auth-email')?.value.trim();
+      const password=$('auth-password')?.value;
+      const display_name=$('auth-display-name')?.value.trim()||undefined;
+      if(!email||!password)return;
+      if(submitBtn)submitBtn.disabled=true;
+      try{
+        if(authMode==='register'){
+          const res=await TrinityAuth.requestJSON('/api/auth/register',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({email,password,display_name})
+          });
+          notice(`Účet bol vytvorený pre ${res.user?.email||email}.`);
+        }else{
+          const res=await TrinityAuth.requestJSON('/api/auth/login',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({email,password})
+          });
+          notice(`Prihlásený ako ${res.user?.display_name||res.user?.email||email}.`);
+        }
+        if($('auth-password'))$('auth-password').value='';
+        await init();
+      }finally{
+        if(submitBtn)submitBtn.disabled=false;
+      }
+    });
+  }
+}
+
+async function configureGoogleLogin(){
+  setupAuthPortal();
+  const config=await TrinityAuth.config();
+  $('google-login').hidden=!config.google_enabled;
+  $('google-login').onclick=()=>location.assign('/api/auth/google/start');
+  const result=new URLSearchParams(location.search).get('auth');
+  $('google-login-note').textContent=result==='pending'?'Tvoj overený profil čaká na schválenie administrátorom.':result==='denied'?'Prístup k Trinity nebol schválený.':'';
+  if(result){const next=new URL(location.href);next.searchParams.delete('auth');history.replaceState(null,'',next.pathname+next.search+next.hash);}
+}
 $('language').onchange=()=>{language=$('language').value;localStorage.setItem('trinity-language',language);localize();};
 $('logout').onclick=safe(async()=>{await fetch('/api/ops/logout',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});location.reload();});
 $('engine').onchange=()=>localStorage.setItem('trinity-engine',$('engine').value);

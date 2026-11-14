@@ -24,6 +24,17 @@ test('failed tool cannot become a completed workflow with a fabricated model res
  assert.equal(job.steps[0].tool_log[0].status,'failed');
 });
 
+test('studio capabilities require authentication and expose no provider credentials',async()=>{
+  assert.equal((await req('/api/assistant/studio/capabilities',undefined,false)).status,401);
+  const response=await req('/api/assistant/studio/capabilities');
+  assert.equal(response.status,200);
+  const report=await response.json();
+  assert.equal(report.providers.find(item=>item.id==='ollama').configured,true);
+  assert.ok(report.providers.every(item=>item.verified===false));
+  assert.deepEqual(report.storage,{projects:true,artifacts:true});
+  assert.equal(JSON.stringify(report).includes('test-only-ollama-key'),false);
+});
+
 test('capability status requires authentication and does not mistake configured gateway for execution',async()=>{
   assert.equal((await req('/api/assistant/capabilities',undefined,false)).status,401);
   const response=await req('/api/assistant/capabilities');

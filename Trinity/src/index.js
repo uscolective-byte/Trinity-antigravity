@@ -47,7 +47,7 @@ import {verifyTrinityIdentity} from './trinity-auth-core.js';
 import {SovereignLedgerV3} from './sovereign-core-v3.js';
 import {OMNI_CORE_500_IMPROVEMENTS,OMNI_CORE_75_FOUNDATIONAL_PILLARS,getOmniCore500Summary,listOmniCoreImprovementsByLayer} from './omni-core-500-registry.js';
 import {SYSTEM_CAPABILITIES,createSystemAction,listSystemActions,getSystemAction,approveSystemAction,rejectSystemAction,claimSystemAction,finishSystemAction,authenticateGateway,getPCBridgeStatus} from './system-actions.js';
-import {createStudioCheckoutOffer,listStudioProjects,getStudioProject,createStudioProject,reviseStudioProject} from './studio.js';
+import {studioCapabilities,createStudioCheckoutOffer,listStudioProjects,getStudioProject,createStudioProject,reviseStudioProject} from './studio.js';
 import {beginGoogleLogin,finishGoogleLogin,googleAuthRequired,googleOAuthConfigured} from './google-auth.js';
 import {normalizeLanguage} from './cognition.js';
 import {mediaStatus} from './media.js';
@@ -98,6 +98,12 @@ import {
   renderHitlApproveHtml
 } from './hitl-approvals.js';
 import {syncTelegramWebhookForOwner} from './telegram-bridge.js';
+import {
+  registerWithCredentials,
+  loginWithCredentials,
+  getUserProfile,
+  updateUserProfile
+} from './user-auth.js';
 import {PINNED_SYSTEM_PROMPT,TRINITY_TOOL_DEFINITIONS,normalizeText,handleFastEdgeRoute,executeTool,runInferenceCascade} from './sovereign-monolith.js';
 import {getFleetClusterSummary} from './fleet-clusters.js';
 import tapProfileService from '../../services/trinity-profile/src/index.js';
@@ -823,7 +829,29 @@ async function route(request,env,ctx){
   }
   if(path==='/api/ecosystem/stats'&&request.method==='GET')return json(universalEcosystem.getStats());
   if(path==='/api/ecosystem/domains'&&request.method==='GET')return json({domains:UNIVERSAL_DOMAINS,templates:APPLICATION_TEMPLATES});
-  if(path==='/api/auth/config'&&request.method==='GET')return json({google_enabled:(googleAuthRequired(env)||env.GOOGLE_ENABLED==='true')&&googleOAuthConfigured(env),google_required:googleAuthRequired(env)});
+  if(path==='/api/auth/config'&&request.method==='GET')return json({
+    google_enabled:(googleAuthRequired(env)||env.GOOGLE_ENABLED==='true')&&googleOAuthConfigured(env),
+    google_required:googleAuthRequired(env),
+    credentials_enabled:true
+  });
+  if(path==='/api/auth/register'&&request.method==='POST'){
+    checkOrigin(request,env);
+    await rateLimit(env,'register:'+(await hash(request.headers.get('CF-Connecting-IP')||'local')).slice(0,24),10,300);
+    const body=await readJSON(request,8000);
+    const result=await registerWithCredentials(request,env,body);
+    const res=json({ok:true,user:result.user},201);
+    if(result.cookie)res.headers.set('Set-Cookie',result.cookie);
+    return res;
+  }
+  if(path==='/api/auth/login'&&request.method==='POST'){
+    checkOrigin(request,env);
+    await rateLimit(env,'auth-login:'+(await hash(request.headers.get('CF-Connecting-IP')||'local')).slice(0,24),15,300);
+    const body=await readJSON(request,8000);
+    const result=await loginWithCredentials(request,env,body);
+    const res=json({ok:true,user:result.user});
+    if(result.cookie)res.headers.set('Set-Cookie',result.cookie);
+    return res;
+  }
   const generatedApi=path.match(/^\/api\/v1\/generated\/([a-z0-9]+(?:-[a-z0-9]+)*)$/);
   if(generatedApi&&(request.method==='GET'||request.method==='POST')){const client=await authenticateApiKey(request,env);return json(await invokeApiBySlug(env,client.owner_id,generatedApi[1],request.method));}
   if(path==='/api/auth/passkey/auth-options'&&request.method==='POST'){
@@ -1014,6 +1042,16 @@ async function route(request,env,ctx){
     }
   }
   const ownerId=(user.email||user.id).trim().toLowerCase();
+  if(path==='/api/auth/me'&&request.method==='GET'){
+    const profile=await getUserProfile(env,user.email);
+    return json({ok:true,user:profile||user});
+  }
+  if(path==='/api/auth/profile'&&request.method==='PATCH'){
+    checkOrigin(request,env);
+    const body=await readJSON(request,8000);
+    const updated=await updateUserProfile(env,user.email,body);
+    return json({ok:true,user:updated});
+  }
   const metaResponse=await handleMetaConnection(request,env,user);if(metaResponse)return metaResponse;
   if(path==='/api/assistant/capabilities'&&request.method==='GET')return json(await capabilityStatus(env));
   if(path==='/api/assistant/morpheus/status'&&request.method==='GET'){
@@ -1212,6 +1250,7 @@ async function route(request,env,ctx){
     await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('user_access_reviewed',?)").bind(JSON.stringify({email,status,admin:user.email})).run();
     return json(changed);
   }
+  if(path==='/api/assistant/studio/capabilities'&&request.method==='GET')return json(await studioCapabilities(env));
   if(path==='/api/assistant/studio/projects'){
     if(request.method==='GET')return json({items:await listStudioProjects(env,'primary')});
     if(request.method==='POST'){await rateLimit(env,`studio-generate:${user.id}`,5,300);return json({project:await createStudioProject(env,'primary',await readJSON(request,20000))},201);}

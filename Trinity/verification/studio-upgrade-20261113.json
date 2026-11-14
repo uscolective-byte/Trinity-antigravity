@@ -1,0 +1,30 @@
+{
+  "checked_at": "2026-11-13T19:02:00Z",
+  "scope": "AI Studio provider routing and readiness panel",
+  "deployment_id": "a618dfb4-b012-44bb-93f1-6f9e0fe40d21",
+  "domains": [
+    "auru.space",
+    "auru.dev"
+  ],
+  "tests": {
+    "full_suite_pass": 1012,
+    "additional_runtime_test_pass": 1,
+    "new_provider_tests_pass": 3,
+    "build": "pass",
+    "predeploy": "pass"
+  },
+  "live": {
+    "health_both_domains": 200,
+    "auru_dev_updated_script": true,
+    "auru_dev_unauthenticated_capabilities": 401,
+    "auru_space_studio": "Cloudflare Access login redirect (302)",
+    "services_reachable": 18,
+    "services_checked": 19,
+    "guardian": "401 valid internal secret required"
+  },
+  "limitations": [
+    "No authenticated live Studio generation performed",
+    "No external provider accounts created or new credentials added",
+    "Source changes remain uncommitted"
+  ]
+}
