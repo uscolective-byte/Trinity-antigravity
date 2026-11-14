@@ -64,7 +64,8 @@ async function sendTelemetry() {
   const usedRamMb = totalRamMb - freeRamMb;
 
   const payload = {
-    gateway_id: 'gateway:morhfeus-windows',
+    gateway_id: process.env.TRINITY_GATEWAY_ID || 'gateway:saboivan-pc',
+    user_email: process.env.TRINITY_USER_EMAIL || 'saboivan2008@gmail.com',
     hostname: os.hostname(),
     platform: os.platform(),
     uptime_seconds: Math.round(os.uptime()),
@@ -91,11 +92,16 @@ async function sendTelemetry() {
     timestamp: Date.now()
   };
 
+  const token = process.env.TRINITY_PC_TOKEN || 'trinity_pc_saboivan_3ff4c864fe003d08d3c352746a5977eeba7e1a68e2ed3057';
+
   for (const url of EDGE_URLS) {
     try {
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(payload),
         signal: AbortSignal.timeout(5000)
       });
