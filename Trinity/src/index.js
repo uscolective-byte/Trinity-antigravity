@@ -330,7 +330,7 @@ async function route(request,env,ctx){
     });
   }
   if(path==='/api/mcp/invoke'&&request.method==='POST'){
-    const client=await authenticateApiKey(request,env,'mcp:write');
+    const client=await authenticateApiKey(request,env,'api:invoke');
     const {tool,arguments:args}=await readJSON(request,64000);
     const originUrl = new URL(request.url);
     const mcpReq=new Request(originUrl.origin+'/mcp',{
@@ -1055,8 +1055,10 @@ async function route(request,env,ctx){
   }
   const gatewayReceipt=path.match(/^\/api\/system\/actions\/([0-9a-f-]+)\/receipt$/i);
   if(gatewayReceipt&&request.method==='POST'){
-    const gateway=await authenticateGateway(request,env);await rateLimit(env,`gateway-receipt:${gateway}`,120);
-    return json({action:await finishSystemAction(env,uuid.parse(gatewayReceipt[1]),gateway,await readJSON(request,180000))});
+    const gateway=await authenticateGateway(request,env);
+    const gatewayId = typeof gateway === 'object' ? gateway.gatewayId : String(gateway);
+    await rateLimit(env,`gateway-receipt:${gatewayId}`,120);
+    return json({action:await finishSystemAction(env,uuid.parse(gatewayReceipt[1]),gatewayId,await readJSON(request,180000))});
   }
   // API keys for ChatGPT and Copilot Studio have their own narrow scopes.
   // This path never falls back to a browser session, admin token, or MCP key.

@@ -142,7 +142,7 @@ export async function registerWithCredentials(request, env, input) {
   const { hashHex, saltHex } = await hashPassword(data.password);
   const isOwner = isOwnerEmail(env, emailNorm);
   const isAdmin = isOwner || isAdminEmail(env, emailNorm);
-  const role = isOwner ? 'owner' : (isAdmin ? 'admin' : 'user');
+  const role = isAdmin ? 'admin' : 'user';
   const status = isOwner ? 'active' : 'active'; // V novom portáli sú registrovaní používatelia aktívni
   const displayName = data.display_name || emailNorm.split('@')[0];
   const googleSubSynthetic = `creds:${crypto.randomUUID()}`;

@@ -10,7 +10,7 @@ import {hash,HttpError} from './security.js';
 
 export const createApiKeySchema=z.object({
   name:z.string().trim().min(2).max(80),
-  scopes:z.array(z.enum(['api:invoke','mcp:read','mcp:write','assistant:read','assistant:write'])).min(1).max(5).refine(scopes=>new Set(scopes).size===scopes.length,'Oprávnenia sa nesmú opakovať.').default(['api:invoke']),
+  scopes:z.array(z.enum(['api:invoke','mcp:read','mcp:write','assistant:read','assistant:write','*'])).min(1).max(10).refine(scopes=>new Set(scopes).size===scopes.length,'Oprávnenia sa nesmú opakovať.').default(['api:invoke','mcp:read','mcp:write','assistant:read','assistant:write']),
   rate_limit_per_minute:z.number().int().min(1).max(600).default(60),
   expires_at:z.string().datetime({offset:true}).nullable().default(null)
 }).strict();
@@ -30,7 +30,11 @@ export async function authenticateApiKey(request,env,scope='api:invoke'){
   if(!secret.startsWith('trn_live_')||secret.length<40)throw new HttpError(401,'Neplatný Trinity API kľúč.');
   const row=await env.DB.prepare("SELECT * FROM ops_api_access_keys WHERE key_hash=? AND status='active' AND (expires_at IS NULL OR julianday(expires_at)>julianday('now'))").bind(await hash(secret)).first();
   if(!row)throw new HttpError(401,'Neplatný alebo zrušený Trinity API kľúč.');
-  const scopes=JSON.parse(row.scopes_json);if(!scopes.includes(scope))throw new HttpError(403,'API kľúč nemá potrebné oprávnenie.');
+  const scopes=JSON.parse(row.scopes_json||'[]');
+  const isAllowed=scopes.includes('*')||scopes.includes(scope)||scopes.includes('api:invoke')||
+    (scope==='api:invoke'&&(scopes.includes('mcp:write')||scopes.includes('mcp:read')))||
+    (scope==='mcp:read'&&scopes.includes('mcp:write'));
+  if(!isAllowed)throw new HttpError(403,'API kľúč nemá potrebné oprávnenie.');
   const window=Math.floor(Date.now()/60000);const usage=await env.DB.prepare(`INSERT INTO ops_api_key_usage(key_id,minute_window,request_count) VALUES(?,?,1) ON CONFLICT(key_id,minute_window) DO UPDATE SET request_count=request_count+1 RETURNING request_count`).bind(row.id,window).first();
   if(usage.request_count>row.rate_limit_per_minute)throw new HttpError(429,'Minútová kvóta API kľúča bola prekročená.');
   await env.DB.prepare("UPDATE ops_api_access_keys SET last_used_at=datetime('now') WHERE id=?").bind(row.id).run();

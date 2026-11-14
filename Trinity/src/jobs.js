@@ -14,7 +14,7 @@ export const jobSchema=z.object({task:z.string().trim().min(1).max(12000),
   agent:z.string().default('auto'),mode:z.enum(['single','team']).default('single'),
   provider:z.enum(['workers-ai','openai','gemini','ollama','local','deepseek-r1','llama','qwen','groq','deepseek','anthropic','mistral','openrouter','fast']).default('workers-ai'),
   session_id:z.string().uuid().optional(),team:z.array(z.string()).min(1).max(5).optional(),
-  language:z.string().max(35).default('auto').transform(normalizeLanguage),remember:z.boolean().default(false),owner_mode:z.boolean().default(false),idempotency_key:z.string().uuid().optional()}).strict();
+  language:z.string().max(35).default('auto').transform(normalizeLanguage),remember:z.boolean().default(false),owner_mode:z.boolean().default(false),user_email:z.string().email().nullable().optional(),idempotency_key:z.string().uuid().optional()}).strict();
 export async function createJob(env, body) {
   const data=jobSchema.parse(body);
   if(data.agent!=='auto'&&!agentById(data.agent))throw new HttpError(400,'Neznámy agent.');

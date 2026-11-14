@@ -74,7 +74,7 @@ export async function createSystemAction(env,input,requestedBy='trinity',options
   const adminAuthorized=options.adminAuthorized===true&&requestedBy.startsWith('admin:');
   const status=!definition.approval||adminAuthorized?'approved':'proposed';
   const approvedBy=adminAuthorized?requestedBy:definition.approval?null:'policy:auto-read';
-  const targetUser=options.targetUser||(requestedBy.startsWith('admin:user:')?requestedBy.replace('admin:user:',''):(options.userEmail||null));
+  const targetUser=options.targetUser||options.userEmail||(requestedBy.includes('@')?requestedBy.replace(/^admin:(?:user:)?/,''):null);
   await env.DB.prepare(`INSERT INTO ops_system_actions(id,action,payload_json,rationale,status,requested_by,approved_by,approved_at,expires_at,target_user,created_at,updated_at)
     VALUES(?,?,?,?,?,?,?,?,?,?,datetime('now'),datetime('now'))`).bind(id,data.action,JSON.stringify(data.payload),data.rationale,status,requestedBy,approvedBy,status==='approved'?now:null,now+30*60_000,targetUser).run();
   await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES(?,?)").bind(adminAuthorized?'system_action_admin_authorized':'system_action_proposed',JSON.stringify({id,action:data.action,status,requested_by:requestedBy,admin_authorized:adminAuthorized,target_user:targetUser})).run();
@@ -110,7 +110,7 @@ export async function claimSystemAction(env,gatewayInfo){
     if (isOwner) {
       row = await env.DB.prepare(`UPDATE ops_system_actions SET status='claimed',claimed_by=?,lease_until=?,attempts=attempts+1,updated_at=datetime('now')
         WHERE id=(SELECT id FROM ops_system_actions WHERE expires_at>? AND (status='approved' OR (status='claimed' AND lease_until<?))
-          AND (target_user IS NULL OR lower(target_user)=lower(?) OR lower(requested_by) LIKE ?)
+          AND (target_user IS NULL OR target_user NOT LIKE '%@%' OR lower(target_user)=lower(?) OR lower(requested_by) LIKE ?)
           ORDER BY created_at LIMIT 1)
         RETURNING *`).bind(gatewayId,lease,now,now,targetUser,`%${targetUser.toLowerCase()}%`).first();
     } else {

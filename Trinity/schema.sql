@@ -336,6 +336,7 @@ CREATE TABLE ops_system_actions (
  error TEXT,
  expires_at INTEGER NOT NULL,
  completed_at INTEGER,
+ target_user TEXT,
  created_at TEXT NOT NULL DEFAULT (datetime('now')),
  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -1099,3 +1100,18 @@ CREATE TRIGGER nonces_no_update BEFORE UPDATE ON ops_consumed_nonces BEGIN SELEC
 CREATE TRIGGER nonces_no_delete BEFORE DELETE ON ops_consumed_nonces BEGIN SELECT RAISE(ABORT, 'ops_consumed_nonces is strictly append-only'); END;
 CREATE TRIGGER sovereign_ledger_no_update BEFORE UPDATE ON sovereign_ledger BEGIN SELECT RAISE(ABORT, 'sovereign_ledger is append-only'); END;
 CREATE TRIGGER sovereign_ledger_no_delete BEFORE DELETE ON sovereign_ledger BEGIN SELECT RAISE(ABORT, 'sovereign_ledger is append-only'); END;
+
+CREATE TABLE IF NOT EXISTS ops_device_gateways (
+  id TEXT PRIMARY KEY,
+  gateway_id TEXT NOT NULL UNIQUE,
+  user_email TEXT NOT NULL,
+  device_name TEXT NOT NULL,
+  token_hash TEXT NOT NULL UNIQUE,
+  token_prefix TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  last_seen_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_ops_device_gateways_user ON ops_device_gateways(user_email);
+CREATE INDEX IF NOT EXISTS idx_ops_device_gateways_token ON ops_device_gateways(token_hash);
+
