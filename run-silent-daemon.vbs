@@ -1,0 +1,1 @@
+CreateObject("Wscript.Shell").Run """C:\Program Files\nodejs\node.exe"" ""C:\Users\saboi\Trinity\Trinity-antigravity\Trinity-PC-Bridge-Daemon.mjs""", 0, False

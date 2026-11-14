@@ -332,9 +332,10 @@ async function route(request,env,ctx){
   if(path==='/api/mcp/invoke'&&request.method==='POST'){
     const client=await authenticateApiKey(request,env,'mcp:write');
     const {tool,arguments:args}=await readJSON(request,64000);
-    const mcpReq=new Request(new URL(request.url).origin+'/mcp',{
+    const originUrl = new URL(request.url);
+    const mcpReq=new Request(originUrl.origin+'/mcp',{
       method:'POST',
-      headers:{'Content-Type':'application/json',Accept:'application/json, text/event-stream'},
+      headers:{'Content-Type':'application/json',Accept:'application/json, text/event-stream','Host':originUrl.host},
       body:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',params:{name:tool,arguments:args||{}}})
     });
     const mcpRes=await handleMcp(mcpReq,env,ctx,{projectControl:true,principal:`api-key:${client.id}`,ownerId:client.owner_id});
