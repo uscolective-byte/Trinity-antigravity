@@ -25,6 +25,16 @@ $env:TRINITY_LOCAL_TOKEN = Read-ProtectedToken $localKeyPath
 if (-not $env:TRINITY_LOCAL_TOKEN) { throw 'Chýba chránený lokálny token. Spusti setup.ps1.' }
 $credentialFile = if ($Environment -eq 'development') { 'gateway-key-development.dpapi' } else { 'gateway-key.dpapi' }
 $cloudKeyPath = Join-Path (Join-Path $root '.credentials') $credentialFile
+if ($Environment -eq 'production') {
+  $accessProfilePath = Join-Path $root '.credentials\cloudflare-access-pc.dpapi'
+  if (Test-Path -LiteralPath $accessProfilePath) {
+    $accessProfile = Read-ProtectedToken $accessProfilePath | ConvertFrom-Json
+    if (-not $accessProfile.id -or -not $accessProfile.secret) { throw 'PC Access profil nie je úplný.' }
+    $env:CLOUDFLARE_ACCESS_CLIENT_ID = $accessProfile.id
+    $env:CLOUDFLARE_ACCESS_CLIENT_SECRET = $accessProfile.secret
+    $accessProfile = $null
+  }
+}
 if (Test-Path -LiteralPath $cloudKeyPath) {
   $env:TRINITY_GATEWAY_KEY = Read-ProtectedToken $cloudKeyPath
   $env:TRINITY_CLOUD_URL = if ($Environment -eq 'development') { 'https://auru.dev' } else { 'https://auru.space' }
