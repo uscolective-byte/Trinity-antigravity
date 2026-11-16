@@ -13,10 +13,12 @@ async function postHeartbeat(baseUrl,key,body){
   if(process.env.CLOUDFLARE_ACCESS_CLIENT_SECRET)cfHeaders['CF-Access-Client-Secret']=process.env.CLOUDFLARE_ACCESS_CLIENT_SECRET;
   const response=await fetch(`${baseUrl.replace(/\/$/,'')}/v1/heartbeat`,{
     method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json',...cfHeaders},
-    body:JSON.stringify(body),signal:AbortSignal.timeout(15_000)
+    body:JSON.stringify(body),signal:AbortSignal.timeout(15_000),redirect:'manual'
   });
-  const text=await response.text();let data={};try{data=text?JSON.parse(text):{};}catch{}
-  if(!response.ok)throw new Error(data.error||`PC Bridge HTTP ${response.status}`);
+  if(response.status>=300&&response.status<400)throw new Error(`PC Bridge vyžaduje prihlásenie (HTTP ${response.status}).`);
+  const data=await response.json().catch(()=>null);
+  if(!response.ok)throw new Error(data?.error||`PC Bridge HTTP ${response.status}`);
+  if(data?.ok!==true||(!data.last_seen&&!data.receivedAt))throw new Error('PC Bridge nepotvrdil heartbeat.');
   return data;
 }
 

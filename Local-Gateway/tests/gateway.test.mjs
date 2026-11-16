@@ -67,3 +67,22 @@ test('PC bridge heartbeat uses the deployed v2 agent contract',async()=>{
     assert.equal(payload.gateway_id,'gateway:morhfeus-windows');
   } finally { globalThis.fetch=originalFetch; }
 });
+
+test('PC bridge must not accept a login page or redirect as a heartbeat',async()=>{
+  const originalFetch=globalThis.fetch;
+  try{
+    for(const response of [new Response('<html>Login</html>',{status:200}),Response.redirect('https://access.example/login',302)]){
+      globalThis.fetch=async(_url,options)=>{
+        assert.equal(options.redirect,'manual');
+        return response;
+      };
+      let stop;
+      const state=await new Promise((resolve,reject)=>{
+        const timer=setTimeout(()=>reject(new Error('heartbeat timeout')),1000);
+        stop=startBridgeHeartbeat({baseUrl:'https://bridge.example',key:'test-only',onState:value=>{clearTimeout(timer);resolve(value);}});
+      });
+      stop();
+      assert.equal(state.status,'disconnected');
+    }
+  }finally{globalThis.fetch=originalFetch;}
+});
