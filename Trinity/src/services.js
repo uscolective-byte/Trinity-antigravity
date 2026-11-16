@@ -61,7 +61,14 @@ export async function serviceStatus(env, requested) {
       }
       const path=spec.path||'/';
       const init={method:spec.action?'POST':'GET',signal:AbortSignal.timeout(12000)};
-      if(spec.action){init.headers={'Content-Type':'application/json'};init.body=JSON.stringify({action:spec.action,data:{limit:1},traceId:crypto.randomUUID()});}
+      if(spec.action){
+        init.headers={'Content-Type':'application/json'};
+        if(binding==='GUARDIAN'){
+          const internalKey=env.TRINITY_INTERNAL_KEY||env.TRINITY_GATEWAY_KEY;
+          if(internalKey) init.headers.Authorization='Bearer '+internalKey;
+        }
+        init.body=JSON.stringify({action:spec.action,data:{limit:1},traceId:crypto.randomUUID()});
+      }
       const response=await env[binding].fetch(`https://trinity.internal${path}`,init);
       const text=await boundedText(response); let data;
       try{data=JSON.parse(text);}catch{

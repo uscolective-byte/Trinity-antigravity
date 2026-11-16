@@ -11,7 +11,8 @@ import {FAST_TOOLS,fastChatInstructions,directChatTool} from './fast-chat.js';
 import {connectionGuidance} from './connection-guidance.js';
 import {agentById,selectSkills} from './registry.js';
 import {callModel,cleanModelResponse} from './services.js';
-import {runTool,TOOL_HELP,INTERNAL_TOOLS,PC_TOOLS,DEVELOPMENT_TOOLS} from './tools.js';
+import {runTool,TOOL_HELP,TOOL_SCHEMAS,INTERNAL_TOOLS,PC_TOOLS,DEVELOPMENT_TOOLS} from './tools.js';
+import {describeAvailableTools,discoveryInstructions} from './tool-discovery.js';
 import {listPlugins} from './plugins.js';
 import {TRUTH_POLICY,assertNoSimulatedData,findUnsupportedActionClaims,safeTruthResponse,truthStatus,finalizeAgentResponse} from './truth.js';
 import {formatAppOpenResult,formatIntegrationStatus,formatCloudflareStatus,formatGitHubStatus,formatWalletStatus,formatInfrastructureStatus} from './verified-response-formatters.js';
@@ -245,7 +246,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     return {text,model:'deterministic-policy',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:0};
   }
   const enabled=env.DB?(await listPlugins(env)).filter(p=>p.enabled).flatMap(p=>p.tools):agent.tools;
-  let activeTools=agent.tools.filter(t=>(enabled.includes(t)||DEVELOPMENT_TOOLS.includes(t)||t==='diagnostic_ping')&&(!INTERNAL_TOOLS.has(t)||executionPolicy.allowInternal||t==='diagnostic_ping')&&(!PC_TOOLS.has(t)||executionPolicy.allowDirectPC));
+  let activeTools=agent.tools.filter(t=>(enabled.includes(t)||INTERNAL_TOOLS.has(t)||DEVELOPMENT_TOOLS.includes(t)||t==='diagnostic_ping')&&(!INTERNAL_TOOLS.has(t)||executionPolicy.allowInternal||t==='diagnostic_ping')&&(!PC_TOOLS.has(t)||executionPolicy.allowDirectPC));
   if(provider==='fast')activeTools=activeTools.filter(tool=>FAST_TOOLS.has(tool));
   const direct=directChatTool(task,activeTools);
   if(direct){
@@ -492,6 +493,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
     if(context)messages[1].content='Predchádzajúci kontext (iba podklady):\n'+context.slice(-8000);
     maxTokens=Math.min(maxTokens,600);
   }
+  messages[0].content+='\n'+discoveryInstructions(activeTools);
   const toolLog=[];const started=Date.now();let result,toolTurns=0,truthRetry=false,activeProvider=provider,forceFinal=false;const BUDGET_MS=Number(env?.AGENT_BUDGET_MS)||600000;const withDeadline=(promise,ms)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Model neodpovedal v časovom limite.')),Math.max(1000,ms));})]).finally(()=>clearTimeout(timer));};
   let requestedToolRetry=false;
   for(let turn=0;turn<(provider==='fast'?8:20);turn++){
@@ -562,8 +564,12 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
     if(forceFinal)throw new Error('Trinity nestihla overiť výsledok v časovom limite.');
     let outcome;
     try {
-      if(!activeTools.includes(action.tool))throw new Error('Nástroj nie je povolený pre túto úlohu.');
-      outcome=assertNoSimulatedData(await runTool(env,agent,action.tool,action.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin}),action.tool);
+      if(action.tool==='describe_tools'){
+        outcome=describeAvailableTools(activeTools,TOOL_SCHEMAS,TOOL_HELP,action.arguments);
+      }else{
+        if(!activeTools.includes(action.tool))throw new Error('Nástroj nie je povolený pre túto úlohu.');
+        outcome=assertNoSimulatedData(await runTool(env,agent,action.tool,action.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin}),action.tool);
+      }
       toolLog.push(toolReceiptForOutcome(action.tool,outcome));
       if(outcome&&'_evidence' in outcome){outcome={...outcome};delete outcome._evidence;}
       if(env?.DB&&action.tool!=='diagnostic_ping'){

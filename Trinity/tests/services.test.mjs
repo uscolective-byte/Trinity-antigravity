@@ -2,6 +2,17 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import guardian from '../services/guardian.js';
 import proxy from '../services/ops-proxy.js';
+import {serviceStatus} from '../src/services.js';
+test('Guardian probe authenticates against its worker and rejects a missing caller key',async()=>{
+  const key='fixture-guardian';
+  const guardianBinding={fetch:(url,init)=>guardian.fetch(new Request(url,init),{TRINITY_INTERNAL_KEY:key})};
+  const [accepted]=await serviceStatus({GUARDIAN:guardianBinding,TRINITY_INTERNAL_KEY:key},'GUARDIAN');
+  const [rejected]=await serviceStatus({GUARDIAN:guardianBinding},'GUARDIAN');
+  assert.equal(accepted.status,'reachable');
+  assert.equal(accepted.http,200);
+  assert.equal(rejected.status,'error');
+  assert.equal(rejected.http,401);
+});
 test('guardian checks the real health contract through its binding',async()=>{const r=await guardian.fetch(new Request('https://guardian.test/health'),{TRINITY:{fetch:async()=>Response.json({status:'serving',version:'6.1.0'})}});assert.equal(r.status,200);assert.equal((await r.json()).ok,true);});
 test('guardian responds to orchestrator service action audit.list',async()=>{
   const mockDB={prepare(){return {bind(){return this;},all:async()=>({results:[{id:1,action:'sec_test',details:'{}',created_at:'2026-10-19'}]})};}};

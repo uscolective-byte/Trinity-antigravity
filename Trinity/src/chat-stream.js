@@ -16,13 +16,21 @@ import { cleanOutput } from '../services/chat-inference.js';
 import { persistAutoMemory } from './memory-extractor.js';
 import { recallMemory, runTool } from './tools.js';
 import { agentById } from './registry.js';
+import { planTask } from './planner.js';
 
 const HEAVY_WORKFLOW_PATTERN = /\b(vytvor\s+web|ai\s+studio|nasad|deploy|cloudflare\s+dns|registruj\s+domen|pc\s+bridge|spusti\s+na\s+pc|otvor\s+(?:okno|appku|kalkulack|notepad|vscode|terminal|chrome|explorer)|vytvor\s+(?:subor|pdf|obrazok|fotku|video|hudbu|prezentaciu)|nakup\s+komodit|predaj\s+komodit|multi_model_consensus|self_evolve|ui_evolve|timovy\s+rezim|team\s+mode)\b/i;
 
 export function requiresWorkflowFallback(message = '', allowFiles = false) {
   if (allowFiles) return true;
   const norm = String(message || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  return HEAVY_WORKFLOW_PATTERN.test(norm);
+  // Streaming inference has no tool loop. Route operational and live-data
+  // requests to the existing durable agent instead of asking a bare model.
+  if (directChatTool(message, ['calculate', 'current_time'])) return false;
+  const intent = planTask(String(message || '')).intent;
+  return HEAVY_WORKFLOW_PATTERN.test(norm)
+    || ['repair','research','build','creative','action'].includes(intent)
+    || /\b(?:pocasie|pocasia|pocasi|weather|kurz|kurzy|cena|ceny|cenu|zostatok|saldo|bitcoin|btc|krypto|crypto|github|cloudflare|firebase|onedrive|domeny|domen|integracie|integracii|nastroj|nastroje|nastrojov)\b/.test(norm)
+    || /\b[a-z][a-z0-9]*_[a-z0-9_]+\b/.test(norm);
 }
 
 function encodeEvent(obj) {

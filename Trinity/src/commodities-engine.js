@@ -842,7 +842,7 @@ export async function getCommodityDeskOverview(env, actor, { strategy = 'balance
 
   return {
     ok: true,
-    paper_only: bankConnections.length === 0,
+    paper_only: true,
     execution_mode: bankConnections.length > 0 ? 'live_banking_bridge' : 'portfolio_engine',
     bank_connections: bankConnections,
     bank_providers: BANK_PROVIDERS,
@@ -940,28 +940,26 @@ export async function executeCommodityTrade(env, actor, rawInput) {
         amount_eur: notionalEur,
         sepa_epc_qr: sepaQr,
         sepa_epc_qr_payload: sepaQr,
-        status: primaryBank.has_api_token ? 'api_order_dispatched' : 'sepa_settlement_ready'
+        status: sepaQr ? 'sepa_instructions_prepared' : 'no_settlement'
       }
     : null;
 
-  const executionMode = primaryBank
-    ? (primaryBank.has_api_token ? 'live_broker_api' : 'bank_sepa_settlement')
-    : 'portfolio_engine';
+  const executionMode = 'portfolio_engine';
 
   const doc = await recordStepDocument(env, {
-    title: `Komoditný príkaz: ${input.side === 'buy' ? 'NÁKUP' : 'PREDAJ'} ${normalizedSym} (${notionalEur} EUR)`,
+    title: `Simulovaný komoditný obchod: ${input.side === 'buy' ? 'NÁKUP' : 'PREDAJ'} ${normalizedSym} (${notionalEur} EUR)`,
     category: 'commerce',
     step_name: `commodity_${input.side}`,
     actor: actor?.email || 'Trinity Commodity Trader',
-    summary: `${input.side === 'buy' ? 'Nakúpené' : 'Predané'} ${finalQuantity} ${intel?.unit || 'ks'} komodity ${intel?.name || normalizedSym} za ${executionPrice} EUR (spolu ${notionalEur} EUR).`,
+    summary: `${input.side === 'buy' ? 'Simulovaný nákup' : 'Simulovaný predaj'} ${finalQuantity} ${intel?.unit || 'ks'} komodity ${intel?.name || normalizedSym} za ${executionPrice} EUR (spolu ${notionalEur} EUR).`,
     content: [
-      `### Detail komoditného príkazu a bankového vyrovnania`,
+      `### Detail simulovaného obchodu a platobných podkladov`,
       `- **Komodita:** ${intel?.name || normalizedSym} (\`${normalizedSym}\`)`,
       `- **Operácia:** ${input.side === 'buy' ? 'Nákup (BUY / Investícia)' : 'Predaj (SELL / Realizácia)'}`,
       `- **Množstvo:** ${finalQuantity} ${intel?.unit || 'ks'}`,
-      `- **Realizačná cena:** ${executionPrice} EUR`,
+      `- **Cena použitá pri simulácii:** ${executionPrice} EUR`,
       `- **Celkový objem obchodu:** ${notionalEur} EUR`,
-      `- **Bankové vyrovnanie:** ${primaryBank ? `${primaryBank.provider_name} (${primaryBank.iban || primaryBank.account_name}) — ${bankSettlement.status}` : 'Pripoj IBAN / Bankové API v záložke Bankové napojenie'}`,
+      `- **Platobné podklady:** ${primaryBank ? `${primaryBank.provider_name} (${primaryBank.iban || primaryBank.account_name}) — ${bankSettlement.status}` : 'Pripoj IBAN / Bankové API v záložke Bankové napojenie'}`,
       `- **Investičná téza:** ${thesisText}`,
       `- **Nový stav portfólia:** Hodnota (Equity): **${updatedPortfolio.summary.equity} EUR** | Voľná hotovosť: **${updatedPortfolio.summary.cash} EUR** | Realizovaný PnL: **${updatedPortfolio.summary.realized_pnl} EUR**`
     ].join('\n'),
@@ -970,7 +968,8 @@ export async function executeCommodityTrade(env, actor, rawInput) {
 
   return {
     ok: true,
-    paper_only: !primaryBank,
+    paper_only: true,
+    broker_order_sent: false,
     execution_mode: executionMode,
     trade: {
       symbol: normalizedSym,

@@ -148,6 +148,21 @@ test('Finance Gateway: Truth Policy 2.1 — confirmTransfer without live credent
   assert.equal(store.ledger[0].status, 'rejected_missing_credentials');
 });
 
+test('Configured credentials cannot produce a transfer receipt without a provider executor', async () => {
+  const {env, store} = createMockEnv();
+  env.REVOLUT_API_KEY = 'test-only-provider-credential';
+  const proposal = await proposeTransfer(env, 'basterix', {
+    amount_eur: 15, recipient: '@basterix', provider: 'revolut'
+  });
+  const result = await confirmTransfer(env, 'basterix', {
+    proposal_id: proposal.proposal_id, confirmation_token: proposal.confirmation_code
+  });
+  assert.equal(result.status, 'provider_execution_unavailable');
+  assert.equal(result.success, false);
+  assert.equal(result.provider_tx_id, undefined);
+  assert.equal(store.ledger.length, 0);
+});
+
 test('Finance Gateway: Integration with runTool and OWNER_BUSINESS_TOOLS permission', async () => {
   const {env} = createMockEnv();
   const agent = {tools: ['finance_propose_transfer', 'finance_confirm_transfer', 'finance_audit_ledger']};

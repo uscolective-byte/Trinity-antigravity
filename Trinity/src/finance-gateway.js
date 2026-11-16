@@ -203,47 +203,11 @@ export async function confirmTransfer(env, ownerId, input) {
     };
   }
 
-  // Ak je poskytovateľ pripojený:
-  const providerTxId = `tx_${proposal.provider}_${crypto.randomUUID().slice(0, 12)}`;
-  const completedReceipt = {
-    proposal_id,
-    ledger_id: ledgerId,
-    provider_tx_id: providerTxId,
-    amount_eur: amountEur,
-    recipient: proposal.recipient,
-    provider: proposal.provider,
-    status: 'completed',
-    timestamp
-  };
-
-  const entryHash = await hash(`${ledgerId}:${proposal_id}:${proposal.amount_cents}:${proposal.recipient}:${providerTxId}:${lastEntryHash}:${timestamp}`);
-
-  try {
-    await env.DB.prepare("UPDATE ops_finance_proposals SET status='completed' WHERE id=?").bind(proposal_id).run();
-    await env.DB.prepare(
-      `INSERT INTO ops_finance_audit_ledger(id, proposal_id, owner_id, amount_cents, currency, recipient, provider, status, provider_tx_id, prev_entry_hash, entry_hash, timestamp, receipt_json)
-       VALUES(?, ?, ?, ?, 'EUR', ?, ?, 'completed', ?, ?, ?, ?, ?)`
-    ).bind(ledgerId, proposal_id, ownerId, proposal.amount_cents, proposal.recipient, proposal.provider, providerTxId, lastEntryHash, entryHash, timestamp, JSON.stringify(completedReceipt)).run();
-  } catch (err) {
-    throw new HttpError(500, `Zlyhal zápis do auditného ledgeru: ${err.message}`);
-  }
-
   return {
-    success: true,
-    status: 'completed',
+    success: false,
+    status: 'provider_execution_unavailable',
     proposal_id,
-    ledger_id: ledgerId,
-    provider_tx_id: providerTxId,
-    entry_hash: entryHash,
-    amount_eur: amountEur,
-    recipient: proposal.recipient,
-    provider: proposal.provider,
-    _evidence: {
-      effect: 'mutation',
-      actions: ['transfer'],
-      receipt_id: ledgerId
-    },
-    message_sk: `Platba vo výške ${amountEur.toFixed(2)} EUR bola úspešne odoslaná na ${proposal.recipient} (${proposal.provider}). Auditný hash: ${entryHash.slice(0, 16)}...`
+    message_sk: 'Konfigurácia poskytovateľa je dostupná. Trinity nemá adaptér na odoslanie tohto prevodu.'
   };
 }
 

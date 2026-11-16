@@ -529,7 +529,9 @@ test('Autonomous Commodity Desk analyzes all 22 commodities, connects real banks
   assert.equal(buyBody.ok,true);
   assert.equal(buyBody.trade.symbol,'XAU-EUR');
   assert.ok(buyBody.document_id);
-  assert.equal(buyBody.execution_mode,'bank_sepa_settlement');
+  assert.equal(buyBody.execution_mode,'portfolio_engine');
+  assert.equal(buyBody.paper_only,true);
+  assert.equal(buyBody.broker_order_sent,false);
   assert.match(buyBody.bank_settlement.sepa_epc_qr_payload,/^BCD\n002/);
 
   const sellRes=await req('/api/assistant/commodities/trade',{
