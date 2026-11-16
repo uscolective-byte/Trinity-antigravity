@@ -47,6 +47,7 @@ import {verifyTrinityIdentity} from './trinity-auth-core.js';
 import {SovereignLedgerV3} from './sovereign-core-v3.js';
 import {OMNI_CORE_500_IMPROVEMENTS,OMNI_CORE_75_FOUNDATIONAL_PILLARS,getOmniCore500Summary,listOmniCoreImprovementsByLayer} from './omni-core-500-registry.js';
 import {SYSTEM_CAPABILITIES,createSystemAction,listSystemActions,getSystemAction,approveSystemAction,rejectSystemAction,claimSystemAction,finishSystemAction,authenticateGateway,deviceGatewayLayout,getPCBridgeStatus} from './system-actions.js';
+import {verifyDriveFile} from './google-drive-reader.js';
 import {studioCapabilities,createStudioCheckoutOffer,listStudioProjects,getStudioProject,createStudioProject,reviseStudioProject} from './studio.js';
 import {beginGoogleLogin,finishGoogleLogin,googleAuthRequired,googleOAuthConfigured} from './google-auth.js';
 import {normalizeLanguage} from './cognition.js';
@@ -1094,6 +1095,11 @@ async function route(request,env,ctx){
     }
   }
   const ownerId=(user.email||user.id).trim().toLowerCase();
+  if(path==='/api/ops/google-drive/verify'&&request.method==='GET'){
+    if(user.role!=='owner')throw new HttpError(403,'Overenie Google Drive vyžaduje prístup vlastníka.');
+    await rateLimit(env,`drive-verify:${user.id}`,10,300);
+    return json({ok:true,...await verifyDriveFile(env,url.searchParams.get('file_id'))});
+  }
   if(path==='/api/auth/me'&&request.method==='GET'){
     const profile=await getUserProfile(env,user.email);
     return json({ok:true,user:profile||user});

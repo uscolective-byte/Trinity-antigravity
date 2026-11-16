@@ -75,6 +75,14 @@ before(async()=>{
   }
 });
 after(async()=>{await mf?.dispose();});
+test('Drive verification requires owner authentication and is inactive without a profile',async()=>{
+  const path='/api/ops/google-drive/verify?file_id=FixtureFile001';
+  assert.equal((await req(path,undefined,false)).status,401);
+  const session=await issueSession({DB:db},undefined,'ordinary-drive-user@example.test',new Request(url));
+  const cookie=session.headers.get('set-cookie').split(';')[0];
+  assert.equal((await req(path,undefined,false,{Cookie:cookie})).status,403);
+  assert.equal((await req(path)).status,503);
+});
 test('device gateway registration, listing and authentication use the migrated schema',async()=>{
   assert.equal((await req('/api/pc-bridge/token',{device_name:'Fixture gateway'},false)).status,401);
   const response=await req('/api/pc-bridge/token',{device_name:'Fixture gateway'});
