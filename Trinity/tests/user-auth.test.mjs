@@ -174,17 +174,12 @@ test('User login with valid credentials issues session and returns profile', asy
   assert.equal(badLogin.status, 401);
 });
 
-test('Owner email registered via credentials receives owner role', async () => {
+test('public registration cannot create a privileged account', async () => {
   const res = await req('/api/auth/register', {
     email: 'saboivan2008@gmail.com',
-    password: 'OwnerPassword2026!',
-    display_name: 'Basterix Sovereign'
+    password: 'FixturePassword2026!',
+    display_name: 'Owner fixture'
   }, false);
-
-  assert.equal(res.status, 201);
-  const data = await res.json();
-  assert.equal(data.ok, true);
-  assert.equal(data.user.email, 'saboivan2008@gmail.com');
-  assert.equal(data.user.role, 'owner');
-  assert.equal(data.user.is_owner, true);
+  assert.equal(res.status, 403);
+  assert.equal(res.headers.get('set-cookie'),null);
 });

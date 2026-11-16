@@ -46,7 +46,7 @@ import {handleLiveChatStream} from './chat-stream.js';
 import {verifyTrinityIdentity} from './trinity-auth-core.js';
 import {SovereignLedgerV3} from './sovereign-core-v3.js';
 import {OMNI_CORE_500_IMPROVEMENTS,OMNI_CORE_75_FOUNDATIONAL_PILLARS,getOmniCore500Summary,listOmniCoreImprovementsByLayer} from './omni-core-500-registry.js';
-import {SYSTEM_CAPABILITIES,createSystemAction,listSystemActions,getSystemAction,approveSystemAction,rejectSystemAction,claimSystemAction,finishSystemAction,authenticateGateway,getPCBridgeStatus} from './system-actions.js';
+import {SYSTEM_CAPABILITIES,createSystemAction,listSystemActions,getSystemAction,approveSystemAction,rejectSystemAction,claimSystemAction,finishSystemAction,authenticateGateway,deviceGatewayLayout,getPCBridgeStatus} from './system-actions.js';
 import {studioCapabilities,createStudioCheckoutOffer,listStudioProjects,getStudioProject,createStudioProject,reviseStudioProject} from './studio.js';
 import {beginGoogleLogin,finishGoogleLogin,googleAuthRequired,googleOAuthConfigured} from './google-auth.js';
 import {normalizeLanguage} from './cognition.js';
@@ -927,19 +927,31 @@ async function route(request,env,ctx){
   if(path==='/api/pc-bridge/token'&&request.method==='GET'){
     const u = await authenticate(request, env);
     if(!['owner','admin'].includes(u.role)) throw new HttpError(403, 'PC Bridge vyžaduje rolu administrátora.');
-    const rows = await env.DB.prepare('SELECT id, device_name, status, last_seen, created_at FROM ops_device_gateways WHERE lower(user_email)=lower(?)').bind(u.email).all();
+    if(!u.email) throw new HttpError(403,'PC Bridge vyžaduje prihlásenú identitu s e-mailom.');
+    const layout=await deviceGatewayLayout(env.DB);
+    const sql=layout==='current'
+      ? 'SELECT gateway_id AS id, device_name, status, last_seen_at AS last_seen, created_at FROM ops_device_gateways WHERE lower(user_email)=lower(?)'
+      : 'SELECT id, device_name, status, last_seen, created_at FROM ops_device_gateways WHERE lower(user_email)=lower(?)';
+    const rows = await env.DB.prepare(sql).bind(u.email).all();
     return json({ user_email: u.email, devices: rows.results });
   }
   if(path==='/api/pc-bridge/token'&&request.method==='POST'){
+    checkOrigin(request,env);
     const u = await authenticate(request, env);
     if(!['owner','admin'].includes(u.role)) throw new HttpError(403, 'PC Bridge vyžaduje rolu administrátora.');
+    if(!u.email) throw new HttpError(403,'PC Bridge vyžaduje prihlásenú identitu s e-mailom.');
     const body = await readJSON(request, 10000).catch(()=>({}));
     const deviceName = body.device_name || `PC-${u.email.split('@')[0]}`;
     const token = `trinity_pc_${u.email.split('@')[0].replace(/[^a-zA-Z0-9]/g,'')}_${crypto.randomUUID().replace(/-/g,'')}`;
     const digest = await hash(token);
     const gatewayId = `gateway:${digest.slice(0,16)}`;
-    await env.DB.prepare('INSERT INTO ops_device_gateways (id, user_email, device_name, token_hash, status, created_at, updated_at) VALUES (?, ?, ?, ?, "active", datetime("now"), datetime("now"))')
-      .bind(gatewayId, u.email, deviceName, digest).run();
+    if(await deviceGatewayLayout(env.DB)==='current'){
+      await env.DB.prepare('INSERT INTO ops_device_gateways (id, gateway_id, user_email, device_name, token_hash, token_prefix) VALUES (?, ?, ?, ?, ?, ?)')
+        .bind(crypto.randomUUID(), gatewayId, u.email, deviceName, digest, token.slice(0, 12)).run();
+    }else{
+      await env.DB.prepare("INSERT INTO ops_device_gateways (id, user_email, device_name, token_hash, status, created_at, updated_at) VALUES (?, ?, ?, ?, 'active', datetime('now'), datetime('now'))")
+        .bind(gatewayId, u.email, deviceName, digest).run();
+    }
     return json({ ok: true, token, gateway_id: gatewayId, device_name: deviceName, user_email: u.email });
   }
   if(['/api/pc-bridge/telemetry', '/api/assistant/pc-bridge/telemetry'].includes(path)&&request.method==='POST'){
@@ -1047,11 +1059,12 @@ async function route(request,env,ctx){
     return json(evolveResult, evolveResult.ok ? 200 : 403);
   }
   if(path==='/api/system/pc-bridge/v1/heartbeat'&&request.method==='POST'){
-    const gateway=await authenticateGateway(request,env);await rateLimit(env,`gateway-heartbeat:${gateway}`,120);
-    if(!env.PC_BRIDGE_V2?.fetch)throw new HttpError(503,'PC Bridge nie je nakonfigurovaný.');
-    const response=await env.PC_BRIDGE_V2.fetch(new Request('https://pc-bridge.internal/v1/heartbeat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(await readJSON(request,32000))}));
-    if(!response.ok)throw new HttpError(502,`PC Bridge heartbeat zlyhal (HTTP ${response.status}).`);
-    return json(await response.json());
+    const gateway=await authenticateGateway(request,env);await rateLimit(env,`gateway-heartbeat:${gateway.gatewayId}`,120);
+    if(!env.PC_STATE)throw new HttpError(503,'Úložisko stavu PC Bridge nie je nakonfigurované.');
+    await readJSON(request,32000);
+    const lastSeen=Date.now();
+    await env.PC_STATE.put('gateway:authenticated-heartbeat',JSON.stringify({gateway_id:gateway.gatewayId,last_seen:lastSeen}),{expirationTtl:90});
+    return json({ok:true,last_seen:lastSeen,gateway_id:gateway.gatewayId});
   }
   const gatewayReceipt=path.match(/^\/api\/system\/actions\/([0-9a-f-]+)\/receipt$/i);
   if(gatewayReceipt&&request.method==='POST'){

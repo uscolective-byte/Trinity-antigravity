@@ -47,7 +47,7 @@ test('capability status requires authentication and does not mistake configured 
 before(async()=>{
   const modules=readdirSync('dist').filter(x=>!x.endsWith('.map')&&!x.endsWith('.md')).map(name=>({type:name==='index.js'?'ESModule':'Text',path:resolve('dist',name)}));
   modules.sort((a,b)=>a.type==='ESModule'?-1:b.type==='ESModule'?1:0);
-  mf=new Miniflare(convertV4MiniflareOptions({workers:[{name:'trinity',modules,compatibilityDate:'2026-10-01',compatibilityFlags:['nodejs_compat'],bindings:{CF_VERSION_METADATA:{id:'test-deployment',tag:'test-commit',timestamp:'2026-10-17T00:00:00.000Z'},TRINITY_OPS_KEY:key,TRINITY_GATEWAY_KEY:gatewayKey,TRINITY_VAULT_KEY:Buffer.alloc(32,7).toString('base64url'),OLLAMA_API_KEY:'test-only-ollama-key',OLLAMA_MODEL:'gemma4:31b'},kvNamespaces:{Mastermind:'test-kv'},d1Databases:{DB:'test-db'},r2Buckets:{ARTIFACTS:'test-r2'},
+  mf=new Miniflare(convertV4MiniflareOptions({workers:[{name:'trinity',modules,compatibilityDate:'2026-10-01',compatibilityFlags:['nodejs_compat'],bindings:{CF_VERSION_METADATA:{id:'test-deployment',tag:'test-commit',timestamp:'2026-10-17T00:00:00.000Z'},TRINITY_OPS_KEY:key,TRINITY_OWNER_EMAIL:"fixture-owner@example.test",TRINITY_GATEWAY_KEY:gatewayKey,TRINITY_VAULT_KEY:Buffer.alloc(32,7).toString('base64url'),OLLAMA_API_KEY:'test-only-ollama-key',OLLAMA_MODEL:'gemma4:31b'},kvNamespaces:{Mastermind:'test-kv',PC_STATE:'test-pc-state'},d1Databases:{DB:'test-db'},r2Buckets:{ARTIFACTS:'test-r2'},
     serviceBindings:{AI:{name:'mock',entrypoint:'MockAI'}},workflows:{OPS_WORKFLOW:{name:'test-workflow',className:'TrinityOperations'}}},
     {name:'mock',modules:true,compatibilityDate:'2026-10-01',script:`import {WorkerEntrypoint} from 'cloudflare:workers'; export class MockAI extends WorkerEntrypoint{async run(model,args){if(model.includes('flux'))return {image:btoa('mock-jpeg')};if(model.includes('whisper'))return {text:'test voice transcript'};if(model.includes('melotts'))return new Uint8Array([73,68,51]);const prompt=args.messages.at(-1).content;if(args.messages.some(m=>String(m.content).includes("FAIL_TOOL_TRUTH_TEST")))return {response:prompt.includes("Výsledok nástroja")?"437":JSON.stringify({tool:"calculate",arguments:{operation:"invalid",values:[19,23]}})};if(prompt==='FAIL_TEST'||(prompt==='FAIL_PLANNER'&&args.messages[0].content.includes('Rozlož zadanie na vykonateľné kroky')))throw new Error('Simulated failure');if(prompt.includes('STUDIO_TEST')){const revised=prompt.includes('STUDIO_TEST_REVISION');return {response:'<!doctype html><html><head><title>Studio test</title></head><body><main><h1>'+(revised?'Revised':'Created')+'</h1></main></body></html>'};}return {response:'TEST_MODEL_RESULT'};}} export default {fetch(){return new Response('mock')}};`} ]}));
   db=await mf.getD1Database('DB','trinity');
@@ -75,6 +75,49 @@ before(async()=>{
   }
 });
 after(async()=>{await mf?.dispose();});
+test('device gateway registration, listing and authentication use the migrated schema',async()=>{
+  assert.equal((await req('/api/pc-bridge/token',{device_name:'Fixture gateway'},false)).status,401);
+  const response=await req('/api/pc-bridge/token',{device_name:'Fixture gateway'});
+  assert.equal(response.status,200,await response.clone().text());
+  const device=await response.json();
+  const stored=await db.prepare('SELECT id, gateway_id, token_hash, token_prefix FROM ops_device_gateways WHERE gateway_id=?').bind(device.gateway_id).first();
+  assert.equal(stored.token_hash,await hash(device.token));
+  assert.equal(stored.token_prefix,device.token.slice(0,12));
+  assert.notEqual(stored.id,stored.gateway_id);
+  const claim=await req('/api/system/actions/claim',{},false,{Authorization:'Bearer '+device.token});
+  assert.equal(claim.status,200,await claim.clone().text());
+  const heartbeatPath='/api/system/pc-bridge/v1/heartbeat';
+  assert.equal((await req(heartbeatPath,{},false)).status,401);
+  const heartbeat=await req(heartbeatPath,{gateway_id:'untrusted'},false,{Authorization:'Bearer '+device.token});
+  assert.equal(heartbeat.status,200,await heartbeat.clone().text());
+  assert.equal((await heartbeat.json()).gateway_id, device.gateway_id);
+  const health=await (await req('/api/pc-bridge')).json();
+  assert.equal(health.status.connected,true);
+  assert.equal(health.status.source,'authenticated-heartbeat');
+  const pcState=await mf.getKVNamespace('PC_STATE','trinity');
+  await pcState.delete('gateway:authenticated-heartbeat');
+  const list=await (await req('/api/pc-bridge/token')).json();
+  assert.ok(list.devices.some(row=>row.id===device.gateway_id&&Date.parse(row.last_seen)>0));
+  assert.equal(JSON.stringify(list).includes(device.token),false);
+  await db.prepare("UPDATE ops_device_gateways SET status='revoked' WHERE gateway_id=?").bind(device.gateway_id).run();
+  assert.equal((await req('/api/system/actions/claim',{},false,{Authorization:'Bearer '+device.token})).status,401);
+});
+test('device gateway registration and authentication also support the legacy production schema',async()=>{
+  await db.prepare('ALTER TABLE ops_device_gateways RENAME TO fixture_current_gateways').run();
+  try{
+    await db.prepare('CREATE TABLE ops_device_gateways (id TEXT PRIMARY KEY, user_email TEXT, device_name TEXT, token_hash TEXT, status TEXT, last_seen INTEGER, created_at TEXT, updated_at TEXT)').run();
+    const response=await req('/api/pc-bridge/token',{device_name:'Legacy fixture gateway'});
+    assert.equal(response.status,200,await response.clone().text());
+    const device=await response.json();
+    const claim=await req('/api/system/actions/claim',{},false,{Authorization:'Bearer '+device.token});
+    assert.equal(claim.status,200,await claim.clone().text());
+    const list=await (await req('/api/pc-bridge/token')).json();
+    assert.ok(list.devices.some(row=>row.id===device.gateway_id&&Number(row.last_seen)>0));
+  }finally{
+    await db.prepare('DROP TABLE IF EXISTS ops_device_gateways').run();
+    await db.prepare('ALTER TABLE fixture_current_gateways RENAME TO ops_device_gateways').run();
+  }
+});
 test('CI audit migrations preserve a pre-existing legacy audit table',async()=>{
   const legacy=await db.prepare("SELECT details FROM audit_log WHERE module='legacy'").first();
   assert.equal(legacy.details,'existing history');

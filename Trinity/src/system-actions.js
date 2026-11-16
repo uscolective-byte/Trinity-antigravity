@@ -53,6 +53,17 @@ async function mirrorBridge(env,row){
 }
 
 export async function getPCBridgeStatus(env){
+  if(env.PC_STATE){
+    try{
+      const data=await env.PC_STATE.get('gateway:authenticated-heartbeat','json');
+      const age=Date.now()-data?.last_seen;
+      if(typeof data?.gateway_id==='string'&&age>=0&&age<90_000){
+        return {connected:true,status:'available',last_seen:data.last_seen,source:'authenticated-heartbeat'};
+      }
+    }catch(error){
+      console.error(JSON.stringify({event:'pc_bridge_heartbeat_read_failed',message:error instanceof Error?error.message:String(error)}));
+    }
+  }
   const bridge=env.PC_BRIDGE_V2||env.PC_BRIDGE_SERVICE;
   if(!bridge?.fetch)return {connected:false,status:'not-configured'};
   try{
@@ -60,7 +71,7 @@ export async function getPCBridgeStatus(env){
     const response=await bridge.fetch(new Request(`https://pc-bridge.internal${path}`));
     if(!response.ok)throw new Error(`HTTP ${response.status}`);
     const data=await response.json();
-    const connected=typeof data.online==='boolean'?data.online:data.connected===true||data.status==='ready'||data.status==='serving';
+    const connected=typeof data.online==='boolean'?data.online:data.connected===true;
     return {...data,connected,status:connected?'available':'offline'};
   }
   catch(error){console.error(JSON.stringify({event:'pc_bridge_status_failed',message:error instanceof Error?error.message:String(error)}));return {connected:false,status:'unavailable'};}
@@ -138,6 +149,14 @@ export async function finishSystemAction(env,id,gatewayId,input){
   const parsed=parseRow(row);await mirrorBridge(env,parsed);return parsed;
 }
 
+export async function deviceGatewayLayout(db){
+  const {results}=await db.prepare("PRAGMA table_info('ops_device_gateways')").all();
+  const columns=new Set(results.map(column=>column.name));
+  if(['gateway_id','token_prefix','last_seen_at'].every(name=>columns.has(name))) return 'current';
+  if(['id','last_seen','updated_at'].every(name=>columns.has(name))) return 'legacy';
+  throw new HttpError(503,'Schéma registra zariadení nie je podporovaná.');
+}
+
 export async function authenticateGateway(request,env){
   const token=request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||request.headers.get('X-Trinity-Gateway');
   if(typeof token!=='string'||token.length<24)throw new HttpError(401,'Lokálna brána nie je autorizovaná.');
@@ -155,11 +174,16 @@ export async function authenticateGateway(request,env){
   if(env.DB){
     const digest = await hash(token);
     try {
-      const row = await env.DB.prepare('SELECT id, user_email, device_name, status FROM ops_device_gateways WHERE token_hash=? AND status="active"').bind(digest).first();
+      const layout=await deviceGatewayLayout(env.DB);
+      const gatewayColumn=layout==='current'?'gateway_id':'id';
+      const row = await env.DB.prepare(`SELECT ${gatewayColumn} AS gateway_id, user_email, device_name FROM ops_device_gateways WHERE token_hash=? AND status='active'`).bind(digest).first();
       if(row){
-        await env.DB.prepare('UPDATE ops_device_gateways SET last_seen=?, updated_at=datetime("now") WHERE token_hash=?').bind(Date.now(), digest).run().catch(()=>{});
+        const seenSql=layout==='current'
+          ? 'UPDATE ops_device_gateways SET last_seen_at=? WHERE token_hash=?'
+          : "UPDATE ops_device_gateways SET last_seen=?, updated_at=datetime('now') WHERE token_hash=?";
+        await env.DB.prepare(seenSql).bind(layout==='current'?new Date().toISOString():Date.now(),digest).run().catch(()=>{});
         return {
-          gatewayId: row.id,
+          gatewayId: row.gateway_id,
           userEmail: row.user_email,
           deviceName: row.device_name,
           isOwner: row.user_email === (env.TRINITY_OWNER_EMAIL || 'saboivan2008@gmail.com')

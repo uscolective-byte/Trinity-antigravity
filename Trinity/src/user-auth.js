@@ -106,44 +106,17 @@ export async function registerWithCredentials(request, env, input) {
     throw new HttpError(503, 'Databáza používateľov nie je pripojená.');
   }
 
-  // Skontroluj, či používateľ už neexistuje
-  const existing = await env.DB.prepare('SELECT email, password_hash, google_sub FROM ops_users WHERE email=?')
-    .bind(emailNorm)
-    .first();
-
+  if (isOwnerEmail(env,emailNorm) || isAdminEmail(env,emailNorm)) {
+    throw new HttpError(403, 'Správcovský účet vyžaduje overené zriadenie prístupu.');
+  }
+  const existing = await env.DB.prepare('SELECT email FROM ops_users WHERE email=?').bind(emailNorm).first();
   if (existing) {
-    if (existing.password_hash) {
-      throw new HttpError(409, 'Používateľ s týmto e-mailom už existuje. Prihlás sa.');
-    }
-    // Ak existuje napr. z Google OAuth, prepojíme heslo
-    const { hashHex, saltHex } = await hashPassword(data.password);
-    const displayName = data.display_name || existing.display_name || emailNorm.split('@')[0];
-    await env.DB.prepare(`
-      UPDATE ops_users
-      SET password_hash=?, password_salt=?, display_name=?, updated_at=datetime('now')
-      WHERE email=?
-    `).bind(hashHex, saltHex, displayName, emailNorm).run();
-
-    const isOwner = isOwnerEmail(env, emailNorm);
-    const updated = await env.DB.prepare('SELECT * FROM ops_users WHERE email=?').bind(emailNorm).first();
-    
-    // Zaloguj udalosť
-    await env.DB.prepare("INSERT INTO ops_events(action, details) VALUES('user_password_linked', ?)")
-      .bind(JSON.stringify({ email: emailNorm, at: Date.now() }))
-      .run()
-      .catch(() => {});
-
-    return {
-      user: sanitizeUserProfile(updated, isOwner),
-      message: 'Heslo bolo úspešne priradené k existujúcemu účtu.'
-    };
+    throw new HttpError(409, 'Používateľ s týmto e-mailom už existuje. Použi existujúci spôsob prihlásenia.');
   }
 
   const { hashHex, saltHex } = await hashPassword(data.password);
-  const isOwner = isOwnerEmail(env, emailNorm);
-  const isAdmin = isOwner || isAdminEmail(env, emailNorm);
-  const role = isAdmin ? 'admin' : 'user';
-  const status = isOwner ? 'active' : 'active'; // V novom portáli sú registrovaní používatelia aktívni
+  const role = 'user';
+  const status = 'active';
   const displayName = data.display_name || emailNorm.split('@')[0];
   const googleSubSynthetic = `creds:${crypto.randomUUID()}`;
 
@@ -165,7 +138,7 @@ export async function registerWithCredentials(request, env, input) {
   const cookie = sessionRes.headers.get('Set-Cookie');
 
   return {
-    user: sanitizeUserProfile(user, isOwner),
+    user: sanitizeUserProfile(user, false),
     cookie
   };
 }
