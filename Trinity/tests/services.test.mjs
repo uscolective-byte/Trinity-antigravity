@@ -6,7 +6,7 @@ import {serviceStatus} from '../src/services.js';
 test('Guardian probe authenticates against its worker and rejects a missing caller key',async()=>{
   const key='fixture-guardian';
   const guardianBinding={fetch:(url,init)=>guardian.fetch(new Request(url,init),{TRINITY_INTERNAL_KEY:key})};
-  const [accepted]=await serviceStatus({GUARDIAN:guardianBinding,TRINITY_INTERNAL_KEY:key},'GUARDIAN');
+  const [accepted]=await serviceStatus({GUARDIAN:guardianBinding,TRINITY_GUARDIAN_PROBE_KEY:key,TRINITY_GATEWAY_KEY:'unrelated-fixture'},'GUARDIAN');
   const [rejected]=await serviceStatus({GUARDIAN:guardianBinding},'GUARDIAN');
   assert.equal(accepted.status,'reachable');
   assert.equal(accepted.http,200);

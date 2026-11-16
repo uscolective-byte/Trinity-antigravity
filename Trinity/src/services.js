@@ -64,7 +64,7 @@ export async function serviceStatus(env, requested) {
       if(spec.action){
         init.headers={'Content-Type':'application/json'};
         if(binding==='GUARDIAN'){
-          const internalKey=env.TRINITY_INTERNAL_KEY||env.TRINITY_GATEWAY_KEY;
+          const internalKey=env.TRINITY_GUARDIAN_PROBE_KEY||env.TRINITY_INTERNAL_KEY||env.TRINITY_GATEWAY_KEY;
           if(internalKey) init.headers.Authorization='Bearer '+internalKey;
         }
         init.body=JSON.stringify({action:spec.action,data:{limit:1},traceId:crypto.randomUUID()});
