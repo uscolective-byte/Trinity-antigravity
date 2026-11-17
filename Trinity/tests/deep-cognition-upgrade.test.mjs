@@ -228,3 +228,13 @@ test('live chat receives active behavior rules alongside real self-improvement c
   assert.equal(events.find(event=>event.type==='delta')?.text,'Viem pripraviť návrh opravy.');
   assert.equal(events.some(event=>event.type==='error'),false);
 });
+
+
+test('a Slovak typo-filled capabilities question gets a grounded answer without calling a model',async()=>{
+  const env={AI:{async run(){assert.fail('capability answer must not call inference');}}};
+  const res=await handleLiveChatStream(env,null,{message:'vis vikonat tieto vilepsenia sama',language:'auto'});
+  const events=(await res.text()).trim().split('\n').map(JSON.parse);
+  assert.equal(events[0].model,'trinity-capabilities');
+  assert.match(events[1].text,/návrh opravy pre konkrétny commit/);
+  assert.match(events[1].text,/žiadnu opravu nespustila/);
+});

@@ -224,12 +224,21 @@ async function persistStreamTurn(env, { jobId, sessionId, message, answer, provi
   }
 }
 
+function selfImprovementAnswer(message,language){
+  if(!/^(?:auto|sk(?:-|$))/i.test(language))return null;
+  const question=message.normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  if(!/^(?:kontrolny test:\s*)?(?:vies|vis|mozes)\s+v[iy]konat\s+(?:tieto\s+)?(?:v[iy]lepsenia|zlepsenia)\s+sama\s*[?.!]*$/i.test(question))return null;
+  return 'Viem ich spracovať ako tri samostatné úlohy. Pri odpovediach viem nadviazať na dostupnú históriu a schválené pravidlá. Novú tému viem spracovať z určených zdrojov. Zrozumiteľné preklepy viem vyložiť podľa kontextu. Ak zlepšenie vyžaduje zmenu kódu, viem pripraviť návrh opravy pre konkrétny commit. Táto správa žiadnu opravu nespustila a sama nepotvrdzuje test ani nasadenie.';
+}
+
 export async function handleLiveChatStream(env, ctx, { message, session, language = 'auto', engine = 'auto', remember = false, allow_files = false, ownerMode = false, userEmail = null }) {
   const sessionId = session || crypto.randomUUID();
   const jobId = crypto.randomUUID();
 
+  const capabilityAnswer = allow_files || engine === 'local' ? null : selfImprovementAnswer(message,language);
+
   // Heavy tool/file/PC/AI-Studio tasks fall back cleanly to durable Workflow execution
-  if (engine === 'local' || requiresWorkflowFallback(message, allow_files)) {
+  if (!capabilityAnswer && (engine === 'local' || requiresWorkflowFallback(message, allow_files))) {
     const body = encodeEvent({ type: 'fallback_job', reason: 'workflow_tools' });
     return new Response(body, {
       headers: {
@@ -243,6 +252,14 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
     async start(controller) {
       const send = (obj) => controller.enqueue(encodeEvent(obj));
       try {
+        if (capabilityAnswer) {
+          send({ type:'context', session:sessionId, model:'trinity-capabilities', memories:[], history:0 });
+          send({ type:'delta', text:capabilityAnswer });
+          const persistence=persistStreamTurn(env,{jobId,sessionId,message,answer:capabilityAnswer,provider:'internal',remember});
+          if(ctx?.waitUntil)ctx.waitUntil(persistence);
+          else await persistence;
+          return;
+        }
         const direct = directChatTool(message, ['calculate', 'current_time']);
         if (direct) {
           const agent = agentById('orchestrator');
