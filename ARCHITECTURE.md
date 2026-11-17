@@ -1,8 +1,8 @@
 # TRINITY OMNI-CORE — 7-LAYER ARCHITECTURE & 35 EXECUTION EPICS
 
-**Systém:** TRINITY OMNI-CORE (`v11.0.0`)  
+**Systém:** TRINITY OMNI-CORE ([aktuálna verzia](README.md))
 **Výlučný Vlastník & Hlavný Architekt (Ring 0 Root Authority):** Basterix (Sabo Ivan)  
-**Domény:** `https://auru.space` (Production) · `https://auru.dev` (Staging / OmniDev)  
+**Domény:** `https://auru.space` (Production) · `https://auru.dev` (Production / Omni-Dev)
 **Lokálny Systémový Most:** `http://127.0.0.1:7788` (`system-bridge.js`) & `http://127.0.0.1:8791` (`Local-Gateway`)
 
 ---

@@ -4,8 +4,7 @@
 [![CodeQL Security](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/codeql.yml)
 [![Trinity self-deploy](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/self-deploy.yml/badge.svg?branch=main)](https://github.com/uscolective-byte/Trinity-antigravity/actions/workflows/self-deploy.yml)
 
-Jedna asistentka so spoločným zdrojom, dvoma prostrediami a samostatnou
-konfiguráciou prihlásenia a externých služieb.
+Webové rozhranie, autorizácia, MCP a smerovanie nástrojov pre obe produkčné domény Trinity.
 
 <!-- trinity-release:start -->
 Verzia zdroja: **11.1.0**. Repozitár: [uscolective-byte/Trinity-antigravity](https://github.com/uscolective-byte/Trinity-antigravity), vetva **`main`**.
@@ -34,9 +33,6 @@ Tieto údaje sa generujú zo zdrojov a konfigurácie. Aktuálne nasadenie over c
 
 - **Výlučný vlastník a architekt**: **Basterix (Sabo Ivan)**.
 - **Root Identity Gate (`Trinity/src/trinity-auth-core.js`)**:
-  - Windows účty: `saboi`, `basterix` (vyžaduje `osTokenVerified === true` a reálne Windows SID `/^S-1-5-21-\d+-\d+-\d+-\d+$/`).
-  - Google účty: `saboivan2008@gmail.com`, `uscolective@gmail.com`, `cadjavadvocecka013@gmail.com` (vyžaduje `verifiedGoogleToken === true`).
-  - Telefónne čísla: `+421949009722`, `0949009722`, `+421949515777`, `0949515777` (vyžaduje `verifiedWebhookSignature === true`).
 - **Sovereign Lock & Durable Nonce Vault (`Trinity/src/sovereign-lock.js`)**:
   - Každá zmena chráneného kódu vyžaduje `ConsentEnvelope` (HMAC-SHA256 viazaný na SHA-256 hash `git diff`) a jednorazové `nonce` uložené v D1 tabuľke `ops_consumed_nonces` (`0055_sovereign_ledger_v3.sql`).
 - **End-to-End Tunnel Bridge (`/api/bridge`)**:
@@ -46,7 +42,7 @@ Tieto údaje sa generujú zo zdrojov a konfigurácie. Aktuálne nasadenie over c
 
 ## Lokálny vývoj
 
-Z koreňa repozitára spusti `powershell -ExecutionPolicy Bypass -File ../scripts/install-all.ps1`. Potom v `Trinity/`:
+Z koreňa repozitára spusti `powershell -ExecutionPolicy Bypass -File scripts/install-all.ps1`. Potom v `Trinity/`:
 
 ```powershell
 npm.cmd run dev
@@ -55,7 +51,7 @@ npm.cmd run build:development
 ```
 
 `npm test` zahŕňa produkčný dry-run build a testy; neznamená nasadenie.
-Úplné overenie všetkých modulov spúšťa koreňový príkaz `npm.cmd run check`.
+Úplné overenie modulov spúšťa koreňový príkaz `npm.cmd test`.
 
 ## Prihlásenie a jednorazové odkazy
 
@@ -73,8 +69,8 @@ odkaz vyžaduje vytvorenie nového odkazu cez spúšťač.
 V Google-only režime (`TRINITY_AUTH_MODE=google`) sú legacy kľúče a jednorazové
 odkazy vypnuté. Google OAuth musí mať klienta a súhlas vlastníka. Povolené návraty:
 
-- produkcia: `https://auru.space/auth/google/callback`;
-- vývoj: `https://auru.dev/auth/google/callback`.
+- `https://auru.space/auth/google/callback`;
+- `https://auru.dev/auth/google/callback`.
 
 Podporované sú aj aliasy `/api/auth/google/callback`. V OAuth klientovi povoľ
 presné URL použité prihlasovacím vstupom; `/api/auth/google/start` používa
@@ -98,14 +94,13 @@ k Workspace, Drive ani Google Cloud; tie potrebujú samostatné oprávnenia.
 - [Neporušiteľný Režim Pravdy a Prísaha Trinity](../Dokumentacia/NEPORUSITELNY-REZIM-PRAVDY-A-PRISAHA.md) – kompletné znenie novej prísahy, Desatora pravdivosti a architektonických brán.
 - [Architektúra 7 vrstiev OMNI-CORE](../ARCHITECTURE.md) – Kernel, Orchestration, Memory, Sovereign Ledger v3, Execution, TruthGuard a Interface.
 - [API Referencia (Edge & Port 7788)](../API_REFERENCE.md) – REST/RPC/MCP endpointy na `auru.space`, `auru.dev` a lokálnom System Bridge (`127.0.0.1:7788`).
-- [Changelog & Bezpečnostné záplaty](../CHANGELOG.md) – prehľad P0/P1 opráv (fail-closed OAuth/SID overenie, trvalé D1/KV/Disk nonce úložisko, OmniDev AST diagnostika).
 - [Kompletná systémová špecifikácia Trinity 2026](docs/TRINITY_SOVEREIGN_SYSTEM_SPEC_2026.md) – architektúra triády, 29 viazaných služieb, Truth Policy 2.0, modely a nástroje.
 - [Používanie nástrojov a pravidlá správania](docs/TRINITY_NASTROJE_A_POUZIVANIE.md) – príručka pre prácu s Puppeteer prehliadačom, GitHubom a doménami.
-- [Postup jedného repozitára pre obe domény](docs/SINGLE_REPOSITORY.md) – nasadenie vývoja a produkcie.
+- [Postup jedného repozitára pre obe domény](docs/SINGLE_REPOSITORY.md) – konfigurácia a overenie nasadenia.
 
 ## Nasadenie
 
-Použi [postup pre obe prostredia](docs/SINGLE_REPOSITORY.md). Pred novým kódom
+Použi [postup pre obe produkčné domény](docs/SINGLE_REPOSITORY.md). Pred novým kódom
 aplikuj migrácie príslušnej databázy. Nasadenie označ celým commit SHA a over
 cez `scripts/verify-deployment.mjs`; výsledok musí sedieť na doméne, verzii,
 prostredí, repozitári, vetve a commit tagu.
