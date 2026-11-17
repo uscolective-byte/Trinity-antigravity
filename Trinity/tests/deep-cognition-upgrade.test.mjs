@@ -206,3 +206,25 @@ test('an interrupted live answer reports an error and is not persisted as comple
   assert.equal(events.at(-1).type,'error');
   assert.equal(persisted.length,0);
 });
+
+
+test('live chat receives active behavior rules alongside real self-improvement capabilities',async()=>{
+  const env={
+    DB:{prepare(sql){
+      if(sql.includes("FROM self_improvement_proposals")){
+        return {async all(){return {results:[{description:'Na začiatku stručne zhrň stav.'}]};}};
+      }
+      throw new Error('No history configured for this fixture.');
+    }},
+    AI:{async run(_model,{messages}){
+      const system=messages[0].content;
+      assert.match(system,/návrh opravy zdrojov/);
+      assert.match(system,/Na začiatku stručne zhrň stav/);
+      return {response:'Viem pripraviť návrh opravy.'};
+    }}
+  };
+  const res=await handleLiveChatStream(env,null,{message:'Vieš sa sama zlepšovať?',language:'sk',engine:'workers-ai'});
+  const events=(await res.text()).trim().split('\n').map(JSON.parse);
+  assert.equal(events.find(event=>event.type==='delta')?.text,'Viem pripraviť návrh opravy.');
+  assert.equal(events.some(event=>event.type==='error'),false);
+});

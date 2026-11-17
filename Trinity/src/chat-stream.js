@@ -17,6 +17,7 @@ import { persistAutoMemory } from './memory-extractor.js';
 import { recallMemory, runTool } from './tools.js';
 import { agentById } from './registry.js';
 import { planTask } from './planner.js';
+import { listActiveBehaviorRules, behaviorRulesDirective } from './self-improvement.js';
 
 const HEAVY_WORKFLOW_PATTERN = /\b(vytvor\s+web|ai\s+studio|nasad|deploy|cloudflare\s+dns|registruj\s+domen|pc\s+bridge|spusti\s+na\s+pc|otvor\s+(?:okno|appku|kalkulack|notepad|vscode|terminal|chrome|explorer)|vytvor\s+(?:subor|pdf|obrazok|fotku|video|hudbu|prezentaciu)|nakup\s+komodit|predaj\s+komodit|multi_model_consensus|self_evolve|ui_evolve|timovy\s+rezim|team\s+mode)\b/i;
 
@@ -250,15 +251,15 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
           send({ type: 'context', session: sessionId, model: 'deterministic-tool', memories: [], history: 0 });
           send({ type: 'delta', text });
           if (ctx?.waitUntil) ctx.waitUntil(persistStreamTurn(env, { jobId, sessionId, message, answer: text, provider: 'fast', remember }));
-          controller.close();
           return;
         }
 
-        const [historyRows, memoryNotes, pcBridge, chosenProvider] = await Promise.all([
+        const [historyRows, memoryNotes, pcBridge, chosenProvider, learnedRules] = await Promise.all([
           env?.DB ? loadConversationHistory(env, sessionId, jobId, { limit: 12, maxChars: 2400 }).catch(() => []) : [],
           env?.DB ? recallMemory(env, message).catch(() => []) : [],
           getPCBridgeStatus(env).catch(() => ({ connected: false })),
-          pickChatProvider(env, engine, message)
+          pickChatProvider(env, engine, message),
+          listActiveBehaviorRules(env)
         ]);
 
         const historyMessages = conversationsToMessages(historyRows);
@@ -269,7 +270,7 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
         });
 
         const messages = [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: [systemPrompt, behaviorRulesDirective(learnedRules)].filter(Boolean).join('\n') },
           ...historyMessages,
           { role: 'user', content: message }
         ];

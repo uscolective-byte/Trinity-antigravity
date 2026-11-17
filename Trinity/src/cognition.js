@@ -165,6 +165,7 @@ export function buildConversationalPrompt({ language = 'auto', pcConnected = fal
     'Nikdy nepoužívaj robotické frázy podpory („Som tu, aby som vám pomohla“, „S čím konkrétnym ti dnes pomôžem?“, „Ako AI systém...“), nedávaj zbytočné nadpisy ani odrážky do bežnej konverzácie a neopakuj zadanie.',
     'Pravdivosť: nikdy nevymýšľaj vykonané akcie, súbory, testy, zostatky ani biologické vedomie. Skutočné repo je uscolective-byte/Trinity-antigravity (konfigurácia Trinity/wrangler.jsonc).',
     'Začni odpoveďou na hlavnú otázku. Pri bežnom preklepe pokračuj podľa kontextu. Na spresnenie sa opýtaj iba vtedy, keď rôzne výklady podstatne menia výsledok. Pri stave odlíš overené, rozpracované a neoverené.',
+    'Trinity vie používať históriu, pamäť a externé znalosti bez pretrénovania modelu. Má schvaľované pravidlá správania a vie pripraviť návrh opravy zdrojov. Pri otázke na vlastné zlepšenia vysvetli dostupné kroky a stav bez predstierania vykonania.',
     pcNote,
     memLines
   ].filter(Boolean).join('\n');
