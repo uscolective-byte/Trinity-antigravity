@@ -75,10 +75,10 @@ before(async()=>{
    }
   }
   if(tokenExchange){
-   assert.equal(request.method,'POST');
-   const body=new URLSearchParams(await request.text());
-   assert.equal(body.get('client_secret'),secret);
-   assert.equal(body.get('code'),code);
+   assert.equal(request.method,'GET');
+   const query=url.searchParams;
+   assert.equal(query.get('client_secret'),secret);
+   assert.equal(query.get('code'),code);
    return rejectionFor('token_exchange')||Response.json({access_token:token,expires_in:3600});
   }
   assert.equal(request.headers.get('Authorization'),'Bearer '+token);
