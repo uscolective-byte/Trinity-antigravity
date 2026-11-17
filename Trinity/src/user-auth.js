@@ -77,6 +77,34 @@ export async function verifyPassword(password, storedHashHex, storedSaltHex) {
   }
 }
 
+const passwordChangeSchema = z.object({
+  current_password: loginSchema.shape.password,
+  new_password: registerSchema.shape.password.refine(password => password.length >= 12, 'Nové heslo musí mať aspoň 12 znakov.')
+}).strict();
+
+export async function changeOwnPassword(env, email, currentSessionHash, input) {
+  const { current_password, new_password } = passwordChangeSchema.parse(input);
+  if (!email || !currentSessionHash) throw new HttpError(401, 'Prihlás sa do Trinity.');
+  if (current_password === new_password) throw new HttpError(400, 'Použi iné heslo.');
+  const user = await env.DB.prepare(
+    "SELECT password_hash,password_salt FROM ops_users WHERE email=? AND status='active'"
+  ).bind(email).first();
+  if (!await verifyPassword(current_password, user?.password_hash, user?.password_salt)) {
+    throw new HttpError(403, 'Aktuálne heslo nie je správne.');
+  }
+
+  const { hashHex, saltHex } = await hashPassword(new_password);
+  const [changed] = await env.DB.batch([
+    env.DB.prepare(
+      "UPDATE ops_users SET password_hash=?,password_salt=?,updated_at=datetime('now') WHERE email=? AND status='active' AND password_hash=? AND password_salt=?"
+    ).bind(hashHex, saltHex, email, user.password_hash, user.password_salt),
+    env.DB.prepare(
+      'DELETE FROM ops_sessions WHERE lower(email)=? AND token_hash<>? AND EXISTS(SELECT 1 FROM ops_users WHERE email=? AND password_hash=?)'
+    ).bind(email, currentSessionHash, email, hashHex)
+  ]);
+  if (changed.meta?.changes !== 1) throw new HttpError(409, 'Účet sa medzitým zmenil. Skús to znovu.');
+}
+
 /**
  * Sanitizuje a vráti objekt používateľského profilu pre frontend/API.
  */
@@ -185,7 +213,7 @@ export async function loginWithCredentials(request, env, input) {
     .run()
     .catch(() => {});
 
-  const sessionRes = await issueSession(env, undefined, emailNorm, request);
+  const sessionRes = await issueSession(env, undefined, emailNorm, request, user.password_hash);
   const cookie = sessionRes.headers.get('Set-Cookie');
 
   return {

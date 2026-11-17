@@ -43,10 +43,17 @@ export function sessionCookie(value,maxAge,request,env={}){
   const secure=request&&localLoopbackRequest(request,env)?'':'; Secure';
   return `trinity_session=${value}; Path=/; HttpOnly${secure}; SameSite=Strict; Max-Age=${Math.max(0,Math.floor(maxAge))}`;
 }
-export async function issueSession(env,until=Date.now()+43200000,email=null,request=null){
+export async function issueSession(env,until=Date.now()+43200000,email=null,request=null,passwordHash=null){
   const token=Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('hex');
   const expires=Math.min(Date.now()+43200000,until);
-  if(email)await env.DB.prepare('INSERT INTO ops_sessions(token_hash,expires_at,email) VALUES(?,?,?)').bind(await hash(token),expires,email.trim().toLowerCase()).run();
+  if(passwordHash){
+    const normalizedEmail=email.trim().toLowerCase();
+    const created=await env.DB.prepare(
+      "INSERT INTO ops_sessions(token_hash,expires_at,email) SELECT ?,?,email FROM ops_users WHERE email=? AND password_hash=? AND status NOT IN ('blocked','rejected')"
+    ).bind(await hash(token),expires,normalizedEmail,passwordHash).run();
+    if(created.meta?.changes!==1)throw new HttpError(401,'Nesprávny e-mail alebo heslo.');
+  }
+  else if(email)await env.DB.prepare('INSERT INTO ops_sessions(token_hash,expires_at,email) VALUES(?,?,?)').bind(await hash(token),expires,email.trim().toLowerCase()).run();
   else await env.DB.prepare('INSERT INTO ops_sessions(token_hash,expires_at) VALUES(?,?)').bind(await hash(token),expires).run();
   await env.DB.prepare('DELETE FROM ops_sessions WHERE expires_at < ?').bind(Date.now()).run();
   return Response.json({ok:true},{headers:{'Set-Cookie':sessionCookie(token,(expires-Date.now())/1000,request,env)}});

@@ -102,6 +102,7 @@ import {syncTelegramWebhookForOwner} from './telegram-bridge.js';
 import {
   registerWithCredentials,
   loginWithCredentials,
+  changeOwnPassword,
   getUserProfile,
   updateUserProfile
 } from './user-auth.js';
@@ -1118,6 +1119,15 @@ async function route(request,env,ctx){
   if(path==='/api/auth/me'&&request.method==='GET'){
     const profile=await getUserProfile(env,user.email);
     return json({ok:true,user:profile||user});
+  }
+  if(path==='/api/auth/password'&&request.method==='POST'){
+    checkOrigin(request,env);
+    const session=request.headers.get('Cookie')?.match(/(?:^|;\s*)trinity_session=([a-f0-9]{64})(?:;|$)/)?.[1];
+    const sessionHash=session?await hash(session):'';
+    if(!user.email||!sessionHash||user.id!==sessionHash.slice(0,24))throw new HttpError(401,'Použi svoje prihlásenie do Trinity.');
+    await rateLimit(env,'password-change:'+await hash(user.email),5,600);
+    await changeOwnPassword(env,ownerId,sessionHash,await readJSON(request,4000));
+    return json({ok:true});
   }
   if(path==='/api/auth/profile'&&request.method==='PATCH'){
     checkOrigin(request,env);

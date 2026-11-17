@@ -103,6 +103,33 @@ test('PBKDF2 password hashing & constant-time verification', async () => {
   assert.equal(fail, false);
 });
 
+test('password change requires the current password and keeps only the initiating session', async () => {
+  const email = 'password-change@example.test';
+  const oldPassword = 'OldPasswordForTest42';
+  const newPassword = 'NewPasswordForTest84';
+  const credentials = { email, password: oldPassword };
+  const registered = await req('/api/auth/register', credentials, false);
+  assert.equal(registered.status, 201);
+  const current = registered.headers.get('set-cookie').split(';', 1)[0];
+  const login = await req('/api/auth/login', credentials, false);
+  assert.equal(login.status, 200);
+  const other = login.headers.get('set-cookie').split(';', 1)[0];
+  const change = { current_password: oldPassword, new_password: newPassword };
+
+  const anonymous = await req('/api/auth/password', change, false);
+  assert.equal(anonymous.status, 401);
+  const wrong = await req('/api/auth/password', { ...change, current_password: 'WrongPassword99' }, false, { Cookie: current });
+  assert.equal(wrong.status, 403);
+  const changed = await req('/api/auth/password', change, false, { Cookie: current });
+  assert.equal(changed.status, 200);
+  assert.deepEqual(await changed.json(), { ok: true });
+
+  assert.equal((await req('/api/auth/me', undefined, false, { Cookie: current })).status, 200);
+  assert.equal((await req('/api/auth/me', undefined, false, { Cookie: other })).status, 401);
+  assert.equal((await req('/api/auth/login', credentials, false)).status, 401);
+  assert.equal((await req('/api/auth/login', { email, password: newPassword }, false)).status, 200);
+});
+
 test('User registration with credentials provisions user and sets session cookie', async () => {
   const res = await req('/api/auth/register', {
     email: 'newuser@auru.space',

@@ -874,6 +874,35 @@ $('studio-prompt').oninput=()=>{if(studioPreferences().draft)localStorage.setIte
 $('settings-studio-reset').onclick=()=>{for(const key of ['provider','quality','preview','style','accessible','responsive','draft','wrap','quality-alert'])localStorage.removeItem('trinity-studio-'+key);localStorage.removeItem('trinity-studio-prompt-draft');$('studio-prompt').value='';applyStudioPreferences();notice('Nastavenia AI Studia boli obnovené.');};
 async function loadMemory(){const rows=await api('/memory');$('memory-location').textContent=state.memory_location||'Cloudflare D1 · trinity-v03 · ops_memory + memory_long';$('memory-list').replaceChildren();for(const row of rows){const card=node('article',undefined,'memory-item');card.append(node('strong',row.key),node('p',row.value));$('memory-list').append(card);}if(!rows.length)$('memory-list').append(node('p',t('noMemory')));}
 $('memory-form').onsubmit=safe(async()=>{await api('/memory',{key:$('memory-key').value,value:$('memory-value').value});$('memory-form').reset();await loadMemory();notice(t('saved'));});
+const passwordForm = $('change-password-form');
+if (passwordForm) passwordForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const status = $('change-password-status');
+  const current = $('current-password');
+  const next = $('new-password');
+  const repeat = $('repeat-password');
+  if (next.value !== repeat.value) {
+    status.textContent = 'Nové heslá sa nezhodujú.';
+    repeat.focus();
+    return;
+  }
+  const submit = passwordForm.querySelector('button[type="submit"]');
+  submit.disabled = true;
+  status.textContent = 'Mením heslo…';
+  try {
+    await TrinityAuth.requestJSON('/api/auth/password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current_password: current.value, new_password: next.value })
+    });
+    passwordForm.reset();
+    status.textContent = 'Heslo bolo zmenené. Ostatné relácie boli odhlásené.';
+  } catch (error) {
+    status.textContent = error.message || 'Heslo sa nepodarilo zmeniť.';
+  } finally {
+    submit.disabled = false;
+  }
+});
 $('api-key-form').onsubmit=safe(async()=>{const created=await api('/api-keys',{name:$('api-key-name').value.trim(),scopes:['api:invoke'],rate_limit_per_minute:Number($('api-key-limit').value),expires_at:null});const secret=$('api-key-secret');secret.replaceChildren(node('strong','Ulož tento kľúč teraz — druhýkrát sa nezobrazí.'),node('code',created.key.secret));const copy=node('button','Kopírovať','primary');copy.type='button';copy.onclick=async()=>{await navigator.clipboard.writeText(created.key.secret);copy.textContent=t('copied');};secret.append(copy);secret.hidden=false;$('api-key-name').value='';await loadSettings();});
 $('antigravity-key-form').onsubmit=safe(async()=>{const scopes=['mcp:read','mcp:write'];const created=await api('/api-keys',{name:$('antigravity-key-name').value.trim(),scopes,rate_limit_per_minute:60,expires_at:null});const config={mcpServers:{trinity:{serverUrl:`${location.origin}/mcp`,headers:{Authorization:`Bearer ${created.key.secret}`}}}};const configText=JSON.stringify(config,null,2),result=$('antigravity-key-result'),code=node('pre',configText),copy=node('button','Kopírovať konfiguráciu','primary');copy.type='button';copy.onclick=async()=>{await navigator.clipboard.writeText(configText);copy.textContent=t('copied');};result.replaceChildren(node('strong','Kľúč sa zobrazí iba teraz. Vlož túto konfiguráciu do Antigravity mcp_config.json.'),node('p','Ulož súbor iba do svojho dôveryhodného počítača. Kľúč môžeš zrušiť v zozname Trinity API kľúčov.'),code,copy);result.hidden=false;await loadSettings();});
 $('vscode-key-form').onsubmit=safe(async()=>{
