@@ -296,6 +296,21 @@ export async function createArtifact(env, {
   };
 }
 
+export function serializeCsv(columns, rows) {
+  const encodeCell = value => {
+    let text = value === null ? '' : String(value);
+    // Spreadsheet software can interpret imported text beginning with these characters as a formula.
+    if (typeof value === 'string' && /^(?:[\s\uFEFF]*[=+\-@]|[\t\r\n])/.test(text)) text = "'" + text;
+    return '"' + text.replaceAll('"', '""') + '"';
+  };
+  if (rows.some(row => row.length !== columns.length)) {
+    throw new Error('Každý riadok musí mať rovnaký počet buniek ako hlavička.');
+  }
+  const result = '\uFEFF' + [columns, ...rows].map(row => row.map(encodeCell).join(',')).join('\r\n') + '\r\n';
+  if (new TextEncoder().encode(result).length > 1_000_000) throw new Error('CSV súbor presahuje 1 MB.');
+  return result;
+}
+
 /**
  * Špecializované vytvorenie PDF dokumentu a jeho uloženie do archívu.
  */

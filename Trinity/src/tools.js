@@ -32,7 +32,7 @@ import {processTeleologicalPrompt} from './quantum_pipeline.js';
 import {NeuralBrain, BRAIN_MODES} from './neural_brain.js';
 import {QuantumCoreEngine} from './quantum_core.js';
 import {listDomains,getDomain,createDomain,registerDomain,checkDomainAvailability,updateDomain,deleteDomain,listDomainForSale,sellDomain,listDomainForLease,leaseDomain,endDomainLease,listDomainTransactions,getDomainMarketplace,listDnsRecords,addDnsRecord,deleteDnsRecord,domainInputSchema,domainRegistrationSchema,domainSaleListingSchema,domainSaleSchema,domainLeaseListingSchema,domainLeaseSchema,domainEndLeaseSchema,dnsRecordInputSchema,DNS_RECORD_TYPES,DOMAIN_STATUSES,LISTING_TYPES} from './domains.js';
-import {createArtifact,createPdfArtifact,listArtifacts,getArtifact} from './artifacts.js';
+import {createArtifact,createPdfArtifact,listArtifacts,getArtifact,serializeCsv} from './artifacts.js';
 import {commerceStatus,upsertCommerceProduct,getRevolutAccountOverview} from './revolut.js';
 import {getUiEvolutionState,applyUiEvolution,uiEvolutionInputSchema} from './ui-evolution.js';
 import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnvironments,provisionDomainEnvSchema,deployDomainEnvSchema} from './domain-environments.js';
@@ -175,6 +175,11 @@ export const TOOL_SCHEMAS={
     content:z.string().min(1).max(100_000),
     author:z.string().max(100).default('Trinity AI'),
     notes:z.string().max(500).optional()
+  }).strict()
+  ,export_csv:z.object({
+    filename:z.string().trim().min(5).max(160).regex(/^[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\.csv$/i),
+    columns:z.array(z.string().trim().min(1).max(120)).min(1).max(40),
+    rows:z.array(z.array(z.union([z.string().max(2000),z.number(),z.boolean(),z.null()])).max(40)).max(1000)
   }).strict()
   ,list_artifacts:z.object({
     limit:z.number().int().min(1).max(100).default(20),
@@ -757,6 +762,11 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(name==='create_pdf'){
     const res=await createPdfArtifact(env,{...args,createdBy:agent.id});
     return {...res,_evidence:{effect:'mutation',action:'create_file',actions:['create_file'],receipt_id:`artifact:pdf:${res.id}`}};
+  }
+  if(name==='export_csv'){
+    const content=serializeCsv(args.columns,args.rows);
+    const res=await createArtifact(env,{filename:args.filename,content,contentType:'text/csv; charset=utf-8',createdBy:agent.id});
+    return {...res,rows:args.rows.length,columns:args.columns.length,_evidence:{effect:'mutation',action:'create_file',actions:['create_file'],receipt_id:`artifact:csv:${res.id}`}};
   }
   if(name==='list_artifacts'){
     const items=await listArtifacts(env,args);
@@ -1478,6 +1488,7 @@ export async function recallMemory(env,task){
   return selectMemoryRecords(records,task);
 }
 export const TOOL_HELP={
+  export_csv:'Uloží stiahnuteľnú tabuľku CSV (UTF-8). Zadaj {filename,columns,rows}; každý riadok má rovnaký počet buniek ako hlavička.',
   cf_d1_query:'Spracuje podporovaný SQL dopyt proti povolenej väzbe Cloudflare D1.',
   cf_kv_store:'Prečíta, zapíše, vypíše alebo odstráni kľúč v povolenom KV úložisku.',
   cf_r2_manage:'Spracuje vybranú operáciu so súborom v pripojenom R2 úložisku.',

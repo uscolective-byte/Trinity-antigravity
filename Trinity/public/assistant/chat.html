@@ -139,25 +139,29 @@
                   <span>📁 Súbory (Host PC)</span>
                   <button id="omni-fs-refresh" style="font-size:9px;padding:2px 6px;">↻ Obnoviť</button>
                 </div>
-                <input type="text" id="omni-fs-path" value="C:\Users\saboi\Trinity-antigravity" style="padding:4px 8px;font-size:10px;background:#020617;color:#94a3b8;border:0;border-bottom:1px solid #1e293b;" />
+                <input type="text" id="omni-fs-path" value="." aria-label="Cesta v pracovnom priečinku PC" style="padding:4px 8px;font-size:10px;background:#020617;color:#94a3b8;border:0;border-bottom:1px solid #1e293b;" />
                 <div id="omni-file-tree" class="omni-tree-box">Načítavam súbory...</div>
               </div>
               <div class="omni-shell-box">
                 <div class="omni-bar">
-                  <span>💻 Živá Konzola (PowerShell / CMD / Node)</span>
-                  <span id="omni-pc-status-pill" style="color:#4ade80;font-size:10px;">● PC: Online</span>
+                  <span>💻 Výstup úloh na PC</span>
+                  <span id="omni-pc-status-pill" style="font-size:10px;">PC: Kontrola…</span>
                 </div>
-                <div id="omni-console-log" class="omni-terminal-screen">TRINITY PC BRIDGE TERMINAL v11.1
-Pripravené na spustenie príkazu na hostiteľskom PC...</div>
+                <div id="omni-console-log" class="omni-terminal-screen" role="log">Vyber projekt a úlohu.</div>
                 <div class="omni-console-input-row">
-                  <select id="omni-shell-type" style="padding:4px;font-size:10px;background:#1e293b;color:#f8fafc;border:1px solid #334155;border-radius:6px;">
-                    <option value="powershell">PowerShell</option>
-                    <option value="cmd">CMD</option>
-                    <option value="node">Node.js</option>
-                    <option value="python">Python</option>
+                  <select id="omni-console-project" aria-label="Projekt">
+                    <option value="Trinity">Trinity</option>
+                    <option value="Local-Gateway">Local Gateway</option>
                   </select>
-                  <input type="text" id="omni-console-cmd" style="flex:1;padding:6px;font-size:11px;background:#020617;color:#4ade80;border:1px solid #334155;border-radius:6px;font-family:monospace;" placeholder="Zadaj príkaz (napr. git status, dir, node -v)..." />
-                  <button id="omni-console-exec" class="primary" style="padding:4px 10px;font-size:11px;">Spustiť ↵</button>
+                  <select id="omni-console-task" aria-label="Úloha">
+                    <option value="node-version">Verzia Node.js</option>
+                    <option value="python-version">Verzia Pythonu</option>
+                    <option value="git-status">Stav Git</option>
+                    <option value="diff-check">Kontrola zmien Git</option>
+                    <option value="tests">Spustiť testy</option>
+                    <option value="build">Zostaviť projekt</option>
+                  </select>
+                  <button id="omni-console-exec" class="primary" style="padding:4px 10px;font-size:11px;">Spustiť</button>
                 </div>
               </div>
             </div>
@@ -1864,7 +1868,7 @@ Pripravené na spustenie príkazu na hostiteľskom PC...</div>
             <span class="docs-badge" style="background:#a855f7;color:#fff;font-weight:700">META ECOSYSTEM · AI & SOCIAL</span>
             <h2 style="color:#c084fc;margin:8px 0 12px;">♾️ Meta AI Inferencia & Správa Facebook / Instagram</h2>
             <p style="color:#cbd5e1;line-height:1.6">
-              Trinity je priamo napojená na rodinu otvorených modelov Meta Llama cez Cloudflare Workers AI a disponuje plnou integráciou s Meta Graph API (v26.0) pre správu profilov majiteľa.
+              Model Meta Llama beží cez Cloudflare Workers AI. Meta Graph API pre Facebook a Instagram vyžaduje samostatné prepojenie a overenie účtu.
             </p>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:16px;">
               <div style="background:rgba(0,0,0,0.4);padding:14px;border-radius:8px;border:1px solid rgba(168,85,247,0.25)">

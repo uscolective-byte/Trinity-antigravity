@@ -647,6 +647,10 @@ async function init(){
   state=await TrinityAuth.requestJSON('/api/assistant/status');
   if(!state.account?.role||state.account.role==='guest'){lockSession();return;}
   $('login').hidden=true;$('app-views').hidden=false;renderAccount();renderPCBridgeStatus(state.pc_bridge);
+  if(String(state.model||'').startsWith('@cf/meta/llama')){
+    const cloudOption=$('engine')?.querySelector('[value=cloud]');
+    if(cloudOption)cloudOption.textContent='Meta Llama · Cloudflare Workers AI';
+  }
   if(!pcBridgeTimer)pcBridgeTimer=setInterval(refreshPCBridgeStatus,45_000);
   void prepareDrivePicker();
   const preferred=localStorage.getItem('trinity-engine')||'auto';$('engine').value=preferred==='local'&&!state.local_available&&!state.pc_bridge?.connected?'auto':preferred;
@@ -4177,10 +4181,12 @@ async function dispatchOmniAction(actionName, payload, rationale = 'Omni-Dev ope
     const item = await chk.json();
     const act = item.action || {};
     if (act.status === 'completed') {
-      return act.result || { success: true };
+      const receipt=act.receipt||act.result;
+      if(!receipt)throw new Error('PC brána neposlala výsledok akcie.');
+      return receipt;
     }
     if (act.status === 'failed') {
-      throw new Error(act.result?.error || act.result?.stderr || 'Akcia zlyhala.');
+      throw new Error(act.error || act.receipt?.error || act.result?.error || act.result?.stderr || 'Akcia zlyhala.');
     }
   }
   throw new Error('Časový limit vypršal: PC daemon neodpovedal včas. Uisti sa, že PC daemon beží na PC.');
@@ -4227,17 +4233,18 @@ async function refreshOmniFiles(){
   const pathInput=$('omni-fs-path');
   const tree=$('omni-file-tree');
   if(!pathInput||!tree)return;
-  const targetPath = pathInput.value.trim() || 'C:\\Users\\saboi\\Trinity-antigravity';
+  const targetPath = (pathInput.value.trim() || '.').replaceAll('\\','/').replace(/\/+$/,'');
+  pathInput.value=targetPath;
   tree.textContent='Načítavam súbory z PC...';
   try{
-    const res = await dispatchOmniAction('read', { path: targetPath }, 'Omni-Dev file browser');
+    const res = await dispatchOmniAction('read', { path: targetPath, mode: 'browse' }, 'Omni-Dev file browser');
     if(res.is_directory && Array.isArray(res.files)){
       tree.innerHTML = '';
       const list = document.createElement('div');
       list.style.cssText = 'display:flex;flex-direction:column;gap:3px;font-family:monospace;font-size:11px;';
       
-      const parentDir = targetPath.replace(/[\\/][^\\/]+[\\/]?$/, '');
-      if(parentDir && parentDir !== targetPath){
+      const parentDir = targetPath.split('/').slice(0,-1).join('/') || '.';
+      if(targetPath!=='.' && parentDir!==targetPath){
         const up = document.createElement('div');
         up.style.cssText = 'cursor:pointer;color:#38bdf8;padding:2px 4px;border-radius:4px;';
         up.textContent = '📁 .. (Hore)';
@@ -4259,13 +4266,13 @@ async function refreshOmniFiles(){
         const sizeSpan = document.createElement('span');
         sizeSpan.style.color = '#64748b';
         sizeSpan.style.fontSize = '10px';
-        sizeSpan.textContent = f.isDirectory ? '<DIR>' : (Math.round(f.size/1024) + ' KB');
+        sizeSpan.textContent = f.isDirectory ? '<DIR>' : (Number.isFinite(f.size) ? Math.round(f.size/1024) + ' KB' : '');
 
         row.appendChild(nameSpan);
         row.appendChild(sizeSpan);
 
         row.onclick = () => {
-          const full = targetPath.replace(/[\\/]$/, '') + '\\' + f.name;
+          const full = targetPath==='.' ? f.name : targetPath + '/' + f.name;
           if(f.isDirectory){
             pathInput.value = full;
             refreshOmniFiles();
@@ -4278,6 +4285,8 @@ async function refreshOmniFiles(){
         list.appendChild(row);
       }
       tree.appendChild(list);
+      if(res.truncated)tree.appendChild(node('p','Zobrazených je najviac 250 položiek.'));
+      if(!res.files.length)tree.appendChild(node('p','Priečinok neobsahuje položky dostupné na zobrazenie.'));
     } else if(res.content !== undefined){
       tree.textContent = res.content.slice(0, 3000) + (res.content.length > 3000 ? '\n... (zobrazená časť súboru)' : '');
     } else {
@@ -4402,38 +4411,34 @@ function initOmniDevEvents(){
     }
   }
 
-  // Shell execution in live terminal
+  // Run a task supported by the installed gateway.
   if($('omni-console-exec'))$('omni-console-exec').onclick=async()=>{
-    const cmd=$('omni-console-cmd')?.value.trim();
-    const shell=$('omni-shell-type')?.value||'powershell';
+    const project=$('omni-console-project')?.value;
+    const task=$('omni-console-task')?.value;
     const screen=$('omni-console-log');
-    if(!cmd||!screen)return;
-    screen.textContent+=`\n> [${shell}] ${cmd}\nVykonávam na hostiteľskom PC...\n`;
+    if(!project||!task||!screen)return;
+    const button=$('omni-console-exec');
+    button.disabled=true;
+    screen.textContent+=`\n> ${project} · ${task}\nOdoslané do PC Bridge…\n`;
     screen.scrollTop=screen.scrollHeight;
     try{
       const res = await dispatchOmniAction('run', {
-        command: cmd,
-        shell,
-        cwd: 'C:\\Users\\saboi\\Trinity-antigravity',
-        timeout: 45000
-      }, `Omni-Dev terminál: ${cmd}`);
+        project,
+        task
+      }, `Omni-Dev úloha: ${project}/${task}`);
       const out = res.stdout || res.output || '';
       const err = res.stderr || '';
       if(out) screen.textContent += out + '\n';
       if(err) screen.textContent += '[STDERR] ' + err + '\n';
-      if(!out && !err) screen.textContent += `(Príkaz dokončený s kódom ${res.exit_code ?? 0})\n`;
+      if(!out && !err) screen.textContent += `(Výsledok úlohy: ${res.exitCode ?? res.exit_code ?? 'bez výstupu'})\n`;
       screen.scrollTop=screen.scrollHeight;
-      if($('omni-console-cmd')) $('omni-console-cmd').value = '';
     }catch(e){
       screen.textContent+='Chyba: '+e.message+'\n';
       screen.scrollTop=screen.scrollHeight;
+    }finally{
+      button.disabled=false;
     }
   };
-  if($('omni-console-cmd')){
-    $('omni-console-cmd').onkeydown = e => {
-      if(e.key === 'Enter'){ e.preventDefault(); $('omni-console-exec')?.click(); }
-    };
-  }
 
   // Editor load and save
   if($('omni-editor-load'))$('omni-editor-load').onclick=async()=>{

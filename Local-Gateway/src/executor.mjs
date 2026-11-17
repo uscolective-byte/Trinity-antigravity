@@ -5,11 +5,11 @@
  * @license Sovereign Irrevocable Covenant
  * @description Modul executor.mjs (Local-Gateway/src/executor.mjs) v ekosystéme TRINITY OMNI-CORE.
  */
-import {mkdir,readFile,rename,writeFile,copyFile,stat} from 'node:fs/promises';
+import {mkdir,readFile,rename,writeFile,copyFile,stat,opendir} from 'node:fs/promises';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
-import {resolveSafePath,isInside,RUN_TASKS,validatePackage,validateProject} from './policy.mjs';
+import {resolveSafePath,isInside,isProtectedWorkspaceSegment,RUN_TASKS,validatePackage,validateProject} from './policy.mjs';
 import {sha256} from './store.mjs';
 import {executeDesktop} from './desktop.mjs';
 import {processCommand} from './process-command.mjs';
@@ -55,6 +55,20 @@ export async function readWorkspaceFile(workspaceRoot,relativePath){
   const target=await resolveSafePath(workspaceRoot,relativePath);
   const info=await stat(target);if(!info.isFile())throw new Error('Cesta nie je súbor.');if(info.size>MAX_TEXT)throw new Error('Súbor je príliš veľký na priame čítanie.');
   const content=await readFile(target,'utf8');return {path:relativePath,sha256:sha256(content),bytes:Buffer.byteLength(content),content};
+}
+
+export async function browseWorkspacePath(workspaceRoot,relativePath){
+  const target=await resolveSafePath(workspaceRoot,relativePath);
+  if(!(await stat(target)).isDirectory())return readWorkspaceFile(workspaceRoot,relativePath);
+  const directory=await opendir(target);
+  const files=[];
+  let truncated=false;
+  for await(const entry of directory){
+    if(isProtectedWorkspaceSegment(entry.name)||(!entry.isFile()&&!entry.isDirectory()))continue;
+    if(files.length>=250){truncated=true;break;}
+    files.push({name:entry.name,isDirectory:entry.isDirectory()});
+  }
+  return {path:relativePath,is_directory:true,files,truncated};
 }
 
 export async function executeProposal(workspaceRoot,proposal,dataDir){
@@ -106,7 +120,9 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
     return {action:proposal.action,state:'staged-local-only',source:payload.path,outbox:destination,bytes:info.size,note:'Externý cieľ ešte nie je pripojený; súbor nebol zverejnený.'};
   }
   if(proposal.action==='read'&&payload.task==='local-inference')return runLocalInference(payload);
-  if(proposal.action==='read')return readWorkspaceFile(workspaceRoot,payload.path);
+  if(proposal.action==='read')return payload.mode==='browse'
+    ?browseWorkspacePath(workspaceRoot,payload.path)
+    :readWorkspaceFile(workspaceRoot,payload.path);
   if(proposal.action==='system_info'){
     const os=await import('node:os');
     const cpus=os.cpus();

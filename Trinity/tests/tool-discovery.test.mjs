@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {z} from 'zod';
 import {describeAvailableTools,discoveryInstructions} from '../src/tool-discovery.js';
 import {runAgent} from '../src/engine.js';
+import {runTool} from '../src/tools.js';
 import {requiresWorkflowFallback,handleLiveChatStream} from '../src/chat-stream.js';
 
 test('discovery exposes exact required arguments without exposing unauthorized tools', () => {
@@ -62,6 +63,18 @@ test('owner can discover internal tools without a plugin record, ordinary users 
     const result=await runAgent(env,'orchestrator','Preskúmaj databázové možnosti.','','workers-ai',1000,'sk',ownerMode);
     assert.equal(result.tool_log[0].status,ownerMode?'completed':'failed');
   }
+});
+
+test('CSV export writes a downloadable R2 artifact with safe, structured cells', async () => {
+  let saved;
+  const env={ARTIFACTS:{async put(key,content){saved={key,content};}}};
+  const args={filename:'prehlad.csv',columns:['Meno','Cena'],rows:[['Žofia, a.s.',12],['=1+1',-5]]};
+  const result=await runTool(env,'orchestrator','export_csv',args);
+  assert.equal(result.rows,2);
+  assert.match(result.download_url,/download=1$/);
+  assert.equal(saved.content,'\uFEFF"Meno","Cena"\r\n"Žofia, a.s.","12"\r\n"\'=1+1","-5"\r\n');
+  await assert.rejects(runTool(env,'orchestrator','export_csv',{...args,rows:[['short']]}),/rovnaký počet/);
+  assert.equal(requiresWorkflowFallback('Exportuj tieto údaje do CSV.'),true);
 });
 
 test('streaming routes tool, live-data, and detailed analysis requests to the durable tool loop', async () => {

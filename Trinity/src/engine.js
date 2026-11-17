@@ -125,7 +125,7 @@ function selectPromptTools(activeTools, task) {
     'open_weather','open_wikipedia','network_dns','crypto_prices','tech_news','macro_data','free_modules_catalog',
     'domain_list','domain_check','service_status','integration_status','cloudflare_manage','github_manage','firecrawl_scrape','firebase_manage',
     'sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose',
-    'create_file','create_pdf','trinity_doc_create','ui_evolve','self_evolve'
+    'create_file','create_pdf','export_csv','trinity_doc_create','ui_evolve','self_evolve'
   ]);
   if (/\b(diagnostik|ping|health|test|over|overenie)\b/.test(norm)) {
     ['diagnostic_ping','service_status','integration_status'].forEach(t => priority.add(t));

@@ -36,6 +36,18 @@ test('selfwrite cannot alter gateway or secrets',async()=>{
 });
 
 test('read returns evidence hash',async()=>{const root=await workspace();const value=await readWorkspaceFile(root,'Trinity/a.txt');assert.equal(value.content,'old');assert.equal(value.sha256,sha256('old'));});
+test('browsing stays in the configured workspace and omits protected entries',async()=>{
+  const root=await workspace();
+  await writeFile(path.join(root,'Trinity','.env'),'private');
+  await mkdir(path.join(root,'Trinity','node_modules'));
+  const proposal={action:'read',status:'approved',payload:{path:'Trinity',mode:'browse'}};
+  const result=await executeProposal(root,proposal,path.join(root,'data'));
+  assert.deepEqual(result.files,[{name:'a.txt',isDirectory:false}]);
+  assert.equal(result.is_directory,true);
+  const file=await executeProposal(root,{...proposal,payload:{path:'Trinity/a.txt',mode:'browse'}},path.join(root,'data'));
+  assert.equal(file.content,'old');
+  await assert.rejects(()=>executeProposal(root,{...proposal,payload:{path:'../',mode:'browse'}},path.join(root,'data')),/chránená|mimo/);
+});
 test('commands and packages are allowlisted',()=>{assert.deepEqual(Object.keys(RUN_TASKS).sort(),['build','cmd-version','deploy','diff-check','docker-compose-ps','docker-compose-up','docker-ps','git-log','git-status','node-version','python-version','run-start','start','tests']);assert.equal(validatePackage('zod','4.6.5'),'zod@4.6.5');assert.throws(()=>validatePackage('zod','latest'),/presnú verziu/);});
 test('remote action import is idempotent',async()=>{const root=await workspace();const store=new ProposalStore(path.join(root,'data'));const remote={id:'8a8a8a8a-1234-4123-8123-123456789abc',action:'read',payload:{path:'Trinity/a.txt'},expires_at:Date.now()+60_000};const first=await store.importApproved(remote);const second=await store.importApproved(remote);assert.equal(first.id,second.id);assert.equal((await store.list()).length,1);});
 test('restart recovery fails interrupted work instead of executing it twice',async()=>{const root=await workspace();const store=new ProposalStore(path.join(root,'data'));const proposal=await store.create('read',{path:'Trinity/a.txt'});await store.transition(proposal.id,['approved'],'executing');assert.deepEqual(await store.recoverInterrupted(),[proposal.id]);const recovered=await store.get(proposal.id);assert.equal(recovered.status,'failed');assert.match(recovered.error,/nebola automaticky zopakovaná/);assert.deepEqual(await store.recoverInterrupted(),[]);});

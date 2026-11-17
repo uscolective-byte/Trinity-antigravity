@@ -29,6 +29,9 @@ export const CAPABILITIES=Object.freeze([
 export const ACTIONS=new Set(CAPABILITIES.map(item=>item.id));
 const BLOCKED_SEGMENTS=new Set(['.git','.credentials','.wrangler','node_modules']);
 const BLOCKED_NAMES=[/^\.env(?:\..+)?$/i,/\.dpapi$/i,/\.(?:pem|pfx|p12|key)$/i,/^(?:id_rsa|id_ed25519)$/i];
+export function isProtectedWorkspaceSegment(segment){
+  return segment==='..'||BLOCKED_SEGMENTS.has(segment.toLowerCase())||BLOCKED_NAMES.some(rule=>rule.test(segment));
+}
 
 export function isInside(root,target){
   const relative=path.relative(root,target);
@@ -58,7 +61,7 @@ export async function resolveSafePath(workspaceRoot,relativePath,{allowMissing=f
     if(relPath==='')relPath='.';
   }
   const segments=relPath.replaceAll('\\','/').split('/').filter(Boolean);
-  if(segments.some(segment=>segment==='..'||BLOCKED_SEGMENTS.has(segment.toLowerCase())||BLOCKED_NAMES.some(rule=>rule.test(segment))))throw new Error('Táto cesta je chránená.');
+  if(segments.some(isProtectedWorkspaceSegment))throw new Error('Táto cesta je chránená.');
   // root resolved above
   const target=path.resolve(root,...segments);
   if(!isInside(root,target))throw new Error('Cesta je mimo pracovného priestoru.');
