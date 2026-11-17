@@ -22,7 +22,7 @@ async function serviceToken(secret, fetcher) {
     signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5',key,new TextEncoder().encode(jwt));
   } catch { throw new HttpError(503,'Poverenie Google Drive sa nepodarilo načítať.'); }
   const response = await fetcher(TOKEN_URL,{
-    method:'POST',redirect:'error',signal:AbortSignal.timeout(12_000),
+    method:'POST',redirect:'manual',signal:AbortSignal.timeout(12_000),
     body:new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion:jwt+'.'+Buffer.from(signature).toString('base64url')})
   });
   if (!response.ok) throw new HttpError(502,`Google odmietol autorizáciu Drive (HTTP ${response.status}).`);
@@ -57,7 +57,7 @@ export async function verifyDriveFile(env, fileId, fetcher=fetch) {
   }
   const token = await serviceToken(env.TRINITY_DRIVE_SERVICE_ACCOUNT,fetcher);
   const fileUrl = 'https://www.googleapis.com/drive/v3/files/'+fileId;
-  const options = {headers:{Authorization:'Bearer '+token},redirect:'error',signal:AbortSignal.timeout(15_000)};
+  const options = {headers:{Authorization:'Bearer '+token},redirect:'manual',signal:AbortSignal.timeout(15_000)};
   const metadata = await fetcher(fileUrl+'?fields=id,name,parents,mimeType,size,trashed&supportsAllDrives=true',options);
   if (!metadata.ok) throw new HttpError(metadata.status===404?404:502,`Metadáta Google Drive nie sú dostupné (HTTP ${metadata.status}).`);
   const file = await metadata.json();

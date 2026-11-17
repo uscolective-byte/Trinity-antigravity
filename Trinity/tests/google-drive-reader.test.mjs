@@ -20,7 +20,7 @@ test('returns proof of bytes read from the selected Drive folder',async()=>{
   let calls=0;
   const result=await verifyDriveFile(env,fileId,async (url,opts)=>{
     calls++;
-    assert.equal(opts.redirect,'error');
+    assert.equal(opts.redirect,'manual');
     if (calls===1) {
       assert.equal(url,'https://oauth2.googleapis.com/token');
       const [header,claims,signature]=opts.body.get('assertion').split('.');
@@ -55,4 +55,14 @@ test('invalid file IDs and missing configuration trigger no outbound request',as
   const unused=()=>assert.fail('external request');
   await assert.rejects(verifyDriveFile(env,'../../../test',unused),{status:400});
   await assert.rejects(verifyDriveFile({},fileId,unused),{status:503});
+});
+
+test('rejects redirects before forwarding Drive credentials',async()=>{
+  let calls=0;
+  await assert.rejects(verifyDriveFile(env,fileId,async(url,opts)=>{
+    calls++;
+    assert.equal(opts.redirect,'manual');
+    return new Response(null,{status:302,headers:{Location:'https://example.com/redirect'}});
+  }),{status:502,message:/HTTP 302/});
+  assert.equal(calls,1);
 });
