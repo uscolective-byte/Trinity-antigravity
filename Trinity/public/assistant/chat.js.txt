@@ -446,6 +446,20 @@ function renderSelfImprovement(data){
       apply.onclick=safe(async()=>{await api('/self-improvement/'+item.id+'/apply',{});await loadSettings();notice('Návrh bol spracovaný. Výsledok a prípadné zostávajúce kroky sú pri návrhu.');});
       card.append(apply);
     }
+    if(item.result_json?.status==='patch_ready'){
+      const download=node('button','Stiahnuť návrh opravy');
+      download.type='button';
+      download.onclick=()=>{
+        const blob=new Blob([JSON.stringify(item.result_json,null,2)],{type:'application/json'});
+        const url=URL.createObjectURL(blob);
+        const link=document.createElement('a');
+        link.href=url;
+        link.download='trinity-oprava-'+item.id+'.json';
+        link.click();
+        setTimeout(()=>URL.revokeObjectURL(url),1000);
+      };
+      info.append(node('p',item.result_json.summary),node('small','Oprava čaká na testy. Základný commit '+item.result_json.base_sha),download);
+    }
     if(item.result_json){info.append(node('small',item.result_json.status||'Spracované'));if(item.result_json.url){const link=node('a','Otvoriť výsledok');link.href=item.result_json.url;link.target='_blank';link.rel='noopener noreferrer';info.append(link);}if(item.result_json.error)info.append(node('p',item.result_json.error));}
     list.append(card);
   }

@@ -26,6 +26,27 @@ test('repeated proposal returns existing PR without generating or overwriting co
  const original=globalThis.fetch;try{globalThis.fetch=async()=>Response.json([{number:7,html_url:'https://github.com/example/pull/7',head:{sha:'abc'}}]);
  const r=await prepareCodeImprovement({TRINITY_GITHUB_TOKEN:'test-token'},{id:'test-id'});assert.equal(r.pull_request,7);assert.equal(r.status,'pull_request_created');}finally{globalThis.fetch=original;}
 });
+test('a new proposal produces a reviewable patch without writing to GitHub',async()=>{
+ const original=globalThis.fetch,base='a'.repeat(40),path='Trinity/src/domains.js';
+ try{
+  globalThis.fetch=async(url,options)=>{
+   assert.equal(options.method,'GET');
+   if(url.includes('/pulls?'))return Response.json([]);
+   if(url.includes('/git/ref/'))return Response.json({object:{sha:base}});
+   if(url.includes('/git/trees/'))return Response.json({sha:'b'.repeat(40),tree:[{path,type:'blob',sha:'c',size:10}]});
+   assert.ok(url.endsWith('?ref='+base));
+   return Response.json({sha:'c',encoding:'base64',size:10,content:Buffer.from('let count=1;').toString('base64')});
+  };
+  const changes=[{path,before:'count=1',after:'count=2'}];
+  const env={TRINITY_GITHUB_TOKEN:'test-token',AI:{run:async()=>({response:JSON.stringify({summary:'Correct the initial count.',changes})})}};
+  const result=await prepareCodeImprovement(env,{id:'test-id',title:'Correct count',description:'Correct the initial count.'});
+  assert.equal(result.status,'patch_ready');
+  assert.equal(result.base_sha,base);
+  assert.equal(result.tests,'not_run');
+  assert.equal(result.deployed,false);
+  assert.deepEqual(result.changes,changes);
+ }finally{globalThis.fetch=original;}
+});
 test('public web rejects credentials, private literals, numeric IP aliases and local hosts',()=>{
  for(const url of ['file:///etc/passwd','https://user:pass@example.com','http://127.1','http://2130706433','http://0x7f000001','http://[::1]','http://10.0.0.1','http://service.internal','http://localhost','https://example.com:8080'])assert.throws(()=>publicWebUrl(url),url);
  assert.equal(publicWebUrl('https://example.com/a#b').href,'https://example.com/a');
