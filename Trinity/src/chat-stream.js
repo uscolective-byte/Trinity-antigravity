@@ -29,6 +29,7 @@ export function requiresWorkflowFallback(message = '', allowFiles = false) {
   const intent = planTask(String(message || '')).intent;
   return HEAVY_WORKFLOW_PATTERN.test(norm)
     || ['repair','research','build','creative','action'].includes(intent)
+    || (intent === 'analysis' && /\b(?:podrobne|hlbkovo|do\s+hlbky|krok\s+za\s+krokom|rizik[a-z]*|alternativ[a-z]*)\b/.test(norm))
     || /\b(?:pocasie|pocasia|pocasi|weather|kurz|kurzy|cena|ceny|cenu|zostatok|saldo|bitcoin|btc|krypto|crypto|github|cloudflare|firebase|onedrive|domeny|domen|integracie|integracii|nastroj|nastroje|nastrojov)\b/.test(norm)
     || /\b[a-z][a-z0-9]*_[a-z0-9_]+\b/.test(norm);
 }

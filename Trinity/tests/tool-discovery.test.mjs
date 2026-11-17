@@ -64,8 +64,8 @@ test('owner can discover internal tools without a plugin record, ordinary users 
   }
 });
 
-test('streaming routes tool and live-data requests to the durable tool loop', async () => {
-  for(const message of ['Aké je počasie v Bratislave?','Nájdi aktuálne správy.','Skontroluj GitHub repozitár.','Použi csv_to_json.','Oprav chybu v projekte.']) {
+test('streaming routes tool, live-data, and detailed analysis requests to the durable tool loop', async () => {
+  for(const message of ['Aké je počasie v Bratislave?','Nájdi aktuálne správy.','Skontroluj GitHub repozitár.','Použi csv_to_json.','Oprav chybu v projekte.','Porovnaj podrobne možnosti a riziká.']) {
     assert.equal(requiresWorkflowFallback(message),true,message);
     const response=await handleLiveChatStream({},null,{message});
     assert.equal(JSON.parse((await response.text()).trim()).type,'fallback_job');

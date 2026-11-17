@@ -159,3 +159,93 @@
     display: none !important;
   }
 }
+
+/* The conversation and composer share the visible viewport, including when
+   the on-screen keyboard is open. Scroll messages and long drafts separately. */
+body:has(#app-views:not([hidden]) #chat-view:not([hidden])) {
+  height: var(--trinity-viewport-height, 100dvh) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+main:has(#app-views:not([hidden]) #chat-view:not([hidden])) {
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+#app-views:has(#chat-view:not([hidden])) {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#chat-view:not([hidden]) {
+  flex: 1 1 0;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: hidden;
+}
+
+#chat-area {
+  flex: 1 1 0;
+  min-height: 0;
+  overscroll-behavior-y: contain;
+}
+
+#chat-view > .composer-wrap {
+  position: static !important;
+  flex: 0 0 auto;
+  max-height: 54%;
+  overflow-y: auto;
+}
+
+#chat-view #activity:empty {
+  display: none;
+}
+
+#chat-form #message {
+  box-sizing: border-box;
+  min-height: 42px !important;
+  max-height: clamp(48px, calc(var(--trinity-viewport-height, 100dvh) * .22), 144px) !important;
+  overflow-y: auto;
+}
+
+@media (max-width: 1080px) {
+  body:has(#app-views:not([hidden]) #chat-view:not([hidden])) {
+    display: flex !important;
+  }
+  body:has(#app-views:not([hidden]) #chat-view:not([hidden])) > .sidebar {
+    flex: 0 1 auto;
+    max-height: 25% !important;
+    overflow-y: auto;
+  }
+  main:has(#app-views:not([hidden]) #chat-view:not([hidden])) {
+    flex: 1 1 0;
+    height: auto !important;
+  }
+}
+
+@media (max-width: 760px) {
+  #chat-view > .composer-wrap {
+    max-height: 66%;
+    padding-top: 4px !important;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  #chat-view .composer-heading,
+  #chat-view .composer-legal-footer {
+    display: none;
+  }
+
+  #chat-form #message {
+    font-size: 16px !important;
+    max-height: clamp(42px, calc(var(--trinity-viewport-height, 100dvh) * .10), 106px) !important;
+  }
+
+  #chat-view #chat-form {
+    padding: 6px 10px !important;
+  }
+}
