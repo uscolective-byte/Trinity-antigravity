@@ -146,6 +146,7 @@ import metaConnectHTML from '../public/meta-connect.html';
 import metaConnectJS from '../public/meta-connect.js.txt';
 import {handleMetaConnection} from './meta-connector.js';
 import serviceWorkerJS from '../public/assistant/sw.js.txt';
+import spotifyJS from '../public/assistant/spotify.js.txt';
 import authBootstrapJS from '../public/auth-bootstrap.js.txt';
 import themeCSS from '../public/assistant/theme.css';
 import garageCSS from '../public/assistant/garage.css';
@@ -271,7 +272,7 @@ async function route(request,env,ctx){
     'X-Trinity-Host': reqHostname,
     'X-Trinity-Mode': isOmniDevHost ? 'omni-dev' : 'production',
     'Cache-Control':'no-cache, no-store, must-revalidate',
-    'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; frame-src 'self' blob: data:; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
+    'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; frame-src 'self' blob: data: https://open.spotify.com; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
   if(request.method==='GET'&&['/connect/meta','/api/assistant/connectors/meta/callback'].includes(path))return new Response(metaConnectHTML,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"}});
   if(request.method==='GET'&&path==='/meta-connect.js')return new Response(metaConnectJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
   if(request.method==='GET'&&path==='/app.js')return new Response(appJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
@@ -283,6 +284,7 @@ async function route(request,env,ctx){
   if(request.method==='GET'&&path==='/garage.css')return new Response(garageCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/tetrakis-logo.png')return new Response(tetrakisLogo,{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=86400'}});
     if(request.method==='GET'&&path==='/manifest.json')return new Response(typeof manifestJSON==='string'?manifestJSON:JSON.stringify(manifestJSON),{headers:{'Content-Type':'application/manifest+json; charset=utf-8','Cache-Control':'no-cache'}});
+  if(request.method==='GET'&&path==='/spotify.js')return new Response(spotifyJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'}});
   if(request.method==='GET'&&path==='/sw.js')return new Response(serviceWorkerJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache'}});
   if(request.method==='GET'&&path==='/theme.css')return new Response(await renderDynamicThemeCss(env,themeCSS),{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if((path==='/openapi.json'||path==='/openapi-pentad.json'||path==='/public/openapi-pentad.json')&&request.method==='GET'){

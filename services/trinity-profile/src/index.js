@@ -42,18 +42,18 @@ export async function getOrRotatePrivateKey(env = {}) {
   return { privateKey, publicKey, publicKeyB64 };
 }
 
-async function upsertTapProfileD1(db, row) {
-  if (!db || typeof db.prepare !== "function") return;
+async function insertTapProfileD1(db, row) {
+  if (!db || typeof db.prepare !== "function") throw new Error("PROFILE_STORAGE_UNAVAILABLE");
   const sql = `INSERT INTO profiles (id, username, email, role, permissions, created_at, updated_at)
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-           ON CONFLICT(username) DO UPDATE SET
-             email = excluded.email,
-             role = excluded.role,
-             permissions = excluded.permissions,
-             updated_at = excluded.updated_at`;
+           SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7
+           WHERE NOT EXISTS (SELECT 1 FROM profiles WHERE lower(username) = lower(?2))
+           ON CONFLICT(username) DO NOTHING`;
+  const insert = () => db.prepare(sql)
+    .bind(row.id, row.username, row.email, row.role, row.permissions, row.created_at, row.updated_at).run();
   try {
-    await db.prepare(sql).bind(row.id, row.username, row.email, row.role, row.permissions, row.created_at, row.updated_at).run();
-  } catch {
+    return await insert();
+  } catch (error) {
+    if (!String(error?.message).includes("no such table: profiles")) throw error;
     await db.prepare(`CREATE TABLE IF NOT EXISTS profiles (
       id TEXT PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
@@ -63,7 +63,7 @@ async function upsertTapProfileD1(db, row) {
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
     )`).run();
-    await db.prepare(sql).bind(row.id, row.username, row.email, row.role, row.permissions, row.created_at, row.updated_at).run();
+    return await insert();
   }
 }
 
@@ -86,20 +86,21 @@ export default {
         const body = await request.json();
         validateProfileInput(body);
 
-        const { username, email, role = "guest", permissions = [] } = body;
+        const { username, email } = body;
         const normalizedUser = username.trim();
-        const isBasterix = normalizedUser.toLowerCase() === "basterix" || email === "saboivan2008@gmail.com";
-        const finalRole = isBasterix ? "ring0_owner" : (role === "ring0_owner" ? "guest" : role);
-
-        const finalPermissions = isBasterix
-          ? ["RING0_ALL", "OVERRIDE_KILLSWITCH", "SCHEMA_MIGRATE", "FLEET_DEPLOY", "LEDGER_WRITE"]
-          : permissions;
+        const emailNorm = email?.toLowerCase();
+        if (normalizedUser.toLowerCase() === "basterix" ||
+            (emailNorm && [env.TRINITY_OWNER_EMAIL?.toLowerCase(), "saboivan2008@gmail.com"].includes(emailNorm))) {
+          return Response.json({ error: "PROFILE_RESERVED" }, { status: 403 });
+        }
+        const finalRole = "user";
+        const finalPermissions = [];
 
         const profileId = crypto.randomUUID();
         const now = Date.now();
 
         const db = resolveDb(env);
-        await upsertTapProfileD1(db, {
+        const inserted = await insertTapProfileD1(db, {
           id: profileId,
           username: normalizedUser,
           email: email || null,
@@ -108,6 +109,9 @@ export default {
           created_at: now,
           updated_at: now
         });
+        if (inserted.meta?.changes === 0) {
+          return Response.json({ error: "PROFILE_ALREADY_EXISTS" }, { status: 409 });
+        }
 
         // Vygenerovanie podpísaného Ring tokenu cez RSASSA-PKCS1-v1_5
         const { privateKey } = await getOrRotatePrivateKey(env);

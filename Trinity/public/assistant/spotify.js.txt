@@ -1,0 +1,59 @@
+(() => {
+  const actions = document.querySelector('.header-actions');
+  if (!actions) return;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = 'Hudba';
+  button.setAttribute('aria-haspopup', 'dialog');
+  actions.append(button);
+
+  const dialog = document.createElement('dialog');
+  dialog.className = 'spotify-dialog';
+  dialog.setAttribute('aria-labelledby', 'spotify-title');
+  dialog.innerHTML = `
+    <h2 id="spotify-title">Spotify</h2>
+    <form>
+      <label for="spotify-selection">Odkaz na skladbu, album alebo playlist</label>
+      <input id="spotify-selection" type="text" required placeholder="https://open.spotify.com/…" autocomplete="off">
+      <button type="submit">Načítať prehrávač</button>
+    </form>
+    <p role="status"></p>
+    <div class="spotify-player"></div>
+    <div class="spotify-actions">
+      <a href="https://open.spotify.com/search" target="_blank" rel="noopener noreferrer">Hľadať v Spotify</a>
+      <button type="button" data-stop disabled>Zastaviť</button>
+      <button type="button" data-close>Späť do chatu</button>
+    </div>`;
+  document.body.append(dialog);
+
+  const input = dialog.querySelector('input');
+  const status = dialog.querySelector('[role="status"]');
+  const player = dialog.querySelector('.spotify-player');
+  const stop = dialog.querySelector('[data-stop]');
+  button.onclick = () => dialog.showModal();
+  dialog.querySelector('[data-close]').onclick = () => dialog.close();
+  stop.onclick = () => {
+    player.replaceChildren();
+    stop.disabled = true;
+    status.textContent = 'Prehrávanie zastavené.';
+  };
+  dialog.querySelector('form').onsubmit = event => {
+    event.preventDefault();
+    const value = input.value.trim();
+    const selection = value.match(/^spotify:(track|album|playlist):([a-zA-Z0-9]{22})$/)
+      || value.match(/^https:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(?:embed\/)?(track|album|playlist)\/([a-zA-Z0-9]{22})\/?(?:[?#].*)?$/i);
+    if (!selection) {
+      status.textContent = 'Vlož platný odkaz na skladbu, album alebo playlist zo Spotify.';
+      return;
+    }
+    const frame = document.createElement('iframe');
+    frame.title = 'Prehrávač Spotify';
+    frame.src = 'https://open.spotify.com/embed/' + selection[1].toLowerCase() + '/' + selection[2];
+    frame.allow = 'autoplay; encrypted-media';
+    frame.referrerPolicy = 'no-referrer';
+    player.replaceChildren(frame);
+    stop.disabled = false;
+    status.textContent = 'Stlač Prehrať v Spotify. Potom sa môžeš vrátiť do chatu.';
+  };
+})();

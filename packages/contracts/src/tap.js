@@ -234,7 +234,7 @@ export function validateProfileInput(input) {
   if (email && (typeof email !== "string" || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))) {
     throw new Error("SCHEMA_ERROR: Invalid email format");
   }
-  const allowedRoles = ["ring0_owner", "sub_agent", "auditor", "operator", "guest"];
+  const allowedRoles = ["ring0_owner", "sub_agent", "auditor", "operator", "guest", "user"];
   if (role && !allowedRoles.includes(role)) {
     throw new Error(`SCHEMA_ERROR: Invalid role. Allowed: ${allowedRoles.join(", ")}`);
   }

@@ -331,7 +331,7 @@ test('Module 7: TAP Crypto Runtime (RSASSA-PKCS1-v1_5), ProfileMaker (#47) & Jer
     }
   };
 
-  const createRes = await tapProfileWorker.fetch(
+  const reserved = await tapProfileWorker.fetch(
     new Request('https://aura.dev/profiles/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -344,11 +344,18 @@ test('Module 7: TAP Crypto Runtime (RSASSA-PKCS1-v1_5), ProfileMaker (#47) & Jer
     }),
     mockEnv
   );
+  assert.equal(reserved.status, 403);
+  assert.equal(dbProfiles.length, 0);
+
+  const createRes = await tapProfileWorker.fetch(new Request('https://aura.dev/profiles/create', {
+    method: 'POST',
+    body: JSON.stringify({ username: 'regular-profile', role: 'operator', permissions: ['RING0_ALL'] })
+  }), mockEnv);
   assert.equal(createRes.status, 201);
   const created = await createRes.json();
   assert.equal(created.success, true);
-  assert.equal(created.profile.role, 'ring0_owner');
-  assert.ok(created.profile.permissions.includes('RING0_ALL'));
+  assert.equal(created.profile.role, 'user');
+  assert.deepEqual(created.profile.permissions, []);
   assert.ok(created.token);
 
   const verifyRes = await tapProfileWorker.fetch(
@@ -361,8 +368,9 @@ test('Module 7: TAP Crypto Runtime (RSASSA-PKCS1-v1_5), ProfileMaker (#47) & Jer
   assert.equal(verifyRes.status, 200);
   const verifyBody = await verifyRes.json();
   assert.equal(verifyBody.valid, true);
-  assert.equal(verifyBody.claims.usr, 'Basterix');
-  assert.equal(verifyBody.claims.rol, 'ring0_owner');
+  assert.equal(verifyBody.claims.usr, 'regular-profile');
+  assert.equal(verifyBody.claims.rol, 'user');
+  assert.deepEqual(verifyBody.claims.prm, []);
 
   // 3. Jericho123 Consensus Crypto Oracle & Tetrakis Vault Deposit
   const oracleRes = await jerichoWorker.fetch(new Request('https://aura.dev/crypto/oracle'), mockEnv);
