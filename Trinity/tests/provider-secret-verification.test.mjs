@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {verifyFirebase,verifyOpenAICompatible,verifyAnthropic,verifyTelegramBot} from '../src/secret-vault.js';
+import {verifyFirebase,verifyOpenAICompatible,verifyAnthropic,verifyTelegramBot,verifySupabase} from '../src/secret-vault.js';
 
 test('Firebase API keys and service account JSON cannot impersonate verified Firestore access',async()=>{
   let calls=0;
@@ -96,4 +96,20 @@ test('Telegram token or provider denial cannot be represented as connected',asyn
   await assert.rejects(()=>verifyTelegramBot(token,{
     fetcher:async()=>{throw Error('transport failure')}
   }),/nedostupné/);
+});
+
+
+test('Supabase API keys use apikey and legacy JWTs retain legacy authorization',async()=>{
+  const origin='https://project-test.supabase.co';
+  for(const key of ['sb_publishable_fixture','sb_secret_fixture','legacy.jwt.fixture']){
+    const result=await verifySupabase(JSON.stringify({url:origin,key}),{fetcher:async(url,options)=>{
+      assert.equal(url,origin+'/rest/v1/');
+      assert.equal(options.headers.apikey,key);
+      assert.equal(options.headers.Authorization,key.startsWith('sb_')?undefined:'Bearer '+key);
+      assert.equal(options.redirect,'manual');
+      return Response.json({});
+    }});
+    assert.equal(result.connected,true);
+    assert.doesNotMatch(JSON.stringify(result),/fixture/);
+  }
 });

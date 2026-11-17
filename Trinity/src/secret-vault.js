@@ -199,16 +199,7 @@ async function verifyGenericProvider(provider,secret){
     if(!r.ok)throw new Error(`Resend odmietol API kľúč (HTTP ${r.status}).`);
     return {connected:true,provider:'resend'};
   }
-  if(provider==='supabase'){
-    let url='',apiKey='';
-    try{const p=JSON.parse(clean);url=p.url||'';apiKey=p.key||p.anon_key||p.service_role_key||'';}catch{}
-    if(!url&&clean.includes('|')){[url,apiKey]=clean.split('|',2).map(s=>s.trim());}
-    const target=assertPublicHttpsUrl(url,'Supabase');
-    if(!apiKey)throw new Error('Supabase vyžaduje URL a API kľúč vo formáte URL|API_KEY alebo JSON {"url","key"}.');
-    const r=await fetch(`${target.origin}/rest/v1/`,{headers:{apikey:apiKey,Authorization:`Bearer ${apiKey}`},signal:AbortSignal.timeout(12000),redirect:'manual'});
-    if(!r.ok)throw new Error(`Supabase odmietol pripojenie (HTTP ${r.status}).`);
-    return {connected:true,provider:'supabase',host:target.hostname};
-  }
+  if(provider==='supabase')return verifySupabase(clean);
   if(provider==='wordpress'){
     let url=clean;
     try{const p=JSON.parse(clean);if(p.url)url=p.url;}catch{}
@@ -341,6 +332,19 @@ async function verifyDataverse(secret){
     business_unit_id:whoamiData.BusinessUnitId
   };
 }
+export async function verifySupabase(clean,{fetcher=fetch}={}){
+  let url='',apiKey='';
+  try{const p=JSON.parse(clean);url=p.url||'';apiKey=p.key||p.anon_key||p.service_role_key||'';}catch{}
+  if(!url&&clean.includes('|')){[url,apiKey]=clean.split('|',2).map(s=>s.trim());}
+  const target=assertPublicHttpsUrl(url,'Supabase');
+  if(!apiKey)throw new Error('Supabase vyžaduje URL a API kľúč vo formáte URL|API_KEY alebo JSON {"url","key"}.');
+  const headers={apikey:apiKey};
+  if(!apiKey.startsWith('sb_publishable_')&&!apiKey.startsWith('sb_secret_'))headers.Authorization='Bearer '+apiKey;
+  const r=await fetcher(`${target.origin}/rest/v1/`,{headers,signal:AbortSignal.timeout(12000),redirect:'manual'});
+  if(!r.ok)throw new Error(`Supabase odmietol pripojenie (HTTP ${r.status}).`);
+  return {connected:true,provider:'supabase',host:target.hostname};
+}
+
 export async function verifyMicrosoftOneDrive(secret,{fetcher=fetch}={}){
   let token=secret;
   try{

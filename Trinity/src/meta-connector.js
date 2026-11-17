@@ -27,6 +27,14 @@ function configuration(env,origin){
  return {missing:[],appId:env.META_APP_ID,secret:env.META_APP_SECRET,version:env.META_GRAPH_VERSION,redirect:redirect.href};
 }
 const configDigest=config=>hash(config.appId+':'+config.version+':'+config.redirect);
+async function savedConnectionMatches(config,storedHash){
+ if(storedHash===await configDigest(config))return true;
+ const redirect=new URL(config.redirect);
+ const otherHost={'auru.dev':'auru.space','auru.space':'auru.dev'}[redirect.host];
+ if(!otherHost)return false;
+ redirect.host=otherHost;
+ return storedHash===await configDigest({...config,redirect:redirect.href});
+}
 async function providerJSON(fetcher,url,options={},stage='provider_request'){
  let response;
  // Workers supports manual/follow only. Never forward credentials across redirects.
@@ -82,7 +90,7 @@ export async function metaStatus(env,ownerId,origin){
  if(config.missing.length)return {status:'needs_setup',missing:config.missing,publishing_enabled:false};
  let row;try{row=await env.DB.prepare("SELECT c.*, v.status AS credential_status FROM meta_connections c LEFT JOIN ops_secret_vault v ON v.id=c.secret_id AND v.owner_id=c.owner_id AND v.provider='custom' WHERE c.owner_id=?").bind(ownerId).first();}
  catch{return {status:'needs_setup',missing:['migration:0053_meta_connections.sql'],publishing_enabled:false};}
- if(row&&(!['stored','verified'].includes(row.credential_status)||row.config_hash!==await configDigest(config)))row.status='reauthorization_required';
+ if(row&&(!['stored','verified'].includes(row.credential_status)||!await savedConnectionMatches(config,row.config_hash)))row.status='reauthorization_required';
  return row?present(row):{status:'not_connected',publishing_enabled:false,requested_scopes:META_READ_SCOPES};
 }
 export async function beginMetaConnection(env,{ownerId,session,origin}){
@@ -118,7 +126,7 @@ export async function refreshMetaConnection(env,{ownerId,origin},fetcher=fetch){
  const config=configuration(env,origin);if(config.missing.length)fail(503,'Meta konfigurácia nie je dokončená.');
  const row=await env.DB.prepare('SELECT * FROM meta_connections WHERE owner_id=?').bind(ownerId).first();
  if(!row)fail(404,'Účet Meta ešte nie je pripojený.');
- if(row.config_hash!==await configDigest(config))fail(401,'Meta aplikácia sa zmenila. Prihlás účet znova.');
+ if(!await savedConnectionMatches(config,row.config_hash))fail(401,'Meta aplikácia sa zmenila. Prihlás účet znova.');
  if(row.expires_at&&row.expires_at<=Date.now())fail(401,'Poverenie Meta vypršalo. Prihlás účet znova.');
  let evidence;
  try{const stored=await getSecretMaterial(env,{ownerId,id:row.secret_id,provider:'custom'});evidence=await identityProbe(config,stored.secret,fetcher);}

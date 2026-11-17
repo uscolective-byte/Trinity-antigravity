@@ -125,6 +125,19 @@ test('real SQL transaction is session/owner bound, one-use and persists encrypte
  await assert.rejects(()=>completeMetaConnection(env,input,fetcher),/inej relácii/);assert.equal(calls.length,4);
  assert.equal((await metaStatus(env,'other',context.origin)).status,'not_connected');
 });
+test('a production connection is shared across both domains without reusing OAuth state',async t=>{
+ const {env,context}=fixture(t);
+ const dev={...context,origin:'https://auru.dev'};
+ const space={...context,origin:'https://auru.space'};
+ const p=provider();
+ await assert.rejects(()=>authorize(env,dev).then(input=>completeMetaConnection(env,{...input,origin:space.origin},p.fetcher)),/inej relácii/);
+ assert.equal(p.calls.length,0);
+ await completeMetaConnection(env,await authorize(env,dev),p.fetcher);
+ assert.equal((await metaStatus(env,context.ownerId,space.origin)).status,'connected_read_only');
+ assert.equal((await refreshMetaConnection(env,space,p.fetcher)).status,'connected_read_only');
+ assert.equal((await metaStatus(env,context.ownerId,'https://other.example')).status,'reauthorization_required');
+});
+
 test('expired state, changed app configuration and denied scopes fail closed',async t=>{
  const {env,context,sqlite}=fixture(t),p=provider();
  const expired=await authorize(env,context);sqlite.exec('UPDATE meta_oauth_transactions SET expires_at=0');
