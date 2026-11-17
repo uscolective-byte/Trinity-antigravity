@@ -146,6 +146,12 @@ export function directChatTool(task,tools){
  if(/^(?:prosim\s+)?(?:co je nove|co sa robilo|co si robila|posledne ulohy|prehlad projektov|projekty)\s*[?.!]*$/.test(text)&&tools.includes('project_snapshot'))return {name:'project_snapshot',arguments:{}};
  const expression=text.match(/^(?:(?:prosim\s+)?(?:kolko\s+(?:je|bude)|vypocitaj|spocitaj|calculate|what is)\s*:?\s*)?(-?\d+(?:[.,]\d+)?)\s*([+*×/÷−-])\s*(-?\d+(?:[.,]\d+)?)(?:\s+pomocou\s+(?:nastroja\s+calculate|kalkulacky)(?:\s+a\s+odpovedz\s+iba\s+vysledkom)?)?\s*[?=.!]?$/);
  if(expression&&tools.includes('calculate'))return {name:'calculate',arguments:{operation:({'+':'add','-':'subtract','−':'subtract','*':'multiply','×':'multiply','/':'divide','÷':'divide'})[expression[2]],values:[expression[1],expression[3]].map(value=>Number(value.replace(',','.')))}};
+ const fileRequest=String(task).trim().match(/^(?:pros[ií]m\s+)?(otvor|pre[cč][ií]taj)\s+(?:mi\s+)?(?:s[uú]bor\s+)?(?:"([^"\r\n]+)"|`([^`\r\n]+)`|([^\r\n]{1,500}))\s*$/iu);
+ if(fileRequest){
+   const path=(fileRequest[2]??fileRequest[3]??fileRequest[4]).trim();
+   const tool=fileRequest[1].toLowerCase()==='otvor'?'pc_open_file':'pc_file_read';
+   if(tools.includes(tool)&&/^[\p{L}\p{N} ._:/\\-]+\.(?:md|txt|pdf|csv|json|log)$/iu.test(path))return {name:tool,arguments:{path}};
+ }
  if(/^(?:prosim\s+)?(?:kolko je hodin|aky je (?:aktualny )?cas|what time is it)\s*[?.!]*$/.test(text)&&tools.includes('current_time'))return {name:'current_time',arguments:{timezone:'Europe/Bratislava'}};
  if(/\b(?:k[olmk]{2,6}o|pocet|cislo|ake\s+mas|vypis|zoznam)\b.*\b(?:nastroj|plugin|modul|skill|schopnost)/i.test(text)&&tools.includes('list_capabilities'))return {name:'list_capabilities',arguments:{}};
  if(/^(?:prosim\s+)?(?:ake mas (?:skilly|zrucnosti)|vypis (?:skilly|zrucnosti)|zoznam (?:skillov|zrucnosti))\s*[?.!]*$/.test(text)&&tools.includes('list_skills'))return {name:'list_skills',arguments:{}};

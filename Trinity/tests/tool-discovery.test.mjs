@@ -78,10 +78,10 @@ test('CSV export writes a downloadable R2 artifact with safe, structured cells',
 });
 
 test('streaming routes tool, live-data, and detailed analysis requests to the durable tool loop', async () => {
-  for(const message of ['Aké je počasie v Bratislave?','Nájdi aktuálne správy.','Skontroluj GitHub repozitár.','Použi csv_to_json.','Oprav chybu v projekte.','Porovnaj podrobne možnosti a riziká.']) {
+  for(const message of ['Otvor mi súbor README.md','Prečítaj mi README.md','Nájdi aktuálne správy.','Skontroluj GitHub repozitár.','Použi csv_to_json.','Oprav chybu v projekte.','Porovnaj podrobne možnosti a riziká.']) {
     assert.equal(requiresWorkflowFallback(message),true,message);
     const response=await handleLiveChatStream({},null,{message});
     assert.equal(JSON.parse((await response.text()).trim()).type,'fallback_job');
   }
-  for(const message of ['Ahoj, ako sa máš?','Vysvetli mi gravitáciu.','6 * 7']) assert.equal(requiresWorkflowFallback(message),false,message);
+  for(const message of ['Ahoj, ako sa máš?','Vysvetli mi gravitáciu.','6 * 7','Aké je počasie v Bratislave?']) assert.equal(requiresWorkflowFallback(message),false,message);
 });

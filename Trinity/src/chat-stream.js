@@ -10,6 +10,8 @@ import { buildConversationalPrompt } from './cognition.js';
 import { loadConversationHistory, conversationsToMessages } from './conversation-history.js';
 import { pickChatProvider } from './chat-routing.js';
 import { directChatTool } from './fast-chat.js';
+import { formatWeather } from './external-data-response.js';
+import { assertNoSimulatedData } from './truth.js';
 import { getPCBridgeStatus } from './system-actions.js';
 import { getConfiguredAIProvider, sanitizeApiKey } from './ai-providers.js';
 import { cleanOutput } from '../services/chat-inference.js';
@@ -21,12 +23,19 @@ import { listActiveBehaviorRules, behaviorRulesDirective } from './self-improvem
 
 const HEAVY_WORKFLOW_PATTERN = /\b(vytvor\s+web|ai\s+studio|nasad|deploy|cloudflare\s+dns|registruj\s+domen|pc\s+bridge|spusti\s+na\s+pc|otvor\s+(?:okno|appku|kalkulack|notepad|vscode|terminal|chrome|explorer)|vytvor\s+(?:subor|pdf|obrazok|fotku|video|hudbu|prezentaciu)|nakup\s+komodit|predaj\s+komodit|multi_model_consensus|self_evolve|ui_evolve|timovy\s+rezim|team\s+mode)\b/i;
 
+const DIRECT_CHAT_TOOLS=['calculate','current_time','open_weather'];
+function directLiveTool(message){
+  const direct=directChatTool(message,DIRECT_CHAT_TOOLS);
+  return DIRECT_CHAT_TOOLS.includes(direct?.name)?direct:null;
+}
+
 export function requiresWorkflowFallback(message = '', allowFiles = false) {
   if (allowFiles) return true;
   const norm = String(message || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   // Streaming inference has no tool loop. Route operational and live-data
   // requests to the existing durable agent instead of asking a bare model.
-  if (directChatTool(message, ['calculate', 'current_time'])) return false;
+  if (directLiveTool(message)) return false;
+  if (['pc_open_file','pc_file_read'].includes(directChatTool(message,['pc_open_file','pc_file_read'])?.name)) return true;
   const intent = planTask(String(message || '')).intent;
   return HEAVY_WORKFLOW_PATTERN.test(norm)
     || ['repair','research','build','creative','action'].includes(intent)
@@ -260,14 +269,26 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
           else await persistence;
           return;
         }
-        const direct = directChatTool(message, ['calculate', 'current_time']);
+        const direct = directLiveTool(message);
         if (direct) {
           const agent = agentById('orchestrator');
-          const outcome = await runTool(env, agent, direct.name, direct.arguments, { adminAuthorized: ownerMode, ownerMode, userEmail });
-          const text = direct.name === 'calculate' ? String(outcome.result) : String(outcome.localized || outcome.result || '');
-          send({ type: 'context', session: sessionId, model: 'deterministic-tool', memories: [], history: 0 });
-          send({ type: 'delta', text });
-          if (ctx?.waitUntil) ctx.waitUntil(persistStreamTurn(env, { jobId, sessionId, message, answer: text, provider: 'fast', remember }));
+          let outcome;
+          try {
+            outcome=assertNoSimulatedData(await runTool(env,agent,direct.name,direct.arguments,{adminAuthorized:ownerMode,ownerMode,userEmail}),direct.name);
+          } catch(error) {
+            send({type:'tool',name:direct.name,status:'failed'});
+            throw error;
+          }
+          const temperature=outcome.current?.temperature_c;
+          const humidity=outcome.current?.humidity_pct;
+          const wind=outcome.current?.wind_speed_kmh;
+          const usable=direct.name!=='open_weather'||(outcome.available===true&&[temperature,humidity,wind].some(Number.isFinite));
+          const text=direct.name==='open_weather'?formatWeather(outcome):String(outcome.localized??outcome.result);
+          send({type:'context',session:sessionId,model:'deterministic-tool',memories:[],history:0});
+          send({type:'tool',name:direct.name,status:usable?'completed':'failed'});
+          if(!usable)throw new Error(text);
+          send({type:'delta',text});
+          if(ctx?.waitUntil)ctx.waitUntil(persistStreamTurn(env,{jobId,sessionId,message,answer:text,provider:'fast',remember}));
           return;
         }
 

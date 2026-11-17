@@ -238,3 +238,25 @@ test('a Slovak typo-filled capabilities question gets a grounded answer without 
   assert.match(events[1].text,/návrh opravy pre konkrétny commit/);
   assert.match(events[1].text,/žiadnu opravu nespustila/);
 });
+
+
+test('live chat executes the weather plugin and reports completion only when readings exist',async()=>{
+  const original=globalThis.fetch;
+  try{
+    for(const successful of [true,false]){
+      let calls=0;
+      globalThis.fetch=async(url)=>{
+        calls++;
+        if(String(url).includes('geocoding-api.open-meteo.com'))return Response.json({results:[{latitude:48.1,longitude:17.1,name:'Bratislava',country:'Slovensko'}]});
+        assert.match(String(url),/api[.]open-meteo[.]com/);
+        return successful?Response.json({current:{temperature_2m:12,relative_humidity_2m:70,wind_speed_10m:8}}):new Response('',{status:503});
+      };
+      const res=await handleLiveChatStream({},null,{message:'Aké je počasie v Bratislave?'});
+      const events=(await res.text()).trim().split('\n').map(JSON.parse);
+      assert.equal(calls,2);
+      assert.equal(events.find(e=>e.name==='open_weather')?.status,successful?'completed':'failed');
+      assert.equal(events.at(-1).type,successful?'delta':'error');
+      assert.match(successful?events.at(-1).text:events.at(-1).error,successful?/12°C/:/503/);
+    }
+  }finally{globalThis.fetch=original;}
+});

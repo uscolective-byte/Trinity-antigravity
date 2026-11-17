@@ -71,7 +71,7 @@ export function unresolvedToolOutcome(toolLog,language='sk'){
   for(const receipt of toolLog)if(receipt.tool!=='model_fallback')latest.set(receipt.tool,receipt);
   const unresolved=[...latest.values()].filter(r=>r.status!=='completed');
   if(!unresolved.length)return null;
-  const failed=unresolved.some(r=>['failed','partial','not_executed'].includes(r.status));
+  const failed=unresolved.some(r=>['failed','partial','not_executed','not_verified'].includes(r.status));
   const names=unresolved.map(r=>r.tool).join(', ');
   return {execution_status:failed?'failed':'pending',text:language==='en'
     ? failed?`The tool result could not be verified (${names}). The task is not confirmed as completed.`:`The tools have not confirmed completion yet (${names}). The action is pending.`
@@ -254,6 +254,11 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     try{outcome=direct.name==='self_intro'?{ok:true}:assertNoSimulatedData(await runTool(env,agent,direct.name,direct.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin}),direct.name);}
     catch(error){error.tool_log=[{tool:direct.name,status:'failed',effect:'diagnostic',error:error.message}];throw error;}
     const receipt=toolReceiptForOutcome(direct.name,outcome);
+    if(direct.name==='pc_open_file'&&receipt.status==='completed'&&
+      (outcome.action!=='open_file'||outcome.success!==true||!outcome._evidence?.receipt_id)){
+      receipt.status='not_verified';
+      receipt.effect='diagnostic';
+    }
     const unresolved=unresolvedToolOutcome([receipt],language);
     if(unresolved)return {...unresolved,model:'deterministic-tool',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(unresolved.text,[receipt]),duration_ms:0};
     let text;
@@ -262,6 +267,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
         `Nebudem ťa zdržiavať formálnymi zoznamami — povedz rovno, čo máš na mysli alebo na čom ideme makať.`;
     else if(direct.name==='calculate')text=String(outcome.result);
     else if(direct.name==='current_time')text=outcome.localized;
+    else if(direct.name==='pc_open_file')text=`PC Bridge potvrdil odovzdanie súboru na otvorenie: ${direct.arguments.path}.`;
     else if(direct.name==='list_capabilities'){
       const activePlugins=(outcome.plugins||[]).filter(p=>p.enabled).length;
       const totalTools=(outcome.tools||[]).length;
