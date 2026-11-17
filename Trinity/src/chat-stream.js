@@ -80,6 +80,7 @@ async function streamWorkersAI(env, model, messages, onDelta) {
   if (result && typeof result.getReader === 'function') {
     let full = '';
     for await (const chunk of parseSseJsonLines(result)) {
+      if (chunk?.error) throw new Error('Cloudflare Workers AI prerušilo odpoveď.');
       const token = typeof chunk?.response === 'string'
         ? chunk.response
         : (typeof chunk?.choices?.[0]?.delta?.content === 'string' ? chunk.choices[0].delta.content : '');
@@ -331,7 +332,11 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
             usedProvider = 'workers-ai';
             const fallbackModel = env.AI_FAST_FALLBACK_MODEL || '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
             await streamWorkersAI(env, fallbackModel, messages, onDelta);
-          } else if (!answer) {
+          } else if (answer) {
+            throw new Error(language === 'en'
+              ? 'The response was interrupted. The text shown so far is incomplete.'
+              : 'Odpoveď sa prerušila. Zobrazený text je neúplný.');
+          } else {
             throw err;
           }
         }

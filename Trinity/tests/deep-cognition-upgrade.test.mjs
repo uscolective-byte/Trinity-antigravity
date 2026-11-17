@@ -186,3 +186,23 @@ test('handleLiveChatStream returns fallback_job when heavy workflow/PC actions a
   const events = (await res.text()).trim().split('\n').map(line => JSON.parse(line));
   assert.equal(events[0]?.type, 'fallback_job');
 });
+
+
+test('an interrupted live answer reports an error and is not persisted as completed',async()=>{
+  const encoder=new TextEncoder();
+  const persisted=[];
+  let calls=0;
+  const stream=new ReadableStream({start(controller){
+    controller.enqueue(encoder.encode('data: {"response":"Časť odpovede"}\n\n'));
+    controller.enqueue(encoder.encode('data: {"error":{"message":"provider diagnostics"}}\n\n'));
+    controller.close();
+  }});
+  const env={AI:{async run(){calls++;return stream;}}};
+  const res=await handleLiveChatStream(env,{waitUntil(p){persisted.push(p);}},{message:'Ako sa máš?',language:'sk',engine:'workers-ai'});
+  const events=(await res.text()).trim().split('\n').map(JSON.parse);
+  assert.equal(calls,1);
+  assert.equal(events.find(event=>event.type==='delta')?.text,'Časť odpovede');
+  assert.match(events.at(-1).error,/neúplný/);
+  assert.equal(events.at(-1).type,'error');
+  assert.equal(persisted.length,0);
+});
