@@ -222,6 +222,7 @@ async function route(request,env,ctx){
     return withRateLimitHeaders(json(await createEscrowDeal(env,cleanBody),201),shield.rateLimitHeaders);
   }
   const reqHostname = new URL(request.url).hostname;
+  const drivePickerEnabled = reqHostname==='auru.dev'&&Boolean(env.TRINITY_DRIVE_PICKER_KEY&&env.TRINITY_DRIVE_PICKER_CLIENT_ID&&env.TRINITY_DRIVE_PICKER_APP_ID);
   const isOmniDevHost = reqHostname === 'auru.dev' || reqHostname === 'dev.auru.space' || new URL(request.url).searchParams.get('mode') === 'omni-dev';
   const isMobileRequested = path === '/mobile' || (['/', '/index.html'].includes(path) && url.searchParams.get('device') === 'mobile');
   if(request.method === 'GET' && isMobileRequested) return renderMobileChatUI(env, reqHostname);
@@ -272,7 +273,13 @@ async function route(request,env,ctx){
     'X-Trinity-Host': reqHostname,
     'X-Trinity-Mode': isOmniDevHost ? 'omni-dev' : 'production',
     'Cache-Control':'no-cache, no-store, must-revalidate',
-    'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; frame-src 'self' blob: data: https://open.spotify.com; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
+    'Content-Security-Policy':"default-src 'self'; script-src 'self'"
+      +(drivePickerEnabled&&path!=='/ops'?" https://apis.google.com https://accounts.google.com":"")
+      +"; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; frame-src 'self' blob: data: https://open.spotify.com"
+      +(drivePickerEnabled&&path!=='/ops'?" https://accounts.google.com https://docs.google.com https://drive.google.com https://apis.google.com":"")
+      +"; connect-src 'self'"
+      +(drivePickerEnabled&&path!=='/ops'?" https://accounts.google.com https://www.googleapis.com":"")
+      +"; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
   if(request.method==='GET'&&['/connect/meta','/api/assistant/connectors/meta/callback'].includes(path))return new Response(metaConnectHTML,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"}});
   if(request.method==='GET'&&path==='/meta-connect.js')return new Response(metaConnectJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
   if(request.method==='GET'&&path==='/app.js')return new Response(appJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
@@ -1097,6 +1104,12 @@ async function route(request,env,ctx){
     }
   }
   const ownerId=(user.email||user.id).trim().toLowerCase();
+  if(path==='/api/assistant/google-drive/picker'&&request.method==='GET'){
+    if(!drivePickerEnabled){
+      return json({available:false});
+    }
+    return json({available:true,key:env.TRINITY_DRIVE_PICKER_KEY,clientId:env.TRINITY_DRIVE_PICKER_CLIENT_ID,appId:env.TRINITY_DRIVE_PICKER_APP_ID},200,{'Cache-Control':'no-store'});
+  }
   if(path==='/api/ops/google-drive/verify'&&request.method==='GET'){
     if(user.role!=='owner')throw new HttpError(403,'Overenie Google Drive vyžaduje prístup vlastníka.');
     await rateLimit(env,`drive-verify:${user.id}`,10,300);

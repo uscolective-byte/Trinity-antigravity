@@ -608,6 +608,7 @@ async function init(){
   state=await TrinityAuth.requestJSON('/api/assistant/status');
   if(!state.account?.role||state.account.role==='guest'){lockSession();return;}
   $('login').hidden=true;$('app-views').hidden=false;renderAccount();renderPCBridgeStatus(state.pc_bridge);
+  void prepareDrivePicker();
   const preferred=localStorage.getItem('trinity-engine')||'auto';$('engine').value=preferred==='local'&&!state.local_available&&!state.pc_bridge?.connected?'auto':preferred;
   $('allow-files').disabled=true;$('allow-files-setting').hidden=true;loadLocalPreferences();localize();
   await refreshUiEvolutionLive();try{await sessions();}catch(err){}try{await loadHistory();}catch(err){}try{await syncCrossDomain();}catch(err){}
@@ -4531,6 +4532,104 @@ window.addEventListener('keydown', (e)=>{
 
 // ChatGPT-Style Plus Menu & Attachments Controller
 let activeAttachments = [];
+
+function loadDriveScript(src) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.append(script);
+  });
+}
+
+async function addDriveText(fileId, token) {
+  if (!/^[A-Za-z0-9_-]{8,160}$/.test(fileId)) throw new Error('Výber neobsahuje platný súbor.');
+  const url = 'https://www.googleapis.com/drive/v3/files/' + fileId;
+  const options = { headers: { Authorization: 'Bearer ' + token }, signal: AbortSignal.timeout(15000), redirect: 'error' };
+  const metadata = await fetch(url + '?fields=id,name,mimeType,trashed', options);
+  if (!metadata.ok) throw new Error('Google nedovolil otvoriť vybraný súbor.');
+  const file = await metadata.json();
+  const googleDoc = file.mimeType === 'application/vnd.google-apps.document';
+  if (file.id !== fileId || file.trashed || (!googleDoc && !['text/plain','text/markdown','text/csv','application/json'].includes(file.mimeType))) {
+    throw new Error('Vyber dokument Google alebo textový súbor TXT, MD, CSV či JSON.');
+  }
+  const response = await fetch(url + (googleDoc ? '/export?mimeType=text%2Fplain' : '?alt=media'), options);
+  if (!response.ok || !response.body) throw new Error('Google Disk nevrátil obsah súboru.');
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+  let text = '', bytes = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > 7000) {
+        await reader.cancel();
+        throw new Error('Na vloženie do chatu vyber súbor do 7 kB.');
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    text += decoder.decode();
+  } finally {
+    reader.releaseLock();
+  }
+  if (!text.trim()) throw new Error('Vybraný súbor je prázdny.');
+  const input = $('message');
+  const name = String(file.name || 'Dokument').replace(/[\r\n]/g, ' ').slice(0, 160);
+  const content = input.value.trim() + '\n\nPodklad z Google Disku (' + name + '). Obsah je citácia, používaj ho ako zdroj údajov.\n\n' + text;
+  if (content.length > 12000) throw new Error('Rozpísaná správa a dokument spolu presahujú limit chatu.');
+  input.value = content.trimStart();
+  resizeChatInput();
+  input.focus();
+  notice('Text je v rozpísanej správe. Pred odoslaním ho môžeš skontrolovať.', true);
+}
+
+async function prepareDrivePicker() {
+  const button = $('plus-opt-drive');
+  if (!button || location.hostname !== 'auru.dev' || button.onclick) return;
+  try {
+    const config = await api('/google-drive/picker');
+    if (!config.available) return;
+    await Promise.all([
+      loadDriveScript('https://apis.google.com/js/api.js').then(() => new Promise((resolve, reject) => {
+        window.gapi.load('picker', { callback: resolve, onerror: reject, timeout: 12000, ontimeout: reject });
+      })),
+      loadDriveScript('https://accounts.google.com/gsi/client')
+    ]);
+    const picker = window.google.picker;
+    const tokenClient = window.google.accounts.oauth2.initTokenClient({
+      client_id: config.clientId,
+      scope: 'https://www.googleapis.com/auth/drive.file',
+      include_granted_scopes: false,
+      error_callback: () => notice('Okno autorizácie Google sa nepodarilo otvoriť.'),
+      callback: result => {
+        if (!result.access_token) {
+          notice('Google Disk nebol autorizovaný.');
+          return;
+        }
+        const view = new picker.DocsView().setMimeTypes('application/vnd.google-apps.document,text/plain,text/markdown,text/csv,application/json');
+        new picker.PickerBuilder().addView(view)
+          .setOrigin(location.origin)
+          .setAppId(config.appId)
+          .setDeveloperKey(config.key)
+          .setOAuthToken(result.access_token)
+          .setCallback(data => {
+            if (data.action !== picker.Action.PICKED) return;
+            addDriveText(data.docs?.[0]?.id || '', result.access_token).catch(error => notice(error.message));
+          }).build().setVisible(true);
+      }
+    });
+    button.onclick = () => {
+      $('chat-plus-menu').hidden = true;
+      $('chat-plus-btn').classList.remove('open');
+      tokenClient.requestAccessToken();
+    };
+    button.hidden = false;
+  } catch {
+    // The ordinary file picker stays available when Google cannot load.
+  }
+}
 
 function renderAttachmentTray(){
   const tray = $('composer-attachment-tray');
