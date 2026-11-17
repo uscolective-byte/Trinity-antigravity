@@ -101,7 +101,7 @@ export async function applySelfImprovementProposal(env, id, actor, installPlugin
     }
   }
   if (row.kind !== 'plugin_install') {
-    throw new HttpError(503, 'Chýba prepojenie GitHub: nastav Worker Secret TRINITY_GITHUB_TOKEN. Kódový návrh potrebuje načítať zdrojový commit.');
+    throw new HttpError(503, 'Chýba prepojenie GitHub: nastav Worker Secret TRINITY_GITHUB_TOKEN. Kódový návrh potrebuje načítať zdrojový commit. Nasadenie vykonáva GitHub Actions.');
   }
   const result = await installPluginById(row.plugin_id);
   const updated = await env.DB.prepare(
