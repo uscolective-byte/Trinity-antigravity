@@ -32,7 +32,12 @@ function provider({permissions=META_READ_SCOPES,profile={id:'123',name:'Test Own
   calls.push({url,options});assert.equal(new URL(url).hostname,'graph.facebook.com');assert.equal(options.redirect,'manual');
   const endpoint=new URL(url).pathname;
   if(endpoint.endsWith('/oauth/access_token')){
-   assert.equal(options.method,'POST');assert.equal(new URLSearchParams(options.body).get('client_secret'),'test-only-meta-app-secret');
+   const query=new URL(url).searchParams;
+   assert.equal(options.method,'GET');assert.equal(options.body,undefined);
+   assert.equal(options.cache,'no-store');
+   assert.equal(query.get('client_secret'),'test-only-meta-app-secret');
+   assert.equal(query.get('code'),'test-only-code');
+   assert.equal(new URL(query.get('redirect_uri')).pathname,'/api/assistant/connectors/meta/callback');
    return Response.json({access_token:token,expires_in:3600});
   }
   assert.equal(options.headers.Authorization,'Bearer '+token);
@@ -175,7 +180,7 @@ test('simultaneous OAuth redemption executes exactly one token exchange',async t
  const {env,context}=fixture(t),p=provider(),input=await authorize(env,context);
  const outcomes=await Promise.allSettled([completeMetaConnection(env,input,p.fetcher),completeMetaConnection(env,input,p.fetcher)]);
  assert.equal(outcomes.filter(x=>x.status==='fulfilled').length,1);
- assert.equal(p.calls.filter(x=>x.url.endsWith('/oauth/access_token')).length,1);
+ assert.equal(p.calls.filter(x=>new URL(x.url).pathname.endsWith('/oauth/access_token')).length,1);
 });
 test('old refresh success or failure cannot overwrite a concurrently reconnected account',async t=>{
  const {env,context}=fixture(t);

@@ -102,8 +102,9 @@ export async function completeMetaConnection(env,{ownerId,session,origin,code,st
  const transaction=await env.DB.prepare('DELETE FROM meta_oauth_transactions WHERE state_hash=? AND owner_id=? AND session_hash=? AND expires_at>? RETURNING *')
  .bind(await hash(state),ownerId,await hash(session),Date.now()).first();
  if(!transaction||transaction.redirect_uri!==config.redirect||transaction.config_hash!==await configDigest(config))fail(400,'Prihlásenie Meta vypršalo alebo patrí inej relácii. Začni ho znova.');
- const tokens=await providerJSON(fetcher,'https://graph.facebook.com/'+config.version+'/oauth/access_token',{
- method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:config.appId,client_secret:config.secret,redirect_uri:config.redirect,code}).toString()},'token_exchange');
+ const exchange=new URL('https://graph.facebook.com/'+config.version+'/oauth/access_token');
+ exchange.search=new URLSearchParams({client_id:config.appId,client_secret:config.secret,redirect_uri:transaction.redirect_uri,code}).toString();
+ const tokens=await providerJSON(fetcher,exchange.href,{method:'GET',cache:'no-store'},'token_exchange');
  if(typeof tokens.access_token!=='string'||tokens.access_token.length<8||tokens.access_token.length>4096)fail(502,'Meta nevrátila platné poverenie.');
  const evidence=await identityProbe(config,tokens.access_token,fetcher);
  const stored=await storeSecret(env,ownerId,{provider:'custom',name:'meta-read-only-'+crypto.randomUUID(),secret:tokens.access_token});
