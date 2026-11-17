@@ -15,12 +15,14 @@ function setup({guest=false}={}){
   ids.set('image-input',element('input'));ids.set('record-voice',element('button'));
   const context={document:{getElementById:id=>ids.get(id)||null,querySelector:selector=>selector==='.header-actions'?host:selector==='meta[name="viewport"]'?viewport:null,
     createElement:element,body,documentElement:{style:{setProperty:(key,value)=>properties.set(key,value)}}},
+    URL,location:{origin:'https://auru.dev'},
     navigator:{onLine:true,mediaDevices:{getUserMedia(){microphoneRequests++;}}},MediaRecorder:function(){},
     window:{innerHeight:800,visualViewport:{height:700,scale:1,addEventListener:(name,fn)=>events.set('viewport:'+name,fn)},
       addEventListener:(name,fn)=>events.set(name,fn),matchMedia:()=>({matches:false})}};
   vm.createContext(context);vm.runInContext(source,context);
   const buttons=()=>ids.get('mobile-device-dialog').children.find(n=>n.tag==='div').children;
-  return {context,ids,host,properties,events,buttons,run:()=>vm.runInContext(source,context),microphoneRequests:()=>microphoneRequests};
+  const control=label=>buttons().find(item=>item.textContent===label);
+  return {context,ids,host,properties,events,control,run:()=>vm.runInContext(source,context),microphoneRequests:()=>microphoneRequests};
 }
 test('loading mobile layer never requests microphone, camera or network access',()=>{
   const s=setup();assert.equal(s.microphoneRequests(),0);
@@ -37,24 +39,32 @@ test('keyboard viewport change updates the usable app height without zoom interf
 });
 test('guest cannot activate the photo or microphone bridge',()=>{
   const s=setup({guest:true});s.ids.get('mobile-device-button').click();
-  const [,photo,voice]=s.buttons();assert.equal(photo.disabled,true);assert.equal(voice.disabled,true);
+  const photo=s.control('Vybrať fotografiu'),voice=s.control('Použiť hlas');assert.equal(photo.disabled,true);assert.equal(voice.disabled,true);
   photo.click();voice.click();assert.equal(s.ids.get('image-input').clicks,0);assert.equal(s.ids.get('record-voice').clicks,0);
 });
 test('explicit photo and voice actions use the existing Trinity controls',()=>{
   const s=setup();s.ids.get('mobile-device-button').click();
-  const [,photo,voice]=s.buttons();photo.click();
+  const photo=s.control('Vybrať fotografiu'),voice=s.control('Použiť hlas');photo.click();
   assert.equal(s.ids.get('image-input').clicks,1);assert.equal(s.ids.get('image-input').attributes.capture,'environment');
   assert.equal(s.ids.get('mobile-device-dialog').open,false);
   s.ids.get('mobile-device-button').click();voice.click();assert.equal(s.ids.get('record-voice').clicks,1);
 });
 test('install instructions do not fabricate installation or silently request access',async()=>{
-  const s=setup();const install=s.buttons()[0];await install.onclick();
+  const s=setup();const install=s.control('Pridať na plochu');await install.onclick();
   const status=s.ids.get('mobile-device-dialog').children.find(n=>n.attributes.role==='status');
   assert.match(status.textContent,/menu prehliadača/);
   let prompted=0;s.events.get('beforeinstallprompt')({preventDefault(){},async prompt(){prompted++;},userChoice:Promise.resolve({outcome:'accepted'})});
   assert.equal(prompted,0);await install.onclick();assert.equal(prompted,1);
   assert.match(status.textContent,/dokončenie potvrdí prehliadač/);
   s.events.get('appinstalled')();assert.match(status.textContent,/potvrdil inštaláciu/);
+});
+test('the phone link opens the shared authenticated chat',async()=>{
+  const s=setup();
+  let copied;
+  s.context.navigator.clipboard={async writeText(value){copied=value;}};
+  assert.equal(s.control('Otvoriť mobilný chat').href,'https://auru.dev/#chat');
+  await s.control('Kopírovať odkaz do telefónu').onclick();
+  assert.equal(copied,'https://auru.dev/#chat');
 });
 test('offline event reports actual connectivity without replaying work',()=>{
   const s=setup();s.context.navigator.onLine=false;s.events.get('offline')();
