@@ -1105,6 +1105,14 @@ async function route(request,env,ctx){
     }
   }
   const ownerId=(user.email||user.id).trim().toLowerCase();
+  if(path==='/api/assistant/pc-bridge/status'&&request.method==='GET'){
+    const bridge=await getPCBridgeStatus(env);
+    return json({
+      connected:bridge.connected,
+      status:bridge.status,
+      last_seen:bridge.last_seen_at||bridge.last_seen||null
+    },200,{'Cache-Control':'no-store'});
+  }
   if(path==='/api/assistant/google-drive/picker'&&request.method==='GET'){
     if(!drivePickerEnabled){
       return json({available:false});

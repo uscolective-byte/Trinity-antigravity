@@ -596,8 +596,47 @@ async function syncCrossDomain(data = null){
   }
  } catch(e) {}
 }
-function renderPCBridgeStatus(pcBridge){const badge=$('pc-bridge-badge'),text=$('pc-bridge-text');if(!badge||!text)return;const connected=!!pcBridge?.connected;badge.classList.toggle('connected',connected);badge.classList.toggle('disconnected',!connected);text.textContent=connected?'PC: Online':'PC: Offline';badge.title=connected?`PC Bridge pripojený (${pcBridge.last_seen_at||pcBridge.last_seen||'aktívny'})`:'PC Bridge nepripojený';const localOpt=$('engine')?.querySelector('[value=local]');if(localOpt){localOpt.disabled=false;localOpt.textContent=connected?'Môj počítač · PC Bridge (Online)':'Môj počítač · PC Bridge (Lokálne akcie)';}}
+function renderPCBridgeStatus(pcBridge) {
+  const badge = $('pc-bridge-badge'), text = $('pc-bridge-text');
+  if (!badge || !text) return;
+  const connected = pcBridge?.connected === true;
+  const offline = !connected && pcBridge?.status === 'offline';
+  const label = connected ? 'Online' : offline ? 'Offline' : 'Stav neoverený';
+  badge.classList.toggle('connected', connected);
+  badge.classList.toggle('disconnected', offline);
+  text.textContent = 'PC: ' + label;
+  badge.title = connected ? 'PC Bridge pripojený' : offline ? 'PC Bridge nepripojený' : 'Stav PC Bridge sa nepodarilo overiť';
+  const localOption = $('engine')?.querySelector('[value=local]');
+  if (localOption) localOption.textContent = 'Môj počítač · PC Bridge (' + label + ')';
+}
+
+let pcBridgeCheck, pcBridgeTimer;
+async function refreshPCBridgeStatus() {
+  if (!state || document.hidden || pcBridgeCheck) return;
+  const activeState = state;
+  const check = new AbortController();
+  pcBridgeCheck = check;
+  const timer = setTimeout(() => check.abort(), 8000);
+  try {
+    const response = await fetch('/api/assistant/pc-bridge/status', { cache: 'no-store', signal: check.signal });
+    if (!response.ok) throw new Error('Stav PC Bridge nie je dostupný.');
+    const bridge = await response.json();
+    if (state !== activeState) return;
+    state.pc_bridge = bridge;
+    renderPCBridgeStatus(bridge);
+  } catch {
+    if (state === activeState) renderPCBridgeStatus({ status: 'unavailable' });
+  } finally {
+    clearTimeout(timer);
+    if (pcBridgeCheck === check) pcBridgeCheck = null;
+  }
+}
+document.addEventListener('visibilitychange', refreshPCBridgeStatus);
+window.addEventListener('online', refreshPCBridgeStatus);
 function lockSession(message='Prihlás sa do Trinity.'){
+ clearInterval(pcBridgeTimer);
+ pcBridgeTimer=null;
+ pcBridgeCheck?.abort();
  state=null;if($('owner-overview-nav'))$('owner-overview-nav').hidden=true;$('login').hidden=false;$('app-views').hidden=true;$('account-state').hidden=true;$('logout').hidden=true;
  if(message)notice(message);
 }
@@ -608,6 +647,7 @@ async function init(){
   state=await TrinityAuth.requestJSON('/api/assistant/status');
   if(!state.account?.role||state.account.role==='guest'){lockSession();return;}
   $('login').hidden=true;$('app-views').hidden=false;renderAccount();renderPCBridgeStatus(state.pc_bridge);
+  if(!pcBridgeTimer)pcBridgeTimer=setInterval(refreshPCBridgeStatus,45_000);
   void prepareDrivePicker();
   const preferred=localStorage.getItem('trinity-engine')||'auto';$('engine').value=preferred==='local'&&!state.local_available&&!state.pc_bridge?.connected?'auto':preferred;
   $('allow-files').disabled=true;$('allow-files-setting').hidden=true;loadLocalPreferences();localize();

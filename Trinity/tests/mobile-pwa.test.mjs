@@ -40,7 +40,7 @@ test('activation only cleans its own versioned public cache',async()=>{
 });
 test('manifest icons are real square PNG images at the declared dimensions',()=>{
   const manifest=JSON.parse(readFileSync(new URL('../public/assistant/manifest.json',import.meta.url),'utf8').replace(/^\uFEFF/,''));
-  assert.equal(manifest.scope,'/');assert.match(manifest.start_url,/device=mobile/);
+  assert.equal(manifest.scope,'/');assert.equal(manifest.start_url,'/#chat');
   for(const size of [192,512]){
     const icon=manifest.icons.find(i=>i.sizes===`${size}x${size}`);assert.equal(icon.src,`/mobile-icon-${size}.png`);
     const bytes=Buffer.from(readFileSync(new URL(`../public/assistant/mobile-icon-${size}.png.txt`,import.meta.url),'utf8').trim(),'base64');

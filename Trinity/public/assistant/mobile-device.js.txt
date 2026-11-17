@@ -22,10 +22,13 @@
   const online=make('li');const installation=make('li');const account=make('li');list.append(online,installation,account);
   const actions=make('div');actions.className='device-actions';
   const install=make('button','Pridať na plochu');install.type='button';
+  const mobileLink=make('a','Otvoriť mobilný chat');
+  mobileLink.href=new URL('/#chat',location.origin).href;
+  const copyLink=make('button','Kopírovať odkaz do telefónu');copyLink.type='button';
   const photo=make('button','Vybrať fotografiu');photo.type='button';
   const voice=make('button','Použiť hlas');voice.type='button';
   const close=make('button','Zavrieť');close.type='button';
-  actions.append(install,photo,voice,close);
+  actions.append(mobileLink,copyLink,install,photo,voice,close);
   const note=make('p','Android: menu prehliadača → Inštalovať aplikáciu alebo Pridať na plochu. iPhone: Zdieľať → Pridať na plochu.');note.className='device-note';
   const boundary=make('p','Webová aplikácia neznamená plný prístup k SMS, iným aplikáciám alebo súborom na pozadí. Samostatné zariadenie s rozšírenými právami ešte nie je spárované.');boundary.className='device-note';
   dialog.append(title,status,description,list,actions,note,boundary);document.body.append(dialog);
@@ -49,6 +52,14 @@
     try{await current.prompt();const choice=await current.userChoice;status.textContent=choice.outcome==='accepted'?'Inštalácia bola prijatá; dokončenie potvrdí prehliadač.':'Inštalácia nebola potvrdená.';}catch{status.textContent='Prehliadač teraz inštaláciu neponúkol. Použi jeho menu.';}
   };
   photo.onclick=()=>{const input=document.getElementById('image-input');if(photo.disabled||!input)return;input.setAttribute('capture','environment');dialog.close();input.click();};
+  copyLink.onclick=async()=>{
+    try{
+      await navigator.clipboard.writeText(mobileLink.href);
+      status.textContent='Odkaz je skopírovaný. Otvor ho na telefóne a použi rovnaký účet Trinity.';
+    }catch{
+      status.textContent=mobileLink.href;
+    }
+  };
   voice.onclick=()=>{if(voice.disabled)return;dialog.close();document.getElementById('record-voice')?.click();};
   close.onclick=()=>dialog.close();
   button.onclick=()=>{refresh();status.textContent='';dialog.showModal();};
