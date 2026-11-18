@@ -123,3 +123,26 @@ test('hardcore truth policy blocks fabricated github issue creation and phantom 
   };
   assert.deepEqual(findUnsupportedActionClaims(issueClaim, [validGhReceipt]), []);
 });
+
+test('an unrelated successful tool cannot prove a file or URL was opened',()=>{
+ const receipts=[{tool:'pc_run',status:'completed',effect:'mutation',actions:['execute'],receipt_id:'other-action'}];
+ assert.deepEqual(findUnsupportedActionClaims('Otvorila som ti súbor README.md.',receipts),['execute']);
+ assert.deepEqual(findUnsupportedActionClaims('I opened the website.',receipts),['execute']);
+});
+
+test('simulated and rejected results cannot become completed receipts',()=>{
+ const evidence={effect:'mutation',actions:['execute'],receipt_id:'action-1'};
+ for(const outcome of [{data:{simulated:true}}, {status:' REJECTED '}, {status:'expired'}]){
+  const receipt=toolReceiptForOutcome('pc_open_file',{...outcome,_evidence:evidence});
+  assert.equal(receipt.status,'failed');
+  assert.equal(receipt.receipt_id,undefined);
+ }
+});
+
+test('fabricated background work is replaced and recorded as blocked',async()=>{
+ const result=await runAgent({AI:{run:async()=>({response:'Pracujem na tom na pozadí.'})}},'orchestrator','Ako pokračuje práca?','','fast');
+ assert.equal(result.text,safeTruthResponse());
+ assert.equal(result.truth.status,'blocked');
+ assert.equal(result.truth.response_filtered,true);
+ assert.deepEqual(result.truth.unsupported_claims,['unverified_background_work']);
+});

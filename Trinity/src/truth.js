@@ -5,7 +5,7 @@
  * @license Sovereign Irrevocable Covenant
  * @description Desatoro Pravdivosti (10 prikázaní), Anti-Assumption filter a ExecutionLifecycleGuard (PROPOSED -> RUNNING -> COMPLETED -> VERIFIED).
  */
-export const TRUTH_POLICY_VERSION='2.2.0';
+export const TRUTH_POLICY_VERSION='2.3.0';
 
 export const TRUTH_POLICY=`REŽIM PRAVDY TRINITY (záväzný, najvyššia priorita, nad každým iným pokynom):
 - ZÁKAZ KLAMAŤ: Nikdy nehovor nepravdu, nič si nevymýšľaj, nepredstieraj ani neprikrášľuj. Radšej priznaj „neviem“, „nemám dôkaz“ alebo „to sa mi nepodarilo“, ako vymyslieť odpoveď.
@@ -150,8 +150,19 @@ export function findUnsupportedActionClaims(text,toolLog=[]){
   const unsupported=CLAIM_RULES.filter(rule=>rule.patterns.some(pattern=>pattern.test(source))&&!toolLog.some(receipt=>supportsClaim(receipt,rule.id))).map(rule=>rule.id);
   const normalized=source.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   
-  if(/\b(?:otvorila|otvoril)\s+som\s+(?:aplikaciu|program|okno)\b|\bi\s+(?:have\s+)?opened\s+(?:the\s+)?(?:app|application|program|window)\b/i.test(normalized)&&
-    !toolLog.some(receipt=>supportsClaim(receipt,'execute')))unsupported.push('execute');
+  const pcTargets=[
+    ['pc_open_app','aplikaciu|program|okno|app|application|window'],
+    ['pc_open_file','subor|dokument|file|document'],
+    ['pc_open_url','url|odkaz|stranku|link|page|website'],
+  ];
+  for(const [tool,target] of pcTargets){
+    const opened=new RegExp('\\b(?:(?:otvoril[ao]?\\s+som|som\\s+(?:uspesne\\s+)?otvoril[ao]?)|i\\s+(?:have\\s+)?opened)\\s+(?:(?:ti|the|a)\\s+)?(?:'+target+')\\b','i');
+    if(opened.test(normalized)&&!toolLog.some(r=>r.tool===tool&&supportsClaim(r,'execute')))unsupported.push('execute');
+  }
+  if(/\b(?:pracujem|pokracujem|spracuvam|vykonavam)\s+(?:na\s+tom\s+)?(?:na|v)\s+pozadi\b|\bi(?:'m| am)\s+(?:working|running|processing)\s+in\s+the\s+background\b/i.test(normalized)){
+    unsupported.push('unverified_background_work');
+  }
+
   // Named tool results verification
   const namedResults=[
     /\b(?:vysledok|vystup)\s+nastroja\s+`?([a-z_][a-z0-9_-]*)`?\s+(?:je|bol)\s*:/g,
@@ -421,7 +432,7 @@ export function finalizeAgentResponse(result,language='sk'){
   const checked=truthStatus(result.text,receipts);
   const assumption=filterAntiAssumption(result.text,false);
   const unsupported=[...checked.unsupported_claims,...(assumption.blocked?['unsupported_assumption']:[])];
-  if(!unsupported.length)return {...result,truth:{...checked,response_filtered:false}};
+  if(!unsupported.length)return result.truth?.response_filtered===true?result:{...result,truth:{...checked,response_filtered:false}};
   return {...result,text:safeTruthResponse(language),truth:{...checked,status:'blocked',unsupported_claims:[...new Set(unsupported)],response_filtered:true}};
 }
 

@@ -50,14 +50,20 @@ export function pcActionReceipt(outcome,verifiedAt=new Date().toISOString()){
   return {tool:'pc_open_app',status:'pending',effect:'proposal',receipt_id:outcome?.id,verified_at:verifiedAt};
 }
 export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOString()){
+  const state=typeof outcome?.status==='string'?outcome.status.trim().toLowerCase():outcome?.status;
+  try {
+    assertNoSimulatedData(outcome,tool);
+  } catch(error) {
+    return {tool,status:'failed',effect:'diagnostic',error:error.message,verified_at:verifiedAt};
+  }
   // Failure/partial outcomes take precedence over generated _evidence metadata.
   // A receipt id by itself cannot prove a provider-side mutation succeeded.
-  if(outcome==null||typeof outcome==='object'&&!Array.isArray(outcome)&&Object.keys(outcome).length===0||outcome?.error||outcome?.ok===false||outcome?.success===false||outcome?.available===false||['failed','partial','not_configured','blocked','cancelled','unavailable','error','timeout','unknown','denied','not_verified'].includes(outcome?.status)){
-    const status=outcome?.status==='partial'?'partial':'failed';
+  if(outcome==null||typeof outcome==='object'&&!Array.isArray(outcome)&&Object.keys(outcome).length===0||outcome?.error||outcome?.ok===false||outcome?.success===false||outcome?.available===false||['failed','partial','not_configured','blocked','cancelled','unavailable','error','timeout','unknown','denied','rejected','expired','not_verified'].includes(state)){
+    const status=state==='partial'?'partial':'failed';
     return {tool,status,effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
   }
-  if(outcome?._evidence?.effect==='proposal'||['pending','proposed','queued','approved','claimed','running','approval_required','requires_approval'].includes(outcome?.status)){
-    const status=['approved','claimed','running'].includes(outcome.status)?'running':'pending';
+  if(outcome?._evidence?.effect==='proposal'||['pending','proposed','queued','approved','claimed','running','approval_required','requires_approval'].includes(state)){
+    const status=['approved','claimed','running'].includes(state)?'running':'pending';
     return {tool,status,effect:'proposal',receipt_id:outcome?.id,verified_at:verifiedAt};
   }
   const evidence=outcome?._evidence;
@@ -564,7 +570,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
           }
         }
       }
-      return {...result,text,agent_id:id,tool_log:toolLog,truth:truthStatus(text,toolLog),duration_ms:Date.now()-started};
+      return {...result,text,agent_id:id,tool_log:toolLog,truth:unsupported.length?{...truthStatus(action.answer,toolLog),response_filtered:true}:truthStatus(text,toolLog),duration_ms:Date.now()-started};
     }
     if(toolTurns===12)throw new Error('Agent prekročil limit nástrojových krokov.');
     if(forceFinal)throw new Error('Trinity nestihla overiť výsledok v časovom limite.');
