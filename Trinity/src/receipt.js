@@ -149,11 +149,21 @@ export async function executeVerifiedFileCreation({
   actor = { type: 'agent', id: 'trinity' }
 }) {
   const startedAt = new Date().toISOString();
-  const fullPath = path.join(targetDir, fileName);
+  if (typeof targetDir !== 'string' || !targetDir.trim()) throw new TypeError('targetDir is required');
+  if (typeof fileName !== 'string' || !fileName.trim() ||
+      fileName === '.' || fileName === '..' ||
+      fileName.includes('/') || fileName.includes('\\') ||
+      fileName.includes(':') || fileName.includes('\\0')) {
+    throw new Error('INVALID_FILE_NAME: only a single safe filename is allowed');
+  }
+  if (typeof content !== 'string') throw new TypeError('content must be a string');
   fs.mkdirSync(targetDir, { recursive: true });
+  const realDir = fs.realpathSync(targetDir);
+  const fullPath = path.join(realDir, fileName);
 
-  // 1. Zápis súboru
-  fs.writeFileSync(fullPath, content, 'utf8');
+  // Atomic create-only mode: do not overwrite an existing file or follow a
+  // symlink planted at the target. A subsequent read-back verifies the bytes.
+  fs.writeFileSync(fullPath, content, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
 
   // 2. Nezávislé prečítanie a výpočet SHA-256 hashu
   const readBack = fs.readFileSync(fullPath, 'utf8');
@@ -162,7 +172,7 @@ export async function executeVerifiedFileCreation({
   }
   const afterHash = hashPayload(readBack);
 
-  // 3. Vytvorenie kryptografického Ledger Proofu
+  // 3. Vytvorenie hashového ledger záznamu (nie digitálneho podpisu)
   const completedAt = new Date().toISOString();
   const proofHash = createHash('sha256')
     .update(`${startedAt}|${fileName}|${afterHash}|${actor.id}`)
