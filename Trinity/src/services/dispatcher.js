@@ -114,16 +114,21 @@ export class Dispatcher {
       const ms = Date.now() - start;
       const output = await response.json();
 
-      if (response.ok) {
-        await this.d1.recordToolSuccess(toolId, ms);
+      const failed = !response.ok || output?.success === false || output?.ok === false ||
+        Boolean(output?.error) || ['error', 'failed', 'failure', 'denied', 'unverified', 'simulated'].includes(String(output?.status || '').toLowerCase());
+      if (!failed) {
+        // Treat D1 receipt persistence as a required part of an asserted success.
+        await this.d1.recordToolSuccess(toolId, ms, {
+          runId: rid, step, receiptId, input, output
+        });
         await this.d1.log(this.traceId, "dispatcher", "tool.success", "info",
           `${toolId} completed in ${ms}ms`, { tool: toolId, ms }, "ok", ms);
         return { status: "success", output, receipt_id: receiptId, latencyMs: ms };
       } else {
-        await this.d1.recordToolError(toolId, input, output.error || "unknown");
+        await this.d1.recordToolError(toolId, input, output?.error || "Tool returned unsuccessful result");
         await this.d1.log(this.traceId, "dispatcher", "tool.error", "error",
-          `${toolId} failed`, { tool: toolId, ms, error: output.error }, "error", ms);
-        return { status: "error", error: output.error, receipt_id: receiptId, latencyMs: ms };
+          `${toolId} failed`, { tool: toolId, ms, error: output?.error || 'Tool returned unsuccessful result' }, "error", ms);
+        return { status: "error", error: output?.error || 'Tool returned unsuccessful result', receipt_id: receiptId, latencyMs: ms };
       }
     } catch (err) {
       const ms = Date.now() - start;
@@ -164,6 +169,6 @@ export class Dispatcher {
       `Pipeline done: ${results.length}/${steps.length} steps`,
       { run_id: runId, completed: results.length === steps.length });
 
-    return { run_id: runId, results, completed: results.length === steps.length };
+    return { run_id: runId, results, completed: results.length === steps.length && results.every(result => result.status === 'success') };
   }
 }
