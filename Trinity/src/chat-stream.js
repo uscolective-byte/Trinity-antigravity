@@ -11,7 +11,7 @@ import { loadConversationHistory, conversationsToMessages } from './conversation
 import { pickChatProvider } from './chat-routing.js';
 import { directChatTool } from './fast-chat.js';
 import { formatWeather } from './external-data-response.js';
-import { assertNoSimulatedData } from './truth.js';
+import { assertNoSimulatedData, finalizeAgentResponse } from './truth.js';
 import { getPCBridgeStatus } from './system-actions.js';
 import { getConfiguredAIProvider, sanitizeApiKey } from './ai-providers.js';
 import { cleanOutput } from '../services/chat-inference.js';
@@ -42,6 +42,7 @@ export function requiresWorkflowFallback(message = '', allowFiles = false) {
     || /\b(?:exportuj|uloz|vytvor|priprav)\b.*\bcsv\b/.test(norm)
     || (intent === 'analysis' && /\b(?:podrobne|hlbkovo|do\s+hlbky|krok\s+za\s+krokom|rizik[a-z]*|alternativ[a-z]*)\b/.test(norm))
     || /\b(?:pocasie|pocasia|pocasi|weather|kurz|kurzy|cena|ceny|cenu|zostatok|saldo|bitcoin|btc|krypto|crypto|github|cloudflare|firebase|onedrive|domeny|domen|integracie|integracii|nastroj|nastroje|nastrojov)\b/.test(norm)
+    || /\b(?:vyhladaj|najdi|precitaj|otvor|over|skontroluj|spusti|pripoj|pouzi)\b.*\b(?:subor\w*|adresar\w*|projekt\w*|repozitar\w*|antigravity|gemini|web|url|odkaz\w*)\b/.test(norm)
     || /\b[a-z][a-z0-9]*_[a-z0-9_]+\b/.test(norm);
 }
 
@@ -325,7 +326,6 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
         let usedProvider = chosenProvider;
         const onDelta = (token) => {
           answer += token;
-          send({ type: 'delta', text: token });
         };
 
         try {
@@ -373,8 +373,8 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
             await streamWorkersAI(env, fallbackModel, messages, onDelta);
           } else if (answer) {
             throw new Error(language === 'en'
-              ? 'The response was interrupted. The text shown so far is incomplete.'
-              : 'Odpoveď sa prerušila. Zobrazený text je neúplný.');
+              ? 'The response was interrupted before verification.'
+              : 'Odpoveď sa prerušila pred overením.');
           } else {
             throw err;
           }
@@ -385,7 +385,9 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
           throw new Error('Model nevrátil žiadny text.');
         }
 
-        const persistTask = persistStreamTurn(env, { jobId, sessionId, message, answer: cleaned, provider: usedProvider, remember });
+        const checked = finalizeAgentResponse({text:cleaned,tool_log:[]},language);
+        send({type:'delta',text:checked.text});
+        const persistTask = persistStreamTurn(env, { jobId, sessionId, message, answer: checked.text, provider: usedProvider, remember });
         if (ctx?.waitUntil) ctx.waitUntil(persistTask);
         else await persistTask;
       } catch (error) {

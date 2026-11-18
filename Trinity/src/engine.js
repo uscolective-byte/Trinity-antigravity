@@ -289,8 +289,8 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     else if(direct.name==='pc_open_file')text=`PC Bridge potvrdil odovzdanie súboru na otvorenie: ${direct.arguments.path}.`;
     else if(direct.name==='list_capabilities'){
       const activePlugins=(outcome.plugins||[]).filter(p=>p.enabled).length;
-      const totalTools=(outcome.tools||[]).length;
-      text=`Ivan, mám poruke ${totalTools} nástrojov v ${activePlugins} moduloch – od kódu, Cloudflare a domén cez trhy a komodity až po prácu na tvojom PC. Hoď sem nápad alebo problém a ideme na to.`;
+      const totalTools=activeTools.length;
+      text=`Ivan, v tomto režime mám povolených ${totalTools} nástrojov v ${activePlugins} aktívnych moduloch. Pripojenie ku konkrétnej službe overím pri použití jej nástroja.`;
     }
     else if(direct.name==='list_skills')text=`Mám dostupných ${(outcome.skills||[]).length} špecializovaných zručností (skills): ${(outcome.skills||[]).map(s=>s.name).join(', ')}.`;
     else if(direct.name==='domain_list')text=(outcome.items||[]).length?`Evidované domény (${outcome.items.length}): ${outcome.items.map(d=>`${d.domain_name} (${d.status})`).join(', ')}.`:'V evidencii zatiaľ nie sú žiadne domény.';
@@ -568,7 +568,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
       let text=unsupported.length?safeTruthResponse(language):cleanModelResponse(action.answer, task);
       if (/\b(?:web_fetch:\s*Prečíta|knowledge_search:\s*Vyhľadáva|Mám k dispozícii širokú škálu nástrojov|Mám celkovo \d+ nástrojov|môj zoznam nástrojov|zoznam nástrojov je)\b/i.test(text) || /^ň?web_fetch:/i.test(text.trim())) {
         if (/\b(?:kol[km]?o|pocet|kolkych|cislo)\b/i.test(task)) {
-          text = `Ivan, momentálne mám aktívnych ${activeTools.length} nástrojov – od kódu a Cloudflare cez analýzu trhov až po prácu na tvojom PC. Hoď sem, čo chceš riešiť.`;
+          text = `Ivan, momentálne mám aktívnych ${activeTools.length} nástrojov v tomto režime. Pripojenie ku konkrétnej službe overím pri použití jej nástroja.`;
         } else {
           text = text.replace(/^[^\n]*web_fetch:[^\n]*\n?/gm, '')
                      .replace(/^[^\n]*service_status:[^\n]*\n?/gm, '')

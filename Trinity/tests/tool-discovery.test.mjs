@@ -78,10 +78,27 @@ test('CSV export writes a downloadable R2 artifact with safe, structured cells',
 });
 
 test('streaming routes tool, live-data, and detailed analysis requests to the durable tool loop', async () => {
-  for(const message of ['Otvor mi súbor README.md','Prečítaj mi README.md','Nájdi aktuálne správy.','Skontroluj GitHub repozitár.','Použi csv_to_json.','Oprav chybu v projekte.','Porovnaj podrobne možnosti a riziká.']) {
+  for(const message of ['Otvor mi súbor README.md','Prečítaj mi README.md','Nájdi aktuálne správy.','Skontroluj GitHub repozitár.','Použi csv_to_json.','Oprav chybu v projekte.','Porovnaj podrobne možnosti a riziká.','Otvor adresár projektu.','Použi Antigravity na kontrolu projektu.']) {
     assert.equal(requiresWorkflowFallback(message),true,message);
     const response=await handleLiveChatStream({},null,{message});
     assert.equal(JSON.parse((await response.text()).trim()).type,'fallback_job');
   }
   for(const message of ['Ahoj, ako sa máš?','Vysvetli mi gravitáciu.','6 * 7','Aké je počasie v Bratislave?']) assert.equal(requiresWorkflowFallback(message),false,message);
+});
+
+test('fast mode exposes file tools only to the owner',async()=>{
+  for(const ownerMode of [true,false]){
+    let calls=0;
+    const env={AI:{run:async()=>({response:++calls===1?JSON.stringify({tool:'describe_tools',arguments:{name:'pc_file_read'}}):'Rozumiem.'})}};
+    const result=await runAgent(env,'orchestrator','Ukáž dostupné možnosti.','','fast',1000,'sk',ownerMode);
+    assert.equal(result.tool_log[0].status,ownerMode?'completed':'failed');
+  }
+});
+
+test('live chat does not emit unchecked reports of execution as deltas',async()=>{
+  const response=await handleLiveChatStream({AI:{run:async()=>({response:'Otvorila som súbor README.md.'})}},null,{message:'Ahoj, ako sa máš?',engine:'fast',language:'sk'});
+  const events=(await response.text()).trim().split('\n').map(line=>JSON.parse(line));
+  const text=events.filter(event=>event.type==='delta').map(event=>event.text).join('');
+  assert.match(text,/Nemám overený/);
+  assert.doesNotMatch(text,/Otvorila som/);
 });

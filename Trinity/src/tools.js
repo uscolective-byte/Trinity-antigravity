@@ -1355,8 +1355,8 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       status: 'active',
       triad: {
         trinity: { role: 'Sovereign Orchestrator', ready: true },
-        codex: { role: 'Background Developer', status: 'standby' },
-        antigravity: { role: 'Agentic Controller', status: 'online' }
+        codex: { role: 'Background Developer', status: 'not_verified' },
+        antigravity: { role: 'Agentic Controller', status: 'not_verified' }
       },
       gemini_gem: {
         status: 'configured_in_code',
