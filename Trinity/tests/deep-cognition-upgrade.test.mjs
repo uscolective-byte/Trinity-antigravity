@@ -201,8 +201,8 @@ test('an interrupted live answer reports an error and is not persisted as comple
   const res=await handleLiveChatStream(env,{waitUntil(p){persisted.push(p);}},{message:'Ako sa máš?',language:'sk',engine:'workers-ai'});
   const events=(await res.text()).trim().split('\n').map(JSON.parse);
   assert.equal(calls,1);
-  assert.equal(events.find(event=>event.type==='delta')?.text,'Časť odpovede');
-  assert.match(events.at(-1).error,/neúplný/);
+  assert.equal(events.some(event=>event.type==='delta'),false);
+  assert.match(events.at(-1).error,/pred overením/);
   assert.equal(events.at(-1).type,'error');
   assert.equal(persisted.length,0);
 });
