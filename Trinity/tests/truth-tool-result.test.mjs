@@ -146,3 +146,10 @@ test('fabricated background work is replaced and recorded as blocked',async()=>{
  assert.equal(result.truth.response_filtered,true);
  assert.deepEqual(result.truth.unsupported_claims,['unverified_background_work']);
 });
+
+test('chat corrects a false claim of having no PC access for the owner',async()=>{
+ const env={AI:{run:async()=>({response:'Nemám priamy prístup k tvojemu počítaču.'})}};
+ const result=await runAgent(env,'orchestrator','Vieš mi pomôcť s tým súborom?','','fast',8192,'sk',true);
+ assert.match(result.text,/cez PC Bridge, keď je pripojený/);
+ assert.equal(result.tool_log.length,0);
+});

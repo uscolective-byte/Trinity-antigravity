@@ -253,6 +253,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
   }
   const enabled=env.DB?(await listPlugins(env)).filter(p=>p.enabled).flatMap(p=>p.tools):agent.tools;
   let activeTools=agent.tools.filter(t=>(enabled.includes(t)||INTERNAL_TOOLS.has(t)||DEVELOPMENT_TOOLS.includes(t)||t==='diagnostic_ping')&&(!INTERNAL_TOOLS.has(t)||executionPolicy.allowInternal||t==='diagnostic_ping')&&(!PC_TOOLS.has(t)||executionPolicy.allowDirectPC));
+  const pcFilesAvailable=activeTools.includes('pc_open_file')||activeTools.includes('pc_file_read');
   if(provider==='fast')activeTools=activeTools.filter(tool=>FAST_TOOLS.has(tool));
   const direct=directChatTool(task,activeTools);
   if(direct){
@@ -569,6 +570,12 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
             text = `Jasné Ivan, som tu — povedz, na čom ideme robiť alebo čo potrebuješ rozobrať.`;
           }
         }
+      }
+      const normalizedAnswer=text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      if(pcFilesAvailable&&/\b(?:nemam (?:ziadny |priamy )?pristup k (?:tvojmu|tvojemu) pocitacu|nemam moznost (?:otvorit|citat|pracovat s) (?:ani (?:pracovat|pracu) s )?lokaln(?:e|ymi) subor(?:y|mi)|i (?:cannot|can't) (?:open|read|access) local files)\b/.test(normalizedAnswer)){
+        text=language==='en'
+          ? 'I can work with permitted files through PC Bridge when the bridge is connected. This response contains no confirmed file action.'
+          : 'S povolenými súbormi viem pracovať cez PC Bridge, keď je pripojený. V tejto odpovedi nemám potvrdenú akciu so súborom.';
       }
       return {...result,text,agent_id:id,tool_log:toolLog,truth:unsupported.length?{...truthStatus(action.answer,toolLog),response_filtered:true}:truthStatus(text,toolLog),duration_ms:Date.now()-started};
     }
