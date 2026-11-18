@@ -1,3 +1,4 @@
+import {sourceFileResult} from './pc-source-receipt.js';
 import {pcRunPayload} from './pc-run-payload.js';
 /**
  * @module TRINITY_OMNI_CORE
@@ -19,7 +20,7 @@ import {createMcpHandler} from 'agents/mcp/server';
 import {z} from 'zod';
 import {AGENTS} from './registry.js';
 import {createJob,getJob,listJobs} from './jobs.js';
-import {runTool, searchMemory} from './tools.js';
+import {runTool, searchMemory, waitForSystemAction} from './tools.js';
 import {runTapMcpDiagnostic,tapDiagnosticInput} from './tap-mcp-adapter.js';
 import {callModel,serviceStatus,readiness} from './services.js';
 import {skillRegistry} from './skillRegistry.js';
@@ -151,22 +152,23 @@ export function handleMcp(request,env,ctx,access={}){
         const enabled=await projectControlAllowed();
         if(!enabled)return result({error:'Riadenie projektu nie je pre tohto MCP klienta zapnuté.'});
         const action=await createSystemAction(env,{action:'read',payload:{path},rationale:'MCP klient: čítanie zdrojového súboru'},'mcp:client');
-        // Auto-approved read — počkáme
-        for(let i=0;i<60;i++){
-          await new Promise(r=>setTimeout(r,1000));
-          const cur=await getSystemAction(env,action.id);
-          if(cur?.status==='completed')return result({path,content:cur.receipt?.content||'',type:cur.receipt?.type});
-          if(cur?.status==='failed')return result({error:cur.error||'Čítanie zlyhalo.'});
-        }
-        return result({error:'PC Bridge neodpovedal. Je spustený?'});
+        const current=await waitForSystemAction(env,action,{attempts:60,intervalMs:1000});
+        if(current.status!=='completed')return result({id:action.id,status:current.status,verified:false,note:'Čítanie zatiaľ nie je dokončené. Stav over cez get_project_action.'});
+        return result(await sourceFileResult(current,path));
       });
 
     server.registerTool('edit_source_file',{description:'Navrhne úpravu zdrojového súboru Trinity projektu. Zápis vyžaduje samostatné schválenie.',
-      inputSchema:{path:z.string().min(1).max(500),content:z.string().min(1).max(500000),rationale:z.string().min(10).max(500)}},
-      async({path,content,rationale})=>{
+      inputSchema:{path:z.string().min(1).max(500),content:z.string().min(1).max(500000),rationale:z.string().min(10).max(500),expected_sha256:z.string().regex(/^[a-f0-9]{64}$/).optional()}},
+      async({path,content,rationale,expected_sha256})=>{
         const enabled=await projectControlAllowed();
         if(!enabled)return result({error:'Riadenie projektu nie je pre tohto MCP klienta zapnuté.'});
-        const action=await createSystemAction(env,{action:'selfwrite',payload:{path,content},rationale:`MCP klient: ${rationale}`},'mcp:client');
+        if(!expected_sha256){
+          const read=await createSystemAction(env,{action:'read',payload:{path},rationale:'MCP klient: overenie súboru pred úpravou'},'mcp:client');
+          const current=await waitForSystemAction(env,read,{attempts:60,intervalMs:1000});
+          if(current.status!=='completed')return result({id:read.id,status:current.status,verified:false,note:'Úprava nebola navrhnutá; čaká sa na čítanie pôvodného súboru.'});
+          expected_sha256=(await sourceFileResult(current,path)).sha256;
+        }
+        const action=await createSystemAction(env,{action:'selfwrite',payload:{path,content,expected_sha256},rationale:`MCP klient: ${rationale}`},'mcp:client');
         return result({id:action.id,status:action.status,approval_required:true,
           note:`Čaká na schválenie príkazom SCHVÁĽ ${action.id} v Trinity chate.`});
       });
@@ -176,7 +178,7 @@ export function handleMcp(request,env,ctx,access={}){
       async({path,depth})=>{
         const enabled=await projectControlAllowed();
         if(!enabled)return result({error:'Riadenie projektu nie je pre tohto MCP klienta zapnuté.'});
-        const action=await createSystemAction(env,{action:'read',payload:{path:path||'.',depth:depth||2},rationale:'MCP klient: výpis súborov projektu'},'mcp:client');
+        const action=await createSystemAction(env,{action:'read',payload:{path:path||'.',mode:'browse',depth:depth||2},rationale:'MCP klient: výpis súborov projektu'},'mcp:client');
         for(let i=0;i<60;i++){
           await new Promise(r=>setTimeout(r,1000));
           const cur=await getSystemAction(env,action.id);
@@ -191,7 +193,7 @@ export function handleMcp(request,env,ctx,access={}){
       async({cwd})=>{
         const enabled=await projectControlAllowed();
         if(!enabled)return result({error:'Riadenie projektu nie je pre tohto MCP klienta zapnuté.'});
-        const action=await createSystemAction(env,{action:'run',payload:{command:'npm run build',cwd:cwd||'.',allowNonZero:false},rationale:'MCP klient: wrangler build'},'mcp:client');
+        const action=await createSystemAction(env,{action:'run',payload:pcRunPayload('npm run build',cwd==='.'?undefined:cwd),rationale:'MCP klient: wrangler build'},'mcp:client');
         return result({id:action.id,status:action.status,approval_required:action.status==='proposed',
           note:`Čaká na schválenie príkazom SCHVÁĽ ${action.id}.`});
       });

@@ -4,6 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 import { createApiKey } from '../src/api-keys.js';
+import { hash } from '../src/security.js';
 import { verifyReceipt } from '../../packages/contracts/src/tap.js';
 
 let mf, db, tapDb, bucket, host, missingHost, writeKey, readKey, otherKey;
@@ -13,13 +14,13 @@ async function applySql(database, path) {
   for (const statement of sql.replace(/--[^\n]*/g, '').split(';').filter(s => s.trim())) await database.prepare(statement).run();
 }
 const countRuns = async () => (await tapDb.prepare('SELECT COUNT(*) AS count FROM tap_runs').first()).count;
-async function call(worker, secret, args) {
+async function call(worker, secret, args, name='diagnostic_ping') {
   return worker.fetch(origin + '/mcp', {
     method: 'POST', headers: {
       Accept: 'application/json, text/event-stream', 'Content-Type': 'application/json',
       ...(secret ? { Authorization: `Bearer ${secret}` } : {})
     },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'diagnostic_ping', arguments: args } })
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name, arguments: args } })
   });
 }
 async function rpc(response) {
@@ -116,4 +117,44 @@ test('HTTP/MCP loss of durable proof becomes UNKNOWN_OUTCOME/isError without re-
   assert.equal(replay.tap.status, 'UNKNOWN_OUTCOME'); assert.equal(replay.error, 'TAP_RECONCILIATION_REQUIRED');
   const running = await tapDb.prepare("SELECT COUNT(*) AS count FROM tap_audit_events WHERE run_id=? AND status='RUNNING'").bind(first.tap.run_id).first();
   assert.equal(running.count, 1);
+});
+
+
+test('MCP development tools send executable gateway payloads and bind edits to verified source',async()=>{
+  await db.prepare(`CREATE TABLE ops_system_actions (
+    id TEXT PRIMARY KEY,action TEXT,payload_json TEXT,rationale TEXT,status TEXT,requested_by TEXT,
+    approved_by TEXT,approved_at INTEGER,expires_at INTEGER,target_user TEXT,receipt_json TEXT,error TEXT,
+    created_at TEXT,updated_at TEXT
+  )`).run();
+  const build=toolPayload(await rpc(await call(host,writeKey,{},'run_build')));
+  assert.equal(build.status,'proposed');
+  const buildRow=await db.prepare('SELECT payload_json FROM ops_system_actions WHERE id=?').bind(build.id).first();
+  assert.deepEqual(JSON.parse(buildRow.payload_json),{project:'Trinity',task:'build'});
+  assert.equal((await call(host,readKey,{},'run_build')).status,403);
+
+  async function completeRead(name,args,receipt){
+    const pending=call(host,writeKey,args,name);
+    let row;
+    for(let i=0;i<100;i++){
+      row=await db.prepare("SELECT id,payload_json FROM ops_system_actions WHERE action='read' AND status='approved' LIMIT 1").first();
+      if(row)break;
+      await new Promise(resolve=>setTimeout(resolve,20));
+    }
+    assert.ok(row,'MCP tool must enqueue a real read request');
+    await db.prepare("UPDATE ops_system_actions SET status='completed',receipt_json=? WHERE id=?").bind(JSON.stringify(receipt),row.id).run();
+    return {payload:JSON.parse(row.payload_json),result:await rpc(await pending)};
+  }
+  const directory=await completeRead('list_project_files',{path:'Trinity'}, {path:'Trinity',is_directory:true,files:[{name:'package.json',isDirectory:false}]});
+  assert.equal(directory.payload.mode,'browse');
+  assert.equal(toolPayload(directory.result).files[0].name,'package.json');
+  const content='original source',sha256=await hash(content);
+  const source=await completeRead('get_source_file',{path:'Trinity/test.txt'}, {path:'Trinity/test.txt',content,sha256,bytes:content.length});
+  assert.equal(toolPayload(source.result).sha256,sha256);
+  const malformed=await completeRead('get_source_file',{path:'Trinity/test.txt'}, {content:'invented',sha256});
+  assert.equal(malformed.result.isError,true);
+  const edit=await completeRead('edit_source_file',{path:'Trinity/test.txt',content:'updated source',rationale:'Test guarded MCP source edit'}, {path:'Trinity/test.txt',content,sha256});
+  const editResult=toolPayload(edit.result);
+  assert.equal(editResult.status,'proposed');
+  const row=await db.prepare('SELECT payload_json FROM ops_system_actions WHERE id=?').bind(editResult.id).first();
+  assert.deepEqual(JSON.parse(row.payload_json),{path:'Trinity/test.txt',content:'updated source',expected_sha256:sha256});
 });
