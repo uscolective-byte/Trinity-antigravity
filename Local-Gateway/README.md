@@ -41,3 +41,14 @@ Nástroj `pc_run_script` používa `runtime: node|python|cmd`, cestu pod `Trinit
 Doklad obsahuje runtime, cestu, SHA-256, stdout, stderr, exitCode a success. Návratový kód 0 znamená úspech procesu, nie automaticky správnosť výsledku. Časový limit vo Windows ukončí strom spusteného procesu. Skripty nededia tajomstvá z prostredia brány, ale nie sú izolované od OS ani siete: spúšťaj len dôveryhodný kód schválený vlastníkom. Bezpečnostný model súborových nástrojov nemožno považovať za sandbox skriptov. Počítač aj miestna brána musia bežať.
 
 `pc_run` podporuje navyše pevné príkazy `node --version`, `python --version`, `cmd /c ver`. Inštalácia balíkov a ľubovoľný interaktívny terminál nie sú súčasťou tejto schopnosti.
+
+
+## Native workspace search
+
+The gateway supports read actions with `task: workspace-search`. Use `mode: files` with a glob, or `mode: content` with a literal pattern / `regex: true`. Results include real paths, line numbers, bounded snippets, byte columns, and explicit `truncated` / `limit_reasons` fields. Worker tools are `pc_find_files` and `pc_search_text`.
+
+Requires Node >=22.20 and ripgrep. On Windows x64 run `./install-search.ps1`; it installs the official standalone ripgrep 15.2.0 archive under the current user's LocalAppData/Trinity directory, verifies SHA-256 `71b2fef860abe467217a538ff31de02f5258807c0129f771846f87bd029aafc5`, retains the archive's licenses and checks the installed version. It has no dependency on the Codex installation. Other platforms use `rg` from PATH; `TRINITY_RG_PATH` is an optional trusted administrator override.
+
+Search remains inside the configured workspace, omits protected credentials and symbolic links, bounds traversal to 5,000 files and depth 20, and excludes files above 1 MB from content search. Search result text is bounded to 24 KB and the traversal/search operation to a 10-second time budget. File-size exclusions and traversal/output/result limits are reported. Zero matches is a valid empty result; an invalid regex or missing search executable is an error.
+
+Official sources: https://github.com/BurntSushi/ripgrep/releases/tag/15.2.0 and https://nodejs.org/api/path.html#pathmatchesglobpath-pattern.

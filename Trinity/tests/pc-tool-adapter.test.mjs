@@ -112,3 +112,16 @@ test('general file and command tools use the PC gateway for both PascalCase and 
  await assert.rejects(runTool(env,agent,'run_command',{CommandLine:'node -v',IsDaemon:true},auth),/Trvalé procesy/);
  await assert.rejects(runTool(env,agent,'run_command',{command:'arbitrary command'},auth),/povoľuje/);
 });
+
+
+test('workspace search tools require an administrator and dispatch typed real read actions',async()=>{
+ const payloads=[];const env={DB:{prepare(sql){return {
+  bind(...values){if(sql.startsWith('INSERT INTO ops_system_actions'))payloads.push(JSON.parse(values[2]));return this;},async run(){return {};},async first(){return sql.includes('ops_plugins')?{installed:1,enabled:1}:{id:'search-read',status:'completed',payload_json:'{}',receipt_json:JSON.stringify({matches:[],truncated:false})};}
+ };}}};
+ const agent={tools:['pc_find_files','pc_search_text']};
+ await assert.rejects(runTool(env,agent,'pc_search_text',{pattern:'sourceFileResult'}),/admin/);
+ await runTool(env,agent,'pc_find_files',{path:'Trinity/src',glob:'**/*.js'},{adminAuthorized:true});
+ assert.deepEqual(payloads.at(-1),{task:'workspace-search',mode:'files',path:'Trinity/src',glob:'**/*.js',limit:50});
+ await runTool(env,agent,'pc_search_text',{pattern:'function.*Result',regex:true},{adminAuthorized:true});
+ assert.deepEqual(payloads.at(-1),{task:'workspace-search',mode:'content',path:'Trinity',pattern:'function.*Result',glob:'**/*',regex:true,case_sensitive:false,context:0,limit:50});
+});

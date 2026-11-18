@@ -34,6 +34,14 @@ jobs:
           npm --prefix Trinity ci
 
 
+      - name: Ensure native workspace search dependency
+        run: |
+          if ! command -v rg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes ripgrep
+          fi
+          rg --version
+
       - name: Run Full Test Suite
         run: npm test
 

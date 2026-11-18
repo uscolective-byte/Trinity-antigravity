@@ -65,7 +65,7 @@ import {antigravityManageTask,antigravitySearchMarketplace} from './antigravity-
 export const INTERNAL_TOOLS=new Set(['diagnostic_ping','request_system_action','system_action_status','request_owner_approval','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose','cf_d1_query','cf_kv_store','cf_r2_manage','cf_self_deploy','mail_engine','http_fetch_pro','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','apply_self_evolution','triad_subagent_run','triad_deep_research','triad_code_patch','triad_test_matrix','triad_copilot_sync','triad_status','read_file','write_file','edit_file','run_command','manage_task','search_marketplace','execute_gemini_gem','execute_claude','dual_engine_deliberate','multi_agent_dispatch']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
 export const ACCOUNT_CONNECTOR_TOOLS=new Set(['onedrive_manage','google_cloud_manage','google_drive_verify']);
-export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','read_file','write_file','edit_file','run_command']);
+export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_find_files','pc_search_text','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','read_file','write_file','edit_file','run_command']);
 export const OWNER_BUSINESS_TOOLS=new Set(['finance_propose_transfer','finance_confirm_transfer','finance_audit_ledger','prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
 export const requiresVerifiedAdminForIntegrationTool=(name,args={})=>
   name==='cloudflare_manage'&&['purge_cache','create_dns_record','update_dns_record','delete_dns_record'].includes(args?.action)
@@ -77,6 +77,8 @@ export const PC_TOOL_SCHEMAS={
   pc_screenshot:z.object({}).strict(),
   pc_run:z.object({command:z.string().min(1).max(4000),cwd:z.string().optional(),timeout:z.number().int().min(1000).max(600000).optional(),allowNonZero:z.boolean().optional()}).strict(),
   pc_file_read:z.object({path:z.string().min(1).max(2000),depth:z.number().int().min(1).max(3).optional()}).strict(),
+  pc_find_files:z.object({path:z.string().min(1).max(2000).default('Trinity'),glob:z.string().min(1).max(300).default('**/*'),limit:z.number().int().min(1).max(200).default(50)}).strict(),
+  pc_search_text:z.object({path:z.string().min(1).max(2000).default('Trinity'),pattern:z.string().min(1).max(2000),glob:z.string().min(1).max(300).default('**/*'),regex:z.boolean().default(false),case_sensitive:z.boolean().default(false),context:z.number().int().min(0).max(3).default(0),limit:z.number().int().min(1).max(200).default(50)}).strict(),
   pc_file_write:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000),expected_sha256:z.string().regex(/^(absent|[a-f0-9]{64})$/).default('absent')}).strict(),
   pc_file_append:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000)}).strict(),
   pc_file_edit:z.union([
@@ -1150,9 +1152,9 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     };
   }
   // ── PC Bridge nástroje ──
-  if(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr'].includes(name)){
+  if(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_find_files','pc_search_text','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr'].includes(name)){
     const pcActionMap={
-      pc_screenshot:'screenshot', pc_run_script:'run', pc_run:'run', pc_file_read:'read', pc_file_write:'write',
+      pc_screenshot:'screenshot', pc_run_script:'run', pc_run:'run', pc_file_read:'read',pc_find_files:'read',pc_search_text:'read', pc_file_write:'write',
       pc_file_append:'write',pc_file_edit:'edit',pc_directory_create:'write',
       pc_open_app:'open_app',pc_open_url:'open_url',pc_open_file:'open_file',pc_app_control:'open_app', pc_notify:'notify', pc_system_info:'system_info',
       pc_scrape:'scrape',pc_web_fetch:'web_fetch',pc_download:'download', pc_git_commit:'git_commit', pc_git_pr:'git_pr',
@@ -1164,6 +1166,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     if(name==='pc_open_file')payload={path:parsedArgs.path};
     if(name==='pc_run_script')payload={task:'script',...parsedArgs};
     if(name==='pc_file_read')payload={path:parsedArgs.path,depth:parsedArgs.depth};
+    if(name==='pc_find_files'||name==='pc_search_text')payload={task:'workspace-search',mode:name==='pc_find_files'?'files':'content',...parsedArgs};
     if(name==='pc_file_write')payload={path:parsedArgs.path,content:parsedArgs.content,expected_sha256:parsedArgs.expected_sha256};
     if(name==='pc_run'){
       payload=pcRunPayload(parsedArgs.command,parsedArgs.cwd);
@@ -1571,6 +1574,8 @@ export const TOOL_HELP={
   // ── PC Bridge nástroje ──
   pc_screenshot:'Spraví screenshot obrazovky a vráti base64 PNG + rozlíšenie: {}',
   pc_run:'Spustí iba povolenú úlohu: {command:"npm run build"|"npm test"|"npm run deploy"|"npm run start"|"npm start"|"docker compose up"|"docker compose ps"|"docker ps"|"git log -n 5"|"git status --short"|"git diff --check"|"node --version"|"python --version"|"cmd /c ver",cwd?:"Trinity"|"Local-Gateway"}. Nepoužívaj shellové reťazenie.',
+  pc_find_files:'Nájde skutočné súbory na pripojenom PC rekurzívne podľa globu: {path?:Trinity,glob?:**/*.js,limit?:50}. Blokuje poverenia a závislosti; vracia presné cesty a informáciu o limitoch.',
+  pc_search_text:'Vyhľadá text v skutočných súboroch PC cez ripgrep: {pattern:string,path?:Trinity,glob?:**/*,regex?:false,case_sensitive?:false,context?:0..3,limit?:50}. Vracia cesty, čísla riadkov a skutočné úryvky; rešpektuj truncated a limit_reasons.',
   pc_file_read:'Prečíta súbor z projektu: {path:string}. Cesta musí byť relatívna, napríklad Trinity/package.json; poverenia sú blokované.',
   pc_file_write:'Vytvorí nový súbor alebo prepíše súbor iba pri zhodnom SHA-256 z pc_file_read: {path:string,content:string,expected_sha256?:string}. Predvolené absent odmietne prepísanie existujúceho súboru.',
   pc_file_append:'Pridá obsah na koniec súboru v povolenom pracovnom priečinku (vyžaduje schválenie): {path:string,content:string}',

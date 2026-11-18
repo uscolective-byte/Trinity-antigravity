@@ -1,3 +1,4 @@
+import {searchWorkspace} from './workspace-search.mjs';
 /**
  * @module TRINITY_OMNI_CORE
  * @subsystem LOCAL_BRIDGE_GATEWAY
@@ -119,6 +120,7 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
     const outbox=path.join(dataDir,'outbox');await mkdir(outbox,{recursive:true});const destination=path.join(outbox,`${proposal.id}-${path.basename(source)}`);await copyFile(source,destination);
     return {action:proposal.action,state:'staged-local-only',source:payload.path,outbox:destination,bytes:info.size,note:'Externý cieľ ešte nie je pripojený; súbor nebol zverejnený.'};
   }
+  if(proposal.action==='read'&&payload.task==='workspace-search')return searchWorkspace(workspaceRoot,payload);
   if(proposal.action==='read'&&payload.task==='local-inference')return runLocalInference(payload);
   if(proposal.action==='read')return payload.mode==='browse'
     ?browseWorkspacePath(workspaceRoot,payload.path)
