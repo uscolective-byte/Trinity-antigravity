@@ -79,25 +79,25 @@ def decide(task_id, approve):
         raise ValueError("Unknown task")
     if task["state"] != "pending":
         raise ValueError("Task is not pending")
-    if int(time.time()) - task["created"] > 600:
-        with connect() as db:
-            db.execute("UPDATE tasks SET state='expired', updated=? WHERE id=? AND state='pending'",
-                       (int(time.time()), task_id))
-        raise ValueError("Task expired (10-minute approval window)")
-    if not approve:
-        with connect() as db:
-            db.execute("UPDATE tasks SET state='denied', updated=? WHERE id=? AND state='pending'",
-                       (int(time.time()), task_id))
-        return get_task(task_id)
-    if not INSTALLER.is_file():
+    if approve and not INSTALLER.is_file():
         raise RuntimeError("Approved installer script is missing")
+    now = int(time.time())
+    next_state = "running" if approve else "denied"
     with connect() as db:
         updated = db.execute(
-            "UPDATE tasks SET state='running', updated=? WHERE id=? AND state='pending'",
-            (int(time.time()), task_id)
-        )
-        if updated.rowcount != 1:
-            raise RuntimeError("Task state changed concurrently")
+            "UPDATE tasks SET state=?, updated=? WHERE id=? AND state='pending' AND created>?",
+            (next_state, now, task_id, now - 600)
+        ).rowcount
+        expired = not updated and db.execute(
+            "UPDATE tasks SET state='expired', updated=? WHERE id=? AND state='pending' AND created<=?",
+            (now, task_id, now - 600)
+        ).rowcount
+    if expired:
+        raise ValueError("Task expired (10-minute approval window)")
+    if not updated:
+        raise RuntimeError("Task state changed concurrently")
+    if not approve:
+        return get_task(task_id)
     # This runs ONLY in the local CLI process, after explicit operator approval.
     # Arguments are fixed; never use shell=True or accept remote command strings.
     try:
@@ -120,6 +120,7 @@ def decide(task_id, approve):
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "TrinityLocalAgent/0.1"
+    timeout = 10
     def log_message(self, fmt, *args):
         # Avoid leaking authorization headers or task payloads into logs.
         sys.stderr.write("[trinity-agent] request processed\n")
@@ -133,9 +134,12 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(raw)
     def authorized(self):
-        expected = TOKEN_FILE.read_text(encoding="ascii").strip()
-        supplied = self.headers.get("Authorization", "")
-        return hmac.compare_digest(supplied, "Bearer " + expected)
+        try:
+            expected = TOKEN_FILE.read_text(encoding="ascii").strip()
+            supplied = self.headers.get("Authorization", "").encode("ascii")
+        except (OSError, UnicodeError):
+            return False
+        return len(expected) >= 40 and hmac.compare_digest(supplied, b"Bearer " + expected.encode("ascii"))
     def handle_request(self):
         # Reject DNS rebinding / hostile Host headers and browser-origin requests.
         # Only direct loopback clients are supported; do not expose via a tunnel.

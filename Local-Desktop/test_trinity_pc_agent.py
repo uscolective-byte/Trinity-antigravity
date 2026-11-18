@@ -54,6 +54,26 @@ class LocalAgentTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             agent.decide(task["id"], True)
 
+    def test_expired_task_is_recorded_and_never_installs(self):
+        task = agent.propose("Git")
+        with patch.object(agent.time, "time", return_value=task["created"] + 600), patch.object(
+            agent.subprocess, "run", side_effect=AssertionError("must not execute")
+        ):
+            with self.assertRaisesRegex(ValueError, "expired"):
+                agent.decide(task["id"], True)
+        self.assertEqual(agent.get_task(task["id"])["state"], "expired")
+
+    def test_status_authorization_rejects_empty_and_non_ascii_tokens(self):
+        handler = object.__new__(agent.Handler)
+        token = agent.TOKEN_FILE.read_text().strip()
+        handler.headers = {"Authorization": "Bearer " + token}
+        self.assertTrue(handler.authorized())
+        handler.headers = {"Authorization": "Bearer naïve"}
+        self.assertFalse(handler.authorized())
+        agent.TOKEN_FILE.write_text("")
+        handler.headers = {"Authorization": "Bearer "}
+        self.assertFalse(handler.authorized())
+
     def test_install_success_is_not_verified_without_independent_probe(self):
         task = agent.propose("Git")
         script = self.root / "installer.ps1"
