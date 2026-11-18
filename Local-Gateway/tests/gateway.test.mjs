@@ -15,6 +15,7 @@ test('safe path stays in workspace and blocks secrets',async()=>{
   const root=await workspace();assert.equal(await resolveSafePath(root,'Trinity/a.txt'),path.join(root,'Trinity','a.txt'));
   await assert.rejects(()=>resolveSafePath(root,'../outside.txt'),/chránená|mimo/);
   await assert.rejects(()=>resolveSafePath(root,'Trinity/.env'),/chránená/);
+  for(const name of ['.dev.vars','.dev.vars.production','.mcp.json','.npmrc','.pypirc'])await assert.rejects(()=>resolveSafePath(root,'Trinity/'+name,{allowMissing:true}),/chránená/);
   await assert.rejects(()=>resolveSafePath(root,'.credentials/token.dpapi',{allowMissing:true}),/chránená/);
 });
 

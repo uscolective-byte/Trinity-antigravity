@@ -23,7 +23,7 @@ export function startCloudLink({baseUrl,key,store,workspaceRoot,dataDir,execute=
   const report=state=>onState({...state,at:new Date().toISOString(),consecutive_failures:failures});
   const schedule=delay=>{if(stopped)return;clearTimeout(timer);timer=setTimeout(poll,delay);timer.unref();};
   async function sendReceipt(id,status,receipt,error){
-    await request(`${baseUrl}/api/system/actions/${id}/receipt`,key,{method:'POST',body:JSON.stringify({status,receipt:status==='completed'?receipt:undefined,error:status==='failed'?error:undefined})});
+    await request(`${baseUrl}/api/system/actions/${id}/receipt`,key,{method:'POST',body:JSON.stringify({status,receipt:receipt??undefined,error:status==='failed'?error:undefined})});
   }
   async function poll(){
     if(stopped||busy)return;busy=true;

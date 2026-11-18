@@ -28,7 +28,7 @@ export const CAPABILITIES=Object.freeze([
 
 export const ACTIONS=new Set(CAPABILITIES.map(item=>item.id));
 const BLOCKED_SEGMENTS=new Set(['.git','.credentials','.wrangler','node_modules']);
-const BLOCKED_NAMES=[/^\.env(?:\..+)?$/i,/\.dpapi$/i,/\.(?:pem|pfx|p12|key)$/i,/^(?:id_rsa|id_ed25519)$/i];
+const BLOCKED_NAMES=[/^\.env(?:\..+)?$/i,/^\.dev\.vars(?:\..+)?$/i,/^\.(?:npmrc|pypirc|mcp\.json)$/i,/\.dpapi$/i,/\.(?:pem|pfx|p12|key)$/i,/^(?:id_rsa|id_ed25519)$/i];
 export function isProtectedWorkspaceSegment(segment){
   return segment==='..'||BLOCKED_SEGMENTS.has(segment.toLowerCase())||BLOCKED_NAMES.some(rule=>rule.test(segment));
 }
