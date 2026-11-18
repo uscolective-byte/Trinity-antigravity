@@ -89,9 +89,14 @@ export class ToolExecutor {
       const durationMs = Date.now() - startTime;
       const output = await response.json();
 
-      if (response.ok) {
-        // Úspech
-        await this._writeReceipt(run_id, step, toolId, 'success', receipt_id, input, output);
+      const resultFailed = !response.ok || output?.success === false || output?.ok === false ||
+        Boolean(output?.error) || ['error', 'failed', 'failure', 'denied', 'unverified', 'simulated'].includes(String(output?.status || '').toLowerCase());
+      if (!resultFailed) {
+        // Persisting a receipt is required before reporting confirmed success.
+        const recorded = await this._writeReceipt(run_id, step, toolId, 'success', receipt_id, input, output);
+        if (!recorded) {
+          return { status: 'unverified', error: 'Execution response received but audit receipt could not be stored', receipt_id, durationMs };
+        }
         await this._updateToolStats(toolId, true, durationMs);
         
         this.logger?.info('tool-executor', 'tool.success', `Tool ${toolId} completed`, {
@@ -150,8 +155,10 @@ export class ToolExecutor {
         JSON.stringify(input).substring(0, 8192),
         JSON.stringify(output).substring(0, 8192)
       ).run();
+      return true;
     } catch (e) {
       console.error('Failed to write tool receipt:', e.message);
+      return false;
     }
   }
 
@@ -209,7 +216,7 @@ export class ToolExecutor {
       currentInput = result.output || {};
     }
 
-    return { run_id, results, completed: results.length === steps.length };
+    return { run_id, results, completed: results.length === steps.length && results.every(result => result.status === 'success') };
   }
 
   /**
