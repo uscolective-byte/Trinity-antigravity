@@ -51,6 +51,9 @@ export function getRelyingPartyId(request) {
  * 1. Generovanie registračných možností (WebAuthn create challenge)
  */
 export async function generateRegistrationOptions(request, env, userEmail) {
+  // SECURITY HOLD: existing implementation did not verify authenticator attestation/assertion.
+  // Fail closed until a standards-compliant WebAuthn verifier is integrated and tested.
+  throw new HttpError(503, 'PASSKEY_VERIFICATION_UNAVAILABLE: Registration requires attestation validation, origin/RP checks and an authenticated account.');
   const email = String(userEmail || env.TRINITY_OWNER_EMAIL || 'admin@auru.space').trim().toLowerCase();
   const rpId = getRelyingPartyId(request);
   const challenge = randomChallenge();
@@ -106,6 +109,9 @@ export async function generateRegistrationOptions(request, env, userEmail) {
  * 2. Overenie a uloženie nového Passkey (WebAuthn registration verification)
  */
 export async function verifyRegistrationResponse(request, env, body, currentUserEmail = null) {
+  // SECURITY HOLD: existing implementation did not verify authenticator attestation/assertion.
+  // Fail closed until a standards-compliant WebAuthn verifier is integrated and tested.
+  throw new HttpError(503, 'PASSKEY_VERIFICATION_UNAVAILABLE: Unverified credential registration is disabled.');
   if (!body || !body.id || !body.response) {
     throw new HttpError(400, 'Neplatný payload registrácie Passkey.');
   }
@@ -175,6 +181,9 @@ export async function verifyRegistrationResponse(request, env, body, currentUser
  * 3. Generovanie autentifikačných možností (WebAuthn get challenge)
  */
 export async function generateAuthenticationOptions(request, env, userEmail = null) {
+  // SECURITY HOLD: existing implementation did not verify authenticator attestation/assertion.
+  // Fail closed until a standards-compliant WebAuthn verifier is integrated and tested.
+  throw new HttpError(503, 'PASSKEY_VERIFICATION_UNAVAILABLE: Login requires a verified WebAuthn assertion signature, origin, RP ID, UP/UV flags, and counter.');
   const rpId = getRelyingPartyId(request);
   const challenge = randomChallenge();
   const challengeHash = await hash(challenge);
@@ -213,6 +222,9 @@ export async function generateAuthenticationOptions(request, env, userEmail = nu
  * 4. Overenie biometrického prihlásenia a vydanie Trinity relácie
  */
 export async function verifyAuthenticationResponse(request, env, body) {
+  // SECURITY HOLD: existing implementation did not verify authenticator attestation/assertion.
+  // Fail closed until a standards-compliant WebAuthn verifier is integrated and tested.
+  throw new HttpError(503, 'PASSKEY_VERIFICATION_UNAVAILABLE: Unverified passkey assertion cannot issue a session.');
   if (!body || !body.id || !body.response) {
     throw new HttpError(400, 'Neplatný payload biometrického prihlásenia.');
   }
