@@ -70,3 +70,39 @@ in CI or on the owner's PC.
 **Truth policy:** A queued task is not an executed task. An installer exit
 code is not proof that a tool works. A Worker heartbeat is not proof that a
 local PC is online.
+
+## No-clone Windows startup and real local connectivity check
+
+The existing project directory must already contain the three files under
+`Local-Desktop`. No `git clone` is needed.
+
+From the existing Trinity project directory, first run the local test gate:
+
+```powershell
+powershell -NoProfile -File .\Local-Desktop\Start-TrinityPCAgent.ps1 -CheckOnly
+```
+
+Start the agent in a terminal that remains open:
+
+```powershell
+powershell -NoProfile -File .\Local-Desktop\Start-TrinityPCAgent.ps1
+```
+
+In a second local PowerShell terminal, verify the authenticated health endpoint:
+
+```powershell
+powershell -NoProfile -File .\Local-Desktop\Check-TrinityPCAgent.ps1
+```
+
+The check reads the local token file without printing it. It succeeds only
+when the local HTTP service responds with its expected identity and explicit
+`connectedToCloudflare:false` and `remoteExecutionEnabled:false` values.
+This is a **local** check, not a Cloudflare tunnel or production check.
+
+Do not run an unauthenticated `cloudflared tunnel --url` exposing port 8788.
+Do not add public DNS to the loopback service. Production cloud connectivity
+requires a separately designed and tested device identity, queue, approval
+protocol and mutual authentication.
+
+The local Windows commands have not been executed by ChatGPT; a successful
+GitHub commit proves only that the source files were stored.
