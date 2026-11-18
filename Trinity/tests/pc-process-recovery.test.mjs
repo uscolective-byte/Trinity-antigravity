@@ -1,6 +1,7 @@
+import {pcRetryScope} from '../src/pc-retry-scope.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {runAgent,toolCallKey} from '../src/engine.js';
+import {runAgent,toolCallKey,unresolvedToolOutcome} from '../src/engine.js';
 import {waitForSystemAction} from '../src/tools.js';
 import {agentById} from '../src/registry.js';
 import {workflowResultComplete} from '../src/truth.js';
@@ -70,4 +71,38 @@ test('edit schemas expose both unambiguous spellings and normalize the same oper
  assert.deepEqual(TOOL_SCHEMAS.pc_file_edit.parse(alternate),canonical);
  assert.throws(()=>TOOL_SCHEMAS.pc_file_edit.parse({...canonical,...alternate}));
  assert.throws(()=>TOOL_SCHEMAS.pc_file_edit.parse({path:canonical.path,target:'old'}));
+});
+
+
+test('validation recovery matches a later verified operation and preserves unrelated or executed failures',async()=>{
+ const scope=await pcRetryScope('pc_file_read',{Path:'Trinity/a.txt'});
+ assert.equal(scope,await pcRetryScope('pc_file_read',{path:'Trinity/a.txt'}));
+ const failed={tool:'pc_file_read',status:'failed',call_key:'invalid',validation_only:true,retry_scope:scope};
+ const success={tool:'pc_file_read',status:'completed',call_key:'valid',effect:'read',receipt_id:'read-proof',retry_scope:scope};
+ assert.equal(unresolvedToolOutcome([failed,success]),null);
+ assert.equal(failed.status,'failed');
+ assert.equal(unresolvedToolOutcome([failed,{...success,retry_scope:await pcRetryScope('pc_file_read',{path:'Trinity/b.txt'})}]).execution_status,'failed');
+ assert.equal(unresolvedToolOutcome([{...failed,validation_only:false},success]).execution_status,'failed');
+ assert.equal(unresolvedToolOutcome([failed,{...success,receipt_id:undefined}]).execution_status,'failed');
+ assert.equal(await pcRetryScope('pc_file_read',{}),null);
+ assert.equal(await pcRetryScope('pc_file_read',{path:'Trinity/a.txt',Path:'Trinity/b.txt'}),null);
+ assert.equal(await pcRetryScope('pc_file_edit',{path:'Trinity/a.txt',find:'a',target:'b',replace:'x'}),null);
+ assert.notEqual(await pcRetryScope('pc_file_edit',{path:'Trinity/a.txt',find:'a',replace:'x'}),await pcRetryScope('edit_file',{Path:'Trinity/a.txt',Target:'b',Replacement:'x'}));
+});
+
+test('agent repairs a validation-only read call and returns a verified result without discarding its failed attempt',async()=>{
+ let calls=0;
+ const env={DB:{prepare(sql){return {
+  bind(){return this;},async run(){return {};},
+  async all(){return {results:sql.includes('FROM ops_plugins')?[{id:'workspace-files',installed:1,enabled:1}]:[]};},
+  async first(){return sql.includes('ops_plugins')?{installed:1,enabled:1}:sql.includes('ops_system_actions')?{id:'read-fixed',status:'completed',payload_json:'{}',receipt_json:JSON.stringify({content:'source',sha256:'a'.repeat(64),bytes:6})}:null;}
+ };}},AI:{run:async(_model,{messages})=>{
+  calls++;
+  if(calls===2){assert.match(messages.at(-1).content,/not_started/);assert.match(messages.at(-1).content,/input_schema/);}
+  return {response:calls===1?JSON.stringify({tool:'pc_file_read',arguments:{Path:'Trinity/a.txt'}}):calls===2?JSON.stringify({tool:'pc_file_read',arguments:{path:'Trinity/a.txt'}}):'Obsah je source.'};
+ }}};
+ const result=await runAgent(env,'backend','Zisti obsah povoleného skúšobného súboru.','','workers-ai',2000,'sk',true);
+ assert.deepEqual(result.tool_log.map(entry=>entry.status),['failed','completed']);
+ assert.equal(result.tool_log[0].validation_only,true);
+ assert.equal(workflowResultComplete(result),true,JSON.stringify(result));
 });

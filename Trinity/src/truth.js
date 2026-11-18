@@ -585,8 +585,12 @@ export function bridgeExecutionVerified(httpOk, result) {
 
 export function latestToolOutcomes(toolLog) {
   const latest = new Map();
-  for (const entry of toolLog) {
+  for (let index=0;index<toolLog.length;index++) {
+    const entry=toolLog[index];
     if (entry?.tool === 'model_fallback') continue;
+    // Only a schema failure before execution can be resolved across repaired
+    // arguments. Match a later verified operation on the same precise target.
+    if(entry?.validation_only===true&&entry.retry_scope&&toolLog.slice(index+1).some(later=>later?.status==='completed'&&later.receipt_id&&later.effect!=='diagnostic'&&later.retry_scope===entry.retry_scope))continue;
     const key = entry?.tool && !READ_TOOLS.has(entry.tool) && entry.call_key
       ? entry.tool+':'+entry.call_key : entry?.tool;
     latest.set(key || Symbol(), entry);

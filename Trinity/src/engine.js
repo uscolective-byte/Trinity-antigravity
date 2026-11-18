@@ -1,3 +1,5 @@
+import {ZodError} from 'zod';
+import {pcRetryScope} from './pc-retry-scope.js';
 import {hash} from './security.js';
 import {formatWeather,formatCryptoPrices,formatTechNews} from './external-data-response.js';
 import {formatFleetStatus} from './fleet-response.js';
@@ -612,6 +614,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
     if(toolTurns===12)throw new Error('Agent prekročil limit nástrojových krokov.');
     if(forceFinal)throw new Error('Trinity nestihla overiť výsledok v časovom limite.');
     const call_key=await toolCallKey(action.tool,action.arguments);
+    const retry_scope=await pcRetryScope(action.tool,action.arguments);
     let outcome;
     try {
       if(action.tool==='describe_tools'){
@@ -620,7 +623,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
         if(!activeTools.includes(action.tool))throw new Error('Nástroj nie je povolený pre túto úlohu.');
         outcome=assertNoSimulatedData(await runTool(env,agent,action.tool,action.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin}),action.tool);
       }
-      toolLog.push({...toolReceiptForOutcome(action.tool,outcome),call_key});
+      toolLog.push({...toolReceiptForOutcome(action.tool,outcome),call_key,...(retry_scope?{retry_scope}:{})});
       if(outcome&&'_evidence' in outcome){outcome={...outcome};delete outcome._evidence;}
       if(env?.DB&&action.tool!=='diagnostic_ping'){
         try {
@@ -635,8 +638,9 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
       }
     }
     catch(e){
-      outcome=e.toolResult||{error:e.message};
-      toolLog.push({tool:action.tool,status:'failed',error:e.message,call_key,...(e.toolResult?.id?{receipt_id:e.toolResult.id}:{})});
+      const validation_only=e instanceof ZodError;
+      outcome=e.toolResult||{error:e.message,...(validation_only?{execution:'not_started',input_schema:TOOL_SCHEMAS[action.tool]?describeAvailableTools([action.tool],TOOL_SCHEMAS,TOOL_HELP,{name:action.tool}).tools[0].input_schema:undefined}:{})};
+      toolLog.push({tool:action.tool,status:'failed',error:e.message,call_key,...(retry_scope?{retry_scope}:{}),...(validation_only?{validation_only:true}:{}),...(e.toolResult?.id?{receipt_id:e.toolResult.id}:{})});
       if(env?.DB){
         try {
           await env.DB.prepare("INSERT INTO ops_events(action, details) VALUES('tool_executed', ?)").bind(JSON.stringify({
