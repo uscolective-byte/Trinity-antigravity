@@ -30,3 +30,13 @@ test('ChatAgent actually skips a failed primary after three failures and can use
   assert.equal(fallback.response, 'Real fallback model response');
   assert.equal(calls.length, 4);
 });
+
+test('tool summaries use the same guarded model and preserve recorded states when it fails',async()=>{
+  const state=new Map();
+  const storage={async get(key){return state.get(key);},async put(key,value){state.set(key,value);}};
+  const agent=new ChatAgent({storage},{AI:{run:async()=>{throw new Error('summary unavailable');}}});
+  for(let attempt=0;attempt<3;attempt++){
+    assert.match(await agent._summarizeToolResults('edge-llama-70b','primary',[],[{status:'SUCCESS'}],100),/SUCCESS/);
+  }
+  assert.equal(state.get('circuit:v1:edge-llama-70b').status,'open');
+});

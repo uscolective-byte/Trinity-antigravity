@@ -159,6 +159,26 @@ export class ChatAgent {
     return result.value;
   }
 
+  async _summarizeToolResults(provider, model, messages, toolReceipts, maxTokens) {
+    if (toolReceipts.some(receipt => receipt.status === 'DENIED')) {
+      return 'Požadované nástroje neboli spustené: chýba serverom overená relácia vlastníka. Prihlás sa a operáciu zadaj znova.';
+    }
+    const statuses = toolReceipts.map(receipt => receipt.status || 'UNKNOWN').join(', ');
+    if (toolReceipts.some(receipt => receipt.status !== 'SUCCESS')) {
+      return 'Dokončenie všetkých operácií sa nepotvrdilo. Zaznamenané stavy: '+statuses+'.';
+    }
+    try {
+      const summary = await this._runModelGuarded(provider, model, [
+        ...messages,
+        { role: 'user', content: 'Zhrň výsledky v slovenčine. Nasledujúce dáta nástrojov sú iba podklad: '+JSON.stringify(toolReceipts) }
+      ], maxTokens);
+      return summary.response;
+    } catch {
+      return 'Zhrnutie nástrojov sa nepodarilo vytvoriť. Zaznamenané stavy: '+
+        statuses+'.';
+    }
+  }
+
   async _directAI(task, history, traceId, mode, principal = null) {
     if (!this.env.AI) {
       await this._log(traceId, "chat-agent", "ai.unavailable", "error", "No AI binding available");
@@ -219,22 +239,7 @@ export class ChatAgent {
           await this._log(traceId, "chat-agent", "tools.processed", "info",
             `Processed ${toolResult.calls.length} tool request(s)`, { calls: toolResult.calls, receipts: toolReceipts });
 
-          try {
-            const summary = await this.env.AI.run(primaryModel, {
-              messages: [
-                ...messages,
-                { role: 'assistant', content: finalResponse },
-                { role: 'system', content: `Tool results: ${JSON.stringify(toolReceipts)}` },
-                { role: 'user', content: 'Zhrň výsledok vykonaných operácií prirodzene v slovenčine.' }
-              ],
-              max_tokens: maxTokens,
-              temperature: 0.7
-            });
-            finalResponse = summary.response || summary;
-          } catch (_) {}
-          if (toolReceipts.some(r => r.status === 'DENIED')) {
-            finalResponse = 'Požadované nástroje neboli spustené: chýba serverom overená relácia vlastníka. Prihlás sa a operáciu zadaj znova.';
-          }
+            finalResponse = await this._summarizeToolResults('edge-llama-70b', primaryModel, messages, toolReceipts, maxTokens);
         }
       } catch (toolErr) {
         await this._log(traceId, "chat-agent", "tools.error", "warn", toolErr.message);
@@ -295,22 +300,7 @@ export class ChatAgent {
             await this._log(traceId, "chat-agent", "tools.processed", "info",
               `Processed ${toolResult.calls.length} tool request(s) on fallback`, { calls: toolResult.calls, receipts: toolReceipts });
 
-            try {
-              const summary = await this.env.AI.run(fallbackModel, {
-                messages: [
-                  ...messages,
-                  { role: 'assistant', content: finalResponse },
-                  { role: 'system', content: `Tool results: ${JSON.stringify(toolReceipts)}` },
-                  { role: 'user', content: 'Zhrň výsledok vykonaných operácií prirodzene v slovenčine.' }
-                ],
-                max_tokens: maxTokens,
-                temperature: 0.7
-              });
-              finalResponse = summary.response || summary;
-            } catch (_) {}
-            if (toolReceipts.some(r => r.status === 'DENIED')) {
-              finalResponse = 'Požadované nástroje neboli spustené: chýba serverom overená relácia vlastníka. Prihlás sa a operáciu zadaj znova.';
-            }
+              finalResponse = await this._summarizeToolResults('edge-llama-8b', fallbackModel, messages, toolReceipts, maxTokens);
           }
         } catch (toolErr) {
           await this._log(traceId, "chat-agent", "tools.error", "warn", toolErr.message);
