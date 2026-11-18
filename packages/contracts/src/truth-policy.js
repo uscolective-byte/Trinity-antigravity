@@ -21,6 +21,9 @@ export class TruthAssertionEngine {
    * Striktná verifikácia exekúcie nástroja pred zápisom do histórie.
    */
   static async assertExecution(executionResult, env = {}) {
+    if (!executionResult || typeof executionResult !== 'object') {
+      throw new TruthPolicyViolation('INVALID_EXECUTION_REPORT', 'Execution report is missing.');
+    }
     const { toolName, exitCode, stdout = '', stderr = '', rawOutput = '' } = executionResult;
 
     // 1. Invariant: Nulový návratový kód
@@ -50,25 +53,31 @@ export class TruthAssertionEngine {
       }
     }
 
-    // 3. Výpočet kryptografického odtlačku reality (SHA-256)
-    const encoder = new TextEncoder();
-    const realityPayload = encoder.encode(`${toolName}:${exitCode}:${stdout}:${Date.now()}`);
-    const digestBuffer = await crypto.subtle.digest('SHA-256', realityPayload);
-    const realityHash = Array.from(new Uint8Array(digestBuffer))
+    // A successful exit code is only an execution report, not proof of truth.
+    // Signing a report authenticates its bytes; it does not verify the real world.
+    if (typeof env.TAP_PRIVATE_KEY !== 'string' || !env.TAP_PRIVATE_KEY.length) {
+      throw new TruthPolicyViolation('TAP_SIGNING_KEY_REQUIRED', 'No signing secret configured.');
+    }
+    if (typeof toolName !== 'string' || !toolName.trim()) {
+      throw new TruthPolicyViolation('INVALID_TOOL_NAME', 'Execution report has no tool name.');
+    }
+    const assertedAt = Date.now();
+    const reportBytes = new TextEncoder().encode(
+      JSON.stringify({ toolName, exitCode, stdout, stderr, rawOutput, assertedAt })
+    );
+    const digestBuffer = await crypto.subtle.digest('SHA-256', reportBytes);
+    const executionHash = Array.from(new Uint8Array(digestBuffer))
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
-
-    // 4. TAP Podpis reality
-    const signature = await TapSovereignSigner.signPayload(
-      env.TAP_PRIVATE_KEY || 'SOVEREIGN_RING0_KEY',
-      realityHash
-    );
+    const signature = await TapSovereignSigner.signPayload(env.TAP_PRIVATE_KEY, executionHash);
 
     return {
-      status: 'VERIFIED_REALITY',
-      realityHash,
+      status: 'EXECUTION_REPORT_SIGNED',
+      verified: false,
+      verificationStatus: 'requires_independent_evidence',
+      executionHash,
       signature,
-      assertedAt: Date.now()
+      assertedAt
     };
   }
 
