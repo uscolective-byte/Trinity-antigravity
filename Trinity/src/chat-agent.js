@@ -1,6 +1,7 @@
 // src/chat-agent.js - Durable Object ChatAgent
 // + Fallback kaskáda modelov + D1 system prompty + Trace logovanie + Tool-Calling Engine
 import { executeToolCalls, TOOL_CALLING_SYSTEM_PROMPT } from './trinity-tools/tool-calling-engine.js';
+import { executeWithCircuitBreaker } from './pentad-circuit-breaker.js';
 
 export class ChatAgent {
   constructor(state, env) {
@@ -121,6 +122,38 @@ export class ChatAgent {
     return await this._directAI(task, boundedHistory, traceId, mode);
   }
 
+  // Circuit state is shared through a dedicated KV binding when configured.
+  // Without it, the Durable Object storage provides a truthful per-session
+  // fallback rather than claiming globally synchronized circuit state.
+  _circuitStore() {
+    if (this.env.TRINITY_CIRCUIT_KV) return this.env.TRINITY_CIRCUIT_KV;
+    return {
+      get: async key => this.state.storage.get(key),
+      put: async (key, json) => this.state.storage.put(key, JSON.parse(json))
+    };
+  }
+
+  async _runModelGuarded(provider, model, messages, maxTokens) {
+    const result = await executeWithCircuitBreaker({
+      provider,
+      store: this._circuitStore(),
+      failureThreshold: 3,
+      openMs: 10 * 60 * 1000,
+      timeoutMs: 15000,
+      invoke: async () => {
+        const value = await this.env.AI.run(model, {
+          messages, max_tokens: maxTokens, temperature: 0.7
+        });
+        if (!value || typeof value.response !== 'string' || !value.response.trim()) {
+          throw new Error('AI model did not return usable text');
+        }
+        return value;
+      }
+    });
+    if (!result.ok) throw new Error('MODEL_' + (result.reason || 'UNAVAILABLE').toUpperCase().replace(/-/g, '_'));
+    return result.value;
+  }
+
   async _directAI(task, history, traceId, mode) {
     if (!this.env.AI) {
       await this._log(traceId, "chat-agent", "ai.unavailable", "error", "No AI binding available");
@@ -164,9 +197,7 @@ export class ChatAgent {
 
     // Try primary model
     try {
-      const resp = await this.env.AI.run(primaryModel, {
-        messages, max_tokens: maxTokens, temperature: 0.7
-      });
+      const resp = await this._runModelGuarded('edge-llama-70b', primaryModel, messages, maxTokens);
       let finalResponse = resp.response;
       let toolReceipts = [];
       try {
@@ -236,9 +267,7 @@ export class ChatAgent {
 
       // Try fallback model
       try {
-        const resp = await this.env.AI.run(fallbackModel, {
-          messages, max_tokens: maxTokens, temperature: 0.7
-        });
+        const resp = await this._runModelGuarded('edge-llama-8b', fallbackModel, messages, maxTokens);
 
         let finalResponse = resp.response;
         let toolReceipts = [];
