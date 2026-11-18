@@ -1,6 +1,7 @@
 // src/chat-agent.js - Durable Object ChatAgent
 // + Fallback kaskáda modelov + D1 system prompty + Trace logovanie + Tool-Calling Engine
 import { executeToolCalls, TOOL_CALLING_SYSTEM_PROMPT } from './trinity-tools/tool-calling-engine.js';
+import { authenticate } from './security.js';
 import { executeWithCircuitBreaker } from './pentad-circuit-breaker.js';
 
 export class ChatAgent {
@@ -30,6 +31,10 @@ export class ChatAgent {
   }
 
   async handleMessage(request, traceId) {
+    // Validate the principal server-side; no user-supplied role or fixed
+    // owner id may be accepted as tool authorization.
+    let principal = null;
+    try { principal = await authenticate(request, this.env); } catch { /* chat remains read-only */ }
     const payload = await request.json();
     const { task, mode = "single", agent = "ORCHESTRATOR", provider = "workers-ai" } = payload;
 
@@ -119,7 +124,7 @@ export class ChatAgent {
     }
 
     // Fallback: direct Workers AI with model cascade
-    return await this._directAI(task, boundedHistory, traceId, mode);
+    return await this._directAI(task, boundedHistory, traceId, mode, principal);
   }
 
   // Circuit state is shared through a dedicated KV binding when configured.
@@ -154,7 +159,7 @@ export class ChatAgent {
     return result.value;
   }
 
-  async _directAI(task, history, traceId, mode) {
+  async _directAI(task, history, traceId, mode, principal = null) {
     if (!this.env.AI) {
       await this._log(traceId, "chat-agent", "ai.unavailable", "error", "No AI binding available");
       return new Response(JSON.stringify({ error: "AI_UNAVAILABLE", trace_id: traceId }), {
@@ -202,15 +207,17 @@ export class ChatAgent {
       let toolReceipts = [];
       try {
         const toolResult = await executeToolCalls(finalResponse, this.env, {
-          userId: 'basterix',
+          userId: principal?.id || '',
+          role: principal?.role || 'guest',
+          authenticated: principal?.role === 'owner' && Boolean(principal?.id),
           sessionId: traceId,
           traceId,
         });
 
         if (toolResult.hasToolCalls) {
           toolReceipts = toolResult.results;
-          await this._log(traceId, "chat-agent", "tools.executed", "info",
-            `Executed ${toolResult.calls.length} tool(s)`, { calls: toolResult.calls, receipts: toolReceipts });
+          await this._log(traceId, "chat-agent", "tools.processed", "info",
+            `Processed ${toolResult.calls.length} tool request(s)`, { calls: toolResult.calls, receipts: toolReceipts });
 
           try {
             const summary = await this.env.AI.run(primaryModel, {
@@ -225,6 +232,9 @@ export class ChatAgent {
             });
             finalResponse = summary.response || summary;
           } catch (_) {}
+          if (toolReceipts.some(r => r.status === 'DENIED')) {
+            finalResponse = 'Požadované nástroje neboli spustené: chýba serverom overená relácia vlastníka. Prihlás sa a operáciu zadaj znova.';
+          }
         }
       } catch (toolErr) {
         await this._log(traceId, "chat-agent", "tools.error", "warn", toolErr.message);
@@ -273,15 +283,17 @@ export class ChatAgent {
         let toolReceipts = [];
         try {
           const toolResult = await executeToolCalls(finalResponse, this.env, {
-            userId: 'basterix',
+            userId: principal?.id || '',
+            role: principal?.role || 'guest',
+            authenticated: principal?.role === 'owner' && Boolean(principal?.id),
             sessionId: traceId,
             traceId,
           });
 
           if (toolResult.hasToolCalls) {
             toolReceipts = toolResult.results;
-            await this._log(traceId, "chat-agent", "tools.executed", "info",
-              `Executed ${toolResult.calls.length} tool(s) on fallback`, { calls: toolResult.calls, receipts: toolReceipts });
+            await this._log(traceId, "chat-agent", "tools.processed", "info",
+              `Processed ${toolResult.calls.length} tool request(s) on fallback`, { calls: toolResult.calls, receipts: toolReceipts });
 
             try {
               const summary = await this.env.AI.run(fallbackModel, {
@@ -296,6 +308,9 @@ export class ChatAgent {
               });
               finalResponse = summary.response || summary;
             } catch (_) {}
+            if (toolReceipts.some(r => r.status === 'DENIED')) {
+              finalResponse = 'Požadované nástroje neboli spustené: chýba serverom overená relácia vlastníka. Prihlás sa a operáciu zadaj znova.';
+            }
           }
         } catch (toolErr) {
           await this._log(traceId, "chat-agent", "tools.error", "warn", toolErr.message);
