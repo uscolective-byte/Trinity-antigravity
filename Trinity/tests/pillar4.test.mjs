@@ -160,97 +160,27 @@ function createMockD1() {
   };
 }
 
-test('Pillar 4: WebAuthn Passkey registration and authentication flow', async () => {
+test('Pillar 4: WebAuthn fails closed without cryptographic verifier', async () => {
   const db = createMockD1();
   const env = {
     DB: db,
-    TRINITY_OWNER_EMAIL: 'admin@auru.space',
-    TRINITY_ADMIN_EMAILS: 'admin@auru.space'
+    TRINITY_OWNER_EMAIL: 'admin@auru.space'
   };
   const request = new Request('https://auru.space/api/auth/passkey/register-options', {
     method: 'POST'
   });
-
-  // 1. Generate Registration Options
-  const regOptions = await generateRegistrationOptions(request, env, 'admin@auru.space');
-  assert.ok(regOptions.challenge);
-  assert.equal(regOptions.rp.id, 'auru.space');
-  assert.equal(regOptions.user.name, 'admin@auru.space');
-  assert.equal(db.tables.ops_passkey_challenges.length, 1);
-
-  // 2. Verify Registration Response
-  const mockClientDataJSON = base64UrlEncode(
-    new TextEncoder().encode(
-      JSON.stringify({
-        type: 'webauthn.create',
-        challenge: regOptions.challenge,
-        origin: 'https://auru.space'
-      })
-    )
-  );
-
-  const regResponse = await verifyRegistrationResponse(
-    request,
-    env,
-    {
-      id: 'cred_test_12345',
-      response: {
-        clientDataJSON: mockClientDataJSON,
-        attestationObject: 'mock_attestation_bytes',
-        transports: ['internal']
-      },
-      friendlyName: 'MacBook TouchID',
-      userEmail: 'admin@auru.space'
-    },
-    'admin@auru.space'
-  );
-
-  assert.equal(regResponse.ok, true);
-  assert.equal(db.tables.user_passkeys.length, 1);
-  assert.equal(db.tables.user_passkeys[0].credential_id, 'cred_test_12345');
-  assert.equal(db.tables.user_passkeys[0].friendly_name, 'MacBook TouchID');
-
-  // 3. List Passkeys
-  const passkeys = await listUserPasskeys(env, 'admin@auru.space');
-  assert.equal(passkeys.length, 1);
-  assert.equal(passkeys[0].friendly_name, 'MacBook TouchID');
-
-  // 4. Generate Authentication Options
-  const authOptions = await generateAuthenticationOptions(request, env, 'admin@auru.space');
-  assert.ok(authOptions.challenge);
-  assert.equal(authOptions.rpId, 'auru.space');
-  assert.ok(authOptions.allowCredentials.length >= 1);
-
-  // 5. Verify Authentication Response (Login)
-  const mockAuthClientDataJSON = base64UrlEncode(
-    new TextEncoder().encode(
-      JSON.stringify({
-        type: 'webauthn.get',
-        challenge: authOptions.challenge,
-        origin: 'https://auru.space'
-      })
-    )
-  );
-
-  const authResponse = await verifyAuthenticationResponse(request, env, {
-    id: 'cred_test_12345',
-    response: {
-      clientDataJSON: mockAuthClientDataJSON,
-      authenticatorData: 'mock_auth_data',
-      signature: 'mock_signature'
-    }
-  });
-
-  assert.equal(authResponse.status, 200);
-  const authJson = await authResponse.json();
-  assert.equal(authJson.ok, true);
-  assert.equal(authJson.user.email, 'admin@auru.space');
-  assert.ok(authResponse.headers.get('Set-Cookie').includes('trinity_session='));
-
-  // 6. Delete Passkey
-  const delResult = await deleteUserPasskey(env, 'admin@auru.space', db.tables.user_passkeys[0].id);
-  assert.equal(delResult.ok, true);
+  const rejected = err => err?.status === 503 && /PASSKEY_VERIFICATION_UNAVAILABLE/.test(err.message);
+  await assert.rejects(generateRegistrationOptions(request, env, 'admin@auru.space'), rejected);
+  await assert.rejects(verifyRegistrationResponse(request, env, {
+    id: 'attacker-created-credential', response: { clientDataJSON: 'not-verified' }
+  }, 'admin@auru.space'), rejected);
+  await assert.rejects(generateAuthenticationOptions(request, env, 'admin@auru.space'), rejected);
+  await assert.rejects(verifyAuthenticationResponse(request, env, {
+    id: 'attacker-created-credential', response: { clientDataJSON: 'not-verified' }
+  }), rejected);
   assert.equal(db.tables.user_passkeys.length, 0);
+  assert.equal(db.tables.ops_sessions.length, 0);
+  assert.equal(db.tables.ops_passkey_challenges.length, 0);
 });
 
 test('Pillar 4: Audit Trail categorization, severity and query engine', async () => {
