@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {runAgent} from '../src/engine.js';
+import {runAgent,toolCallKey} from '../src/engine.js';
 import {waitForSystemAction} from '../src/tools.js';
 import {agentById} from '../src/registry.js';
 import {workflowResultComplete} from '../src/truth.js';
@@ -42,11 +42,32 @@ test('agent sees process failure diagnostics and can verify a successful retry w
  };}},AI:{run:async(_model,{messages})=>{
   modelCalls++;
   if(modelCalls===2){const diagnostic=messages.at(-1).content;assert.match(diagnostic,/AssertionError: expected 42/);assert.match(diagnostic,/"exitCode":1/);}
-  return {response:modelCalls<=2?JSON.stringify({tool:'pc_run_script',arguments:args}):'Test teraz prešiel.'};
+  const retryArgs={path:args.path,expected_sha256:args.expected_sha256,runtime:args.runtime,args:[],timeout_ms:30000};
+  return {response:modelCalls<=2?JSON.stringify({tool:'pc_run_script',arguments:modelCalls===1?args:retryArgs}):'Test teraz prešiel.'};
  }}};
  const result=await runAgent(env,'backend','Spusti uložený overovací test.','','workers-ai',2000,'sk',true);
  assert.deepEqual(result.tool_log.map(entry=>entry.status),['failed','completed']);
  assert.equal(result.tool_log[0].receipt_id,'action-1');
  assert.notEqual(result.execution_status,'failed',JSON.stringify(result));
  assert.equal(workflowResultComplete(result),true,JSON.stringify(result));
+});
+
+
+test('retry identity includes validated defaults and ignores object field order without merging different operations',async()=>{
+ const first={runtime:'node',path:'Trinity/workspace/scripts/test.mjs',expected_sha256:'a'.repeat(64)};
+ assert.equal(await toolCallKey('pc_run_script',first),await toolCallKey('pc_run_script',{path:first.path,args:[],runtime:'node',timeout_ms:30000,expected_sha256:first.expected_sha256}));
+ assert.notEqual(await toolCallKey('pc_run_script',first),await toolCallKey('pc_run_script',{...first,path:'Trinity/workspace/scripts/other.mjs'}));
+ assert.notEqual(await toolCallKey('pc_run_script',{...first,args:['first','second']}),await toolCallKey('pc_run_script',{...first,args:['second','first']}));
+ assert.notEqual(await toolCallKey('pc_file_write',{path:'Trinity/a.txt',content:'one'}),await toolCallKey('pc_file_write',{path:'Trinity/a.txt',content:'two'}));
+});
+
+
+test('edit schemas expose both unambiguous spellings and normalize the same operation identity',async()=>{
+ const canonical={path:'Trinity/test.txt',find:'old',replace:'new'};
+ const alternate={path:'Trinity/test.txt',target:'old',replacement:'new'};
+ assert.equal(await toolCallKey('pc_file_edit',canonical),await toolCallKey('pc_file_edit',alternate));
+ const {TOOL_SCHEMAS}=await import('../src/tools.js');
+ assert.deepEqual(TOOL_SCHEMAS.pc_file_edit.parse(alternate),canonical);
+ assert.throws(()=>TOOL_SCHEMAS.pc_file_edit.parse({...canonical,...alternate}));
+ assert.throws(()=>TOOL_SCHEMAS.pc_file_edit.parse({path:canonical.path,target:'old'}));
 });

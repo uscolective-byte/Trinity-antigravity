@@ -31,6 +31,9 @@ test('admin PC tools validate their own schema and dispatch bounded gateway payl
   assert.deepEqual(payloads.at(-1),{path:'Trinity/new.txt',content:'verified appended',expected_sha256:'a'.repeat(64)});
   await runTool(env,agent,'pc_file_edit',{path:'Trinity/new.txt',find:'verified',replace:'$& replaced'},{adminAuthorized:true});
   assert.equal(payloads.at(-1).content,'$& replaced');
+  await runTool(env,agent,'pc_file_edit',{path:'Trinity/new.txt',target:'verified',replacement:'alternate spelling'},{adminAuthorized:true});
+  assert.equal(payloads.at(-1).content,'alternate spelling');
+  assert.equal(payloads.at(-1).expected_sha256,'a'.repeat(64));
   await assert.rejects(runTool(env,agent,'pc_file_edit',{path:'Trinity/new.txt',find:'missing',replace:'x'},{adminAuthorized:true}),/presne raz/);
   await runTool(env,agent,'pc_run',{command:'npm run build',cwd:'Trinity'},{adminAuthorized:true});
   assert.deepEqual(payloads.at(-1),{project:'Trinity',task:'build'});

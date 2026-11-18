@@ -131,7 +131,7 @@ test('file edits, script execution and git tools expose the same schemas used at
  for(const name of ['pc_file_write','pc_file_edit','pc_run_script','pc_git_commit']){
    assert.equal(TOOL_SCHEMAS[name],PC_TOOL_SCHEMAS[name]);
    const result=describeAvailableTools([name],TOOL_SCHEMAS,TOOL_HELP,{name});
-   assert.equal(result.tools[0].input_schema.additionalProperties,false);
+   for(const schema of result.tools[0].input_schema.anyOf||[result.tools[0].input_schema])assert.equal(schema.additionalProperties,false);
  }
  const script=describeAvailableTools(['pc_run_script'],TOOL_SCHEMAS,TOOL_HELP,{name:'pc_run_script'});
  assert.ok(script.tools[0].input_schema.required.includes('expected_sha256'));

@@ -29,6 +29,12 @@ import {parseModelAction} from './model-action-parser.js';
 export async function runAgent(...args){
   return finalizeAgentResponse(await runAgentUnchecked(...args),args[6]||'sk');
 }
+export async function toolCallKey(tool,input){
+  const parsed=TOOL_SCHEMAS[tool]?.safeParse(input);
+  const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'
+    ?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
+  return hash(JSON.stringify(canonical(parsed?.success?parsed.data:input)));
+}
 export function parseAction(text) {
   return parseModelAction(text);
 }
@@ -605,7 +611,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
     }
     if(toolTurns===12)throw new Error('Agent prekročil limit nástrojových krokov.');
     if(forceFinal)throw new Error('Trinity nestihla overiť výsledok v časovom limite.');
-    const call_key=await hash(JSON.stringify(action.arguments));
+    const call_key=await toolCallKey(action.tool,action.arguments);
     let outcome;
     try {
       if(action.tool==='describe_tools'){

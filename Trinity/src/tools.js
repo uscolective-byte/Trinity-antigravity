@@ -81,7 +81,10 @@ export const PC_TOOL_SCHEMAS={
   pc_file_read:z.object({path:z.string().min(1).max(2000),depth:z.number().int().min(1).max(3).optional()}).strict(),
   pc_file_write:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000),expected_sha256:z.string().regex(/^(absent|[a-f0-9]{64})$/).default('absent')}).strict(),
   pc_file_append:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000)}).strict(),
-  pc_file_edit:z.object({path:z.string().min(1).max(2000),find:z.string().min(1).max(200000),replace:z.string().max(200000)}).strict(),
+  pc_file_edit:z.union([
+    z.object({path:z.string().min(1).max(2000),find:z.string().min(1).max(200000),replace:z.string().max(200000)}).strict(),
+    z.object({path:z.string().min(1).max(2000),target:z.string().min(1).max(200000),replacement:z.string().max(200000)}).strict()
+  ]).transform(args=>'find' in args?args:{path:args.path,find:args.target,replace:args.replacement}),
   pc_directory_create:z.object({path:z.string().min(1).max(2000)}).strict(),
   pc_open_app:z.object({target:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser','commander','cmder'])}).strict(),
   pc_open_url:z.object({url:z.string().min(1).max(2048)}).strict(),

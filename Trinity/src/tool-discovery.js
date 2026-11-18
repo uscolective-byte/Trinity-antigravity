@@ -40,7 +40,7 @@ export function describeAvailableTools(activeTools, schemas, help, input = {}) {
     tools: names.slice(0, 12).map(name => ({
       name, description: help[name] || name,
       display_name: operationLabels[name] || name.replaceAll('_', ' '),
-      ...(schemas[name] ? {input_schema: toJSONSchema(schemas[name], {unrepresentable: 'any'})} : {})
+      ...(schemas[name] ? {input_schema: toJSONSchema(schemas[name], {unrepresentable: 'any',io:'input'})} : {})
     })),
     truncated: names.length > 12,
     note: 'Use name for an exact argument schema. Listed tools still require their normal authorization, connection and execution checks.'
