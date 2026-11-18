@@ -25,11 +25,11 @@ $shortcut = $wshShell.CreateShortcut($shortcutPath)
 $shortcut.TargetPath = "wscript.exe"
 # VBScript runner pre 100% neviditeľný beh na pozadí bez bliknutia okna konzoly
 $vbsRunner = Join-Path $repoRoot 'run-silent-daemon.vbs'
-$vbsContent = "CreateObject(`"Wscript.Shell`").Run `"`"`"$nodePath`"`" `"`"$daemonScript`"`"`", 0, False"
-[System.IO.File]::WriteAllText($vbsRunner, $vbsContent)
+$vbsArgs = '"{0}" /node:"{1}"' -f $vbsRunner, $nodePath
+& cscript.exe //NoLogo $vbsRunner "/node:$nodePath" /check
+if ($LASTEXITCODE -ne 0) { throw "Kontrola štartovacieho skriptu zlyhala: $LASTEXITCODE" }
 
-$shortcut.TargetPath = "wscript.exe"
-$shortcut.Arguments = "`"$vbsRunner`""
+$shortcut.Arguments = $vbsArgs
 $shortcut.WorkingDirectory = $repoRoot
 $shortcut.Description = "Trinity Sovereign AI OS - Permanent PC Bridge Daemon"
 $shortcut.IconLocation = "shell32.dll,14"
@@ -41,11 +41,11 @@ Write-Host "      $shortcutPath" -ForegroundColor Gray
 # 3. Registrácia Windows Scheduled Task (Úloha po prihlásení)
 try {
     $taskName = "Trinity-PC-Bridge-Permanent"
-    $action = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$vbsRunner`"" -WorkingDirectory $repoRoot
+    $action = New-ScheduledTaskAction -Execute "wscript.exe" -Argument $vbsArgs -WorkingDirectory $repoRoot
     $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Days 365) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
 
-    Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Force -ErrorAction SilentlyContinue | Out-Null
+    Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Force -ErrorAction Stop | Out-Null
     Write-Host "[2/3] Zaregistrovaná Windows Scheduled Task: $taskName [OK]" -ForegroundColor Green
 } catch {
     Write-Host "[2/3] Scheduled Task registrácia (startup odkaz je plne funkčný)" -ForegroundColor Yellow
@@ -53,14 +53,15 @@ try {
 
 # 4. Spustenie daemona hneď teraz
 Write-Host "[3/3] Štartujem trvalý PC Bridge daemon do pozadia..." -ForegroundColor Green
-Start-Process "wscript.exe" -ArgumentList "`"$vbsRunner`"" -WorkingDirectory $repoRoot
+Start-Process "wscript.exe" -ArgumentList $vbsArgs -WorkingDirectory $repoRoot -WindowStyle Hidden
 
 Start-Sleep -Seconds 3
-
-Write-Host "`n================ STAV TRVALÉHO PREPOJENIA ================" -ForegroundColor Cyan
-Write-Host "  - Local-Gateway    (port 8791): ONLINE [OK]" -ForegroundColor Green
-Write-Host "  - Local-Desktop    (port 8795): ONLINE [OK]" -ForegroundColor Green
-Write-Host "  - Cloudflare Sync  (telemetry) : PREPOJENÉ [OK]" -ForegroundColor Green
-Write-Host "  - Windows Autostart            : AKTÍVNY (spustí sa automaticky pri štarte PC)" -ForegroundColor Green
-Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "Trvalé prepojenie PC Bridge je aktívne 24/7." -ForegroundColor Green
+foreach ($port in 8791, 8795) {
+    try {
+        $response = Invoke-WebRequest -Uri "http://127.0.0.1:$port/health" -UseBasicParsing -TimeoutSec 5
+        Write-Host ("  Port {0}: HTTP {1}" -f $port, $response.StatusCode)
+    } catch {
+        Write-Warning ("Port {0}: lokálna kontrola dostupnosti zlyhala." -f $port)
+    }
+}
+Write-Host "Vzdialené spojenie s Cloudflare vyžaduje samostatné overenie."
