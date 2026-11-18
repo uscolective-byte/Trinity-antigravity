@@ -1,45 +1,33 @@
 /**
- * Trinity Omni-Core v11.3 - L4_SOVEREIGN_LEDGER
- * TAP Sovereign Signer (WebCrypto & Cloudflare Worker compatible)
+ * TAP HMAC signer. Authenticates integrity only, not the truth of the payload.
+ * No hard-coded signing key or unsigned fallback is permitted.
  */
-
 export class TapSovereignSigner {
-  /**
-   * Podpíše payload pomocou privátneho kľúča
-   * @param {string|CryptoKey} privateKey
-   * @param {string} data
-   * @returns {Promise<string>} Hexadecimálny podpis
-   */
-  static async signPayload(privateKey, data) {
-    const encoder = new TextEncoder();
-    const keyBytes = encoder.encode(String(privateKey || 'SOVEREIGN_RING0_ROOT_KEY'));
-    
-    try {
-      const key = await crypto.subtle.importKey(
-        'raw',
-        keyBytes,
-        { name: 'HMAC', hash: 'SHA-256' },
-        false,
-        ['sign']
-      );
-      const signatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(data));
-      return Array.from(new Uint8Array(signatureBuffer))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-    } catch {
-      // Fallback hash
-      const digest = await crypto.subtle.digest('SHA-256', encoder.encode(`${privateKey}:${data}`));
-      return Array.from(new Uint8Array(digest))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
+  static async importKey(privateKey, usages) {
+    if (typeof privateKey !== 'string' || privateKey.length === 0) {
+      throw new Error('TAP_SIGNING_KEY_REQUIRED');
     }
+    return crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(privateKey),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      usages
+    );
   }
 
-  /**
-   * Overí podpis voči payloadu
-   */
+  static async signPayload(privateKey, data) {
+    const key = await this.importKey(privateKey, ['sign']);
+    const signature = await crypto.subtle.sign(
+      'HMAC', key, new TextEncoder().encode(String(data))
+    );
+    return Array.from(new Uint8Array(signature), byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+
   static async verifyPayload(privateKey, data, signature) {
-    const expected = await this.signPayload(privateKey, data);
-    return expected.toLowerCase() === String(signature).toLowerCase();
+    if (typeof signature !== 'string' || !/^[a-f0-9]{64}$/i.test(signature)) return false;
+    const key = await this.importKey(privateKey, ['verify']);
+    const bytes = Uint8Array.from(signature.match(/../g), hex => parseInt(hex, 16));
+    return crypto.subtle.verify('HMAC', key, bytes, new TextEncoder().encode(String(data)));
   }
 }
