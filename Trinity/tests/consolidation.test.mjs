@@ -59,3 +59,9 @@ test('MCP and chat map allowed PC commands to the gateway task schema',()=>{
   assert.throws(()=>pcRunPayload('node --version','../'),/relatívny projekt/);
   assert.throws(()=>pcRunPayload('constructor'),/zoznamu PC úloh/);
 });
+
+test('workflow rejects simulated output and unsupported success even with a passed label',()=>{
+ assert.equal(workflowResultComplete({text:'Nasadila som aplikáciu.',truth:{status:'passed'},tool_log:[]}),false);
+ assert.equal(workflowResultComplete({text:'Output',tool_log:[],result:{status:' DEMO '}}),false);
+ assert.equal(workflowResultComplete({text:'Nemám overený výsledok.',tool_log:[]}),true);
+});

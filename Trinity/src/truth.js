@@ -30,7 +30,7 @@ export function findSimulationMarkers(value,path='',found=[],depth=0){
   for(const [key,item] of Object.entries(value)){
     const here=path?`${path}.${key}`:key;
     if(SIMULATION_MARKER_KEYS.includes(key.toLowerCase())&&item===true)found.push(here);
-    else if(key==='status'&&typeof item==='string'&&/^(simulated|mock|demo|fake)$/i.test(item))found.push(here);
+    else if(key==='status'&&typeof item==='string'&&/^(simulated|mock|demo|fake)$/i.test(item.trim()))found.push(here);
     else if(item&&typeof item==='object')findSimulationMarkers(item,here,found,depth+1);
   }
   return found;
@@ -596,6 +596,8 @@ export function latestToolOutcomes(toolLog) {
 
 export function workflowResultComplete(result) {
   if (!result || result.truth?.status === 'blocked' || (result.execution_status && result.execution_status !== 'completed')) return false;
+  if (findSimulationMarkers(result).length) return false;
+  if (typeof result.text === 'string' && findUnsupportedActionClaims(result.text,result.tool_log||[]).length) return false;
   return Array.isArray(result.tool_log) && latestToolOutcomes(result.tool_log).every(entry => entry?.status === 'completed');
 }
 
