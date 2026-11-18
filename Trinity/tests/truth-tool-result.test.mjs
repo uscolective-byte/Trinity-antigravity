@@ -153,3 +153,17 @@ test('chat corrects a false claim of having no PC access for the owner',async()=
  assert.match(result.text,/cez PC Bridge, keď je pripojený/);
  assert.equal(result.tool_log.length,0);
 });
+
+test('process confirmation requires an observed zero exit code and no conflicting result',()=>{
+ const _evidence={effect:'mutation',actions:['execute'],receipt_id:'process-action'};
+ for(const outcome of [{success:true},{success:true,exitCode:null},{success:true,exitCode:1},
+   {success:true,exitCode:0,exit_code:9},{receipt:{exitCode:1}},{receipt:{exitCode:0,success:false}}]){
+  const receipt=toolReceiptForOutcome('pc_run',{...outcome,_evidence});
+  assert.equal(receipt.status,'failed');
+  assert.equal(receipt.receipt_id,undefined);
+ }
+ assert.equal(toolReceiptForOutcome('pc_run_script',{exitCode:0,stdout:'done',_evidence}).status,'completed');
+ assert.equal(toolReceiptForOutcome('request_system_action',{action:'run',status:'completed',receipt:{exitCode:4},_evidence}).status,'failed');
+ assert.equal(toolReceiptForOutcome('pc_run',{status:'claimed'}).status,'running');
+ assert.equal(toolReceiptForOutcome('calculate',{value:42}).status,'completed');
+});

@@ -337,7 +337,7 @@ export const TOOL_SCHEMAS={
   truth_guard_verify:z.object({
     action:z.enum(['commandments','validate_response','verify_exit']).default('commandments'),
     response_text:z.string().max(8000).optional().default(''),
-    exit_code:z.number().int().optional().default(0),
+    exit_code:z.number().int().optional(),
     stdout:z.string().max(4000).optional().default(''),
     stderr:z.string().max(4000).optional().default('')
   }).strict(),
@@ -1217,7 +1217,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       return {...guard.filterAntiAssumption(args.response_text,true),_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
     }
     if(args.action==='verify_exit'){
-      return {...guard.verifyZeroSimulatedExecution({action:'tool_check',exitCode:args.exit_code,stdout:args.stdout,stderr:args.stderr}),_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
+      return {status:'not_verified',reason:'Návratový kód z argumentov nie je potvrdenie z vykonaného procesu. Použi výsledok skutočného nástroja.'};
     }
     return {commandments:TEN_COMMANDMENTS_OF_TRUTH,count:TEN_COMMANDMENTS_OF_TRUTH.length,_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
   }

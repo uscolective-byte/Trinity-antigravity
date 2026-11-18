@@ -66,6 +66,18 @@ export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOSt
     const status=['approved','claimed','running'].includes(state)?'running':'pending';
     return {tool,status,effect:'proposal',receipt_id:outcome?.id,verified_at:verifiedAt};
   }
+  const processResult=outcome.receipt&&typeof outcome.receipt==='object'?outcome.receipt:outcome;
+  const exitCodes=[outcome,processResult].flatMap(result=>['exitCode','exit_code']
+    .filter(key=>Object.hasOwn(result,key)).map(key=>result[key]));
+  const expectsProcess=tool==='pc_run'||tool==='pc_run_script'||
+    ((processResult.action??outcome.action)==='run'&&(processResult.task??outcome.task)!=='desktop-control');
+  if(exitCodes.some(code=>code!==0)||(expectsProcess&&!exitCodes.length)){
+    const error=exitCodes.length?'Proces nevrátil úspešný návratový kód.':'Chýba návratový kód vykonaného procesu.';
+    return {tool,status:'failed',effect:'diagnostic',error,verified_at:verifiedAt};
+  }
+  if(processResult!==outcome&&(processResult.success===false||processResult.ok===false||processResult.error)){
+    return {tool,status:'failed',effect:'diagnostic',error:processResult.error||null,verified_at:verifiedAt};
+  }
   const evidence=outcome?._evidence;
   if(evidence?.receipt_id){
     return {tool,status:'completed',effect:evidence.effect||'read',action:evidence.action,actions:evidence.actions,receipt_id:evidence.receipt_id,verified_at:verifiedAt,document_id:evidence.document_id||outcome?.document?.id||outcome?.id,issue_number:evidence.issue_number||outcome?.issue?.number||outcome?.number,url:evidence.url||outcome?.issue?.html_url||outcome?.url};
