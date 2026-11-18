@@ -110,6 +110,22 @@ export async function executeToolCalls(llmOutput, env, ctx) {
     return { calls: [], results: [], hasToolCalls: false };
   }
 
+  // An LLM response is untrusted text. A hard-coded user id, a claimed role,
+  // or a tool declaration must not authorize PC, browser, DB, KV or Ring0 work.
+  // Only a server-verified owner principal may invoke these tools.
+  const authorized = ctx?.authenticated === true && ctx?.role === 'owner' &&
+    typeof ctx?.userId === 'string' && ctx.userId.length > 0;
+  if (!authorized) {
+    return {
+      calls,
+      hasToolCalls: true,
+      results: calls.map(call => ({
+        call_id: call.call_id, tool: call.name,
+        status: 'DENIED', executed: false, reason: 'VERIFIED_OWNER_REQUIRED'
+      }))
+    };
+  }
+
   const results = [];
   let stepNum = 0;
 
