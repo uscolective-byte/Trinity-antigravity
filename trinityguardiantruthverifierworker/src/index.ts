@@ -11,9 +11,6 @@ export default {
         verificationAvailable: false
       });
     }
-    if (url.pathname !== "/verify") {
-      return Response.json({ error: "Not found" }, { status: 404 });
-    }
     if (req.method !== "POST") {
       return Response.json({ error: "POST required" }, { status: 405 });
     }
