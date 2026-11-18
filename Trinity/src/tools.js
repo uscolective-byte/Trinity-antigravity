@@ -1,3 +1,4 @@
+import {pcRunPayload} from './pc-run-payload.js';
 import {verifyDriveFile} from './google-drive-reader.js';
 /**
  * @module TRINITY_OMNI_CORE
@@ -1098,25 +1099,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     if(name==='pc_file_read')payload={path:parsedArgs.path,depth:parsedArgs.depth};
     if(name==='pc_file_write')payload={path:parsedArgs.path,content:parsedArgs.content,expected_sha256:parsedArgs.expected_sha256};
     if(name==='pc_run'){
-      const task={
-        'node --version':'node-version',
-        'python --version':'python-version',
-        'cmd /c ver':'cmd-version',
-        'npm run build':'build',
-        'npm test':'tests',
-        'npm run deploy':'deploy',
-        'npm run start':'run-start',
-        'npm start':'start',
-        'docker compose up':'docker-compose-up',
-        'docker compose ps':'docker-compose-ps',
-        'docker ps':'docker-ps',
-        'git log -n 5':'git-log',
-        'git status --short':'git-status',
-        'git diff --check':'diff-check'
-      }[parsedArgs.command.trim()];
-      if(!task)throw new Error('Miestna brána povoľuje zostavenie, testy, nasadenie, štart, docker, Git kontroly a verzie node, python, cmd. Na vlastné skripty použi pc_run_script.');
-      if(parsedArgs.cwd&&!['Trinity','Local-Gateway'].includes(parsedArgs.cwd))throw new Error('Použi relatívny projekt Trinity alebo Local-Gateway.');
-      payload={project:parsedArgs.cwd||'Trinity',task};
+      payload=pcRunPayload(parsedArgs.command,parsedArgs.cwd);
     }
     if(name==='pc_file_append'||name==='pc_file_edit'){
       const readAction=await createSystemAction(env,{action:'read',payload:{path:parsedArgs.path},rationale:'Overenie obsahu pred upravou suboru.'},'admin:agent:trinity',{adminAuthorized:true});

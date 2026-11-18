@@ -1,3 +1,4 @@
+import {pcRunPayload} from './pc-run-payload.js';
 /**
  * @module TRINITY_OMNI_CORE
  * @subsystem MCP_PROTOCOL_BRIDGE
@@ -258,13 +259,13 @@ export function handleMcp(request,env,ctx,access={}){
           if(cur?.status==='completed')return result({opened:true,url,...cur.receipt});
           if(cur?.status==='failed')return result({opened:false,error:cur.error});
         }
-        return result({opened:true,id:action.id,note:'Požiadavka na otvorenie odkazu bola odoslaná lokálnej bráne.'});
+        return result({id:action.id,status:action.status,note:'Požiadavka na otvorenie odkazu bola odoslaná lokálnej bráne.'});
       });
 
     server.registerTool('pc_run_command',{description:'Spustí príkaz na lokálnom PC (vyžaduje schválenie).',
       inputSchema:{command:z.string().min(1).max(2000),cwd:z.string().max(500).optional(),rationale:z.string().min(5).max(300)}},
       async({command,cwd,rationale})=>{
-        const action=await createSystemAction(env,{action:'run',payload:{command,cwd},rationale:`MCP: ${rationale}`},'mcp:trinity');
+        const action=await createSystemAction(env,{action:'run',payload:pcRunPayload(command,cwd),rationale:`MCP: ${rationale}`},'mcp:trinity');
         return result({id:action.id,approval_required:true,note:`SCHVÁĽ ${action.id}`});
       });
 

@@ -1,3 +1,4 @@
+import {pcRunPayload} from '../src/pc-run-payload.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {resolveProviderSecret} from '../src/secret-vault.js';
@@ -50,4 +51,11 @@ test('workflow accepts recovered tools and retains failed or blocked execution',
   {tool:'pc_file_write',call_key:'second',status:'completed'}
  ]}),false);
  assert.equal(workflowResultComplete({truth:{status:'blocked'},tool_log:[]}),false);
+});
+
+test('MCP and chat map allowed PC commands to the gateway task schema',()=>{
+  assert.deepEqual(pcRunPayload('node --version'),{project:'Trinity',task:'node-version'});
+  assert.deepEqual(pcRunPayload('git status --short','Local-Gateway'),{project:'Local-Gateway',task:'git-status'});
+  assert.throws(()=>pcRunPayload('node --version','../'),/relatívny projekt/);
+  assert.throws(()=>pcRunPayload('constructor'),/zoznamu PC úloh/);
 });
