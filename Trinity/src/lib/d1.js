@@ -37,15 +37,25 @@ export class D1 {
     return r.results || [];
   }
 
-  async recordToolSuccess(tool, ms) {
-    try {
-      await this.db.batch([
-        this.db.prepare("INSERT INTO core_tool_receipts (id, run_id, step, tool, status, receipt_id, input_json, output_json) VALUES (?,?,?,?,?,?,?,?)")
-          .bind(crypto.randomUUID(), crypto.randomUUID(), 0, tool, "completed", crypto.randomUUID(), "{}", "{}"),
-        this.db.prepare("UPDATE trinity_tool_registry SET success_count=success_count+1, avg_latency_ms=(avg_latency_ms+?)/2, last_used=datetime('now') WHERE tool_id=?")
-          .bind(ms, tool)
-      ]);
-    } catch (e) {}
+  async recordToolSuccess(tool, ms, execution) {
+    if (!execution || typeof execution !== 'object' ||
+        typeof execution.runId !== 'string' || !execution.runId ||
+        typeof execution.receiptId !== 'string' || !execution.receiptId ||
+        !Number.isInteger(execution.step) ||
+        execution.output === undefined) {
+      throw new Error('EXECUTION_EVIDENCE_REQUIRED');
+    }
+    // Record the actual tool response. A fabricated empty '{}' receipt is not
+    // execution evidence. Fail closed when persistence is unavailable.
+    await this.db.batch([
+      this.db.prepare("INSERT INTO core_tool_receipts (id, run_id, step, tool, status, receipt_id, input_json, output_json) VALUES (?,?,?,?,?,?,?,?)")
+        .bind(crypto.randomUUID(), execution.runId, execution.step, tool, "completed",
+          execution.receiptId, JSON.stringify(execution.input ?? {}).slice(0, 8192),
+          JSON.stringify(execution.output).slice(0, 8192)),
+      this.db.prepare("UPDATE trinity_tool_registry SET success_count=success_count+1, avg_latency_ms=(avg_latency_ms+?)/2, last_used=datetime('now') WHERE tool_id=?")
+        .bind(ms, tool)
+    ]);
+    return true;
   }
 
   async recordToolError(tool, input, error) {
