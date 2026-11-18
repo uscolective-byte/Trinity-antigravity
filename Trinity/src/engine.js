@@ -267,6 +267,20 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
   let activeTools=agent.tools.filter(t=>(enabled.includes(t)||INTERNAL_TOOLS.has(t)||DEVELOPMENT_TOOLS.includes(t)||t==='diagnostic_ping')&&(!INTERNAL_TOOLS.has(t)||executionPolicy.allowInternal||t==='diagnostic_ping')&&(!PC_TOOLS.has(t)||executionPolicy.allowDirectPC)&&(!ACCOUNT_CONNECTOR_TOOLS.has(t)||executionPolicy.directAdmin));
   const pcFilesAvailable=activeTools.includes('pc_open_file')||activeTools.includes('pc_file_read');
   if(provider==='fast')activeTools=activeTools.filter(tool=>FAST_TOOLS.has(tool));
+  const normalizedTask=task.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const requestedTools=new Set();
+  for(const match of normalizedTask.matchAll(/\b(?:pouzi|pomocou|use|using)\s+(?:(?:nastroja?|(?:the\s+)?tool)\s+)?(["\x60]?)([a-z][a-z0-9_]{1,80})\1(?![a-z0-9_])/g)){
+    const [,quote,name]=match;
+    if(quote||name.includes('_')||Object.hasOwn(TOOL_SCHEMAS,name)||PC_TOOLS.has(name))requestedTools.add(name);
+  }
+  const unavailable=[...requestedTools].filter(name=>name!=='describe_tools'&&!activeTools.includes(name));
+  if(unavailable.length){
+    const toolLog=unavailable.map(tool=>({tool,status:'not_executed',effect:'diagnostic'}));
+    const text=language==='en'
+      ? 'The requested tool is unavailable for this request: '+unavailable.join(', ')+'.'
+      : 'Požadovaný nástroj nie je pre túto požiadavku dostupný: '+unavailable.join(', ')+'.';
+    return {text,model:'deterministic-policy',provider:'internal',agent_id:id,tool_log:toolLog,truth:truthStatus(text,toolLog),execution_status:'failed',duration_ms:0};
+  }
   const direct=directChatTool(task,activeTools);
   if(direct){
     let outcome;
@@ -549,8 +563,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
       throw err;
     }
     if(action.answer){
-      const normalizedTask=task.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-      const missing=activeTools.filter(tool=>new RegExp(`\\b(?:pouzi|pomocou|use|using)\\s+(?:(?:nastroja?|(?:the\\s+)?tool)\\s+)?${tool}\\b`).test(normalizedTask)&&!toolLog.some(r=>r.tool===tool));
+      const missing=[...requestedTools].filter(tool=>!toolLog.some(r=>r.tool===tool));
       if(missing.length&&!requestedToolRetry&&!forceFinal){
         requestedToolRetry=true;
         messages.push({role:'assistant',content:action.answer},{role:'user',content:`Požadované nástroje ešte neboli vykonané: ${missing.join(', ')}. Použi platné JSON volanie podľa definície argumentov. Nevymýšľaj výsledok.`});

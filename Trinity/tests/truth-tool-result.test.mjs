@@ -167,3 +167,13 @@ test('process confirmation requires an observed zero exit code and no conflictin
  assert.equal(toolReceiptForOutcome('pc_run',{status:'claimed'}).status,'running');
  assert.equal(toolReceiptForOutcome('calculate',{value:42}).status,'completed');
 });
+
+test('explicit unavailable tools fail before model inference',async()=>{
+ const env={AI:{run:async()=>{assert.fail('model must not supply a fictional tool result');}}};
+ for(const [message,name] of [['Použi nástroj pc_run.','pc_run'],['Použi nástroj "vymysleny_nastroj".','vymysleny_nastroj']]){
+  const result=await runAgent(env,'orchestrator',message,'','fast');
+  assert.equal(result.execution_status,'failed');
+  assert.equal(result.tool_log[0].tool,name);
+  assert.match(result.text,/nie je .*dostupný/);
+ }
+});

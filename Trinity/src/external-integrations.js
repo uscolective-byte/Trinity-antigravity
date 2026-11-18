@@ -792,7 +792,19 @@ export async function manageGoogleCloud(env, actor = 'trinity', action = 'status
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !Array.isArray(data.models)) {
-      return {success:false,connected:false,verified:false,error:'Gemini API nevrátilo zoznam modelov (HTTP '+response.status+').'};
+      const reasons={
+        API_KEY_INVALID:'Google označil kľúč Gemini za neplatný.',
+        API_KEY_EXPIRED:'Google označil kľúč Gemini za expirovaný.',
+        API_KEY_SERVICE_BLOCKED:'Obmedzenie kľúča nepovoľuje Gemini API.',
+        SERVICE_DISABLED:'Gemini API je v projekte vypnuté.',
+        BILLING_DISABLED:'Google hlási vypnutú fakturáciu projektu.',
+        CONSUMER_SUSPENDED:'Google pozastavil prístup projektu k API.'
+      };
+      const detail=Array.isArray(data.error?.details)?data.error.details.find(item=>
+        item?.['@type']==='type.googleapis.com/google.rpc.ErrorInfo'&&Object.hasOwn(reasons,item.reason)):null;
+      return {success:false,connected:false,verified:false,error:detail
+        ? reasons[detail.reason]+' (HTTP '+response.status+').'
+        : 'Gemini API nevrátilo zoznam modelov (HTTP '+response.status+').'};
     }
     const models=data.models.map(model=>model.name).filter(name=>typeof name==='string');
     return {success:true,connected:true,verified:true,source:'gemini_api',...(action==='list_models'?{models,total:models.length}:{})};

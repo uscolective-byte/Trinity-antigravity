@@ -175,6 +175,19 @@ test('manageGoogleCloud provides status and model listing', async () => {
   }
 });
 
+test('Gemini status reports a recognized provider reason without echoing private payloads',async(t)=>{
+  t.mock.method(globalThis,'fetch',async()=>new Response(JSON.stringify({
+    error:{message:'private-provider-message',details:[{
+      '@type':'type.googleapis.com/google.rpc.ErrorInfo',reason:'API_KEY_INVALID',
+      metadata:{secret:'private-provider-value'}
+    }]}
+  }),{status:400}));
+  const result=await manageGoogleCloud({GEMINI_API_KEY:'fixture-key'});
+  assert.equal(result.verified,false);
+  assert.match(result.error,/neplatný.*HTTP 400/);
+  assert.doesNotMatch(JSON.stringify(result),/private-provider|fixture-key/);
+});
+
 test('manageLocalBridge reports local workstation health and endpoints', async () => {
   const env = { PC_BRIDGE: { online: true } };
   const res = await manageLocalBridge(env, 'trinity', 'status');
