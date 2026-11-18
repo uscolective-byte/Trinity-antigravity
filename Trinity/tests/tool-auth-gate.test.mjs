@@ -2,9 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { executeToolCalls } from '../src/trinity-tools/tool-calling-engine.js';
 
-const llmCall = ```json
-{"tool_calls":[{"name":"kv_put","arguments":{"key":"important","value":"changed"}}]}
-```;
+const llmCall = ['```json', JSON.stringify({ tool_calls: [{ name: 'kv_put', arguments: { key: 'important', value: 'changed' } }] }), '```'].join('\n');
 
 test('spoofed owner id without verified principal cannot call a mutating tool', async () => {
   let writes = 0;
