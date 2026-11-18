@@ -6,6 +6,7 @@ only queues an allowlisted install proposal; a human must approve it in a local
 terminal. This service is NOT an authenticated Cloudflare Tunnel endpoint.
 """
 import argparse
+from contextlib import closing, contextmanager
 import hmac
 import json
 import os
@@ -44,10 +45,11 @@ def setup():
             return_code INTEGER, detail TEXT NOT NULL DEFAULT ''
         )""")
 
+@contextmanager
 def connect():
-    db = sqlite3.connect(DB, timeout=5)
-    db.execute("PRAGMA busy_timeout=5000")
-    return db
+    with closing(sqlite3.connect(DB, timeout=5)) as db, db:
+        db.execute("PRAGMA busy_timeout=5000")
+        yield db
 
 def get_task(task_id):
     with connect() as db:
