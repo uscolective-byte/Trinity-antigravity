@@ -74,6 +74,28 @@ export const requiresVerifiedAdminForIntegrationTool=(name,args={})=>
   ||name==='github_manage'&&['create_issue','update_issue','dispatch_workflow','create_or_update_file','write_file','create_pull_request'].includes(args?.action)
   ||name==='firebase_manage'&&['set_document','delete_document'].includes(args?.action)
   ||name==='onedrive_manage'&&['upload_file','create_folder','delete_file','delete_item'].includes(args?.action);
+export const PC_TOOL_SCHEMAS={
+  pc_run_script:z.object({runtime:z.enum(['node','python','cmd']),path:z.string().regex(/^Trinity\/workspace\/scripts\/[A-Za-z0-9_./-]+$/),expected_sha256:z.string().regex(/^[a-f0-9]{64}$/),args:z.array(z.string().max(2000)).max(20).default([]),timeout_ms:z.number().int().min(1000).max(600000).default(30000)}).strict(),
+  pc_screenshot:z.object({}).strict(),
+  pc_run:z.object({command:z.string().min(1).max(4000),cwd:z.string().optional(),timeout:z.number().int().min(1000).max(600000).optional(),allowNonZero:z.boolean().optional()}).strict(),
+  pc_file_read:z.object({path:z.string().min(1).max(2000),depth:z.number().int().min(1).max(3).optional()}).strict(),
+  pc_file_write:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000),expected_sha256:z.string().regex(/^(absent|[a-f0-9]{64})$/).default('absent')}).strict(),
+  pc_file_append:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000)}).strict(),
+  pc_file_edit:z.object({path:z.string().min(1).max(2000),find:z.string().min(1).max(200000),replace:z.string().max(200000)}).strict(),
+  pc_directory_create:z.object({path:z.string().min(1).max(2000)}).strict(),
+  pc_open_app:z.object({target:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser','commander','cmder'])}).strict(),
+  pc_open_url:z.object({url:z.string().min(1).max(2048)}).strict(),
+  pc_open_file:z.object({path:z.string().min(1).max(2000)}).strict(),
+  pc_app_control:z.object({operation:z.enum(['list','launch','type']),app:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser']).optional(),text:z.string().min(1).max(500).optional()}).strict(),
+  pc_notify:z.object({message:z.string().min(1).max(256),title:z.string().max(80).optional(),duration:z.number().int().min(1).max(30).optional()}).strict(),
+  pc_system_info:z.object({detail:z.boolean().optional()}).strict(),
+  pc_scrape:z.object({url:z.string().url(),formats:z.array(z.string()).optional(),onlyMainContent:z.boolean().optional()}).strict(),
+  pc_web_fetch:z.object({url:z.string().url()}).strict(),
+  pc_download:z.object({url:z.string().url(),path:z.string().min(1).max(2000)}).strict(),
+  pc_git_commit:z.object({message:z.string().min(3).max(200),cwd:z.string().optional(),files:z.array(z.string()).optional(),push:z.boolean().optional()}).strict(),
+  pc_git_pr:z.object({title:z.string().min(3).max(200),head:z.string().min(1),body:z.string().max(4000).optional(),base:z.string().optional()}).strict(),
+};
+
 export const TOOL_SCHEMAS={
   web_fetch:z.object({url:z.string().url()}).strict(),
   project_inspect:z.object({query:z.string().max(2000).default('')}).strict(),
@@ -376,7 +398,8 @@ export const TOOL_SCHEMAS={
   execute_claude:z.object({task:z.string().min(1).max(50000),model:z.string().optional(),systemPrompt:z.string().max(10000).optional(),maxTokens:z.number().int().optional()}).strict(),
   dual_engine_deliberate:z.object({task:z.string().min(1).max(50000),mode:z.enum(['deliberate','parallel','claude_only','gemini_only']).optional().default('deliberate'),geminiModel:z.string().optional(),claudeModel:z.string().optional(),systemPrompt:z.string().max(10000).optional(),maxTokens:z.number().int().optional()}).strict(),
   multi_model_consensus:z.object({task:z.string().min(1).max(12000),providers:z.array(z.string().max(30)).max(8).optional(),synthesize:z.boolean().optional().default(true),maxTokens:z.number().int().optional()}).strict(),
-  multi_agent_dispatch:z.object({title:z.string().min(1).max(4000),taskType:z.enum(['architecture','subsystems','scaling','research','analysis','comparison','documentation','refactoring','solutions','coding','patching','tests','implementation','dev_assistance','orchestration','coordination','planning']).default('orchestration'),priority:z.enum(['CRITICAL','HIGH','NORMAL','LOW']).default('NORMAL'),execute:z.boolean().default(false),steps:z.array(dispatcherStepSchema).min(1).max(5).optional()}).strict()
+  multi_agent_dispatch:z.object({title:z.string().min(1).max(4000),taskType:z.enum(['architecture','subsystems','scaling','research','analysis','comparison','documentation','refactoring','solutions','coding','patching','tests','implementation','dev_assistance','orchestration','coordination','planning']).default('orchestration'),priority:z.enum(['CRITICAL','HIGH','NORMAL','LOW']).default('NORMAL'),execute:z.boolean().default(false),steps:z.array(dispatcherStepSchema).min(1).max(5).optional()}).strict(),
+  ...PC_TOOL_SCHEMAS
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -1071,28 +1094,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       pc_scrape:'scrape',pc_web_fetch:'web_fetch',pc_download:'download', pc_git_commit:'git_commit', pc_git_pr:'git_pr',
     };
     const pcAction=pcActionMap[name];
-    const pcSchema={
-      pc_run_script:z.object({runtime:z.enum(['node','python','cmd']),path:z.string().regex(/^Trinity\/workspace\/scripts\/[A-Za-z0-9_./-]+$/),expected_sha256:z.string().regex(/^[a-f0-9]{64}$/),args:z.array(z.string().max(2000)).max(20).default([]),timeout_ms:z.number().int().min(1000).max(600000).default(30000)}).strict(),
-      pc_screenshot:z.object({}).strict(),
-      pc_run:z.object({command:z.string().min(1).max(4000),cwd:z.string().optional(),timeout:z.number().int().min(1000).max(600000).optional(),allowNonZero:z.boolean().optional()}).strict(),
-      pc_file_read:z.object({path:z.string().min(1).max(2000),depth:z.number().int().min(1).max(3).optional()}).strict(),
-      pc_file_write:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000),expected_sha256:z.string().regex(/^(absent|[a-f0-9]{64})$/).default('absent')}).strict(),
-      pc_file_append:z.object({path:z.string().min(1).max(2000),content:z.string().max(500000)}).strict(),
-      pc_file_edit:z.object({path:z.string().min(1).max(2000),find:z.string().min(1).max(200000),replace:z.string().max(200000)}).strict(),
-      pc_directory_create:z.object({path:z.string().min(1).max(2000)}).strict(),
-      pc_open_app:z.object({target:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser','commander','cmder'])}).strict(),
-      pc_open_url:z.object({url:z.string().min(1).max(2048)}).strict(),
-      pc_open_file:z.object({path:z.string().min(1).max(2000)}).strict(),
-      pc_app_control:z.object({operation:z.enum(['list','launch','type']),app:z.enum(['notepad','calculator','paint','explorer','chrome','edge','whatsapp','vscode','terminal','browser']).optional(),text:z.string().min(1).max(500).optional()}).strict(),
-      pc_notify:z.object({message:z.string().min(1).max(256),title:z.string().max(80).optional(),duration:z.number().int().min(1).max(30).optional()}).strict(),
-      pc_system_info:z.object({detail:z.boolean().optional()}).strict(),
-      pc_scrape:z.object({url:z.string().url(),formats:z.array(z.string()).optional(),onlyMainContent:z.boolean().optional()}).strict(),
-      pc_web_fetch:z.object({url:z.string().url()}).strict(),
-      pc_download:z.object({url:z.string().url(),path:z.string().min(1).max(2000)}).strict(),
-      pc_git_commit:z.object({message:z.string().min(3).max(200),cwd:z.string().optional(),files:z.array(z.string()).optional(),push:z.boolean().optional()}).strict(),
-      pc_git_pr:z.object({title:z.string().min(3).max(200),head:z.string().min(1),body:z.string().max(4000).optional(),base:z.string().optional()}).strict(),
-    };
-    const parsedArgs=pcSchema[name].parse(input);
+    const parsedArgs=PC_TOOL_SCHEMAS[name].parse(input);
     let payload=parsedArgs;
     if(name==='pc_open_url')payload={url:parsedArgs.url};
     if(name==='pc_open_file')payload={path:parsedArgs.path};

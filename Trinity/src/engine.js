@@ -265,7 +265,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
   const enabled=env.DB?(await listPlugins(env)).filter(p=>p.enabled).flatMap(p=>p.tools):agent.tools;
   let activeTools=agent.tools.filter(t=>(enabled.includes(t)||INTERNAL_TOOLS.has(t)||DEVELOPMENT_TOOLS.includes(t)||t==='diagnostic_ping')&&(!INTERNAL_TOOLS.has(t)||executionPolicy.allowInternal||t==='diagnostic_ping')&&(!PC_TOOLS.has(t)||executionPolicy.allowDirectPC)&&(!ACCOUNT_CONNECTOR_TOOLS.has(t)||executionPolicy.directAdmin));
   const pcFilesAvailable=activeTools.includes('pc_open_file')||activeTools.includes('pc_file_read');
-  if(provider==='fast')activeTools=activeTools.filter(tool=>FAST_TOOLS.has(tool));
+  if(provider==='fast')activeTools=activeTools.filter(tool=>FAST_TOOLS.has(tool)||(executionPolicy.allowDirectPC&&PC_TOOLS.has(tool)));
   const normalizedTask=task.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   const requestedTools=new Set();
   for(const match of normalizedTask.matchAll(/\b(?:pouzi|pomocou|use|using)\s+(?:(?:nastroja?|(?:the\s+)?tool)\s+)?(["\x60]?)([a-z][a-z0-9_]{1,80})\1(?![a-z0-9_])/g)){

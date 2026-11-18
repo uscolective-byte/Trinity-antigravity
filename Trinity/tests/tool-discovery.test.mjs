@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {z} from 'zod';
 import {describeAvailableTools,discoveryInstructions} from '../src/tool-discovery.js';
 import {runAgent} from '../src/engine.js';
-import {runTool} from '../src/tools.js';
+import {runTool,TOOL_SCHEMAS,TOOL_HELP,PC_TOOL_SCHEMAS} from '../src/tools.js';
 import {requiresWorkflowFallback,handleLiveChatStream} from '../src/chat-stream.js';
 
 test('discovery exposes exact required arguments without exposing unauthorized tools', () => {
@@ -125,4 +125,23 @@ test('live owner status tests surface provider diagnostics and hide the account 
  assert.match(events.at(-1).error,/poverenie zatiaľ nie je nakonfigurované/);
  const visitor=await handleLiveChatStream({},null,request);
  assert.equal(JSON.parse((await visitor.text()).trim()).type,'fallback_job');
+});
+
+test('file edits, script execution and git tools expose the same schemas used at runtime',()=>{
+ for(const name of ['pc_file_write','pc_file_edit','pc_run_script','pc_git_commit']){
+   assert.equal(TOOL_SCHEMAS[name],PC_TOOL_SCHEMAS[name]);
+   const result=describeAvailableTools([name],TOOL_SCHEMAS,TOOL_HELP,{name});
+   assert.equal(result.tools[0].input_schema.additionalProperties,false);
+ }
+ const script=describeAvailableTools(['pc_run_script'],TOOL_SCHEMAS,TOOL_HELP,{name:'pc_run_script'});
+ assert.ok(script.tools[0].input_schema.required.includes('expected_sha256'));
+});
+
+test('owner fast mode can discover development tools without granting access to other users',async()=>{
+ for(const ownerMode of [true,false]){
+   let calls=0;
+   const env={AI:{run:async()=>({response:++calls===1?JSON.stringify({tool:'describe_tools',arguments:{name:'pc_file_edit'}}):'Rozumiem.'})}};
+   const result=await runAgent(env,'orchestrator','Preskúmaj možnosti editácie.','','fast',1000,'sk',ownerMode);
+   assert.equal(result.tool_log[0].status,ownerMode?'completed':'failed');
+ }
 });
