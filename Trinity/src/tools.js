@@ -413,7 +413,17 @@ export async function waitForSystemAction(env,action,{attempts=80,intervalMs=150
     if(intervalMs>0)await sleep(intervalMs);
     const current=await getSystemAction(env,action.id);
     if(current?.status==='completed')return current;
-    if(current?.status==='failed')throw new Error(current.error||'Systémová akcia zlyhala bez podrobností.');
+    if(current?.status==='failed'){
+      const error=new Error(current.error||'Systémová akcia zlyhala bez podrobností.');
+      const receipt=current.receipt;
+      error.toolResult={id:current.id,status:'failed',error:error.message,...(receipt?{receipt:{
+        action:receipt.action,task:receipt.task,path:receipt.path,runtime:receipt.runtime,
+        exitCode:receipt.exitCode,success:receipt.success,script_sha256:receipt.script_sha256,
+        stdout:typeof receipt.stdout==='string'?receipt.stdout.slice(-6000):undefined,
+        stderr:typeof receipt.stderr==='string'?receipt.stderr.slice(-6000):undefined
+      }}:{})};
+      throw error;
+    }
     if(!current||['proposed','rejected'].includes(current.status))return current||action;
   }
   return await getSystemAction(env,action.id)||action;

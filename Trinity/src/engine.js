@@ -629,8 +629,8 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
       }
     }
     catch(e){
-      outcome={error:e.message};
-      toolLog.push({tool:action.tool,status:'failed',error:e.message,call_key});
+      outcome=e.toolResult||{error:e.message};
+      toolLog.push({tool:action.tool,status:'failed',error:e.message,call_key,...(e.toolResult?.id?{receipt_id:e.toolResult.id}:{})});
       if(env?.DB){
         try {
           await env.DB.prepare("INSERT INTO ops_events(action, details) VALUES('tool_executed', ?)").bind(JSON.stringify({
