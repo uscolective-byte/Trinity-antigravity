@@ -1,39 +1,49 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
+/**
+ * Legacy compatibility layer. There is deliberately no authentication bypass.
+ * Administrative access is only possible with an explicitly configured key.
+ */
 export class TrinityAuthBypass {
-  constructor() {
-    this.masterKey = process.env.ADMIN_API_KEY || 'trinity_master_sovereign_key_369_basterix';
-    this.bypassActive = process.env.BYPASS_EXTERNAL_KEYS === 'true';
+  constructor({ masterKey = process.env.ADMIN_API_KEY } = {}) {
+    this.masterKey = typeof masterKey === 'string' && masterKey.trim() ? masterKey : null;
+    this.bypassActive = false;
   }
 
-  // Overenie hlavičky alebo tokenu
-  verifyAuth(reqHeaders) {
-    if (this.bypassActive) {
-      return { authorized: true, mode: 'LOCAL_SOVEREIGN_BYPASS' };
+  verifyAuth(reqHeaders = {}) {
+    if (!this.masterKey) {
+      return { authorized: false, error: 'ADMIN_API_KEY is not configured.' };
     }
-
-    const authHeader = reqHeaders['authorization'] || '';
-    const apiKey = reqHeaders['x-api-key'] || authHeader.replace('Bearer ', '');
-
-    if (apiKey === this.masterKey) {
-      return { authorized: true, mode: 'ADMIN_KEY_MATCH' };
-    }
-
-    return { authorized: false, error: 'Neplatný alebo chýbajúci API kľúč v súlade s Ústavou.' };
+    const headers = reqHeaders instanceof Headers
+      ? Object.fromEntries(reqHeaders.entries())
+      : Object.fromEntries(Object.entries(reqHeaders || {}).map(([key, value]) => [key.toLowerCase(), value]));
+    const authHeader = typeof headers.authorization === 'string' ? headers.authorization : '';
+    const bearer = /^Bearer\s+(\S+)$/i.exec(authHeader);
+    const apiKey = typeof headers['x-api-key'] === 'string' ? headers['x-api-key'] : bearer?.[1] || '';
+    if (!apiKey) return { authorized: false, error: 'Missing API key.' };
+    const received = Buffer.from(apiKey, 'utf8');
+    const expected = Buffer.from(this.masterKey, 'utf8');
+    const authorized = received.length === expected.length && crypto.timingSafeEqual(received, expected);
+    return authorized
+      ? { authorized: true, mode: 'ADMIN_KEY_MATCH' }
+      : { authorized: false, error: 'Invalid API key.' };
   }
 
-  // Generovanie lokálneho kryptografického podpisu (Receipt)
+  /**
+   * This is a local integrity hash, not a signed or independently verified
+   * confirmation of external execution.
+   */
   generateReceipt(agentName, payload, result) {
     const timestamp = new Date().toISOString();
-    const raw = `${agentName}:${timestamp}:${JSON.stringify(payload)}:${JSON.stringify(result)}`;
-    const hash = crypto.createHash('sha256').update(raw).digest('hex');
-
+    const raw = JSON.stringify({ agentName, timestamp, payload, result });
     return {
-      receiptId: `rcpt_sov_${crypto.randomBytes(4).toString('hex')}`,
+      receiptId: 'rcpt_' + crypto.randomUUID(),
       agent: agentName,
       timestamp,
-      receiptHash: hash,
-      verified: true
+      receiptHash: crypto.createHash('sha256').update(raw).digest('hex'),
+      verified: false,
+      verificationStatus: 'unverified',
+      note: 'Integrity hash only; external execution not independently verified.'
     };
   }
 }
