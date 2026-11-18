@@ -135,6 +135,14 @@ class Handler(BaseHTTPRequestHandler):
         supplied = self.headers.get("Authorization", "")
         return hmac.compare_digest(supplied, "Bearer " + expected)
     def handle_request(self):
+        # Reject DNS rebinding / hostile Host headers and browser-origin requests.
+        # Only direct loopback clients are supported; do not expose via a tunnel.
+        host = self.headers.get("Host", "").lower()
+        if host not in (f"127.0.0.1:{self.server.server_port}",
+                        f"localhost:{self.server.server_port}"):
+            return self.send_json(403, {"ok": False, "error": "INVALID_HOST"})
+        if self.headers.get("Origin") or self.headers.get("Sec-Fetch-Site"):
+            return self.send_json(403, {"ok": False, "error": "BROWSER_REQUEST_DENIED"})
         # All endpoints require the local secret, including status.
         if not self.authorized():
             return self.send_json(401, {"ok": False, "error": "UNAUTHORIZED"})
