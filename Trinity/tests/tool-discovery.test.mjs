@@ -116,3 +116,13 @@ test('private cloud tools are callable for owners and check real provider config
    }
  }
 });
+
+test('live owner status tests surface provider diagnostics and hide the account tools from other users',async()=>{
+ const request={message:'Skontroluj OneDrive'};
+ const owner=await handleLiveChatStream({},null,{...request,ownerMode:true});
+ const events=(await owner.text()).trim().split('\n').map(JSON.parse);
+ assert.ok(events.some(event=>event.type==='tool'&&event.name==='onedrive_manage'&&event.status==='failed'));
+ assert.match(events.at(-1).error,/poverenie zatiaľ nie je nakonfigurované/);
+ const visitor=await handleLiveChatStream({},null,request);
+ assert.equal(JSON.parse((await visitor.text()).trim()).type,'fallback_job');
+});

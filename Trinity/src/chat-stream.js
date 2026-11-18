@@ -16,7 +16,7 @@ import { getPCBridgeStatus } from './system-actions.js';
 import { getConfiguredAIProvider, sanitizeApiKey } from './ai-providers.js';
 import { cleanOutput } from '../services/chat-inference.js';
 import { persistAutoMemory } from './memory-extractor.js';
-import { recallMemory, runTool } from './tools.js';
+import { ACCOUNT_CONNECTOR_TOOLS, recallMemory, runTool } from './tools.js';
 import { agentById } from './registry.js';
 import { planTask } from './planner.js';
 import { listActiveBehaviorRules, behaviorRulesDirective } from './self-improvement.js';
@@ -247,8 +247,11 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
 
   const capabilityAnswer = allow_files || engine === 'local' ? null : selfImprovementAnswer(message,language);
 
+  const cloudRequest=ownerMode&&!allow_files&&engine!=='local'
+    ? directChatTool(message,[...ACCOUNT_CONNECTOR_TOOLS]) : null;
+
   // Heavy tool/file/PC/AI-Studio tasks fall back cleanly to durable Workflow execution
-  if (!capabilityAnswer && (engine === 'local' || requiresWorkflowFallback(message, allow_files))) {
+  if (!capabilityAnswer && !cloudRequest && (engine === 'local' || requiresWorkflowFallback(message, allow_files))) {
     const body = encodeEvent({ type: 'fallback_job', reason: 'workflow_tools' });
     return new Response(body, {
       headers: {
@@ -270,7 +273,7 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
           else await persistence;
           return;
         }
-        const direct = directLiveTool(message);
+        const direct = cloudRequest || directLiveTool(message);
         if (direct) {
           const agent = agentById('orchestrator');
           let outcome;
@@ -279,6 +282,19 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
           } catch(error) {
             send({type:'tool',name:direct.name,status:'failed'});
             throw error;
+          }
+          if(cloudRequest){
+            const { _evidence, ...data }=outcome;
+            const verified=direct.name==='google_drive_verify'
+              ? Boolean(data.id&&data.sha256)
+              : data.success===true;
+            send({type:'context',session:sessionId,model:'deterministic-tool',memories:[],history:0});
+            send({type:'tool',name:direct.name,status:verified?'completed':'failed'});
+            if(!verified)throw new Error(data.error||data.message||'Konektor nevrátil overiteľný výsledok.');
+            const text=JSON.stringify(data,null,2);
+            send({type:'delta',text});
+            if(ctx?.waitUntil)ctx.waitUntil(persistStreamTurn(env,{jobId,sessionId,message,answer:text,provider:'internal',remember}));
+            return;
           }
           const temperature=outcome.current?.temperature_c;
           const humidity=outcome.current?.humidity_pct;
