@@ -52,15 +52,21 @@ export async function executeInferenceCascade(messages = [], env = {}) {
   // Ak je pripojený AI_INFERENCE_SERVICE / CHAT_INFERENCE_SERVICE a nie je priamo env.AI
   const serviceBinding = env?.AI_INFERENCE_SERVICE || env?.CHAT_INFERENCE_SERVICE;
   if (!env?.AI && serviceBinding && typeof serviceBinding.fetch === 'function') {
-    const res = await serviceBinding.fetch(
-      new Request('https://inference.internal/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: slicedMessages, stream: true })
-      })
-    );
-    if (res.ok && res.body) {
-      return res.body.pipeThrough(createStreamingSanitizer());
+    try {
+      const res = await serviceBinding.fetch(
+        new Request('https://inference.internal/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: slicedMessages, stream: true }),
+          signal: AbortSignal.timeout(15000)
+        })
+      );
+      if (res.ok && res.body && res.headers.get('content-type')?.includes('text/event-stream')) {
+        return res.body.pipeThrough(createStreamingSanitizer());
+      }
+      await res.body?.cancel();
+    } catch {
+      // An unavailable upstream is reported by the terminal fallback below.
     }
   }
 
@@ -76,22 +82,19 @@ export async function executeInferenceCascade(messages = [], env = {}) {
           temperature: 0.65,
           stream: true
         });
-        await recordCircuitSuccess(env, model);
-
         if (result && typeof result.getReader === 'function') {
           return result.pipeThrough(createStreamingSanitizer());
         }
-        if (result && typeof result.response === 'string') {
+        if (typeof result?.response === 'string' && cleanOutput(result.response).trim()) {
+          await recordCircuitSuccess(env, model);
           return wrapTextAsSseStream(result.response).pipeThrough(createStreamingSanitizer());
         }
+        throw new Error('Model did not return usable text or a stream');
       } catch {
         await recordCircuitFailure(env, model);
       }
     }
   }
 
-  // Deterministický núdzový stream ak v lokálnom dev režime nie je pripojený Cloudflare AI binding
-  return wrapTextAsSseStream(
-    'Som Trinity (v11.2.0, režim development_open). Spojenie s bránou funguje; pre plnú LLM inferenciu pripoj Cloudflare Workers AI binding (env.AI).'
-  );
+  return wrapTextAsSseStream('Modelová služba je momentálne nedostupná. Trinity nezískala odpoveď modelu.');
 }

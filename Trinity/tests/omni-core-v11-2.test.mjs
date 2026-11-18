@@ -790,3 +790,20 @@ test('Module 11: Tetrakis ($TTK) Base L2 Smart Contract, Hardhat Config & Worker
   assert.equal(fastManifesto.pillars.length, 4);
 });
 
+
+test('inference cascade skips empty model responses and reports unavailable services honestly',async()=>{
+  const {executeInferenceCascade,CASCADE_MODELS}=await import('../src/inference-cascade.js');
+  const calls=[];
+  const stream=await executeInferenceCascade([{role:'user',content:'Test'}],{AI:{async run(model){
+    calls.push(model);
+    return {response:calls.length===1?'  ':'Verified fallback content'};
+  }}});
+  assert.deepEqual(calls,CASCADE_MODELS.slice(0,2));
+  assert.match(await new Response(stream).text(),/Verified fallback content/);
+  const failed=await executeInferenceCascade([],{CHAT_INFERENCE_SERVICE:{async fetch(){
+    return new Response('<html>Login</html>',{headers:{'content-type':'text/html'}});
+  }}});
+  const result=await new Response(failed).text();
+  assert.match(result,/nedostupná/);
+  assert.doesNotMatch(result,/Login|bránou funguje/);
+});
