@@ -95,8 +95,25 @@ export async function executeWithCircuitBreaker({
   }
 
   try {
-    const signal = AbortSignal.timeout(timeoutMs);
-    const value = await invoke({signal, provider: name, probe});
+    // Enforce a wait deadline even if the provider adapter ignores AbortSignal.
+    // The controller requests cancellation, but billing/remote cancellation is
+    // not guaranteed unless the adapter actively supports AbortSignal.
+    const controller = new AbortController();
+    let timeoutId;
+    const deadline = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => {
+        controller.abort();
+        const error = new Error('Provider response timeout');
+        error.name = 'TimeoutError';
+        reject(error);
+      }, timeoutMs);
+    });
+    let value;
+    try {
+      value = await Promise.race([invoke({signal: controller.signal, provider: name, probe}), deadline]);
+    } finally {
+      clearTimeout(timeoutId);
+    }
     if (value === undefined || value === null) throw new Error('Provider returned no value.');
     const completedAt = now();
     await writeState(store, {
