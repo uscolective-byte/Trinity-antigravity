@@ -79,3 +79,15 @@ test('router falls through open and unavailable providers to edge', async () => 
   assert.equal(result.provider, 'edge');
   assert.deepEqual(result.attempts.map(item => item.reason || 'success'), ['circuit-open', 'not-configured', 'success']);
 });
+
+test('unresponsive provider actually times out and does not report success', async () => {
+  const store = memoryStore();
+  const response = await executeWithCircuitBreaker({
+    provider: 'unresponsive',
+    store,
+    timeoutMs: 10,
+    invoke: async () => new Promise(() => {})
+  });
+  assert.equal(response.ok, false);
+  assert.equal(response.reason, 'timeout');
+});
