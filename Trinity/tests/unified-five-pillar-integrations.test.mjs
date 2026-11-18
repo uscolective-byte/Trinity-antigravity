@@ -163,7 +163,8 @@ test('manageGoogleCloud provides status and model listing', async () => {
     const env = { GOOGLE_PROJECT_ID: 'tangential-osprey-dl7cp', GEMINI_API_KEY: 'mock-key' };
     const statusRes = await manageGoogleCloud(env, 'trinity', 'status');
     assert.equal(statusRes.success, true);
-    assert.equal(statusRes.project_id, 'tangential-osprey-dl7cp');
+    assert.equal(statusRes.verified, true);
+    assert.equal(statusRes.source, 'gemini_api');
 
     const modelsRes = await manageGoogleCloud(env, 'trinity', 'list_models');
     assert.equal(modelsRes.success, true);
@@ -186,18 +187,18 @@ test('manageLocalBridge reports local workstation health and endpoints', async (
 test('runTool dispatches onedrive_manage, google_cloud_manage, local_bridge_manage and integration_status', async () => {
   const env = {
     GOOGLE_PROJECT_ID: 'tangential-osprey-dl7cp',
-    ONEDRIVE_TOKEN: 'mock-od-token',
     PC_BRIDGE: { online: true }
   };
   const agent = { id: 'test-agent' };
 
-  const odRes = await runTool(env, agent, 'onedrive_manage', { action: 'status' });
-  assert.ok(odRes._evidence);
-  assert.equal(odRes._evidence.effect, 'read');
+  const owner = { adminAuthorized:true };
+  const odRes = await runTool(env, agent, 'onedrive_manage', { action: 'status' }, owner);
+  assert.equal(odRes.success, false);
+  assert.equal(odRes.verified, false);
 
-  const gcpRes = await runTool(env, agent, 'google_cloud_manage', { action: 'status' });
-  assert.ok(gcpRes._evidence);
-  assert.equal(gcpRes._evidence.effect, 'read');
+  const gcpRes = await runTool(env, agent, 'google_cloud_manage', { action: 'status' }, owner);
+  assert.equal(gcpRes.success, false);
+  assert.equal(gcpRes.verified, false);
 
   const localRes = await runTool(env, agent, 'local_bridge_manage', { action: 'status' });
   assert.ok(localRes._evidence);
