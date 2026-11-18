@@ -406,9 +406,9 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   const isAdminOrOwner=executionContext.adminAuthorized===true||executionContext.ownerMode===true;
   if((DEVELOPMENT_TOOLS.includes(name)||name==='domain_register'&&input?.live_register===true)&&!isAdminOrOwner)throw new Error('Táto schopnosť vyžaduje serverom overeného správcu.');
   if(OWNER_BUSINESS_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('Obchodné a vývojové schopnosti Trinity sú dostupné iba overenému ownerovi.');
-  if(ACCOUNT_CONNECTOR_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('Nástroje súkromných účtov vyžadujú serverom overeného správcu.');
   if(PC_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('PC nástroje sú dostupné iba v serverom overenom admin režime.');
   if(requiresVerifiedAdminForIntegrationTool(name,input)&&!isAdminOrOwner)throw new Error('Cloudflare/GitHub/Firebase zápisy vyžadujú serverom overeného vlastníka.');
+  if(ACCOUNT_CONNECTOR_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('Nástroje súkromných účtov vyžadujú serverom overeného správcu.');
   if(['execute_skill','ecosystem_synthesize'].includes(name)&&!isAdminOrOwner)throw new Error('Spúšťanie skillov a registrácia rozšírení vyžaduje serverom overeného administrátora.');
   if(!INTERNAL_TOOLS.has(name)&&name!=='install_plugin')await ensureToolEnabled(env,name);
   if(name==='request_system_action'&&input&&typeof input==='object')input={action:input.action,payload:input.payload||(typeof input.resource==='string'?{path:input.resource}:{}),rationale:input.rationale||input.reason};
