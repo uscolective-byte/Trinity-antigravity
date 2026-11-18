@@ -42,25 +42,13 @@ export class SovereignLedgerV3 {
     let blockIndex = 1;
 
     if (this.env?.DB) {
-      try {
-        const stmt = this.env.DB.prepare(
-          "SELECT block_index, block_hash FROM ops_sovereign_ledger_v3 ORDER BY block_index DESC LIMIT 1"
-        );
-        const lastRow = typeof stmt.first === 'function' ? await stmt.first() : (stmt.bind ? await stmt.bind().first() : null);
-        if (lastRow) {
-          blockIndex = (lastRow.block_index || 0) + 1;
-          prevHash = lastRow.block_hash || prevHash;
-        } else if (this.inMemoryBlocks.length > 0) {
-          const last = this.inMemoryBlocks[this.inMemoryBlocks.length - 1];
-          blockIndex = last.block_index + 1;
-          prevHash = last.block_hash;
-        }
-      } catch {
-        if (this.inMemoryBlocks.length > 0) {
-          const last = this.inMemoryBlocks[this.inMemoryBlocks.length - 1];
-          blockIndex = last.block_index + 1;
-          prevHash = last.block_hash;
-        }
+      const stmt = this.env.DB.prepare(
+        "SELECT block_index, block_hash FROM ops_sovereign_ledger_v3 ORDER BY block_index DESC LIMIT 1"
+      );
+      const lastRow = typeof stmt.first === 'function' ? await stmt.first() : await stmt.bind().first();
+      if (lastRow) {
+        blockIndex = lastRow.block_index + 1;
+        prevHash = lastRow.block_hash;
       }
     } else if (this.inMemoryBlocks.length > 0) {
       const last = this.inMemoryBlocks[this.inMemoryBlocks.length - 1];
@@ -83,62 +71,54 @@ export class SovereignLedgerV3 {
       receipt: `receipt:trinity:${blockHash.slice(0, 16)}`
     };
 
-    this.inMemoryBlocks.push(block);
-
     if (this.env?.DB) {
-      try {
-        await this.env.DB.prepare(
-          `INSERT INTO ops_sovereign_ledger_v3(block_index, timestamp, actor, action, payload_hash, prev_hash, block_hash, rollback_ref, receipt, payload_json)
-           VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        ).bind(
-          block.block_index,
-          block.timestamp,
-          block.actor,
-          block.action,
-          block.payload_hash,
-          block.prev_hash,
-          block.block_hash,
-          block.rollback_ref,
-          block.receipt,
-          payloadStr
-        ).run();
-      } catch {
-        // Fallback to ops_events if ops_sovereign_ledger_v3 table is pending migration
-        await this.env.DB.prepare(
-          "INSERT INTO ops_events(action, details) VALUES('sovereign_ledger_v3_block', ?)"
-        ).bind(JSON.stringify(block)).run().catch(() => {});
+      const result = await this.env.DB.prepare(
+        "INSERT INTO ops_sovereign_ledger_v3(block_index, timestamp, actor, action, payload_hash, prev_hash, block_hash, rollback_ref, receipt, payload_json) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      ).bind(blockIndex, timestamp, actor, action, payloadHash, prevHash, blockHash,
+        rollbackRef, block.receipt, payloadStr).run();
+      if (result?.success !== true || (result.meta?.changes != null && result.meta.changes !== 1)) {
+        throw new HttpError(503, 'Zápis do trvalého ledgeru nebol potvrdený.');
       }
+    } else {
+      this.inMemoryBlocks.push({...block, payload_json:payloadStr});
     }
 
     return block;
   }
 
   async verifyIntegrity(limit = 100) {
-    if (!this.env?.DB) {
-      return { verified: true, chain_length: this.inMemoryBlocks.length, note: 'In-memory verification only' };
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1000) {
+      throw new HttpError(400, 'Limit kontroly ledgeru musí byť od 1 do 1000.');
     }
+    const scope = this.env?.DB ? 'd1' : 'memory';
     try {
-      const rows = await this.env.DB.prepare(
-        "SELECT block_index, timestamp, actor, action, payload_hash, prev_hash, block_hash, rollback_ref FROM ops_sovereign_ledger_v3 ORDER BY block_index ASC LIMIT ?"
-      ).bind(limit).all();
-      const blocks = rows.results || [];
-      if (blocks.length === 0) return { verified: true, chain_length: 0 };
-
-      let previousHash = '0000000000000000000000000000000000000000000000000000000000000000';
-      for (const b of blocks) {
-        if (b.block_index > 1 && b.prev_hash !== previousHash) {
-          return { verified: false, broken_at_index: b.block_index, error: 'Previous hash mismatch' };
+      const rows = scope === 'd1'
+        ? await this.env.DB.prepare(
+          "SELECT block_index, timestamp, actor, action, payload_hash, prev_hash, block_hash, rollback_ref, payload_json FROM ops_sovereign_ledger_v3 ORDER BY block_index ASC LIMIT ?"
+        ).bind(limit + 1).all()
+        : {results:this.inMemoryBlocks.slice(0, limit + 1)};
+      if (rows?.success === false || !Array.isArray(rows?.results)) throw new Error('Ledger query failed');
+      const blocks = rows.results.slice(0, limit);
+      let previousHash = '0'.repeat(64);
+      for (const [position, block] of blocks.entries()) {
+        const failure = {verified:false, scope, broken_at_index:block.block_index};
+        if (block.block_index !== position + 1 || block.prev_hash !== previousHash) {
+          return {...failure, error:'Block sequence or previous hash mismatch'};
         }
-        const expectedHeader = `${b.block_index}|${b.timestamp}|${b.actor}|${b.action}|${b.payload_hash}|${b.prev_hash}|${b.rollback_ref || 'none'}`;
-        const calculated = await sha256Hex(expectedHeader);
-        if (calculated !== b.block_hash) {
-          return { verified: false, broken_at_index: b.block_index, error: 'Block hash signature tampered' };
+        if (typeof block.payload_json !== 'string' || await sha256Hex(block.payload_json) !== block.payload_hash) {
+          return {...failure, error:'Payload hash mismatch'};
         }
-        previousHash = b.block_hash;
+        const header = [block.block_index, block.timestamp, block.actor, block.action, block.payload_hash,
+          block.prev_hash, block.rollback_ref || 'none'].join('|');
+        if (await sha256Hex(header) !== block.block_hash) {
+          return {...failure, error:'Block hash mismatch'};
+        }
+        previousHash = block.block_hash;
       }
-      return { verified: true, chain_length: blocks.length, head_hash: previousHash };
-    } catch (e) {
-      return { verified: true, chain_length: 0, note: `Table pending: ${e.message}` };
+      const truncated = rows.results.length > limit;
+      return {verified:!truncated, scope, truncated, chain_length:blocks.length, head_hash:blocks.length ? previousHash : null};
+    } catch {
+      return {verified:false, scope, error:'Ledger storage could not be read.'};
     }
   }
 }

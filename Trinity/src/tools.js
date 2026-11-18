@@ -1186,10 +1186,14 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const ledger=new SovereignLedgerV3(env);
     if(args.action==='architecture')return {architecture:SOVEREIGN_ARCHITECTURE,_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
     if(args.action==='append'){
+      if(!env.DB)return {status:'not_verified',error:'Chýba D1 pre trvalý zápis do ledgeru.'};
       const block=await ledger.appendBlock(args.actor||'Basterix',args.operation||'SYSTEM_AUDIT',args.payload||{},'tool:sovereign_ledger_v3');
       return {status:'completed',block,_evidence:{effect:'mutation',actions:['record'],receipt_id:block.receipt}};
     }
     const integrity=await ledger.verifyIntegrity();
+    if(!integrity.verified||integrity.scope!=='d1'){
+      return {status:'not_verified',integrity,error:'Trvalú integritu ledgeru sa nepodarilo potvrdiť.'};
+    }
     return {status:'completed',integrity,layers:Object.keys(SOVEREIGN_ARCHITECTURE.layers).length,epics:35,_evidence:{effect:'read',receipt_id:crypto.randomUUID()}};
   }
   if(name==='sovereign_lock_check'){

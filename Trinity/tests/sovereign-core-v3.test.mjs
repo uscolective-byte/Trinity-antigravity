@@ -32,7 +32,7 @@ test('SovereignLedgerV3: Appends blocks with SHA-256 chain links and verifies in
                   prev_hash: args[5],
                   block_hash: args[6],
                   rollback_ref: args[7],
-                  payload_json: args[8]
+                  payload_json: args[9]
                 });
               }
               return { success: true };
@@ -70,6 +70,23 @@ test('SovereignLedgerV3: Appends blocks with SHA-256 chain links and verifies in
   const check = await ledger.verifyIntegrity();
   assert.equal(check.verified, true);
   assert.equal(check.chain_length, 2);
+  assert.equal((await ledger.verifyIntegrity(1)).truncated,true);
+  assert.equal((await ledger.verifyIntegrity(1)).verified,false);
+  memoryDB.blocks[0].payload_json='{"step":999}';
+  assert.equal((await ledger.verifyIntegrity()).error,'Payload hash mismatch');
+});
+
+test('ledger storage errors cannot be reported as verified',async()=>{
+  const ledger=new SovereignLedgerV3({DB:{prepare(){throw new Error('unavailable');}}});
+  assert.deepEqual(await ledger.verifyIntegrity(),{verified:false,scope:'d1',error:'Ledger storage could not be read.'});
+});
+
+test('a rejected ledger write does not issue a durable receipt',async()=>{
+  const ledger=new SovereignLedgerV3({DB:{prepare(){return {
+    first:async()=>null,bind(){return this;},run:async()=>({success:false})
+  };}}});
+  await assert.rejects(ledger.appendBlock('test','test_write',{}),/nebol potvrdený/);
+  assert.equal(ledger.inMemoryBlocks.length,0);
 });
 
 test('ComputeBudgetManager: Allocates budgets and prioritizes tasks correctly', () => {
