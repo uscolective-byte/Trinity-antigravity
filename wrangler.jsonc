@@ -2,6 +2,10 @@
   "$schema": "Trinity/node_modules/wrangler/config-schema.json",
   "name": "trinity",
   "main": "src/index.ts",
+  "build": {
+    "command": "npm ci && node scripts/build-mcp-app.mjs",
+    "cwd": "Trinity"
+  },
   "account_id": "b60342e5e52f5646fbd4e913bb409334",
   "compatibility_date": "2026-10-11",
   "compatibility_flags": [
