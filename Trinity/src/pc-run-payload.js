@@ -2,6 +2,7 @@ import {HttpError} from './security.js';
 
 const pcRunTasks = new Map(Object.entries({
   'node --version':'node-version',
+  'node -v':'node-version',
   'python --version':'python-version',
   'cmd /c ver':'cmd-version',
   'npm run build':'build',

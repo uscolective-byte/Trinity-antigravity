@@ -158,12 +158,20 @@ test('Antigravity Suite 7: runTool dispatch for Antigravity tools and Triad tele
   const agent = agentById('orchestrator');
 
   // 1. read_file cez runTool
-  const readRes = await runTool({}, agent, 'read_file', {
-    Path: 'package.json',
+  await assert.rejects(runTool({},agent,'read_file',{Path:'Trinity/package.json'}),/admin/);
+  let payload;
+  const content=fs.readFileSync(path.join(workspaceRoot,'package.json'),'utf8');
+  const env={DB:{prepare(sql){return {
+    bind(...values){if(sql.startsWith('INSERT INTO ops_system_actions'))payload=JSON.parse(values[2]);return this;},
+    async run(){return {};},async first(){return sql.includes('ops_plugins')?{installed:1,enabled:1}:{id:'suite-read',status:'completed',payload_json:'{}',receipt_json:JSON.stringify({content,sha256:'a'.repeat(64),bytes:Buffer.byteLength(content)})};}
+  };}}};
+  const readRes = await runTool(env, agent, 'read_file', {
+    Path: 'Trinity/package.json',
     StartLine: 1,
     EndLine: 3
-  });
+  },{adminAuthorized:true});
   assert.ok(readRes.content.includes('{'));
+  assert.deepEqual(payload,{path:'Trinity/package.json'});
 
   // 2. search_marketplace cez runTool
   const searchRes = await runTool({}, agent, 'search_marketplace', {

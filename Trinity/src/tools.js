@@ -60,14 +60,12 @@ import {dualEngineDeliberate} from './dual-engine-orchestrator.js';
 import {runMultiModelConsensus} from './multi-model-bus.js';
 import {TrinityMultiAgentOrchestrator,TASK_PRIORITIES} from './multi-agent-orchestrator.js';
 const orchestratorsByEnvironment=new WeakMap();
-import fs from 'node:fs';
-import path from 'node:path';
-import {antigravityReadFile,antigravityWriteFile,antigravityEditFile,antigravityRunCommand,antigravityManageTask,antigravitySearchMarketplace} from './antigravity-bridge.js';
+import {antigravityManageTask,antigravitySearchMarketplace} from './antigravity-bridge.js';
 
 export const INTERNAL_TOOLS=new Set(['diagnostic_ping','request_system_action','system_action_status','request_owner_approval','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose','cf_d1_query','cf_kv_store','cf_r2_manage','cf_self_deploy','mail_engine','http_fetch_pro','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','apply_self_evolution','triad_subagent_run','triad_deep_research','triad_code_patch','triad_test_matrix','triad_copilot_sync','triad_status','read_file','write_file','edit_file','run_command','manage_task','search_marketplace','execute_gemini_gem','execute_claude','dual_engine_deliberate','multi_agent_dispatch']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
 export const ACCOUNT_CONNECTOR_TOOLS=new Set(['onedrive_manage','google_cloud_manage','google_drive_verify']);
-export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
+export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','read_file','write_file','edit_file','run_command']);
 export const OWNER_BUSINESS_TOOLS=new Set(['finance_propose_transfer','finance_confirm_transfer','finance_audit_ledger','prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
 export const requiresVerifiedAdminForIntegrationTool=(name,args={})=>
   name==='cloudflare_manage'&&['purge_cache','create_dns_record','update_dns_record','delete_dns_record'].includes(args?.action)
@@ -391,10 +389,22 @@ export const TOOL_SCHEMAS={
   diagnostic_ping:z.object({
     message:z.string().max(200).default('ping')
   }).strict(),
-  read_file:z.object({Path:z.string().min(1).max(2000),StartLine:z.number().int().optional(),EndLine:z.number().int().optional(),ByteOffset:z.number().int().optional()}).strict(),
-  write_file:z.object({Path:z.string().min(1).max(2000),Content:z.string().max(10_000_000),Append:z.boolean().optional().default(false),Overwrite:z.boolean().optional().default(false),ArtifactMetadata:z.record(z.string(),z.unknown()).optional().nullable()}).strict(),
-  edit_file:z.object({Path:z.string().min(1).max(2000),Target:z.string().min(1).max(500000),Replacement:z.string().max(500000),ArtifactMetadata:z.record(z.string(),z.unknown()).optional().nullable()}).strict(),
-  run_command:z.object({CommandLine:z.string().min(1).max(8000),WaitMsBeforeAsync:z.number().int().min(500).max(120000).optional().default(5000),toolSummary:z.string().max(200).optional().default('Command Execution'),IsDaemon:z.boolean().optional().default(false)}).strict(),
+  read_file:z.union([
+    z.object({Path:z.string().min(1).max(2000),StartLine:z.number().int().min(1).optional(),EndLine:z.number().int().min(1).optional(),ByteOffset:z.number().int().min(0).optional()}).strict(),
+    z.object({path:z.string().min(1).max(2000),start_line:z.number().int().min(1).optional(),end_line:z.number().int().min(1).optional(),byte_offset:z.number().int().min(0).optional()}).strict()
+  ]).transform(a=>'Path' in a?{path:a.Path,start_line:a.StartLine,end_line:a.EndLine,byte_offset:a.ByteOffset}:a),
+  write_file:z.union([
+    z.object({Path:z.string().min(1).max(2000),Content:z.string().max(500000),Append:z.boolean().optional(),Overwrite:z.boolean().optional(),ArtifactMetadata:z.record(z.string(),z.unknown()).nullable().optional()}).strict(),
+    z.object({path:z.string().min(1).max(2000),content:z.string().max(500000),append:z.boolean().optional(),overwrite:z.boolean().optional(),expected_sha256:z.string().regex(/^(absent|[a-f0-9]{64})$/).optional()}).strict()
+  ]).transform(a=>'Path' in a?{path:a.Path,content:a.Content,append:a.Append,overwrite:a.Overwrite,artifact_metadata:a.ArtifactMetadata}:a),
+  edit_file:z.union([
+    z.object({Path:z.string().min(1).max(2000),Target:z.string().min(1).max(200000),Replacement:z.string().max(200000),ArtifactMetadata:z.record(z.string(),z.unknown()).nullable().optional()}).strict(),
+    PC_TOOL_SCHEMAS.pc_file_edit
+  ]).transform(a=>'Path' in a?{path:a.Path,find:a.Target,replace:a.Replacement}:a),
+  run_command:z.union([
+    z.object({CommandLine:z.string().min(1).max(4000),WaitMsBeforeAsync:z.number().int().min(500).max(120000).optional(),toolSummary:z.string().max(200).optional(),IsDaemon:z.boolean().optional()}).strict(),
+    z.object({command:z.string().min(1).max(4000),cwd:z.string().optional()}).strict()
+  ]).transform(a=>'CommandLine' in a?{command:a.CommandLine,daemon:a.IsDaemon}:a),
   manage_task:z.object({Action:z.enum(['list','kill','status','send_input']),TaskId:z.string().optional(),Input:z.string().optional()}).strict(),
   search_marketplace:z.object({queries:z.array(z.string()).default([]),kind:z.enum(['all','plugin','skill']).default('all'),limit:z.number().int().min(1).max(50).default(10)}).strict(),
   execute_gemini_gem:z.object({task:z.string().min(1).max(20000),systemPrompt:z.string().max(10000).optional(),maxTokens:z.number().int().optional()}).strict(),
@@ -450,10 +460,36 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(['execute_skill','ecosystem_synthesize'].includes(name)&&!isAdminOrOwner)throw new Error('Spúšťanie skillov a registrácia rozšírení vyžaduje serverom overeného administrátora.');
   // Legacy PC names are aliases of the same verified gateway operations.
   // Permission to use the alias was checked above; no alternate executor is used.
-  const pcAliases={pc_fs_read:'pc_file_read',pc_fs_write:'pc_file_write',pc_fs_patch:'pc_file_edit',pc_shell_exec:'pc_run',pc_system_telemetry:'pc_system_info'};
+  const pcAliases={pc_fs_read:'pc_file_read',pc_fs_write:'pc_file_write',pc_fs_patch:'pc_file_edit',pc_shell_exec:'pc_run',pc_system_telemetry:'pc_system_info',read_file:'pc_file_read',write_file:'pc_file_write',edit_file:'pc_file_edit',run_command:'pc_run'};
   if(Object.hasOwn(pcAliases,name)){
     const inputArgs=TOOL_SCHEMAS[name].parse(input);
     let mapped=inputArgs,canonical=pcAliases[name];
+    if(name==='read_file'){
+      const output=await runTool(env,null,'pc_file_read',{path:inputArgs.path},executionContext);
+      if(typeof output.content!=='string')return output;
+      const lines=output.content.split(/\r?\n/),start=inputArgs.start_line||1,end=inputArgs.end_line||lines.length;
+      if(end<start)throw new Error('Koniec rozsahu musí nasledovať po začiatku.');
+      let content=output.content;
+      if(inputArgs.start_line!==undefined||inputArgs.end_line!==undefined)content=lines.slice(start-1,end).join('\n');
+      else if(inputArgs.byte_offset!==undefined)content=new TextDecoder().decode(new TextEncoder().encode(content).subarray(inputArgs.byte_offset,inputArgs.byte_offset+46080));
+      return {...output,content,full_bytes:output.bytes,bytes:new TextEncoder().encode(content).byteLength,sha256_scope:'full_file',totalLines:lines.length,startLine:start,endLine:Math.min(end,lines.length)};
+    }
+    if(name==='edit_file')mapped={path:inputArgs.path,find:inputArgs.find,replace:inputArgs.replace};
+    if(name==='run_command'){
+      if(inputArgs.daemon)throw new Error('Trvalé procesy cez run_command zatiaľ nie sú podporované.');
+      mapped={command:inputArgs.command,...(inputArgs.cwd?{cwd:inputArgs.cwd}:{})};
+    }
+    if(name==='write_file'){
+      if(inputArgs.append&&inputArgs.overwrite)throw new Error('Zvoľ doplnenie alebo prepísanie súboru.');
+      canonical=inputArgs.append?'pc_file_append':'pc_file_write';
+      let expected=inputArgs.expected_sha256;
+      if(inputArgs.overwrite&&!expected){
+        const before=await runTool(env,null,'pc_file_read',{path:inputArgs.path},executionContext);
+        if(typeof before.content!=='string'||!/^[a-f0-9]{64}$/.test(before.sha256||''))throw new Error('Prepísanie vyžaduje potvrdené čítanie pôvodného súboru.');
+        expected=before.sha256;
+      }
+      mapped={path:inputArgs.path,content:inputArgs.content,...(!inputArgs.append&&expected?{expected_sha256:expected}:{})};
+    }
     if(name==='pc_fs_read')mapped={path:inputArgs.path};
     if(name==='pc_fs_write'){
       canonical=inputArgs.append?'pc_file_append':'pc_file_write';
@@ -1295,30 +1331,6 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     }
     return result;
   }
-  const getRoot = () => {
-    if (typeof process !== 'undefined' && process.env?.TRINITY_WORKSPACE_ROOT) return process.env.TRINITY_WORKSPACE_ROOT;
-    const cwd = typeof process !== 'undefined' && process.cwd ? process.cwd() : '.';
-    try {
-      if (typeof fs !== 'undefined' && fs.existsSync && path) {
-        if (fs.existsSync(path.resolve(cwd, 'Trinity', 'package.json'))) return path.resolve(cwd, 'Trinity');
-        if (fs.existsSync(path.resolve(cwd, 'package.json'))) return path.resolve(cwd);
-        if (fs.existsSync('C:/Users/saboi/Trinity/Trinity-antigravity/Trinity/package.json')) return path.resolve('C:/Users/saboi/Trinity/Trinity-antigravity/Trinity');
-      }
-    } catch {}
-    return cwd;
-  };
-  if(name==='read_file'){
-    return antigravityReadFile(getRoot(), args);
-  }
-  if(name==='write_file'){
-    return antigravityWriteFile(getRoot(), args);
-  }
-  if(name==='edit_file'){
-    return antigravityEditFile(getRoot(), args);
-  }
-  if(name==='run_command'){
-    return antigravityRunCommand(getRoot(), args);
-  }
   if(name==='manage_task'){
     return antigravityManageTask(args);
   }
@@ -1644,10 +1656,10 @@ export const TOOL_HELP={
   triad_test_matrix:'Požiada nakonfigurovaný adaptér o spustenie vybranej testovacej sady. Argumenty: {suite?:all|unit|integration|truth|social}',
   triad_copilot_sync:'Prepojenie a synchronizácia s Microsoft Copilot Studio (Trinitys) a OpenAI asistentmi: {action:status|chat|list_skills|sync_tenant, message?:string}',
   triad_status:'Kompletný live stav a telemetria Zvrchovanej Triády (Trinity + Codex + Antigravity): {}',
-  read_file:'Prečíta obsah súboru s voliteľným riadkovým rozsahom a offsetom: {Path:string,StartLine?:number,EndLine?:number,ByteOffset?:number}',
-  write_file:'Vytvorí alebo prepíše súbor s evidenciou v ledgeri: {Path:string,Content:string,Append?:boolean,Overwrite?:boolean,ArtifactMetadata?:object}',
-  edit_file:'Presne nahradí reťazec Target za Replacement v súbore: {Path:string,Target:string,Replacement:string,ArtifactMetadata?:object}',
-  run_command:'Spustí príkaz s riadeným timeoutom a zachytením výstupu: {CommandLine:string,WaitMsBeforeAsync?:number,toolSummary?:string,IsDaemon?:boolean}',
+  read_file:'Prečíta skutočný súbor z PC cez Bridge, SHA-256 sa vzťahuje na celý súbor. Podporuje aj malé názvy path/start_line/end_line/byte_offset: {Path:string,StartLine?:number,EndLine?:number,ByteOffset?:number}',
+  write_file:'Zapíše súbor na PC cez Bridge s overením odtlačku. Overwrite:true najprv načíta pôvodný súbor. Podporuje aj path/content/append/overwrite/expected_sha256: {Path:string,Content:string,Append?:boolean,Overwrite?:boolean,ArtifactMetadata?:object}',
+  edit_file:'Upraví skutočný súbor na PC cez Bridge s kontrolou pôvodného odtlačku. Podporuje aj path/find/replace alebo path/target/replacement: {Path:string,Target:string,Replacement:string,ArtifactMetadata?:object}',
+  run_command:'Spustí povolenú PC úlohu cez Bridge, napr. node --version alebo npm test. Uložené skripty spúšťaj cez pc_run_script. Podporuje aj command/cwd: {CommandLine:string,WaitMsBeforeAsync?:number,toolSummary?:string,IsDaemon?:boolean}',
   manage_task:'Správa asynchrónnych úloh a procesov: {Action:list|kill|status|send_input,TaskId?:string,Input?:string}',
   search_marketplace:'Prehľadáva pluginy a skilly v katalógu: {queries?:string[],kind?:all|plugin|skill,limit?:number}',
   multi_agent_dispatch:'Zaradí úlohu do prioritnej fronty a pridelí ju špecializovanému agentovi (Antigravity, Gemini, ChatGPT, Codex, Copilot, Trinity) so Sovereign Ledger zápisom; execute=true s steps:[{agent,task}] vytvorí evidovanú D1 Workflow úlohu; bez steps vykoná len tento záznam cez nakonfigurovaný adaptér: {title:string,taskType?:architecture|research|coding|documentation|tests|planning|...,priority?:CRITICAL|HIGH|NORMAL|LOW,execute?:boolean}',
