@@ -60,8 +60,8 @@ test('fast chat tool matching catches colloquial questions about tool count with
  assert.deepEqual(directChatTool('kolko mas pluginov', ['list_capabilities']), { name: 'list_capabilities', arguments: {} });
 });
 
-test('fast chat rejects a tool outside its available set',async()=>{
+test('fast chat rejects PC tools for an unauthenticated user',async()=>{
  let calls=0;const env={AI:{run:async(model,input)=>{if(calls++===0)return {response:JSON.stringify({tool:'pc_run',arguments:{command:'npm run deploy'}})};assert.match(input.messages.at(-1).content,/nie je povolený/);return {response:'Tento nástroj tu nie je dostupný.'};}}};
- const result=await runAgent(env,'orchestrator','Odpovedz krátko.','','fast',600,null,true);
+ const result=await runAgent(env,'orchestrator','Odpovedz krátko.','','fast',600,null,false);
  assert.equal(result.tool_log[0].status,'failed');
 });
