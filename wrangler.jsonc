@@ -2,10 +2,6 @@
   "$schema": "Trinity/node_modules/wrangler/config-schema.json",
   "name": "trinity",
   "main": "src/index.ts",
-  "build": {
-    "command": "npm ci && node scripts/build-mcp-app.mjs",
-    "cwd": "Trinity"
-  },
   "account_id": "b60342e5e52f5646fbd4e913bb409334",
   "compatibility_date": "2026-10-11",
   "compatibility_flags": [
@@ -91,6 +87,8 @@
     "GOOGLE_CLIENT_ID": "618392104829-trinity-auru-space.apps.googleusercontent.com",
     "GOOGLE_REDIRECT_URI": "https://auru.space/auth/google/callback",
     "GOOGLE_PROJECT_ID": "tangential-osprey-dl7cp",
+    "TRINITY_DRIVE_PICKER_CLIENT_ID": "737706781528-j7qme6gob1rqeovldl9995s4bjjg8srr.apps.googleusercontent.com",
+    "TRINITY_DRIVE_PICKER_APP_ID": "737706781528",
     "FIREBASE_PROJECT_ID": "trinity-morhfeus-20261001",
     "GOOGLE_SERVICES_ENABLED": "generativelanguage.googleapis.com,aiplatform.googleapis.com,cloudresourcemanager.googleapis.com,storage.googleapis.com,firestore.googleapis.com,people.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com",
     "TRINITY_ENV": "production",
@@ -736,5 +734,9 @@
   },
   "version_metadata": {
     "binding": "CF_VERSION_METADATA"
+  },
+  "build": {
+    "command": "npm ci && node scripts/build-mcp-app.mjs",
+    "cwd": "Trinity"
   }
 }

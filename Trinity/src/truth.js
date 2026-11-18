@@ -130,7 +130,8 @@ const CLAIM_RULES=[
   }
 ];
 
-export const READ_TOOLS=new Set(['revolut_account_status','search_memory','project_snapshot','service_status','web_search','calculate','analyze_text','domain_check','domain_list','domain_inspect','domain_marketplace','quantum_accelerate','list_artifacts','read_artifact','fleet_status','trinity_doc_list']);
+const REQUEST_SCOPED_READ_TOOLS=new Set(['pc_file_read','pc_fs_read','read_file','pc_find_files','pc_search_text']);
+export const READ_TOOLS=new Set([...REQUEST_SCOPED_READ_TOOLS,'revolut_account_status','search_memory','project_snapshot','service_status','web_search','calculate','analyze_text','domain_check','domain_list','domain_inspect','domain_marketplace','quantum_accelerate','list_artifacts','read_artifact','fleet_status','trinity_doc_list']);
 
 function isCompletedReceipt(receipt){
   return Boolean(receipt&&receipt.status==='completed'&&typeof receipt.receipt_id==='string'&&receipt.receipt_id.trim()&&
@@ -591,7 +592,7 @@ export function latestToolOutcomes(toolLog) {
     // Only a schema failure before execution can be resolved across repaired
     // arguments. Match a later verified operation on the same precise target.
     if(entry?.validation_only===true&&entry.retry_scope&&toolLog.slice(index+1).some(later=>later?.status==='completed'&&later.receipt_id&&later.effect!=='diagnostic'&&later.retry_scope===entry.retry_scope))continue;
-    const key = entry?.tool && !READ_TOOLS.has(entry.tool) && entry.call_key
+    const key = entry?.tool && (!READ_TOOLS.has(entry.tool)||REQUEST_SCOPED_READ_TOOLS.has(entry.tool)) && entry.call_key
       ? entry.tool+':'+entry.call_key : entry?.tool;
     latest.set(key || Symbol(), entry);
   }

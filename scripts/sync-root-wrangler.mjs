@@ -11,6 +11,8 @@ if (canonical.migrations || !canonical.exports?.TrinityAgent || !canonical.expor
 const mirror = structuredClone(canonical);
 mirror.$schema = 'Trinity/node_modules/wrangler/config-schema.json';
 mirror.main = 'src/index.ts';
+// Root deployments must prepare the canonical project's dependencies and MCP asset.
+mirror.build = {command:'npm ci && node scripts/build-mcp-app.mjs',cwd:'Trinity'};
 function rebase(value) {
   if (!value || typeof value !== 'object') return;
   if (Object.hasOwn(value, 'migrations_dir')) {

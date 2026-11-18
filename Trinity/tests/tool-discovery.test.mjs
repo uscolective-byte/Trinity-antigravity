@@ -145,3 +145,14 @@ test('owner fast mode can discover development tools without granting access to 
    assert.equal(result.tool_log[0].status,ownerMode?'completed':'failed');
  }
 });
+
+
+test('owner PC tasks receive native search descriptions and exact search arguments in the first prompt',async()=>{
+ let firstPrompt='';
+ const env={AI:{run:async(_model,{messages})=>{firstPrompt||=messages[0].content;return {response:'K dispozícii je vyhľadávanie.'};}}};
+ await runAgent(env,'backend','Nájdi definíciu funkcie na PC.','','workers-ai',1000,'sk',true);
+ assert.match(firstPrompt,/pc_search_text: Vyhľadá text/);
+ assert.match(firstPrompt,/pc_find_files: Nájde skutočné súbory/);
+ assert.match(firstPrompt,/Argument textu je pattern/);
+ assert.doesNotMatch(discoveryInstructions(['calculate']),/Argument textu je pattern/);
+});

@@ -48,5 +48,10 @@ export function describeAvailableTools(activeTools, schemas, help, input = {}) {
 }
 
 export function discoveryInstructions(activeTools) {
-  return `Nástroj describe_tools je interný katalóg: {"tool":"describe_tools","arguments":{"query":"hľadaná schopnosť"}} alebo {"tool":"describe_tools","arguments":{"name":"presný_názov"}}. Ak si nie si istá argumentmi alebo nevidíš vhodný nástroj v stručnom prehľade, najprv použi describe_tools a potom skutočný nástroj. Bezpečné čítacie nástroje používaj automaticky podľa úlohy, používateľ nemusí poznať ich názov. Katalóg nepridáva oprávnenia ani pripojenie k službe. Pri platbe, nákupe, mazaní a citlivom zápise dodrž existujúce schvaľovanie a rozsah zadania. Finálne uveď vykonané kroky a neoverené alebo čakajúce výsledky podľa dokladov. Všetky povolené názvy pre túto požiadavku: ${[...new Set(activeTools)].join(', ')}.`;
+  const workspaceGuide=[
+    activeTools.includes('pc_find_files')?'Na nájdenie názvov súborov použi pc_find_files, napríklad {"path":"Trinity/src","glob":"**/*.js","limit":50}.':null,
+    activeTools.includes('pc_search_text')?'Na hľadanie definície alebo textu v kóde použi pc_search_text, napríklad {"path":"Trinity/src","pattern":"nazovFunkcie","glob":"**/*.js","regex":false}. Argument textu je pattern; argument priečinka je path.':null,
+    activeTools.includes('pc_find_files')?'Priečinok prehliadaj pomocou pc_find_files; čítanie pc_file_read a read_file vyžaduje konkrétny súbor. Názvy nástrojov neodhaduj; pri neistote si najprv vyžiadaj presnú schému cez describe_tools.':null
+  ].filter(Boolean).join(' ');
+  return `Nástroj describe_tools je interný katalóg: {"tool":"describe_tools","arguments":{"query":"hľadaná schopnosť"}} alebo {"tool":"describe_tools","arguments":{"name":"presný_názov"}}. Ak si nie si istá argumentmi alebo nevidíš vhodný nástroj v stručnom prehľade, najprv použi describe_tools a potom skutočný nástroj. Bezpečné čítacie nástroje používaj automaticky podľa úlohy, používateľ nemusí poznať ich názov. ${workspaceGuide} Katalóg nepridáva oprávnenia ani pripojenie k službe. Pri platbe, nákupe, mazaní a citlivom zápise dodrž existujúce schvaľovanie a rozsah zadania. Finálne uveď vykonané kroky a neoverené alebo čakajúce výsledky podľa dokladov. Všetky povolené názvy pre túto požiadavku: ${[...new Set(activeTools)].join(', ')}.`;
 }

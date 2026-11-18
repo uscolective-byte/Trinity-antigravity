@@ -1,3 +1,4 @@
+import {findUnsupportedActionClaims,workflowResultComplete} from '../src/truth.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {runTool} from '../src/tools.js';
@@ -124,4 +125,13 @@ test('workspace search tools require an administrator and dispatch typed real re
  assert.deepEqual(payloads.at(-1),{task:'workspace-search',mode:'files',path:'Trinity/src',glob:'**/*.js',limit:50});
  await runTool(env,agent,'pc_search_text',{pattern:'function.*Result',regex:true},{adminAuthorized:true});
  assert.deepEqual(payloads.at(-1),{task:'workspace-search',mode:'content',path:'Trinity',pattern:'function.*Result',glob:'**/*',regex:true,case_sensitive:false,context:0,limit:50});
+});
+
+
+test('real PC search can support read verification without masking a failed different query',()=>{
+ const receipt={tool:'pc_search_text',status:'completed',effect:'read',receipt_id:'actual-search-receipt',call_key:'query-two'};
+ assert.deepEqual(findUnsupportedActionClaims('Overila som výsledok.',[receipt]),[]);
+ assert.ok(findUnsupportedActionClaims('Overila som výsledok.',[{...receipt,status:'failed'}]).length>0);
+ assert.equal(workflowResultComplete({text:'Výsledok.',tool_log:[{tool:'pc_search_text',status:'failed',call_key:'query-one'},receipt]}),false);
+ assert.equal(workflowResultComplete({text:'Výsledok.',tool_log:[{tool:'pc_search_text',status:'failed',call_key:'query-two'},receipt]}),true);
 });
