@@ -46,7 +46,7 @@ import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,genera
 import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,manageOneDrive,manageGoogleCloud,manageLocalBridge,listAllIntegrations} from './external-integrations.js';
 import {getWalletTerminalOverview,createPaymentTerminalCharge,executeWalletPayout,saveWalletTerminalConfig,createCryptoWallet,terminalConfigSchema,terminalChargeSchema,terminalPayoutSchema} from './wallet-terminals.js';
 import {FREE_MODULES_CATALOG,fetchWeather,fetchWikipedia,resolveDns,fetchCryptoMarkets,fetchTechNews,fetchWorldBankIndicator} from './free-modules.js';
-import {cfD1Query,cfKVStore,cfR2Manage,cfSelfDeploy,mailEngine,httpFetchPro,pcFsRead,pcFsWrite,pcFsPatch,pcShellExec,pcSystemTelemetry} from './omni-tools.js';
+import {cfD1Query,cfKVStore,cfR2Manage,cfSelfDeploy,mailEngine,httpFetchPro} from './omni-tools.js';
 import {applySelfModification} from './self-evolution.js';
 import {metaStatus} from './meta-connector.js';
 import {proposeTransfer,confirmTransfer,getFinanceAuditLedger,transferProposalSchema,transferConfirmSchema} from './finance-gateway.js';
@@ -328,8 +328,8 @@ export const TOOL_SCHEMAS={
   cf_self_deploy:z.object({reason:z.string().optional()}).strict(),
   mail_engine:z.object({action:z.enum(['send','read_inbox','webhook_notify']).default('send'),to:z.string().optional(),subject:z.string().optional(),body:z.string().optional(),html:z.string().optional(),target:z.string().optional(),payload:z.record(z.string(),z.unknown()).optional()}).strict(),
   http_fetch_pro:z.object({url:z.string(),method:z.enum(['GET','POST','PUT','PATCH','DELETE','HEAD']).default('GET'),headers:z.record(z.string(),z.string()).optional(),body:z.unknown().optional(),secretKey:z.string().optional(),timeoutMs:z.number().optional()}).strict(),
-  pc_fs_read:z.object({path:z.string(),encoding:z.string().optional()}).strict(),
-  pc_fs_write:z.object({path:z.string(),content:z.string(),append:z.boolean().optional()}).strict(),
+  pc_fs_read:z.object({path:z.string(),encoding:z.enum(['utf8','utf-8']).optional()}).strict(),
+  pc_fs_write:z.object({path:z.string(),content:z.string(),append:z.boolean().optional(),expected_sha256:z.string().regex(/^(absent|[a-f0-9]{64})$/).optional()}).strict(),
   pc_fs_patch:z.object({path:z.string(),target:z.string(),replacement:z.string()}).strict(),
   pc_shell_exec:z.object({command:z.string(),shell:z.enum(['powershell','cmd','node','python']).optional(),cwd:z.string().optional(),timeout:z.number().optional()}).strict(),
   pc_system_telemetry:z.object({}).strict(),
@@ -435,6 +435,21 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(requiresVerifiedAdminForIntegrationTool(name,input)&&!isAdminOrOwner)throw new Error('Cloudflare/GitHub/Firebase zápisy vyžadujú serverom overeného vlastníka.');
   if(ACCOUNT_CONNECTOR_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('Nástroje súkromných účtov vyžadujú serverom overeného správcu.');
   if(['execute_skill','ecosystem_synthesize'].includes(name)&&!isAdminOrOwner)throw new Error('Spúšťanie skillov a registrácia rozšírení vyžaduje serverom overeného administrátora.');
+  // Legacy PC names are aliases of the same verified gateway operations.
+  // Permission to use the alias was checked above; no alternate executor is used.
+  const pcAliases={pc_fs_read:'pc_file_read',pc_fs_write:'pc_file_write',pc_fs_patch:'pc_file_edit',pc_shell_exec:'pc_run',pc_system_telemetry:'pc_system_info'};
+  if(Object.hasOwn(pcAliases,name)){
+    const inputArgs=TOOL_SCHEMAS[name].parse(input);
+    let mapped=inputArgs,canonical=pcAliases[name];
+    if(name==='pc_fs_read')mapped={path:inputArgs.path};
+    if(name==='pc_fs_write'){
+      canonical=inputArgs.append?'pc_file_append':'pc_file_write';
+      mapped={path:inputArgs.path,content:inputArgs.content,...(!inputArgs.append&&inputArgs.expected_sha256?{expected_sha256:inputArgs.expected_sha256}:{})};
+    }
+    if(name==='pc_fs_patch')mapped={path:inputArgs.path,find:inputArgs.target,replace:inputArgs.replacement};
+    if(name==='pc_shell_exec')mapped={command:inputArgs.command,...(inputArgs.cwd&&inputArgs.cwd!=='.'?{cwd:inputArgs.cwd}:{})};
+    return runTool(env,null,canonical,mapped,executionContext);
+  }
   if(!INTERNAL_TOOLS.has(name)&&name!=='install_plugin')await ensureToolEnabled(env,name);
   if(name==='request_system_action'&&input&&typeof input==='object')input={action:input.action,payload:input.payload||(typeof input.resource==='string'?{path:input.resource}:{}),rationale:input.rationale||input.reason};
   const args=PC_TOOLS.has(name)?null:TOOL_SCHEMAS[name].parse(input);
@@ -1179,11 +1194,6 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(name==='cf_self_deploy')return cfSelfDeploy(env, args);
   if(name==='mail_engine')return mailEngine(env, args);
   if(name==='http_fetch_pro')return httpFetchPro(env, args);
-  if(name==='pc_fs_read')return pcFsRead(env, args);
-  if(name==='pc_fs_write')return pcFsWrite(env, args);
-  if(name==='pc_fs_patch')return pcFsPatch(env, args);
-  if(name==='pc_shell_exec')return pcShellExec(env, args);
-  if(name==='pc_system_telemetry')return pcSystemTelemetry(env);
   if(name==='apply_self_evolution')return applySelfModification(env, args);
   if(name==='sovereign_ledger_v3'){
     const ledger=new SovereignLedgerV3(env);
@@ -1500,11 +1510,11 @@ export const TOOL_HELP={
   cf_self_deploy:'Požiada nakonfigurovaný mechanizmus o nasadenie Workera.',
   mail_engine:'Spracuje e-mailovú operáciu podľa dostupnosti nakonfigurovaného adaptéra.',
   http_fetch_pro:'Vykoná podporovanú požiadavku HTTP s nastaveným časovým limitom.',
-  pc_fs_read:'Vyžiada čítanie súboru cez PC bránu.',
-  pc_fs_write:'Vyžiada zápis súboru cez PC bránu.',
+  pc_fs_read:'Alias pc_file_read: prečíta skutočný súbor cez PC bránu: {path:string,encoding?:utf8}. Výsledok obsahuje obsah, SHA-256 a stav vykonania.',
+  pc_fs_write:'Alias pc_file_write: zapíše súbor cez PC bránu: {path,content,expected_sha256?:SHA256|absent,append?:boolean}. Prepísanie vyžaduje odtlačok pôvodného súboru.',
   pc_fs_patch:'Vyžiada výmenu textu v súbore cez PC bránu.',
-  pc_shell_exec:'Odošle povolenú požiadavku na lokálne vykonanie cez PC bránu.',
-  pc_system_telemetry:'Vyžiada údaje o stave počítača cez PC bránu.',
+  pc_shell_exec:'Alias pc_run: vykoná iba povolený príkaz cez PC bránu, napríklad node --version alebo git status --short. cwd je Trinity alebo Local-Gateway. Vracia skutočný výsledok procesu.',
+  pc_system_telemetry:'Alias pc_system_info: vyžiada aktuálne údaje z počítača cez PC bránu. Bez odpovede brány stav nie je overený.',
   apply_self_evolution:'Spracuje autorizovanú úpravu zdrojového súboru.',
   sovereign_ledger_v3:'Zobrazí architektúru ledgera, zapíše blok alebo overí integritu.',
   sovereign_lock_check:'Vyhodnotí hranicu medzi údajmi a pokynmi alebo pravidlá charty.',

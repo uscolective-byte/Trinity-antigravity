@@ -49,3 +49,32 @@ test('admin PC tools validate their own schema and dispatch bounded gateway payl
   await runTool(env,{tools:['pc_open_url']},'pc_open_url',{url:'https://auru.dev'},{adminAuthorized:true});
   assert.equal(payloads.at(-1).url,'https://auru.dev');
 });
+
+
+test('legacy PC tool names execute the verified gateway operations instead of incompatible payloads',async()=>{
+  const payloads=[];
+  const env={DB:{prepare(sql){return {
+    bind(...values){if(sql.startsWith('INSERT INTO ops_system_actions'))payloads.push({action:values[1],payload:JSON.parse(values[2])});return this;},
+    async run(){return {};},async first(){return sql.includes('ops_plugins')?{installed:1,enabled:1}:{id:'alias-test',action:'read',status:'completed',payload_json:'{}',receipt_json:JSON.stringify({content:'original',sha256:'a'.repeat(64)})};}
+  };}}};
+  const agent={tools:['pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']};
+  const auth={adminAuthorized:true};
+  await assert.rejects(runTool(env,agent,'pc_fs_read',{path:'Trinity/test.txt'}),/admin/);
+  assert.equal((await runTool(env,agent,'pc_fs_read',{path:'Trinity/test.txt'},auth)).content,'original');
+  assert.deepEqual(payloads.at(-1),{action:'read',payload:{path:'Trinity/test.txt'}});
+  await runTool(env,agent,'pc_fs_write',{path:'Trinity/test.txt',content:'new'},auth);
+  assert.deepEqual(payloads.at(-1),{action:'write',payload:{path:'Trinity/test.txt',content:'new',expected_sha256:'absent'}});
+  await runTool(env,agent,'pc_fs_write',{path:'Trinity/test.txt',content:'new',expected_sha256:'b'.repeat(64)},auth);
+  assert.equal(payloads.at(-1).payload.expected_sha256,'b'.repeat(64));
+  await runTool(env,agent,'pc_fs_write',{path:'Trinity/test.txt',content:' appended',append:true},auth);
+  assert.equal(payloads.at(-1).payload.content,'original appended');
+  assert.equal(payloads.at(-1).payload.expected_sha256,'a'.repeat(64));
+  await runTool(env,agent,'pc_fs_patch',{path:'Trinity/test.txt',target:'original',replacement:'patched'},auth);
+  assert.equal(payloads.at(-1).payload.content,'patched');
+  assert.equal(payloads.at(-1).payload.expected_sha256,'a'.repeat(64));
+  await runTool(env,agent,'pc_shell_exec',{command:'node --version'},auth);
+  assert.deepEqual(payloads.at(-1),{action:'run',payload:{project:'Trinity',task:'node-version'}});
+  await assert.rejects(runTool(env,agent,'pc_shell_exec',{command:'arbitrary command'},auth),/povoľuje/);
+  await runTool(env,agent,'pc_system_telemetry',{},auth);
+  assert.equal(payloads.at(-1).action,'system_info');
+});
