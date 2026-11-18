@@ -142,6 +142,7 @@ import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
 import {handleMobileAsset} from './mobile-assets.js';
 import {renderMobileChatUI} from './mobile-chat.js';
+import {handlePhoneBridgePage} from './phone-bridge-ui.js';
 import manifestJSON from '../public/assistant/manifest.json';
 import metaConnectHTML from '../public/meta-connect.html';
 import metaConnectJS from '../public/meta-connect.js.txt';
@@ -196,6 +197,7 @@ async function route(request,env,ctx){
   const knowledgeResponse=await handleKnowledge(request,env);
   if(knowledgeResponse)return knowledgeResponse;
   const url=new URL(request.url),path=url.pathname;
+  const phoneBridgePage=handlePhoneBridgePage(request);if(phoneBridgePage)return phoneBridgePage;
   const mobileAsset=handleMobileAsset(request);if(mobileAsset)return mobileAsset;
   if(path==='/api/telegram/webhook')return handleTelegramWebhook(request,env,ctx);
   if(path==='/api/telegram/setup')return activateTelegramWebhook(request,env);
