@@ -583,9 +583,20 @@ export function bridgeExecutionVerified(httpOk, result) {
     findSimulationMarkers(result).length === 0;
 }
 
+export function latestToolOutcomes(toolLog) {
+  const latest = new Map();
+  for (const entry of toolLog) {
+    if (entry?.tool === 'model_fallback') continue;
+    const key = entry?.tool && !READ_TOOLS.has(entry.tool) && entry.call_key
+      ? entry.tool+':'+entry.call_key : entry?.tool;
+    latest.set(key || Symbol(), entry);
+  }
+  return [...latest.values()];
+}
+
 export function workflowResultComplete(result) {
-  if (!result || (result.execution_status && result.execution_status !== 'completed')) return false;
-  return Array.isArray(result.tool_log) && result.tool_log.every(entry => entry?.status === 'completed');
+  if (!result || result.truth?.status === 'blocked' || (result.execution_status && result.execution_status !== 'completed')) return false;
+  return Array.isArray(result.tool_log) && latestToolOutcomes(result.tool_log).every(entry => entry?.status === 'completed');
 }
 
 export function verifyUnifiedReceipt(receipt) {

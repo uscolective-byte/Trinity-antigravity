@@ -1,3 +1,4 @@
+import {hash} from './security.js';
 import {formatWeather,formatCryptoPrices,formatTechNews} from './external-data-response.js';
 import {formatFleetStatus} from './fleet-response.js';
 /**
@@ -14,7 +15,7 @@ import {callModel,cleanModelResponse} from './services.js';
 import {runTool,TOOL_HELP,TOOL_SCHEMAS,INTERNAL_TOOLS,PC_TOOLS,ACCOUNT_CONNECTOR_TOOLS,DEVELOPMENT_TOOLS} from './tools.js';
 import {describeAvailableTools,discoveryInstructions} from './tool-discovery.js';
 import {listPlugins} from './plugins.js';
-import {TRUTH_POLICY,assertNoSimulatedData,findUnsupportedActionClaims,safeTruthResponse,truthStatus,finalizeAgentResponse} from './truth.js';
+import {TRUTH_POLICY,assertNoSimulatedData,findUnsupportedActionClaims,safeTruthResponse,truthStatus,finalizeAgentResponse,latestToolOutcomes} from './truth.js';
 import {formatAppOpenResult,formatIntegrationStatus,formatCloudflareStatus,formatGitHubStatus,formatWalletStatus,formatInfrastructureStatus} from './verified-response-formatters.js';
 import {approveSystemAction} from './system-actions.js';
 import {COMMUNICATION_STYLE,KNOWLEDGE_DIRECTIVE,REASONING_DIRECTIVE,CHATGPT_CAPABILITIES_DIRECTIVE,CODEX_CAPABILITIES_DIRECTIVE,ANTIGRAVITY_CAPABILITIES_DIRECTIVE,TRINITY_SOVEREIGN_TRIAD_DIRECTIVE,languageDirective,TRINITY_LOYALTY_OATH,UNIFIED_TRINITY_DIRECTIVE,TRINITY_DEVELOPER_DIRECTIVE,META_INTEGRATION_DIRECTIVE,TRINITY_TOOLS_AND_SCRIPTS_MASTERY} from './cognition.js';
@@ -85,12 +86,10 @@ export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOSt
   return {tool,status:'completed',effect:'read',receipt_id:crypto.randomUUID(),verified_at:verifiedAt};
 }
 export function unresolvedToolOutcome(toolLog,language='sk'){
-  const latest=new Map();
-  for(const receipt of toolLog)if(receipt.tool!=='model_fallback')latest.set(receipt.tool,receipt);
-  const unresolved=[...latest.values()].filter(r=>r.status!=='completed');
+  const unresolved=latestToolOutcomes(toolLog).filter(r=>r?.status!=='completed');
   if(!unresolved.length)return null;
-  const failed=unresolved.some(r=>['failed','partial','not_executed','not_verified'].includes(r.status));
-  const names=unresolved.map(r=>r.tool).join(', ');
+  const failed=unresolved.some(r=>['failed','partial','not_executed','not_verified'].includes(r?.status));
+  const names=unresolved.map(r=>r?.tool||'unknown').join(', ');
   return {execution_status:failed?'failed':'pending',text:language==='en'
     ? failed?`The tool result could not be verified (${names}). The task is not confirmed as completed.`:`The tools have not confirmed completion yet (${names}). The action is pending.`
     : failed?`Výsledok nástroja sa nepodarilo overiť (${names}). Úloha nie je potvrdená ako dokončená.`:`Nástroje ešte nepotvrdili dokončenie (${names}). Akcia zatiaľ čaká na vykonanie.`};
@@ -606,6 +605,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
     }
     if(toolTurns===12)throw new Error('Agent prekročil limit nástrojových krokov.');
     if(forceFinal)throw new Error('Trinity nestihla overiť výsledok v časovom limite.');
+    const call_key=await hash(JSON.stringify(action.arguments));
     let outcome;
     try {
       if(action.tool==='describe_tools'){
@@ -614,7 +614,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
         if(!activeTools.includes(action.tool))throw new Error('Nástroj nie je povolený pre túto úlohu.');
         outcome=assertNoSimulatedData(await runTool(env,agent,action.tool,action.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin}),action.tool);
       }
-      toolLog.push(toolReceiptForOutcome(action.tool,outcome));
+      toolLog.push({...toolReceiptForOutcome(action.tool,outcome),call_key});
       if(outcome&&'_evidence' in outcome){outcome={...outcome};delete outcome._evidence;}
       if(env?.DB&&action.tool!=='diagnostic_ping'){
         try {
@@ -630,7 +630,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
     }
     catch(e){
       outcome={error:e.message};
-      toolLog.push({tool:action.tool,status:'failed',error:e.message});
+      toolLog.push({tool:action.tool,status:'failed',error:e.message,call_key});
       if(env?.DB){
         try {
           await env.DB.prepare("INSERT INTO ops_events(action, details) VALUES('tool_executed', ?)").bind(JSON.stringify({

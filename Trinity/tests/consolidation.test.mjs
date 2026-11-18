@@ -38,3 +38,16 @@ test('workflow never completes queued, pending or partially failed tool results'
   assert.equal(workflowResultComplete({tool_log:[{status:'completed'}]}),true);
   assert.equal(workflowResultComplete({}),false);
 });
+
+test('workflow accepts recovered tools and retains failed or blocked execution',()=>{
+ const failed = {tool:'calculate',status:'failed'};
+ const recovered = {tool:'calculate',status:'completed'};
+ assert.equal(workflowResultComplete({tool_log:[failed,recovered]}),true);
+ assert.equal(workflowResultComplete({tool_log:[recovered,failed]}),false);
+ assert.equal(workflowResultComplete({tool_log:[failed,{tool:'web_search',status:'completed'}]}),false);
+ assert.equal(workflowResultComplete({tool_log:[
+  {tool:'pc_file_write',call_key:'first',status:'failed'},
+  {tool:'pc_file_write',call_key:'second',status:'completed'}
+ ]}),false);
+ assert.equal(workflowResultComplete({truth:{status:'blocked'},tool_log:[]}),false);
+});
