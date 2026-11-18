@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { TruthAssertionEngine, TruthPolicyViolation } from '../src/truth-policy.js';
 import { TapSovereignSigner } from '../src/tap-signer.js';
 
-test('TruthAssertionEngine: assertExecution passes on exitCode 0 and no forbidden placeholders', async () => {
+test('TruthAssertionEngine: signs execution report but never calls it verified reality', async () => {
   const result = {
     toolName: 'ps_list_dir',
     exitCode: 0,
@@ -16,9 +16,11 @@ test('TruthAssertionEngine: assertExecution passes on exitCode 0 and no forbidde
     TAP_PRIVATE_KEY: 'test_sovereign_key'
   });
 
-  assert.equal(assertion.status, 'VERIFIED_REALITY');
-  assert.equal(typeof assertion.realityHash, 'string');
-  assert.equal(assertion.realityHash.length, 64);
+  assert.equal(assertion.status, 'EXECUTION_REPORT_SIGNED');
+  assert.equal(assertion.verified, false);
+  assert.equal(assertion.verificationStatus, 'requires_independent_evidence');
+  assert.equal(typeof assertion.executionHash, 'string');
+  assert.equal(assertion.executionHash.length, 64);
   assert.equal(typeof assertion.signature, 'string');
 });
 
@@ -78,4 +80,18 @@ test('TapSovereignSigner: signs and verifies payload deterministically', async (
   assert.equal(sig1, sig2);
   const isValid = await TapSovereignSigner.verifyPayload(key, data, sig1);
   assert.equal(isValid, true);
+});
+
+test('TruthAssertionEngine: rejects a successful exit without explicit signing key', async () => {
+  await assert.rejects(
+    TruthAssertionEngine.assertExecution({ toolName: 'write_file', exitCode: 0, stdout: 'ok' }),
+    err => err instanceof TruthPolicyViolation && err.code === 'TAP_SIGNING_KEY_REQUIRED'
+  );
+});
+
+test('TapSovereignSigner: refuses missing secret and tampered evidence', async () => {
+  await assert.rejects(TapSovereignSigner.signPayload(undefined, 'data'), /TAP_SIGNING_KEY_REQUIRED/);
+  const signature = await TapSovereignSigner.signPayload('explicit-test-secret', 'first');
+  assert.equal(await TapSovereignSigner.verifyPayload('explicit-test-secret', 'second', signature), false);
+  assert.equal(await TapSovereignSigner.verifyPayload('explicit-test-secret', 'first', 'invalid'), false);
 });
