@@ -125,36 +125,26 @@ export async function applySelfModification(env, {
     };
   }
 
-  // 2. Uloženie snapshotu pôvodného kódu
-  const backup = await backupSystemSnapshot(env, filePath, originalContent || '');
-
-  const receipt_id = `evolve_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
-
-  // 3. Záznam do auditného denníka udalostí (ops_events)
+  // This module cannot apply or deploy the proposed patch. It only prepares
+  // a plan, so it must not fabricate an execution receipt or claim rollback.
+  // A separate authorized executor must write the patch, run tests and return
+  // independent file/commit evidence before the proposal can be called applied.
+  const proposalId = crypto.randomUUID();
   if (env.DB) {
     await env.DB.prepare(
       "INSERT INTO ops_events (action, details) VALUES (?, ?)"
-    ).bind('self_evolution_applied', JSON.stringify({
-      filePath,
-      rationale,
-      receipt_id,
-      snapshotKey: backup.snapshotKey,
-      at: new Date().toISOString()
-    })).run().catch(() => {});
+    ).bind('self_evolution_proposal_prepared', JSON.stringify({
+      proposal_id: proposalId, filePath, rationale, applied: false
+    })).run();
   }
-
   return {
-    ok: true,
-    status: 'completed',
-    receipt_id,
+    ok: false,
+    status: 'not_applied',
+    applied: false,
+    proposal_id: proposalId,
     filePath,
-    snapshotKey: backup.snapshotKey,
-    rationale,
-    verified_at: new Date().toISOString(),
-    _evidence: {
-      receipt_id,
-      effect: 'mutation',
-      actions: ['change', 'verify']
-    }
+    message: 'Syntax screening and authorization are not code execution. No source file was changed.',
+    tests: 'not_run',
+    deployed: false
   };
 }
