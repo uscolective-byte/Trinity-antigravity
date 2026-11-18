@@ -11,7 +11,7 @@ import {FAST_TOOLS,fastChatInstructions,directChatTool} from './fast-chat.js';
 import {connectionGuidance} from './connection-guidance.js';
 import {agentById,selectSkills} from './registry.js';
 import {callModel,cleanModelResponse} from './services.js';
-import {runTool,TOOL_HELP,TOOL_SCHEMAS,INTERNAL_TOOLS,PC_TOOLS,DEVELOPMENT_TOOLS} from './tools.js';
+import {runTool,TOOL_HELP,TOOL_SCHEMAS,INTERNAL_TOOLS,PC_TOOLS,ACCOUNT_CONNECTOR_TOOLS,DEVELOPMENT_TOOLS} from './tools.js';
 import {describeAvailableTools,discoveryInstructions} from './tool-discovery.js';
 import {listPlugins} from './plugins.js';
 import {TRUTH_POLICY,assertNoSimulatedData,findUnsupportedActionClaims,safeTruthResponse,truthStatus,finalizeAgentResponse} from './truth.js';
@@ -264,7 +264,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     return {text,model:'deterministic-policy',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:0};
   }
   const enabled=env.DB?(await listPlugins(env)).filter(p=>p.enabled).flatMap(p=>p.tools):agent.tools;
-  let activeTools=agent.tools.filter(t=>(enabled.includes(t)||INTERNAL_TOOLS.has(t)||DEVELOPMENT_TOOLS.includes(t)||t==='diagnostic_ping')&&(!INTERNAL_TOOLS.has(t)||executionPolicy.allowInternal||t==='diagnostic_ping')&&(!PC_TOOLS.has(t)||executionPolicy.allowDirectPC));
+  let activeTools=agent.tools.filter(t=>(enabled.includes(t)||INTERNAL_TOOLS.has(t)||DEVELOPMENT_TOOLS.includes(t)||t==='diagnostic_ping')&&(!INTERNAL_TOOLS.has(t)||executionPolicy.allowInternal||t==='diagnostic_ping')&&(!PC_TOOLS.has(t)||executionPolicy.allowDirectPC)&&(!ACCOUNT_CONNECTOR_TOOLS.has(t)||executionPolicy.directAdmin));
   const pcFilesAvailable=activeTools.includes('pc_open_file')||activeTools.includes('pc_file_read');
   if(provider==='fast')activeTools=activeTools.filter(tool=>FAST_TOOLS.has(tool));
   const direct=directChatTool(task,activeTools);

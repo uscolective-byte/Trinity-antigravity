@@ -1,3 +1,4 @@
+import {verifyDriveFile} from './google-drive-reader.js';
 /**
  * @module TRINITY_OMNI_CORE
  * @subsystem TOOL_REGISTRY_AND_EXECUTION_DISPATCHER
@@ -63,6 +64,7 @@ import {antigravityReadFile,antigravityWriteFile,antigravityEditFile,antigravity
 
 export const INTERNAL_TOOLS=new Set(['diagnostic_ping','request_system_action','system_action_status','request_owner_approval','project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync','meta_manage','sovereign_ledger_v3','sovereign_lock_check','truth_guard_verify','tmac_consensus','state_replay_provenance','omnidev_diagnose','cf_d1_query','cf_kv_store','cf_r2_manage','cf_self_deploy','mail_engine','http_fetch_pro','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry','apply_self_evolution','triad_subagent_run','triad_deep_research','triad_code_patch','triad_test_matrix','triad_copilot_sync','triad_status','read_file','write_file','edit_file','run_command','manage_task','search_marketplace','execute_gemini_gem','execute_claude','dual_engine_deliberate','multi_agent_dispatch']);
 export const DEVELOPMENT_TOOLS=['project_inspect','project_read','improvement_submit','infrastructure_status','hosting_deploy','hosting_list','domain_search','domain_registration_status','domain_subdomain','domain_sync'];
+export const ACCOUNT_CONNECTOR_TOOLS=new Set(['onedrive_manage','google_cloud_manage','google_drive_verify']);
 export const PC_TOOLS=new Set(['pc_screenshot','pc_run_script','pc_run','pc_file_read','pc_file_write','pc_file_append','pc_file_edit','pc_directory_create','pc_open_app','pc_open_url','pc_open_file','pc_app_control','pc_notify','pc_system_info','pc_scrape','pc_web_fetch','pc_download','pc_git_commit','pc_git_pr','pc_fs_read','pc_fs_write','pc_fs_patch','pc_shell_exec','pc_system_telemetry']);
 export const OWNER_BUSINESS_TOOLS=new Set(['finance_propose_transfer','finance_confirm_transfer','finance_audit_ledger','prospect_queries','prospect_score','outreach_draft','revenue_model','improvement_plan','commerce_status','commerce_add_offer','monetization_blueprint','ui_evolve','self_evolve','domain_env_provision','domain_env_deploy','commodity_trade','commodity_auto_invest','morpheus_status','cf_self_deploy','apply_self_evolution']);
 export const requiresVerifiedAdminForIntegrationTool=(name,args={})=>
@@ -274,6 +276,7 @@ export const TOOL_SCHEMAS={
     contentType:z.string().optional(),
     profile:z.string().optional()
   }).strict()
+  ,google_drive_verify:z.object({fileId:z.string().min(8).max(160)}).strict()
   ,google_cloud_manage:z.object({
     action:z.enum(['status','list_models']).default('status'),
     projectId:z.string().optional()
@@ -403,6 +406,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   const isAdminOrOwner=executionContext.adminAuthorized===true||executionContext.ownerMode===true;
   if((DEVELOPMENT_TOOLS.includes(name)||name==='domain_register'&&input?.live_register===true)&&!isAdminOrOwner)throw new Error('Táto schopnosť vyžaduje serverom overeného správcu.');
   if(OWNER_BUSINESS_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('Obchodné a vývojové schopnosti Trinity sú dostupné iba overenému ownerovi.');
+  if(ACCOUNT_CONNECTOR_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('Nástroje súkromných účtov vyžadujú serverom overeného správcu.');
   if(PC_TOOLS.has(name)&&!isAdminOrOwner)throw new Error('PC nástroje sú dostupné iba v serverom overenom admin režime.');
   if(requiresVerifiedAdminForIntegrationTool(name,input)&&!isAdminOrOwner)throw new Error('Cloudflare/GitHub/Firebase zápisy vyžadujú serverom overeného vlastníka.');
   if(['execute_skill','ecosystem_synthesize'].includes(name)&&!isAdminOrOwner)throw new Error('Spúšťanie skillov a registrácia rozšírení vyžaduje serverom overeného administrátora.');
@@ -943,6 +947,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const isMut=Boolean(['set_document','delete_document'].includes(args.action));
     return {...res,_evidence:{effect:isMut?'mutation':'read',actions:isMut?['change']:undefined,receipt_id:`firebase:${args.action}:${crypto.randomUUID()}`}};
   }
+  if(name==='google_drive_verify')return verifyDriveFile(env,args.fileId);
   if(name==='onedrive_manage'){
     const res=await manageOneDrive(env,`agent:${agent.id||'trinity'}`,args.action,args);
     const isMut=Boolean(['upload_file','create_folder','delete_file','delete_item'].includes(args.action));
@@ -1598,6 +1603,7 @@ export const TOOL_HELP={
   github_manage:'Plná správa a riadenie GitHub repozitára (Read & Write: commits, priamy zápis a úprava súborov, tvorba PR, správa issues a GitHub Actions): {action:status|repo_info|list_commits|list_issues|get_file|read_file|list_files|list_tree|create_issue|update_issue|create_or_update_file|write_file|create_pull_request|dispatch_workflow, repo?:string, path?:string, content?:string, message?:string, branch?:string, title?:string, head?:string, base?:string, limit?:number}',
   firecrawl_scrape:'Pošle verejnú URL nakonfigurovanému Firecrawl adaptéru na vybranú operáciu. Argumenty: {url:string, mode?:scrape|crawl|map, onlyMainContent?:boolean}',
   firebase_manage:'Integrácia s Google Firebase (Read & Write: hosting, čítanie, ukladanie a mazanie Firestore dokumentov + D1 mirror): {action:status|get_document|set_document|delete_document, projectId?:string, collection?:string, documentId?:string, data?:object}',
+  google_drive_verify:'Overí a stiahne súbor z povoleného priečinka Google Drive a vráti názov, veľkosť a SHA-256: {fileId:string}',
   onedrive_manage:'Plná správa Microsoft OneDrive a Office 365 (Read & Write: čítanie, sťahovanie, nahrávanie súborov, vytváranie priečinkov a mazanie súborov): {action:status|drive_info|list_files|get_file|upload_file|create_folder|delete_file|delete_item, path?:string, itemId?:string, name?:string, content?:string|object, profile?:string}',
   google_cloud_manage:'Správa a diagnostika Google Cloud Platform (tangential-osprey-dl7cp), Vertex AI a Gemini modelov: {action:status|list_models, projectId?:string}',
   local_bridge_manage:'Diagnostika a stav lokálneho PC mosta Trinity (Local-Desktop port 8795, Local-Gateway port 7789, pracovné priečinky PC stanice): {action:status|ping}',

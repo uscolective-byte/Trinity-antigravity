@@ -656,7 +656,7 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
   if (action === 'status') {
     if (!token) {
       return {
-        success: true,
+        success: false,
         source: 'local_or_pending',
         connected: false,
         verified: false,
@@ -678,7 +678,7 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
           source: 'microsoft_graph',
           drive_id: data.id,
           drive_type: data.driveType,
-          owner: data.owner?.user?.displayName || data.owner?.user?.email || 'saboivan2008@gmail.com',
+          owner: data.owner?.user?.displayName || data.owner?.user?.email || null,
           quota: data.quota
         };
       }
@@ -784,36 +784,18 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
 }
 
 export async function manageGoogleCloud(env, actor = 'trinity', action = 'status', params = {}) {
-  const token = await resolveProviderSecret(env, 'google_cloud') || await resolveProviderSecret(env, 'gemini');
-  const projectId = params.projectId || env.GOOGLE_PROJECT_ID || 'tangential-osprey-dl7cp';
-
-  if (action === 'status') {
-    return {
-      success: true,
-      connected: Boolean(token),
-      verified: Boolean(token),
-      source: 'gcp_gemini_platform',
-      project_id: projectId,
-      configured_services: {
-        gemini_models: true,
-        vertex_ai: true,
-        cloud_storage: true,
-        google_drive_plugin: true
-      },
-      has_token: Boolean(token)
-    };
-  }
-
-  if (action === 'list_models') {
-    const key = token || env.GEMINI_API_KEY;
-    if (!key) return { success: false, error: 'Chýba Google Cloud / Gemini API kľúč.' };
-    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
-    const data = await resp.json().catch(() => ({}));
-    return {
-      success: resp.ok,
-      models: (data.models || []).map(m => m.name),
-      total: data.models?.length || 0
-    };
+  if (action === 'status' || action === 'list_models') {
+    const key = await resolveProviderSecret(env, 'gemini') || env.GEMINI_API_KEY;
+    if (!key) return {success:false,connected:false,verified:false,error:'Chýba Gemini API kľúč.'};
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+      headers:{'x-goog-api-key':key},redirect:'manual',signal:AbortSignal.timeout(10000)
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !Array.isArray(data.models)) {
+      return {success:false,connected:false,verified:false,error:'Gemini API nevrátilo zoznam modelov (HTTP '+response.status+').'};
+    }
+    const models=data.models.map(model=>model.name).filter(name=>typeof name==='string');
+    return {success:true,connected:true,verified:true,source:'gemini_api',...(action==='list_models'?{models,total:models.length}:{})};
   }
 
   return { success: false, error: `Neznáma Google Cloud akcia: ${action}` };

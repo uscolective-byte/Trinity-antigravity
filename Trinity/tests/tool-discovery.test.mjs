@@ -102,3 +102,17 @@ test('live chat does not emit unchecked reports of execution as deltas',async()=
   assert.match(text,/Nemám overený/);
   assert.doesNotMatch(text,/Otvorila som/);
 });
+
+test('private cloud tools are callable for owners and check real provider configuration', async()=>{
+ for(const [message,name] of [['Skontroluj OneDrive','onedrive_manage'],['Vypíš modely Gemini','google_cloud_manage'],['Over Google Drive file12345','google_drive_verify']]){
+   assert.equal(requiresWorkflowFallback(message),true);
+   await assert.rejects(runTool({},'orchestrator',name,{}),/overeného správcu/);
+   if(name==='google_drive_verify'){
+     await assert.rejects(runAgent({},'orchestrator',message,'','fast',1000,'sk',true),/servisný účet/);
+   }else{
+     const result=await runAgent({},'orchestrator',message,'','fast',1000,'sk',true);
+     assert.equal(result.tool_log[0].tool,name);
+     assert.equal(result.tool_log[0].status,'failed');
+   }
+ }
+});

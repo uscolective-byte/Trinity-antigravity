@@ -41,7 +41,7 @@ export function requiresWorkflowFallback(message = '', allowFiles = false) {
     || ['repair','research','build','creative','action'].includes(intent)
     || /\b(?:exportuj|uloz|vytvor|priprav)\b.*\bcsv\b/.test(norm)
     || (intent === 'analysis' && /\b(?:podrobne|hlbkovo|do\s+hlbky|krok\s+za\s+krokom|rizik[a-z]*|alternativ[a-z]*)\b/.test(norm))
-    || /\b(?:pocasie|pocasia|pocasi|weather|kurz|kurzy|cena|ceny|cenu|zostatok|saldo|bitcoin|btc|krypto|crypto|github|cloudflare|firebase|onedrive|domeny|domen|integracie|integracii|nastroj|nastroje|nastrojov)\b/.test(norm)
+    || /\b(?:pocasie|pocasia|pocasi|weather|kurz|kurzy|cena|ceny|cenu|zostatok|saldo|bitcoin|btc|krypto|crypto|github|cloudflare|firebase|onedrive|google\s+drive|gemini|domeny|domen|integracie|integracii|nastroj|nastroje|nastrojov)\b/.test(norm)
     || /\b(?:vyhladaj|najdi|precitaj|otvor|over|skontroluj|spusti|pripoj|pouzi)\b.*\b(?:subor\w*|adresar\w*|projekt\w*|repozitar\w*|antigravity|gemini|web|url|odkaz\w*)\b/.test(norm)
     || /\b[a-z][a-z0-9]*_[a-z0-9_]+\b/.test(norm);
 }
