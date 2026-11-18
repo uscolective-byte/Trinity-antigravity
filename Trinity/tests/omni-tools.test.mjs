@@ -135,7 +135,9 @@ test('Self-Evolution: applySelfModification fails closed without verified Baster
     basterixEscalationApproved: true,
     gitDiff: '--- a/Trinity/src/studio.js\n+++ b/Trinity/src/studio.js\n@@ -1 +1 @@\n-export const x = 1;\n+export const x = 2;'
   });
-  assert.equal(allowed.ok, true);
-  assert.equal(allowed.status, 'completed');
-  assert.ok(allowed.receipt_id);
+  assert.equal(allowed.ok, false);
+  assert.equal(allowed.status, 'not_applied');
+  assert.equal(allowed.applied, false);
+  assert.equal(allowed.deployed, false);
+  assert.ok(allowed.proposal_id);
 });
