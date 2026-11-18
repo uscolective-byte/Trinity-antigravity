@@ -1,3 +1,4 @@
+import {createJob,dispatcherStepSchema} from './jobs.js';
 import {pcRunPayload} from './pc-run-payload.js';
 import {verifyDriveFile} from './google-drive-reader.js';
 /**
@@ -58,7 +59,7 @@ import {executeClaudeAgent} from './claude-agent.js';
 import {dualEngineDeliberate} from './dual-engine-orchestrator.js';
 import {runMultiModelConsensus} from './multi-model-bus.js';
 import {TrinityMultiAgentOrchestrator,TASK_PRIORITIES} from './multi-agent-orchestrator.js';
-let sharedOrchestrator=null;
+const orchestratorsByEnvironment=new WeakMap();
 import fs from 'node:fs';
 import path from 'node:path';
 import {antigravityReadFile,antigravityWriteFile,antigravityEditFile,antigravityRunCommand,antigravityManageTask,antigravitySearchMarketplace} from './antigravity-bridge.js';
@@ -375,7 +376,7 @@ export const TOOL_SCHEMAS={
   execute_claude:z.object({task:z.string().min(1).max(50000),model:z.string().optional(),systemPrompt:z.string().max(10000).optional(),maxTokens:z.number().int().optional()}).strict(),
   dual_engine_deliberate:z.object({task:z.string().min(1).max(50000),mode:z.enum(['deliberate','parallel','claude_only','gemini_only']).optional().default('deliberate'),geminiModel:z.string().optional(),claudeModel:z.string().optional(),systemPrompt:z.string().max(10000).optional(),maxTokens:z.number().int().optional()}).strict(),
   multi_model_consensus:z.object({task:z.string().min(1).max(12000),providers:z.array(z.string().max(30)).max(8).optional(),synthesize:z.boolean().optional().default(true),maxTokens:z.number().int().optional()}).strict(),
-  multi_agent_dispatch:z.object({title:z.string().min(1).max(4000),taskType:z.enum(['architecture','subsystems','scaling','research','analysis','comparison','documentation','refactoring','solutions','coding','patching','tests','implementation','dev_assistance','orchestration','coordination','planning']).default('orchestration'),priority:z.enum(['CRITICAL','HIGH','NORMAL','LOW']).default('NORMAL'),execute:z.boolean().default(false)}).strict()
+  multi_agent_dispatch:z.object({title:z.string().min(1).max(4000),taskType:z.enum(['architecture','subsystems','scaling','research','analysis','comparison','documentation','refactoring','solutions','coding','patching','tests','implementation','dev_assistance','orchestration','coordination','planning']).default('orchestration'),priority:z.enum(['CRITICAL','HIGH','NORMAL','LOW']).default('NORMAL'),execute:z.boolean().default(false),steps:z.array(dispatcherStepSchema).min(1).max(5).optional()}).strict()
 };
 const UNIT_GROUPS={length:{mm:.001,cm:.01,m:1,km:1000,in:.0254,ft:.3048,yd:.9144,mi:1609.344},mass:{mg:.000001,g:.001,kg:1,oz:.028349523125,lb:.45359237}};
 const unique=list=>[...new Set(list)].slice(0,50);
@@ -1300,11 +1301,21 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     return antigravitySearchMarketplace(args);
   }
   if(name==='multi_agent_dispatch'){
-    sharedOrchestrator=sharedOrchestrator||new TrinityMultiAgentOrchestrator(env);
+    if(!isAdminOrOwner)throw new Error('Dispatcher vyžaduje serverom overeného správcu.');
+    if(args.steps){
+      if(!args.execute)return {status:'proposed',steps:args.steps};
+      const job=await createJob(env,{task:args.title,dispatch_steps:args.steps,owner_mode:true});
+      return {...job,_evidence:{effect:'proposal',receipt_id:job.id}};
+    }
+    let sharedOrchestrator=orchestratorsByEnvironment.get(env);
+    if(!sharedOrchestrator){
+      sharedOrchestrator=new TrinityMultiAgentOrchestrator(env);
+      orchestratorsByEnvironment.set(env,sharedOrchestrator);
+    }
     const task=sharedOrchestrator.enqueueTask({title:args.title,taskType:args.taskType,priority:TASK_PRIORITIES[args.priority],requestedBy:executionContext.ownerMode?'basterix':'agent'});
     let execution=null;
     if(args.execute){
-      const next=sharedOrchestrator.dequeueTask();
+      const next=sharedOrchestrator.dequeueTask(task.taskId);
       execution=await sharedOrchestrator.executeTask(next);
     }
     const integrity=sharedOrchestrator.ledger.verifyChainIntegrity();
@@ -1614,7 +1625,7 @@ export const TOOL_HELP={
   run_command:'Spustí príkaz s riadeným timeoutom a zachytením výstupu: {CommandLine:string,WaitMsBeforeAsync?:number,toolSummary?:string,IsDaemon?:boolean}',
   manage_task:'Správa asynchrónnych úloh a procesov: {Action:list|kill|status|send_input,TaskId?:string,Input?:string}',
   search_marketplace:'Prehľadáva pluginy a skilly v katalógu: {queries?:string[],kind?:all|plugin|skill,limit?:number}',
-  multi_agent_dispatch:'Zaradí úlohu do prioritnej fronty a pridelí ju špecializovanému agentovi (Antigravity, Gemini, ChatGPT, Codex, Copilot, Trinity) so Sovereign Ledger zápisom; execute=false iba zaradí, execute=true vykoná cez nakonfigurovaný adaptér: {title:string,taskType?:architecture|research|coding|documentation|tests|planning|...,priority?:CRITICAL|HIGH|NORMAL|LOW,execute?:boolean}',
+  multi_agent_dispatch:'Zaradí úlohu do prioritnej fronty a pridelí ju špecializovanému agentovi (Antigravity, Gemini, ChatGPT, Codex, Copilot, Trinity) so Sovereign Ledger zápisom; execute=true s steps:[{agent,task}] vytvorí evidovanú D1 Workflow úlohu; bez steps vykoná len tento záznam cez nakonfigurovaný adaptér: {title:string,taskType?:architecture|research|coding|documentation|tests|planning|...,priority?:CRITICAL|HIGH|NORMAL|LOW,execute?:boolean}',
   execute_gemini_gem:'Vykoná Gemini API inferenciu s Trinity profilom, modelovou kaskádou a prípadným Workers AI fallbackom. Limity spravuje poskytovateľ: {task:string,systemPrompt?:string,maxTokens?:number}',
   execute_claude:'Vykoná Anthropic Claude Messages API inferenciu (3.7 Sonnet, 3.5 Sonnet, Haiku, Opus) s modelovou kaskádou a fallbackom na Gemini: {task:string,model?:string,systemPrompt?:string,maxTokens?:number}',
   dual_engine_deliberate:'Krížová deliberácia a konsenzus medzi Google Gemini (analytik) a Anthropic Claude (syntetizér) s Truth Policy 2.1 receiptom: {task:string,mode?:deliberate|parallel|claude_only|gemini_only,geminiModel?:string,claudeModel?:string}',

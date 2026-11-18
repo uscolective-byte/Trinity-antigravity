@@ -32,7 +32,7 @@ import {buildOnlyPreviewResponse,isBuildOnlyPreview} from './preview-mode.js';
 import {TrinityAgent,ChatAgent,GuardianAgent} from './legacy.js';
 import {TrinityOperations} from './workflow.js';
 import {AGENTS,SKILLS,shouldDelegate} from './registry.js';
-import {createJob,getJob} from './jobs.js';
+import {createJob,getJob,dispatcherStepSchema} from './jobs.js';
 import {authenticate,checkOrigin,hash,HttpError,rateLimit,readJSON,secure,validKey,issueSession,allowDevConnection,sessionCookie} from './security.js';
 import {callModel,serviceStatus,runScheduledHealth,readiness} from './services.js';
 import {handleTelegramWebhook,activateTelegramWebhook,telegramIntegrationStatus} from './telegram-bridge.js';
@@ -43,6 +43,7 @@ import {handleMcp} from './mcp.js';
 import {TRUTH_POLICY_VERSION,ExecutionLifecycleGuard,bridgeExecutionVerified} from './truth.js';
 import {SOVEREIGN_IDENTITY,ROOT_REGISTRY,SOVEREIGN_LEGAL_CHARTER_20} from './sovereign-lock.js';
 import {handleLiveChatStream} from './chat-stream.js';
+import {registerExpansion,invokeExpansion} from './universal-expansion-registry.js';
 import {verifyTrinityIdentity} from './trinity-auth-core.js';
 import {SovereignLedgerV3} from './sovereign-core-v3.js';
 import {OMNI_CORE_500_IMPROVEMENTS,OMNI_CORE_75_FOUNDATIONAL_PILLARS,getOmniCore500Summary,listOmniCoreImprovementsByLayer} from './omni-core-500-registry.js';
@@ -1964,10 +1965,19 @@ async function route(request,env,ctx){
     }
     return json({ok:updated?.status!=='failed',item:updated,error:updated?.error_message||null},updated?.status==='failed'?502:200);
   }
+  if(request.method==='POST'&&['/api/assistant/extensions/register','/api/assistant/extensions/invoke'].includes(path)){
+    requireAdmin(user);
+    if(!user.email)throw new HttpError(403,'Rozšírenie vyžaduje overený profil používateľa.');
+    await rateLimit(env,'extensions:'+user.id,12);
+    const data=await readJSON(request,12000);
+    const registering=path.endsWith('/register');
+    const result=registering?await registerExpansion(env,user.email,data):await invokeExpansion(env,user.email,data);
+    return json(result,registering?201:200);
+  }
   if(path==='/api/assistant/chat'&&request.method==='POST'){
     await rateLimit(env,`job:${user.id}`,12);
-    const d=z.object({message:z.string().min(1).max(12000),session:z.string().uuid(),language:z.string().max(35).default('auto').transform(normalizeLanguage),engine:z.preprocess(normalizeChatEngine,z.enum(CHAT_ENGINE_VALUES)).default('auto'),remember:z.boolean().optional(),allow_files:z.boolean().optional()}).strict().parse(await readJSON(request));
-    if(d.engine==='local')requireAdmin(user);
+    const d=z.object({message:z.string().min(1).max(12000),session:z.string().uuid(),language:z.string().max(35).default('auto').transform(normalizeLanguage),engine:z.preprocess(normalizeChatEngine,z.enum(CHAT_ENGINE_VALUES)).default('auto'),remember:z.boolean().optional(),allow_files:z.boolean().optional(),requestedMode:z.enum(['reasoning','creativity','strict','truth']).optional(),dispatch_steps:z.array(dispatcherStepSchema).min(1).max(5).optional()}).strict().parse(await readJSON(request));
+    if(d.engine==='local'||d.requestedMode||d.dispatch_steps)requireAdmin(user);
     const shield=await enforceAntiSpamShield(request,env,{route:path,user,promptText:d.message});
     const wantsMemory=/^(zapamätaj si|zapamataj si|remember)\s*[:,-]?\s+/i.test(d.message);
     const delegated=shouldDelegate(d.message);
@@ -1975,7 +1985,7 @@ async function route(request,env,ctx){
     const provider=routed.provider;
     const ownerMode=['owner','admin'].includes(user.role)||user.email==='saboivan2008@gmail.com'||user.email===env.TRINITY_OWNER_EMAIL||(env.TRINITY_ADMIN_EMAILS&&env.TRINITY_ADMIN_EMAILS.split(',').map(s=>s.trim()).includes(user.email));
     const teamMode=/\b(t[ií]mov[yý]\s+re[zž]im|team\s+mode)\b/i.test(d.message);
-    return withRateLimitHeaders(json(await createJob(env,{task:d.message,session_id:d.session,agent:teamMode?'auto':'orchestrator',mode:teamMode?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,user_email:user.email,idempotency_key:crypto.randomUUID()}),202),shield.rateLimitHeaders);
+    return withRateLimitHeaders(json(await createJob(env,{task:d.message,requestedMode:d.requestedMode,dispatch_steps:d.dispatch_steps,session_id:d.session,agent:teamMode?'auto':'orchestrator',mode:teamMode?'team':'single',provider,language:d.language,remember:d.remember||wantsMemory,owner_mode:ownerMode,user_email:user.email,idempotency_key:crypto.randomUUID()}),202),shield.rateLimitHeaders);
   }
   if(path==='/api/assistant/chat/stream'&&request.method==='POST'){
     await rateLimit(env,`stream:${user.id}`,20);

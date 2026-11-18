@@ -10,18 +10,28 @@ import {agentById,selectTeam} from './registry.js';
 import {HttpError} from './security.js';
 import {normalizeLanguage} from './cognition.js';
 import {planTask} from './planner.js';
+export const dispatcherStepSchema=z.object({
+  agent:z.enum(['architect','backend','frontend','database','qa','security','cloudflare','release','researcher','document-analyst']),
+  task:z.string().trim().min(1).max(4000)
+}).strict();
+
 export const jobSchema=z.object({task:z.string().trim().min(1).max(12000),
   agent:z.string().default('auto'),mode:z.enum(['single','team']).default('single'),
   provider:z.enum(['workers-ai','openai','gemini','ollama','local','deepseek-r1','llama','qwen','groq','deepseek','anthropic','mistral','openrouter','fast']).default('workers-ai'),
+  dispatch_steps:z.array(dispatcherStepSchema).min(1).max(5).optional(),
+  requestedMode:z.enum(['reasoning','creativity','strict','truth']).optional(),
   session_id:z.string().uuid().optional(),team:z.array(z.string()).min(1).max(5).optional(),
   language:z.string().max(35).default('auto').transform(normalizeLanguage),remember:z.boolean().default(false),owner_mode:z.boolean().default(false),user_email:z.string().email().nullable().optional(),idempotency_key:z.string().uuid().optional()}).strict();
 export async function createJob(env, body) {
   const data=jobSchema.parse(body);
   if(data.agent!=='auto'&&!agentById(data.agent))throw new HttpError(400,'Neznámy agent.');
-  const team=data.team?[...new Set(data.team)]:selectTeam(data.task,data.mode,data.agent);
+  if((data.dispatch_steps||data.requestedMode)&&!data.owner_mode)throw new HttpError(403,'Vykonávací plán a režim vyžadujú reláciu vlastníka.');
+  const team=data.dispatch_steps?data.dispatch_steps.map(step=>step.agent):data.team?[...new Set(data.team)]:selectTeam(data.task,data.mode,data.agent);
   if(team.some(id=>!agentById(id)))throw new HttpError(400,'Neznámy agent.');
   if(!env.OPS_WORKFLOW)throw new HttpError(503,'Workflow nie je pripojený.');
   const id=crypto.randomUUID(), session=data.session_id||crypto.randomUUID(), plan=planTask(data.task, data.owner_mode===true);
+  if(data.dispatch_steps)plan.dispatch_steps=data.dispatch_steps;
+  if(data.requestedMode)plan.requested_mode=data.requestedMode;
   await env.DB.prepare(`INSERT INTO ops_jobs(id,session_id,task,team,provider,idempotency_key,language,intent,risk_level,plan_json,owner_mode) VALUES(?,?,?,?,?,?,?,?,?,?,?)
     ON CONFLICT(idempotency_key) DO NOTHING`).bind(id,session,data.task,JSON.stringify(team),data.provider,data.idempotency_key||null,data.language,plan.intent,plan.risk,JSON.stringify(plan),data.owner_mode?1:0).run();
   const row=await env.DB.prepare(data.idempotency_key?'SELECT * FROM ops_jobs WHERE idempotency_key=?':'SELECT * FROM ops_jobs WHERE id=?').bind(data.idempotency_key||id).first();

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runTool } from '../src/tools.js';
 import { agentById } from '../src/registry.js';
-import { SovereignAuthEngine, CryptoSovereignLedger } from '../src/multi-agent-orchestrator.js';
+import { SovereignAuthEngine, CryptoSovereignLedger, TrinityMultiAgentOrchestrator } from '../src/multi-agent-orchestrator.js';
 
 test('multi_agent_dispatch enqueues, assigns the specialist and keeps the ledger intact', async () => {
   const out = await runTool({}, agentById('orchestrator'), 'multi_agent_dispatch',
@@ -36,4 +36,31 @@ test('auth tokens reject tampered payloads and unknown principals', () => {
   assert.equal(auth.verifyToken(t.token, { a: 1 }).valid, true);
   assert.equal(auth.verifyToken(t.token, { a: 2 }).reason, 'PAYLOAD_TAMPERED');
   assert.equal(auth.verifyToken(auth.generateToken('intruder', {}).token).reason, 'UNAUTHORIZED_PRINCIPAL');
+});
+
+test('dispatching an explicit task cannot run another queued task',async()=>{
+  const dispatcher=new TrinityMultiAgentOrchestrator({});
+  const other=dispatcher.enqueueTask({title:'Existing task',priority:0});
+  const current=dispatcher.enqueueTask({title:'Current task',priority:3});
+  assert.equal(dispatcher.dequeueTask(current.taskId).taskId,current.taskId);
+  assert.equal(dispatcher.queue[0].taskId,other.taskId);
+  const failed=await dispatcher.executeTask(current,async()=>({success:false,error:'not run'}));
+  assert.equal(failed.task.status,'FAILED');
+});
+
+test('explicit steps are stored in D1 and queued through the configured Workflow',async()=>{
+  let row,workflow;
+  const env={
+    DB:{prepare(sql){return {bind(...args){return {
+      async run(){if(sql.includes('INSERT INTO ops_jobs'))row={id:args[0],team:JSON.parse(args[3]),plan:JSON.parse(args[9])};},
+      async first(){return row;}
+    };}};}},
+    OPS_WORKFLOW:{async create(input){workflow=input;}}
+  };
+  const steps=[{agent:'architect',task:'Propose a safe design'},{agent:'qa',task:'Review the design'}];
+  const result=await runTool(env,'orchestrator','multi_agent_dispatch',{title:'Design review',steps,execute:true},{adminAuthorized:true});
+  assert.equal(result.status,'queued');
+  assert.deepEqual(row.plan.dispatch_steps,steps);
+  assert.deepEqual(row.team,['architect','qa']);
+  assert.equal(workflow.params.job_id,result.id);
 });

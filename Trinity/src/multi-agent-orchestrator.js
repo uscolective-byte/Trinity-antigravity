@@ -220,7 +220,7 @@ export class AgentRestAdapters {
     });
 
     if (!res.ok) {
-      throw new Error(`Gemini HTTP ${res.status}: ${await res.text()}`);
+      throw new Error(`Gemini HTTP ${res.status}`);
     }
 
     const data = await res.json();
@@ -256,7 +256,7 @@ export class AgentRestAdapters {
     });
 
     if (!res.ok) {
-      throw new Error(`OpenAI HTTP ${res.status}: ${await res.text()}`);
+      throw new Error(`OpenAI HTTP ${res.status}`);
     }
 
     const data = await res.json();
@@ -307,13 +307,14 @@ export class AgentRestAdapters {
     });
 
     if (!res.ok) {
-      throw new Error(`Antigravity Agent API HTTP ${res.status}: ${await res.text()}`);
+      throw new Error(`Antigravity Agent API HTTP ${res.status}`);
     }
 
     const data = await res.json();
     return {
       agent: 'antigravity',
       endpoint: address,
+      text: typeof data?.text === 'string' ? data.text : '',
       data
     };
   }
@@ -407,8 +408,9 @@ export class TrinityMultiAgentOrchestrator {
   /**
    * Vyberie najvyššiu čakajúcu úlohu z fronty
    */
-  dequeueTask() {
-    const task = this.queue.shift();
+  dequeueTask(taskId = null) {
+    const index = taskId === null ? 0 : this.queue.findIndex(task => task.taskId === taskId);
+    const task = index < 0 ? null : this.queue.splice(index, 1)[0];
     if (task) {
       task.status = TASK_STATUSES.RUNNING;
       task.updatedAt = new Date().toISOString();
@@ -450,6 +452,10 @@ export class TrinityMultiAgentOrchestrator {
             resultOutcome = await this.adapters.callWorkersAI(task.title);
             break;
         }
+      }
+      if (!resultOutcome || resultOutcome.error || resultOutcome.success === false ||
+          (!executorFn && (typeof resultOutcome.text !== 'string' || !resultOutcome.text.trim()))) {
+        throw new Error('Adaptér nevrátil overiteľnú odpoveď pre túto úlohu.');
       }
     } catch (err) {
       status = 'failed';
