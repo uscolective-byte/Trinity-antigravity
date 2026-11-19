@@ -541,7 +541,8 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
   }
   messages[0].content+='\n'+discoveryInstructions(activeTools);
   const toolLog=[];const started=Date.now();let result,toolTurns=0,truthRetry=false,activeProvider=provider,forceFinal=false;const BUDGET_MS=Number(env?.AGENT_BUDGET_MS)||600000;const withDeadline=(promise,ms)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Model neodpovedal v časovom limite.')),Math.max(1000,ms));})]).finally(()=>clearTimeout(timer));};
-  let requestedToolRetry=false;
+  let requestedToolRetry=false,searchCoverageRetry=false;
+  const searchCoverageIssues=new Map();
   for(let turn=0;turn<(provider==='fast'?8:20);turn++){
     const remaining=BUDGET_MS-(Date.now()-started);
     if(remaining<=0)throw new Error('Trinity nestihla dokončiť odpoveď v časovom limite. Skús užšie zadanie alebo iný model.');
@@ -570,6 +571,16 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
       throw err;
     }
     if(action.answer){
+      if(searchCoverageIssues.size){
+        if(!searchCoverageRetry&&!forceFinal&&toolTurns<12){
+          searchCoverageRetry=true;
+          messages.push({role:'assistant',content:action.answer},{role:'user',content:'Kontrola rozsahu: použitý filter alebo limity nepokrývajú celý zadaný priečinok. Skontroluj filter a limity voči pôvodnému zadaniu; rešpektuj jeho výslovné obmedzenia. Ak používateľ neurčil príponu, zopakuj pc_search_text v tom istom priečinku s glob **/*. Nepovažuj nulový výber súborov za dôkaz neexistencie funkcie. Ak používateľ filter výslovne obmedzil, uveď tento presný rozsah.'});
+          continue;
+        }
+        const issue=[...searchCoverageIssues.values()][0];
+        const text=language==='en'?`Search in ${issue.path} with filter ${issue.glob} did not establish absence across the whole requested scope. Files selected: ${issue.selected}; limits: ${issue.limits.join(', ')||'extension filter'}.`:`Vyhľadávanie v ${issue.path} s filtrom ${issue.glob} nepotvrdilo neprítomnosť v celom požadovanom rozsahu. Vybrané súbory: ${issue.selected}; obmedzenia: ${issue.limits.join(', ')||'filter prípony'}.`;
+        return {...result,text,execution_status:'pending',agent_id:id,tool_log:toolLog,truth:truthStatus(text,toolLog),duration_ms:Date.now()-started};
+      }
       const missing=[...requestedTools].filter(tool=>!toolLog.some(r=>r.tool===tool));
       if(missing.length&&!requestedToolRetry&&!forceFinal){
         requestedToolRetry=true;
@@ -622,6 +633,11 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
       }else{
         if(!activeTools.includes(action.tool))throw new Error('Nástroj nie je povolený pre túto úlohu.');
         outcome=assertNoSimulatedData(await runTool(env,agent,action.tool,action.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin}),action.tool);
+      }
+      if(action.tool==='pc_search_text'&&outcome&&typeof outcome.files_selected==='number'){
+        const key=JSON.stringify({path:outcome.path,pattern:outcome.pattern,regex:outcome.regex===true,case_sensitive:outcome.case_sensitive===true});
+        if((outcome.matches||[]).length===0&&(outcome.truncated===true||outcome.glob!=='**/*'&&!task.includes(outcome.glob)))searchCoverageIssues.set(key,{path:outcome.path,glob:outcome.glob,selected:outcome.files_selected,limits:outcome.limit_reasons||[]});
+        else if((outcome.matches||[]).length>0||outcome.glob==='**/*'&&outcome.truncated!==true)searchCoverageIssues.delete(key);
       }
       toolLog.push({...toolReceiptForOutcome(action.tool,outcome),call_key,...(retry_scope?{retry_scope}:{})});
       if(outcome&&'_evidence' in outcome){outcome={...outcome};delete outcome._evidence;}

@@ -52,3 +52,5 @@ Requires Node >=22.20 and ripgrep. On Windows x64 run `./install-search.ps1`; it
 Search remains inside the configured workspace, omits protected credentials and symbolic links, bounds traversal to 5,000 files and depth 20, and excludes files above 1 MB from content search. Search result text is bounded to 24 KB and the traversal/search operation to a 10-second time budget. File-size exclusions and traversal/output/result limits are reported. Zero matches is a valid empty result; an invalid regex or missing search executable is an error.
 
 Official sources: https://github.com/BurntSushi/ripgrep/releases/tag/15.2.0 and https://nodejs.org/api/path.html#pathmatchesglobpath-pattern.
+
+A content search with no matching candidate files reports `search_performed: false` and `coverage: no_candidate_files`. This does not establish absence across other file types. The assistant checks unrequested extension filters before accepting a negative conclusion. Raw gateway flags are type-checked as well as Worker tool arguments.

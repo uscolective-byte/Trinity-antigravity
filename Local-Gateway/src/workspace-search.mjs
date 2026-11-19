@@ -8,8 +8,10 @@ export const ripgrepBinary=()=>process.env.TRINITY_RG_PATH||(process.platform===
  ?path.join(os.homedir(),'AppData','Local','Trinity','tools','ripgrep','15.2.0','ripgrep-15.2.0-x86_64-pc-windows-msvc','rg.exe'):'rg');
 
 export async function searchWorkspace(root,payload){
- const mode=payload.mode||'content',base=payload.path||'Trinity',glob=payload.glob||'**/*';
+ const mode=payload.mode??'content',base=payload.path??'Trinity',glob=payload.glob??'**/*';
  const limit=payload.limit??50,context=payload.context??0,maxFiles=5000;
+ const allowed=new Set(['task','mode','path','glob','limit',...(mode==='content'?['pattern','regex','case_sensitive','context']:[])]);
+ if(Object.keys(payload).some(key=>!allowed.has(key))||payload.regex!==undefined&&typeof payload.regex!=='boolean'||payload.case_sensitive!==undefined&&typeof payload.case_sensitive!=='boolean')throw new Error('Neplatné parametre vyhľadávania.');
  if(!['files','content'].includes(mode)||typeof glob!=='string'||glob.length>300||!Number.isInteger(limit)||limit<1||limit>200||!Number.isInteger(context)||context<0||context>3)throw new Error('Neplatné parametre vyhľadávania.');
  if(mode==='content'&&(typeof payload.pattern!=='string'||!payload.pattern.length||payload.pattern.length>2000||payload.pattern.includes('\0')))throw new Error('Chýba platný hľadaný text.');
  if(typeof path.posix.matchesGlob!=='function')throw new Error('Vyhľadávanie vyžaduje Node 22.5 alebo novší.');
@@ -76,5 +78,5 @@ export async function searchWorkspace(root,payload){
   });
   searched+=batch.length;
  }
- return {action:'read',task:'workspace-search',mode,path:base,glob,pattern:payload.pattern,regex:payload.regex===true,matches,files_scanned:visited,files_selected:files.length,files_submitted:searched,skipped_large_files:skippedLarge,truncated:reasons.size>0,limit_reasons:[...reasons]};
+ return {action:'read',task:'workspace-search',mode,path:base,glob,pattern:payload.pattern,regex:payload.regex===true,case_sensitive:payload.case_sensitive===true,matches,files_scanned:visited,files_selected:files.length,files_submitted:searched,search_performed:searched>0,coverage:files.length===0?'no_candidate_files':reasons.size?'limited':'selected_files',...(files.length===0?{guidance:'Filter nevybral žiadne súbory; obsah nebol prehľadaný. Over glob a cestu, bez požiadavky na príponu použi **/*.'}:{}),skipped_large_files:skippedLarge,truncated:reasons.size>0,limit_reasons:[...reasons]};
 }

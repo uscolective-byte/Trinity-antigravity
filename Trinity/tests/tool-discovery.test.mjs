@@ -156,3 +156,16 @@ test('owner PC tasks receive native search descriptions and exact search argumen
  assert.match(firstPrompt,/Argument textu je pattern/);
  assert.doesNotMatch(discoveryInstructions(['calculate']),/Argument textu je pattern/);
 });
+
+
+test('agent broadens an invented extension filter before claiming a function is absent',async()=>{
+ for(const scenario of [{ignore:false,candidates:0},{ignore:false,candidates:3},{ignore:true,candidates:0}]){
+ let calls=0,actionNumber=0;
+ const env={DB:{prepare(sql){return {bind(){if(sql.startsWith('INSERT INTO ops_system_actions'))actionNumber++;return this;},async run(){return {};},async all(){return {results:sql.includes('FROM ops_plugins')?[{id:'workspace-files',installed:1,enabled:1}]:[]};},async first(){return sql.includes('ops_plugins')?{installed:1,enabled:1}:sql.includes('ops_system_actions')?{id:'search-'+actionNumber,status:'completed',payload_json:'{}',receipt_json:JSON.stringify({path:'Local-Gateway/src',pattern:'executeProposal',regex:false,glob:actionNumber===1?'**/*.js':'**/*',files_scanned:26,files_selected:actionNumber===1?scenario.candidates:22,matches:actionNumber===1?[]:[{path:'Local-Gateway/src/executor.mjs',line:75,text:'export async function executeProposal'}]})}:null;}};}},AI:{run:async(_model,{messages})=>{
+ calls++;if(calls===3)assert.match(messages.at(-1).content,/glob \*\*\/\*/);
+ return {response:calls===1?JSON.stringify({tool:'pc_search_text',arguments:{path:'Local-Gateway/src',pattern:'executeProposal',glob:'**/*.js'}}):calls===2?'Funkcia nebola nájdená.':calls===3?scenario.ignore?'Funkcia nebola nájdená.':JSON.stringify({tool:'pc_search_text',arguments:{path:'Local-Gateway/src',pattern:'executeProposal',glob:'**/*'}}):'Local-Gateway/src/executor.mjs, riadok 75.'};
+ }}};
+ const result=await runAgent(env,'backend','Nájdi definíciu funkcie v PC projekte.','','workers-ai',2000,'sk',true);
+ if(scenario.ignore){assert.equal(result.execution_status,'pending');assert.match(result.text,/nepotvrdilo neprítomnosť/);assert.doesNotMatch(result.text,/Funkcia nebola nájdená/);}else{assert.match(result.text,/75/);assert.equal(result.tool_log.length,2);assert.notEqual(result.execution_status,'pending');}
+ }
+});

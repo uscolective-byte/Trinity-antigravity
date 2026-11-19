@@ -36,3 +36,16 @@ test('search reports excluded large files and bounds serialized result output',a
  await writeFile(path.join(root,'Trinity/src/output.txt'),('needle'+'x'.repeat(1700)+'\n').repeat(100));
  const bounded=await searchWorkspace(root,{pattern:'needle',limit:200});assert.ok(bounded.matches.length>0);assert.ok(bounded.limit_reasons.includes('output_size_limit'));assert.ok(Buffer.byteLength(JSON.stringify(bounded))<32000);
 }));
+
+
+test('an empty extension filter is distinguished from a completed search with zero matches',async()=>fixture(async root=>{
+ const result=await searchWorkspace(root,{pattern:'sample',glob:'**/*.ts'});
+ assert.equal(result.files_scanned,1);assert.equal(result.files_selected,0);assert.equal(result.search_performed,false);assert.equal(result.coverage,'no_candidate_files');assert.match(result.guidance,/Filter/);
+ const absent=await searchWorkspace(root,{pattern:'not_present',glob:'**/*'});
+ assert.equal(absent.search_performed,true);assert.equal(absent.files_selected,1);assert.equal(absent.matches.length,0);
+}));
+
+
+test('raw gateway search rejects mistyped flags instead of running a different search mode',async()=>fixture(async root=>{
+ for(const args of [{regex:'true'},{case_sensitive:1},{mode:false},{glob:0},{path:0},{unknown:true}])await assert.rejects(searchWorkspace(root,{pattern:'sample',...args}),/Neplatné|relatívna/);
+}));
