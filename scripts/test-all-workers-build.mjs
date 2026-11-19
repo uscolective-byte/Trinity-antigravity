@@ -57,7 +57,7 @@ for (const target of WORKER_DEPLOYMENTS) {
       target: 'es2022',
       format: 'esm',
       packages: 'external',
-      loader: { '.html': 'text', '.css': 'text', '.webp': 'binary', '.sql': 'text' }
+      loader: { '.html': 'text', '.css': 'text', '.webp': 'binary', '.png': 'binary', '.sql': 'text', '.txt': 'text' }
     });
     results.push({ worker: target.name, status: 'ENTRY_BUILD_OK' });
   } catch (error) {

@@ -11,10 +11,12 @@ export default {
       return Response.json({
         ok: true,
         service: "trinity-pc-bridge-v2",
+        version: "10.3.0",
+        status: "serving",
+        bridgeStatus: "NOT_CONNECTED",
         workerServing: true,
         localExecutorConnected: false,
-        executionAvailable: false,
-        status: "NOT_CONNECTED"
+        executionAvailable: false
       }, { headers });
     }
     return Response.json({

@@ -7,6 +7,7 @@ export default {
       return Response.json({
         ok: true,
         service: "trinityguardiantruthverifierworker",
+        version: "10.3.0",
         status: "serving",
         verificationAvailable: false
       });

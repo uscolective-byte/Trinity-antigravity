@@ -53,7 +53,7 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Install crypto-core dependencies
         working-directory: packages/crypto-core
-        run: npm ci --legacy-peer-deps --ignore-scripts || npm i --legacy-peer-deps --ignore-scripts
+        run: npm ci --ignore-scripts || npm ci --legacy-peer-deps --ignore-scripts
 
       - run: npm ci
 

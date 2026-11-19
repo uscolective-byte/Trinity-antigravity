@@ -26,6 +26,8 @@ export default {
       return Response.json({
         ok: true,
         service: "trinity-knowledge",
+        version: "10.3.0",
+        status: "serving",
         workerServing: true,
         vectorizeConfigured: Boolean(env.VECTORIZE),
         embeddingModelConfigured: Boolean(env.AI)
