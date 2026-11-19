@@ -365,6 +365,18 @@ async function route(request,env,ctx){
     if(['https://trinity-morhfeus-20261001.web.app','https://trinity-morhfeus-20261001.firebaseapp.com'].includes(origin)){response.headers.set('Access-Control-Allow-Origin',origin);response.headers.set('Vary','Origin');}
     return response;
   }
+  if(path==='/api/time'&&request.method==='GET'){
+    const now=new Date();
+    const timeZone='Europe/Belgrade';
+    const formatter=new Intl.DateTimeFormat('sv-SE',{
+      timeZone,dateStyle:'short',timeStyle:'medium',hourCycle:'h23'
+    });
+    const response=json({
+      time_zone:timeZone,utc:now.toISOString(),local:formatter.format(now),source:'worker-clock'
+    });
+    response.headers.set('Cache-Control','no-store');
+    return response;
+  }
   if(path==='/v1/ping'&&request.method==='GET'){
     return json({status:'ONLINE',worker:'trinity-gateway',ring:0,env:env.ENVIRONMENT||runtimeEnvironment(request,env),timestamp:Date.now()});
   }
@@ -2454,7 +2466,7 @@ async function route(request,env,ctx){
     }
     await rateLimit(env,`plugin-test:${user.id}`,12);
     if(!await pluginEnabled(env,plugin.id))throw new HttpError(400,'Najprv zapni rozšírenie.');
-    const cases={memory:['search_memory',{query:'trinity'}],projects:['project_snapshot',{}],monitor:['service_status',{binding:'CORE'}],web:['web_search',{query:'Cloudflare Workers official documentation'}],calculator:['calculate',{operation:'multiply',values:[6,7]}],text:['analyze_text',{text:'Trinity má spoločnú pamäť.'}],clock:['current_time',{timezone:'Europe/Bratislava'}],capabilities:['list_capabilities',{}]};
+    const cases={memory:['search_memory',{query:'trinity'}],projects:['project_snapshot',{}],monitor:['service_status',{binding:'CORE'}],web:['web_search',{query:'Cloudflare Workers official documentation'}],calculator:['calculate',{operation:'multiply',values:[6,7]}],text:['analyze_text',{text:'Trinity má spoločnú pamäť.'}],clock:['current_time',{timezone:'Europe/Belgrade'}],capabilities:['list_capabilities',{}]};
     let summary,details;
     if(cases[plugin.id]){const [tool,args]=cases[plugin.id];const result=await runTool(env,{tools:plugin.tools},tool,args);summary=plugin.id==='memory'?`${result.records.length} nájdených záznamov`:plugin.id==='projects'?`${result.projects.length} projektov, ${result.tasks.length} úloh`:plugin.id==='web'?`${result.results.length} webových výsledkov`:JSON.stringify(result);}
     if(plugin.id==='images'){const result=await runTool(env,{id:'plugin-check',tools:plugin.tools},'generate_image',{prompt:'Minimalistická žiarivá hviezda Trinity na tmavomodrom pozadí, bez textu'});details={id:result.id,url:result.url,model:result.model};summary=`Obrázok ${result.id} bol skutočne vytvorený a uložený.`;}
