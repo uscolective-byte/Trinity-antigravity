@@ -2155,4 +2155,22 @@ skillRegistry.register('diagnostic_ping', async (params = {}, env) => {
 }, { category: 'diagnostics' });
 skillRegistry.register('fleetHealthCheck', (_params, env) => inspectFleet(env), { category: 'orchestration' });
 
+import { getAzureFoundryAgentStatus, generateAzureFoundryAgentSpec, generateAzureKnowledgeIndexSchema } from './azure-foundry-agent.js';
+import { antigravityManageTask, antigravitySearchMarketplace } from './antigravity-bridge.js';
+skillRegistry.register('azureFoundryAgentSync', (_p = {}, env = {}) => ({ status: getAzureFoundryAgentStatus(env), spec: generateAzureFoundryAgentSpec() }), { category: 'azure' });
+skillRegistry.register('azureIndexAudit', () => generateAzureKnowledgeIndexSchema(), { category: 'azure' });
+skillRegistry.register('azureKnowledgeSearch', async (params = {}, env = {}) => {
+  const query = params.query || params.q || '';
+  if (!env.KNOWLEDGE_SERVICE?.search) return { status: 'not_connected', query };
+  return env.KNOWLEDGE_SERVICE.search(query);
+}, { category: 'azure' });
+skillRegistry.register('antigravityManageTask', (params = {}) => antigravityManageTask(params), { category: 'antigravity' });
+skillRegistry.register('antigravitySearchMarketplace', (params = {}) => antigravitySearchMarketplace(params), { category: 'antigravity' });
+for (const [skill, tool] of [['antigravityReadFile', 'read_file'], ['antigravityWriteFile', 'write_file'], ['antigravityEditFile', 'edit_file'], ['antigravityRunCommand', 'run_command']]) {
+  skillRegistry.register(skill, async (params = {}, env = {}) => {
+    const { runTool } = await import('./tools.js');
+    return runTool(env, null, tool, params, {});
+  }, { category: 'antigravity' });
+}
+
 export { developerSkills, entertainmentSkills, educationSkills, lifestyleSkills, creativeSkills, scienceSkills };
