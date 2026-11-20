@@ -428,11 +428,7 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const actionEffect=action=>['read','screenshot','system_info','scrape','web_fetch'].includes(action)?'read':'mutation';
 
 export async function waitForSystemAction(env,action,{attempts=80,intervalMs=1500}={}){
-  if(action.status!=='approved'&&action.status!=='claimed')return action;
-  for(let i=0;i<attempts;i++){
-    if(intervalMs>0)await sleep(intervalMs);
-    const current=await getSystemAction(env,action.id);
-    if(current?.status==='completed')return current;
+  const checked=current=>{
     if(current?.status==='failed'){
       const error=new Error(current.error||'Systémová akcia zlyhala bez podrobností.');
       const receipt=current.receipt;
@@ -444,9 +440,16 @@ export async function waitForSystemAction(env,action,{attempts=80,intervalMs=150
       }}:{})};
       throw error;
     }
+    return current;
+  };
+  if(action.status!=='approved'&&action.status!=='claimed')return checked(action);
+  for(let i=0;i<attempts;i++){
+    if(intervalMs>0)await sleep(intervalMs);
+    const current=checked(await getSystemAction(env,action.id));
+    if(current?.status==='completed')return current;
     if(!current||['proposed','rejected'].includes(current.status))return current||action;
   }
-  return await getSystemAction(env,action.id)||action;
+  return checked(await getSystemAction(env,action.id))||action;
 }
 export async function searchMemory(env,query='') {
   const pattern=`%${query.replace(/[!%_]/g,'!$&')}%`;

@@ -16,6 +16,18 @@ test('failed PC actions expose bounded diagnostic receipts while remaining faile
  });
 });
 
+test('failure in the final status read retains bounded process evidence',async()=>{
+ let reads=0;
+ const env={DB:{prepare(){return {bind(){return this;},async first(){reads++;return {id:'last-read',status:reads===1?'claimed':'failed',payload_json:'{}',receipt_json:JSON.stringify({exitCode:7,stderr:'e'.repeat(9000),privateField:'omit'}),error:'Final read failed'};}};}}};
+ await assert.rejects(waitForSystemAction(env,{id:'last-read',status:'approved'},{attempts:1,intervalMs:0}),error=>{
+  assert.equal(reads,2);
+  assert.equal(error.toolResult.receipt.exitCode,7);
+  assert.equal(error.toolResult.receipt.stderr.length,6000);
+  assert.equal(error.toolResult.receipt.privateField,undefined);
+  return true;
+ });
+});
+
 test('coding roles have script tools but ordinary sessions cannot discover them',async()=>{
  for(const id of ['architect','backend','frontend','qa','security','release','cloudflare']){
   for(const tool of ['pc_run_script','pc_file_read','pc_file_edit'])assert.ok(agentById(id).tools.includes(tool),id+':'+tool);

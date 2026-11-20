@@ -4,6 +4,17 @@ import assert from 'node:assert/strict';
 import {runTool} from '../src/tools.js';
 import {pcActionReceipt} from '../src/engine.js';
 
+test('failed PC operations preserve the actual error instead of describing pending execution',async()=>{
+ const env={DB:{prepare(sql){return {bind(){return this;},async run(){return {};},async first(){return sql.includes('ops_plugins')?{installed:1,enabled:1}:{id:'failed-action',action:'read',status:'failed',payload_json:'{}',receipt_json:null,error:'Súbor neexistuje.'};}};}}};
+ await assert.rejects(runTool(env,{tools:['pc_file_read']},'pc_file_read',{path:'Trinity/missing.txt'},{adminAuthorized:true}),error=>{
+  assert.equal(error.toolResult.status,'failed');
+  assert.equal(error.toolResult.error,'Súbor neexistuje.');
+  assert.doesNotMatch(error.message,/čaká|odovzdaný/i);
+  assert.ok(error.toolResult.id);
+  return true;
+ });
+});
+
 test('PC open-app receipt is completed only with verified execution evidence',()=>{
   const timestamp='2026-10-26T06:30:00.000Z';
   assert.deepEqual(pcActionReceipt({id:'proposal-1',status:'proposed'},timestamp),{
