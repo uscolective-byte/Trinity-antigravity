@@ -15,8 +15,8 @@ export const secretInputSchema=z.object({
     'github','cloudflare','gemini','google_cloud','onedrive','local_bridge','openai','firecrawl','firebase','supabase','vercel','telegram','slack','discord','notion','linear','stripe','wordpress','resend','webhook','mcp_server','meta','dataverse','microsoft','powerplatform','custom','groq','deepseek','anthropic','claude','mistral','openrouter','revolut','paypal'
   ]),
   name:z.string().trim().min(2).max(80),
-  secret:z.string().trim().min(8).max(4096)
-}).strict();
+  secret:z.string().trim().min(8).max(65536)
+}).strict().refine(data=>data.provider==='mcp_server'||data.secret.length<=4096,{path:['secret'],message:'Tajomstvo prekročilo limit.'});
 
 const encode=value=>Buffer.from(value).toString('base64url');
 const decode=value=>new Uint8Array(Buffer.from(value,'base64url'));
@@ -27,6 +27,36 @@ async function key(env){
 }
 async function encrypt(env,ownerId,provider,name,value){const iv=crypto.getRandomValues(new Uint8Array(12)),aad=new TextEncoder().encode(`${ownerId}:${provider}:${name}`),plain=new TextEncoder().encode(value);const cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:aad},await key(env),plain);return {ciphertext:encode(new Uint8Array(cipher)),iv:encode(iv)};}
 async function decrypt(env,row){const aad=new TextEncoder().encode(`${row.owner_id}:${row.provider}:${row.name}`);try{const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:decode(row.secret_iv),additionalData:aad},await key(env),decode(row.secret_ciphertext));return new TextDecoder().decode(plain);}catch{throw new HttpError(500,'Tajomstvo sa nepodarilo bezpečne dešifrovať.');}}
+export async function sealMcpOAuthState(env,ownerId,stateHash,value){return encrypt(env,ownerId,'mcp_oauth',stateHash,JSON.stringify(value));}
+export async function openMcpOAuthState(env,row){return JSON.parse(await decrypt(env,{...row,provider:'mcp_oauth',name:row.state_hash}));}
+export async function replaceMcpCredential(env,material,secret){
+  if(material.provider!=='mcp_server')throw new HttpError(400,'Neplatný typ MCP pripojenia.');
+  const encrypted=await encrypt(env,material.owner_id,material.provider,material.name,secret);
+  const row=await env.DB.prepare("UPDATE ops_secret_vault SET secret_ciphertext=?,secret_iv=?,status='stored',verification_json=NULL,updated_at=datetime('now'),last_verified_at=NULL WHERE id=? AND owner_id=? AND provider='mcp_server' AND status!='revoked' AND secret_ciphertext=? AND secret_iv=? RETURNING *")
+    .bind(encrypted.ciphertext,encrypted.iv,material.id,material.owner_id,material.secret_ciphertext,material.secret_iv).first();
+  if(!row)throw new HttpError(409,'MCP pripojenie bolo zmenené alebo odvolané; obnovenie ho neprepísalo.');
+  return {...row,secret};
+}
+async function resolveRemoteMcpMaterial(env,ownerId,id){
+  const material=await getSecretMaterial(env,{ownerId,id,provider:'mcp_server'});
+  let credential;try{credential=JSON.parse(material.secret);}catch{return material;}
+  if(credential.oauth?.provider==='walletbot'&&Number.isFinite(credential.oauth.expires_at)&&credential.oauth.expires_at<=Date.now()+30000){
+    const {refreshMcpOAuthCredential}=await import('./mcp-oauth.js');
+    return refreshMcpOAuthCredential(env,material);
+  }
+  return material;
+}
+async function verifyStoredMcp(env,ownerId,id,includeTools=false){
+  let material=await resolveRemoteMcpMaterial(env,ownerId,id);
+  try{return {material,verification:await verifyRemoteMcp(material.secret,{includeTools})};}
+  catch(error){
+    let credential;try{credential=JSON.parse(material.secret);}catch{throw error;}
+    if(!error.mcpAuthRequired||credential.oauth?.provider!=='walletbot'||!credential.oauth.refresh_token)throw error;
+    const {refreshMcpOAuthCredential}=await import('./mcp-oauth.js');
+    material=await refreshMcpOAuthCredential(env,material);
+    return {material,verification:await verifyRemoteMcp(material.secret,{includeTools})};
+  }
+}
 const present=row=>({id:row.id,provider:row.provider,name:row.name,secret_hint:row.secret_hint,status:row.status,verification:row.verification_json?JSON.parse(row.verification_json):null,created_at:row.created_at,updated_at:row.updated_at,last_verified_at:row.last_verified_at,revoked_at:row.revoked_at});
 export async function listSecrets(env,ownerId){const rows=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE owner_id=? AND status!='revoked' ORDER BY created_at DESC LIMIT 100").bind(ownerId).all();return rows.results.map(present);}
 export async function storeSecret(env,ownerId,input){const data=secretInputSchema.parse(input),encrypted=await encrypt(env,ownerId,data.provider,data.name,data.secret),hint=`••••${data.secret.slice(-4)}`,id=crypto.randomUUID();const row=await env.DB.prepare(`INSERT INTO ops_secret_vault(id,owner_id,provider,name,secret_ciphertext,secret_iv,secret_hint) VALUES(?,?,?,?,?,?,?) ON CONFLICT(owner_id,provider,name) DO UPDATE SET secret_ciphertext=excluded.secret_ciphertext,secret_iv=excluded.secret_iv,secret_hint=excluded.secret_hint,status='stored',verification_json=NULL,updated_at=datetime('now'),last_verified_at=NULL,revoked_at=NULL RETURNING *`).bind(id,ownerId,data.provider,data.name,encrypted.ciphertext,encrypted.iv,hint).first();await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('secret_stored',?)").bind(JSON.stringify({id:row.id,provider:data.provider,name:data.name,owner_id:ownerId})).run();return present(row);}
@@ -150,7 +180,7 @@ export async function verifyRemoteMcp(secret,{fetcher=fetch,includeTools=false,c
   const signal=AbortSignal.timeout(12000);
   async function rpc(method,id,params){
     const response=await fetcher(target.toString(),{method:'POST',headers,body:JSON.stringify({jsonrpc:'2.0',...(id===undefined?{}:{id}),method,...(params===undefined?{}:{params})}),signal,redirect:'manual'});
-    if(response.status===401)throw new Error('MCP vyžaduje autorizáciu účtu alebo platný token. Pripojenie nie je overené.');
+    if(response.status===401){const error=new Error('MCP vyžaduje autorizáciu účtu alebo platný token. Pripojenie nie je overené.');error.mcpAuthRequired=true;throw error;}
     if(!response.ok)throw new Error(`MCP overenie zlyhalo (HTTP ${response.status}).`);
     if(id===undefined){await response.body?.cancel();return;}
     const reader=response.body?.getReader();
@@ -201,8 +231,7 @@ export async function prepareRemoteMcpCall(env,ownerId,input){
   const args=remoteMcpCallSchema.parse(input);
   if(JSON.stringify(args.arguments).length>16000)throw new HttpError(400,'MCP argumenty prekročili limit.');
   const normalizedOwner=ownerId.trim().toLowerCase();
-  const material=await getSecretMaterial(env,{ownerId:normalizedOwner,id:args.connector_id,provider:'mcp_server'});
-  const catalog=await verifyRemoteMcp(material.secret,{includeTools:true});
+  const {material,verification:catalog}=await verifyStoredMcp(env,normalizedOwner,args.connector_id,true);
   if(!catalog.tools.some(tool=>tool.name===args.tool_name))throw new HttpError(400,'MCP nástroj nie je v načítanom katalógu.');
   return {...args,owner_id:normalizedOwner,connector_fingerprint:await connectorFingerprint(material),endpoint:catalog.endpoint};
 }
@@ -211,7 +240,7 @@ export async function executeApprovedRemoteMcpCall(env,payload){
   const args=remoteMcpCallSchema.parse(input);
   if(JSON.stringify(args.arguments).length>16000)throw new HttpError(400,'MCP argumenty prekročili limit.');
   if(typeof owner_id!=='string'||!owner_id.trim()||typeof connector_fingerprint!=='string')throw new HttpError(400,'MCP schválenie nemá platnú identitu a verziu pripojenia.');
-  const material=await getSecretMaterial(env,{ownerId:owner_id,id:args.connector_id,provider:'mcp_server'});
+  const material=await resolveRemoteMcpMaterial(env,owner_id,args.connector_id);
   if(await connectorFingerprint(material)!==connector_fingerprint)throw new HttpError(409,'MCP pripojenie sa od schválenia zmenilo. Vyžaduje sa nový návrh.');
   const result=await verifyRemoteMcp(material.secret,{call:{name:args.tool_name,arguments:args.arguments}});
   return {...result,executed:true,action_type:'remote_mcp_call',connector_id:args.connector_id,tool_name:args.tool_name,note:'Externý MCP server vrátil výsledok konkrétneho volania.',_evidence:{effect:'mutation',receipt_id:`mcp:tools-call:${crypto.randomUUID()}`}};
@@ -223,8 +252,7 @@ export async function readRemoteMcpCatalog(env,ownerId,connectorId){
     const rows=await env.DB.prepare("SELECT id,name,status,last_verified_at FROM ops_secret_vault WHERE owner_id=? AND provider='mcp_server' AND status!='revoked' ORDER BY created_at DESC LIMIT 100").bind(ownerId.trim().toLowerCase()).all();
     return {connectors:rows.results||[],connection_verified:false,scope:'caller-owned-mcp-connectors',_evidence:{effect:'read',receipt_id:`mcp:connectors-list:${crypto.randomUUID()}`}};
   }
-  const material=await getSecretMaterial(env,{ownerId:ownerId.trim().toLowerCase(),id:connectorId,provider:'mcp_server'});
-  const catalog=await verifyRemoteMcp(material.secret,{includeTools:true});
+  const {verification:catalog}=await verifyStoredMcp(env,ownerId.trim().toLowerCase(),connectorId,true);
   return {...catalog,connector_id:connectorId,_evidence:{effect:'read',receipt_id:`mcp:tools-list:${crypto.randomUUID()}`}};
 }
 
@@ -629,9 +657,13 @@ export async function verifySecret(env,ownerId,id){
   const row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE id=? AND owner_id=? AND status!='revoked'").bind(id,ownerId).first();
   if(!row)throw new HttpError(404,'Tajomstvo neexistuje.');
   if(row.provider==='custom')throw new HttpError(400,'Vlastné tajomstvo nemá automatický test.');
+  let verifiedMaterial=row;
   try{
     const secret=await decrypt(env,row);
-    const verification=row.provider==='github'?await verifyGitHub(secret)
+    const mcp=row.provider==='mcp_server'?await verifyStoredMcp(env,ownerId,id):null;
+    if(mcp)verifiedMaterial=mcp.material;
+    const verification=mcp?mcp.verification
+      :row.provider==='github'?await verifyGitHub(secret)
       :row.provider==='cloudflare'?await verifyCloudflare(secret,env.CF_ACCOUNT_ID||'b60342e5e52f5646fbd4e913bb409334')
       :row.provider==='onedrive'?await verifyMicrosoftOneDrive(secret)
       :row.provider==='google_cloud'?await verifyGoogleCloud(secret)
@@ -649,10 +681,11 @@ export async function verifySecret(env,ownerId,id){
       :row.provider==='paypal'?{connected:false,provider:'paypal',status:'requires-configuration'}
       :await verifyGenericProvider(row.provider,secret);
     if(verification.connected!==true)throw new HttpError(409,'Uložené tajomstvo nie je overené spojenie. PayPal vyžaduje kompletnú konfiguráciu a úspešný test poskytovateľa.');
-    const changed=await env.DB.prepare("UPDATE ops_secret_vault SET status='verified',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=? RETURNING *").bind(JSON.stringify(verification),id).first();
+    const changed=await env.DB.prepare("UPDATE ops_secret_vault SET status='verified',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=? AND owner_id=? AND status!='revoked' AND secret_ciphertext=? AND secret_iv=? RETURNING *").bind(JSON.stringify(verification),id,ownerId,verifiedMaterial.secret_ciphertext,verifiedMaterial.secret_iv).first();
+    if(!changed)throw new HttpError(409,'Pripojenie bolo počas overovania zmenené alebo odvolané. Výsledok nebol priradený novému povereniu.');
     return present(changed);
   }catch(error){
-    await env.DB.prepare("UPDATE ops_secret_vault SET status='failed',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(JSON.stringify({connected:false,error:error.message}),id).run();
+    await env.DB.prepare("UPDATE ops_secret_vault SET status='failed',verification_json=?,last_verified_at=datetime('now'),updated_at=datetime('now') WHERE id=? AND owner_id=? AND status!='revoked' AND secret_ciphertext=? AND secret_iv=?").bind(JSON.stringify({connected:false,error:error.message}),id,ownerId,verifiedMaterial.secret_ciphertext,verifiedMaterial.secret_iv).run();
     throw new HttpError(502,error.message);
   }
 }

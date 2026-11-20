@@ -509,7 +509,7 @@ function renderConnectorsCatalog(connectors,secrets,canManage){
   const filtered=cachedConnectorsCatalog.filter(c=>connectorCatFilter==='all'||c.category===connectorCatFilter);
   grid.replaceChildren();
   for(const c of filtered){
-    const matchedSecret=cachedSecretsForConnectors.find(s=>s.id===c.secret_id)||cachedSecretsForConnectors.find(s=>s.provider===c.provider);
+    const matchedSecret=cachedSecretsForConnectors.find(s=>s.id===c.secret_id)||cachedSecretsForConnectors.find(s=>s.provider===c.provider&&(!c.credential_name||s.name===c.credential_name));
     const liveStatus=matchedSecret?.status||c.status||'not-configured';
     const isOk=['verified','configured','ready','platform-connected'].includes(liveStatus);
     const isStored=liveStatus==='stored';
@@ -525,10 +525,10 @@ function renderConnectorsCatalog(connectors,secrets,canManage){
     head.append(titleWrap,node('span',pillText,'connector-status-pill '+pillClass));
     const desc=node('p',c.description,'connector-card-desc');
     const actions=node('div',undefined,'connector-card-actions');
-    const connectBtn=node('button',isOk||isStored?'Upraviť':'Pripojiť',isOk?'':'primary');
+    const connectBtn=node('button',c.mode==='oauth-walletbot'?(isOk?'Znovu prihlásiť':'Prihlásiť Walletbot'):isOk||isStored?'Upraviť':'Pripojiť',isOk?'':'primary');
     connectBtn.type='button';
-    connectBtn.disabled=!canManage&&c.mode==='vault';
-    connectBtn.onclick=()=>openConnectorQuickForm({...c,secret_name:matchedSecret?.name});
+    connectBtn.disabled=!canManage&&['vault','oauth-walletbot'].includes(c.mode);
+    connectBtn.onclick=()=>{if(c.mode==='oauth-walletbot'){window.location.assign('/api/assistant/mcp/oauth/walletbot/start');return;}openConnectorQuickForm({...c,secret_name:matchedSecret?.name});};
     actions.append(connectBtn);
     if(matchedSecret&&canManage){
       const verifyBtn=node('button','Overiť');
