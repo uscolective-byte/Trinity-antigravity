@@ -141,7 +141,7 @@ function assertPublicHttpsUrl(rawUrl, providerLabel){
   return parsed;
 }
 
-export async function verifyRemoteMcp(secret,{fetcher=fetch,includeTools=false}={}){
+export async function verifyRemoteMcp(secret,{fetcher=fetch,includeTools=false,call}={}){
   let url=String(secret||'').trim(),token='';
   try{const parsed=JSON.parse(url);url=parsed.url||'';token=parsed.token||'';}catch{}
   const target=assertPublicHttpsUrl(url,'MCP Server');
@@ -178,7 +178,43 @@ export async function verifyRemoteMcp(secret,{fetcher=fetch,includeTools=false}=
   await rpc('notifications/initialized');
   const listed=await rpc('tools/list',2,{});
   if(!Array.isArray(listed.result.tools)||listed.result.tools.some(tool=>typeof tool?.name!=='string'||!tool.inputSchema||typeof tool.inputSchema!=='object'))throw new Error('MCP nevrátil platný zoznam nástrojov.');
-  return {connected:true,provider:'mcp_server',endpoint:target.origin,status:'verified',permission_verified:'initialize,tools/list',tools_count:listed.result.tools.length,catalog_complete:!listed.result.nextCursor,tool_execution_verified:false,...(includeTools?{tools:listed.result.tools.map(({name,description,inputSchema,annotations})=>({name,description,inputSchema,annotations}))}:{})};
+  if(call){
+    if(!listed.result.tools.some(tool=>tool.name===call.name))throw new Error('MCP nástroj nie je v načítanom katalógu.');
+    let outcome;
+    try{outcome=(await rpc('tools/call',3,{name:call.name,arguments:call.arguments})).result;}
+    catch{const error=new Error('MCP volanie bolo odoslané, ale výsledok nie je potvrdený. Neopakuj ho automaticky.');error.outcomeUnknown=true;throw error;}
+    if(outcome.isError===true)throw new Error('MCP server oznámil chybu vykonania nástroja.');
+    if(outcome.isError!==undefined&&typeof outcome.isError!=='boolean'||!Array.isArray(outcome.content)||outcome.content.some(item=>!item||typeof item.type!=='string')){
+      const error=new Error('MCP vrátil neplatný výsledok vykonania. Neopakuj volanie automaticky.');error.outcomeUnknown=true;throw error;
+    }
+    return {status:'completed',tool_execution_verified:true,external_effect_verified:false,result:outcome};
+  }
+  return {connected:true,provider:'mcp_server',endpoint:target.toString(),status:'verified',permission_verified:'initialize,tools/list',tools_count:listed.result.tools.length,catalog_complete:!listed.result.nextCursor,tool_execution_verified:false,...(includeTools?{tools:listed.result.tools.map(({name,description,inputSchema,annotations})=>({name,description,inputSchema,annotations}))}:{})};
+}
+
+export const remoteMcpCallSchema=z.object({connector_id:z.string().uuid(),tool_name:z.string().min(1).max(128),arguments:z.record(z.string(),z.unknown()).default({})}).strict();
+async function connectorFingerprint(material){
+  return Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(`${material.secret_ciphertext}:${material.secret_iv}`))).toString('hex');
+}
+export async function prepareRemoteMcpCall(env,ownerId,input){
+  if(typeof ownerId!=='string'||!ownerId.trim())throw new HttpError(403,'MCP volanie vyžaduje overenú identitu.');
+  const args=remoteMcpCallSchema.parse(input);
+  if(JSON.stringify(args.arguments).length>16000)throw new HttpError(400,'MCP argumenty prekročili limit.');
+  const normalizedOwner=ownerId.trim().toLowerCase();
+  const material=await getSecretMaterial(env,{ownerId:normalizedOwner,id:args.connector_id,provider:'mcp_server'});
+  const catalog=await verifyRemoteMcp(material.secret,{includeTools:true});
+  if(!catalog.tools.some(tool=>tool.name===args.tool_name))throw new HttpError(400,'MCP nástroj nie je v načítanom katalógu.');
+  return {...args,owner_id:normalizedOwner,connector_fingerprint:await connectorFingerprint(material),endpoint:catalog.endpoint};
+}
+export async function executeApprovedRemoteMcpCall(env,payload){
+  const {owner_id,connector_fingerprint,endpoint,...input}=payload;
+  const args=remoteMcpCallSchema.parse(input);
+  if(JSON.stringify(args.arguments).length>16000)throw new HttpError(400,'MCP argumenty prekročili limit.');
+  if(typeof owner_id!=='string'||!owner_id.trim()||typeof connector_fingerprint!=='string')throw new HttpError(400,'MCP schválenie nemá platnú identitu a verziu pripojenia.');
+  const material=await getSecretMaterial(env,{ownerId:owner_id,id:args.connector_id,provider:'mcp_server'});
+  if(await connectorFingerprint(material)!==connector_fingerprint)throw new HttpError(409,'MCP pripojenie sa od schválenia zmenilo. Vyžaduje sa nový návrh.');
+  const result=await verifyRemoteMcp(material.secret,{call:{name:args.tool_name,arguments:args.arguments}});
+  return {...result,executed:true,action_type:'remote_mcp_call',connector_id:args.connector_id,tool_name:args.tool_name,note:'Externý MCP server vrátil výsledok konkrétneho volania.',_evidence:{effect:'mutation',receipt_id:`mcp:tools-call:${crypto.randomUUID()}`}};
 }
 
 export async function readRemoteMcpCatalog(env,ownerId,connectorId){

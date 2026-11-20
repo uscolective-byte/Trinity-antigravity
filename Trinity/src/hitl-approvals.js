@@ -11,7 +11,7 @@ import { hash, equal, HttpError } from './security.js';
 import { createApiKey } from './api-keys.js';
 import { issueLicenseGrant } from './compliance-shield.js';
 import { approveSystemAction, rejectSystemAction } from './system-actions.js';
-import { storeSecret, resolveProviderSecret } from './secret-vault.js';
+import { storeSecret, resolveProviderSecret, executeApprovedRemoteMcpCall } from './secret-vault.js';
 
 export const HITL_ACTION_TYPES = [
   'provision_trinity_api_key',
@@ -19,6 +19,7 @@ export const HITL_ACTION_TYPES = [
   'provision_cloudflare_token',
   'provision_openai_project_key',
   'system_action',
+  'remote_mcp_call',
   'custom_operation'
 ];
 
@@ -104,7 +105,7 @@ export async function sendTelegramApprovalPrompt(env, record, approveUrl) {
         reply_markup: {
           inline_keyboard: [
             [
-              { text: '✅ Schváliť & Vykonať', callback_data: `hitl:approve:${record.id}` },
+              ...(record.action_type==='remote_mcp_call'?[]:[{ text: '✅ Schváliť & Vykonať', callback_data: `hitl:approve:${record.id}` }]),
               { text: '❌ Zamietnuť', callback_data: `hitl:reject:${record.id}` }
             ],
             [
@@ -267,6 +268,7 @@ export async function listHitlApprovals(env, { limit = 30 } = {}) {
 async function executeApprovedHitlPayload(env, record, actor) {
   const payload = record.payload || {};
   const ownerId = ownerEmail(env);
+  if(record.action_type==='remote_mcp_call')return executeApprovedRemoteMcpCall(env,payload);
 
   if (record.action_type === 'provision_trinity_api_key') {
     const created = await createApiKey(env, ownerId, {
@@ -431,6 +433,10 @@ export async function decideAndExecuteHitlApproval(env, { id, decision, actor = 
   }
 
   const now = Date.now();
+  if(normalizedDecision==='approve'&&channel!=='web'){
+    const candidate=await getHitlApproval(env,id);
+    if(candidate?.action_type==='remote_mcp_call')throw new HttpError(400,'Externé MCP volanie schváľ cez web po kontrole všetkých argumentov.');
+  }
   const targetStatus = normalizedDecision === 'approve' ? 'executing' : 'rejected';
   const claimed = await env.DB.prepare(
     `UPDATE ops_hitl_approvals
@@ -463,8 +469,10 @@ export async function decideAndExecuteHitlApproval(env, { id, decision, actor = 
     return await getHitlApproval(env, id);
   }
 
+  let executionReturned=false;
   try {
     const execResult = await executeApprovedHitlPayload(env, record, actor);
+    executionReturned=true;
     await env.DB.prepare(
       `UPDATE ops_hitl_approvals
        SET status='executed', result_json=?, error_message=NULL, executed_at=datetime('now')
@@ -484,6 +492,12 @@ export async function decideAndExecuteHitlApproval(env, { id, decision, actor = 
     return await getHitlApproval(env, id);
   } catch (err) {
     const errMessage = err instanceof Error ? err.message : String(err);
+    if(record.action_type==='remote_mcp_call'&&(err?.outcomeUnknown||executionReturned)){
+      await env.DB.prepare("UPDATE ops_hitl_approvals SET status='failed', result_json=?, error_message=?, executed_at=datetime('now') WHERE id=?")
+        .bind(JSON.stringify({executed:false,status:'UNKNOWN_OUTCOME',automatic_retry_allowed:false}),errMessage.slice(0,800),id).run();
+      await updateTelegramApprovalCard(env,record,'⚠️ Výsledok MCP volania je neznámy. Volanie sa nebude automaticky opakovať.');
+      return await getHitlApproval(env,id);
+    }
     await env.DB.prepare(
       `UPDATE ops_hitl_approvals
        SET status='failed', error_message=?, executed_at=datetime('now')
