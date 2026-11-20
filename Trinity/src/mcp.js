@@ -20,7 +20,7 @@ import {createMcpHandler} from 'agents/mcp/server';
 import {z} from 'zod';
 import {AGENTS} from './registry.js';
 import {createJob,getJob,listJobs} from './jobs.js';
-import {runTool, searchMemory, waitForSystemAction} from './tools.js';
+import {runTool, searchMemory, waitForSystemAction, PC_TOOL_SCHEMAS} from './tools.js';
 import {runTapMcpDiagnostic,tapDiagnosticInput} from './tap-mcp-adapter.js';
 import {callModel,serviceStatus,readiness} from './services.js';
 import {skillRegistry} from './skillRegistry.js';
@@ -158,7 +158,7 @@ export function handleMcp(request,env,ctx,access={}){
       });
 
     server.registerTool('edit_source_file',{description:'Navrhne úpravu zdrojového súboru Trinity projektu. Zápis vyžaduje samostatné schválenie.',
-      inputSchema:{path:z.string().min(1).max(500),content:z.string().min(1).max(500000),rationale:z.string().min(10).max(500),expected_sha256:z.string().regex(/^[a-f0-9]{64}$/).optional()}},
+      inputSchema:{path:z.string().min(1).max(500),content:z.string().min(1).max(500000),rationale:z.string().min(10).max(500),expected_sha256:z.union([z.literal('absent'),z.string().regex(/^[a-f0-9]{64}$/)]).optional()}},
       async({path,content,rationale,expected_sha256})=>{
         const enabled=await projectControlAllowed();
         if(!enabled)return result({error:'Riadenie projektu nie je pre tohto MCP klienta zapnuté.'});
@@ -269,6 +269,15 @@ export function handleMcp(request,env,ctx,access={}){
       async({command,cwd,rationale})=>{
         const action=await createSystemAction(env,{action:'run',payload:pcRunPayload(command,cwd),rationale:`MCP: ${rationale}`},'mcp:trinity');
         return result({id:action.id,approval_required:true,note:`SCHVÁĽ ${action.id}`});
+      });
+
+    server.registerTool('pc_run_script',{description:'Navrhne spustenie uloženého Node/Python/CMD skriptu cez PC bránu. Vyžaduje presný SHA-256 obsahu a samostatné schválenie; návrh nepotvrdzuje vykonanie.',
+      inputSchema:{...PC_TOOL_SCHEMAS.pc_run_script.shape,rationale:z.string().min(10).max(500)}},
+      async({rationale,...script})=>{
+        if(!await projectControlAllowed())return result({error:'Riadenie projektu nie je pre tohto MCP klienta zapnuté.'});
+        const validated=PC_TOOL_SCHEMAS.pc_run_script.parse(script);
+        const action=await createSystemAction(env,{action:'run',payload:{task:'script',...validated},rationale:`MCP: ${rationale}`},'mcp:client');
+        return result({id:action.id,status:action.status,approval_required:true,note:`SCHVÁĽ ${action.id}`});
       });
 
     // ── Trinity Copilot & Univerzálny Ekosystém nástroje ──
