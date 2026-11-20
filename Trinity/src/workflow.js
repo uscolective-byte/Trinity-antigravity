@@ -65,7 +65,7 @@ export class TrinityOperations extends WorkflowEntrypoint {
             const task=dispatchSteps[position]?.task||job.task;
             const mode=ctxData?.requestedMode;
             const modeHint=mode?'Preferovaný štýl odpovede pre túto úlohu: '+mode+'. Oprávnenia určuje server.':'';
-            const result=await runAgent(this.env,agent,task,[history,modeHint,...outputs.map(o=>`${o.agent_id}: ${o.text}`)].join('\n'),job.provider,tokenBudget(agent,task),job.language||'auto',job.owner_mode===1,{historyMessages});
+            const result=await runAgent(this.env,agent,task,[history,modeHint,...outputs.map(o=>`${o.agent_id}: ${o.text}`)].join('\n'),job.provider,tokenBudget(agent,task),job.language||'auto',job.owner_mode===1,{historyMessages,userEmail:event.payload.user_email});
             if(!workflowResultComplete(result)){
               const error=new Error(result.text);error.tool_log=result.tool_log;throw error;
             }

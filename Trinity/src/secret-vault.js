@@ -141,8 +141,60 @@ function assertPublicHttpsUrl(rawUrl, providerLabel){
   return parsed;
 }
 
+export async function verifyRemoteMcp(secret,{fetcher=fetch,includeTools=false}={}){
+  let url=String(secret||'').trim(),token='';
+  try{const parsed=JSON.parse(url);url=parsed.url||'';token=parsed.token||'';}catch{}
+  const target=assertPublicHttpsUrl(url,'MCP Server');
+  if(target.username||target.password||target.search||target.hash)throw new Error('MCP URL nesmie obsahovať prihlasovacie údaje, parametre ani fragment. Token vlož oddelene do trezora.');
+  const headers={'Content-Type':'application/json',Accept:'application/json, text/event-stream',...(token?{Authorization:`Bearer ${token}`}:{})};
+  const signal=AbortSignal.timeout(12000);
+  async function rpc(method,id,params){
+    const response=await fetcher(target.toString(),{method:'POST',headers,body:JSON.stringify({jsonrpc:'2.0',...(id===undefined?{}:{id}),method,...(params===undefined?{}:{params})}),signal,redirect:'manual'});
+    if(response.status===401)throw new Error('MCP vyžaduje autorizáciu účtu alebo platný token. Pripojenie nie je overené.');
+    if(!response.ok)throw new Error(`MCP overenie zlyhalo (HTTP ${response.status}).`);
+    if(id===undefined){await response.body?.cancel();return;}
+    const reader=response.body?.getReader();
+    if(!reader)throw new Error('MCP vrátil prázdnu odpoveď.');
+    const decoder=new TextDecoder();let text='',bytes=0;
+    try{while(true){const chunk=await reader.read();if(chunk.done)break;bytes+=chunk.value.byteLength;if(bytes>262144)throw new Error('MCP odpoveď prekročila bezpečný limit.');text+=decoder.decode(chunk.value,{stream:true});
+      if((response.headers.get('content-type')||'').includes('text/event-stream')){
+        const events=text.split(/\r?\n\r?\n/);
+        for(const event of events.slice(0,-1)){
+          const data=event.split(/\r?\n/).filter(line=>line.startsWith('data:')).map(line=>line.slice(5).trimStart()).join('\n');
+          if(!data)continue;let message;try{message=JSON.parse(data);}catch{continue;}
+          if(message.id===id){if(message.jsonrpc!=='2.0'||message.error||!message.result)throw new Error('MCP odmietol protokolovú požiadavku.');return {result:message.result,response};}
+        }
+      }
+    }}finally{await reader.cancel().catch(()=>{});}
+    let message;try{message=JSON.parse(text+decoder.decode());}catch{throw new Error('MCP nevrátil platnú protokolovú odpoveď.');}
+    if(message.jsonrpc!=='2.0'||message.id!==id||message.error||!message.result)throw new Error('MCP neoveril požadovanú operáciu.');
+    return {result:message.result,response};
+  }
+  const initialized=await rpc('initialize',1,{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'trinity-verify',version:'1.0'}});
+  const info=initialized.result;
+  if(typeof info.protocolVersion!=='string'||typeof info.serverInfo?.name!=='string'||!info.capabilities?.tools)throw new Error('MCP server nepotvrdil podporu nástrojov.');
+  headers['MCP-Protocol-Version']=info.protocolVersion;
+  const session=initialized.response.headers.get('mcp-session-id');if(session)headers['Mcp-Session-Id']=session;
+  await rpc('notifications/initialized');
+  const listed=await rpc('tools/list',2,{});
+  if(!Array.isArray(listed.result.tools)||listed.result.tools.some(tool=>typeof tool?.name!=='string'||!tool.inputSchema||typeof tool.inputSchema!=='object'))throw new Error('MCP nevrátil platný zoznam nástrojov.');
+  return {connected:true,provider:'mcp_server',endpoint:target.origin,status:'verified',permission_verified:'initialize,tools/list',tools_count:listed.result.tools.length,catalog_complete:!listed.result.nextCursor,tool_execution_verified:false,...(includeTools?{tools:listed.result.tools.map(({name,description,inputSchema,annotations})=>({name,description,inputSchema,annotations}))}:{})};
+}
+
+export async function readRemoteMcpCatalog(env,ownerId,connectorId){
+  if(typeof ownerId!=='string'||!ownerId.trim())throw new HttpError(403,'MCP katalóg vyžaduje overenú identitu používateľa.');
+  if(!connectorId){
+    const rows=await env.DB.prepare("SELECT id,name,status,last_verified_at FROM ops_secret_vault WHERE owner_id=? AND provider='mcp_server' AND status!='revoked' ORDER BY created_at DESC LIMIT 100").bind(ownerId.trim().toLowerCase()).all();
+    return {connectors:rows.results||[],connection_verified:false,scope:'caller-owned-mcp-connectors',_evidence:{effect:'read',receipt_id:`mcp:connectors-list:${crypto.randomUUID()}`}};
+  }
+  const material=await getSecretMaterial(env,{ownerId:ownerId.trim().toLowerCase(),id:connectorId,provider:'mcp_server'});
+  const catalog=await verifyRemoteMcp(material.secret,{includeTools:true});
+  return {...catalog,connector_id:connectorId,_evidence:{effect:'read',receipt_id:`mcp:tools-list:${crypto.randomUUID()}`}};
+}
+
 async function verifyGenericProvider(provider,secret){
   const clean=String(secret||'').trim();
+  if(provider==='mcp_server')return verifyRemoteMcp(clean);
   if(provider==='telegram')return verifyTelegramBot(clean);
   if(provider==='vercel'){
     const r=await fetch('https://api.vercel.com/v2/user',{headers:{Authorization:`Bearer ${clean}`},signal:AbortSignal.timeout(12000)});
@@ -208,13 +260,13 @@ async function verifyGenericProvider(provider,secret){
     if(!r.ok)throw new Error(`WordPress REST API nedostupné (HTTP ${r.status}).`);
     return {connected:true,provider:'wordpress',site:target.origin};
   }
-  if(provider==='webhook'||provider==='mcp_server'){
+  if(provider==='webhook'){
     let url=clean,token='';
     try{const p=JSON.parse(clean);url=p.url||'';token=p.token||'';}catch{}
-    const target=assertPublicHttpsUrl(url,provider==='mcp_server'?'MCP Server':'Webhook');
+    const target=assertPublicHttpsUrl(url,'Webhook');
     const headers=token?{Authorization:`Bearer ${token}`}:{};
-    const r=await fetch(target.toString(),{method:provider==='mcp_server'?'POST':'HEAD',headers:provider==='mcp_server'?{...headers,'Content-Type':'application/json',Accept:'application/json, text/event-stream'}:headers,body:provider==='mcp_server'?JSON.stringify({jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'trinity-verify',version:'1.0'}}}):undefined,signal:AbortSignal.timeout(12000),redirect:'manual'});
-    if(r.status>=500||(provider==='mcp_server'&&!r.ok))throw new Error(`Endpoint neodpovedal úspešne (HTTP ${r.status}).`);
+    const r=await fetch(target.toString(),{method:'HEAD',headers,signal:AbortSignal.timeout(12000),redirect:'manual'});
+    if(r.status>=500)throw new Error(`Endpoint neodpovedal úspešne (HTTP ${r.status}).`);
     return {connected:true,provider,endpoint:target.origin,http_status:r.status};
   }
   throw new Error(`Poskytovateľ ${provider} nemá implementovaný živý test oprávnenia. Uložené poverenie samo nie je pripojenie.`);

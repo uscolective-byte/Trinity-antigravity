@@ -37,7 +37,7 @@ export async function createJob(env, body) {
   const row=await env.DB.prepare(data.idempotency_key?'SELECT * FROM ops_jobs WHERE idempotency_key=?':'SELECT * FROM ops_jobs WHERE id=?').bind(data.idempotency_key||id).first();
   if(row.id!==id)return {id:row.id,session_id:row.session_id,status:row.status,intent:row.intent,risk_level:row.risk_level,plan:JSON.parse(row.plan_json||'{}'),reused:true};
   if(data.remember)await env.DB.prepare("INSERT INTO ops_memory(key,value,source) VALUES(?,?,'user-explicit')").bind('rozhovor/'+id,data.task).run();
-  try {await env.OPS_WORKFLOW.create({id,params:{job_id:id}});}
+  try {await env.OPS_WORKFLOW.create({id,params:{job_id:id,user_email:data.user_email||null}});}
   catch {await env.DB.prepare("UPDATE ops_jobs SET status='failed', error='Workflow sa nepodarilo spustiť.' WHERE id=?").bind(id).run();throw new HttpError(502,'Workflow sa nepodarilo spustiť.');}
   return {id,session_id:session,status:'queued',team,intent:plan.intent,risk_level:plan.risk,plan};
 }

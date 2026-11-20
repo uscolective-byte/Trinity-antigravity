@@ -273,7 +273,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
   const enabled=env.DB?(await listPlugins(env)).filter(p=>p.enabled).flatMap(p=>p.tools):agent.tools;
   let activeTools=agent.tools.filter(t=>(enabled.includes(t)||INTERNAL_TOOLS.has(t)||DEVELOPMENT_TOOLS.includes(t)||t==='diagnostic_ping')&&(!INTERNAL_TOOLS.has(t)||executionPolicy.allowInternal||t==='diagnostic_ping')&&(!PC_TOOLS.has(t)||executionPolicy.allowDirectPC)&&(!ACCOUNT_CONNECTOR_TOOLS.has(t)||executionPolicy.directAdmin));
   const pcFilesAvailable=activeTools.includes('pc_open_file')||activeTools.includes('pc_file_read');
-  if(provider==='fast')activeTools=activeTools.filter(tool=>FAST_TOOLS.has(tool)||(executionPolicy.allowDirectPC&&PC_TOOLS.has(tool)));
+  if(provider==='fast')activeTools=activeTools.filter(tool=>FAST_TOOLS.has(tool)||(executionPolicy.allowDirectPC&&PC_TOOLS.has(tool))||(executionPolicy.directAdmin&&tool==='remote_mcp_catalog'));
   const normalizedTask=task.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   const requestedTools=new Set();
   for(const match of normalizedTask.matchAll(/\b(?:pouzi|pomocou|use|using)\s+(?:(?:nastroja?|(?:the\s+)?tool)\s+)?(["\x60]?)([a-z][a-z0-9_]{1,80})\1(?![a-z0-9_])/g)){
@@ -291,7 +291,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
   const direct=directChatTool(task,activeTools);
   if(direct){
     let outcome;
-    try{outcome=direct.name==='self_intro'?{ok:true}:assertNoSimulatedData(await runTool(env,agent,direct.name,direct.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin}),direct.name);}
+    try{outcome=direct.name==='self_intro'?{ok:true}:assertNoSimulatedData(await runTool(env,agent,direct.name,direct.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin,userEmail:opts.userEmail}),direct.name);}
     catch(error){error.tool_log=[{tool:direct.name,status:'failed',effect:'diagnostic',error:error.message}];throw error;}
     const receipt=toolReceiptForOutcome(direct.name,outcome);
     if(direct.name==='pc_open_file'&&receipt.status==='completed'&&
@@ -632,7 +632,7 @@ Nástroje (iba interné JSON volania): ${selectPromptTools(activeTools,task).map
         outcome=describeAvailableTools(activeTools,TOOL_SCHEMAS,TOOL_HELP,action.arguments);
       }else{
         if(!activeTools.includes(action.tool))throw new Error('Nástroj nie je povolený pre túto úlohu.');
-        outcome=assertNoSimulatedData(await runTool(env,agent,action.tool,action.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin}),action.tool);
+        outcome=assertNoSimulatedData(await runTool(env,agent,action.tool,action.arguments,{adminAuthorized:executionPolicy.directAdmin,ownerMode:executionPolicy.directAdmin,userEmail:opts.userEmail}),action.tool);
       }
       if(action.tool==='pc_search_text'&&outcome&&typeof outcome.files_selected==='number'){
         const key=JSON.stringify({path:outcome.path,pattern:outcome.pattern,regex:outcome.regex===true,case_sensitive:outcome.case_sensitive===true});
