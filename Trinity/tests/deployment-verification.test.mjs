@@ -7,6 +7,17 @@ const commit='a'.repeat(40);
 const config={origin:'https://auru.space',expectedVersionId:id,version:'11.0.0',attempts:1};
 const fake=(health={},ready={})=>async url=>Response.json(url.endsWith('/health')?{version:'11.0.0',environment:'production',source:TRINITY_SOURCE,deployment:{id,tag:null},...health}:{version:'11.0.0',environment:'production',source:TRINITY_SOURCE,ready:true,...ready});
 
+test('HTML and login redirects fail with endpoint diagnostics without exposing response contents or redirect tokens',async()=>{
+ for(const response of [new Response('<html>private diagnostic</html>',{status:403,headers:{'content-type':'text/html'}}),new Response(null,{status:302,headers:{location:'https://login.example/?token=private-token'}})]){
+  await assert.rejects(verifyDeployment({...config,origin:'https://auru.dev',fetcher:async()=>response}),error=>{
+   assert.match(error.message,/auru\.dev\/health: HTTP (403|302)/);
+   assert.match(error.message,/no verification was granted/);
+   assert.doesNotMatch(error.message,/private diagnostic|private-token/);
+   return true;
+  });
+ }
+});
+
 test('both domains require the canonical repository and main branch',async()=>{
  assert.deepEqual(sourceMetadata({}),TRINITY_SOURCE);
  assert.deepEqual(sourceMetadata({TRINITY_GITHUB_REPO:'another/repo',TRINITY_GITHUB_BRANCH:'other'}),{repository:'another/repo',branch:'other'});

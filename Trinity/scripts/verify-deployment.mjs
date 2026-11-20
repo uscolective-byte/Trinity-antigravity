@@ -35,12 +35,20 @@ export async function verifyDeployment({origin,expectedTag,expectedVersionId,ver
   } : {})
  };
  const expectedEnvironment='production';
+ const readStatus=async endpoint=>{
+  const response=await fetcher(origin+endpoint,{headers,signal:AbortSignal.timeout(10000),redirect:'manual'});
+  const type=response.headers.get('content-type')||'missing';
+  if(response.status>=300&&response.status<400||!type.toLowerCase().includes('application/json')){
+   await response.body?.cancel();
+   throw new Error(`${origin}${endpoint}: HTTP ${response.status}, content-type ${type}; expected a direct JSON status response. Check Cloudflare Access/service-token or edge protection configuration; no verification was granted.`);
+  }
+  let data;try{data=await response.json();}catch{throw new Error(`${origin}${endpoint}: HTTP ${response.status}, malformed JSON status response.`);}
+  return {response,data};
+ };
  for(let attempt=0;attempt<attempts;attempt++){
   try{
-   const health=await fetcher(origin+'/health',{headers,signal:AbortSignal.timeout(10000),redirect:'error'});
-   const data=await health.json();
-   const ready=await fetcher(origin+'/ready',{headers,signal:AbortSignal.timeout(10000),redirect:'error'});
-   const readiness=await ready.json();
+   const {response:health,data}=await readStatus('/health');
+   const {response:ready,data:readiness}=await readStatus('/ready');
    const matched=expectedVersionId?data.deployment?.id===expectedVersionId:data.deployment?.tag===expectedTag;
    const sourceMatches=[data,readiness].every(result=>result.source?.repository===TRINITY_SOURCE.repository&&result.source?.branch===TRINITY_SOURCE.branch);
    const envMatches=data.environment===expectedEnvironment&&readiness.environment===expectedEnvironment;

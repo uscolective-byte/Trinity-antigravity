@@ -188,6 +188,21 @@ export function handleMcp(request,env,ctx,access={}){
         return result({error:'PC Bridge neodpovedal.'});
       });
 
+    for(const [name,mode] of [['pc_find_files','files'],['pc_search_text','content']]){
+      server.registerTool(name,{description:mode==='files'?'Vyhľadá skutočné súbory v PC projekte; vráti aj obmedzenia pokrytia.':'Vyhľadá text v PC projekte cez miestnu bránu; zachová riadky, pokrytie a obmedzenia výsledku.',inputSchema:PC_TOOL_SCHEMAS[name].shape},async args=>{
+        if(!await projectControlAllowed())return {...result({error:'Riadenie projektu nie je pre tohto MCP klienta zapnuté.'}),isError:true};
+        const payload={task:'workspace-search',mode,...PC_TOOL_SCHEMAS[name].parse(args)};
+        const action=await createSystemAction(env,{action:'read',payload,rationale:`MCP klient: ${name}`},'mcp:client');
+        const current=await waitForSystemAction(env,action,{attempts:60,intervalMs:1000});
+        if(current.status==='failed')return {...result({id:action.id,status:'failed',error:current.error||'Vyhľadávanie zlyhalo.'}),isError:true};
+        if(current.status!=='completed')return result({id:action.id,status:current.status,verified:false,note:'Vyhľadávanie ešte nie je dokončené; použi get_project_action.'});
+        const receipt=current.receipt;
+        if(mode==='content'&&(receipt?.pattern!==payload.pattern||receipt?.regex!==payload.regex||receipt?.case_sensitive!==payload.case_sensitive||typeof receipt?.search_performed!=='boolean'||!['no_candidate_files','limited','selected_files'].includes(receipt?.coverage)))return {...result({id:action.id,status:'unverified',error:'Doklad nezodpovedá požadovanému textovému vyhľadávaniu.'}),isError:true};
+        if(receipt?.task!=='workspace-search'||receipt.mode!==mode||receipt.path!==payload.path||receipt.glob!==payload.glob||!Array.isArray(receipt[mode==='files'?'files':'matches'])||typeof receipt.truncated!=='boolean'||!Array.isArray(receipt.limit_reasons))return {...result({id:action.id,status:'unverified',error:'Neplatný doklad vyhľadávania.'}),isError:true};
+        return result({id:action.id,status:'completed',...receipt});
+      });
+    }
+
     server.registerTool('run_build',{description:'Spustí wrangler build (dry-run) na PC. Vyžaduje project_control.',
       inputSchema:{cwd:z.string().max(500).optional()}},
       async({cwd})=>{
