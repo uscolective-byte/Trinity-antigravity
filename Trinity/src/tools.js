@@ -42,6 +42,7 @@ import {provisionDomainWithEnvironments,deployDomainEnvironment,listDomainEnviro
 import {createTrinityDocument,listTrinityDocuments,createDocumentSchema,DOCUMENT_CATEGORIES,recordStepDocument} from './trinity-documents.js';
 import {ownerLearnBehaviorRule,listActiveBehaviorRules} from './self-improvement.js';
 import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk,commodityAnalyzeSchema,commodityTradeSchema,commodityAutoInvestSchema} from './commodities-engine.js';
+import {createStudioCheckoutOffer} from './studio.js';
 import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,generateCreativePack,generateMusicSchema,generateVideoSchema,generatePresentationSchema,generateCreativePackSchema} from './multimedia-studio.js';
 import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,manageOneDrive,manageGoogleCloud,manageLocalBridge,listAllIntegrations} from './external-integrations.js';
 import {getWalletTerminalOverview,createPaymentTerminalCharge,executeWalletPayout,saveWalletTerminalConfig,createCryptoWallet,terminalConfigSchema,terminalChargeSchema,terminalPayoutSchema} from './wallet-terminals.js';
@@ -1074,6 +1075,9 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const status=completed?'completed':record.status==='executed'?'not_verified':record.status==='executing'?'running':record.status;
     return {id:record.id,status,approval_status:record.status,result:record.result,error:record.error_message,_evidence:completed?record.result._evidence:null};
   }
+  if(name==='wallet_terminals_status'||name==='terminal_charge'||name==='terminal_payout'||name==='wallet_create'){
+    var actor={email:executionContext.userEmail||env.TRINITY_OWNER_EMAIL||`agent:${agent?.id||'trinity'}`};
+  }
   if(name==='wallet_terminals_status'){
     const res=await getWalletTerminalOverview(env,actor);
     return {...res,_evidence:{effect:'read',receipt_id:`wallet:status:${crypto.randomUUID()}`}};
@@ -1410,6 +1414,20 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       return executeClaudeAgent(env, args.task, { systemPrompt: 'Si ' + rolePrompt + '. Vykonaj zadanú úlohu odborne a presne.', model: args.model });
     }
     return executeGeminiGemAgent(env, args.task, { systemPrompt: 'Si ' + rolePrompt + '. Vykonaj zadanú úlohu odborne a presne.' });
+  }
+  if(name==='triad_deep_research'){
+    return runMultiModelConsensus(env, `Hĺbkový výskum (${args.depth}): ${args.query}. Uveď iba overiteľné fakty a označ neistoty.`, {synthesize:true});
+  }
+  if(name==='triad_code_patch'){
+    return {status:'proposal_only',verified:false,note:'Patch nebol aplikovaný. Použi edit_file s admin kontextom a over testami.',proposal:{path:args.path,target:args.target,replacement:args.replacement,rationale:args.rationale||null}};
+  }
+  if(name==='triad_test_matrix'){
+    return {status:'not_verified',suite:args.suite,note:'Testy sa spúšťajú v CI / lokálne cez npm test; tento nástroj ich nespúšťa.',commands:{unit:'npm test',all:'npm test && node --test --test-concurrency=1 tests/*.test.mjs'}};
+  }
+  if(name==='triad_copilot_sync'){
+    const {copilotPluginRegistry}=await import('./copilot-plugins.js');
+    const plugins=copilotPluginRegistry.list?.()||[];
+    return {status:'ok',action:args.action,plugin_count:plugins.length,plugins:plugins.map(p=>p.id||p.name)};
   }
   if(name==='triad_status'){
     return {
