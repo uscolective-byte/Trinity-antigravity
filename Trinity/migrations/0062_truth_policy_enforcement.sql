@@ -6,16 +6,18 @@
 
 -- Tabuľka porušení pravidiel pravdivosti (Audit zlyhaní)
 CREATE TABLE IF NOT EXISTS truth_violations (
-    violation_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    actor_id TEXT NOT NULL,
-    violation_code TEXT NOT NULL,
-    details TEXT NOT NULL,
-    attempted_payload TEXT,
-    detected_at INTEGER NOT NULL
+    id TEXT PRIMARY KEY,
+    memory_id TEXT,
+    agent TEXT,
+    claim TEXT,
+    reason TEXT,
+    severity TEXT,
+    r2_evidence_key TEXT,
+    detected_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Pridanie stĺpca overenia integrity do sovereign_events
 ALTER TABLE sovereign_events ADD COLUMN reality_hash TEXT;
-ALTER TABLE sovereign_events ADD COLUMN truth_verified INTEGER DEFAULT 1;
+ALTER TABLE sovereign_events ADD COLUMN truth_verified INTEGER DEFAULT 0;
 
-CREATE INDEX IF NOT EXISTS idx_violations_actor ON truth_violations(actor_id, detected_at);
+CREATE INDEX IF NOT EXISTS idx_truth_violations_agent_detected ON truth_violations(agent, detected_at);

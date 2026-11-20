@@ -9,6 +9,7 @@
  */
 
 import { TrinityLogger, generateTraceId } from './trinity-logger.js';
+import { toolResultState } from './tool-result-state.js';
 
 // === TOOL EXECUTOR ===
 
@@ -46,6 +47,37 @@ export class ToolExecutor {
    * Hlavná metóda — vykoná nástroj a zapíše receipt
    */
   async execute(toolId, input = {}, runId = null, step = 0) {
+    let ownedRun = null;
+    try {
+      if (!runId) ownedRun = await this._createRun(`Tool: ${toolId}`, input, 1);
+      const activeRun = runId || ownedRun;
+      const run = await this.db.prepare('SELECT status FROM core_agent_runs WHERE id = ?').bind(activeRun).first();
+      if (!run || run.status !== 'running') return {status: 'unverified', error: 'ACTIVE_RUN_REQUIRED'};
+      const result = await this._execute(toolId, input, activeRun, step);
+      if (ownedRun) await this._finishRun(ownedRun, result.status);
+      return {...result, run_id: activeRun};
+    } catch (error) {
+      return {status: 'unverified', error: error.message, ...(ownedRun ? {run_id: ownedRun} : {})};
+    }
+  }
+
+  async _createRun(prompt, input, maxSteps) {
+    const id = generateTraceId();
+    const bytes = new TextEncoder().encode(JSON.stringify(input));
+    const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), value => value.toString(16).padStart(2, '0')).join('');
+    await this.db.prepare(`INSERT INTO core_agent_runs(id,idempotency_key,input_hash,trace_id,prompt,max_steps,status) VALUES(?,?,?,?,?,?,'running')`)
+      .bind(id, id, hash, this.trace?.traceId || id, prompt, Math.min(5, Math.max(1, maxSteps))).run();
+    return id;
+  }
+
+  async _finishRun(id, status) {
+    // Accepted asynchronous operations remain running until their result is known.
+    if (!['success','error','exception','not_found','no_handler'].includes(status)) return;
+    await this.db.prepare("UPDATE core_agent_runs SET status=?,updated_at=datetime('now') WHERE id=? AND status='running'")
+      .bind(status === 'success' ? 'completed' : 'failed', id).run();
+  }
+
+  async _execute(toolId, input = {}, runId = null, step = 0) {
     const run_id = runId || generateTraceId();
     const receipt_id = generateTraceId();
     
@@ -53,8 +85,7 @@ export class ToolExecutor {
     this.logger?.info('tool-executor', 'tool.start', `Executing: ${toolId}`, {
       tool: toolId,
       run_id,
-      step,
-      input: typeof input === 'object' ? JSON.stringify(input).substring(0, 200) : String(input)
+      step
     }, this.trace);
 
     // Načítaj definíciu
@@ -76,7 +107,7 @@ export class ToolExecutor {
     // Vykonaj
     const startTime = Date.now();
     try {
-      const response = await serviceBinding.fetch(`/tool/${toolId}`, {
+      const response = await serviceBinding.fetch(`https://trinity.internal/tool/${encodeURIComponent(toolId)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,9 +120,11 @@ export class ToolExecutor {
       const durationMs = Date.now() - startTime;
       const output = await response.json();
 
-      const resultFailed = !response.ok || output?.success === false || output?.ok === false ||
-        Boolean(output?.error) || ['error', 'failed', 'failure', 'denied', 'unverified', 'simulated'].includes(String(output?.status || '').toLowerCase());
-      if (!resultFailed) {
+      const resultState = toolResultState(response, output);
+      if (resultState !== 'success' && resultState !== 'error') {
+        return { status: resultState, output, durationMs };
+      }
+      if (resultState === 'success') {
         // Persisting a receipt is required before reporting confirmed success.
         const recorded = await this._writeReceipt(run_id, step, toolId, 'success', receipt_id, input, output);
         if (!recorded) {
@@ -142,6 +175,9 @@ export class ToolExecutor {
    */
   async _writeReceipt(run_id, step, tool, status, receipt_id, input, output) {
     try {
+      // The core receipt schema accepts only terminal completed/failed states.
+      // Keep the actual provider response as valid JSON, including large results.
+      const receiptStatus = status === 'success' ? 'completed' : 'failed';
       await this.db.prepare(
         `INSERT INTO core_tool_receipts (id, run_id, step, tool, status, receipt_id, input_json, output_json)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
@@ -150,10 +186,10 @@ export class ToolExecutor {
         run_id,
         step,
         tool,
-        status,
+        receiptStatus,
         receipt_id,
-        JSON.stringify(input).substring(0, 8192),
-        JSON.stringify(output).substring(0, 8192)
+        JSON.stringify(input),
+        JSON.stringify(output)
       ).run();
       return true;
     } catch (e) {
@@ -192,7 +228,7 @@ export class ToolExecutor {
    * Spustí reťaz nástrojov (pipeline)
    */
   async executePipeline(steps, initialInput = {}) {
-    const run_id = generateTraceId();
+    const run_id = await this._createRun('Tool pipeline', initialInput, steps.length);
     let currentInput = initialInput;
     const results = [];
 
@@ -216,7 +252,9 @@ export class ToolExecutor {
       currentInput = result.output || {};
     }
 
-    return { run_id, results, completed: results.length === steps.length && results.every(result => result.status === 'success') };
+    const completed = results.length === steps.length && results.every(result => result.status === 'success');
+    await this._finishRun(run_id, completed ? 'success' : results.at(-1)?.status);
+    return { run_id, results, completed };
   }
 
   /**

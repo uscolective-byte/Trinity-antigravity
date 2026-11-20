@@ -5,6 +5,8 @@
  */
 
 import { D1 } from '../lib/d1.js';
+import { toolResultState } from '../lib/tool-result-state.js';
+import { ToolExecutor } from '../lib/trinity-tool-executor.js';
 
 const SERVICE_MAP = {
   'CHAT_INFERENCE_SERVICE': 'trinity-chat-inference',
@@ -30,6 +32,7 @@ export class Dispatcher {
     this.env = env;
     this.d1 = d1;
     this.traceId = traceId || crypto.randomUUID();
+    this.lifecycle = new ToolExecutor({...env, DB: env.DB || env.TRINITY_D1 || d1.db}, null, {traceId: this.traceId});
   }
 
   /**
@@ -48,7 +51,7 @@ export class Dispatcher {
     headers.set("X-Trinity-Trace-Id", this.traceId);
 
     try {
-      const response = await binding.fetch(path, {
+      const response = await binding.fetch(new URL(path, 'https://trinity.internal').href, {
         ...options,
         headers,
         method: options.method || "POST"
@@ -74,6 +77,21 @@ export class Dispatcher {
    * Vykoná nástroj z tool registry
    */
   async executeTool(toolId, input = {}, runId = null, step = 0) {
+    let ownedRun = null;
+    try {
+      if (!runId) ownedRun = await this.lifecycle._createRun(`Tool: ${toolId}`, input, 1);
+      const activeRun = runId || ownedRun;
+      const run = await this.lifecycle.db.prepare('SELECT status FROM core_agent_runs WHERE id = ?').bind(activeRun).first();
+      if (!run || run.status !== 'running') return {status: 'unverified', error: 'ACTIVE_RUN_REQUIRED'};
+      const result = await this._executeTool(toolId, input, activeRun, step);
+      if (ownedRun) await this.lifecycle._finishRun(ownedRun, result.status);
+      return {...result, run_id: activeRun};
+    } catch (error) {
+      return {status: 'unverified', error: error.message, ...(ownedRun ? {run_id: ownedRun} : {})};
+    }
+  }
+
+  async _executeTool(toolId, input = {}, runId = null, step = 0) {
     const rid = runId || crypto.randomUUID();
     const receiptId = crypto.randomUUID();
 
@@ -90,19 +108,13 @@ export class Dispatcher {
         `No binding for ${toolId}: ${tool.handler_target}`,
         { tool: toolId, target: tool.handler_target }, "error");
 
-      // Record failed receipt
-      try {
-        await this.env.DB.prepare("INSERT INTO core_tool_receipts (id, run_id, step, tool, status, receipt_id, input_json, output_json) VALUES (?,?,?,?,?,?,?,?)")
-          .bind(crypto.randomUUID(), rid, step, toolId, "failed", receiptId,
-            JSON.stringify(input).slice(0, 8192), '{"error":"no binding"}').run();
-      } catch (e) {}
-
-      return { status: "no_handler", error: `No binding for ${tool.handler_target}` };
+      const recorded = await this.d1.recordToolError(toolId, input, 'No service binding', {runId: rid, step, receiptId});
+      return { status: "no_handler", error: `No binding for ${tool.handler_target}`, ...(recorded ? {receipt_id: receiptId} : {audit_error: 'RECEIPT_NOT_STORED'}) };
     }
 
     const start = Date.now();
     try {
-      const response = await binding.fetch(`/tool/${toolId}`, {
+      const response = await binding.fetch(`https://trinity.internal/tool/${encodeURIComponent(toolId)}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -114,9 +126,11 @@ export class Dispatcher {
       const ms = Date.now() - start;
       const output = await response.json();
 
-      const failed = !response.ok || output?.success === false || output?.ok === false ||
-        Boolean(output?.error) || ['error', 'failed', 'failure', 'denied', 'unverified', 'simulated'].includes(String(output?.status || '').toLowerCase());
-      if (!failed) {
+      const resultState = toolResultState(response, output);
+      if (resultState !== 'success' && resultState !== 'error') {
+        return { status: resultState, output, latencyMs: ms };
+      }
+      if (resultState === 'success') {
         // Treat D1 receipt persistence as a required part of an asserted success.
         await this.d1.recordToolSuccess(toolId, ms, {
           runId: rid, step, receiptId, input, output
@@ -125,17 +139,17 @@ export class Dispatcher {
           `${toolId} completed in ${ms}ms`, { tool: toolId, ms }, "ok", ms);
         return { status: "success", output, receipt_id: receiptId, latencyMs: ms };
       } else {
-        await this.d1.recordToolError(toolId, input, output?.error || "Tool returned unsuccessful result");
+        const recorded = await this.d1.recordToolError(toolId, input, output?.error || "Tool returned unsuccessful result", {runId: rid, step, receiptId});
         await this.d1.log(this.traceId, "dispatcher", "tool.error", "error",
           `${toolId} failed`, { tool: toolId, ms, error: output?.error || 'Tool returned unsuccessful result' }, "error", ms);
-        return { status: "error", error: output?.error || 'Tool returned unsuccessful result', receipt_id: receiptId, latencyMs: ms };
+        return { status: "error", error: output?.error || 'Tool returned unsuccessful result', ...(recorded ? {receipt_id: receiptId} : {audit_error: 'RECEIPT_NOT_STORED'}), latencyMs: ms };
       }
     } catch (err) {
       const ms = Date.now() - start;
-      await this.d1.recordToolError(toolId, input, err.message);
+      const recorded = await this.d1.recordToolError(toolId, input, err.message, {runId: rid, step, receiptId});
       await this.d1.log(this.traceId, "dispatcher", "tool.exception", "error",
         `${toolId} threw: ${err.message}`, { tool: toolId, ms, error: err.message }, "error", ms);
-      return { status: "exception", error: err.message, receipt_id: receiptId, latencyMs: ms };
+      return { status: "exception", error: err.message, ...(recorded ? {receipt_id: receiptId} : {audit_error: 'RECEIPT_NOT_STORED'}), latencyMs: ms };
     }
   }
 
@@ -143,7 +157,7 @@ export class Dispatcher {
    * Spustí pipeline nástrojov
    */
   async executePipeline(steps, initialInput = {}) {
-    const runId = crypto.randomUUID();
+    const runId = await this.lifecycle._createRun('Tool pipeline', initialInput, steps.length);
     let currentInput = initialInput;
     const results = [];
 
@@ -169,6 +183,8 @@ export class Dispatcher {
       `Pipeline done: ${results.length}/${steps.length} steps`,
       { run_id: runId, completed: results.length === steps.length });
 
-    return { run_id: runId, results, completed: results.length === steps.length && results.every(result => result.status === 'success') };
+    const completed = results.length === steps.length && results.every(result => result.status === 'success');
+    await this.lifecycle._finishRun(runId, completed ? 'success' : results.at(-1)?.status);
+    return { run_id: runId, results, completed };
   }
 }

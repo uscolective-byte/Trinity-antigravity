@@ -50,23 +50,25 @@ export class D1 {
     await this.db.batch([
       this.db.prepare("INSERT INTO core_tool_receipts (id, run_id, step, tool, status, receipt_id, input_json, output_json) VALUES (?,?,?,?,?,?,?,?)")
         .bind(crypto.randomUUID(), execution.runId, execution.step, tool, "completed",
-          execution.receiptId, JSON.stringify(execution.input ?? {}).slice(0, 8192),
-          JSON.stringify(execution.output).slice(0, 8192)),
+          execution.receiptId, JSON.stringify(execution.input ?? {}),
+          JSON.stringify(execution.output)),
       this.db.prepare("UPDATE trinity_tool_registry SET success_count=success_count+1, avg_latency_ms=(avg_latency_ms+?)/2, last_used=datetime('now') WHERE tool_id=?")
         .bind(ms, tool)
     ]);
     return true;
   }
 
-  async recordToolError(tool, input, error) {
+  async recordToolError(tool, input, error, execution) {
+    if (!execution?.runId || !execution?.receiptId || !Number.isInteger(execution.step)) return false;
     try {
       await this.db.batch([
         this.db.prepare("INSERT INTO core_tool_receipts (id, run_id, step, tool, status, receipt_id, input_json, output_json) VALUES (?,?,?,?,?,?,?,?)")
-          .bind(crypto.randomUUID(), crypto.randomUUID(), 0, tool, "failed", crypto.randomUUID(), JSON.stringify(input).slice(0, 8192), JSON.stringify({error}).slice(0, 8192)),
+          .bind(crypto.randomUUID(), execution.runId, execution.step, tool, "failed", execution.receiptId, JSON.stringify(input ?? {}), JSON.stringify({error})),
         this.db.prepare("UPDATE trinity_tool_registry SET error_count=error_count+1, last_used=datetime('now') WHERE tool_id=?")
           .bind(tool)
       ]);
-    } catch (e) {}
+      return true;
+    } catch (e) { return false; }
   }
 
   // === MODEL HEALTH ===
