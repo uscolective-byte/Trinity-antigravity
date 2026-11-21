@@ -37,7 +37,7 @@ function base64ToBuffer(b64) {
   return bytes.buffer;
 }
 
-export const GhostCrypto = {
+const GhostCrypto = {
   /**
    * Vygeneruje nový lokálny efemérny pár kľúčov ECDH P-256.
    */
@@ -225,5 +225,9 @@ export const GhostCrypto = {
 if (typeof window !== 'undefined') {
   window.GhostCrypto = GhostCrypto;
 }
+if (typeof globalThis !== 'undefined') {
+  globalThis.GhostCrypto = GhostCrypto;
+}
 
+export { GhostCrypto };
 export default GhostCrypto;

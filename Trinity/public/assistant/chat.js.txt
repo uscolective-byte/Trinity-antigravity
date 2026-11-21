@@ -5673,6 +5673,189 @@ document.addEventListener('click', e => {
   }
 });
 
+// ── TRINITY GHOST CRYPTO ENGINE (BUILT-IN ZERO-KNOWLEDGE E2EE) ──
+const _subtle = (typeof globalThis !== 'undefined' && globalThis.crypto?.subtle) 
+  || (typeof window !== 'undefined' && window.crypto?.subtle)
+  || null;
+
+function _encBufferToBase64(buf) {
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return (typeof btoa !== 'undefined' ? btoa(binary) : Buffer.from(binary, 'binary').toString('base64'));
+}
+
+function _encBase64ToBuffer(b64) {
+  const binary = (typeof atob !== 'undefined' ? atob(b64) : Buffer.from(b64, 'base64').toString('binary'));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+const BuiltinGhostCrypto = {
+  async generateIdentity() {
+    if (!_subtle) throw new Error('Web Crypto API nie je dostupné.');
+    const keyPair = await _subtle.generateKey(
+      { name: 'ECDH', namedCurve: 'P-256' },
+      true,
+      ['deriveKey', 'deriveBits']
+    );
+    const pubJwk = await _subtle.exportKey('jwk', keyPair.publicKey);
+    const pubRaw = await _subtle.exportKey('raw', keyPair.publicKey);
+    const pubBase64 = _encBufferToBase64(pubRaw);
+
+    return {
+      keyPair,
+      publicKey: keyPair.publicKey,
+      privateKey: keyPair.privateKey,
+      pubJwk,
+      pubBase64
+    };
+  },
+
+  async importPeerPublicKey(keyData) {
+    if (!_subtle) throw new Error('Web Crypto API nie je dostupné.');
+    let parsed = keyData;
+    if (typeof keyData === 'string') {
+      try {
+        parsed = JSON.parse(keyData);
+      } catch {
+        const rawBuffer = _encBase64ToBuffer(keyData);
+        return await _subtle.importKey(
+          'raw',
+          rawBuffer,
+          { name: 'ECDH', namedCurve: 'P-256' },
+          false,
+          []
+        );
+      }
+    }
+
+    return await _subtle.importKey(
+      'jwk',
+      parsed,
+      { name: 'ECDH', namedCurve: 'P-256' },
+      false,
+      []
+    );
+  },
+
+  async deriveSharedKey(myPrivateKey, peerPublicKey) {
+    if (!_subtle) throw new Error('Web Crypto API nie je dostupné.');
+    return await _subtle.deriveKey(
+      { name: 'ECDH', public: peerPublicKey },
+      myPrivateKey,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  },
+
+  async deriveRoomKey(roomId) {
+    if (!_subtle) throw new Error('Web Crypto API nie je dostupné.');
+    const enc = new TextEncoder();
+    const roomBytes = enc.encode('trinity_ghost_vault_room_key_v1:' + String(roomId));
+    const hash = await _subtle.digest('SHA-256', roomBytes);
+    return await _subtle.importKey(
+      'raw',
+      hash,
+      { name: 'AES-GCM' },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  },
+
+  async encrypt(sharedKey, plaintext) {
+    if (!_subtle) throw new Error('Web Crypto API nie je dostupné.');
+    const cryptoObj = (typeof crypto !== 'undefined' ? crypto : (typeof globalThis !== 'undefined' ? globalThis.crypto : null));
+    const iv = cryptoObj.getRandomValues(new Uint8Array(12));
+    const textToEncrypt = typeof plaintext === 'string' ? plaintext : JSON.stringify(plaintext);
+    const encoded = new TextEncoder().encode(textToEncrypt);
+
+    const cipherBuffer = await _subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      sharedKey,
+      encoded
+    );
+
+    return {
+      ciphertext: _encBufferToBase64(cipherBuffer),
+      iv: _encBufferToBase64(iv)
+    };
+  },
+
+  async decrypt(sharedKey, ciphertextBase64, ivBase64) {
+    if (!_subtle) throw new Error('Web Crypto API nie je dostupné.');
+    const ivBuffer = _encBase64ToBuffer(ivBase64);
+    const cipherBuffer = _encBase64ToBuffer(ciphertextBase64);
+
+    const decryptedBuffer = await _subtle.decrypt(
+      { name: 'AES-GCM', iv: new Uint8Array(ivBuffer) },
+      sharedKey,
+      cipherBuffer
+    );
+
+    return new TextDecoder().decode(decryptedBuffer);
+  },
+
+  async computeSafetyFingerprint(myPubJwk, peerPubJwk) {
+    if (!_subtle) throw new Error('Web Crypto API nie je dostupné.');
+    const keyA = `${myPubJwk.x}:${myPubJwk.y}`;
+    const keyB = `${peerPubJwk.x}:${peerPubJwk.y}`;
+    const combined = [keyA, keyB].sort().join('|');
+
+    const hashBuffer = await _subtle.digest('SHA-256', new TextEncoder().encode(combined));
+    const hashBytes = new Uint8Array(hashBuffer);
+
+    const digits = [];
+    for (let i = 0; i < 6; i++) {
+      const val = ((hashBytes[i * 4] << 24) | (hashBytes[i * 4 + 1] << 16) | (hashBytes[i * 4 + 2] << 8) | hashBytes[i * 4 + 3]) >>> 0;
+      const chunk = String(val % 100000).padStart(5, '0');
+      digits.push(chunk);
+    }
+    const safetyNumbers = digits.join(' ');
+
+    const emojiPalette = ['🛡️', '⚡', '🔒', '💎', '🔥', '🛰️', '🪐', '⚓', '🔑', '🚀', '🔮', '🌊', '🌋', '🧭', '🧬', '⚛️', '🦅', '🐺', '🦁', '🐉', '🍀', '🌟', '❄️', '🎯', '👁️', '🎲', '🪙', '🏆', '🎩', '🎻', '🎷', '🎸'];
+    const emoji = [
+      emojiPalette[hashBytes[28] % emojiPalette.length],
+      emojiPalette[hashBytes[29] % emojiPalette.length],
+      emojiPalette[hashBytes[30] % emojiPalette.length],
+      emojiPalette[hashBytes[31] % emojiPalette.length]
+    ].join(' ');
+
+    return {
+      safetyNumbers,
+      emoji,
+      rawHashHex: Array.from(hashBytes).map(b => b.toString(16).padStart(2, '0')).join('')
+    };
+  },
+
+  shred(target) {
+    if (!target) return;
+    if (target instanceof Uint8Array) {
+      target.fill(0);
+    } else if (typeof target === 'object') {
+      for (const k of Object.keys(target)) {
+        try {
+          if (target[k] instanceof Uint8Array) target[k].fill(0);
+          target[k] = null;
+        } catch {}
+      }
+    }
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.GhostCrypto = window.GhostCrypto || BuiltinGhostCrypto;
+}
+if (typeof globalThis !== 'undefined') {
+  globalThis.GhostCrypto = globalThis.GhostCrypto || BuiltinGhostCrypto;
+}
+
 // ── TRINITY ENCRYPTED_SHITS · SOVEREIGN ZERO-KNOWLEDGE E2EE CONTROLLER ──
 let encState = {
   identity: null,
@@ -5690,9 +5873,10 @@ let encState = {
 };
 
 async function initEncIdentity() {
-  if (!encState.identity && window.GhostCrypto) {
+  const cryptoEngine = (typeof window !== 'undefined' && window.GhostCrypto) || BuiltinGhostCrypto;
+  if (!encState.identity && cryptoEngine) {
     try {
-      encState.identity = await window.GhostCrypto.generateIdentity();
+      encState.identity = await cryptoEngine.generateIdentity();
     } catch (err) {
       console.error('Chyba generovania E2EE identity:', err);
     }
@@ -5867,12 +6051,13 @@ async function selectEncContact(contact) {
   if (sendBtn) sendBtn.disabled = false;
 
   // Odvoď zdieľaný kľúč ak má kontakt verejný kľúč
-  if (contact.public_key && window.GhostCrypto && encState.identity) {
+  const cryptoEngine = (typeof window !== 'undefined' && window.GhostCrypto) || BuiltinGhostCrypto;
+  if (contact.public_key && cryptoEngine && encState.identity) {
     try {
       const peerKeyObj = typeof contact.public_key === 'string' ? JSON.parse(contact.public_key) : contact.public_key;
-      const peerCryptoKey = await window.GhostCrypto.importPeerPublicKey(peerKeyObj);
-      encState.sharedKey = await window.GhostCrypto.deriveSharedKey(encState.identity.privateKey, peerCryptoKey);
-      encState.safetyFingerprint = await window.GhostCrypto.computeSafetyFingerprint(encState.identity.pubJwk, peerKeyObj);
+      const peerCryptoKey = await cryptoEngine.importPeerPublicKey(peerKeyObj);
+      encState.sharedKey = await cryptoEngine.deriveSharedKey(encState.identity.privateKey, peerCryptoKey);
+      encState.safetyFingerprint = await cryptoEngine.computeSafetyFingerprint(encState.identity.pubJwk, peerKeyObj);
       if (safetyElem) {
         safetyElem.textContent = `🔒 E2EE · ${encState.safetyFingerprint.emoji} ${encState.safetyFingerprint.safetyNumbers}`;
       }
@@ -6068,17 +6253,18 @@ function initEncEvents() {
       }
 
       // Bezpečné odvodenie šifrovacieho kľúča
+      const cryptoEngine = (typeof window !== 'undefined' && window.GhostCrypto) || BuiltinGhostCrypto;
       let encryptionKey = encState.sharedKey;
-      if (!encryptionKey && window.GhostCrypto) {
+      if (!encryptionKey && cryptoEngine) {
         // Fallback: bezpečný room-derived AES-GCM kľúč
-        encryptionKey = await window.GhostCrypto.deriveRoomKey(roomId);
+        encryptionKey = await cryptoEngine.deriveRoomKey(roomId);
       }
 
       if (!encryptionKey) {
         throw new Error('Kryptografický kľúč nie je pripravený.');
       }
 
-      const encryptedPayload = await window.GhostCrypto.encrypt(encryptionKey, text);
+      const encryptedPayload = await cryptoEngine.encrypt(encryptionKey, text);
       const ephPubStr = encState.identity?.pubJwk 
         ? JSON.stringify(encState.identity.pubJwk) 
         : JSON.stringify({ crv: 'P-256', kty: 'EC', x: 'ephemeral', y: 'ephemeral' });
@@ -6234,9 +6420,10 @@ function initEncEvents() {
 
   // Rekeying (nový kľúčový pár)
   $('enc-settings-rekey-btn')?.addEventListener('click', async () => {
-    if (!window.GhostCrypto) return;
+    const cryptoEngine = (typeof window !== 'undefined' && window.GhostCrypto) || BuiltinGhostCrypto;
+    if (!cryptoEngine) return;
     try {
-      encState.identity = await window.GhostCrypto.generateIdentity();
+      encState.identity = await cryptoEngine.generateIdentity();
       if (encState.identity?.pubJwk) {
         await fetch('/api/ghost/contacts/register', {
           method: 'POST',
@@ -6286,27 +6473,28 @@ async function pollEncInbox() {
       const isMine = env.sender_id === encState.myPeerId;
       let decryptedText = '[Zašifrovaný obsah]';
 
-      if (window.GhostCrypto) {
+      const cryptoEngine = (typeof window !== 'undefined' && window.GhostCrypto) || BuiltinGhostCrypto;
+      if (cryptoEngine) {
         // 1. Skús sharedKey (ak je k dispozícii)
         if (encState.sharedKey) {
           try {
-            decryptedText = await window.GhostCrypto.decrypt(encState.sharedKey, env.ciphertext, env.iv);
+            decryptedText = await cryptoEngine.decrypt(encState.sharedKey, env.ciphertext, env.iv);
           } catch {}
         }
         // 2. Skús ephemeral_pubkey z obálky
         if (decryptedText === '[Zašifrovaný obsah]' && env.ephemeral_pubkey && encState.identity?.privateKey) {
           try {
             const senderEphKeyObj = JSON.parse(env.ephemeral_pubkey);
-            const ephCryptoKey = await window.GhostCrypto.importPeerPublicKey(senderEphKeyObj);
-            const ephSharedKey = await window.GhostCrypto.deriveSharedKey(encState.identity.privateKey, ephCryptoKey);
-            decryptedText = await window.GhostCrypto.decrypt(ephSharedKey, env.ciphertext, env.iv);
+            const ephCryptoKey = await cryptoEngine.importPeerPublicKey(senderEphKeyObj);
+            const ephSharedKey = await cryptoEngine.deriveSharedKey(encState.identity.privateKey, ephCryptoKey);
+            decryptedText = await cryptoEngine.decrypt(ephSharedKey, env.ciphertext, env.iv);
           } catch {}
         }
         // 3. Skús room key (pre kanály bez predbežného ECDH)
         if (decryptedText === '[Zašifrovaný obsah]') {
           try {
-            const roomKey = await window.GhostCrypto.deriveRoomKey(env.room_id || encState.activeRoomId);
-            decryptedText = await window.GhostCrypto.decrypt(roomKey, env.ciphertext, env.iv);
+            const roomKey = await cryptoEngine.deriveRoomKey(env.room_id || encState.activeRoomId);
+            decryptedText = await cryptoEngine.decrypt(roomKey, env.ciphertext, env.iv);
           } catch {}
         }
       }
