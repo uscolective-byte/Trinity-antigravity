@@ -1,0 +1,51 @@
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+permissions:
+  contents: read
+
+jobs:
+  # The job MUST be named `copilot-setup-steps` for GitHub Copilot agent to detect it
+  copilot-setup-steps:
+    name: Prepare Copilot Coding Agent Environment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies across workspaces
+        run: |
+          npm ci --ignore-scripts
+          npm --prefix packages/contracts ci --ignore-scripts
+          npm --prefix packages/crypto-core ci --ignore-scripts || npm --prefix packages/crypto-core ci --legacy-peer-deps --ignore-scripts
+          npm --prefix Jericho-Worker ci --ignore-scripts || true
+          npm --prefix contracts/tetrakis ci --ignore-scripts || true
+          npm --prefix Trinity ci
+
+      - name: Ensure native tools (ripgrep)
+        run: |
+          if ! command -v rg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes ripgrep
+          fi
+          rg --version
+
+      - name: Build Trinity and MCP components
+        run: |
+          cd Trinity
+          node scripts/build-mcp-app.mjs || true
