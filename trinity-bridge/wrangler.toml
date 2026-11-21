@@ -1,0 +1,11 @@
+name = "trinity-bridge"
+main = "src/trinity-bridge.ts"
+compatibility_date = "2026-11-01"
+account_id = "b60342e5e52f5646fbd4e913bb409334"
+
+[vars]
+TRINITY_ENV = "dev"
+TELEGRAM_CHAT_ID = "8358735041"
+
+[triggers]
+crons = ["*/15 * * * *"]

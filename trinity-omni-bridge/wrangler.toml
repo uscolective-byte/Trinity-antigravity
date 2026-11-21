@@ -1,0 +1,15 @@
+name = "trinity-omni-bridge"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+account_id = "b60342e5e52f5646fbd4e913bb409334"
+workers_dev = true
+
+[vars]
+TRINITY_MCP_URL = "https://auru.dev/mcp"
+TRINITY_ENV = "production"
+TELEGRAM_CHAT_ID = "8358735041"
+CLOUDFLARE_ACCOUNT_ID = "b60342e5e52f5646fbd4e913bb409334"
+META_APP_ID = "1105151122389213"
+
+[triggers]
+crons = ["*/15 * * * *"]
