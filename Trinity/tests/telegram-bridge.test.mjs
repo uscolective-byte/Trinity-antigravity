@@ -268,9 +268,18 @@ test('Telegram handles /status, /pc, /crypto, /fleet and /clear commands', async
     assert.match(t.sent[t.sent.length - 1].text, /Trinity Telegram: nakonfigurované/);
     assert.match(t.sent[t.sent.length - 1].text, /TRINITY 11\.[0-9] SOVEREIGN ECOSYSTEM/);
 
-    // 5. /clear
+    // 5. /wallet
+    const walletUpdate = t.message('/wallet', 12345);
+    walletUpdate.update_id = 205;
+    const ctxWallet = t.context();
+    await handleTelegramWebhook(t.createRequest(walletUpdate), t.env, ctxWallet.ctx);
+    await ctxWallet.done();
+    assert.match(t.sent[t.sent.length - 1].text, /TELEGRAM WALLET/);
+    assert.match(t.sent[t.sent.length - 1].text, /Tetrakis \(\$TTK\)/);
+
+    // 6. /clear
     const clearUpdate = t.message('/clear', 12345);
-    clearUpdate.update_id = 205;
+    clearUpdate.update_id = 206;
     const ctxClear = t.context();
     await handleTelegramWebhook(t.createRequest(clearUpdate), t.env, ctxClear.ctx);
     await ctxClear.done();

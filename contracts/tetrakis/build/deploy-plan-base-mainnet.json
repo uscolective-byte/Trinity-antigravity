@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-08T16:54:38.471Z",
+  "timestamp": "2026-11-21T10:29:43.933Z",
   "network": "Base MAINNET (REAL MONEY, IRREVERSIBLE)",
   "chainId": 8453,
   "contract": "TetrakisToken",
@@ -12,7 +12,7 @@
   "deployerAddress": null,
   "deployerBalanceWei": null,
   "estimatedGasUnits": "623431",
-  "maxCostWei": "8230317905226",
+  "maxCostWei": "8229287000000",
   "bytecodeSha256": "0x5212f569578e0379edc4f0228663d72aaa3a6bff3bfa99d7266c5c4b657edbb6",
   "runtimeKeccak256": "0x3d8a3c7a764f1b12aa17052d6d8772e1924a3395c1ffd52024891f5e794bb705",
   "status": "PLAN_NO_DEPLOYER_KEY_SUPPLIED"

@@ -28,7 +28,7 @@ export function telegramIntegrationStatus(env) {
     provider: env.TELEGRAM_AI_PROVIDER === 'openai' ? 'openai' : 'gemini',
     capabilities: [
       'private-text-chat', 'gemini', 'openai', 'groq',
-      'help', 'status', 'pc', 'crypto', 'fleet', 'research',
+      'help', 'status', 'pc', 'crypto', 'wallet', 'fleet', 'research',
       'multi-turn-memory', 'system-grounding', 'clear'
     ],
     live_verified: false,
@@ -158,6 +158,7 @@ export function parseCommand(input, env) {
         '• /status — Prehľad stavu ekosystému Trinity, databáz a AI\n' +
         '• /pc — Stav pripojenia lokálneho PC (PC Bridge & Gateway)\n' +
         '• /crypto alebo /ttk — Živé trhové ceny a Tetrakis ($TTK) token\n' +
+        '• /wallet alebo /ton — Prepojenie Telegram @wallet (TON / USDT) a terminály Trinity\n' +
         '• /fleet alebo /workers — Prehľad 35 Cloudflare Workerov flotily\n' +
         '• /research <téma> — Hĺbkový výskum témy cez Researcher AI\n' +
         '• /clear alebo /reset — Reset konverzačnej pamäte bota\n' +
@@ -176,6 +177,9 @@ export function parseCommand(input, env) {
   }
   if (/^\/(crypto|ttk|tetrakis)(?:@[a-z0-9_]+)?$/i.test(text)) {
     return {command: 'crypto'};
+  }
+  if (/^\/(wallet|walet|ton|penazenka)(?:@[a-z0-9_]+)?$/i.test(text)) {
+    return {command: 'wallet'};
   }
   if (/^\/(fleet|workers)(?:@[a-z0-9_]+)?$/i.test(text)) {
     return {command: 'fleet'};
@@ -269,6 +273,50 @@ export async function executeCrypto(env) {
   return msg;
 }
 
+export async function executeWallet(env) {
+  let tonAddress = null;
+  let cryptoAddress = null;
+  let cryptoNetwork = 'polygon';
+  if (env.DB) {
+    try {
+      const row = await env.DB.prepare(
+        "SELECT ton_address, crypto_address, crypto_network FROM ops_wallet_terminals WHERE owner_id IN ('admin', 'saboivan2008@gmail.com') ORDER BY updated_at DESC LIMIT 1"
+      ).first();
+      if (row) {
+        tonAddress = row.ton_address;
+        cryptoAddress = row.crypto_address;
+        cryptoNetwork = row.crypto_network || 'polygon';
+      }
+    } catch {}
+  }
+
+  let msg = '💎 TRINITY & TELEGRAM WALLET (@wallet / TON)\n\n';
+  if (tonAddress) {
+    msg += '✅ Telegram Wallet (@wallet) je prepojená:\n';
+    msg += `• TON Adresa: ${tonAddress}\n`;
+    msg += '• Podporované meny: USDT (TON Jetton), TON\n';
+    msg += `• Platobný link do peňaženky: ton://transfer/${tonAddress}\n`;
+    msg += '• Služba: Telegram @wallet\n\n';
+  } else {
+    msg += '⚠️ Telegram Wallet (@wallet) zatiaľ nemá nastavenú TON adresu:\n';
+    msg += '1. Otvor v Telegrame bota @wallet (alebo Nastavenia -> Peňaženka)\n';
+    msg += '2. Zvoľ „Vložiť“ (Deposit) -> USDT alebo TON -> Skopíruj osobnú TON adresu (napr. UQ...)\n';
+    msg += '3. Zadaj ju do Trinity cez rozhranie terminálov (/api/assistant/wallet/terminal/config).\n\n';
+  }
+
+  msg +=
+    '🪙 Tetrakis ($TTK) Sovereign Krypto:\n' +
+    '• Celková zásoba: 1 000 000 000 TTK (fixná, bez mintu, ERC-20)\n' +
+    '• Cieľová sieť: Base L2 (Chain ID: 8453) / Base Sepolia (84532)\n' +
+    '• Alokácia architekta (Basterix): 1 000 000 TTK (0x7e17...81e4)\n' +
+    '• Pokladnica (Treasury): 999 000 000 TTK (0x4d30...f387e)\n';
+  if (cryptoAddress) {
+    msg += `• EVM adresa pre USDC (${cryptoNetwork}): ${cryptoAddress}\n`;
+  }
+  msg += '• Stav: Kontrakt skompilovaný a overený cez Anvil local EVM; plán nasadenia pripravený.';
+  return msg;
+}
+
 export function executeFleet() {
   return (
     '⚡ KATALÓG CLOUDFLARE SERVICE BINDINGS TRINITY\n\n' +
@@ -334,6 +382,7 @@ export async function processTelegramUpdate(env, update) {
       if (parsed.command === 'status') output = await executeStatus(env);
       else if (parsed.command === 'pc') output = await executePC(env);
       else if (parsed.command === 'crypto') output = await executeCrypto(env);
+      else if (parsed.command === 'wallet') output = await executeWallet(env);
       else if (parsed.command === 'fleet') output = executeFleet();
       else if (parsed.command === 'research') output = await executeResearch(env, parsed.query);
       else if (parsed.command === 'clear') {
