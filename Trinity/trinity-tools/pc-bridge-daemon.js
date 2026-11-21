@@ -300,5 +300,5 @@ server.listen(PORT, HOST, () => {
 // Graceful shutdown
 process.on('SIGINT', () => {
   console.log('\nShutting down PC Bridge...');
-  server.close(() => process.exit(0));
+  server.close(() => process.exit(1)):
 });
