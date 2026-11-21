@@ -91,7 +91,7 @@ export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOSt
   if(evidence?.receipt_id){
     return {tool,status:'completed',effect:evidence.effect||'read',action:evidence.action,actions:evidence.actions,receipt_id:evidence.receipt_id,verified_at:verifiedAt,document_id:evidence.document_id||outcome?.document?.id||outcome?.id,issue_number:evidence.issue_number||outcome?.issue?.number||outcome?.number,url:evidence.url||outcome?.issue?.html_url||outcome?.url};
   }
-  return {tool,status:'completed',effect:'read',receipt_id:crypto.randomUUID(),verified_at:verifiedAt};
+  return {tool,status:'completed',effect:'read',evidence_source:'tool-response',verified_at:verifiedAt};
 }
 export function unresolvedToolOutcome(toolLog,language='sk'){
   const unresolved=latestToolOutcomes(toolLog).filter(r=>r?.status!=='completed');

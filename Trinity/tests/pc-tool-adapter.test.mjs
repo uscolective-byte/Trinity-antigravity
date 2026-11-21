@@ -15,6 +15,16 @@ test('failed PC operations preserve the actual error instead of describing pendi
  });
 });
 
+test('rejected PC requests are terminal and never described as awaiting execution',async()=>{
+ const env={DB:{prepare(sql){return {bind(){return this;},async run(){return {};},async first(){return sql.includes('ops_plugins')?{installed:1,enabled:1}:{id:'rejected-action',action:'run',status:'rejected',payload_json:'{}',receipt_json:null};}};}}};
+ const result=await runTool(env,{tools:['pc_run']},'pc_run',{command:'node --version'},{adminAuthorized:true});
+ assert.equal(result.status,'rejected');
+ assert.equal(result.success,false);
+ assert.equal(result.approval_required,false);
+ assert.equal(result.note,'Operácia nebola vykonaná.');
+ assert.doesNotMatch(result.note,/čaká|odovzdaný/i);
+});
+
 test('PC open-app receipt is completed only with verified execution evidence',()=>{
   const timestamp='2026-10-26T06:30:00.000Z';
   assert.deepEqual(pcActionReceipt({id:'proposal-1',status:'proposed'},timestamp),{

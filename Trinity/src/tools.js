@@ -1216,6 +1216,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const maxAttempts=pcStatus.connected?12:2;
     const current=await waitForSystemAction(env,action,{attempts:maxAttempts,intervalMs:1000});
     if(current.status==='completed')return{...current.receipt,_evidence:{effect:actionEffect(pcAction),actions:actionEvidence(pcAction),receipt_id:action.id}};
+    if(current.status==='rejected')return {id:action.id,action:pcAction,status:'rejected',success:false,approval_required:false,error:'Systémová akcia bola zamietnutá.',note:'Operácia nebola vykonaná.',_evidence:{effect:'diagnostic',receipt_id:action.id}};
     const note=current.status==='proposed'
       ? `Čaká na schválenie príkazom SCHVÁĽ ${action.id}.`
       : pcStatus.connected

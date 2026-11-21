@@ -85,7 +85,8 @@ test('generic tool lifecycle never turns failure or partial work into a complete
   assert.equal(running.effect,'proposal');
   const completed=toolReceiptForOutcome('calculate',{value:42},timestamp);
   assert.equal(completed.status,'completed');
-  assert.match(completed.receipt_id,/^[0-9a-f-]{36}$/);
+  assert.equal(completed.receipt_id,undefined);
+  assert.equal(completed.evidence_source,'tool-response');
 });
 
 test('hardcore truth policy blocks fabricated document generation and phantom document UUID', ()=>{
