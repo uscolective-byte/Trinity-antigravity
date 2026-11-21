@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-11-21T12:15:14.364Z",
+  "checked_at": "2026-11-21T12:30:36.847Z",
   "passCount": 60,
   "failCount": 0,
   "total": 60,
@@ -9,7 +9,7 @@
       "tool": "calculate",
       "status": "PASSED",
       "details": {
-        "durationMs": 15,
+        "durationMs": 27,
         "preview": {
           "operation": "multiply",
           "result": 144
@@ -21,7 +21,7 @@
       "tool": "calculate",
       "status": "PASSED",
       "details": {
-        "durationMs": 0,
+        "durationMs": 5,
         "preview": {
           "operation": "divide",
           "result": 12
@@ -71,7 +71,7 @@
       "tool": "statistics",
       "status": "PASSED",
       "details": {
-        "durationMs": 2,
+        "durationMs": 4,
         "preview": {
           "count": 6,
           "min": 10,
@@ -131,7 +131,7 @@
       "tool": "analyze_text",
       "status": "PASSED",
       "details": {
-        "durationMs": 2,
+        "durationMs": 3,
         "preview": {
           "characters": 110,
           "words": 15,
@@ -145,7 +145,7 @@
       "tool": "format_text",
       "status": "PASSED",
       "details": {
-        "durationMs": 2,
+        "durationMs": 3,
         "preview": {
           "mode": "title",
           "text": "Trinity Sovereign Core Os"
@@ -157,7 +157,7 @@
       "tool": "extract_entities",
       "status": "PASSED",
       "details": {
-        "durationMs": 1,
+        "durationMs": 2,
         "preview": {
           "emails": [
             "support@auru.space"
@@ -174,7 +174,7 @@
       "tool": "redact_sensitive",
       "status": "PASSED",
       "details": {
-        "durationMs": 1,
+        "durationMs": 4,
         "preview": {
           "text": "Tajný kľúč je [REDACTED_EMAIL] a telefón [REDACTED_PHONE].",
           "counts": {
@@ -189,7 +189,7 @@
       "tool": "html_to_text",
       "status": "PASSED",
       "details": {
-        "durationMs": 1,
+        "durationMs": 2,
         "preview": {
           "text": "Trinity OS\nVítajte v Sovereign Core .",
           "characters": 37
@@ -331,7 +331,7 @@
       "tool": "list_cleaner",
       "status": "PASSED",
       "details": {
-        "durationMs": 1,
+        "durationMs": 2,
         "preview": {
           "items": [
             "trinity",
@@ -347,7 +347,7 @@
       "tool": "table_transform",
       "status": "PASSED",
       "details": {
-        "durationMs": 21,
+        "durationMs": 48,
         "preview": {
           "rows": [
             {
@@ -395,9 +395,9 @@
       "tool": "uuid_tool",
       "status": "PASSED",
       "details": {
-        "durationMs": 1,
+        "durationMs": 5,
         "preview": {
-          "uuid": "d150f33e-3b45-4746-8085-a811dbe6e38a",
+          "uuid": "f236ff46-3f3a-4571-9d68-431691a55d24",
           "version": 4
         }
       }
@@ -419,7 +419,7 @@
       "tool": "semver_compare",
       "status": "PASSED",
       "details": {
-        "durationMs": 1,
+        "durationMs": 3,
         "preview": {
           "comparison": 1,
           "relation": "newer"
@@ -431,7 +431,7 @@
       "tool": "hash_text",
       "status": "PASSED",
       "details": {
-        "durationMs": 2,
+        "durationMs": 5,
         "preview": {
           "algorithm": "SHA-256",
           "hex": "64594c8770b240f5d1dae41e611e09e62ffbd08e8f7cd41a472e9a3f0a82b713",
@@ -444,11 +444,11 @@
       "tool": "current_time",
       "status": "PASSED",
       "details": {
-        "durationMs": 17,
+        "durationMs": 31,
         "preview": {
           "timezone": "UTC",
-          "localized": "sobota 21. novembra 2026 o 12:15:12 UTC",
-          "utc": "2026-11-21T12:15:12.032Z"
+          "localized": "sobota 21. novembra 2026 o 12:30:33 UTC",
+          "utc": "2026-11-21T12:30:33.907Z"
         }
       }
     },
@@ -457,11 +457,11 @@
       "tool": "current_time",
       "status": "PASSED",
       "details": {
-        "durationMs": 2,
+        "durationMs": 1,
         "preview": {
           "timezone": "Europe/Bratislava",
-          "localized": "sobota 21. novembra 2026 o 13:15:12 SEČ",
-          "utc": "2026-11-21T12:15:12.034Z"
+          "localized": "sobota 21. novembra 2026 o 13:30:33 SEČ",
+          "utc": "2026-11-21T12:30:33.908Z"
         }
       }
     },
@@ -519,7 +519,7 @@
       "tool": "query_string",
       "status": "PASSED",
       "details": {
-        "durationMs": 1,
+        "durationMs": 4,
         "preview": {
           "params": {
             "system": "trinity",
@@ -534,7 +534,7 @@
       "tool": "color_convert",
       "status": "PASSED",
       "details": {
-        "durationMs": 1,
+        "durationMs": 2,
         "preview": {
           "rgb": [
             37,
@@ -575,13 +575,13 @@
             "message": "verification-ping-2026"
           },
           "echo": "verification-ping-2026",
-          "receipt_id": "DIAG-RCPT-MWQDF92I-AFC9AB01",
-          "executed_at": "2026-11-21T12:15:12.042Z",
+          "receipt_id": "DIAG-RCPT-MWQDZ0E9-CDC745A1",
+          "executed_at": "2026-11-21T12:30:33.921Z",
           "executor": "trinity-tool-executor",
           "_evidence": {
             "effect": "read",
             "action": "diagnostic_ping",
-            "receipt_id": "DIAG-RCPT-MWQDF92I-AFC9AB01"
+            "receipt_id": "DIAG-RCPT-MWQDZ0E9-CDC745A1"
           }
         }
       }
@@ -690,7 +690,7 @@
           "_evidence": {
             "effect": "read",
             "action": "free_modules_catalog",
-            "receipt_id": "8a8f4126-b029-4696-bf64-6f2e57268ef9"
+            "receipt_id": "0fe6c7ba-a467-4551-bcdc-36f3f8742b7d"
           }
         }
       }
@@ -700,7 +700,7 @@
       "tool": "network_dns",
       "status": "PASSED",
       "details": {
-        "durationMs": 229,
+        "durationMs": 346,
         "preview": {
           "available": true,
           "domain": "cloudflare.com",
@@ -711,23 +711,23 @@
             {
               "name": "cloudflare.com",
               "type": "A",
-              "ttl_seconds": 232,
+              "ttl_seconds": 221,
               "data": "104.16.132.229"
             },
             {
               "name": "cloudflare.com",
               "type": "A",
-              "ttl_seconds": 232,
+              "ttl_seconds": 221,
               "data": "104.16.133.229"
             }
           ],
           "source": "Cloudflare 1.1.1.1 DoH",
           "verified_truth": true,
-          "queried_at": "2026-11-21T12:15:12.273Z",
+          "queried_at": "2026-11-21T12:30:34.269Z",
           "_evidence": {
             "effect": "read",
             "action": "network_dns",
-            "receipt_id": "5a904b2f-ce0d-4958-ba20-8833c88602a2"
+            "receipt_id": "d2118fa3-5c5e-45dc-aaad-db9260d63e0b"
           }
         }
       }
@@ -737,7 +737,7 @@
       "tool": "crypto_prices",
       "status": "PASSED",
       "details": {
-        "durationMs": 141,
+        "durationMs": 382,
         "preview": {
           "available": true,
           "count": 2,
@@ -745,25 +745,25 @@
             {
               "id": "bitcoin",
               "symbol": "BTC",
-              "price_usd": 58134.65066565,
+              "price_usd": 58377.515983699996,
               "confidence": 0.999,
-              "timestamp": "2026-11-21T12:11:51.000Z"
+              "timestamp": "2026-11-21T12:30:34.000Z"
             },
             {
               "id": "ethereum",
               "symbol": "ETH",
-              "price_usd": 1651.4186446499998,
+              "price_usd": 1655.79461965,
               "confidence": 0.999,
-              "timestamp": "2026-11-21T12:11:51.000Z"
+              "timestamp": "2026-11-21T12:30:34.000Z"
             }
           ],
           "source": "DefiLlama Open API",
           "verified_truth": true,
-          "fetched_at": "2026-11-21T12:15:12.413Z",
+          "fetched_at": "2026-11-21T12:30:34.651Z",
           "_evidence": {
             "effect": "read",
             "action": "crypto_prices",
-            "receipt_id": "0d8ef8f0-43a2-4f64-9dc9-a4c6745d5aac"
+            "receipt_id": "4990b9e7-9049-4ac3-9ec2-516b4d2811c8"
           }
         }
       }
@@ -773,18 +773,27 @@
       "tool": "tech_news",
       "status": "PASSED",
       "details": {
-        "durationMs": 764,
+        "durationMs": 819,
         "preview": {
           "available": true,
           "count": 3,
           "stories": [
             {
+              "id": 50532613,
+              "title": "Brazil's tax authority open-sources its tax calculator on GitHub under MIT",
+              "url": "https://www.gov.br/receitafederal/pt-br/assuntos/noticias/2026/novembro/receita-federal-publica-primeiro-codigo-fonte-aberto-no-github-e-amplia-transparencia-da-reforma-tributaria",
+              "by": "dvaplima",
+              "score": 54,
+              "comments_count": 7,
+              "published_at": "2026-11-17T15:22:57.000Z"
+            },
+            {
               "id": 50579568,
               "title": "Hurried Announcement: Alessandro Masullo GRH",
               "url": "https://math216.wordpress.com/2026/11/20/hurried-announcement-alessandro-masullo-grh/",
               "by": "jasondavies",
-              "score": 2168,
-              "comments_count": 1011,
+              "score": 2180,
+              "comments_count": 1020,
               "published_at": "2026-11-20T18:33:14.000Z"
             },
             {
@@ -792,27 +801,18 @@
               "title": "Levent Alpöge claims proof of the Generalized Riemann Hypothesis [pdf]",
               "url": "https://alpo.ge/remark.pdf",
               "by": "iamronaldo",
-              "score": 2689,
-              "comments_count": 1878,
+              "score": 2697,
+              "comments_count": 1881,
               "published_at": "2026-11-20T14:16:21.000Z"
-            },
-            {
-              "id": 50532613,
-              "title": "Brazil's tax authority open-sources its tax calculator on GitHub under MIT",
-              "url": "https://www.gov.br/receitafederal/pt-br/assuntos/noticias/2026/novembro/receita-federal-publica-primeiro-codigo-fonte-aberto-no-github-e-amplia-transparencia-da-reforma-tributaria",
-              "by": "dvaplima",
-              "score": 20,
-              "comments_count": 1,
-              "published_at": "2026-11-17T15:22:57.000Z"
             }
           ],
           "source": "Hacker News (Y Combinator)",
           "verified_truth": true,
-          "fetched_at": "2026-11-21T12:15:13.178Z",
+          "fetched_at": "2026-11-21T12:30:35.470Z",
           "_evidence": {
             "effect": "read",
             "action": "tech_news",
-            "receipt_id": "5d1b162e-7907-465b-9751-9bf655525674"
+            "receipt_id": "0d1035f0-6763-4c36-8f58-1d579e62a22f"
           }
         }
       }
@@ -822,14 +822,14 @@
       "tool": "macro_data",
       "status": "PASSED",
       "details": {
-        "durationMs": 154,
+        "durationMs": 145,
         "preview": {
           "available": false,
           "reason": "Žiadne dáta pre krajinu SVK a indikátor gdp.",
           "_evidence": {
             "effect": "read",
             "action": "macro_data",
-            "receipt_id": "499261ee-e8f0-480f-b79e-489b42b14905"
+            "receipt_id": "f055ff0e-2dc7-4e4a-9e7c-18ed3b7ff302"
           }
         }
       }
@@ -839,7 +839,7 @@
       "tool": "open_wikipedia",
       "status": "PASSED",
       "details": {
-        "durationMs": 171,
+        "durationMs": 213,
         "preview": {
           "available": true,
           "title": "Alan Turing",
@@ -851,11 +851,11 @@
           "language": "sk",
           "source": "Wikimedia / Wikipédia",
           "verified_truth": true,
-          "fetched_at": "2026-11-21T12:15:13.505Z",
+          "fetched_at": "2026-11-21T12:30:35.826Z",
           "_evidence": {
             "effect": "read",
             "action": "open_wikipedia",
-            "receipt_id": "28bc2bd4-97ed-41bc-a421-f5c7f25ef947"
+            "receipt_id": "57ad4fa7-b9c0-47e6-add4-c28820ef9e17"
           }
         }
       }
@@ -865,7 +865,7 @@
       "tool": "open_weather",
       "status": "PASSED",
       "details": {
-        "durationMs": 365,
+        "durationMs": 408,
         "preview": {
           "available": true,
           "location": {
@@ -876,11 +876,11 @@
             "elevation": 157
           },
           "current": {
-            "temperature_c": 8.1,
-            "humidity_pct": 54,
+            "temperature_c": 8.2,
+            "humidity_pct": 53,
             "precipitation_mm": 0,
-            "wind_speed_kmh": 18.4,
-            "time": "2026-11-21T13:15"
+            "wind_speed_kmh": 18.3,
+            "time": "2026-11-21T13:30"
           },
           "daily_forecast": {
             "dates": [
@@ -922,11 +922,11 @@
           },
           "source": "Open-Meteo & WMO",
           "verified_truth": true,
-          "fetched_at": "2026-11-21T12:15:13.870Z",
+          "fetched_at": "2026-11-21T12:30:36.245Z",
           "_evidence": {
             "effect": "read",
             "action": "open_weather",
-            "receipt_id": "b67333d2-540b-46ad-b3d3-221e719240eb"
+            "receipt_id": "8dfcdcde-0205-4b0b-b51b-1ce8f467aaf2"
           }
         }
       }
@@ -995,7 +995,7 @@
           },
           "_evidence": {
             "effect": "read",
-            "receipt_id": "9a4c9904-4140-4cce-8ab5-3d7fc6f525fd"
+            "receipt_id": "47090738-9c39-473b-b747-09d27bcfb335"
           }
         }
       }
@@ -1005,7 +1005,7 @@
       "tool": "sovereign_lock_check",
       "status": "PASSED",
       "details": {
-        "durationMs": 2,
+        "durationMs": 6,
         "preview": {
           "identity": {
             "system_name": "TRINITY OMNI-CORE",
@@ -1043,7 +1043,7 @@
           },
           "_evidence": {
             "effect": "read",
-            "receipt_id": "1da39030-e295-4af0-8794-eb5ae21f4b4a"
+            "receipt_id": "383de1da-a963-4819-a518-77f7dbe388d4"
           }
         }
       }
@@ -1053,14 +1053,14 @@
       "tool": "truth_guard_verify",
       "status": "PASSED",
       "details": {
-        "durationMs": 2,
+        "durationMs": 3,
         "preview": {
           "blocked": false,
           "rule": "5_ANTI_ASSUMPTION_FILTER",
           "output": "Systém Trinity je plne pripravený a overený.",
           "_evidence": {
             "effect": "read",
-            "receipt_id": "46d2dce1-012e-49fc-b3e9-5d4fb737c664"
+            "receipt_id": "97aa657d-313b-4276-97a7-701a09ec823d"
           }
         }
       }
@@ -1082,7 +1082,7 @@
         "changes": 0,
         "duration_ms": 0,
         "_evidence": {
-          "receipt_id": "cf_d1_a903da66-e083-4af6-95a7-74595321f06d",
+          "receipt_id": "cf_d1_7704fb69-0f32-4031-b89b-d40f870ca685",
           "effect": "read",
           "actions": [
             "verify"
@@ -1100,7 +1100,7 @@
         "key": "test_audit_key",
         "value": {
           "status": "verified",
-          "at": "2026-11-21T12:15:13.876Z"
+          "at": "2026-11-21T12:30:36.258Z"
         },
         "found": true,
         "duration_ms": 0
@@ -1117,7 +1117,7 @@
         "size": 1,
         "duration_ms": 0,
         "_evidence": {
-          "receipt_id": "cf_r2_0a30754f-c878-41d8-9fcd-9d52e2554278",
+          "receipt_id": "cf_r2_d7f15e7d-f86a-4cfa-b27b-d9efc7d927a3",
           "effect": "mutation",
           "actions": [
             "publish"
@@ -1133,7 +1133,7 @@
         "content": [
           {
             "type": "text",
-            "text": "{\"id\":\"2b0bb794-7b2f-44f1-9dc1-95c0d99c4cf3\",\"text\":\"Autonómny test nástroja 2026-11-21T12:15:13.880Z\",\"created_at\":\"2026-11-21T12:15:13.913Z\"}"
+            "text": "{\"id\":\"f4b52d4b-4a8e-4194-a38c-27e6ff17621c\",\"text\":\"Autonómny test nástroja 2026-11-21T12:30:36.262Z\",\"created_at\":\"2026-11-21T12:30:36.318Z\"}"
           }
         ]
       }
@@ -1146,7 +1146,7 @@
         "content": [
           {
             "type": "text",
-            "text": "{\"notes\":[{\"id\":\"06b88c78-fb2a-4664-965c-da0df7f5255c\",\"text\":\"Autonómny test nástroja 2026-11-21T09:20:01.425Z\",\"created_at\":\"2026-11-21T09:20:01.437Z\"},{\"id\":\"8c799b73-f6af-400b-9651-69ca804b9054\",\"text\":\"Autonómny test nástroja 2026-11-21T12:03:05.779Z\",\"created_at\":\"2026-11-21T12:03:05.823Z\"},{\"id\":\"2267a22e-9e03-4fc0-8336-234aab3d21d0\",\"text\":\"Autonómny test nástroja 2026-11-21T12:03:32.036Z\",\"created_at\":\"2026-11-21T12:03:32.050Z\"},{\"id\":\"2b0bb794-7b2f-44f1-9dc1-95c0d99c4cf3\",\"text\":\"Autonómny test nástroja 2026-11-21T12:15:13.880Z\",\"created_at\":\"2026-11-21T12:15:13.913Z\"}]}"
+            "text": "{\"notes\":[{\"id\":\"06b88c78-fb2a-4664-965c-da0df7f5255c\",\"text\":\"Autonómny test nástroja 2026-11-21T09:20:01.425Z\",\"created_at\":\"2026-11-21T09:20:01.437Z\"},{\"id\":\"8c799b73-f6af-400b-9651-69ca804b9054\",\"text\":\"Autonómny test nástroja 2026-11-21T12:03:05.779Z\",\"created_at\":\"2026-11-21T12:03:05.823Z\"},{\"id\":\"2267a22e-9e03-4fc0-8336-234aab3d21d0\",\"text\":\"Autonómny test nástroja 2026-11-21T12:03:32.036Z\",\"created_at\":\"2026-11-21T12:03:32.050Z\"},{\"id\":\"2b0bb794-7b2f-44f1-9dc1-95c0d99c4cf3\",\"text\":\"Autonómny test nástroja 2026-11-21T12:15:13.880Z\",\"created_at\":\"2026-11-21T12:15:13.913Z\"},{\"id\":\"f4b52d4b-4a8e-4194-a38c-27e6ff17621c\",\"text\":\"Autonómny test nástroja 2026-11-21T12:30:36.262Z\",\"created_at\":\"2026-11-21T12:30:36.318Z\"}]}"
           }
         ]
       }
@@ -1159,7 +1159,7 @@
         "content": [
           {
             "type": "text",
-            "text": "{\"files\":[{\"path\":\"trinity-live-status.md\",\"size\":383},{\"path\":\"trinity-tool-receipt-1795262612076.txt\",\"size\":94},{\"path\":\"trinity-tool-receipt.txt\",\"size\":94}]}"
+            "text": "{\"files\":[{\"path\":\"trinity-live-status.md\",\"size\":383},{\"path\":\"trinity-tool-receipt-1795262612076.txt\",\"size\":94},{\"path\":\"trinity-tool-receipt-1795263313944.txt\",\"size\":94},{\"path\":\"trinity-tool-receipt.txt\",\"size\":94}]}"
           }
         ]
       }
@@ -1172,7 +1172,7 @@
         "content": [
           {
             "type": "text",
-            "text": "{\"saved\":true,\"path\":\"trinity-tool-receipt-1795263313944.txt\",\"bytes\":94,\"sha256\":\"a36743a294d027e658278d447de25d0bf46c7e29a8bf059920beb0667ab8bc89\"}"
+            "text": "{\"saved\":true,\"path\":\"trinity-tool-receipt-1795264236372.txt\",\"bytes\":94,\"sha256\":\"43402bf94975f5137711e5d50ae2599dd68e93b75f2d9a1393add00673294159\"}"
           }
         ]
       }
@@ -1185,7 +1185,7 @@
         "content": [
           {
             "type": "text",
-            "text": "{\"path\":\"trinity-tool-receipt-1795263313944.txt\",\"content\":\"TRINITY TOOL VERIFICATION RECEIPT\\nVerified: 2026-11-21T12:15:13.944Z\\nStatus: 100% OPERATIONAL\\n\",\"sha256\":\"a36743a294d027e658278d447de25d0bf46c7e29a8bf059920beb0667ab8bc89\"}"
+            "text": "{\"path\":\"trinity-tool-receipt-1795264236372.txt\",\"content\":\"TRINITY TOOL VERIFICATION RECEIPT\\nVerified: 2026-11-21T12:30:36.372Z\\nStatus: 100% OPERATIONAL\\n\",\"sha256\":\"43402bf94975f5137711e5d50ae2599dd68e93b75f2d9a1393add00673294159\"}"
           }
         ]
       }
@@ -1206,9 +1206,9 @@
             "branch": "main"
           },
           "deployment": {
-            "id": "28d10f61-6f69-41fd-ad20-7cfe37e0eea4",
-            "tag": "28f0b3fdcb5bec5dec3ebe38de8494569f9ada3f",
-            "timestamp": "2026-11-21T12:09:28.565086Z"
+            "id": "df28d1d9-e3ff-4ecd-a426-583ff00d4de0",
+            "tag": null,
+            "timestamp": "2026-11-21T12:24:07.199442Z"
           },
           "agents": 46,
           "status": "serving",
@@ -1224,12 +1224,12 @@
         "status": 200,
         "data": {
           "success": true,
-          "timestamp": "2026-11-21T12:15:17.261Z",
+          "timestamp": "2026-11-21T12:30:39.714Z",
           "verification": {
             "valid": true,
             "chainLength": 1000,
             "headHash": "fe79872a20f6749cedb5f79321a60e14fe40b0ee129b77cae267380269a103d4",
-            "verifiedAt": "2026-11-21T12:15:17.261Z"
+            "verifiedAt": "2026-11-21T12:30:39.714Z"
           }
         }
       }
@@ -1250,9 +1250,9 @@
             "branch": "main"
           },
           "deployment": {
-            "id": "28d10f61-6f69-41fd-ad20-7cfe37e0eea4",
-            "tag": "28f0b3fdcb5bec5dec3ebe38de8494569f9ada3f",
-            "timestamp": "2026-11-21T12:09:28.565086Z"
+            "id": "df28d1d9-e3ff-4ecd-a426-583ff00d4de0",
+            "tag": null,
+            "timestamp": "2026-11-21T12:24:07.199442Z"
           },
           "agents": 46,
           "status": "serving",
@@ -1274,9 +1274,9 @@
           "binding": "127.0.0.1",
           "local_auth": "required",
           "cloud": "connected",
-          "cloud_last_success_at": "2026-11-21T12:15:09.985Z",
+          "cloud_last_success_at": "2026-11-21T12:30:36.805Z",
           "pc_bridge": "connected",
-          "pc_bridge_last_success_at": "2026-11-21T12:15:00.405Z",
+          "pc_bridge_last_success_at": "2026-11-21T12:30:24.607Z",
           "desktop_control": "approval-required",
           "local_model": "qwen3:4b-instruct",
           "recovered_interrupted": 0

@@ -12,6 +12,8 @@ import { keccak_256 } from '@noble/hashes/sha3.js';
 
 import { HttpError } from './security.js';
 import { createTrinityDocument } from './trinity-documents.js';
+import { normalizeViberPhone } from './viber-bridge.js';
+import { normalizePaysafeAccount } from './paysafe-connector.js';
 
 /*
  * Peňaženka a platobné terminály Trinity — iba skutočné údaje.
@@ -41,13 +43,15 @@ export const terminalConfigSchema = z.object({
   crypto_address: optionalText(80),
   crypto_network: z.enum(['polygon', 'base', 'arbitrum', 'ethereum']).default('polygon'),
   ton_address: optionalText(100),
-  default_terminal: z.enum(['sepa', 'revolut', 'paypal', 'crypto', 'ton']).default('sepa')
+  viber_wallet_phone: optionalText(40),
+  paysafe_account: optionalText(120),
+  default_terminal: z.enum(['sepa', 'revolut', 'paypal', 'crypto', 'ton', 'viber', 'paysafe']).default('sepa')
 }).strict();
 
 export const terminalChargeSchema = z.object({
   amount_eur: z.number().finite().positive().max(1000000),
   purpose: z.string().trim().min(2).max(200),
-  terminal_type: z.enum(['all', 'sepa', 'revolut', 'paypal', 'crypto']).default('all'),
+  terminal_type: z.enum(['all', 'sepa', 'revolut', 'paypal', 'crypto', 'telegram_wallet', 'viber', 'viber_pay', 'paysafe']).default('all'),
   variable_symbol: z.string().trim().regex(/^\d{1,10}$/, 'Variabilný symbol môže mať iba 1 až 10 číslic.').optional(),
   payer_name: z.string().trim().max(100).optional(),
   payer_email: z.string().trim().max(120).optional()
@@ -55,7 +59,7 @@ export const terminalChargeSchema = z.object({
 
 export const terminalPayoutSchema = z.object({
   amount_eur: z.number().finite().positive().max(1000000),
-  destination_type: z.enum(['bank_iban', 'paypal', 'revolut', 'crypto']),
+  destination_type: z.enum(['bank_iban', 'paypal', 'revolut', 'crypto', 'telegram_wallet', 'viber', 'paysafe']),
   target: z.string().trim().min(3).max(120),
   recipient_name: z.string().trim().max(100).optional(),
   note: z.string().trim().max(300).optional()
@@ -97,6 +101,8 @@ async function ensureTerminalTables(env) {
   ];
   for (const sql of statements) await env.DB.prepare(sql).run();
   try { await env.DB.prepare('ALTER TABLE ops_wallet_terminals ADD COLUMN ton_address TEXT').run(); } catch {}
+  try { await env.DB.prepare('ALTER TABLE ops_wallet_terminals ADD COLUMN viber_wallet_phone TEXT').run(); } catch {}
+  try { await env.DB.prepare('ALTER TABLE ops_wallet_terminals ADD COLUMN paysafe_account TEXT').run(); } catch {}
   readyDatabases.add(env.DB);
 }
 
@@ -305,6 +311,28 @@ export async function getWalletTerminalOverview(env, ownerId = 'admin') {
       sepa: { configured: Boolean(iban), iban, bic: termRow?.bic ? normalizeBic(termRow.bic) : null, account_name: termRow?.account_name || null, standard: 'EPC069-12 (SEPA Credit Transfer QR)' },
       revolut: { configured: Boolean(revolut), handle: revolut, url: revolut ? `https://revolut.me/${revolut}` : null },
       paypal: { configured: Boolean(paypal), account: paypal?.value || null, kind: paypal?.kind || null },
+      telegram_wallet: {
+        configured: Boolean(termRow?.ton_address),
+        ton_address: termRow?.ton_address || null,
+        url: termRow?.ton_address ? `ton://transfer/${termRow.ton_address}` : null,
+        bot_url: 'https://t.me/wallet',
+        network: 'The Open Network (TON)',
+        supported_tokens: ['USDT', 'TON', 'TTK']
+      },
+      viber_pay: {
+        configured: Boolean(termRow?.viber_wallet_phone),
+        phone: termRow?.viber_wallet_phone || null,
+        url: termRow?.viber_wallet_phone ? `viber://contact?number=${encodeURIComponent(termRow.viber_wallet_phone)}` : null,
+        service: 'Viber Pay (Rakuten Viber)',
+        supported_currencies: ['EUR']
+      },
+      paysafe: {
+        configured: Boolean(termRow?.paysafe_account),
+        account: termRow?.paysafe_account || null,
+        portal_url: 'https://my.paysafecard.com/',
+        service: 'Paysafe & Paysafecard Wallet',
+        supported_methods: ['myPaysafe', 'Paysafecard 16-digit PIN', 'Skrill EUR']
+      },
       crypto: {
         configured: Boolean(cryptoAddress),
         address: cryptoAddress,
@@ -360,15 +388,25 @@ export async function saveWalletTerminalConfig(env, ownerId = 'admin', input = {
     clean.ton_address = normalizeTonAddress(data.ton_address);
     if (!clean.ton_address) throw new HttpError(400, 'Neplatný formát TON adresy.');
   }
+  if (data.viber_wallet_phone) {
+    clean.viber_wallet_phone = normalizeViberPhone(data.viber_wallet_phone);
+    if (!clean.viber_wallet_phone) throw new HttpError(400, 'Telefónne číslo pre Viber Pay má neplatný formát (+421... alebo 09...).');
+  }
+  if (data.paysafe_account) {
+    clean.paysafe_account = normalizePaysafeAccount(data.paysafe_account);
+    if (!clean.paysafe_account) throw new HttpError(400, 'Paysafe konto musí byť e-mail alebo myPaysafe identifikátor.');
+  }
 
   await env.DB.prepare(`
-    INSERT INTO ops_wallet_terminals(owner_id, iban, bic, account_name, revolut_handle, paypal_email, crypto_address, crypto_network, default_terminal, ton_address, updated_at)
-    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    INSERT INTO ops_wallet_terminals(owner_id, iban, bic, account_name, revolut_handle, paypal_email, crypto_address, crypto_network, default_terminal, ton_address, viber_wallet_phone, paysafe_account, updated_at)
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     ON CONFLICT(owner_id) DO UPDATE SET iban=excluded.iban, bic=excluded.bic, account_name=excluded.account_name,
       revolut_handle=excluded.revolut_handle, paypal_email=excluded.paypal_email, crypto_address=excluded.crypto_address,
-      crypto_network=excluded.crypto_network, default_terminal=excluded.default_terminal, ton_address=excluded.ton_address, updated_at=datetime('now')
+      crypto_network=excluded.crypto_network, default_terminal=excluded.default_terminal, ton_address=excluded.ton_address,
+      viber_wallet_phone=excluded.viber_wallet_phone, paysafe_account=excluded.paysafe_account, updated_at=datetime('now')
   `).bind(ownerId, clean.iban || null, clean.bic || null, data.account_name || null, clean.revolut || null,
-    clean.paypal?.value || null, clean.crypto || null, data.crypto_network, data.default_terminal, clean.ton_address || null).run();
+    clean.paypal?.value || null, clean.crypto || null, data.crypto_network, data.default_terminal, clean.ton_address || null,
+    clean.viber_wallet_phone || null, clean.paysafe_account || null).run();
   await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('wallet_terminals_config_updated',?)")
     .bind(JSON.stringify({ owner_id: ownerId, updated_at: new Date().toISOString() })).run();
 
@@ -376,8 +414,8 @@ export async function saveWalletTerminalConfig(env, ownerId = 'admin', input = {
     title: 'Nastavenie platobných terminálov Trinity',
     category: 'commerce',
     step_name: 'terminal_config',
-    summary: `Uložené overené prijímacie údaje: ${[clean.iban && 'IBAN', clean.revolut && 'Revolut', clean.paypal && 'PayPal', clean.crypto && 'krypto adresa'].filter(Boolean).join(', ') || 'žiadne'}.`,
-    content: `## Nastavenie platobných terminálov\n\n- IBAN: \`${clean.iban || '—'}\` (BIC: \`${clean.bic || '—'}\`)\n- Meno príjemcu: ${data.account_name || '—'}\n- Revolut: ${clean.revolut ? `revolut.me/${clean.revolut}` : '—'}\n- PayPal: ${clean.paypal?.value || '—'}\n- Krypto adresa: \`${clean.crypto || '—'}\` (${data.crypto_network})\n- Čas: ${new Date().toISOString()}\n\nToto je iba uloženie údajov o príjemcovi. Nie je to potvrdenie žiadnej platby.`
+    summary: `Uložené overené prijímacie údaje: ${[clean.iban && 'IBAN', clean.revolut && 'Revolut', clean.paypal && 'PayPal', clean.crypto && 'krypto adresa', clean.ton_address && 'Telegram @wallet', clean.viber_wallet_phone && 'Viber Pay', clean.paysafe_account && 'Paysafe'].filter(Boolean).join(', ') || 'žiadne'}.`,
+    content: `## Nastavenie platobných terminálov\n\n- IBAN: \`${clean.iban || '—'}\` (BIC: \`${clean.bic || '—'}\`)\n- Meno príjemcu: ${data.account_name || '—'}\n- Revolut: ${clean.revolut ? `revolut.me/${clean.revolut}` : '—'}\n- PayPal: ${clean.paypal?.value || '—'}\n- Krypto adresa: \`${clean.crypto || '—'}\` (${data.crypto_network})\n- Telegram TON: \`${clean.ton_address || '—'}\`\n- Viber Pay: \`${clean.viber_wallet_phone || '—'}\`\n- Paysafe: \`${clean.paysafe_account || '—'}\`\n- Čas: ${new Date().toISOString()}\n\nToto je iba uloženie údajov o príjemcovi. Nie je to potvrdenie žiadnej platby.`
   });
   return getWalletTerminalOverview(env, ownerId);
 }
@@ -442,6 +480,47 @@ export async function createPaymentTerminalCharge(env, ownerId = 'admin', input 
         cryptoMeta = { chain: terms.crypto.network, units: units.toString(), startBlock, fx };
       }
     }
+  }
+
+  if (want('telegram_wallet')) {
+    if (terms.telegram_wallet?.configured) {
+      const tonUri = `ton://transfer/${terms.telegram_wallet.ton_address}?text=VS${vs}`;
+      channels.telegram_wallet = {
+        available: true,
+        service: 'Telegram @wallet',
+        ton_address: terms.telegram_wallet.ton_address,
+        uri: tonUri,
+        bot_url: 'https://t.me/wallet',
+        qr_svg: generateQrSvg(tonUri),
+        note: `Pošli platbu v USDT alebo TON na adresu ${terms.telegram_wallet.ton_address} s textom VS${vs}.`
+      };
+    } else {
+      channels.telegram_wallet = { available: false, reason: 'TON adresa pre Telegram @wallet nie je nastavená.' };
+    }
+  }
+
+  if (want('viber') || want('viber_pay')) {
+    channels.viber_pay = terms.viber_pay?.configured
+      ? {
+          available: true,
+          phone: terms.viber_pay.phone,
+          url: terms.viber_pay.url,
+          qr_svg: generateQrSvg(terms.viber_pay.url || `viber://chat?number=${terms.viber_pay.phone}`),
+          note: `Platba cez Viber Pay na telefónne číslo ${terms.viber_pay.phone} so sumou ${amount.toFixed(2)} EUR a správou VS${vs}.`
+        }
+      : { available: false, reason: 'Telefónne číslo pre Viber Pay nie je nastavené.' };
+  }
+
+  if (want('paysafe')) {
+    channels.paysafe = terms.paysafe?.configured
+      ? {
+          available: true,
+          account: terms.paysafe.account,
+          url: terms.paysafe.portal_url,
+          qr_svg: generateQrSvg(`${terms.paysafe.portal_url}?ref=VS${vs}`),
+          note: `Uhraď ${amount.toFixed(2)} EUR pomocou myPaysafe peňaženky (${terms.paysafe.account}) alebo 16-miestneho Paysafecard kupónu pre VS${vs}.`
+        }
+      : { available: false, reason: 'Paysafe konto ani myPaysafe e-mail nie sú nastavené.' };
   }
 
   await env.DB.prepare(`INSERT INTO ops_terminal_charges_v2(id, owner_id, amount_cents, currency, purpose, variable_symbol, terminal_type, status, payer_name, crypto_chain, crypto_units, crypto_start_block, fx_rate, fx_date)

@@ -23,6 +23,8 @@ test('Direct Connect Hub (connect.html) contains all social, crypto, and messagi
   assert.match(html, /underground Street collective/);
   assert.match(html, /@old_dirty_bastard013/);
   assert.match(html, /Tetrakis \(\$TTK\)/);
+  assert.match(html, /Viber Pay & Viber Bot/);
+  assert.match(html, /Paysafe & Paysafecard Wallet/);
 });
 
 test('Telegram bridge responds with TON, USDT, and TTK info for /wallet command', async () => {
@@ -95,6 +97,12 @@ test('External integrations registry includes meta_social, linkedin, and telegra
   assert.ok(byId.telegram, 'telegram must be present in registry');
   assert.equal(byId.telegram.name, 'Telegram Bot & @wallet Node');
   assert.equal(byId.telegram.status, 'configured');
+
+  assert.ok(byId.viber, 'viber must be present in registry');
+  assert.equal(byId.viber.name, 'Viber Messaging & Viber Pay');
+
+  assert.ok(byId.paysafe, 'paysafe must be present in registry');
+  assert.equal(byId.paysafe.name, 'Paysafe & Paysafecard Financial Gateway');
 });
 
 test('Inbound webhook hub processes whatsapp and meta verification requests', async () => {

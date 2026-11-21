@@ -436,6 +436,24 @@ async function route(request,env,ctx){
           feed_drafting: 'active',
           lead_scanner: 'active',
           status: 'active'
+        },
+        viber: {
+          platform: 'Viber Chat API & Viber Pay Wallet',
+          bot_name: env.VIBER_BOT_NAME || 'Trinity Sovereign Bot',
+          webhook_endpoint: '/api/v1/webhooks/viber',
+          viber_pay: {
+            service: 'Viber Pay (Rakuten Viber)',
+            currency: 'EUR',
+            p2p_transfer: 'supported'
+          },
+          status: env.VIBER_AUTH_TOKEN ? 'active' : 'configured'
+        },
+        paysafe: {
+          platform: 'Paysafe Financial Group',
+          service: 'myPaysafe & Paysafecard',
+          supported_methods: ['myPaysafe Wallet', 'Paysafecard 16-digit PIN', 'Skrill EUR'],
+          webhook_endpoint: '/api/v1/webhooks/paysafe',
+          status: (env.PAYSAFE_API_KEY && env.PAYSAFE_ACCOUNT_NUMBER) ? 'active' : 'configured'
         }
       },
       tetrakis_crypto: {

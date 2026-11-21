@@ -9,6 +9,7 @@
 
 import { recordRequestAudit } from './ledger-middleware.js';
 import { telegramToken } from './telegram-bridge.js';
+import { handleViberWebhook } from './viber-bridge.js';
 
 /**
  * Spracuje prichádzajúci webhook z ľubovoľného externého zdroja.
@@ -20,6 +21,10 @@ import { telegramToken } from './telegram-bridge.js';
 export async function handleInboundWebhook(request, env, ctx, source = 'generic') {
   const url = new URL(request.url);
   const normalizedSource = String(source || 'generic').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+
+  if (normalizedSource === 'viber') {
+    return handleViberWebhook(request, env, ctx);
+  }
 
   // 1. GET požiadavky: Verifikácia webhooku (napr. Meta hub.challenge alebo Health Ping)
   if (request.method === 'GET') {

@@ -69,6 +69,8 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
   const cryptoAddress = terminalRow?.crypto_address ? normalizeEvmAddress(terminalRow.crypto_address) : null;
   const cryptoNetwork = CRYPTO_CHAINS[terminalRow?.crypto_network] ? terminalRow.crypto_network : 'polygon';
   const tonAddress = terminalRow?.ton_address ? normalizeTonAddress(terminalRow.ton_address) : null;
+  const viberPhone = terminalRow?.viber_wallet_phone || null;
+  const paysafeAccount = terminalRow?.paysafe_account || null;
 
   // 1. Revolut Personal Connector
   const revolutPersonal = {
@@ -224,6 +226,54 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
       : 'Nastaviť IBAN a meno príjemcu.'
   };
 
+  // 6. Viber Pay & Wallet
+  const viberPay = {
+    id: 'viber_pay',
+    name: 'Viber Pay & Viber Wallet',
+    category: 'mobile_wallet',
+    account_type: 'personal',
+    currency: 'EUR',
+    receiving_endpoint: {
+      phone: viberPhone ? maskIdentifier(viberPhone) : null,
+      service: 'Viber Pay (Rakuten Viber)'
+    },
+    status: viberPhone ? 'needs_user_consent' : 'needs_provider_setup',
+    status_reason: viberPhone
+      ? 'Telefónne číslo pre Viber Pay je nastavené. Trinity neoverila zostatok; prevody sa uskutočňujú cez aplikáciu Viber.'
+      : 'Telefónne číslo pre Viber Pay nie je nastavené.',
+    can_receive: Boolean(viberPhone),
+    can_read_balance: false,
+    can_payout: false,
+    requires_business: false,
+    verified_balance: null,
+    last_sync_at: null,
+    next_action: viberPhone ? 'Pripravené na prijímanie platieb cez Viber Pay.' : 'Nastaviť telefónne číslo pre Viber Pay.'
+  };
+
+  // 7. Paysafe (Paysafecard / myPaysafe & Skrill)
+  const paysafe = {
+    id: 'paysafe',
+    name: 'Paysafe (Paysafecard / myPaysafe)',
+    category: 'digital_wallet_voucher',
+    account_type: 'personal',
+    currency: 'EUR',
+    receiving_endpoint: {
+      account: paysafeAccount ? maskIdentifier(paysafeAccount) : null,
+      service: 'myPaysafe / Paysafecard'
+    },
+    status: paysafeAccount ? 'needs_user_consent' : 'needs_provider_setup',
+    status_reason: paysafeAccount
+      ? 'Paysafe / myPaysafe konto je nastavené. 16-miestne PIN kódy podliehajú overeniu pri vyrovnaní.'
+      : 'myPaysafe účet ani Paysafe obchodný účet nie sú nastavené.',
+    can_receive: Boolean(paysafeAccount),
+    can_read_balance: false,
+    can_payout: false,
+    requires_business: false,
+    verified_balance: null,
+    last_sync_at: null,
+    next_action: paysafeAccount ? 'Pripravené na prijímanie Paysafecard kódov a myPaysafe úhrad.' : 'Nastaviť myPaysafe identifikátor alebo Paysafe konto.'
+  };
+
   return {
     owner_id: ownerId,
     mode: 'sovereign_multiwallet',
@@ -234,7 +284,9 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
       paypal,
       telegram,
       cryptoEvm,
-      sepaInstant
+      sepaInstant,
+      viberPay,
+      paysafe
     ]
   };
 }

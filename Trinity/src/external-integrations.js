@@ -976,6 +976,24 @@ export async function listAllIntegrations(env) {
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'bot_chat', 'telegram_wallet', 'ton_transfers', 'hitl_approvals'],
       description: 'Obojsmerný privátny chat, schvaľovanie HITL akcií a kryptomenové platby cez Telegram @wallet (TON/USDT).'
+    },
+    {
+      id: 'viber',
+      name: 'Viber Messaging & Viber Pay',
+      category: 'Social & Messaging',
+      status: env.VIBER_AUTH_TOKEN ? 'configured' : 'ready',
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'bot_chat', 'viber_pay', 'p2p_transfers', 'qr_checkout'],
+      description: 'Oficiálny Viber Chat API most a digitálna peňaženka Viber Pay pre peer-to-peer platby a automatické notifikácie.'
+    },
+    {
+      id: 'paysafe',
+      name: 'Paysafe & Paysafecard Financial Gateway',
+      category: 'Financial Services & Wallets',
+      status: (env.PAYSAFE_API_KEY && env.PAYSAFE_ACCOUNT_NUMBER) ? 'configured' : 'ready',
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'paysafecard_voucher', 'mypaysafe_wallet', 'skrill_transfer', 'payment_handles'],
+      description: 'Pripojenie k Paysafe ekosystému: myPaysafe digitálna peňaženka, 16-miestne Paysafecard PIN poukážky a Skrill/Neteller platobné relácie.'
     }
   ];
 }

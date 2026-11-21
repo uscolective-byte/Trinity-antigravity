@@ -135,6 +135,50 @@
         </div>
       </div>
 
+      <!-- Viber Pay & Viber Bot -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <span class="card-icon">💜</span>
+            <div>
+              <div class="card-title">Viber Pay & Viber Bot</div>
+              <span class="badge badge-social">VIBER PAY · RAKUTEN</span>
+            </div>
+          </div>
+          <p class="card-desc">Obojsmerné správy cez Viber Chat API a peňaženka <strong>Viber Pay</strong> pre okamžité P2P prevody v EUR. Podporuje príkazy <code>/wallet</code>, <code>/status</code> a klávesnicu.</p>
+          <div class="copy-box">
+            <input class="copy-input" id="vb-wh" readonly value="https://auru.space/api/v1/webhooks/viber">
+            <button class="copy-btn" onclick="copyLink('vb-wh', this)">Kopírovať Viber Webhook</button>
+          </div>
+        </div>
+        <div style="margin-top: 14px; display: flex; gap: 8px;">
+          <a href="viber://chat" class="btn btn-primary" style="flex: 1;">Otvoriť Viber ↗</a>
+          <a href="/api/v1/webhooks/viber" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="flex: 1;">Viber Webhook Info ↗</a>
+        </div>
+      </div>
+
+      <!-- Paysafe & Paysafecard Wallet -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <span class="card-icon">🎫</span>
+            <div>
+              <div class="card-title">Paysafe & Paysafecard Wallet</div>
+              <span class="badge badge-crypto">MYPAYSAFE · 16-PIN · SKRILL</span>
+            </div>
+          </div>
+          <p class="card-desc">16-miestne Paysafecard PIN kupóny, digitálna peňaženka <strong>myPaysafe</strong> a platobné relácie Skrill / Neteller prepojené s pokladnicou Trinity.</p>
+          <div class="copy-box">
+            <input class="copy-input" id="ps-wh" readonly value="https://auru.space/api/v1/webhooks/paysafe">
+            <button class="copy-btn" onclick="copyLink('ps-wh', this)">Kopírovať Paysafe Webhook</button>
+          </div>
+        </div>
+        <div style="margin-top: 14px; display: flex; gap: 8px;">
+          <a href="https://my.paysafecard.com/" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="flex: 1;">myPaysafe Portál ↗</a>
+          <a href="/api/v1/webhooks/paysafe" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="flex: 1;">Paysafe Status ↗</a>
+        </div>
+      </div>
+
       <!-- Meta (Facebook & Instagram) -->
       <div class="card">
         <div>
