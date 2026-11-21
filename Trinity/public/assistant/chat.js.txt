@@ -1770,6 +1770,33 @@ function initDocsSearch() {
   $('btn-docs-print')?.addEventListener('click', () => {
     window.print();
   });
+
+  document.addEventListener('click', (e) => {
+    const toolBtn = e.target.closest('[data-tool-prompt]');
+    if (toolBtn) {
+      const prompt = toolBtn.getAttribute('data-tool-prompt');
+      if (prompt && typeof window.copyToolPromptToChat === 'function') {
+        window.copyToolPromptToChat(prompt);
+      }
+      return;
+    }
+    const copyBtn = e.target.closest('.docs-copy-btn');
+    if (copyBtn) {
+      let text = copyBtn.getAttribute('data-copy-text');
+      if (!text && copyBtn.getAttribute('data-copy-target') === 'next') {
+        const nextEl = copyBtn.nextElementSibling;
+        if (nextEl) text = nextEl.innerText;
+      }
+      if (text) {
+        navigator.clipboard.writeText(text).then(() => {
+          const orig = copyBtn.textContent;
+          copyBtn.textContent = '✓ Skopírované!';
+          setTimeout(() => { copyBtn.textContent = orig; }, 2000);
+        }).catch(() => {});
+      }
+      return;
+    }
+  });
 }
 document.querySelectorAll('[data-doc-tab]').forEach(btn=>btn.addEventListener('click',()=>switchDocTab(btn.dataset.docTab)));
 document.querySelectorAll('[data-open-doc-tab]').forEach(btn=>btn.addEventListener('click',async()=>{

@@ -2067,7 +2067,7 @@
               Každý nástroj môžeš spustiť buď <b>prirodzeným príkazom v slovenčine</b> v chate (Trinity automaticky zvolí nástroj a parametre), alebo programovo cez <b>Model Context Protocol (JSON-RPC)</b> na koncovom bode <code>https://auru.space/mcp</code>.
             </p>
             <div class="docs-code-box">
-              <button class="docs-copy-btn" onclick="navigator.clipboard.writeText(this.nextElementSibling.innerText); this.textContent='✓ Skopírované!'; setTimeout(()=>this.textContent='Kopírovať', 2000)">Kopírovať</button>
+              <button type="button" class="docs-copy-btn" data-copy-target="next">Kopírovať</button>
               <pre class="docs-code-pre">POST https://auru.space/mcp
 Headers:
   Authorization: Bearer trn_live_...
@@ -2097,7 +2097,7 @@ Body:
               <li><b>Výstup:</b> Živá URL <code>/sites/:domain/:env</code>, D1 záznam, SSL status, generovaný Trinity Dokument.</li>
             </ul>
             <div class="docs-card-actions">
-              <button type="button" class="btn-docs-action" onclick="copyToolPromptToChat('Trinity, vytvor novú doménu moj-projekt.sk so šablónou ai-saas a nasaď ju do produkcie.')">📋 Vložiť príkaz do chatu →</button>
+              <button type="button" class="btn-docs-action" data-tool-prompt="Trinity, vytvor novú doménu moj-projekt.sk so šablónou ai-saas a nasaď ju do produkcie.">📋 Vložiť príkaz do chatu →</button>
             </div>
           </article>
 
@@ -2111,7 +2111,7 @@ Body:
               <li><b>Výstup:</b> Zoznam exekúcií, certifikovaný EPC QR kód, Stop-Loss a Take-Profit limity.</li>
             </ul>
             <div class="docs-card-actions">
-              <button type="button" class="btn-docs-action" onclick="copyToolPromptToChat('Trinity, zanalyzuj trh vzácnych kovov a automaticky rozdeľ 1000 EUR do najlepších príležitostí so SEPA vyrovnaním.')">📋 Vložiť príkaz do chatu →</button>
+              <button type="button" class="btn-docs-action" data-tool-prompt="Trinity, zanalyzuj trh vzácnych kovov a automaticky rozdeľ 1000 EUR do najlepších príležitostí so SEPA vyrovnaním.">📋 Vložiť príkaz do chatu →</button>
             </div>
           </article>
 
@@ -2125,7 +2125,7 @@ Body:
               <li><b>Výstup:</b> Okamžité prekreslenie UI bez nutnosti nového releasu, záznam v D1 histórii.</li>
             </ul>
             <div class="docs-card-actions">
-              <button type="button" class="btn-docs-action" onclick="copyToolPromptToChat('Trinity, prepni svoje rozhranie na kybernetickú zlatú tému a pripni na nástenku widget s mojimi týždennými cieľmi.')">📋 Vložiť príkaz do chatu →</button>
+              <button type="button" class="btn-docs-action" data-tool-prompt="Trinity, prepni svoje rozhranie na kybernetickú zlatú tému a pripni na nástenku widget s mojimi týždennými cieľmi.">📋 Vložiť príkaz do chatu →</button>
             </div>
           </article>
 
@@ -2139,7 +2139,7 @@ Body:
               <li><b>Výstup:</b> Vygenerovaný a overený post pripravený na publikovanie alebo odoslanie cez Graph API.</li>
             </ul>
             <div class="docs-card-actions">
-              <button type="button" class="btn-docs-action" onclick="copyToolPromptToChat('Trinity, vytvor pútavý status na LinkedIn a Instagram o novinkách v našom AI ekosystéme a priprav draft.')">📋 Vložiť príkaz do chatu →</button>
+              <button type="button" class="btn-docs-action" data-tool-prompt="Trinity, vytvor pútavý status na LinkedIn a Instagram o novinkách v našom AI ekosystéme a priprav draft.">📋 Vložiť príkaz do chatu →</button>
             </div>
           </article>
 
@@ -2153,7 +2153,7 @@ Body:
               <li><b>Výstup:</b> Záznam v tabuľke <code>trinity_documents</code>, R2 snapshot, PDF render.</li>
             </ul>
             <div class="docs-card-actions">
-              <button type="button" class="btn-docs-action" onclick="copyToolPromptToChat('Trinity, vygeneruj oficiálny Trinity Dokument o dnešnom stave nasadenia a ulož ho do archívu.')">📋 Vložiť príkaz do chatu →</button>
+              <button type="button" class="btn-docs-action" data-tool-prompt="Trinity, vygeneruj oficiálny Trinity Dokument o dnešnom stave nasadenia a ulož ho do archívu.">📋 Vložiť príkaz do chatu →</button>
             </div>
           </article>
 
@@ -2167,7 +2167,7 @@ Body:
               <li><b>Výstup:</b> Návratový kód (exit_code), výstup konzoly (stdout/stderr), overený podpis.</li>
             </ul>
             <div class="docs-card-actions">
-              <button type="button" class="btn-docs-action" onclick="copyToolPromptToChat('Trinity, spusti cez PC Bridge diagnostiku lokálneho disku a skontroluj verziu Node.js.')">📋 Vložiť príkaz do chatu →</button>
+              <button type="button" class="btn-docs-action" data-tool-prompt="Trinity, spusti cez PC Bridge diagnostiku lokálneho disku a skontroluj verziu Node.js.">📋 Vložiť príkaz do chatu →</button>
             </div>
           </article>
         </div>
@@ -2229,7 +2229,7 @@ Body:
             <h3>4. Smart Contract Verifikácia</h3>
             <p>Adresa kontraktu na Base a overovacie volanie cez ethers.js / web3.js:</p>
             <div class="docs-code-box">
-              <button class="docs-copy-btn" onclick="navigator.clipboard.writeText('0xTetrakisBaseTokenAddress...'); this.textContent='✓ Skopírované!'; setTimeout(()=>this.textContent='Kopírovať', 2000)">Kopírovať</button>
+              <button type="button" class="docs-copy-btn" data-copy-target="next">Kopírovať</button>
               <pre class="docs-code-pre">// Tetrakis Smart Contract Reader (Base Sepolia / Mainnet)
 import { ethers } from "ethers";
 
@@ -2338,7 +2338,7 @@ console.log("Supply:", await contract.totalSupply());</pre>
             <h3>5. Integrácia s Make.com, n8n, Zapier, Stripe, GitHub a Discord</h3>
             <p>Tento univerzálny koncový bod prijíma ľubovoľné JSON dáta, automaticky ich overí, zaradí do fronty úloh v D1 a pošle notifikáciu do tvojho Telegramu:</p>
             <div class="docs-code-box">
-              <button class="docs-copy-btn" onclick="navigator.clipboard.writeText('https://auru.space/api/v1/webhooks/incoming'); this.textContent='✓ Skopírované!'; setTimeout(()=>this.textContent='Kopírovať', 2000)">Kopírovať</button>
+              <button type="button" class="docs-copy-btn" data-copy-target="next">Kopírovať</button>
               <pre class="docs-code-pre">Endpoint: POST https://auru.space/api/v1/webhooks/incoming
 Header: Content-Type: application/json
 Payload príklad:
