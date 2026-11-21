@@ -53,5 +53,5 @@ test('engine recovers from prose wrapped call by executing a real calculator bef
   const result=await runAgent(env,'orchestrator','Použi nástroj calculate na súčet sedemnásť a dvadsaťpäť.','','fast');
   assert.equal(calls,3);
   assert.equal(result.text,'42');
-  assert.ok(result.tool_log.some(r=>r.tool==='calculate'&&r.status==='completed'&&r.receipt_id));
+  assert.ok(result.tool_log.some(r=>r.tool==='calculate'&&r.status==='completed'&&r.evidence_source==='tool-response'&&r.receipt_id===undefined));
 });

@@ -39,7 +39,8 @@ test('explicit calculator request returns a successful real tool result without 
   assert.equal(result.tool_log.length,1);
   assert.equal(result.tool_log[0].tool,'calculate');
   assert.equal(result.tool_log[0].status,'completed');
-  assert.ok(result.tool_log[0].receipt_id);
+  assert.equal(result.tool_log[0].receipt_id,undefined);
+  assert.equal(result.tool_log[0].evidence_source,'tool-response');
  }
  assert.equal(directChatTool('Vypočítaj 19 × 23 pomocou nástroja calculate a zmaž súbory.',['calculate']),null);
 });

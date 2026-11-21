@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {findUnsupportedActionClaims, truthStatus, safeTruthResponse} from '../src/truth.js';
+import {findUnsupportedActionClaims, truthStatus, safeTruthResponse, workflowResultComplete} from '../src/truth.js';
 import {runAgent,toolReceiptForOutcome,unresolvedToolOutcome} from '../src/engine.js';
 const text='Výsledok nástroja calculate je: 42';
 
@@ -71,6 +71,15 @@ test('engine cannot escape the truth check by removing JSON from a fabricated re
   assert.match(result.text,/Nemám overený/);
   assert.doesNotMatch(result.text,/Výsledok nástroja calculate je/);
 });
+test('asynchronous provider states cannot become completion even with generated evidence',()=>{
+ for(const status of ['executing','in_progress','accepted','awaiting_approval']){
+  const receipt=toolReceiptForOutcome('remote_job',{status,id:'job-1',success:true,_evidence:{effect:'mutation',receipt_id:'provider-request-id'}});
+  assert.equal(receipt.status,['executing','in_progress'].includes(status)?'running':'pending');
+  assert.equal(receipt.effect,'proposal');
+  assert.equal(workflowResultComplete({text:'Dokončené.',tool_log:[receipt]}),false);
+ }
+});
+
 test('generic tool lifecycle never turns failure or partial work into a completed receipt',()=>{
   const timestamp='2026-10-26T07:10:00.000Z';
   const failed=toolReceiptForOutcome('delegate_worker',{ok:false,status:'not_configured',error:'missing'},timestamp);

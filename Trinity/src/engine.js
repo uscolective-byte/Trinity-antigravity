@@ -71,8 +71,8 @@ export function toolReceiptForOutcome(tool,outcome,verifiedAt=new Date().toISOSt
     const status=state==='partial'?'partial':'failed';
     return {tool,status,effect:'diagnostic',error:outcome?.error||null,verified_at:verifiedAt};
   }
-  if(outcome?._evidence?.effect==='proposal'||['pending','proposed','queued','approved','claimed','running','approval_required','requires_approval'].includes(state)){
-    const status=['approved','claimed','running'].includes(state)?'running':'pending';
+  if(outcome?._evidence?.effect==='proposal'||['pending','proposed','queued','accepted','approved','claimed','running','executing','in_progress','awaiting_approval','approval_required','requires_approval'].includes(state)){
+    const status=['approved','claimed','running','executing','in_progress'].includes(state)?'running':'pending';
     return {tool,status,effect:'proposal',receipt_id:outcome?.id,verified_at:verifiedAt};
   }
   const processResult=outcome.receipt&&typeof outcome.receipt==='object'?outcome.receipt:outcome;
