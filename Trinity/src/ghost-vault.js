@@ -18,6 +18,7 @@
  */
 
 import { z } from 'zod';
+import { generateQrSvg } from './wallet-terminals.js';
 
 export const ghostSessionSchema = z.object({
   room_id: z.string().trim().min(3).max(100),
@@ -472,10 +473,13 @@ export async function handleGhostVaultApi(request, env, ctx) {
     });
   }
 
-  // 8. Zoznam kontaktov a vyhľadávanie v adresári (Encrypted Contacts Directory)
+  // 8. Zoznam kontaktov a vyhľadávanie v adresári (Encrypted Contacts Directory + Registered Profiles)
   if (method === 'GET' && path === '/api/ghost/contacts') {
     const query = (url.searchParams.get('q') || '').trim().toLowerCase();
-    let contacts = [];
+    const filterType = (url.searchParams.get('filter') || 'all').toLowerCase(); // 'all', 'registered', 'online'
+    let ghostContacts = [];
+    let registeredUsers = [];
+
     if (db) {
       try {
         let sql = `SELECT peer_id, alias, public_key, status, avatar_color, last_seen FROM ops_ghost_directory `;
@@ -486,7 +490,19 @@ export async function handleGhostVaultApi(request, env, ctx) {
         }
         sql += `ORDER BY last_seen DESC LIMIT 50`;
         const res = await db.prepare(sql).bind(...params).all().catch(() => ({ results: [] }));
-        contacts = res?.results || [];
+        ghostContacts = res?.results || [];
+      } catch {}
+
+      try {
+        let userSql = `SELECT email, display_name, role, status, avatar_url, last_login_at FROM ops_users `;
+        const userParams = [];
+        if (query) {
+          userSql += `WHERE (LOWER(display_name) LIKE ? OR LOWER(email) LIKE ?) `;
+          userParams.push(`%${query}%`, `%${query}%`);
+        }
+        userSql += `ORDER BY display_name ASC LIMIT 50`;
+        const userRes = await db.prepare(userSql).bind(...userParams).all().catch(() => ({ results: [] }));
+        registeredUsers = userRes?.results || [];
       } catch {}
     }
 
@@ -497,6 +513,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
         public_key: '{"crv":"P-256","kty":"EC","x":"f8X_seed_basterix_x","y":"f8X_seed_basterix_y"}',
         status: 'online',
         avatar_color: '#3b82f6',
+        is_registered: true,
         last_seen: Date.now()
       },
       {
@@ -505,6 +522,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
         public_key: '{"crv":"P-256","kty":"EC","x":"trinity_seed_core_x","y":"trinity_seed_core_y"}',
         status: 'online',
         avatar_color: '#10b981',
+        is_registered: true,
         last_seen: Date.now()
       },
       {
@@ -513,6 +531,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
         public_key: '{"crv":"P-256","kty":"EC","x":"usc_seed_underground_x","y":"usc_seed_underground_y"}',
         status: 'online',
         avatar_color: '#a855f7',
+        is_registered: true,
         last_seen: Date.now()
       },
       {
@@ -521,11 +540,47 @@ export async function handleGhostVaultApi(request, env, ctx) {
         public_key: '{"crv":"P-256","kty":"EC","x":"delirium_seed_trade_x","y":"delirium_seed_trade_y"}',
         status: 'online',
         avatar_color: '#f59e0b',
+        is_registered: true,
         last_seen: Date.now()
       }
     ];
 
-    const merged = [...contacts];
+    const ghostPeerMap = new Map();
+    for (const c of ghostContacts) {
+      ghostPeerMap.set(c.peer_id, c);
+    }
+
+    const merged = [];
+
+    // Najprv integruj registrované profily zo systému
+    for (const u of registeredUsers) {
+      const email = u.email || '';
+      const peerId = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+      const existingGhost = ghostPeerMap.get(peerId);
+      merged.push({
+        peer_id: peerId,
+        alias: u.display_name || email.split('@')[0],
+        email: email,
+        role: u.role || 'user',
+        is_registered: true,
+        status: u.status === 'active' || u.status === 'user' ? 'online' : (u.status || 'online'),
+        avatar_color: u.role === 'admin' ? '#ef4444' : '#2563eb',
+        avatar_url: u.avatar_url || null,
+        public_key: existingGhost?.public_key || null,
+        last_seen: u.last_login_at ? new Date(u.last_login_at).getTime() : Date.now()
+      });
+      ghostPeerMap.delete(peerId);
+    }
+
+    // Dopln existujúce ghost kontakty
+    for (const [peerId, c] of ghostPeerMap.entries()) {
+      merged.push({
+        ...c,
+        is_registered: false
+      });
+    }
+
+    // Dopln predvolené seed uzly ak chýbajú
     for (const seed of defaultSeeds) {
       if (!merged.some(c => c.peer_id === seed.peer_id)) {
         if (!query || seed.alias.toLowerCase().includes(query) || seed.peer_id.toLowerCase().includes(query)) {
@@ -534,9 +589,42 @@ export async function handleGhostVaultApi(request, env, ctx) {
       }
     }
 
-    return new Response(JSON.stringify({ ok: true, count: merged.length, contacts: merged }), {
+    // Aplikuj filter
+    let filtered = merged;
+    if (filterType === 'registered') {
+      filtered = merged.filter(c => c.is_registered);
+    } else if (filterType === 'online') {
+      filtered = merged.filter(c => c.status === 'online');
+    }
+
+    return new Response(JSON.stringify({ 
+      ok: true, 
+      count: filtered.length, 
+      contacts: filtered,
+      total_registered: registeredUsers.length 
+    }), {
       headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }
     });
+  }
+
+  // 8b. Generovanie QR kódu pozvánky (ISO 18004 SVG)
+  if (method === 'GET' && path === '/api/ghost/invite-qr') {
+    const data = url.searchParams.get('data') || url.searchParams.get('url') || 'https://auru.dev/#encrypted_shits';
+    const size = Math.min(Math.max(parseInt(url.searchParams.get('size') || '240', 10), 100), 600);
+    try {
+      const svg = generateQrSvg(data, size);
+      return new Response(svg, {
+        headers: {
+          'Content-Type': 'image/svg+xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600'
+        }
+      });
+    } catch {
+      return new Response('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><text x="10" y="20" fill="red">QR Error</text></svg>', {
+        status: 500,
+        headers: { 'Content-Type': 'image/svg+xml; charset=utf-8' }
+      });
+    }
   }
 
   // 9. Registrácia kontaktu do verejného adresára kľúčov

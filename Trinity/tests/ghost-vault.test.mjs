@@ -223,12 +223,21 @@ describe('Trinity Ghost Vault & E2EE Sovereign Whisper', () => {
     assert.equal(mockStorage.envelopes.size, 0);
     assert.equal(mockStorage.sessions.size, 0);
 
-    // 8. Vyhľadávanie v adresári kontaktov
+    // 8. Vyhľadávanie v adresári kontaktov a registrovaných profilov
     const contactsReq = new Request('https://auru.space/api/ghost/contacts?q=basterix');
     const contactsRes = await handleGhostVaultApi(contactsReq, mockEnv);
     assert.equal(contactsRes.status, 200);
     const contactsJson = await contactsRes.json();
     assert.ok(contactsJson.ok);
     assert.ok(contactsJson.contacts.some(c => c.peer_id === 'basterix'));
+
+    // 9. Overenie generovania QR kódu pozvánky
+    const qrReq = new Request('https://auru.space/api/ghost/invite-qr?data=https://auru.dev/#encrypted_shits?peer=alice');
+    const qrRes = await handleGhostVaultApi(qrReq, mockEnv);
+    assert.equal(qrRes.status, 200);
+    assert.equal(qrRes.headers.get('Content-Type'), 'image/svg+xml; charset=utf-8');
+    const svgText = await qrRes.text();
+    assert.ok(svgText.includes('<svg'));
+    assert.ok(svgText.includes('role="img"'));
   });
 });
