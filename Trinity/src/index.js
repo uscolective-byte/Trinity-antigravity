@@ -153,6 +153,8 @@ import {handlePhoneBridgePage} from './phone-bridge-ui.js';
 import manifestJSON from '../public/assistant/manifest.json';
 import metaConnectHTML from '../public/meta-connect.html';
 import metaConnectJS from '../public/meta-connect.js.txt';
+import directConnectHTML from '../public/connect.html';
+import {handleInboundWebhook} from './inbound-webhooks.js';
 import {handleMetaConnection} from './meta-connector.js';
 import serviceWorkerJS from '../public/assistant/sw.js.txt';
 import spotifyJS from '../public/assistant/spotify.js.txt';
@@ -290,6 +292,9 @@ async function route(request,env,ctx){
       +"; connect-src 'self'"
       +(drivePickerEnabled&&path!=='/ops'?" https://accounts.google.com https://www.googleapis.com":"")
       +"; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
+  if(request.method==='GET'&&['/connect','/links'].includes(path))return new Response(directConnectHTML,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache','Content-Security-Policy':"default-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"}});
+  const inboundWebhookMatch=path.match(/^\/api\/v1\/webhooks\/([a-zA-Z0-9_-]+)$/);
+  if(inboundWebhookMatch)return handleInboundWebhook(request,env,ctx,inboundWebhookMatch[1]);
   if(request.method==='GET'&&['/connect/meta','/api/assistant/connectors/meta/callback'].includes(path))return new Response(metaConnectHTML,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"}});
   if(request.method==='GET'&&path==='/meta-connect.js')return new Response(metaConnectJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
   if(request.method==='GET'&&path==='/app.js')return new Response(appJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
