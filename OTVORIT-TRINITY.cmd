@@ -1,4 +1,4 @@
-@echo off
+;@echo off
 title TRINITY OMNI-CORE // COMMAND CENTER
 color 0A
 cls
