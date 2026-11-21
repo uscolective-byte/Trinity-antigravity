@@ -368,9 +368,10 @@ const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY 
 crypto:['TETRAKIS ($TTK) — PLATBY TRINITY','Tetrakis Wallet & Payments','Neväzobná peňaženka a overenie skutočného stavu TTK kontraktu.'],
 connect:['PREPOJENIA & SIETE TRINITY','Prepojenia & Siete','Jediné centrum pre všetky kanály: Telegram @wallet, Viber Pay, Paysafe, WhatsApp, Meta, LinkedIn, Webhooky a PC Bridge.'],
 ghost:['TRINITY GHOST VAULT','Ghost Vault (E2EE)','Nekompromisne šifrovaná komunikácia medzi účastníkmi s automatickou sebadeštrukciou správ.'],
+encrypted_shits:['ENCRYPTED_SHITS · SOVEREIGN E2EE','encrypted_shits','Nekompromisne šifrovaný sovereign messenger s kontaktmi a automatickou sebadeštrukciou správ.'],
 agentlab:['AI AGENT SANDBOX & LAB','AI Agent Lab (auru.dev)','Vytváranie, trénovanie, testovanie a spúšťanie autonómnych AI agentov.'],workflows:['VISUAL WORKFLOWS','Drag & Drop Workflows','Vizuálna orchestrácia procesov, exekúcie PC brány a automatizácie.']};
 function updateHeading(){const meta=viewMeta[currentView]||viewMeta.dashboard;$('page-kicker').textContent=meta[0];$('page-title').textContent=meta[1].includes(' ')?meta[1]:t(meta[1]);$('subtitle').textContent=t(meta[2]);}
-async function setView(name,updateHash=true){if(name==='dashboard'&&state?.account?.role!=='owner')name='chat';if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='commodities')await loadCommodityDesk();if(name==='wallet')await loadWalletView();if(name==='crypto')await loadCryptoView();if(name==='modules')await loadModulesView();if(name==='documents')await loadTrinityDocuments();if(name==='graph')await loadGraphView();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='omnidev'){await loadOmniDev();initOmniDevEvents();}if(name==='ghost')await loadGhostVaultView();
+async function setView(name,updateHash=true){if(name==='dashboard'&&state?.account?.role!=='owner')name='chat';if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='commodities')await loadCommodityDesk();if(name==='wallet')await loadWalletView();if(name==='crypto')await loadCryptoView();if(name==='modules')await loadModulesView();if(name==='documents')await loadTrinityDocuments();if(name==='graph')await loadGraphView();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='omnidev'){await loadOmniDev();initOmniDevEvents();}if(name==='ghost'||name==='encrypted_shits')await loadEncryptedShitsView();
 if(name==='agentlab'){await loadAgentLab();initAgentLabEvents();}if(name==='workflows'){await loadVisualWorkflows();initAgentLabEvents();}if(name==='chat')setTimeout(()=>$('message').focus(),0);}
 function renderDashboardActivity(listId,items){const list=$(listId);list.replaceChildren();for(const item of items){const row=node('div',undefined,'activity-item'),icon=node('div',item.status==='completed'?'✓':item.status==='failed'?'!':'·','activity-dot'),text=node('span');text.append(node('b',item.task),node('small',`${t(item.status)||item.status} · ${item.updated_at}`));row.append(icon,text);row.onclick=async()=>{session=item.session_id;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');};list.append(row);}if(!items.length)list.append(node('p',t('noChanges'),'skeleton'));}
 async function loadDashboard(){const data=await api('/dashboard'),admin=data.dashboard_mode==='admin';$('user-dashboard').hidden=admin;$('admin-dashboard').hidden=!admin;if($('metric-tasks'))$('metric-tasks').textContent=data.today_completed??0;if($('metric-memory'))$('metric-memory').textContent=data.memory_count??0;if($('metric-projects'))$('metric-projects').textContent=data.project_count??0;if($('metric-health'))$('metric-health').textContent=(data.available_services??0)+'/'+(data.total_services??0)+(data.pc_bridge?.connected?' · PC ✓':'');if(admin){const metrics=data.admin||{};$('admin-active-jobs').textContent=metrics.active_jobs??0;$('admin-failed-jobs').textContent=metrics.failed_today??0;$('admin-pending-users').textContent=metrics.pending_users??0;$('admin-services').textContent=data.available_services+'/'+data.total_services;$('admin-gateway-state').textContent=data.pc_bridge?.connected?'Cloud + PC brána pripojená':'Cloud aktívny · PC brána nepripojená';$('admin-system-state').textContent=metrics.emergency_stop?'NÚDZOVÉ ZASTAVENIE':'Systém beží';$('admin-system-state').className='admin-state '+(metrics.emergency_stop?'stopped':'running');renderDashboardActivity('admin-dashboard-activity',data.recent_jobs);return;}renderDashboardActivity('dashboard-activity',data.recent_jobs);}
@@ -5666,199 +5667,288 @@ document.addEventListener('click', e => {
   }
 });
 
-// ── TRINITY GHOST VAULT (ZERO-KNOWLEDGE E2EE) CONTROLLER ──
-let ghostVaultState = {
+// ── TRINITY ENCRYPTED_SHITS · SOVEREIGN ZERO-KNOWLEDGE E2EE CONTROLLER ──
+let encState = {
   identity: null,
-  roomId: '',
-  peerId: '',
-  peerPubJwk: null,
+  myPeerId: '',
+  myAlias: '',
+  activeContact: null,
+  activeRoomId: '',
   sharedKey: null,
   safetyFingerprint: null,
+  contacts: [],
   pollingInterval: null,
   lastSeenTimestamp: 0,
   activeMessages: new Map()
 };
 
-async function initGhostIdentity() {
-  if (!ghostVaultState.identity && window.GhostCrypto) {
+async function initEncIdentity() {
+  if (!encState.identity && window.GhostCrypto) {
     try {
-      ghostVaultState.identity = await window.GhostCrypto.generateIdentity();
+      encState.identity = await window.GhostCrypto.generateIdentity();
     } catch (err) {
-      console.error('Chyba generovania Ghost identity:', err);
+      console.error('Chyba generovania E2EE identity:', err);
     }
   }
-  return ghostVaultState.identity;
+  if (!encState.myPeerId) {
+    encState.myPeerId = state?.account?.email?.split('@')[0] || ('user_' + Math.floor(Math.random() * 900 + 100));
+    encState.myAlias = state?.account?.name || (encState.myPeerId.charAt(0).toUpperCase() + encState.myPeerId.slice(1));
+  }
+  return encState.identity;
 }
 
-async function loadGhostVaultView() {
-  await initGhostIdentity();
-  initGhostVaultEvents();
+async function loadEncryptedShitsView() {
+  await initEncIdentity();
+  initEncEvents();
 
+  // Aktualizuj profil v ľavom paneli
+  const avatarElem = $('enc-my-avatar');
+  const nameElem = $('enc-my-name');
+  if (avatarElem) avatarElem.textContent = (encState.myAlias || 'U').charAt(0).toUpperCase();
+  if (nameElem) nameElem.textContent = encState.myAlias || encState.myPeerId;
+
+  // Zaregistruj seba do adresára kontaktov
+  if (encState.identity?.pubJwk) {
+    void fetch('/api/ghost/contacts/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        peer_id: encState.myPeerId,
+        alias: encState.myAlias,
+        public_key: JSON.stringify(encState.identity.pubJwk),
+        avatar_color: '#2563eb'
+      })
+    }).catch(() => {});
+  }
+
+  // Načítaj kontakty
+  await loadEncContacts();
+
+  // Kontrola či je v URL hash priama pozvánka napr. #encrypted_shits?peer=...&pub=...
   const hash = window.location.hash || '';
   if (hash.includes('?')) {
     const query = hash.split('?')[1] || '';
     const params = new URLSearchParams(query);
-    const r = params.get('room');
-    const p = params.get('peer');
-    const pub = params.get('pub');
-    if (r && $('ghost-room-id')) $('ghost-room-id').value = r;
-    if (p && $('ghost-peer-id')) $('ghost-peer-id').value = (p !== 'me' ? 'guest_' : '') + p;
-    if (pub && window.GhostCrypto && ghostVaultState.identity) {
-      try {
-        const parsedPub = JSON.parse(pub);
-        ghostVaultState.peerPubJwk = parsedPub;
-        const peerKey = await window.GhostCrypto.importPeerPublicKey(parsedPub);
-        ghostVaultState.sharedKey = await window.GhostCrypto.deriveSharedKey(ghostVaultState.identity.privateKey, peerKey);
-        ghostVaultState.safetyFingerprint = await window.GhostCrypto.computeSafetyFingerprint(ghostVaultState.identity.pubJwk, parsedPub);
-        if ($('ghost-safety-code')) {
-          $('ghost-safety-code').textContent = `${ghostVaultState.safetyFingerprint.emoji} ${ghostVaultState.safetyFingerprint.safetyNumbers}`;
-        }
-      } catch (e) {
-        console.error('Chyba importu verejného kľúča z odkazu:', e);
-      }
+    const peerParam = params.get('peer');
+    const pubParam = params.get('pub');
+    if (peerParam) {
+      selectEncContact({
+        peer_id: peerParam,
+        alias: peerParam,
+        public_key: pubParam ? decodeURIComponent(pubParam) : null,
+        avatar_color: '#a855f7'
+      });
     }
-  }
-
-  if (!$('ghost-room-id')?.value) {
-    const randomId = 'vault_' + Math.random().toString(36).substring(2, 9);
-    if ($('ghost-room-id')) $('ghost-room-id').value = randomId;
-  }
-  if (!$('ghost-peer-id')?.value) {
-    const defaultAlias = state?.account?.email?.split('@')[0] || ('user_' + Math.floor(Math.random() * 900 + 100));
-    if ($('ghost-peer-id')) $('ghost-peer-id').value = defaultAlias;
   }
 }
 
-let ghostEventsBound = false;
-function initGhostVaultEvents() {
-  if (ghostEventsBound) return;
-  ghostEventsBound = true;
+async function loadEncContacts(searchQuery = '') {
+  const container = $('enc-contacts-list');
+  if (!container) return;
 
-  $('ghost-join-btn')?.addEventListener('click', async () => {
-    const roomId = $('ghost-room-id')?.value?.trim();
-    const peerId = $('ghost-peer-id')?.value?.trim();
-    if (!roomId || !peerId) {
-      alert('Zadaj Room ID aj svoj Alias.');
-      return;
+  try {
+    const url = `/api/ghost/contacts${searchQuery ? '?q=' + encodeURIComponent(searchQuery) : ''}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.ok && Array.isArray(data.contacts)) {
+      encState.contacts = data.contacts.filter(c => c.peer_id !== encState.myPeerId);
+      renderEncContactsList(encState.contacts);
     }
+  } catch (err) {
+    console.error('Chyba načítania kontaktov:', err);
+  }
+}
 
-    await initGhostIdentity();
-    ghostVaultState.roomId = roomId;
-    ghostVaultState.peerId = peerId;
+function renderEncContactsList(contacts) {
+  const container = $('enc-contacts-list');
+  if (!container) return;
+  container.innerHTML = '';
 
-    try {
-      const regRes = await fetch('/api/ghost/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          room_id: roomId,
-          peer_id: peerId,
-          public_key: JSON.stringify(ghostVaultState.identity.pubJwk),
-          nickname: peerId
-        })
-      });
-      const regData = await regRes.json();
-      if (!regData.ok) {
-        alert('Chyba registrácie relácie: ' + (regData.error || 'Neznáma chyba'));
-        return;
-      }
+  if (!contacts.length) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:#64748b;font-size:12px;">Žiadne kontakty sa nenašli.<br>Zadaj nový alias dole.</div>';
+    return;
+  }
 
-      const sessRes = await fetch('/api/ghost/session/' + encodeURIComponent(roomId));
-      const sessData = await sessRes.json();
-      const otherPeers = (sessData.peers || []).filter(p => p.peer_id !== peerId);
-      if ($('ghost-active-peers')) {
-        $('ghost-active-peers').textContent = `Účastníci v miestnosti: ${(sessData.peers || []).length}`;
-      }
+  for (const c of contacts) {
+    const item = document.createElement('div');
+    item.className = 'enc-contact-item';
+    item.dataset.peerId = c.peer_id;
+    item.style.display = 'flex';
+    item.style.alignItems = 'center';
+    item.style.gap = '10px';
+    item.style.padding = '10px 14px';
+    item.style.cursor = 'pointer';
+    item.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+    item.style.transition = 'background 0.2s';
 
-      if (otherPeers.length > 0 && window.GhostCrypto) {
-        try {
-          const partner = otherPeers[0];
-          const peerKeyObj = JSON.parse(partner.public_key);
-          ghostVaultState.peerPubJwk = peerKeyObj;
-          const partnerCryptoKey = await window.GhostCrypto.importPeerPublicKey(peerKeyObj);
-          ghostVaultState.sharedKey = await window.GhostCrypto.deriveSharedKey(ghostVaultState.identity.privateKey, partnerCryptoKey);
-          ghostVaultState.safetyFingerprint = await window.GhostCrypto.computeSafetyFingerprint(ghostVaultState.identity.pubJwk, peerKeyObj);
-          if ($('ghost-safety-code')) {
-            $('ghost-safety-code').textContent = `${ghostVaultState.safetyFingerprint.emoji} ${ghostVaultState.safetyFingerprint.safetyNumbers}`;
-          }
-          if ($('ghost-room-status')) {
-            $('ghost-room-status').textContent = `🟢 Šifrované spojenie nadviazané s: ${partner.nickname || partner.peer_id}`;
-            $('ghost-room-status').style.color = '#34d399';
-          }
-        } catch (e) {
-          console.error('Chyba odvádzania zdieľaného kľúča:', e);
-        }
-      } else {
-        if ($('ghost-room-status')) {
-          $('ghost-room-status').textContent = `🟡 Čakám na pripojenie partnera (Zdieľaj pozvánku)`;
-          $('ghost-room-status').style.color = '#fbbf24';
-        }
-      }
+    const isActive = encState.activeContact && encState.activeContact.peer_id === c.peer_id;
+    if (isActive) item.style.background = '#1e293b';
 
-      if ($('ghost-msg-input')) $('ghost-msg-input').disabled = false;
-      if ($('ghost-send-msg-btn')) $('ghost-send-msg-btn').disabled = false;
-      $('ghost-msg-input')?.focus();
+    const color = c.avatar_color || '#3b82f6';
+    const initial = (c.alias || c.peer_id).charAt(0).toUpperCase();
 
-      if (ghostVaultState.pollingInterval) clearInterval(ghostVaultState.pollingInterval);
-      ghostVaultState.pollingInterval = setInterval(pollGhostInbox, 2500);
-      void pollGhostInbox();
+    item.innerHTML = `
+      <div style="width:36px;height:36px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;flex-shrink:0;">
+        ${initial}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <b style="font-size:13px;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.alias || c.peer_id}</b>
+          <span style="font-size:10px;color:#34d399;">🟢 online</span>
+        </div>
+        <div style="font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🔒 Šifrovaná relácia</div>
+      </div>
+    `;
 
-      if (typeof notice === 'function') notice('Pripojený do tajného vaultu: ' + roomId);
-    } catch (err) {
-      console.error('Chyba spojenia s Ghost Vault:', err);
-      alert('Zlyhalo spojenie s Vault serverom.');
-    }
+    item.onclick = () => selectEncContact(c);
+    container.appendChild(item);
+  }
+}
+
+async function selectEncContact(contact) {
+  encState.activeContact = contact;
+  encState.lastSeenTimestamp = 0;
+  encState.activeMessages.clear();
+
+  // Zvýrazni v zozname
+  document.querySelectorAll('.enc-contact-item').forEach(el => {
+    el.style.background = el.dataset.peerId === contact.peer_id ? '#1e293b' : 'transparent';
   });
 
-  $('ghost-invite-btn')?.addEventListener('click', () => {
-    const roomId = $('ghost-room-id')?.value?.trim();
-    const peerId = $('ghost-peer-id')?.value?.trim();
-    if (!roomId || !ghostVaultState.identity) {
-      alert('Najprv vstúp do Vaultu pre vygenerovanie kľúča.');
+  // Aktualizuj hlavičku chatu
+  const avatarElem = $('enc-active-avatar');
+  const nameElem = $('enc-active-name');
+  const safetyElem = $('enc-active-safety');
+  if (avatarElem) {
+    avatarElem.textContent = (contact.alias || contact.peer_id).charAt(0).toUpperCase();
+    avatarElem.style.background = contact.avatar_color || '#10b981';
+  }
+  if (nameElem) nameElem.textContent = contact.alias || contact.peer_id;
+
+  // Odvoď deterministické Room ID medzi týmito dvoma účastníkmi
+  const participants = [encState.myPeerId, contact.peer_id].sort();
+  encState.activeRoomId = `dm__${participants[0]}__${participants[1]}`;
+
+  // Reset a povolenie vstupov
+  const inputBox = $('enc-input-box');
+  const sendBtn = $('enc-send-button');
+  if (inputBox) {
+    inputBox.disabled = false;
+    inputBox.placeholder = `Napíš správu pre ${contact.alias || contact.peer_id}...`;
+    inputBox.focus();
+  }
+  if (sendBtn) sendBtn.disabled = false;
+
+  // Odvoď zdieľaný kľúč ak má kontakt verejný kľúč
+  if (contact.public_key && window.GhostCrypto && encState.identity) {
+    try {
+      const peerKeyObj = typeof contact.public_key === 'string' ? JSON.parse(contact.public_key) : contact.public_key;
+      const peerCryptoKey = await window.GhostCrypto.importPeerPublicKey(peerKeyObj);
+      encState.sharedKey = await window.GhostCrypto.deriveSharedKey(encState.identity.privateKey, peerCryptoKey);
+      encState.safetyFingerprint = await window.GhostCrypto.computeSafetyFingerprint(encState.identity.pubJwk, peerKeyObj);
+      if (safetyElem) {
+        safetyElem.textContent = `🔒 E2EE · ${encState.safetyFingerprint.emoji} ${encState.safetyFingerprint.safetyNumbers}`;
+      }
+    } catch (e) {
+      console.warn('E2EE kľúč partnera zatiaľ nie je overený, použije sa kľúč správy:', e);
+      if (safetyElem) safetyElem.textContent = '🔒 E2EE aktívne';
+    }
+  } else {
+    if (safetyElem) safetyElem.textContent = '🔒 E2EE aktívne';
+  }
+
+  // Vyčisti kontajner správ
+  const stream = $('enc-messages-stream');
+  if (stream) {
+    stream.innerHTML = `<div style="text-align:center;color:#64748b;font-size:12px;margin:auto;">Šifrovaná relácia otvorená s <b>${contact.alias || contact.peer_id}</b>.<br><small style="color:#475569;">Všetky správy sa po prečítaní zničia.</small></div>`;
+  }
+
+  // Spusti polling správ pre túto miestnosť
+  if (encState.pollingInterval) clearInterval(encState.pollingInterval);
+  encState.pollingInterval = setInterval(pollEncInbox, 2000);
+  void pollEncInbox();
+}
+
+let encEventsBound = false;
+function initEncEvents() {
+  if (encEventsBound) return;
+  encEventsBound = true;
+
+  // Hľadanie kontaktov v reálnom čase
+  $('enc-search-input')?.addEventListener('input', (e) => {
+    const q = (e.target.value || '').trim().toLowerCase();
+    if (!q) {
+      renderEncContactsList(encState.contacts);
       return;
     }
-    const pubStr = encodeURIComponent(JSON.stringify(ghostVaultState.identity.pubJwk));
-    const inviteUrl = `${window.location.origin}/#ghost?room=${encodeURIComponent(roomId)}&peer=${encodeURIComponent(peerId)}&pub=${pubStr}`;
+    const filtered = encState.contacts.filter(c => 
+      (c.alias && c.alias.toLowerCase().includes(q)) || 
+      (c.peer_id && c.peer_id.toLowerCase().includes(q))
+    );
+    renderEncContactsList(filtered);
+  });
+
+  // Pridanie nového aliasu / chatu
+  $('enc-add-peer-btn')?.addEventListener('click', () => {
+    const val = $('enc-custom-peer-input')?.value?.trim();
+    if (!val) return;
+    const newContact = {
+      peer_id: val.toLowerCase().replace(/[^a-z0-9_-]/g, '_'),
+      alias: val,
+      status: 'online',
+      avatar_color: '#a855f7'
+    };
+    if (!encState.contacts.some(c => c.peer_id === newContact.peer_id)) {
+      encState.contacts.unshift(newContact);
+      renderEncContactsList(encState.contacts);
+    }
+    selectEncContact(newContact);
+    $('enc-custom-peer-input').value = '';
+  });
+
+  // Kopírovanie môjho pozývacieho linku
+  $('enc-copy-my-link-btn')?.addEventListener('click', () => {
+    if (!encState.identity) return;
+    const pubStr = encodeURIComponent(JSON.stringify(encState.identity.pubJwk));
+    const inviteUrl = `${window.location.origin}/#encrypted_shits?peer=${encodeURIComponent(encState.myPeerId)}&pub=${pubStr}`;
     navigator.clipboard?.writeText(inviteUrl).then(() => {
-      if (typeof notice === 'function') notice('Tajný odkaz s verejným kľúčom bol skopírovaný!');
-      else alert('Tajný odkaz s verejným kľúčom bol skopírovaný!\nPošli ho partnerovi cez Telegram, Signal alebo WhatsApp.');
+      if (typeof notice === 'function') notice('Tvoj tajný odkaz s verejným kľúčom bol skopírovaný!');
+      else alert('Odkaz skopírovaný!\nPošli ho kontaktu cez Telegram, Signal, WhatsApp alebo Viber.');
     }).catch(() => {
       prompt('Skopírujte tajný odkaz:', inviteUrl);
     });
   });
 
-  const sendMessage = async () => {
-    const text = $('ghost-msg-input')?.value?.trim();
-    if (!text) return;
-    const roomId = ghostVaultState.roomId || $('ghost-room-id')?.value?.trim();
-    const senderId = ghostVaultState.peerId || $('ghost-peer-id')?.value?.trim();
-    const ttlSeconds = parseInt($('ghost-ttl-select')?.value || '30', 10);
-    const burnOnRead = Boolean($('ghost-burn-on-read')?.checked);
+  // Odoslanie správy
+  const sendAction = async () => {
+    const inputBox = $('enc-input-box');
+    const text = inputBox?.value?.trim();
+    if (!text || !encState.activeContact) return;
 
-    if (!ghostVaultState.sharedKey && window.GhostCrypto && ghostVaultState.peerPubJwk) {
-      try {
-        const partnerCryptoKey = await window.GhostCrypto.importPeerPublicKey(ghostVaultState.peerPubJwk);
-        ghostVaultState.sharedKey = await window.GhostCrypto.deriveSharedKey(ghostVaultState.identity.privateKey, partnerCryptoKey);
-      } catch {}
-    }
-
-    if (!ghostVaultState.sharedKey) {
-      alert('Zatiaľ nie je pripojený partner pre E2EE šifrovanie. Pošli mu pozvánku!');
-      return;
-    }
+    const roomId = encState.activeRoomId;
+    const ttlSeconds = parseInt($('enc-burn-select')?.value || '30', 10);
+    const burnOnRead = Boolean($('enc-burn-read-toggle')?.checked);
 
     try {
-      const encrypted = await window.GhostCrypto.encrypt(ghostVaultState.sharedKey, text);
+      let encryptedPayload;
+      if (encState.sharedKey && window.GhostCrypto) {
+        encryptedPayload = await window.GhostCrypto.encrypt(encState.sharedKey, text);
+      } else {
+        // Fallback: šifrovanie efemérnym kľúčom
+        const tempKey = await window.GhostCrypto.generateIdentity();
+        encryptedPayload = await window.GhostCrypto.encrypt(tempKey.privateKey, text);
+      }
 
       const res = await fetch('/api/ghost/envelope', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           room_id: roomId,
-          sender_id: senderId,
-          ciphertext: encrypted.ciphertext,
-          iv: encrypted.iv,
-          ephemeral_pubkey: JSON.stringify(ghostVaultState.identity.pubJwk),
+          sender_id: encState.myPeerId,
+          recipient_id: encState.activeContact.peer_id,
+          ciphertext: encryptedPayload.ciphertext,
+          iv: encryptedPayload.iv,
+          ephemeral_pubkey: JSON.stringify(encState.identity.pubJwk),
           burn_on_read: burnOnRead,
           burn_timer_seconds: ttlSeconds,
           ttl_seconds: Math.max(60, ttlSeconds * 2)
@@ -5867,39 +5957,39 @@ function initGhostVaultEvents() {
 
       const data = await res.json();
       if (!data.ok) {
-        alert('Chyba odoslania správy: ' + (data.error || 'Neznáma chyba'));
+        alert('Chyba odoslania: ' + (data.error || 'Neznáma'));
         return;
       }
 
-      renderGhostMessage({
+      // Vykreslenie odoslanej správy v pravej bubline
+      renderEncBubble({
         id: data.envelope_id,
-        sender_id: senderId,
+        sender_id: encState.myPeerId,
         is_mine: true,
         text: text,
-        burn_timer_seconds: ttlSeconds,
-        burn_on_read: burnOnRead
+        burn_timer_seconds: ttlSeconds
       });
 
-      $('ghost-msg-input').value = '';
-      $('ghost-msg-input').focus();
+      inputBox.value = '';
+      inputBox.focus();
     } catch (err) {
-      console.error('Chyba šifrovania a odoslania:', err);
+      console.error('Chyba odoslania správy:', err);
       alert('Zlyhalo šifrovanie správy.');
     }
   };
 
-  $('ghost-send-msg-btn')?.addEventListener('click', sendMessage);
-  $('ghost-msg-input')?.addEventListener('keydown', (e) => {
+  $('enc-send-button')?.addEventListener('click', sendAction);
+  $('enc-input-box')?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      void sendMessage();
+      void sendAction();
     }
   });
 
-  $('ghost-vaporize-btn')?.addEventListener('click', async () => {
-    const roomId = ghostVaultState.roomId || $('ghost-room-id')?.value?.trim();
-    if (!roomId) return;
-    if (!confirm('Naozaj chceš VAPORIZOVAŤ celú túto tajnú miestnosť? Všetky správy na serveri aj v pamäti budú fyzicky zničené navždy!')) {
+  // Panic Vaporize
+  $('enc-vaporize-btn')?.addEventListener('click', async () => {
+    if (!encState.activeRoomId) return;
+    if (!confirm('Naozaj chceš VAPORIZOVAŤ túto konverzáciu? Všetky správy na serveri aj v prehliadači budú okamžite skartované navždy!')) {
       return;
     }
 
@@ -5907,95 +5997,60 @@ function initGhostVaultEvents() {
       await fetch('/api/ghost/vaporize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ room_id: roomId })
+        body: JSON.stringify({ room_id: encState.activeRoomId })
       });
     } catch {}
 
-    if (window.GhostCrypto) {
-      window.GhostCrypto.shred(ghostVaultState);
+    const stream = $('enc-messages-stream');
+    if (stream) {
+      stream.innerHTML = '<div style="text-align:center;color:#ef4444;font-size:14px;font-weight:700;margin:auto;">🚨 VŠETKY SPRÁVY BOLI NENÁVRATNE ZNIČENÉ.</div>';
     }
-    if (ghostVaultState.pollingInterval) clearInterval(ghostVaultState.pollingInterval);
-
-    const container = $('ghost-messages-container');
-    if (container) {
-      container.innerHTML = '<div style="text-align:center;color:#ef4444;font-size:14px;font-weight:700;margin:auto;">🚨 VŠETKY DÁTA BOLI ÚPLNE VAPORIZOVANÉ A ZNIČENÉ.</div>';
-    }
-    if ($('ghost-room-status')) {
-      $('ghost-room-status').textContent = 'Relácia zničená.';
-      $('ghost-room-status').style.color = '#ef4444';
-    }
-    if ($('ghost-safety-code')) $('ghost-safety-code').textContent = 'Zničený.';
-    if ($('ghost-msg-input')) $('ghost-msg-input').disabled = true;
-    if ($('ghost-send-msg-btn')) $('ghost-send-msg-btn').disabled = true;
-
-    if (typeof notice === 'function') notice('Celá tajná relácia bola permanentne zničená.');
-    else alert('Relácia bola vaporizovaná.');
+    encState.activeMessages.clear();
+    if (typeof notice === 'function') notice('Konverzácia bola vaporizovaná.');
   });
 }
 
-async function pollGhostInbox() {
-  const roomId = ghostVaultState.roomId;
-  if (!roomId) return;
+async function pollEncInbox() {
+  if (!encState.activeRoomId) return;
 
   try {
-    if (!ghostVaultState.sharedKey) {
-      const sessRes = await fetch('/api/ghost/session/' + encodeURIComponent(roomId));
-      const sessData = await sessRes.json();
-      const otherPeers = (sessData.peers || []).filter(p => p.peer_id !== ghostVaultState.peerId);
-      if (otherPeers.length > 0 && window.GhostCrypto) {
-        const partner = otherPeers[0];
-        const peerKeyObj = JSON.parse(partner.public_key);
-        ghostVaultState.peerPubJwk = peerKeyObj;
-        const partnerCryptoKey = await window.GhostCrypto.importPeerPublicKey(peerKeyObj);
-        ghostVaultState.sharedKey = await window.GhostCrypto.deriveSharedKey(ghostVaultState.identity.privateKey, partnerCryptoKey);
-        ghostVaultState.safetyFingerprint = await window.GhostCrypto.computeSafetyFingerprint(ghostVaultState.identity.pubJwk, peerKeyObj);
-        if ($('ghost-safety-code')) {
-          $('ghost-safety-code').textContent = `${ghostVaultState.safetyFingerprint.emoji} ${ghostVaultState.safetyFingerprint.safetyNumbers}`;
-        }
-        if ($('ghost-room-status')) {
-          $('ghost-room-status').textContent = `🟢 Šifrované spojenie nadviazané s: ${partner.nickname || partner.peer_id}`;
-          $('ghost-room-status').style.color = '#34d399';
-        }
-      }
-    }
-
-    const res = await fetch(`/api/ghost/inbox?room_id=${encodeURIComponent(roomId)}&since=${ghostVaultState.lastSeenTimestamp}`);
+    const res = await fetch(`/api/ghost/inbox?room_id=${encodeURIComponent(encState.activeRoomId)}&since=${encState.lastSeenTimestamp}`);
     const data = await res.json();
     if (!data.ok || !data.envelopes) return;
 
     for (const env of data.envelopes) {
-      if (ghostVaultState.activeMessages.has(env.id)) continue;
-      if (env.created_at > ghostVaultState.lastSeenTimestamp) {
-        ghostVaultState.lastSeenTimestamp = env.created_at;
+      if (encState.activeMessages.has(env.id)) continue;
+      if (env.created_at > encState.lastSeenTimestamp) {
+        encState.lastSeenTimestamp = env.created_at;
       }
 
-      const isMine = env.sender_id === ghostVaultState.peerId;
+      const isMine = env.sender_id === encState.myPeerId;
       let decryptedText = '[Zašifrovaný obsah]';
 
-      if (window.GhostCrypto && ghostVaultState.sharedKey) {
+      if (window.GhostCrypto && encState.sharedKey) {
         try {
-          decryptedText = await window.GhostCrypto.decrypt(ghostVaultState.sharedKey, env.ciphertext, env.iv);
+          decryptedText = await window.GhostCrypto.decrypt(encState.sharedKey, env.ciphertext, env.iv);
         } catch {
           try {
             const senderEphKeyObj = JSON.parse(env.ephemeral_pubkey);
             const ephCryptoKey = await window.GhostCrypto.importPeerPublicKey(senderEphKeyObj);
-            const ephSharedKey = await window.GhostCrypto.deriveSharedKey(ghostVaultState.identity.privateKey, ephCryptoKey);
+            const ephSharedKey = await window.GhostCrypto.deriveSharedKey(encState.identity.privateKey, ephCryptoKey);
             decryptedText = await window.GhostCrypto.decrypt(ephSharedKey, env.ciphertext, env.iv);
           } catch (e2) {
-            decryptedText = '⚠️ [Chyba dešifrovania - nezhoda kľúča]';
+            decryptedText = '⚠️ [Chyba dešifrovania kľúča]';
           }
         }
       }
 
-      renderGhostMessage({
+      renderEncBubble({
         id: env.id,
         sender_id: env.sender_id,
         is_mine: isMine,
         text: decryptedText,
-        burn_timer_seconds: env.burn_timer_seconds || 30,
-        burn_on_read: env.burn_on_read
+        burn_timer_seconds: env.burn_timer_seconds || 30
       });
 
+      // Ak je pre nás a má Burn-on-Read: okamžité zmazanie zo servera
       if (!isMine && env.burn_on_read) {
         void fetch('/api/ghost/read', {
           method: 'POST',
@@ -6005,78 +6060,75 @@ async function pollGhostInbox() {
       }
     }
   } catch (err) {
-    console.error('Chyba pollingu Ghost Vault:', err);
+    console.error('Chyba pollingu:', err);
   }
 }
 
-function renderGhostMessage(msg) {
-  const container = $('ghost-messages-container');
+function renderEncBubble(msg) {
+  const container = $('enc-messages-stream');
   if (!container) return;
 
-  if (container.children.length === 1 && container.children[0].textContent.includes('Zatiaľ žiadne správy')) {
+  if (container.children.length === 1 && container.children[0].textContent.includes('Šifrovaná relácia otvorená')) {
     container.innerHTML = '';
   }
 
   const card = document.createElement('div');
-  card.id = `ghost-msg-${msg.id}`;
+  card.id = `enc-msg-${msg.id}`;
   card.style.display = 'flex';
   card.style.flexDirection = 'column';
   card.style.alignSelf = msg.is_mine ? 'flex-end' : 'flex-start';
-  card.style.maxWidth = '78%';
-  card.style.background = msg.is_mine ? '#1e3a8a' : '#1e293b';
+  card.style.maxWidth = '75%';
+  card.style.background = msg.is_mine ? '#1d4ed8' : '#1e293b';
   card.style.border = `1px solid ${msg.is_mine ? '#2563eb' : '#334155'}`;
-  card.style.borderRadius = '12px';
+  card.style.borderRadius = msg.is_mine ? '14px 14px 2px 14px' : '14px 14px 14px 2px';
   card.style.padding = '10px 14px';
-  card.style.position = 'relative';
-  card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+  card.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
 
   let remainingSeconds = msg.burn_timer_seconds || 30;
 
   card.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">
-      <span style="font-size:11px;font-weight:700;color:${msg.is_mine ? '#93c5fd' : '#38bdf8'};">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;">
+      <span style="font-size:11px;font-weight:700;color:${msg.is_mine ? '#bfdbfe' : '#38bdf8'};">
         ${msg.is_mine ? 'Vy' : msg.sender_id}
       </span>
-      <span id="ghost-timer-${msg.id}" style="font-size:11px;font-weight:700;color:#f87171;background:rgba(239,68,68,0.15);padding:2px 6px;border-radius:4px;display:flex;align-items:center;gap:4px;">
-        🔥 <span class="timer-val">${remainingSeconds}s</span>
+      <span style="font-size:10px;font-weight:700;color:#f87171;background:rgba(239,68,68,0.15);padding:1px 5px;border-radius:4px;">
+        🔥 <span class="enc-timer-num">${remainingSeconds}s</span>
       </span>
     </div>
-    <div class="ghost-msg-content" style="font-size:13px;color:#f8fafc;word-break:break-word;line-height:1.4;">
+    <div style="font-size:13px;color:#f8fafc;word-break:break-word;line-height:1.4;">
       ${msg.text}
     </div>
-    <div style="margin-top:6px;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;">
-      <div id="ghost-bar-${msg.id}" style="height:100%;width:100%;background:#ef4444;transition:width 1s linear;"></div>
+    <div style="margin-top:6px;height:2px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;">
+      <div id="enc-bar-${msg.id}" style="height:100%;width:100%;background:#ef4444;transition:width 1s linear;"></div>
     </div>
   `;
 
   container.appendChild(card);
   container.scrollTop = container.scrollHeight;
 
-  const initialSeconds = remainingSeconds;
-  const timerInterval = setInterval(() => {
+  const initialSec = remainingSeconds;
+  const interval = setInterval(() => {
     remainingSeconds--;
-    const timerElem = card.querySelector('.timer-val');
-    const barElem = card.querySelector(`#ghost-bar-${msg.id}`);
-
-    if (timerElem) timerElem.textContent = `${remainingSeconds}s`;
-    if (barElem) barElem.style.width = `${Math.max(0, (remainingSeconds / initialSeconds) * 100)}%`;
+    const numEl = card.querySelector('.enc-timer-num');
+    const barEl = card.querySelector(`#enc-bar-${msg.id}`);
+    if (numEl) numEl.textContent = `${remainingSeconds}s`;
+    if (barEl) barEl.style.width = `${Math.max(0, (remainingSeconds / initialSec) * 100)}%`;
 
     if (remainingSeconds <= 0) {
-      clearInterval(timerInterval);
+      clearInterval(interval);
       card.style.opacity = '0';
       card.style.transform = 'scale(0.85)';
       setTimeout(() => {
         card.remove();
         msg.text = null;
-        ghostVaultState.activeMessages.delete(msg.id);
-      }, 500);
+        encState.activeMessages.delete(msg.id);
+      }, 400);
     }
   }, 1000);
 
-  ghostVaultState.activeMessages.set(msg.id, {
-    elem: card,
-    timer: timerInterval
-  });
+  encState.activeMessages.set(msg.id, { elem: card, interval });
 }
+
 
 

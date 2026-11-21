@@ -222,5 +222,13 @@ describe('Trinity Ghost Vault & E2EE Sovereign Whisper', () => {
     assert.equal(vaporizeJson.vaporized, true);
     assert.equal(mockStorage.envelopes.size, 0);
     assert.equal(mockStorage.sessions.size, 0);
+
+    // 8. Vyhľadávanie v adresári kontaktov
+    const contactsReq = new Request('https://auru.space/api/ghost/contacts?q=basterix');
+    const contactsRes = await handleGhostVaultApi(contactsReq, mockEnv);
+    assert.equal(contactsRes.status, 200);
+    const contactsJson = await contactsRes.json();
+    assert.ok(contactsJson.ok);
+    assert.ok(contactsJson.contacts.some(c => c.peer_id === 'basterix'));
   });
 });

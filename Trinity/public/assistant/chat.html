@@ -14,7 +14,7 @@
     <button data-view="domains"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><b>Domény &amp; Hosting</b></button>
     <button data-view="wallet"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span><b>Platby &amp; Peňaženka</b></button>
     <button data-view="connect" id="connect-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span><b>Prepojenia &amp; Siete</b></button>
-    <button data-view="ghost" id="ghost-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm3 7a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></span><b>Ghost Vault (E2EE)</b></button>
+    <button data-view="encrypted_shits" id="encrypted-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm3 7a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></span><b>encrypted_shits</b></button>
     <button data-view="crypto" id="crypto-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><polygon points="12 2 21 8.5 21 15.5 12 22 3 15.5 3 8.5 12 2"/></svg></span><b>Tetrakis ($TTK)</b></button>
     <button data-view="documents"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><b>Dokumentácia</b></button>
     <button data-view="settings"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><b data-i18n="settings">Nastavenia &amp; Licencie</b></button>
@@ -263,92 +263,119 @@
       </div>
     </section>
 
-    <!-- TRINITY GHOST VAULT (ZERO-KNOWLEDGE E2EE EPHEMERAL MESSENGER) -->
-    <section id="ghost-view" class="view ghost-view" hidden style="padding:20px;max-width:1100px;margin:0 auto;overflow-y:auto;height:calc(100vh - 70px);">
-      <div style="margin-bottom:20px;text-align:center;">
-        <h2 style="font-size:24px;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;">
-          <span style="background:rgba(239,68,68,0.15);color:#ef4444;padding:6px 12px;border-radius:10px;font-size:20px;border:1px solid rgba(239,68,68,0.3);">🛡️ E2EE</span>
-          Trinity Ghost Vault · Tajný Šifrovaný Chat
-        </h2>
-        <p style="color:#94a3b8;font-size:13px;max-width:800px;margin:6px auto 0 auto;">
-          Nekompromisné end-to-end šifrovanie (ECDH Curve P-256 + 256-bit AES-GCM). Súkromné kľúče existujú <strong>iba vo vašom prehliadači</strong>. Server správy nevie dešifrovať a po prečítaní alebo uplynutí času ich <strong>trvalo zničí</strong>.
-        </p>
-      </div>
-
-      <!-- Security Status Bar -->
-      <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;">
+    <!-- ENCRYPTED_SHITS · SOVEREIGN E2EE EPHEMERAL MESSENGER (TELEGRAM / SIGNAL STYLE) -->
+    <section id="encrypted_shits-view" class="view encrypted_shits-view ghost-view" hidden style="padding:14px;max-width:1240px;margin:0 auto;height:calc(100vh - 65px);display:flex;flex-direction:column;box-sizing:border-box;">
+      
+      <!-- Top Bar -->
+      <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;"></span>
-          <span style="font-size:12px;color:#f8fafc;font-weight:600;">Zero-Knowledge Blind Relay: <span style="color:#34d399;">AKTÍVNE</span></span>
+          <h2 style="font-size:20px;color:#fff;margin:0;display:flex;align-items:center;gap:8px;">
+            <span style="background:rgba(239,68,68,0.2);color:#ef4444;padding:4px 10px;border-radius:8px;font-size:16px;border:1px solid rgba(239,68,68,0.3);">🔒 E2EE</span>
+            encrypted_shits
+          </h2>
+          <span style="font-size:11px;color:#94a3b8;">Zero-Knowledge šifrovaný messenger s automatickou sebadeštrukciou správ</span>
         </div>
-        <div id="ghost-fingerprint-box" style="font-size:12px;color:#94a3b8;font-family:monospace;background:#1e293b;padding:4px 10px;border-radius:6px;">
-          Bezpečnostný kód: <span id="ghost-safety-code" style="color:#38bdf8;">Inicializuje sa...</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;"></span>
+          <span style="font-size:11px;color:#34d399;font-weight:600;">Súkromné kľúče bezpečne v prehliadači</span>
         </div>
-        <button type="button" id="ghost-vaporize-btn" class="danger" style="background:#ef4444;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
-          🚨 Vaporizovať / Zničiť chat
-        </button>
       </div>
 
-      <!-- Room & Key Exchange Setup -->
-      <div class="panel" style="background:#131d31;border:1px solid #1e2d4a;border-radius:12px;padding:18px;margin-bottom:18px;">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;align-items:end;">
-          <div>
-            <label style="display:block;font-size:11px;color:#94a3b8;margin-bottom:4px;font-weight:600;">Meno tajnej miestnosti (Room ID):</label>
-            <input type="text" id="ghost-room-id" placeholder="napr. vault-secret-alpha" style="width:100%;padding:8px 12px;background:#0b0f19;border:1px solid #2d3b55;border-radius:8px;color:#fff;font-size:13px;">
-          </div>
-          <div>
-            <label style="display:block;font-size:11px;color:#94a3b8;margin-bottom:4px;font-weight:600;">Tvoje kódové meno (Alias):</label>
-            <input type="text" id="ghost-peer-id" placeholder="napr. Basterix" style="width:100%;padding:8px 12px;background:#0b0f19;border:1px solid #2d3b55;border-radius:8px;color:#fff;font-size:13px;">
-          </div>
-          <div>
-            <label style="display:block;font-size:11px;color:#94a3b8;margin-bottom:4px;font-weight:600;">Sebadeštrukcia správ (TTL časovač):</label>
-            <select id="ghost-ttl-select" style="width:100%;padding:8px 12px;background:#0b0f19;border:1px solid #2d3b55;border-radius:8px;color:#fff;font-size:13px;">
-              <option value="15">🔥 15 sekúnd (Ultra rýchle zničenie)</option>
-              <option value="30" selected>🔥 30 sekúnd (Odporúčané)</option>
-              <option value="60">⏳ 1 minúta</option>
-              <option value="300">⏳ 5 minút</option>
-              <option value="3600">⏳ 1 hodina</option>
-              <option value="86400">⏳ 24 hodín</option>
-            </select>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button type="button" id="ghost-join-btn" class="primary" style="flex:1;padding:8px 14px;border-radius:8px;font-weight:600;font-size:13px;">
-              🔑 Vstúpiť do Vaultu
-            </button>
-            <button type="button" id="ghost-invite-btn" class="secondary" style="padding:8px 14px;border-radius:8px;font-weight:600;font-size:13px;">
+      <!-- Split Layout: Contacts (Left) & Chat Thread (Right) -->
+      <div style="display:flex;flex:1;background:#0d1424;border:1px solid #1e293b;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.6);min-height:0;">
+        
+        <!-- LEFT PANEL: Contacts Directory (320px) -->
+        <div style="width:320px;min-width:280px;background:#0f172a;border-right:1px solid #1e293b;display:flex;flex-direction:column;">
+          
+          <!-- My Profile Card -->
+          <div style="padding:12px 14px;background:#131d31;border-bottom:1px solid #1e293b;display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+              <div id="enc-my-avatar" style="width:34px;height:34px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;flex-shrink:0;">B</div>
+              <div style="min-width:0;">
+                <div id="enc-my-name" style="font-size:13px;font-weight:700;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Basterix</div>
+                <div style="font-size:10px;color:#34d399;">🟢 Online · Kľúč P-256</div>
+              </div>
+            </div>
+            <button type="button" id="enc-copy-my-link-btn" title="Kopírovať môj tajný odkaz" class="secondary" style="padding:4px 8px;font-size:11px;border-radius:6px;flex-shrink:0;">
               🔗 Pozvánka
             </button>
           </div>
-        </div>
-        <div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#cbd5e1;cursor:pointer;">
-            <input type="checkbox" id="ghost-burn-on-read" checked>
-            <strong>Burn-on-Read:</strong> Zmazať zo servera v milisekunde po potvrdení dešifrovania
-          </label>
-          <span id="ghost-room-status" style="font-size:11px;color:#fbbf24;margin-left:auto;">Neaktívna relácia (zadaj Room a klikni Vstúpiť)</span>
-        </div>
-      </div>
 
-      <!-- Messages Stream Panel -->
-      <div class="panel" style="background:#0b0f19;border:1px solid #1e2d4a;border-radius:12px;display:flex;flex-direction:column;height:420px;overflow:hidden;margin-bottom:18px;">
-        <div style="padding:10px 16px;background:#131d31;border-bottom:1px solid #1e2d4a;display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:12px;color:#94a3b8;font-weight:600;">🔒 ZAŠIFROVANÝ DÁTOVÝ TOK (IN-MEMORY ONLY)</span>
-          <span id="ghost-active-peers" style="font-size:11px;color:#34d399;">Účastníci: 0</span>
-        </div>
+          <!-- Search Contacts -->
+          <div style="padding:10px 12px;border-bottom:1px solid #1e293b;background:#0b0f19;">
+            <div style="position:relative;">
+              <input type="text" id="enc-search-input" placeholder="🔍 Vyhľadať kontakt alebo alias..." style="width:100%;padding:7px 10px;background:#131d31;border:1px solid #2d3b55;border-radius:8px;color:#fff;font-size:12px;box-sizing:border-box;">
+            </div>
+          </div>
 
-        <div id="ghost-messages-container" style="flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
-          <div style="text-align:center;color:#64748b;font-size:12px;margin:auto;">
-            Zatiaľ žiadne správy. Zadaj Room ID, tvoj alias a klikni na <strong>Vstúpiť do Vaultu</strong>.<br>
-            Po vstupe pošli tajný odkaz partnerovi cez Telegram, Signal, WhatsApp alebo Viber.
+          <!-- Contacts List -->
+          <div id="enc-contacts-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding:6px 0;">
+            <div style="padding:20px;text-align:center;color:#64748b;font-size:12px;">Načítavam kontakty...</div>
+          </div>
+
+          <!-- Add Custom Peer Footer -->
+          <div style="padding:10px 12px;background:#131d31;border-top:1px solid #1e293b;display:flex;gap:6px;">
+            <input type="text" id="enc-custom-peer-input" placeholder="Nový alias / ID..." style="flex:1;padding:6px 10px;background:#0b0f19;border:1px solid #2d3b55;border-radius:6px;color:#fff;font-size:11px;">
+            <button type="button" id="enc-add-peer-btn" class="primary" style="padding:6px 10px;font-size:11px;border-radius:6px;font-weight:600;">
+              ➕ Chat
+            </button>
           </div>
         </div>
 
-        <!-- Composer -->
-        <div style="padding:12px 16px;background:#131d31;border-top:1px solid #1e2d4a;display:flex;gap:10px;">
-          <input type="text" id="ghost-msg-input" placeholder="Napíš prísne tajnú správu..." style="flex:1;padding:10px 14px;background:#0b0f19;border:1px solid #2d3b55;border-radius:8px;color:#fff;font-size:13px;" disabled>
-          <button type="button" id="ghost-send-msg-btn" class="primary" style="padding:10px 20px;border-radius:8px;font-weight:600;font-size:13px;" disabled>
-            🔒 Odoslať
-          </button>
+        <!-- RIGHT PANEL: Active Chat Thread -->
+        <div style="flex:1;display:flex;flex-direction:column;background:#090d16;min-width:0;">
+          
+          <!-- Active Contact Header -->
+          <div style="padding:10px 16px;background:#131d31;border-bottom:1px solid #1e293b;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+              <div id="enc-active-avatar" style="width:36px;height:36px;border-radius:50%;background:#334155;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;flex-shrink:0;">?</div>
+              <div style="min-width:0;">
+                <div id="enc-active-name" style="font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Vyberte kontakt zo zoznamu</div>
+                <div id="enc-active-safety" style="font-size:10px;color:#38bdf8;font-family:monospace;">
+                  🔒 E2EE · Zvoľte kontakt vľavo
+                </div>
+              </div>
+            </div>
+
+            <!-- Ephemeral Burn & Panic Controls -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:6px;background:#0f172a;padding:4px 8px;border-radius:8px;border:1px solid #1e293b;">
+                <span style="font-size:11px;color:#f87171;">🔥 Časovač:</span>
+                <select id="enc-burn-select" style="padding:2px 6px;background:#1e293b;border:none;border-radius:4px;color:#fff;font-size:11px;">
+                  <option value="15">15s</option>
+                  <option value="30" selected>30s</option>
+                  <option value="60">1m</option>
+                  <option value="300">5m</option>
+                  <option value="3600">1h</option>
+                  <option value="86400">24h</option>
+                </select>
+                <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#cbd5e1;cursor:pointer;margin-left:4px;">
+                  <input type="checkbox" id="enc-burn-read-toggle" checked> Burn-on-read
+                </label>
+              </div>
+
+              <button type="button" id="enc-vaporize-btn" class="danger" style="background:#ef4444;color:#fff;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">
+                🚨 Vaporizovať
+              </button>
+            </div>
+          </div>
+
+          <!-- Messages Stream -->
+          <div id="enc-messages-stream" style="flex:1;padding:16px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;">
+            <div style="text-align:center;color:#64748b;font-size:12px;margin:auto;">
+              Vyberte kontakt v zozname vľavo alebo použite vyhľadávanie pre zahájenie šifrovanej konverzácie.<br>
+              <small style="color:#475569;display:block;margin-top:4px;">Všetky správy sú end-to-end šifrované a po prečítaní navždy zhoria.</small>
+            </div>
+          </div>
+
+          <!-- Composer Bar -->
+          <div style="padding:10px 16px;background:#131d31;border-top:1px solid #1e293b;display:flex;align-items:center;gap:8px;">
+            <input type="text" id="enc-input-box" placeholder="Vyberte kontakt..." style="flex:1;padding:10px 14px;background:#0b0f19;border:1px solid #2d3b55;border-radius:8px;color:#fff;font-size:13px;box-sizing:border-box;" disabled>
+            <button type="button" id="enc-send-button" class="primary" style="padding:10px 18px;border-radius:8px;font-weight:700;font-size:13px;" disabled>
+              🔒 Odoslať
+            </button>
+          </div>
+
         </div>
       </div>
     </section>

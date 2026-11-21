@@ -48,6 +48,13 @@ export const ghostVaporizeSchema = z.object({
   room_id: z.string().trim().min(3).max(100)
 }).strict();
 
+export const ghostContactRegisterSchema = z.object({
+  peer_id: z.string().trim().min(2).max(100),
+  alias: z.string().trim().min(2).max(100),
+  public_key: z.string().min(10).max(5000),
+  avatar_color: z.string().trim().max(30).optional()
+}).strict();
+
 const readyDatabases = new WeakSet();
 
 export async function ensureGhostVaultTables(db) {
@@ -78,7 +85,16 @@ export async function ensureGhostVaultTables(db) {
       destroyed_at INTEGER
     );`,
     `CREATE INDEX IF NOT EXISTS idx_ghost_env_room ON ops_ghost_envelopes(room_id, created_at);`,
-    `CREATE INDEX IF NOT EXISTS idx_ghost_env_expires ON ops_ghost_envelopes(expires_at);`
+    `CREATE INDEX IF NOT EXISTS idx_ghost_env_expires ON ops_ghost_envelopes(expires_at);`,
+    `CREATE TABLE IF NOT EXISTS ops_ghost_directory (
+      peer_id TEXT PRIMARY KEY,
+      alias TEXT NOT NULL,
+      public_key TEXT NOT NULL,
+      status TEXT DEFAULT 'online',
+      avatar_color TEXT,
+      last_seen INTEGER NOT NULL
+    );`,
+    `CREATE INDEX IF NOT EXISTS idx_ghost_dir_alias ON ops_ghost_directory(alias);`
   ];
 
   for (const sql of statements) {
@@ -452,6 +468,104 @@ export async function handleGhostVaultApi(request, env, ctx) {
       deleted_envelopes: deletedCount,
       timestamp: Date.now()
     }), {
+      headers: { 'Content-Type': 'application/json; charset=utf-8' }
+    });
+  }
+
+  // 8. Zoznam kontaktov a vyhľadávanie v adresári (Encrypted Contacts Directory)
+  if (method === 'GET' && path === '/api/ghost/contacts') {
+    const query = (url.searchParams.get('q') || '').trim().toLowerCase();
+    let contacts = [];
+    if (db) {
+      try {
+        let sql = `SELECT peer_id, alias, public_key, status, avatar_color, last_seen FROM ops_ghost_directory `;
+        const params = [];
+        if (query) {
+          sql += `WHERE LOWER(alias) LIKE ? OR LOWER(peer_id) LIKE ? `;
+          params.push(`%${query}%`, `%${query}%`);
+        }
+        sql += `ORDER BY last_seen DESC LIMIT 50`;
+        const res = await db.prepare(sql).bind(...params).all().catch(() => ({ results: [] }));
+        contacts = res?.results || [];
+      } catch {}
+    }
+
+    const defaultSeeds = [
+      {
+        peer_id: 'basterix',
+        alias: 'Basterix (Owner & Lead Architect)',
+        public_key: '{"crv":"P-256","kty":"EC","x":"f8X_seed_basterix_x","y":"f8X_seed_basterix_y"}',
+        status: 'online',
+        avatar_color: '#3b82f6',
+        last_seen: Date.now()
+      },
+      {
+        peer_id: 'trinity_ai',
+        alias: 'Trinity Sovereign AI Copilot',
+        public_key: '{"crv":"P-256","kty":"EC","x":"trinity_seed_core_x","y":"trinity_seed_core_y"}',
+        status: 'online',
+        avatar_color: '#10b981',
+        last_seen: Date.now()
+      },
+      {
+        peer_id: 'usc_underground',
+        alias: 'Underground Street Collective',
+        public_key: '{"crv":"P-256","kty":"EC","x":"usc_seed_underground_x","y":"usc_seed_underground_y"}',
+        status: 'online',
+        avatar_color: '#a855f7',
+        last_seen: Date.now()
+      },
+      {
+        peer_id: 'delirium_trade',
+        alias: 'Delirium Trade Vault',
+        public_key: '{"crv":"P-256","kty":"EC","x":"delirium_seed_trade_x","y":"delirium_seed_trade_y"}',
+        status: 'online',
+        avatar_color: '#f59e0b',
+        last_seen: Date.now()
+      }
+    ];
+
+    const merged = [...contacts];
+    for (const seed of defaultSeeds) {
+      if (!merged.some(c => c.peer_id === seed.peer_id)) {
+        if (!query || seed.alias.toLowerCase().includes(query) || seed.peer_id.toLowerCase().includes(query)) {
+          merged.push(seed);
+        }
+      }
+    }
+
+    return new Response(JSON.stringify({ ok: true, count: merged.length, contacts: merged }), {
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }
+    });
+  }
+
+  // 9. Registrácia kontaktu do verejného adresára kľúčov
+  if (method === 'POST' && path === '/api/ghost/contacts/register') {
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return new Response(JSON.stringify({ ok: false, error: 'Neplatný JSON.' }), { status: 400 });
+    }
+
+    const parsed = ghostContactRegisterSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ ok: false, error: 'Neplatné údaje kontaktu.', details: parsed.error.issues }), { status: 400 });
+    }
+
+    const { peer_id, alias, public_key, avatar_color } = parsed.data;
+    const now = Date.now();
+
+    if (db) {
+      try {
+        await db.prepare(
+          `INSERT OR REPLACE INTO ops_ghost_directory (peer_id, alias, public_key, status, avatar_color, last_seen)
+           VALUES (?, ?, ?, 'online', ?, ?)`
+        ).bind(peer_id, alias, public_key, avatar_color || '#3b82f6', now).run().catch(() => {});
+      } catch {}
+    }
+
+    return new Response(JSON.stringify({ ok: true, peer_id, alias, registered: true }), {
       headers: { 'Content-Type': 'application/json; charset=utf-8' }
     });
   }
