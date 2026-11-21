@@ -5444,6 +5444,7 @@ function initCommandPalette(){
     {label:'Finančné centrum & Terminály',hint:'#wallet',run:()=>setView('wallet')},
     {label:'Komodity & Trhy',hint:'#commodities',run:()=>setView('commodities')},
     {label:'Právne centrum, Licencie & AUP',hint:'Legal',run:openLegalDialog},
+    {label:'Sovereign Ledger · Audit integrity',hint:'Shield',run:()=>$('sovereign-shield-badge')?.click()},
     {label:'Nastavenia · Governance & Anti-Spam',hint:'#settings',run:async()=>{await setView('settings');const btn=document.querySelector('[data-settings-filter="governance"]');btn?.click();}},
     {label:'Otvoriť Nastavenia a Kľúče',hint:'#settings',run:()=>setView('settings')},
     {label:'Prepnúť vzhľad (Tmavý / Svetlý)',hint:'UI',run:()=>$('theme')?.click()},
@@ -5470,3 +5471,75 @@ function initCommandPalette(){
 }
 initGovernanceControls();
 initCommandPalette();
+
+async function refreshSovereignShield() {
+  try {
+    const res = await fetch('/api/audit-ledger/verify').then(r => r.json()).catch(() => null);
+    if (!res) return;
+    const text = $('sovereign-shield-text');
+    if (text) {
+      text.textContent = res.valid ? `Shield: ${res.chainLength} blokov` : 'Shield: Neoverený';
+    }
+    const statusVal = $('shield-status-val');
+    const chainVal = $('shield-chain-val');
+    const headHash = $('shield-head-hash');
+    if (statusVal) statusVal.textContent = res.valid ? 'PLATNÝ (OVERENÝ)' : 'NEPLATNÝ';
+    if (chainVal) chainVal.textContent = `${res.chainLength} blokov`;
+    if (headHash && res.headHash) headHash.textContent = res.headHash;
+  } catch (e) {
+    console.error('Failed to refresh sovereign shield:', e);
+  }
+}
+
+async function loadSovereignShieldBlocks() {
+  const list = $('shield-blocks-list');
+  if (!list) return;
+  try {
+    const data = await fetch('/api/audit-ledger?limit=8').then(r => r.json()).catch(() => ({ blocks: [] }));
+    list.replaceChildren();
+    const blocks = data.blocks || data.results || [];
+    if (!blocks.length) {
+      list.append(node('div', 'Zatiaľ žiadne záznamy.', ''));
+      return;
+    }
+    for (const b of blocks) {
+      const item = node('div', undefined, '');
+      item.style.padding = '6px 10px';
+      item.style.background = 'rgba(255,255,255,0.03)';
+      item.style.borderRadius = '4px';
+      item.style.borderLeft = '3px solid #10b981';
+      const actor = b.actor || 'system';
+      const op = b.operation || 'AUDIT';
+      const time = b.timestamp ? new Date(b.timestamp).toLocaleTimeString('sk-SK') : '';
+      item.innerHTML = `<span style="color:#60a5fa;">#${b.block_index}</span> <b style="color:#e2e8f0;">${op}</b> by <span style="color:#cbd5e1;">${actor}</span> <small style="color:#64748b;float:right;">${time}</small><br><span style="color:#64748b;font-size:10px;">Hash: ${String(b.hash||'').slice(0, 24)}...</span>`;
+      list.append(item);
+    }
+  } catch {
+    list.textContent = 'Chyba pri načítaní blokov.';
+  }
+}
+
+function initSovereignShield() {
+  const badge = $('sovereign-shield-badge');
+  const dialog = $('sovereign-shield-dialog');
+  const refreshBtn = $('shield-refresh-btn');
+  if (badge && dialog) {
+    badge.onclick = () => {
+      openDialogSafe(dialog);
+      void refreshSovereignShield();
+      void loadSovereignShieldBlocks();
+    };
+  }
+  if (refreshBtn) {
+    refreshBtn.onclick = () => {
+      void refreshSovereignShield();
+      void loadSovereignShieldBlocks();
+    };
+  }
+  const closeBtn = dialog?.querySelector('[data-close="sovereign-shield-dialog"]');
+  if (closeBtn) closeBtn.onclick = () => closeDialogSafe(dialog);
+  void refreshSovereignShield();
+  setInterval(refreshSovereignShield, 60_000);
+}
+initSovereignShield();
+
