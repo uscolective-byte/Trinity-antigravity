@@ -56,6 +56,27 @@ export const ghostContactRegisterSchema = z.object({
   avatar_color: z.string().trim().max(30).optional()
 }).strict();
 
+export const ghostHeartbeatSchema = z.object({
+  peer_id: z.string().trim().min(2).max(100),
+  alias: z.string().trim().min(2).max(100).optional(),
+  public_key: z.string().min(10).max(5000).optional(),
+  avatar_color: z.string().trim().max(30).optional()
+}).strict();
+
+/**
+ * Dynamický výpočet stavu online prítomnosti (Presence) podľa timestampu last_seen.
+ * - <= 120 sekúnd: online (🟢)
+ * - <= 900 sekúnd (15 min): away (🟡)
+ * - staršie: offline (⚪)
+ */
+export function computePresenceStatus(lastSeen, now = Date.now()) {
+  if (!lastSeen) return 'offline';
+  const diff = now - Number(lastSeen);
+  if (diff <= 120_000) return 'online';
+  if (diff <= 900_000) return 'away';
+  return 'offline';
+}
+
 const readyDatabases = new WeakSet();
 
 export async function ensureGhostVaultTables(db) {
@@ -506,6 +527,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
       } catch {}
     }
 
+    const now = Date.now();
     const defaultSeeds = [
       {
         peer_id: 'basterix',
@@ -514,7 +536,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
         status: 'online',
         avatar_color: '#3b82f6',
         is_registered: true,
-        last_seen: Date.now()
+        last_seen: now
       },
       {
         peer_id: 'trinity_ai',
@@ -523,16 +545,16 @@ export async function handleGhostVaultApi(request, env, ctx) {
         status: 'online',
         avatar_color: '#10b981',
         is_registered: true,
-        last_seen: Date.now()
+        last_seen: now
       },
       {
         peer_id: 'usc_underground',
         alias: 'Underground Street Collective',
         public_key: '{"crv":"P-256","kty":"EC","x":"4s3EixOXcG6JqHp9x16kZBpYPZ_8jYzMFqpNpswYfTA","y":"nuHHFdlFdcNfTjLiSmTkWxPb-2K9pubhcnsJanvDHaY"}',
-        status: 'online',
+        status: 'away',
         avatar_color: '#a855f7',
         is_registered: true,
-        last_seen: Date.now()
+        last_seen: now - 360_000
       },
       {
         peer_id: 'delirium_trade',
@@ -541,13 +563,17 @@ export async function handleGhostVaultApi(request, env, ctx) {
         status: 'online',
         avatar_color: '#f59e0b',
         is_registered: true,
-        last_seen: Date.now()
+        last_seen: now
       }
     ];
 
     const ghostPeerMap = new Map();
     for (const c of ghostContacts) {
-      ghostPeerMap.set(c.peer_id, c);
+      const dynamicStatus = computePresenceStatus(c.last_seen, now);
+      ghostPeerMap.set(c.peer_id, {
+        ...c,
+        status: dynamicStatus
+      });
     }
 
     const merged = [];
@@ -557,17 +583,22 @@ export async function handleGhostVaultApi(request, env, ctx) {
       const email = u.email || '';
       const peerId = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_-]/g, '_');
       const existingGhost = ghostPeerMap.get(peerId);
+      const ghostLastSeen = existingGhost?.last_seen ? Number(existingGhost.last_seen) : null;
+      const userLastLogin = u.last_login_at ? new Date(u.last_login_at).getTime() : null;
+      const effectiveLastSeen = Math.max(ghostLastSeen || 0, userLastLogin || 0);
+      const dynamicStatus = computePresenceStatus(effectiveLastSeen, now);
+
       merged.push({
         peer_id: peerId,
         alias: u.display_name || email.split('@')[0],
         email: email,
         role: u.role || 'user',
         is_registered: true,
-        status: u.status === 'active' || u.status === 'user' ? 'online' : (u.status || 'online'),
+        status: dynamicStatus,
         avatar_color: u.role === 'admin' ? '#ef4444' : '#2563eb',
         avatar_url: u.avatar_url || null,
         public_key: existingGhost?.public_key || null,
-        last_seen: u.last_login_at ? new Date(u.last_login_at).getTime() : Date.now()
+        last_seen: effectiveLastSeen
       });
       ghostPeerMap.delete(peerId);
     }
@@ -655,6 +686,45 @@ export async function handleGhostVaultApi(request, env, ctx) {
 
     return new Response(JSON.stringify({ ok: true, peer_id, alias, registered: true }), {
       headers: { 'Content-Type': 'application/json; charset=utf-8' }
+    });
+  }
+
+  // 10. Heartbeat pre udržanie aktívneho stavu online (Presence)
+  if (method === 'POST' && (path === '/api/ghost/heartbeat' || path === '/api/ghost/contacts/heartbeat')) {
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return new Response(JSON.stringify({ ok: false, error: 'Neplatný JSON.' }), { status: 400 });
+    }
+
+    const parsed = ghostHeartbeatSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ ok: false, error: 'Neplatné dáta heartbeat.', details: parsed.error.issues }), { status: 400 });
+    }
+
+    const { peer_id, alias, public_key, avatar_color } = parsed.data;
+    const now = Date.now();
+
+    if (db) {
+      try {
+        const updateRes = await db.prepare(
+          `UPDATE ops_ghost_directory SET last_seen = ?, status = 'online' WHERE peer_id = ?`
+        ).bind(now, peer_id).run().catch(() => null);
+
+        if ((!updateRes || updateRes.meta?.changes === 0) && alias && public_key) {
+          await db.prepare(
+            `INSERT INTO ops_ghost_directory (peer_id, alias, public_key, status, avatar_color, last_seen)
+             VALUES (?, ?, ?, 'online', ?, ?)`
+          ).bind(peer_id, alias, public_key, avatar_color || '#3b82f6', now).run().catch(() => {});
+        }
+      } catch (err) {
+        console.error('Chyba zápisu heartbeat:', err);
+      }
+    }
+
+    return new Response(JSON.stringify({ ok: true, peer_id, last_seen: now, status: 'online' }), {
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }
     });
   }
 

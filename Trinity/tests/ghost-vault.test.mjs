@@ -1,7 +1,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import GhostCrypto from '../public/ghost-crypto.js';
-import { handleGhostVaultApi, ensureGhostVaultTables } from '../src/ghost-vault.js';
+import { handleGhostVaultApi, ensureGhostVaultTables, computePresenceStatus } from '../src/ghost-vault.js';
 
 describe('Trinity Ghost Vault & E2EE Sovereign Whisper', () => {
 
@@ -239,5 +239,33 @@ describe('Trinity Ghost Vault & E2EE Sovereign Whisper', () => {
     const svgText = await qrRes.text();
     assert.ok(svgText.includes('<svg'));
     assert.ok(svgText.includes('role="img"'));
+
+    // 10. Overenie dynamického Presence Heartbeatu a stavov online
+    const hbReq = new Request('https://auru.space/api/ghost/heartbeat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        peer_id: 'alice',
+        alias: 'Alice Test',
+        avatar_color: '#3b82f6'
+      })
+    });
+    const hbRes = await handleGhostVaultApi(hbReq, mockEnv);
+    assert.equal(hbRes.status, 200);
+    const hbJson = await hbRes.json();
+    assert.equal(hbJson.ok, true);
+    assert.equal(hbJson.peer_id, 'alice');
+    assert.equal(hbJson.status, 'online');
+    assert.ok(typeof hbJson.last_seen === 'number');
+
+    // 11. Overenie funkcie computePresenceStatus
+    const testNow = 1700000000000;
+    assert.equal(computePresenceStatus(testNow - 30_000, testNow), 'online'); // 30s pred = online
+    assert.equal(computePresenceStatus(testNow - 110_000, testNow), 'online'); // 110s pred = online
+    assert.equal(computePresenceStatus(testNow - 300_000, testNow), 'away'); // 5m pred = away
+    assert.equal(computePresenceStatus(testNow - 890_000, testNow), 'away'); // 14.8m pred = away
+    assert.equal(computePresenceStatus(testNow - 1200_000, testNow), 'offline'); // 20m pred = offline
+    assert.equal(computePresenceStatus(0, testNow), 'offline'); // 0 = offline
+    assert.equal(computePresenceStatus(null, testNow), 'offline'); // null = offline
   });
 });

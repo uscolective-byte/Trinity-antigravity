@@ -6003,6 +6003,8 @@ function startGlobalGhostPolling() {
       }
     }
 
+    if (typeof sendGhostHeartbeat === 'function') void sendGhostHeartbeat();
+
     try {
       const res = await fetch(`/api/ghost/inbox?recipient_id=${encodeURIComponent(encState.myPeerId)}&since=${globalGhostLastSeen}`);
       const data = await res.json();
@@ -6101,7 +6103,29 @@ async function initEncIdentity() {
 async function loadEncryptedShitsView() {
   await initEncIdentity();
   initEncEvents();
+  startGhostHeartbeat();
   startGlobalGhostPolling();
+
+  // Periodická obnova stavu a prítomnosti kontaktov (každých 20 sekúnd)
+  if (!encState.contactsRefreshTimer) {
+    encState.contactsRefreshTimer = setInterval(() => {
+      if (currentView === 'encrypted_shits') {
+        const searchInput = $('enc-search-input');
+        const q = searchInput?.value?.trim() || '';
+        void loadEncContacts(q, encState.filter);
+        if (encState.activeContact) {
+          const fresh = encState.contacts.find(c => c.peer_id === encState.activeContact.peer_id);
+          if (fresh) {
+            const presence = formatPresenceStatus(fresh.last_seen);
+            const dot = $('enc-active-presence-dot');
+            const txt = $('enc-active-presence-text');
+            if (dot) { dot.style.background = presence.dotColor; dot.title = presence.label; }
+            if (txt) { txt.textContent = `${presence.text} (${presence.label})`; txt.style.color = presence.dotColor; }
+          }
+        }
+      }
+    }, 20000);
+  }
 
   // Aktualizuj profil v ľavom paneli
   const avatarElem = $('enc-my-avatar');
@@ -6172,6 +6196,53 @@ async function loadEncContacts(searchQuery = '', filterType = 'all') {
   }
 }
 
+let encHeartbeatTimer = null;
+let lastHeartbeatSent = 0;
+
+function formatPresenceStatus(lastSeen, now = Date.now()) {
+  if (!lastSeen) return { status: 'offline', text: '⚪ offline', dotColor: '#64748b', label: 'Offline' };
+  const diffSec = Math.floor((now - Number(lastSeen)) / 1000);
+  if (diffSec < 120) {
+    return { status: 'online', text: '🟢 online', dotColor: '#10b981', label: 'Aktívny teraz' };
+  }
+  if (diffSec < 900) {
+    const min = Math.max(1, Math.floor(diffSec / 60));
+    return { status: 'away', text: `🟡 pred ${min}m`, dotColor: '#f59e0b', label: `Pred ${min} min` };
+  }
+  if (diffSec < 86400) {
+    const hours = Math.floor(diffSec / 3600);
+    return { status: 'offline', text: `⚪ pred ${hours}h`, dotColor: '#64748b', label: `Pred ${hours} h` };
+  }
+  const days = Math.floor(diffSec / 86400);
+  return { status: 'offline', text: `⚪ pred ${days}d`, dotColor: '#475569', label: `Pred ${days} dňami` };
+}
+
+async function sendGhostHeartbeat() {
+  if (!encState.myPeerId) return;
+  const now = Date.now();
+  if (now - lastHeartbeatSent < 25000) return;
+  lastHeartbeatSent = now;
+  try {
+    const payload = {
+      peer_id: encState.myPeerId,
+      alias: encState.myAlias || encState.myPeerId,
+      public_key: encState.identity?.pubJwk ? JSON.stringify(encState.identity.pubJwk) : undefined,
+      avatar_color: '#2563eb'
+    };
+    await fetch('/api/ghost/heartbeat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch {}
+}
+
+function startGhostHeartbeat() {
+  if (encHeartbeatTimer) return;
+  sendGhostHeartbeat();
+  encHeartbeatTimer = setInterval(sendGhostHeartbeat, 35000);
+}
+
 function renderEncContactsList(contacts) {
   const container = $('enc-contacts-list');
   if (!container) return;
@@ -6182,6 +6253,7 @@ function renderEncContactsList(contacts) {
     return;
   }
 
+  const now = Date.now();
   for (const c of contacts) {
     const item = document.createElement('div');
     item.className = 'enc-contact-item';
@@ -6213,9 +6285,14 @@ function renderEncContactsList(contacts) {
       </span>
     `;
 
+    const presence = formatPresenceStatus(c.last_seen, now);
+
     item.innerHTML = `
-      <div style="width:36px;height:36px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;flex-shrink:0;">
-        ${initial}
+      <div style="position:relative;display:inline-block;flex-shrink:0;">
+        <div style="width:36px;height:36px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;">
+          ${initial}
+        </div>
+        <span style="position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:${presence.dotColor};border:2px solid #0f172a;box-sizing:border-box;" title="${presence.label}"></span>
       </div>
       <div style="flex:1;min-width:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
@@ -6227,7 +6304,7 @@ function renderEncContactsList(contacts) {
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
           <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${subtitle}</div>
-          <span style="font-size:10px;color:#34d399;flex-shrink:0;">🟢 online</span>
+          <span style="font-size:10px;color:${presence.dotColor};flex-shrink:0;font-weight:500;">${presence.text}</span>
         </div>
       </div>
     `;
@@ -6252,12 +6329,25 @@ async function selectEncContact(contact) {
   const avatarElem = $('enc-active-avatar');
   const nameElem = $('enc-active-name');
   const safetyElem = $('enc-active-safety');
+  const presenceDot = $('enc-active-presence-dot');
+  const presenceText = $('enc-active-presence-text');
+
   if (avatarElem) {
     avatarElem.textContent = (contact.alias || contact.peer_id).charAt(0).toUpperCase();
     avatarElem.style.background = contact.avatar_color || '#10b981';
   }
   if (nameElem) {
     nameElem.innerHTML = `${contact.alias || contact.peer_id} ${contact.is_registered ? '<span style="background:rgba(37,99,235,0.2);color:#60a5fa;border:1px solid rgba(37,99,235,0.3);padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;margin-left:6px;">🛡️ Registrovaný profil</span>' : ''}`;
+  }
+
+  const presence = formatPresenceStatus(contact.last_seen);
+  if (presenceDot) {
+    presenceDot.style.background = presence.dotColor;
+    presenceDot.title = presence.label;
+  }
+  if (presenceText) {
+    presenceText.textContent = `${presence.text} (${presence.label})`;
+    presenceText.style.color = presence.dotColor;
   }
 
   // Odvoď deterministické Room ID medzi týmito dvoma účastníkmi
@@ -6601,6 +6691,8 @@ function initEncEvents() {
     if (!confirm('Naozaj chceš VAPORIZOVAŤ túto konverzáciu? Všetky správy na serveri aj v prehliadači budú okamžite skartované navždy!')) {
       return;
     }
+
+    if (typeof sendGhostHeartbeat === 'function') void sendGhostHeartbeat();
 
     try {
       await fetch('/api/ghost/vaporize', {
