@@ -140,11 +140,6 @@
       "binding": "TAP_DB",
       "database_name": "trinity-tap-production",
       "database_id": "9baf0ec8-63fc-4a55-a837-bcb8c8b4f141"
-    },
-    {
-      "binding": "ADMIN_DB",
-      "database_name": "admin-db",
-      "database_id": "309cb335-3dc9-4a3f-bd1b-fa0606d14d55"
     }
   ],
   "kv_namespaces": [
@@ -163,26 +158,6 @@
     {
       "binding": "TRINITY_KV_PROD",
       "id": "0b92ed2717d742daa860f1827797297f"
-    },
-    {
-      "binding": "AURA_CACHE",
-      "id": "603d99c829a5410aae98ef3bf757427d"
-    },
-    {
-      "binding": "TRINITY_CACHE",
-      "id": "6b6267376e244b268b00a81a986f3cfc"
-    },
-    {
-      "binding": "TRINITY_CONTEXT",
-      "id": "3293793d4d6a41659395fa61d984b59f"
-    },
-    {
-      "binding": "AI_AGENT_VISIBILITY",
-      "id": "e45aa167db3b4d9d8fb2ed289facd781"
-    },
-    {
-      "binding": "AI_ASSISTANT_CHAT",
-      "id": "144796ea4f4c4164bb3d1d2c57d3e85d"
     }
   ],
   "r2_buckets": [
@@ -410,40 +385,15 @@
     {
       "binding": "AI_INFERENCE_SERVICE",
       "service": "trinity-chat-inference"
-    },
-    {
-      "binding": "TREASURY_SERVICE",
-      "service": "trinity-treasury"
-    },
-    {
-      "binding": "HEALTH_SERVICE",
-      "service": "trinity-health"
-    },
-    {
-      "binding": "TOOLS_SERVICE",
-      "service": "trinity-tools"
-    },
-    {
-      "binding": "MORHFEUS_SERVICE",
-      "service": "trinity-morhfeus"
-    },
-    {
-      "binding": "TRUTH_VERIFIER_SERVICE",
-      "service": "trinityguardiantruthverifierworker"
     }
   ],
-  "queues": {
-    "producers": [
-      {
-        "binding": "AURA_QUEUE",
-        "queue": "aura-automation"
-      },
-      {
-        "binding": "TRINITY_QUEUE",
-        "queue": "trinity-automation"
-      }
-    ]
-  },
+  "secrets_store_secrets": [
+    {
+      "binding": "OLLAMA_SECRET",
+      "store_id": "5ba06ba934c343fa8c0dc5454ce67038",
+      "secret_name": "ollama"
+    }
+  ],
   "env": {
     "production": {
       "name": "trinity",
@@ -498,15 +448,10 @@
         "TRINITY_AUTO_MERGE": "false",
         "AI_FAST_FALLBACK_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
         "META_APP_ID": "1105151122389213",
-        "META_GRAPH_VERSION": "v26.0",
-        "TRINITY_DRIVE_PICKER_CLIENT_ID": "737706781528-j7qme6gob1rqeovldl9995s4bjjg8srr.apps.googleusercontent.com",
-        "TRINITY_DRIVE_PICKER_APP_ID": "737706781528"
+        "META_GRAPH_VERSION": "v26.0"
       },
       "ai": {
         "binding": "AI"
-      },
-      "browser": {
-        "binding": "BROWSER"
       },
       "d1_databases": [
         {
@@ -536,11 +481,6 @@
           "binding": "TAP_DB",
           "database_name": "trinity-tap-production",
           "database_id": "9baf0ec8-63fc-4a55-a837-bcb8c8b4f141"
-        },
-        {
-          "binding": "ADMIN_DB",
-          "database_name": "admin-db",
-          "database_id": "309cb335-3dc9-4a3f-bd1b-fa0606d14d55"
         }
       ],
       "kv_namespaces": [
@@ -559,26 +499,6 @@
         {
           "binding": "TRINITY_KV_PROD",
           "id": "0b92ed2717d742daa860f1827797297f"
-        },
-        {
-          "binding": "AURA_CACHE",
-          "id": "603d99c829a5410aae98ef3bf757427d"
-        },
-        {
-          "binding": "TRINITY_CACHE",
-          "id": "6b6267376e244b268b00a81a986f3cfc"
-        },
-        {
-          "binding": "TRINITY_CONTEXT",
-          "id": "3293793d4d6a41659395fa61d984b59f"
-        },
-        {
-          "binding": "AI_AGENT_VISIBILITY",
-          "id": "e45aa167db3b4d9d8fb2ed289facd781"
-        },
-        {
-          "binding": "AI_ASSISTANT_CHAT",
-          "id": "144796ea4f4c4164bb3d1d2c57d3e85d"
         }
       ],
       "r2_buckets": [
@@ -792,40 +712,15 @@
         {
           "binding": "AI_INFERENCE_SERVICE",
           "service": "trinity-chat-inference"
-        },
-        {
-          "binding": "TREASURY_SERVICE",
-          "service": "trinity-treasury"
-        },
-        {
-          "binding": "HEALTH_SERVICE",
-          "service": "trinity-health"
-        },
-        {
-          "binding": "TOOLS_SERVICE",
-          "service": "trinity-tools"
-        },
-        {
-          "binding": "MORHFEUS_SERVICE",
-          "service": "trinity-morhfeus"
-        },
-        {
-          "binding": "TRUTH_VERIFIER_SERVICE",
-          "service": "trinityguardiantruthverifierworker"
         }
       ],
-      "queues": {
-        "producers": [
-          {
-            "binding": "AURA_QUEUE",
-            "queue": "aura-automation"
-          },
-          {
-            "binding": "TRINITY_QUEUE",
-            "queue": "trinity-automation"
-          }
-        ]
-      },
+      "secrets_store_secrets": [
+        {
+          "binding": "OLLAMA_SECRET",
+          "store_id": "5ba06ba934c343fa8c0dc5454ce67038",
+          "secret_name": "ollama"
+        }
+      ],
       "version_metadata": {
         "binding": "CF_VERSION_METADATA"
       }
