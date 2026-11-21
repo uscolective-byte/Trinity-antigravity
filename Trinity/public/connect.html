@@ -16,10 +16,11 @@
       --text-muted: #94a3b8;
       --success: #10b981;
       --accent: #8b5cf6;
+      --warning: #f59e0b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 24px 16px; min-height: 100vh; line-height: 1.5; }
-    .container { max-width: 900px; margin: 0 auto; }
+    .container { max-width: 960px; margin: 0 auto; }
     header { margin-bottom: 32px; text-align: center; }
     h1 { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; }
     p.subtitle { color: var(--text-muted); font-size: 15px; }
@@ -42,6 +43,8 @@
     .copy-btn:hover { background: #334155; color: #fff; }
     .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 600; text-transform: uppercase; }
     .badge-live { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-crypto { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-social { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
     footer { margin-top: 40px; text-align: center; font-size: 13px; color: var(--text-muted); }
   </style>
 </head>
@@ -49,11 +52,11 @@
   <div class="container">
     <header>
       <h1>⚡ Trinity Direct Connect Hub</h1>
-      <p class="subtitle">Priame prepojenia na 1 klik a webhooky bez nutnosti manuálneho vytvárania API kľúčov</p>
+      <p class="subtitle">Priame prepojenia na 1 klik: Sociálne siete, Web3 krypto, poslovia a kryptografické webhooky</p>
     </header>
 
     <div class="grid">
-      <!-- Telegram -->
+      <!-- Telegram Bot -->
       <div class="card">
         <div>
           <div class="card-header">
@@ -63,9 +66,73 @@
               <span class="badge badge-live">1-KLIK SPOJENIE</span>
             </div>
           </div>
-          <p class="card-desc">Pripoj sa priamo k svojmu zabezpečenému botovi <strong>@Antigravity_trinity_bot</strong>. Stačí kliknúť a v Telegrame stlačiť tlačidlo <em>Start</em>.</p>
+          <p class="card-desc">Pripoj sa priamo k svojmu zabezpečenému botovi <strong>@Antigravity_trinity_bot</strong>. Podporuje dialóg, príkazy <code>/status</code>, <code>/wallet</code>, <code>/crypto</code> a okamžité notifikácie.</p>
         </div>
         <a href="https://t.me/Antigravity_trinity_bot" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Otvoriť bota v Telegrame ↗</a>
+      </div>
+
+      <!-- Telegram @wallet & Tetrakis Crypto -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <span class="card-icon">💎</span>
+            <div>
+              <div class="card-title">Telegram @wallet & Tetrakis Crypto</div>
+              <span class="badge badge-crypto">TON · USDT · TTK</span>
+            </div>
+          </div>
+          <p class="card-desc">Oficiálna peňaženka v Telegrame pre TON Jetton & USDT platby prepojená s <strong>Tetrakis ($TTK)</strong> ERC-20 smart kontraktom (Base Sepolia & Mainnet).</p>
+          <div class="copy-box">
+            <input class="copy-input" id="ttk-supply" readonly value="1,000,000,000 TTK (Base ChainID: 8453)">
+            <button class="copy-btn" onclick="copyLink('ttk-supply', this)">Kopírovať</button>
+          </div>
+        </div>
+        <div style="margin-top: 14px; display: flex; gap: 8px;">
+          <a href="https://t.me/wallet" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="flex: 1;">Telegram @wallet ↗</a>
+          <a href="https://t.me/Antigravity_trinity_bot?start=wallet" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="flex: 1;">V botovi /wallet ↗</a>
+        </div>
+      </div>
+
+      <!-- WhatsApp Direct & Webhook -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <span class="card-icon">💬</span>
+            <div>
+              <div class="card-title">WhatsApp Business & Direct</div>
+              <span class="badge badge-social">WA.ME · CLOUD API</span>
+            </div>
+          </div>
+          <p class="card-desc">Priamy preklik do chatu cez <code>wa.me</code> a zabezpečený prichádzajúci webhook pre Meta Cloud API s automatickým auditom v Sovereign Ledger.</p>
+          <div class="copy-box">
+            <input class="copy-input" id="wa-wh" readonly value="https://auru.space/api/v1/webhooks/whatsapp">
+            <button class="copy-btn" onclick="copyLink('wa-wh', this)">Kopírovať webhook</button>
+          </div>
+        </div>
+        <div style="margin-top: 14px;">
+          <a href="https://wa.me/" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Otvoriť WhatsApp Web / App ↗</a>
+        </div>
+      </div>
+
+      <!-- LinkedIn B2B Lead & Feed Hub -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <span class="card-icon">💼</span>
+            <div>
+              <div class="card-title">LinkedIn B2B & Content Hub</div>
+              <span class="badge badge-social">SHARE API · B2B LEADS</span>
+            </div>
+          </div>
+          <p class="card-desc">Priame zdieľanie statusov a myšlienkového líderstva na LinkedIn s integráciou nástroja <code>meta_manage</code> (platforma <code>linkedin</code>).</p>
+          <div class="copy-box">
+            <input class="copy-input" id="li-share" readonly value="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fauru.space">
+            <button class="copy-btn" onclick="copyLink('li-share', this)">Kopírovať link</button>
+          </div>
+        </div>
+        <div style="margin-top: 14px;">
+          <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fauru.space" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Zdieľať na LinkedIn ↗</a>
+        </div>
       </div>
 
       <!-- Meta (Facebook & Instagram) -->
@@ -78,12 +145,18 @@
               <span class="badge badge-live">OAUTH PREPOJENIE</span>
             </div>
           </div>
-          <p class="card-desc">Prepoj svoju Facebook stránku (<em>underground Street collective</em>) a Instagram profil bez kopírovania akýchkoľvek kľúčov.</p>
+          <p class="card-desc">Prepoj svoju Facebook stránku (<em>underground Street collective</em>) a Instagram profil (<em>@old_dirty_bastard013</em>) bez manuálneho kopírovania tokenov.</p>
+          <div class="copy-box">
+            <input class="copy-input" id="meta-wh" readonly value="https://auru.space/api/v1/webhooks/meta">
+            <button class="copy-btn" onclick="copyLink('meta-wh', this)">Kopírovať Meta Webhook</button>
+          </div>
         </div>
-        <a href="/connect/meta" class="btn btn-primary">Pripojiť Meta cez OAuth ↗</a>
+        <div style="margin-top: 14px;">
+          <a href="/connect/meta" class="btn btn-primary">Pripojiť Meta cez OAuth ↗</a>
+        </div>
       </div>
 
-      <!-- Google Účet & Workspace -->
+      <!-- Google Účet & Drive -->
       <div class="card">
         <div>
           <div class="card-header">
@@ -95,7 +168,9 @@
           </div>
           <p class="card-desc">Prihlás sa svojím Google účtom (<em>uscolective@gmail.com</em> / <em>saboivan2008@gmail.com</em>) a sprístupni Google Drive Picker.</p>
         </div>
-        <a href="/auth/google" class="btn btn-primary">Prihlásiť sa cez Google ↗</a>
+        <div style="margin-top: 14px;">
+          <a href="/auth/google" class="btn btn-primary">Prihlásiť sa cez Google ↗</a>
+        </div>
       </div>
 
       <!-- Univerzálny Inbound Webhook -->
@@ -110,7 +185,7 @@
           </div>
           <p class="card-desc">Tento odkaz vlož do <strong>Make.com, n8n, Zapier, GitHubu, Stripe, Discordu</strong> alebo akejkoľvek inej služby. Dáta dorazia priamo do Trinity.</p>
           <div class="copy-box">
-            <input class="copy-input" id="wh-link" readonly value="https://auru.dev/api/v1/webhooks/incoming">
+            <input class="copy-input" id="wh-link" readonly value="https://auru.space/api/v1/webhooks/incoming">
             <button class="copy-btn" onclick="copyLink('wh-link', this)">Kopírovať</button>
           </div>
         </div>
@@ -128,7 +203,7 @@
           </div>
           <p class="card-desc">Priame prepojenie Trinity nástrojov a pamäte do Claude Desktop, Cursor, Antigravity a VS Code.</p>
           <div class="copy-box">
-            <input class="copy-input" id="mcp-link" readonly value="https://auru.dev/mcp">
+            <input class="copy-input" id="mcp-link" readonly value="https://auru.space/mcp">
             <button class="copy-btn" onclick="copyLink('mcp-link', this)">Kopírovať</button>
           </div>
         </div>
@@ -140,13 +215,15 @@
           <div class="card-header">
             <span class="card-icon">💻</span>
             <div>
-              <div class="card-title">Lokálny PC Bridge (7777)</div>
+              <div class="card-title">Lokálny PC Bridge (7777 / 8791)</div>
               <span class="badge badge-live">WINDOWS DÉMON</span>
             </div>
           </div>
           <p class="card-desc">Spustenie lokálneho mosta pre súbory a automatizácie na tvojom počítači cez skript <code>Start-PC-Bridge-7777.cmd</code>.</p>
         </div>
-        <a href="http://127.0.0.1:7777/health" target="_blank" class="btn btn-secondary">Overiť stav lokálneho mosta ↗</a>
+        <div style="margin-top: 14px;">
+          <a href="http://127.0.0.1:7777/health" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Overiť stav lokálneho mosta ↗</a>
+        </div>
       </div>
     </div>
 

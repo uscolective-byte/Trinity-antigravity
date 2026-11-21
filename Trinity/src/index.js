@@ -394,6 +394,62 @@ async function route(request,env,ctx){
   if(path==='/api/fleet/clusters'&&request.method==='GET'){
     return json(getFleetClusterSummary());
   }
+  if((path==='/api/social/status'||path==='/api/assistant/social/status')&&request.method==='GET'){
+    return json({
+      ok: true,
+      service: 'Trinity Omnichannel Social Bridge',
+      version: '1.2.0',
+      timestamp: new Date().toISOString(),
+      channels: {
+        telegram: {
+          bot_handle: '@Antigravity_trinity_bot',
+          url: 'https://t.me/Antigravity_trinity_bot',
+          wallet: {
+            service: 'Telegram @wallet / TON Jetton',
+            supported_assets: ['USDT', 'TON', 'TTK'],
+            deep_link_base: 'ton://transfer/'
+          },
+          status: 'active'
+        },
+        whatsapp: {
+          platform: 'Meta Cloud API & Direct Click-to-Chat',
+          click_to_chat: 'https://wa.me/',
+          webhook_endpoint: '/api/v1/webhooks/whatsapp',
+          status: 'configured'
+        },
+        facebook: {
+          platform: 'Meta Graph API',
+          page_identity: 'underground Street collective',
+          oauth_endpoint: '/connect/meta',
+          webhook_endpoint: '/api/v1/webhooks/meta',
+          status: 'ready_oauth'
+        },
+        instagram: {
+          platform: 'Meta Graph API',
+          profile_handle: '@old_dirty_bastard013',
+          oauth_endpoint: '/connect/meta',
+          status: 'ready_oauth'
+        },
+        linkedin: {
+          platform: 'LinkedIn Share & B2B Lead Generator',
+          share_base: 'https://www.linkedin.com/sharing/share-offsite/',
+          feed_drafting: 'active',
+          lead_scanner: 'active',
+          status: 'active'
+        }
+      },
+      tetrakis_crypto: {
+        symbol: 'TTK',
+        total_supply: '1,000,000,000',
+        standard: 'ERC-20 (OpenZeppelin v5.1.0)',
+        evm_target: 'Base (ChainID: 8453 / Sepolia: 84532)',
+        deployment_plans: {
+          sepolia: '/contracts/tetrakis/build/deploy-plan-base-sepolia.json',
+          mainnet: '/contracts/tetrakis/build/deploy-plan-base-mainnet.json'
+        }
+      }
+    });
+  }
   if(path.startsWith('/api/internal/')){
     checkOrigin(request,env);
     const internalActor=await authenticate(request,env);
