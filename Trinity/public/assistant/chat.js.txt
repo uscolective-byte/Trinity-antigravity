@@ -5938,6 +5938,8 @@ async function loadEncryptedShitsView() {
     }
     renderEncContactsList(encState.contacts);
     selectEncContact(directContact);
+  } else if (!encState.activeContact && encState.contacts && encState.contacts.length > 0) {
+    void selectEncContact(encState.contacts[0]);
   }
 }
 
@@ -6052,6 +6054,8 @@ async function selectEncContact(contact) {
 
   // Odvoď zdieľaný kľúč ak má kontakt verejný kľúč
   const cryptoEngine = (typeof window !== 'undefined' && window.GhostCrypto) || BuiltinGhostCrypto;
+  encState.sharedKey = null;
+  const feedback = $('enc-chat-feedback');
   if (contact.public_key && cryptoEngine && encState.identity) {
     try {
       const peerKeyObj = typeof contact.public_key === 'string' ? JSON.parse(contact.public_key) : contact.public_key;
@@ -6061,12 +6065,34 @@ async function selectEncContact(contact) {
       if (safetyElem) {
         safetyElem.textContent = `🔒 E2EE · ${encState.safetyFingerprint.emoji} ${encState.safetyFingerprint.safetyNumbers}`;
       }
+      if (feedback) {
+        feedback.textContent = `🔒 E2EE · Pripravené (${encState.safetyFingerprint.emoji})`;
+        feedback.style.color = '#34d399';
+      }
     } catch (e) {
-      console.warn('E2EE kľúč partnera zatiaľ nie je overený, použije sa kľúč správy:', e);
-      if (safetyElem) safetyElem.textContent = '🔒 E2EE aktívne';
+      console.warn('E2EE kľúč partnera nebol platný JWK, odvodzujem kľúč miestnosti:', e);
+      try {
+        encState.sharedKey = await cryptoEngine.deriveRoomKey(encState.activeRoomId);
+        if (safetyElem) safetyElem.textContent = '🔒 E2EE · AES-256-GCM (Chránený kanál)';
+        if (feedback) {
+          feedback.textContent = '🔒 E2EE · AES-256-GCM pripravené';
+          feedback.style.color = '#38bdf8';
+        }
+      } catch (err2) {
+        console.error('Zlyhalo odvodenie kľúča miestnosti:', err2);
+      }
     }
-  } else {
-    if (safetyElem) safetyElem.textContent = '🔒 E2EE aktívne';
+  } else if (cryptoEngine && encState.activeRoomId) {
+    try {
+      encState.sharedKey = await cryptoEngine.deriveRoomKey(encState.activeRoomId);
+      if (safetyElem) safetyElem.textContent = '🔒 E2EE · AES-256-GCM (Chránený kanál)';
+      if (feedback) {
+        feedback.textContent = '🔒 E2EE · AES-256-GCM pripravené';
+        feedback.style.color = '#38bdf8';
+      }
+    } catch (e) {
+      console.error('Zlyhalo odvodenie kľúča miestnosti:', e);
+    }
   }
 
   // Vyčisti kontajner správ

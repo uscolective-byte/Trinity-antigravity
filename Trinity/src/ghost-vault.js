@@ -510,7 +510,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
       {
         peer_id: 'basterix',
         alias: 'Basterix (Owner & Lead Architect)',
-        public_key: '{"crv":"P-256","kty":"EC","x":"f8X_seed_basterix_x","y":"f8X_seed_basterix_y"}',
+        public_key: '{"crv":"P-256","kty":"EC","x":"5ynaf2vkiAqkRtAjgFaDy6tmQixU3OOzZfcx0bzAPyw","y":"oDd3HaxjKMt1JNT2unNyT26tAxKGhyM4LQpSZvGCumY"}',
         status: 'online',
         avatar_color: '#3b82f6',
         is_registered: true,
@@ -519,7 +519,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
       {
         peer_id: 'trinity_ai',
         alias: 'Trinity Sovereign AI Copilot',
-        public_key: '{"crv":"P-256","kty":"EC","x":"trinity_seed_core_x","y":"trinity_seed_core_y"}',
+        public_key: '{"crv":"P-256","kty":"EC","x":"Rsuu0Xa1ibol44F3Phvtc7KHmewEP42ENOjsXb7K9VE","y":"J_akHg0A48np8UyaBzp5H7vqN0ezPiICJu5GjYZM7QA"}',
         status: 'online',
         avatar_color: '#10b981',
         is_registered: true,
@@ -528,7 +528,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
       {
         peer_id: 'usc_underground',
         alias: 'Underground Street Collective',
-        public_key: '{"crv":"P-256","kty":"EC","x":"usc_seed_underground_x","y":"usc_seed_underground_y"}',
+        public_key: '{"crv":"P-256","kty":"EC","x":"4s3EixOXcG6JqHp9x16kZBpYPZ_8jYzMFqpNpswYfTA","y":"nuHHFdlFdcNfTjLiSmTkWxPb-2K9pubhcnsJanvDHaY"}',
         status: 'online',
         avatar_color: '#a855f7',
         is_registered: true,
@@ -537,7 +537,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
       {
         peer_id: 'delirium_trade',
         alias: 'Delirium Trade Vault',
-        public_key: '{"crv":"P-256","kty":"EC","x":"delirium_seed_trade_x","y":"delirium_seed_trade_y"}',
+        public_key: '{"crv":"P-256","kty":"EC","x":"hJFqljm1-Z74_77Zu-0JB-BQS5I8_Ioz5EGbJgFVwdY","y":"ijkWjpoZzuYj3yeeC2WFXKB0JW1Wo5tKh2RwGs9oWm4"}',
         status: 'online',
         avatar_color: '#f59e0b',
         is_registered: true,
