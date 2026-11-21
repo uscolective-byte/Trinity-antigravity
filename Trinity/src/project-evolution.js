@@ -90,7 +90,7 @@ export async function prepareCodeImprovement(env,proposal){
 export async function dispatchDeployment(env){
   const ref=env.TRINITY_GITHUB_BRANCH||'main';
   await githubRequest(env,'/actions/workflows/self-deploy.yml/dispatches','POST',{ref,inputs:{deploy_production:false}});
-  return {status:'deployment_queued',environment:'development',url:`https://github.com/${env.TRINITY_GITHUB_REPO||PROJECT_REPOSITORY}/actions/workflows/self-deploy.yml`,deployed:false};
+  return {status:'verification_queued',environment:null,deployment_requested:false,url:`https://github.com/${env.TRINITY_GITHUB_REPO||PROJECT_REPOSITORY}/actions/workflows/self-deploy.yml`,deployed:false,note:'Vyžiadané sú iba kontroly; deploy_production=false nespúšťa nasadenie žiadneho prostredia.'};
 }
 
 export function automaticMergeAllowed(files){

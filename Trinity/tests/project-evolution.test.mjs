@@ -1,10 +1,29 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {PROJECT_REPOSITORY,editableSource,rankProjectFiles,validateSourcePatch,inspectProject,prepareCodeImprovement} from '../src/project-evolution.js';
+import {PROJECT_REPOSITORY,editableSource,rankProjectFiles,validateSourcePatch,inspectProject,prepareCodeImprovement,dispatchDeployment} from '../src/project-evolution.js';
 import {publicWebUrl,fetchPublicWeb} from '../src/web-access.js';
 import {infrastructureStatus} from '../src/infrastructure.js';
 test('evolution uses the consolidated repository by default',()=>{
  assert.equal(PROJECT_REPOSITORY,'uscolective-byte/Trinity-antigravity');
+});
+
+test('verification-only workflow dispatch never claims a development deployment',async()=>{
+ const previous=globalThis.fetch;let calls=0;
+ try{
+  globalThis.fetch=async(url,options)=>{
+   calls++;
+   assert.match(String(url),/actions\/workflows\/self-deploy\.yml\/dispatches$/);
+   assert.equal(options.method,'POST');
+   assert.deepEqual(JSON.parse(options.body),{ref:'main',inputs:{deploy_production:false}});
+   return new Response(null,{status:204});
+  };
+  const result=await dispatchDeployment({TRINITY_GITHUB_TOKEN:'test-fixture-token'});
+  assert.equal(calls,1);
+  assert.equal(result.status,'verification_queued');
+  assert.equal(result.environment,null);
+  assert.equal(result.deployment_requested,false);
+  assert.equal(result.deployed,false);
+ }finally{globalThis.fetch=previous;}
 });
 test('source inspection ranks relevant paths and excludes secrets and traversal',()=>{
  for(const path of ['.env','Trinity/wrangler.jsonc','Trinity/src/../secret.js','Trinity/src/secret-vault.js','Trinity/src/.env.js','Trinity/src/a.js/../../a.js'])assert.equal(editableSource(path),false,path);

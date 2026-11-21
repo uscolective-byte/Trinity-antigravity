@@ -303,7 +303,7 @@ async function runAgentUnchecked(env, id, task, context='', provider='workers-ai
     if(unresolved)return {...unresolved,model:'deterministic-tool',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(unresolved.text,[receipt]),duration_ms:0};
     let text;
     if(direct.name==='self_intro')text=`Ahoj Ivan! Som Trinity – tvoja osobná AI asistentka a parťáčka, ktorá s tebou drží krok na webe aj na tvojom počítači.\n\n`+
-        `Bežím na tvojej infraštruktúre (\`auru.space\` pre ostrú produkciu a \`auru.dev\` pre náš testovací priestor) a kryjem ti chrbát pri bežnom pokeci, vymýšľaní nápadov, písaní kódu, tvorbe webov v AI Studiu, správe Cloudflare či pri práci priamo na tvojom PC cez Desktop Bridge.\n\n`+
+        `Bežím na tvojej infraštruktúre: \`auru.space\` aj \`auru.dev\` smerujú na spoločnú produkčnú aplikáciu. Pomáham pri rozhovore, písaní kódu a tvorbe webov; správu služieb a prácu na PC môžem potvrdiť až podľa dostupného prepojenia a výsledku konkrétneho nástroja.\n\n`+
         `Nebudem ťa zdržiavať formálnymi zoznamami — povedz rovno, čo máš na mysli alebo na čom ideme makať.`;
     else if(direct.name==='calculate')text=String(outcome.result);
     else if(direct.name==='current_time')text=outcome.localized;
