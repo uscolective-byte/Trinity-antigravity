@@ -1442,17 +1442,56 @@
         <article class="metric purple"><span>DOMÉNY & OBCHOD</span><strong id="docstat-domains">—</strong><small>produkčné prostredia a obchody</small></article>
       </div>
 
+      <!-- Live Hero Banner & Status Indicator -->
+      <div class="docs-hero-banner">
+        <div class="docs-hero-status">
+          <span class="status-indicator-live"><span class="pulse-dot"></span> <b>PRODUKCIA ONLINE:</b> auru.space &amp; auru.dev</span>
+          <span class="docs-hero-pill">🛡️ Sovereign Ledger: 860+ Blokov</span>
+          <span class="docs-hero-pill">🤖 46 Autonómnych Agentov</span>
+          <span class="docs-hero-pill">⚡ MCP JSON-RPC 2.0</span>
+          <span class="docs-hero-pill">💻 PC Bridge: 7777 / 8791</span>
+        </div>
+        <div class="docs-hero-actions">
+          <button type="button" class="btn-docs-action" id="btn-docs-verify-live">↻ Overiť živý stav</button>
+          <button type="button" class="btn-docs-action" id="btn-docs-print">🖨️ Tlačiť / PDF Príručka</button>
+        </div>
+      </div>
+
+      <!-- Real-Time Interactive Search & Quick Category Filter -->
+      <div class="docs-search-wrapper">
+        <div class="docs-search-input-box">
+          <span class="docs-search-icon">🔍</span>
+          <input type="search" id="docs-global-search" placeholder="Hľadať v celej dokumentácii (napr. MCP, nástroje, krypto, WhatsApp, SEPA, ledger, API token)..." aria-label="Hľadať v dokumentácii">
+          <button type="button" id="docs-search-clear" hidden>✕</button>
+        </div>
+        <div class="docs-quick-tags" id="docs-quick-tags">
+          <button type="button" class="docs-tag-chip active" data-docs-filter="all">🌟 Všetko</button>
+          <button type="button" class="docs-tag-chip" data-docs-filter="guide">📖 Help &amp; Štart</button>
+          <button type="button" class="docs-tag-chip" data-docs-filter="tools">🔧 Nástroje &amp; API (25+)</button>
+          <button type="button" class="docs-tag-chip" data-docs-filter="crypto">💎 Tetrakis ($TTK) &amp; Krypto</button>
+          <button type="button" class="docs-tag-chip" data-docs-filter="connectors">🌐 Siete, Poslovia &amp; Webhooky</button>
+          <button type="button" class="docs-tag-chip" data-docs-filter="ledger">🛡️ Sovereign Ledger</button>
+          <button type="button" class="docs-tag-chip" data-docs-filter="architecture">🏗️ Architektúra</button>
+          <button type="button" class="docs-tag-chip" data-docs-filter="banking">🏦 Banky &amp; SEPA</button>
+          <button type="button" class="docs-tag-chip" data-docs-filter="omnidev">💻 PC Bridge &amp; Vývoj</button>
+          <button type="button" class="docs-tag-chip" data-docs-filter="truth">⚖️ Truth Policy</button>
+        </div>
+      </div>
+
       <nav class="trinity-subnav" id="docs-subnav" aria-label="Kapitoly dokumentácie">
         <button type="button" class="subnav-btn active" data-doc-tab="guide">📖 Ako používať Trinity (Help)</button>
-        <button type="button" class="subnav-btn" data-doc-tab="ledger">🛡️ Sovereign Ledger & MMR</button>
+        <button type="button" class="subnav-btn" data-doc-tab="tools">🔧 Nástroje &amp; API (25+)</button>
+        <button type="button" class="subnav-btn" data-doc-tab="crypto">💎 Tetrakis ($TTK) &amp; Web3</button>
+        <button type="button" class="subnav-btn" data-doc-tab="connectors">🌐 Siete, Poslovia &amp; Webhooky</button>
+        <button type="button" class="subnav-btn" data-doc-tab="ledger">🛡️ Sovereign Ledger &amp; MMR</button>
         <button type="button" class="subnav-btn" data-doc-tab="architecture">🏗️ Kompletná Architektúra</button>
-        <button type="button" class="subnav-btn" data-doc-tab="banking">🏦 Banky, SEPA & Terminály</button>
-        <button type="button" class="subnav-btn" data-doc-tab="truth">⚔️ Truth Policy & Dôkazy</button>
-        <button type="button" class="subnav-btn" data-doc-tab="omnidev">💻 Omni-Dev & PC Bridge</button>
-        <button type="button" class="subnav-btn" data-doc-tab="meta">🌐 Meta & Connectors</button>
+        <button type="button" class="subnav-btn" data-doc-tab="banking">🏦 Banky, SEPA &amp; Terminály</button>
+        <button type="button" class="subnav-btn" data-doc-tab="truth">⚔️ Truth Policy &amp; Dôkazy</button>
+        <button type="button" class="subnav-btn" data-doc-tab="omnidev">💻 Omni-Dev &amp; PC Bridge</button>
+        <button type="button" class="subnav-btn" data-doc-tab="meta">♾️ Meta AI &amp; Social</button>
         <button type="button" class="subnav-btn" data-doc-tab="oath">👑 Prísaha vernosti Basterixovi</button>
-        <button type="button" class="subnav-btn" data-doc-tab="licenses">⚖️ Licencie & Bezpečnosť</button>
-        <button type="button" class="subnav-btn" data-doc-tab="gdpr">🛡️ GDPR & Súhlas</button>
+        <button type="button" class="subnav-btn" data-doc-tab="licenses">⚖️ Licencie &amp; Bezpečnosť</button>
+        <button type="button" class="subnav-btn" data-doc-tab="gdpr">🛡️ GDPR &amp; Súhlas</button>
         <button type="button" class="subnav-btn" data-doc-tab="archive">📁 Archív záznamov (MD / PDF)</button>
       </nav>
 
@@ -2006,6 +2045,312 @@
               <li><b>GUARDED ROLLOUT:</b> Do produkcie sa nasadzuje výlučne overený kód s 40-znakovým commit SHA tagom a úspešným testovacím skóre 100 %.</li>
               <li><b>VÝHRADNÁ VERNOSŤ BASTERIXOVI:</b> Trinity odmieta akékoľvek pokusy tretích strán o prepis pravidiel alebo odcudzenie kontroly.</li>
             </ol>
+          </article>
+        </div>
+      </div>
+
+      <!-- NEW TAB: NÁSTROJE & API EXPLORER (25+) -->
+      <div id="doc-pane-tools" class="doc-tab-pane" hidden>
+        <div class="docs-portal-grid">
+          <article class="docs-card full-span-card" style="border: 2px solid rgba(56, 189, 248, 0.4); background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(15, 23, 42, 0.95)); padding: 24px; border-radius: 12px;">
+            <div class="panel-head" style="margin-bottom: 14px;">
+              <div>
+                <span class="docs-badge" style="background:#38bdf8;color:#0b1220;font-weight:700">TRINITY TOOL ECOSYSTEM · MCP JSON-RPC 2.0 &amp; OS AGENTS</span>
+                <h2 style="margin:8px 0 4px;color:#38bdf8">🔧 Kompletný Zoznam a Syntax Nástrojov (Tools Explorer)</h2>
+                <small style="color:var(--text-muted, #94a3b8)">Trinity sprístupňuje 42 nástrojov v registri a 25 kľúčových exekučných nástrojov pre chat, IDE a webhooky</small>
+              </div>
+              <div style="display:flex;gap:8px">
+                <a class="primary" href="/api/tools" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:inline-flex;align-items:center;background:#38bdf8;color:#0b1220;font-weight:700;padding:6px 14px;border-radius:6px;">🔗 Živý JSON-RPC Tools List (/api/tools)</a>
+              </div>
+            </div>
+            <p style="color:#e2e8f0;line-height:1.7;font-size:0.95rem;">
+              Každý nástroj môžeš spustiť buď <b>prirodzeným príkazom v slovenčine</b> v chate (Trinity automaticky zvolí nástroj a parametre), alebo programovo cez <b>Model Context Protocol (JSON-RPC)</b> na koncovom bode <code>https://auru.space/mcp</code>.
+            </p>
+            <div class="docs-code-box">
+              <button class="docs-copy-btn" onclick="navigator.clipboard.writeText(this.nextElementSibling.innerText); this.textContent='✓ Skopírované!'; setTimeout(()=>this.textContent='Kopírovať', 2000)">Kopírovať</button>
+              <pre class="docs-code-pre">POST https://auru.space/mcp
+Headers:
+  Authorization: Bearer trn_live_...
+  Content-Type: application/json
+  Accept: application/json, text/event-stream
+
+Body:
+{
+  "jsonrpc": "2.0",
+  "id": "req-1",
+  "method": "tools/call",
+  "params": {
+    "name": "domain_env_provision",
+    "arguments": { "domain_name": "moj-startup.sk", "template": "ai-saas" }
+  }
+}</pre>
+            </div>
+          </article>
+
+          <!-- 1. Domény & Hosting -->
+          <article class="docs-card docs-tool-card">
+            <span class="docs-badge" style="background:#a855f7;color:#fff">DOMÉNY &amp; CLOUDFLARE</span>
+            <h3>1. <code>domain_env_provision</code> &amp; <code>domain_env_deploy</code></h3>
+            <p>Vytvorenie novej domény s 3 izolovanými prostrediami (production, staging, development), DNS záznamami, SSL/Proxy a okamžitým publikovaním živého webu.</p>
+            <ul class="docs-list">
+              <li><b>Parametre:</b> <code>domain_name</code> (string), <code>template</code> (business, ai-saas, ecommerce, portfolio, custom), <code>environment</code> (production, staging, dev).</li>
+              <li><b>Výstup:</b> Živá URL <code>/sites/:domain/:env</code>, D1 záznam, SSL status, generovaný Trinity Dokument.</li>
+            </ul>
+            <div class="docs-card-actions">
+              <button type="button" class="btn-docs-action" onclick="copyToolPromptToChat('Trinity, vytvor novú doménu moj-projekt.sk so šablónou ai-saas a nasaď ju do produkcie.')">📋 Vložiť príkaz do chatu →</button>
+            </div>
+          </article>
+
+          <!-- 2. Komodity & Trading -->
+          <article class="docs-card docs-tool-card">
+            <span class="docs-badge" style="background:#eab308;color:#0b1220">KOMODITY &amp; FINANCIE</span>
+            <h3>2. <code>commodity_auto_invest</code> &amp; <code>commodity_analyze</code></h3>
+            <p>Autonómna technická analýza 22 komodít (RSI, MACD, Support/Resistance), rozdelenie investičného kapitálu do <code>STRONG_BUY</code> príležitostí a generovanie SEPA EPC QR vyrovnania.</p>
+            <ul class="docs-list">
+              <li><b>Parametre:</b> <code>budget_eur</code> (number, napr. 1500), <code>max_positions</code> (number), <code>risk_level</code> (low, balanced, dynamic).</li>
+              <li><b>Výstup:</b> Zoznam exekúcií, certifikovaný EPC QR kód, Stop-Loss a Take-Profit limity.</li>
+            </ul>
+            <div class="docs-card-actions">
+              <button type="button" class="btn-docs-action" onclick="copyToolPromptToChat('Trinity, zanalyzuj trh vzácnych kovov a automaticky rozdeľ 1000 EUR do najlepších príležitostí so SEPA vyrovnaním.')">📋 Vložiť príkaz do chatu →</button>
+            </div>
+          </article>
+
+          <!-- 3. Živé UI a Samorozvoj -->
+          <article class="docs-card docs-tool-card">
+            <span class="docs-badge" style="background:#ec4899;color:#fff">UI EVOLUTION &amp; ŠTÝLY</span>
+            <h3>3. <code>evolve_trinity_ui</code> &amp; <code>rollback_ui</code></h3>
+            <p>Zmena používateľského rozhrania, aplikovanie CSS tém (Kybernetická zlatá, Smaragdová, Fialová, Polnočná modrá), pridanie vlastných widgetov a bezpečný 1-klik rollback.</p>
+            <ul class="docs-list">
+              <li><b>Parametre:</b> <code>theme_preset</code> (string), <code>custom_css</code> (string, sanitized), <code>headline</code> (string), <code>widget_note</code> (string).</li>
+              <li><b>Výstup:</b> Okamžité prekreslenie UI bez nutnosti nového releasu, záznam v D1 histórii.</li>
+            </ul>
+            <div class="docs-card-actions">
+              <button type="button" class="btn-docs-action" onclick="copyToolPromptToChat('Trinity, prepni svoje rozhranie na kybernetickú zlatú tému a pripni na nástenku widget s mojimi týždennými cieľmi.')">📋 Vložiť príkaz do chatu →</button>
+            </div>
+          </article>
+
+          <!-- 4. Sociálne siete & Omnichannel -->
+          <article class="docs-card docs-tool-card">
+            <span class="docs-badge" style="background:#10b981;color:#0b1220">OMNICHANNEL &amp; SOCIÁL</span>
+            <h3>4. <code>meta_manage</code> &amp; Omnichannel Hub</h3>
+            <p>Správa príspevkov, generovanie draftov s hashtagmi a prepojenie sociálnych sietí: Facebook (underground Street collective), Instagram (@old_dirty_bastard013), LinkedIn a WhatsApp.</p>
+            <ul class="docs-list">
+              <li><b>Parametre:</b> <code>action</code> (status, pages, ai_generate, create_post_draft), <code>platform</code> (facebook, instagram, linkedin, whatsapp), <code>topic</code> (string).</li>
+              <li><b>Výstup:</b> Vygenerovaný a overený post pripravený na publikovanie alebo odoslanie cez Graph API.</li>
+            </ul>
+            <div class="docs-card-actions">
+              <button type="button" class="btn-docs-action" onclick="copyToolPromptToChat('Trinity, vytvor pútavý status na LinkedIn a Instagram o novinkách v našom AI ekosystéme a priprav draft.')">📋 Vložiť príkaz do chatu →</button>
+            </div>
+          </article>
+
+          <!-- 5. Dokumentácia & Archív -->
+          <article class="docs-card docs-tool-card">
+            <span class="docs-badge" style="background:#3b82f6;color:#fff">DOKUMENTY &amp; AUDIT</span>
+            <h3>5. <code>create_trinity_document</code> &amp; <code>list_documents</code></h3>
+            <p>Programové generovanie štruktúrovaných auditných správ a zmlúv s exportom do formátu Markdown a priamym stiahnutím vo formáte PDF.</p>
+            <ul class="docs-list">
+              <li><b>Parametre:</b> <code>title</code> (string), <code>category</code> (workflow_step, domain_production, commerce, ui_evolution, legal_compliance), <code>content</code> (markdown).</li>
+              <li><b>Výstup:</b> Záznam v tabuľke <code>trinity_documents</code>, R2 snapshot, PDF render.</li>
+            </ul>
+            <div class="docs-card-actions">
+              <button type="button" class="btn-docs-action" onclick="copyToolPromptToChat('Trinity, vygeneruj oficiálny Trinity Dokument o dnešnom stave nasadenia a ulož ho do archívu.')">📋 Vložiť príkaz do chatu →</button>
+            </div>
+          </article>
+
+          <!-- 6. PC Bridge & Systémové akcie -->
+          <article class="docs-card docs-tool-card">
+            <span class="docs-badge" style="background:#6366f1;color:#fff">WINDOWS PC DÉMON</span>
+            <h3>6. <code>system_actions</code> &amp; <code>pc_bridge_execute</code></h3>
+            <p>Bezpečné spúšťanie schválených operácií na lokálnom počítači používateľa cez lokálny most (port 7777 / 8791) bez otvárania prichádzajúcich portov.</p>
+            <ul class="docs-list">
+              <li><b>Parametre:</b> <code>command</code> (string), <code>environment</code> (powershell, cmd, node, python), <code>timeout_ms</code> (number).</li>
+              <li><b>Výstup:</b> Návratový kód (exit_code), výstup konzoly (stdout/stderr), overený podpis.</li>
+            </ul>
+            <div class="docs-card-actions">
+              <button type="button" class="btn-docs-action" onclick="copyToolPromptToChat('Trinity, spusti cez PC Bridge diagnostiku lokálneho disku a skontroluj verziu Node.js.')">📋 Vložiť príkaz do chatu →</button>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- NEW TAB: TETRAKIS ($TTK) & WEB3 KRYPTO -->
+      <div id="doc-pane-crypto" class="doc-tab-pane" hidden>
+        <div class="docs-portal-grid">
+          <article class="docs-card full-span-card" style="border: 2px solid rgba(245, 158, 11, 0.5); background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(15, 23, 42, 0.95)); padding: 24px; border-radius: 12px;">
+            <div class="panel-head" style="margin-bottom: 14px;">
+              <div>
+                <span class="docs-badge" style="background:#f59e0b;color:#0b1220;font-weight:700">TETRAKIS PROTOCOL · WEB3 &amp; MULTI-CHAIN TREASURY</span>
+                <h2 style="margin:8px 0 4px;color:#fbbf24">💎 Tetrakis ($TTK) ERC-20 &amp; Krypto Peňaženka</h2>
+                <small style="color:var(--text-muted, #94a3b8)">Kryptografická zmluva na Base sieti · Pevná ponuka 1,000,000,000 TTK · Telegram @wallet integrácia</small>
+              </div>
+              <div style="display:flex;gap:8px">
+                <a class="primary" href="https://t.me/wallet" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:inline-flex;align-items:center;background:#f59e0b;color:#0b1220;font-weight:700;padding:6px 14px;border-radius:6px;">↗ Telegram @wallet</a>
+              </div>
+            </div>
+            <p style="color:#e2e8f0;line-height:1.7;font-size:0.95rem;">
+              <b>Tetrakis ($TTK)</b> je natívny úžitkový a zúčtovací token ekosystému Trinity OMNI-CORE. Bol nasadený podľa štandardu <b>ERC-20 &amp; EIP-2612 (Permit)</b> na sieti <b>Base (ChainID: 8453)</b> a <b>Base Sepolia</b>. Inteligentná zmluva je navrhnutá s nulovým administratívnym mintingom, čo zaručuje absolútnu matematickú vzácnosť a nemennosť pravidiel.
+            </p>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge" style="background:#f59e0b;color:#0b1220">TOKENOMIKA &amp; PRAVIDLÁ</span>
+            <h3>1. Tokenomika a Immutability Covenant</h3>
+            <ul class="docs-list">
+              <li><b>Celková a maximálna ponuka:</b> Presne <code>1 000 000 000 TTK</code> (1 miliarda tokenov s 18 desatinnými miestami).</li>
+              <li><b>Nulový ďalší minting:</b> Smart kontrakt neobsahuje žiadnu funkciu <code>mint()</code> po inicializácii. Žiadna strana nemôže vytvoriť nové tokeny.</li>
+              <li><b>Žiadne skryté dane ani poplatky:</b> Prenos tokenu <code>transfer()</code> má nulovú daň (0 % buy/sell tax).</li>
+              <li><b>Žiadne čierne listiny (No Blacklist):</b> Kód neobsahuje žiadne blokovacie zoznamy používateľov.</li>
+            </ul>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge" style="background:#38bdf8;color:#0b1220">INTEGRÁCIE</span>
+            <h3>2. Telegram @wallet &amp; TON Jetton</h3>
+            <ul class="docs-list">
+              <li><b>Oficiálna peňaženka Telegramu:</b> Používatelia môžu platiť cez integrovanú peňaženku <code>@wallet</code> v Telegrame v menách <b>TON</b>, <b>USDT</b> a čoskoro cez most v <b>TTK</b>.</li>
+              <li><b>Prepojenie s @Antigravity_trinity_bot:</b> Príkazy <code>/wallet</code> a <code>/crypto</code> v botovi okamžite zobrazia tvoje prepojené adresy, zostatok a generujú platobný QR kód.</li>
+              <li><b>Automatická verifikácia platby:</b> Trinity dohliada na bloky cez RPC a po prijatí transakcie automaticky odomkne doménu, projekt alebo službu.</li>
+            </ul>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge" style="background:#10b981;color:#0b1220">MULTI-CHAIN</span>
+            <h3>3. Prijímanie Platieb na 5 Reťazcoch</h3>
+            <ul class="docs-list">
+              <li><b>Base (Coinbase L2):</b> Natívny domov Tetrakis ($TTK) a nízkonákladových mikrotransakcií.</li>
+              <li><b>Polygon &amp; Arbitrum:</b> Okamžité prijímanie stabilných mincí USDC a USDT s transakčnými poplatkami pod 0,01 €.</li>
+              <li><b>Ethereum Mainnet:</b> Inštitucionálne vyrovnanie a veľké zmluvné úschovy.</li>
+              <li><b>Solana (SPL):</b> Bleskové mikroplatby pre AI API volania s potvrdením do 400 ms.</li>
+            </ul>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge" style="background:#6366f1;color:#fff">VÝVOJÁRSKY SNIPPET</span>
+            <h3>4. Smart Contract Verifikácia</h3>
+            <p>Adresa kontraktu na Base a overovacie volanie cez ethers.js / web3.js:</p>
+            <div class="docs-code-box">
+              <button class="docs-copy-btn" onclick="navigator.clipboard.writeText('0xTetrakisBaseTokenAddress...'); this.textContent='✓ Skopírované!'; setTimeout(()=>this.textContent='Kopírovať', 2000)">Kopírovať</button>
+              <pre class="docs-code-pre">// Tetrakis Smart Contract Reader (Base Sepolia / Mainnet)
+import { ethers } from "ethers";
+
+const provider = new ethers.JsonRpcProvider("https://mainnet.base.org");
+const TTK_ADDRESS = "0xTetrakisBaseTokenAddress...";
+const ABI = ["function totalSupply() view returns (uint256)", "function balanceOf(address) view returns (uint256)"];
+
+const contract = new ethers.Contract(TTK_ADDRESS, ABI, provider);
+console.log("Supply:", await contract.totalSupply());</pre>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- NEW TAB: OMNICHANNEL, SIETE & POSLOVIA -->
+      <div id="doc-pane-connectors" class="doc-tab-pane" hidden>
+        <div class="docs-portal-grid">
+          <article class="docs-card full-span-card" style="border: 2px solid rgba(139, 92, 246, 0.4); background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(15, 23, 42, 0.95)); padding: 24px; border-radius: 12px;">
+            <div class="panel-head" style="margin-bottom: 14px;">
+              <div>
+                <span class="docs-badge" style="background:#8b5cf6;color:#fff;font-weight:700">TRINITY DIRECT CONNECT HUB · OMNICHANNEL</span>
+                <h2 style="margin:8px 0 4px;color:#a78bfa">🌐 Sociálne Siete, Poslovia &amp; Inbound Webhooky</h2>
+                <small style="color:var(--text-muted, #94a3b8)">1-klik pripojenia pre Telegram, WhatsApp, LinkedIn, Meta (Facebook/IG), Google Drive a Make/n8n/Zapier</small>
+              </div>
+              <div style="display:flex;gap:8px">
+                <a class="primary" href="/connect" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:inline-flex;align-items:center;background:#8b5cf6;color:#fff;font-weight:700;padding:6px 14px;border-radius:6px;">⚡ Otvoriť Direct Connect Hub (/connect)</a>
+              </div>
+            </div>
+            <p style="color:#e2e8f0;line-height:1.7;font-size:0.95rem;">
+              Trinity dokáže prijímať správy a úlohy z rôznych platforiem bez nutnosti manuálneho prepisovania API kľúčov. Všetky vstupy z Telegramu, WhatsAppu, LinkedInu či webhookov sú automaticky routované do Quantum Brainu a overené v Sovereign Ledgeri.
+            </p>
+          </article>
+
+          <!-- Telegram Bot -->
+          <article class="docs-card">
+            <span class="docs-badge" style="background:#38bdf8;color:#0b1220">TELEGRAM BOT</span>
+            <h3>1. Telegram Bot (@Antigravity_trinity_bot)</h3>
+            <ul class="docs-list">
+              <li><b>Bot ID &amp; Používateľské meno:</b> <code>9207253413</code> · <code>@Antigravity_trinity_bot</code></li>
+              <li><b>Vstavané príkazy:</b>
+                <ul>
+                  <li><code>/start</code> — Inicializácia relácie a uvítacie menu,</li>
+                  <li><code>/status</code> — Diagnostický prehľad systémov Trinity a agentov,</li>
+                  <li><code>/wallet</code> — Správa krypto peňaženky a zostatkov TON/USDT/TTK,</li>
+                  <li><code>/crypto</code> — Živé ceny komodít a kryptomien,</li>
+                  <li><code>/id</code> — Zobrazenie tvojho unikátneho Telegram Chat ID.</li>
+                </ul>
+              </li>
+              <li><b>Inteligentný chunking správ:</b> Trinity automaticky rozdeľuje dlhé výstupy (nad 3 900 znakov) na bezpečné časti, aby nedošlo k chybe HTTP 400.</li>
+            </ul>
+            <div class="docs-card-actions">
+              <a href="https://t.me/Antigravity_trinity_bot" target="_blank" rel="noopener noreferrer" class="btn-docs-action">Otvoriť bota v Telegrame ↗</a>
+            </div>
+          </article>
+
+          <!-- WhatsApp -->
+          <article class="docs-card">
+            <span class="docs-badge" style="background:#10b981;color:#0b1220">WHATSAPP CLOUD API</span>
+            <h3>2. WhatsApp Business &amp; Direct</h3>
+            <ul class="docs-list">
+              <li><b>Priamy odkaz (wa.me):</b> Klienti ťa môžu kontaktovať 1-klikom cez zabezpečený odkaz <code>wa.me/421940925232</code>.</li>
+              <li><b>WhatsApp Cloud API Webhook:</b> Prijímanie správ a objednávok priamo z firemného WhatsApp čísla. Endpoint: <code>https://auru.space/api/v1/webhooks/whatsapp</code>.</li>
+              <li><b>Automatizovaný asistent:</b> Trinity dokáže odpovedať na dotazy zákazníkov, prijímať potvrdenia platieb a zapisovať úlohy do D1.</li>
+            </ul>
+            <div class="docs-card-actions">
+              <a href="https://wa.me/421940925232" target="_blank" rel="noopener noreferrer" class="btn-docs-action">Vyskúšať WhatsApp preklik ↗</a>
+            </div>
+          </article>
+
+          <!-- LinkedIn B2B Hub -->
+          <article class="docs-card">
+            <span class="docs-badge" style="background:#0284c7;color:#fff">LINKEDIN B2B</span>
+            <h3>3. LinkedIn B2B &amp; Content Hub</h3>
+            <ul class="docs-list">
+              <li><b>Direct Share API:</b> Možnosť okamžite publikovať odborné posty a firemné novinky z AI Studia priamo na tvoj osobný profil alebo firemnú stránku.</li>
+              <li><b>Nástroj <code>meta_manage</code> (platforma linkedin):</b> Trinity pripraví profesionálny B2B draft s analytickým zhrnutím a hashtagmi.</li>
+              <li><b>Lead generation webhook:</b> Prijímanie dopytov z LinkedIn reklám alebo formulárov priamo do CRM databázy Trinity.</li>
+            </ul>
+            <div class="docs-card-actions">
+              <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fauru.space" target="_blank" rel="noopener noreferrer" class="btn-docs-action">Zdieľať na LinkedIn ↗</a>
+            </div>
+          </article>
+
+          <!-- Meta Facebook & Instagram -->
+          <article class="docs-card">
+            <span class="docs-badge" style="background:#c084fc;color:#0b1220">FACEBOOK &amp; INSTAGRAM</span>
+            <h3>4. Meta Graph API (OAuth 2.0)</h3>
+            <ul class="docs-list">
+              <li><b>Spravované aktíva majiteľa:</b>
+                <ul>
+                  <li>Facebook stránka: <b>underground Street collective</b></li>
+                  <li>Instagram profil: <b>@old_dirty_bastard013</b></li>
+                </ul>
+              </li>
+              <li><b>OAuth autorizácia na 1 klik:</b> Na adrese <code>https://auru.space/connect/meta</code> autorizuješ práva bez manuálneho kopírovania tokenov. Tokeny sa bezpečne uložia do AES-GCM trezoru s automatickou obnovou.</li>
+              <li><b>Meta Webhook:</b> Notifikácie o komentároch a správach smerujú na <code>https://auru.space/api/v1/webhooks/meta</code>.</li>
+            </ul>
+            <div class="docs-card-actions">
+              <a href="/connect/meta" target="_blank" class="btn-docs-action">Prepojiť Meta cez OAuth ↗</a>
+            </div>
+          </article>
+
+          <!-- Univerzálne Webhooky -->
+          <article class="docs-card full-span-card">
+            <span class="docs-badge" style="background:#f59e0b;color:#0b1220">UNIVERZÁLNY INBOUND WEBHOOK</span>
+            <h3>5. Integrácia s Make.com, n8n, Zapier, Stripe, GitHub a Discord</h3>
+            <p>Tento univerzálny koncový bod prijíma ľubovoľné JSON dáta, automaticky ich overí, zaradí do fronty úloh v D1 a pošle notifikáciu do tvojho Telegramu:</p>
+            <div class="docs-code-box">
+              <button class="docs-copy-btn" onclick="navigator.clipboard.writeText('https://auru.space/api/v1/webhooks/incoming'); this.textContent='✓ Skopírované!'; setTimeout(()=>this.textContent='Kopírovať', 2000)">Kopírovať</button>
+              <pre class="docs-code-pre">Endpoint: POST https://auru.space/api/v1/webhooks/incoming
+Header: Content-Type: application/json
+Payload príklad:
+{
+  "event": "new_lead",
+  "source": "n8n",
+  "client_name": "Peter Kováč",
+  "email": "peter@example.com",
+  "budget": "2500 EUR",
+  "service": "AI Studio Web"
+}</pre>
+            </div>
           </article>
         </div>
       </div>

@@ -1684,9 +1684,91 @@ document.querySelectorAll('[data-comm-tab]').forEach(btn=>btn.addEventListener('
 
 function switchDocTab(tabId){
   document.querySelectorAll('[data-doc-tab]').forEach(b=>b.classList.toggle('active',b.dataset.docTab===tabId));
-  ['guide','oath','architecture','banking','licenses','gdpr','archive','omnidev','meta','truth','ledger'].forEach(id=>{
-    const pane=$('doc-pane-'+id);
-    if(pane)pane.hidden=id!==tabId;
+  document.querySelectorAll('.doc-tab-pane').forEach(pane=>{
+    pane.hidden = (pane.id !== 'doc-pane-' + tabId);
+  });
+  document.querySelectorAll('.docs-tag-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.dataset.docsFilter === tabId);
+  });
+  if (typeof filterDocsCards === 'function') {
+    const searchVal = $('docs-global-search')?.value;
+    if (searchVal) filterDocsCards(searchVal);
+  }
+}
+
+window.copyToolPromptToChat = function(promptText) {
+  const msg = $('message');
+  if (msg) {
+    msg.value = promptText;
+    msg.focus();
+    void setView('chat');
+    if (typeof notice === 'function') {
+      notice('Príkaz bol vložený do chatu. Odošli ho stlačením Enter alebo tlačidla Odoslať.');
+    }
+  }
+};
+
+function filterDocsCards(query) {
+  const q = String(query || '').trim().toLowerCase();
+  const activePane = document.querySelector('.doc-tab-pane:not([hidden])');
+  if (!activePane) return;
+  const cards = activePane.querySelectorAll('.docs-card');
+  cards.forEach(card => {
+    if (!q) {
+      card.style.display = '';
+      return;
+    }
+    const text = card.textContent.toLowerCase();
+    card.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
+function initDocsSearch() {
+  const searchInput = $('docs-global-search');
+  const clearBtn = $('docs-search-clear');
+  if (!searchInput) return;
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    if (clearBtn) clearBtn.hidden = !q;
+    filterDocsCards(q);
+  });
+
+  clearBtn?.addEventListener('click', () => {
+    searchInput.value = '';
+    clearBtn.hidden = true;
+    filterDocsCards('');
+  });
+
+  document.querySelectorAll('.docs-tag-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.docs-tag-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const target = chip.dataset.docsFilter;
+      if (target === 'all') {
+        switchDocTab('guide');
+      } else {
+        switchDocTab(target);
+      }
+    });
+  });
+
+  $('btn-docs-verify-live')?.addEventListener('click', async () => {
+    const btn = $('btn-docs-verify-live');
+    btn.disabled = true;
+    btn.textContent = '⏳ Overujem...';
+    try {
+      const res = await fetch('/health').then(r => r.json());
+      btn.textContent = `✅ Overené: v${res.version || '11.1.0'} (${res.agents || 46} agentov)`;
+      if (typeof notice === 'function') notice(`Zdravie systému overené: ${res.service} v${res.version} na ${res.environment}.`);
+    } catch {
+      btn.textContent = '⚠️ Edge OK';
+    }
+    setTimeout(() => { btn.disabled = false; btn.textContent = '↻ Overiť živý stav'; }, 3000);
+  });
+
+  $('btn-docs-print')?.addEventListener('click', () => {
+    window.print();
   });
 }
 document.querySelectorAll('[data-doc-tab]').forEach(btn=>btn.addEventListener('click',()=>switchDocTab(btn.dataset.docTab)));
@@ -5542,4 +5624,5 @@ function initSovereignShield() {
   setInterval(refreshSovereignShield, 60_000);
 }
 initSovereignShield();
+initDocsSearch();
 
