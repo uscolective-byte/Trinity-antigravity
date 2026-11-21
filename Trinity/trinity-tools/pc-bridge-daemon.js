@@ -1,4 +1,26 @@
-/**
+Please fix the following security issue:
+
+<issue>
+Command injection from function argument passed to child_process invocation
+
+Command injection lets attackers run arbitrary system commands, read or modify data, pivot laterally, or fully compromise the host.
+
+Untrusted function parameter is used as the command or arguments to child_process exec/spawn without strict validation or with shell execution enabled.
+</issue>
+
+<locations>
+Trinity/src/trinity-tools/pc-bridge-daemon.js:200
+</locations>
+
+<fix>
+Avoid shell execution. Use spawn or execFile with a fixed executable, an arguments array, and shell:false. Validate and allowlist inputs. Reject or escape unsafe characters. Consider sandboxing or least-privilege execution for the child process.
+</fix>
+
+<fix_impact>
+null
+</fix_impact>
+
+Keep the changes minimal - only make the necessary code changes to fix the security issue./**
  * Trinity PC Bridge Daemon (Node.js)
  * ─────────────────────────────────
  * Runs locally on the user's Windows PC.
