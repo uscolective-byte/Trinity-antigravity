@@ -1,0 +1,1301 @@
+{
+  "checked_at": "2026-11-21T09:20:01.992Z",
+  "passCount": 60,
+  "failCount": 0,
+  "total": 60,
+  "results": [
+    {
+      "category": "Math",
+      "tool": "calculate",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 17,
+        "preview": {
+          "operation": "multiply",
+          "result": 144
+        }
+      }
+    },
+    {
+      "category": "Math",
+      "tool": "calculate",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 0,
+        "preview": {
+          "operation": "divide",
+          "result": 12
+        }
+      }
+    },
+    {
+      "category": "Math",
+      "tool": "calculate",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 0,
+        "preview": {
+          "operation": "percentage",
+          "result": 50
+        }
+      }
+    },
+    {
+      "category": "Math",
+      "tool": "geometry",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 4,
+        "preview": {
+          "shape": "circle",
+          "area": 314.1592653589793,
+          "perimeter": 62.83185307179586
+        }
+      }
+    },
+    {
+      "category": "Math",
+      "tool": "geometry",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 0,
+        "preview": {
+          "shape": "rectangle",
+          "area": 200,
+          "perimeter": 60
+        }
+      }
+    },
+    {
+      "category": "Math",
+      "tool": "statistics",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1,
+        "preview": {
+          "count": 6,
+          "min": 10,
+          "max": 100,
+          "sum": 250,
+          "mean": 41.666666666666664,
+          "median": 35,
+          "standard_deviation": 29.1070819942883
+        }
+      }
+    },
+    {
+      "category": "Math",
+      "tool": "business_math",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1,
+        "preview": {
+          "operation": "compound_growth",
+          "initial": 5000,
+          "final": 7012.758653500002,
+          "growth": 2012.7586535000019,
+          "periods": 5
+        }
+      }
+    },
+    {
+      "category": "Math",
+      "tool": "convert_units",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1,
+        "preview": {
+          "value": 100,
+          "from": "c",
+          "to": "f",
+          "result": 212
+        }
+      }
+    },
+    {
+      "category": "Math",
+      "tool": "convert_units",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 0,
+        "preview": {
+          "value": 1,
+          "from": "kg",
+          "to": "lb",
+          "result": 2.2046226218487757
+        }
+      }
+    },
+    {
+      "category": "Text",
+      "tool": "analyze_text",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 3,
+        "preview": {
+          "characters": 110,
+          "words": 15,
+          "sentences": 1,
+          "reading_minutes": 1
+        }
+      }
+    },
+    {
+      "category": "Text",
+      "tool": "format_text",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 3,
+        "preview": {
+          "mode": "title",
+          "text": "Trinity Sovereign Core Os"
+        }
+      }
+    },
+    {
+      "category": "Text",
+      "tool": "extract_entities",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 2,
+        "preview": {
+          "emails": [
+            "support@auru.space"
+          ],
+          "urls": [
+            "https://auru.space"
+          ],
+          "dates": []
+        }
+      }
+    },
+    {
+      "category": "Text",
+      "tool": "redact_sensitive",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1,
+        "preview": {
+          "text": "Tajný kľúč je [REDACTED_EMAIL] a telefón [REDACTED_PHONE].",
+          "counts": {
+            "email": 1,
+            "phone": 1
+          }
+        }
+      }
+    },
+    {
+      "category": "Text",
+      "tool": "html_to_text",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 2,
+        "preview": {
+          "text": "Trinity OS\nVítajte v Sovereign Core .",
+          "characters": 37
+        }
+      }
+    },
+    {
+      "category": "Text",
+      "tool": "markdown_inspect",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1,
+        "preview": {
+          "headings": [
+            {
+              "level": 1,
+              "text": "Architektúra Trinity",
+              "line": 1
+            },
+            {
+              "level": 2,
+              "text": "Vrstva 1",
+              "line": 3
+            }
+          ],
+          "links": [
+            {
+              "text": "Odkaz",
+              "url": "https://auru.space"
+            }
+          ],
+          "tasks": [],
+          "completed_tasks": 0
+        }
+      }
+    },
+    {
+      "category": "Text",
+      "tool": "text_diff",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 2,
+        "preview": {
+          "changes": [
+            {
+              "type": "remove",
+              "line": "verzia: 11.0.0"
+            },
+            {
+              "type": "add",
+              "line": "verzia: 11.1.0"
+            }
+          ],
+          "added": 1,
+          "removed": 1
+        }
+      }
+    },
+    {
+      "category": "Data",
+      "tool": "json_tool",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 2,
+        "preview": {
+          "valid": true,
+          "output": "{\n  \"service\": \"trinity\",\n  \"status\": \"active\"\n}"
+        }
+      }
+    },
+    {
+      "category": "Data",
+      "tool": "csv_inspect",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 4,
+        "preview": {
+          "headers": [
+            "id",
+            "meno",
+            "rola"
+          ],
+          "row_count": 2,
+          "column_count": 3,
+          "numeric": {
+            "id": {
+              "numeric_values": 2,
+              "min": 1,
+              "max": 2,
+              "mean": 1.5
+            }
+          },
+          "sample": [
+            {
+              "id": "1",
+              "meno": "Ivan",
+              "rola": "Architect"
+            },
+            {
+              "id": "2",
+              "meno": "Trinity",
+              "rola": "Core"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "category": "Data",
+      "tool": "csv_to_json",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1,
+        "preview": {
+          "headers": [
+            "id",
+            "meno",
+            "rola"
+          ],
+          "records": [
+            {
+              "id": "1",
+              "meno": "Ivan",
+              "rola": "Architect"
+            },
+            {
+              "id": "2",
+              "meno": "Trinity",
+              "rola": "Core"
+            }
+          ],
+          "total_rows": 2,
+          "truncated": false
+        }
+      }
+    },
+    {
+      "category": "Data",
+      "tool": "list_cleaner",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1,
+        "preview": {
+          "items": [
+            "trinity",
+            "edge",
+            "gateway"
+          ],
+          "removed": 2
+        }
+      }
+    },
+    {
+      "category": "Data",
+      "tool": "table_transform",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 34,
+        "preview": {
+          "rows": [
+            {
+              "id": 2,
+              "val": 100
+            },
+            {
+              "id": 1,
+              "val": 50
+            },
+            {
+              "id": 3,
+              "val": 25
+            }
+          ]
+        }
+      }
+    },
+    {
+      "category": "Data",
+      "tool": "base64_codec",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1,
+        "preview": {
+          "output": "U292ZXJlaWduIFRyaW5pdHkgQ292ZW5hbnQgMjAyNg==",
+          "bytes": 31
+        }
+      }
+    },
+    {
+      "category": "Data",
+      "tool": "base64_codec",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 0,
+        "preview": {
+          "output": "Sovereign Trinity Covenant 2026",
+          "bytes": 31
+        }
+      }
+    },
+    {
+      "category": "Data",
+      "tool": "uuid_tool",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1,
+        "preview": {
+          "uuid": "81e1cd19-ef9e-4bc2-841c-c69bc79f7481",
+          "version": 4
+        }
+      }
+    },
+    {
+      "category": "Data",
+      "tool": "uuid_tool",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 0,
+        "preview": {
+          "valid": true,
+          "version": 4
+        }
+      }
+    },
+    {
+      "category": "Data",
+      "tool": "semver_compare",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1,
+        "preview": {
+          "comparison": 1,
+          "relation": "newer"
+        }
+      }
+    },
+    {
+      "category": "Data",
+      "tool": "hash_text",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 5,
+        "preview": {
+          "algorithm": "SHA-256",
+          "hex": "64594c8770b240f5d1dae41e611e09e62ffbd08e8f7cd41a472e9a3f0a82b713",
+          "bytes": 23
+        }
+      }
+    },
+    {
+      "category": "System",
+      "tool": "current_time",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 25,
+        "preview": {
+          "timezone": "UTC",
+          "localized": "sobota 21. novembra 2026 o 9:19:58 UTC",
+          "utc": "2026-11-21T09:19:58.955Z"
+        }
+      }
+    },
+    {
+      "category": "System",
+      "tool": "current_time",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1,
+        "preview": {
+          "timezone": "Europe/Bratislava",
+          "localized": "sobota 21. novembra 2026 o 10:19:58 SEČ",
+          "utc": "2026-11-21T09:19:58.956Z"
+        }
+      }
+    },
+    {
+      "category": "System",
+      "tool": "date_math",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 2,
+        "preview": {
+          "days": 324
+        }
+      }
+    },
+    {
+      "category": "System",
+      "tool": "timezone_convert",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 2,
+        "preview": {
+          "utc": "2026-11-21T12:00:00.000Z",
+          "timezone": "Europe/Bratislava",
+          "converted": "sobota 21. novembra 2026 o 13:00:00 SEČ"
+        }
+      }
+    },
+    {
+      "category": "System",
+      "tool": "url_inspect",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 2,
+        "preview": {
+          "protocol": "https:",
+          "origin": "https://auru.space",
+          "hostname": "auru.space",
+          "port": null,
+          "path": "/api/audit-ledger/verify",
+          "query": {
+            "scope": "full"
+          },
+          "fragment": null,
+          "flags": {
+            "local_or_private": false,
+            "embedded_credentials": false,
+            "non_standard_port": false,
+            "insecure_http": false
+          }
+        }
+      }
+    },
+    {
+      "category": "System",
+      "tool": "query_string",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1,
+        "preview": {
+          "params": {
+            "system": "trinity",
+            "version": "11",
+            "verified": "true"
+          }
+        }
+      }
+    },
+    {
+      "category": "System",
+      "tool": "color_convert",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 2,
+        "preview": {
+          "rgb": [
+            37,
+            99,
+            235
+          ],
+          "hex": "#2563eb",
+          "output": "rgb(37, 99, 235)",
+          "format": "rgb"
+        }
+      }
+    },
+    {
+      "category": "System",
+      "tool": "contrast_check",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 2,
+        "preview": {
+          "ratio": 17.85,
+          "aa_normal": true,
+          "aa_large": true,
+          "aaa_normal": true,
+          "aaa_large": true
+        }
+      }
+    },
+    {
+      "category": "System",
+      "tool": "diagnostic_ping",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 2,
+        "preview": {
+          "status": "healthy",
+          "tool": "diagnostic_ping",
+          "input": {
+            "message": "verification-ping-2026"
+          },
+          "echo": "verification-ping-2026",
+          "receipt_id": "DIAG-RCPT-MWQ75X4O-727CA671",
+          "executed_at": "2026-11-21T09:19:58.968Z",
+          "executor": "trinity-tool-executor",
+          "_evidence": {
+            "effect": "read",
+            "action": "diagnostic_ping",
+            "receipt_id": "DIAG-RCPT-MWQ75X4O-727CA671"
+          }
+        }
+      }
+    },
+    {
+      "category": "System",
+      "tool": "plan_work",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 2,
+        "preview": {
+          "version": "1.2",
+          "intent": "conversation",
+          "risk": "low",
+          "repair": false,
+          "requires_approval": false,
+          "steps": [
+            "pochopiť otázku",
+            "odpovedať prirodzene a stručne"
+          ],
+          "completion_checks": [
+            "Výsledok zodpovedá aktuálnemu cieľu a rozsahu.",
+            "Vykonané akcie sú doložené výsledkom povoleného nástroja.",
+            "Zostávajúce blokátory a neistota sú jasne uvedené."
+          ],
+          "execution_status": "not-started",
+          "grants_permissions": false
+        }
+      }
+    },
+    {
+      "category": "OpenData",
+      "tool": "free_modules_catalog",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 0,
+        "preview": {
+          "modules": [
+            {
+              "id": "weather",
+              "name": "Open-Meteo Meteorológia",
+              "category": "Životné prostredie",
+              "icon": "🌤",
+              "description": "Živá teplota, vlhkosť, vietor, zrážky a predpoveď počasia pre akékoľvek mesto sveta.",
+              "provider": "Open-Meteo & WMO",
+              "license": "Open Data (CC BY 4.0)",
+              "rate_limit": "Bez kľúča, 10 000 požiadaviek/deň",
+              "status": "active"
+            },
+            {
+              "id": "wikipedia",
+              "name": "Wikipédia & Wikimedia Knowledge",
+              "category": "Encyklopédia & Fakty",
+              "icon": "📖",
+              "description": "Overené encyklopedické články, súhrny, definície a bibliografia zo slovenskej a svetovej Wikipédie.",
+              "provider": "Wikimedia Foundation",
+              "license": "CC BY-SA 4.0",
+              "rate_limit": "Bez kľúča, verejné REST API",
+              "status": "active"
+            },
+            {
+              "id": "dns_doh",
+              "name": "Cloudflare DNS over HTTPS (DoH)",
+              "category": "Sieť & Bezpečnosť",
+              "icon": "🛡",
+              "description": "Kryptograficky overené vyhodnocovanie DNS záznamov (A, AAAA, MX, TXT, CNAME) a stavu domén v reálnom čase.",
+              "provider": "Cloudflare 1.1.1.1 DoH",
+              "license": "Verejná resolver služba",
+              "rate_limit": "Bez kľúča, globálna anycast sieť",
+              "status": "active"
+            },
+            {
+              "id": "crypto_markets",
+              "name": "DefiLlama On-Chain & Krypto Trhy",
+              "category": "Financie & Web3",
+              "icon": "🪙",
+              "description": "Skutočné spotové ceny kryptoaktív, TVL blockchainov a protokoly bez sprostredkovateľských poplatkov.",
+              "provider": "DefiLlama Open API",
+              "license": "Open Data",
+              "rate_limit": "Bez kľúča, real-time indexer",
+              "status": "active"
+            },
+            {
+              "id": "tech_news",
+              "name": "Hacker News Tech Radar",
+              "category": "Technológie & AI",
+              "icon": "⚡",
+              "description": "Najaktuálnejšie správy, diskusie a inovácie z globálnej technologickej scény.",
+              "provider": "Y Combinator / Hacker News Firebase",
+              "license": "Verejné API",
+              "rate_limit": "Bez kľúča, oficiálne čítanie",
+              "status": "active"
+            },
+            {
+              "id": "world_bank",
+              "name": "World Bank Globálna Ekonomika",
+              "category": "Makroekonómia",
+              "icon": "🌐",
+              "description": "Oficiálne makroekonomické štatistiky: HDP, rast, inflácia, populácia a emisie štátov sveta.",
+              "provider": "World Bank Open Data",
+              "license": "CC BY-4.0 Open Data",
+              "rate_limit": "Bez kľúča, oficiálny REST endpoint",
+              "status": "active"
+            }
+          ],
+          "_evidence": {
+            "effect": "read",
+            "action": "free_modules_catalog",
+            "receipt_id": "009788b4-8819-4611-aac6-d1aa309000b4"
+          }
+        }
+      }
+    },
+    {
+      "category": "OpenData",
+      "tool": "network_dns",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 269,
+        "preview": {
+          "available": true,
+          "domain": "cloudflare.com",
+          "type": "A",
+          "status": "NOERROR",
+          "dnssec_validated": true,
+          "answers": [
+            {
+              "name": "cloudflare.com",
+              "type": "A",
+              "ttl_seconds": 166,
+              "data": "104.16.132.229"
+            },
+            {
+              "name": "cloudflare.com",
+              "type": "A",
+              "ttl_seconds": 166,
+              "data": "104.16.133.229"
+            }
+          ],
+          "source": "Cloudflare 1.1.1.1 DoH",
+          "verified_truth": true,
+          "queried_at": "2026-11-21T09:19:59.241Z",
+          "_evidence": {
+            "effect": "read",
+            "action": "network_dns",
+            "receipt_id": "a7dcb62a-f0e7-46f3-8893-cc611f085c66"
+          }
+        }
+      }
+    },
+    {
+      "category": "OpenData",
+      "tool": "crypto_prices",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 157,
+        "preview": {
+          "available": true,
+          "count": 2,
+          "coins": [
+            {
+              "id": "bitcoin",
+              "symbol": "BTC",
+              "price_usd": 57767.76974599999,
+              "confidence": 0.999,
+              "timestamp": "2026-11-21T09:18:43.000Z"
+            },
+            {
+              "id": "ethereum",
+              "symbol": "ETH",
+              "price_usd": 1631.6169172999998,
+              "confidence": 0.999,
+              "timestamp": "2026-11-21T09:18:43.000Z"
+            }
+          ],
+          "source": "DefiLlama Open API",
+          "verified_truth": true,
+          "fetched_at": "2026-11-21T09:19:59.399Z",
+          "_evidence": {
+            "effect": "read",
+            "action": "crypto_prices",
+            "receipt_id": "f396551e-016d-42ab-83f6-069bf6f2c86e"
+          }
+        }
+      }
+    },
+    {
+      "category": "OpenData",
+      "tool": "tech_news",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 1378,
+        "preview": {
+          "available": true,
+          "count": 3,
+          "stories": [
+            {
+              "id": 50579568,
+              "title": "Hurried Announcement: Alessandro Masullo GRH",
+              "url": "https://math216.wordpress.com/2026/11/20/hurried-announcement-alessandro-masullo-grh/",
+              "by": "jasondavies",
+              "score": 2007,
+              "comments_count": 927,
+              "published_at": "2026-11-20T18:33:14.000Z"
+            },
+            {
+              "id": 50574968,
+              "title": "Levent Alpöge claims proof of the Generalized Riemann Hypothesis [pdf]",
+              "url": "https://alpo.ge/remark.pdf",
+              "by": "iamronaldo",
+              "score": 2606,
+              "comments_count": 1791,
+              "published_at": "2026-11-20T14:16:21.000Z"
+            },
+            {
+              "id": 50581260,
+              "title": "Inkling 2 Mini",
+              "url": "https://thinkingmachines.ai/news/inkling-2-mini/",
+              "by": "jasondavies",
+              "score": 958,
+              "comments_count": 177,
+              "published_at": "2026-11-20T20:12:19.000Z"
+            }
+          ],
+          "source": "Hacker News (Y Combinator)",
+          "verified_truth": true,
+          "fetched_at": "2026-11-21T09:20:00.778Z",
+          "_evidence": {
+            "effect": "read",
+            "action": "tech_news",
+            "receipt_id": "128a6f27-2937-46ae-a746-fe6e1142d2b0"
+          }
+        }
+      }
+    },
+    {
+      "category": "OpenData",
+      "tool": "macro_data",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 140,
+        "preview": {
+          "available": false,
+          "reason": "Žiadne dáta pre krajinu SVK a indikátor gdp.",
+          "_evidence": {
+            "effect": "read",
+            "action": "macro_data",
+            "receipt_id": "3b38b694-5dd1-4cf7-a993-14d9b17cd0b3"
+          }
+        }
+      }
+    },
+    {
+      "category": "OpenData",
+      "tool": "open_wikipedia",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 167,
+        "preview": {
+          "available": true,
+          "title": "Alan Turing",
+          "description": "britský matematik, logik, kryptograf a vojnový hrdina",
+          "extract": "Alan Mathison Turing bol britský matematik, logik, kryptograf a vojnový hrdina.",
+          "url": "https://sk.wikipedia.org/wiki/Alan_Turing",
+          "thumbnail": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/79/Alan_Turing_az_1930-as_%C3%A9vekben.jpg/330px-Alan_Turing_az_1930-as_%C3%A9vekben.jpg?utm_source=sk.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+          "coordinates": null,
+          "language": "sk",
+          "source": "Wikimedia / Wikipédia",
+          "verified_truth": true,
+          "fetched_at": "2026-11-21T09:20:01.085Z",
+          "_evidence": {
+            "effect": "read",
+            "action": "open_wikipedia",
+            "receipt_id": "9ef1c5d5-3b3c-4a69-ba16-0da88370a765"
+          }
+        }
+      }
+    },
+    {
+      "category": "OpenData",
+      "tool": "open_weather",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 326,
+        "preview": {
+          "available": true,
+          "location": {
+            "name": "Bratislava",
+            "country": "Slovensko",
+            "latitude": 48.14816,
+            "longitude": 17.10674,
+            "elevation": 157
+          },
+          "current": {
+            "temperature_c": 6.6,
+            "humidity_pct": 58,
+            "precipitation_mm": 0,
+            "wind_speed_kmh": 27.1,
+            "time": "2026-11-21T10:15"
+          },
+          "daily_forecast": {
+            "dates": [
+              "2026-11-21",
+              "2026-11-22",
+              "2026-11-23",
+              "2026-11-24",
+              "2026-11-25",
+              "2026-11-26",
+              "2026-11-27"
+            ],
+            "temp_max_c": [
+              11.2,
+              6.5,
+              4.8,
+              3.4,
+              2.4,
+              0.4,
+              0.9
+            ],
+            "temp_min_c": [
+              4.6,
+              2.8,
+              0.6,
+              -0.8,
+              -2.6,
+              -2.2,
+              -6.5
+            ],
+            "precipitation_sum_mm": [
+              1.8,
+              0,
+              0,
+              0,
+              0,
+              9.75,
+              0
+            ]
+          },
+          "source": "Open-Meteo & WMO",
+          "verified_truth": true,
+          "fetched_at": "2026-11-21T09:20:01.411Z",
+          "_evidence": {
+            "effect": "read",
+            "action": "open_weather",
+            "receipt_id": "cfde9b85-db2d-4dce-917d-80db6656e4eb"
+          }
+        }
+      }
+    },
+    {
+      "category": "Sovereign",
+      "tool": "sovereign_ledger_v3",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 3,
+        "preview": {
+          "architecture": {
+            "version": "11.1.0",
+            "layers": {
+              "L1_KERNEL": [
+                "EP-01",
+                "EP-02",
+                "EP-03",
+                "EP-04"
+              ],
+              "L2_ORCHESTRATION": [
+                "EP-05",
+                "EP-06",
+                "EP-07",
+                "EP-08"
+              ],
+              "L3_MEMORY": [
+                "EP-09",
+                "EP-10",
+                "EP-11",
+                "EP-12",
+                "EP-13"
+              ],
+              "L4_LEDGER": [
+                "EP-14",
+                "EP-15",
+                "EP-16",
+                "EP-17",
+                "EP-18",
+                "EP-19"
+              ],
+              "L5_EXECUTION": [
+                "EP-20",
+                "EP-21",
+                "EP-22",
+                "EP-23",
+                "EP-24",
+                "EP-25"
+              ],
+              "L6_SECURITY": [
+                "EP-26",
+                "EP-27",
+                "EP-28",
+                "EP-29",
+                "EP-30"
+              ],
+              "L7_EVOLUTION": [
+                "EP-31",
+                "EP-32",
+                "EP-33",
+                "EP-34",
+                "EP-35"
+              ]
+            },
+            "total_epics": 35
+          },
+          "_evidence": {
+            "effect": "read",
+            "receipt_id": "da047f14-0d2a-4ad5-922e-19321cf03924"
+          }
+        }
+      }
+    },
+    {
+      "category": "Sovereign",
+      "tool": "sovereign_lock_check",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 3,
+        "preview": {
+          "identity": {
+            "system_name": "TRINITY OMNI-CORE",
+            "sole_owner": "Basterix",
+            "role": "Chief Architect & Root Administrator",
+            "code_modification_policy": "STRICT_MANUAL_CONSENT_ONLY",
+            "autonomous_code_rewrite_permitted": false,
+            "third_party_execution_permitted": false
+          },
+          "root_registry": {
+            "architect_alias": "Basterix",
+            "windows_users": [
+              "saboi",
+              "basterix"
+            ],
+            "google_accounts": [
+              "saboivan2008@gmail.com",
+              "uscolective@gmail.com",
+              "cadjavadvocecka013@gmail.com"
+            ],
+            "phone_numbers": [
+              "+421949009722",
+              "0949009722",
+              "+421949515777",
+              "0949515777"
+            ]
+          },
+          "charter_clauses": 20,
+          "compliance": {
+            "compliant": true,
+            "sole_owner": "Basterix",
+            "clauses_count": 20,
+            "charter_sha256": "0751aea2c24b43dd92c084a64fbf74a08feba1821a9f40286f277bcc3b3e7803",
+            "violations": []
+          },
+          "_evidence": {
+            "effect": "read",
+            "receipt_id": "e0a268f5-285b-4197-80d0-b3ca4c6ef745"
+          }
+        }
+      }
+    },
+    {
+      "category": "Sovereign",
+      "tool": "truth_guard_verify",
+      "status": "PASSED",
+      "details": {
+        "durationMs": 2,
+        "preview": {
+          "blocked": false,
+          "rule": "5_ANTI_ASSUMPTION_FILTER",
+          "output": "Systém Trinity je plne pripravený a overený.",
+          "_evidence": {
+            "effect": "read",
+            "receipt_id": "bf20160f-9e09-441b-8bab-f83cb1abe599"
+          }
+        }
+      }
+    },
+    {
+      "category": "OmniTools",
+      "tool": "cf_d1_query",
+      "status": "PASSED",
+      "details": {
+        "ok": true,
+        "database": "DB",
+        "is_select": true,
+        "results": [
+          {
+            "installed": 1,
+            "enabled": 1
+          }
+        ],
+        "changes": 0,
+        "duration_ms": 0,
+        "_evidence": {
+          "receipt_id": "cf_d1_06930cb7-d134-4c6b-aef3-8c4aa5ee890b",
+          "effect": "read",
+          "actions": [
+            "verify"
+          ]
+        }
+      }
+    },
+    {
+      "category": "OmniTools",
+      "tool": "cf_kv_store",
+      "status": "PASSED",
+      "details": {
+        "ok": true,
+        "action": "get",
+        "key": "test_audit_key",
+        "value": {
+          "status": "verified",
+          "at": "2026-11-21T09:20:01.422Z"
+        },
+        "found": true,
+        "duration_ms": 0
+      }
+    },
+    {
+      "category": "OmniTools",
+      "tool": "cf_r2_manage",
+      "status": "PASSED",
+      "details": {
+        "ok": true,
+        "action": "upload",
+        "key": "audit-evidence.txt",
+        "size": 1,
+        "duration_ms": 0,
+        "_evidence": {
+          "receipt_id": "cf_r2_8e0a3bb2-8f53-4698-b039-8c974836f300",
+          "effect": "mutation",
+          "actions": [
+            "publish"
+          ]
+        }
+      }
+    },
+    {
+      "category": "LocalMCP",
+      "tool": "add_note",
+      "status": "PASSED",
+      "details": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"id\":\"06b88c78-fb2a-4664-965c-da0df7f5255c\",\"text\":\"Autonómny test nástroja 2026-11-21T09:20:01.425Z\",\"created_at\":\"2026-11-21T09:20:01.437Z\"}"
+          }
+        ]
+      }
+    },
+    {
+      "category": "LocalMCP",
+      "tool": "search_notes",
+      "status": "PASSED",
+      "details": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"notes\":[{\"id\":\"06b88c78-fb2a-4664-965c-da0df7f5255c\",\"text\":\"Autonómny test nástroja 2026-11-21T09:20:01.425Z\",\"created_at\":\"2026-11-21T09:20:01.437Z\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "category": "LocalMCP",
+      "tool": "list_files",
+      "status": "PASSED",
+      "details": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"files\":[{\"path\":\"trinity-live-status.md\",\"size\":383}]}"
+          }
+        ]
+      }
+    },
+    {
+      "category": "LocalMCP",
+      "tool": "write_file",
+      "status": "PASSED",
+      "details": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"saved\":true,\"path\":\"trinity-tool-receipt.txt\",\"bytes\":94,\"sha256\":\"3585c053ba2dd9031a5a937fd7953974fea1ca6fb3947884941b366b420cba29\"}"
+          }
+        ]
+      }
+    },
+    {
+      "category": "LocalMCP",
+      "tool": "read_file",
+      "status": "PASSED",
+      "details": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"path\":\"trinity-tool-receipt.txt\",\"content\":\"TRINITY TOOL VERIFICATION RECEIPT\\nVerified: 2026-11-21T09:20:01.453Z\\nStatus: 100% OPERATIONAL\\n\",\"sha256\":\"3585c053ba2dd9031a5a937fd7953974fea1ca6fb3947884941b366b420cba29\"}"
+          }
+        ]
+      }
+    },
+    {
+      "category": "LiveEndpoints",
+      "tool": "Cloudflare Edge Worker Health",
+      "status": "PASSED",
+      "details": {
+        "status": 200,
+        "data": {
+          "ok": true,
+          "service": "Trinity",
+          "version": "11.1.0",
+          "environment": "production",
+          "source": {
+            "repository": "uscolective-byte/Trinity-antigravity",
+            "branch": "main"
+          },
+          "deployment": {
+            "id": "f37ada02-0a50-4f97-b797-51aa4d299d1c",
+            "tag": "2cef1d16355d7cc962bf390cf9925a061f75a477",
+            "timestamp": "2026-11-21T08:47:24.668689Z"
+          },
+          "agents": 46,
+          "status": "serving",
+          "truth_mode": "evidence-required"
+        }
+      }
+    },
+    {
+      "category": "LiveEndpoints",
+      "tool": "Production Sovereign Ledger Verify",
+      "status": "PASSED",
+      "details": {
+        "status": 200,
+        "data": {
+          "success": true,
+          "timestamp": "2026-11-21T09:20:04.646Z",
+          "verification": {
+            "valid": true,
+            "chainLength": 721,
+            "headHash": "9d8211da6187e76a0ed8ef97d83d1e3753d5c27cb2c9fe5b0c3577159f9c3997",
+            "verifiedAt": "2026-11-21T09:20:04.646Z"
+          }
+        }
+      }
+    },
+    {
+      "category": "LiveEndpoints",
+      "tool": "Custom Domain auru.space Health",
+      "status": "PASSED",
+      "details": {
+        "status": 200,
+        "data": {
+          "ok": true,
+          "service": "Trinity",
+          "version": "11.1.0",
+          "environment": "production",
+          "source": {
+            "repository": "uscolective-byte/Trinity-antigravity",
+            "branch": "main"
+          },
+          "deployment": {
+            "id": "f37ada02-0a50-4f97-b797-51aa4d299d1c",
+            "tag": "2cef1d16355d7cc962bf390cf9925a061f75a477",
+            "timestamp": "2026-11-21T08:47:24.668689Z"
+          },
+          "agents": 46,
+          "status": "serving",
+          "truth_mode": "evidence-required"
+        }
+      }
+    },
+    {
+      "category": "LiveEndpoints",
+      "tool": "Local Gateway (Port 8791) Health",
+      "status": "PASSED",
+      "details": {
+        "status": 200,
+        "data": {
+          "service": "Trinity Local Gateway",
+          "version": "1.3.0",
+          "status": "ready",
+          "synchronization": "connected",
+          "binding": "127.0.0.1",
+          "local_auth": "required",
+          "cloud": "connected",
+          "cloud_last_success_at": "2026-11-21T09:20:01.072Z",
+          "pc_bridge": "connected",
+          "pc_bridge_last_success_at": "2026-11-21T09:20:01.408Z",
+          "desktop_control": "approval-required",
+          "local_model": "qwen3:4b-instruct",
+          "recovered_interrupted": 0
+        }
+      }
+    },
+    {
+      "category": "LiveEndpoints",
+      "tool": "Local Desktop (Port 8795) Health",
+      "status": "PASSED",
+      "details": {
+        "status": 200,
+        "data": {
+          "service": "Trinity Local Desktop",
+          "version": "2.0.0",
+          "status": "ready",
+          "mode": "local"
+        }
+      }
+    }
+  ]
+}
