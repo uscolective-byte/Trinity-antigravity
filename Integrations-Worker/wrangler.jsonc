@@ -8,5 +8,11 @@
   "vars": {
     "FIREBASE_PROJECT_ID": "morfeus-ac7ed",
     "FIRECRAWL_ALLOWED_ORIGINS": "https://developers.cloudflare.com,https://firebase.google.com,https://docs.firecrawl.dev"
-  }
+  },
+  "services": [
+    {
+      "binding": "TRINITY",
+      "service": "trinity"
+    }
+  ]
 }

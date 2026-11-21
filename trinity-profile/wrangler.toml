@@ -49,3 +49,7 @@ migrations_dir = "migrations"
 [[env.staging.kv_namespaces]]
 binding = "TRINITY_KV"
 id = "759143cfa6fb44d6a0f4c8e4951945c8"
+
+[[services]]
+binding = "TRINITY"
+service = "trinity"

@@ -114,8 +114,13 @@ export class CryptoSovereignLedger {
   _initGenesisBlock() {
     const genesisData = {
       description: 'TRINITY OMNI-CORE GENESIS BLOCK',
-      authority: 'Basterix',
+      authority: 'Ivan Sabo (Basterix) [Ring 0 Sovereign]',
       covenant: 'Sovereign Irrevocable Covenant',
+      architecture: 'UNIFIED_OMNIBUS_MONOLITH',
+      binding_hub: 'trinity',
+      master_worker: 'trinity',
+      fleet_coordination: 'CENTRALIZED_BINDING_AUTHORITY',
+      canonical_domains: ['https://auru.space', 'https://auru.dev'],
       timestamp: '2026-11-04T00:00:00.000Z'
     };
     const block = {

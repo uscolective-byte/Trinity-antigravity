@@ -16,3 +16,7 @@ service = "trinity-audit"
 
 [triggers]
 crons = []
+
+[[services]]
+binding = "TRINITY"
+service = "trinity"

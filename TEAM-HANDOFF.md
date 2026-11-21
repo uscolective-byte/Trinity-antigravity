@@ -3087,3 +3087,26 @@ Overenie a testy:
 - Nasadenie Cloudflare: Version ID `855107f4-4137-4523-b9eb-9c273765e821` na `auru.space`, `auru.dev` a `trinity.saboivan2008.workers.dev`.
 - Overené živé endpointy: `/health` (serving), `/api/auth/config` (`credentials_enabled: true`), `/api/pc-bridge` (`stored: true`, telemetria v KV).
 
+---
+
+### UPDATE / HANDOFF — ANTIGRAVITY-BRIDGE-AND-TOOLS-VERIFY — 2026-11-18
+
+Čas a časové pásmo: 2026-11-18 04:06 CET (Europe/Bratislava)
+Autor a klient: Antigravity
+Príjemca: Codex, Ivan Sabo (Basterix)
+Cieľ a pokyn majiteľa: Overiť a pomôcť Codexovi s nástrojmi Trinity (vrátane `antigravity-bridge.ps1` a `Trinity-Tool-Installer.ps1`) a v pozadí zadať Google AI Studio úlohu na tvorbu webovej stránky Trinity.
+Základný commit / checkout: `trinity-docs-update` worktree na `c29cd77` (hlavná kópia `C:\Users\saboi\Trinity-antigravity` ostala na `5921055` bez zásahu do cudzích rozpracovaných zmien).
+Skutočné zmeny:
+- Zapísaný tento koordinačný záznam do `TEAM-HANDOFF.md`.
+- V Google AI Studio (`https://aistudio.google.com/apps/1d575226-8a0c-4225-8a00-eb3bf268131d`) zadaná úloha na dokončenie webovej stránky Trinity (3D Three.js Tetrakis jadro, 5-kartová sekcia „Nástroje a ekosystém Trinity“, responzívny build bez potreby plateného API kľúča); AI Studio dokončilo build (`Built`, 8 upravených súborov, Vite v8.3.8 `CONNECTED`).
+Kontroly a dôkazy:
+- `powershell -NoProfile -File ...\trinity-docs-update\core\antigravity-bridge.ps1 -Action status`: `configured_not_verified` (`agent_api_present: true`, `session_configured: true`, `ANTIGRAVITY_LS_ADDRESS=localhost:53773`).
+- `powershell -NoProfile -File ...\trinity-docs-update\core\antigravity-bridge.ps1 -Action verify -RecipientId a8d3e945-7790-49ce-b9cb-9cd34e7e3d86`: exit 0, vrátené živé metadáta relácie z `agentapi`.
+- `powershell -NoProfile -File ...\trinity-docs-update\Local-Desktop\Trinity-Tool-Installer.ps1 -Action List`: `Git` (`2.56.0.windows.4`), `NodeJS` (`v24.22.2`), `Python` (`3.15.2`), `Ollama` klient (`0.40.14`, lokálna služba Ollama neodpovedá) — všetky `verified_local`.
+- `node --test ...\trinity-docs-update\Local-Gateway\tests\gateway.test.mjs`: `13/13 PASS`.
+- `node --test ...\trinity-docs-update\Trinity\tests\tool-discovery.test.mjs ...\trinity-docs-update\Trinity\tests\truth-tool-result.test.mjs`: `32/32 PASS`.
+- `http://127.0.0.1:8791/health` (`Local-Gateway` 1.3.0): `status: "ready"`, `cloud: "connected"`, `pc_bridge: "connected"`; `http://127.0.0.1:8795/health` (`Local-Desktop` 2.0.0): `status: "ready"`. Oba procesy bežia z `C:\Users\saboi\Trinity\Trinity-antigravity` (`5921055`), kde ešte nie je zlúčený commit `c29cd77`.
+Stav: completed / pending_ack (Codex)
+Ďalší krok a vlastník: Codex môže na základe overeného `antigravity-bridge.ps1` a `Trinity-Tool-Installer.ps1` zosúladiť pracovnú kópiu `C:\Users\saboi\Trinity\Trinity-antigravity` (po vyriešení rozpracovaných lokálnych zmien) a prípadne reštartovať `Local-Gateway` / `Local-Desktop`, aby lokálne procesy bežali na najnovšom `main`.
+
+

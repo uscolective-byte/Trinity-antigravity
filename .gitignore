@@ -118,3 +118,5 @@ Trinity/workspace/receipt-test/
 
 # Local consolidation backups
 /_backups/
+/.secrets/
+/101709742952806051029/

@@ -3,6 +3,11 @@ import {beginWalletbotOAuth,finishWalletbotOAuth,clearMcpOAuthCookie} from './mc
 import {authorizeBridgeProxy,authorizeBridgeRequest} from './bridge-proxy-auth.js';
 import {BRIDGE_AUTH_VERSION,registeredBridgeTunnelUrl} from '../../packages/contracts/src/bridge-auth.js';
 import {getProviderSecret,getEnvironmentOverview} from './env-vault.js';
+import {
+  shouldAuditRequest,
+  recordRequestAudit,
+  handleAuditLedgerRoutes
+} from './ledger-middleware.js';
 /**
  * @module TRINITY_OMNI_CORE
  * @subsystem EDGE_KERNEL_AND_HTTP_ROUTER
@@ -383,6 +388,46 @@ async function route(request,env,ctx){
   }
   if(path==='/api/fleet/clusters'&&request.method==='GET'){
     return json(getFleetClusterSummary());
+  }
+  if(path.startsWith('/api/internal/')){
+    checkOrigin(request,env);
+    const internalActor=await authenticate(request,env);
+    requireAdmin(internalActor);
+    if(path==='/api/internal/status'||path==='/api/internal/ping'){
+      return json({
+        status: 'ONLINE',
+        binding: 'TRINITY',
+        master_worker: 'trinity',
+        role: 'MASTER_AUTHORITY',
+        version: TRINITY_VERSION,
+        timestamp: Date.now()
+      });
+    }
+    if(path==='/api/internal/sql'&&request.method==='POST'){
+      if(!env.DB)return json({error:'D1 database not bound to master worker'},503);
+      const {sql:sqlQuery,params:sqlParams=[]}=await readJSON(request,50000);
+      if(!sqlQuery)return json({error:'sql parameter required'},400);
+      const stmt=env.DB.prepare(sqlQuery);
+      const queryRes=Array.isArray(sqlParams)&&sqlParams.length>0?await stmt.bind(...sqlParams).all():await stmt.all();
+      return json({success:true,results:queryRes.results,meta:queryRes.meta});
+    }
+    if(path==='/api/internal/kv'){
+      const kvNamespace=url.searchParams.get('ns')==='pc'?env.PC_STATE:env.Mastermind;
+      if(!kvNamespace)return json({error:'KV namespace not available'},503);
+      if(request.method==='GET'){
+        const key=url.searchParams.get('key');
+        if(!key)return json({error:'key required'},400);
+        const val=await kvNamespace.get(key);
+        return json({key,value:val});
+      }
+      if(request.method==='POST'){
+        const {key,value:val,ttl}=await readJSON(request,100000);
+        if(!key)return json({error:'key required'},400);
+        const opts=ttl?{expirationTtl:ttl}:{};
+        await kvNamespace.put(key,typeof val==='object'?JSON.stringify(val):String(val),opts);
+        return json({success:true,key});
+      }
+    }
   }
   if(path==='/ready'&&request.method==='GET'){
     const state=await readiness(env);
@@ -2543,12 +2588,86 @@ async function route(request,env,ctx){
   throw new HttpError(404,'Táto cesta neexistuje.');
 }
 export default {
-  async fetch(request,env,ctx){
-    try{return secure(await route(request,env,ctx));}
-    catch(e){const status=e instanceof z.ZodError?400:e.status||500;
-      if(status===500)console.error(JSON.stringify({event:'request_failed',path:new URL(request.url).pathname}));
-      return secure(json({error:status===500?'Interná chyba. Pozri záznamy služby.':e instanceof z.ZodError?'Neplatné údaje požiadavky.':e.message},status));}
+  async fetch(request, env, ctx) {
+    const startedAt = Date.now();
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+    const method = request.method.toUpperCase();
+
+    let response = null;
+    let caughtError = null;
+
+    try {
+      // 1. Priame spravovanie a verifikácia Sovereign Ledgeru
+      if (pathname.startsWith('/api/audit-ledger')) {
+        const ledgerResponse = await handleAuditLedgerRoutes(request, env, url);
+        if (ledgerResponse) {
+          response = ledgerResponse;
+        } else {
+          response = secure(json({ error: `Nepodporovaný endpoint alebo metóda pre audit-ledger: ${method} ${pathname}` }, 404));
+        }
+      } else {
+        // 2. Delegovanie na hlavný aplikačný router Trinity
+        response = secure(await route(request, env, ctx));
+      }
+    } catch (err) {
+      caughtError = err;
+      const status = err instanceof z.ZodError ? 400 : (err.status || 500);
+      if (status === 500) {
+        console.error(`[TRINITY WORKER FATAL] ${method} ${pathname}:`, err?.message || err);
+      }
+      response = secure(
+        json(
+          {
+            error: status === 500 ? 'Interná chyba. Pozri záznamy služby.' : (err instanceof z.ZodError ? 'Neplatné údaje požiadavky.' : err.message),
+            details: err?.message || String(err)
+          },
+          status
+        )
+      );
+    }
+
+    // 3. Automatický audit kľúčových a mutačných operácií cez SovereignLedgerEngine
+    if (shouldAuditRequest(pathname, method) || caughtError) {
+      const durationMs = Date.now() - startedAt;
+      await recordRequestAudit({
+        request,
+        response,
+        env,
+        ctx,
+        pathname,
+        method,
+        durationMs,
+        errorMessage: caughtError ? (caughtError.message || String(caughtError)) : null
+      });
+    }
+
+    // 4. Pridanie diagnostických hlavičiek pre sledovanie auditu
+    const finalHeaders = new Headers(response.headers);
+    finalHeaders.set('X-Trinity-Audit-Tracked', shouldAuditRequest(pathname, method) ? 'true' : 'false');
+    finalHeaders.set('X-Trinity-Response-Time-Ms', String(Date.now() - startedAt));
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: finalHeaders
+    });
   },
-  async scheduled(controller,env,ctx){if(isBuildOnlyPreview(env))return;ctx.waitUntil((async()=>{const summary=await runScheduledHealth(env,controller.cron);await recordHealthIncident(env,summary);await runBrainCycle(env);await runEvolutionCycle(env);await scanForImprovements(env);})());},
-  async email(message,env){if(isBuildOnlyPreview(env)){message.setReject('Build-only Preview does not accept email.');return;}await handleInboundEmail(message,env);}
+  async scheduled(controller, env, ctx) {
+    if (isBuildOnlyPreview(env)) return;
+    ctx.waitUntil((async () => {
+      const summary = await runScheduledHealth(env, controller.cron);
+      await recordHealthIncident(env, summary);
+      await runBrainCycle(env);
+      await runEvolutionCycle(env);
+      await scanForImprovements(env);
+    })());
+  },
+  async email(message, env) {
+    if (isBuildOnlyPreview(env)) {
+      message.setReject('Build-only Preview does not accept email.');
+      return;
+    }
+    await handleInboundEmail(message, env);
+  }
 };

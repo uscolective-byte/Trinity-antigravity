@@ -1,0 +1,3 @@
+TRINITY real tool verification 2026-11-21
+Purpose: verify approved file write and independent readback.
+No credentials or personal data.

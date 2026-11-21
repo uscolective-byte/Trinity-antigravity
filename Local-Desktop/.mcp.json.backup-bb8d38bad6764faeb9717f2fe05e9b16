@@ -1,0 +1,10 @@
+{
+    "mcpServers":  {
+                       "trinity-local":  {
+                                             "args":  [
+                                                          "C:\\Users\\saboi\\Trinity\\Trinity-antigravity\\Local-Desktop\\scripts\\mcp-stdio.mjs"
+                                                      ],
+                                             "command":  "C:\\Users\\saboi\\Trinity\\Trinity-antigravity\\Local-Desktop\\runtime\\node.exe"
+                                         }
+                   }
+}

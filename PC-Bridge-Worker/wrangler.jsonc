@@ -4,18 +4,27 @@
   "main": "src/index.js",
   "account_id": "b60342e5e52f5646fbd4e913bb409334",
   "compatibility_date": "2026-10-01",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "workers_dev": true,
   "preview_urls": false,
   "keep_vars": true,
   "observability": {
     "enabled": true,
-    "logs": { "enabled": true },
-    "traces": { "enabled": true }
+    "logs": {
+      "enabled": true
+    },
+    "traces": {
+      "enabled": true
+    }
   },
   "durable_objects": {
     "bindings": [
-      { "name": "PC_BRIDGE", "class_name": "PCBridgeDurableObject" }
+      {
+        "name": "PC_BRIDGE",
+        "class_name": "PCBridgeDurableObject"
+      }
     ]
   },
   "exports": {
@@ -23,5 +32,11 @@
       "type": "durable-object",
       "storage": "sqlite"
     }
-  }
+  },
+  "services": [
+    {
+      "binding": "TRINITY",
+      "service": "trinity"
+    }
+  ]
 }

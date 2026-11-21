@@ -1,0 +1,210 @@
+/**
+ * TRINITY OMNI-CORE - Sovereign Ledger Audit Middleware & Endpoint Handlers
+ * Automatický audit požiadaviek, overovanie reťaze blokov a čítanie ledgeru.
+ */
+
+import { SovereignLedgerEngine } from './sovereign-ledger-mmr.js';
+
+const AUDITED_PATHS = [
+  '/api/assistant/evolution/run',
+  '/api/assistant/self-improvement',
+  '/api/assistant/system/self-evolve',
+  '/api/system/actions',
+  '/api/system/actions/claim',
+  '/api/execute-privileged',
+  '/api/bridge/execute',
+  '/api/pc-bridge',
+  '/api/mcp/invoke',
+  '/api/assistant/domains/environments/deploy',
+  '/api/assistant/domains/register',
+  '/api/assistant/wallet/terminal/charge',
+  '/api/assistant/wallet/terminal/payout'
+];
+
+export function shouldAuditRequest(pathname, method) {
+  if (!pathname) return false;
+  if (pathname.startsWith('/api/audit-ledger')) return false;
+  if (method === 'OPTIONS' || method === 'HEAD') return false;
+  return AUDITED_PATHS.some((prefix) => pathname === prefix || pathname.startsWith(prefix + '/'));
+}
+
+export function resolveLedgerDatabase(env) {
+  return env?.DB || env?.TRINITY_D1 || env?.rea || null;
+}
+
+export function extractActorFromRequest(request) {
+  const actorHeader =
+    request.headers.get('X-Trinity-Actor') ||
+    request.headers.get('X-User-Id') ||
+    request.headers.get('X-Owner-Id');
+
+  if (actorHeader && actorHeader.trim().length > 0) {
+    return actorHeader.trim();
+  }
+
+  const authHeader = request.headers.get('Authorization');
+  if (authHeader && authHeader.trim().length > 0) {
+    return 'authenticated_operator';
+  }
+
+  return 'basterix_edge_gateway';
+}
+
+export async function recordRequestAudit({ request, response, env, ctx, pathname, method, durationMs, errorMessage = null }) {
+  const db = resolveLedgerDatabase(env);
+  if (!db) {
+    console.warn('[LEDGER AUDIT] Žiadna D1 väzba (DB / TRINITY_D1) nie je dostupná, preskakujem automatický zápis.');
+    return null;
+  }
+
+  const ledger = new SovereignLedgerEngine(env, db);
+  const actor = extractActorFromRequest(request);
+  const statusCode = response ? response.status : 500;
+  const outcome = !errorMessage && statusCode >= 200 && statusCode < 400 ? 'SUCCESS' : 'FAILURE';
+  const operation = `HTTP_${method.toUpperCase()}_${pathname.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_')}`;
+
+  const payload = {
+    method: method.toUpperCase(),
+    pathname,
+    statusCode,
+    outcome,
+    durationMs,
+    userAgent: request.headers.get('User-Agent') || 'unknown',
+    cfRay: request.headers.get('CF-Ray') || null,
+    error: errorMessage || null
+  };
+
+  const writePromise = ledger.appendRecord({
+    actor,
+    operation,
+    payload
+  }).catch((err) => {
+    console.error('[LEDGER AUDIT ERROR] Zlyhal automatický zápis do Sovereign Ledgeru:', err.message);
+    return null;
+  });
+
+  if (ctx && typeof ctx.waitUntil === 'function') {
+    ctx.waitUntil(writePromise);
+    return null;
+  }
+
+  return await writePromise;
+}
+
+export async function handleAuditLedgerRoutes(request, env, url) {
+  const db = resolveLedgerDatabase(env);
+  if (!db) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'D1 databáza pre Sovereign Ledger nie je v prostredí naviazaná.'
+      }),
+      { status: 503, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const ledger = new SovereignLedgerEngine(env, db);
+
+  if (url.pathname === '/api/audit-ledger/verify' && request.method === 'GET') {
+    const verification = await ledger.verifyChainIntegrity();
+    return new Response(
+      JSON.stringify({
+        success: Boolean(verification.valid),
+        timestamp: new Date().toISOString(),
+        verification
+      }),
+      {
+        status: verification.valid ? 200 : 409,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+  }
+
+  if (url.pathname === '/api/audit-ledger' && request.method === 'GET') {
+    const rawLimit = Number(url.searchParams.get('limit') || '50');
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(Math.trunc(rawLimit), 1), 500) : 50;
+
+    try {
+      const rowsResult = await db
+        .prepare(
+          `SELECT block_id, timestamp, actor, operation, previous_hash, current_hash, payload
+           FROM trinity_sovereign_ledger_v3
+           ORDER BY block_id DESC
+           LIMIT ?`
+        )
+        .bind(limit)
+        .all();
+
+      const blocks = (rowsResult?.results || []).map((row) => {
+        let parsedPayload = row.payload;
+        try {
+          parsedPayload = JSON.parse(row.payload);
+        } catch (_) {
+          // Zachováme pôvodný reťazec, ak payload nie je validný JSON
+        }
+        return {
+          blockId: row.block_id,
+          timestamp: row.timestamp,
+          actor: row.actor,
+          operation: row.operation,
+          previousHash: row.previous_hash,
+          currentHash: row.current_hash,
+          payload: parsedPayload
+        };
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          count: blocks.length,
+          limit,
+          blocks
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    } catch (err) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Nepodarilo sa načítať bloky zo Sovereign Ledgeru: ${err.message}`
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }
+
+  if (url.pathname === '/api/audit-ledger/append' && request.method === 'POST') {
+    try {
+      const body = await request.json();
+      const actor = typeof body?.actor === 'string' && body.actor.trim() ? body.actor.trim() : extractActorFromRequest(request);
+      const operation = typeof body?.operation === 'string' && body.operation.trim() ? body.operation.trim() : null;
+      const payload = body?.payload ?? {};
+
+      if (!operation) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Parameter "operation" je povinný.' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const appended = await ledger.appendRecord({ actor, operation, payload });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          record: appended
+        }),
+        { status: 201, headers: { 'Content-Type': 'application/json' } }
+      );
+    } catch (err) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Zápis do Sovereign Ledgeru zlyhal: ${err.message}`
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }
+
+  return null;
+}
