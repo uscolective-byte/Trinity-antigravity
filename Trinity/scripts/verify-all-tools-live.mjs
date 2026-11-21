@@ -218,13 +218,14 @@ async function run() {
     const listRes = await callLocalMcp('list_files', {});
     record('LocalMCP', 'list_files', 'PASSED', listRes);
 
+    const receiptFile = `trinity-tool-receipt-${Date.now()}.txt`;
     const writeRes = await callLocalMcp('write_file', {
-      path: 'trinity-tool-receipt.txt',
+      path: receiptFile,
       content: `TRINITY TOOL VERIFICATION RECEIPT\nVerified: ${new Date().toISOString()}\nStatus: 100% OPERATIONAL\n`
     });
     record('LocalMCP', 'write_file', 'PASSED', writeRes);
 
-    const readRes = await callLocalMcp('read_file', { path: 'trinity-tool-receipt.txt' });
+    const readRes = await callLocalMcp('read_file', { path: receiptFile });
     record('LocalMCP', 'read_file', 'PASSED', readRes);
 
   } catch (err) {

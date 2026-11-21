@@ -949,6 +949,33 @@ export async function listAllIntegrations(env) {
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'query', 'vectors'],
       description: 'Relačná PostgreSQL databáza s PostgREST API a vektorovým úložiskom.'
+    },
+    {
+      id: 'meta_social',
+      name: 'Meta Platforms (Facebook, Instagram & WhatsApp)',
+      category: 'Social & Messaging',
+      status: (env.META_ACCESS_TOKEN || env.FACEBOOK_ACCESS_TOKEN || env.META_APP_ID) ? 'configured' : 'ready',
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'facebook_pages', 'instagram_business', 'whatsapp_messaging', 'post_draft', 'metrics'],
+      description: 'Oficiálny Meta Graph API konektor: správa Facebook stránok, Instagram profilov a WhatsApp komunikácie s Llama 3.3 modelom.'
+    },
+    {
+      id: 'linkedin',
+      name: 'LinkedIn Professional Network',
+      category: 'Social & B2B Growth',
+      status: (env.LINKEDIN_TOKEN || env.LINKEDIN_CLIENT_ID) ? 'configured' : 'ready',
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'profile_share', 'company_posts', 'prospect_queries', 'b2b_outreach'],
+      description: 'B2B distribúcia obsahu a akvizícia: publikovanie článkov, vyhľadávanie obchodných príležitostí cez prospect_queries a B2B komunikácia.'
+    },
+    {
+      id: 'telegram',
+      name: 'Telegram Bot & @wallet Node',
+      category: 'Social & Messaging',
+      status: env.TELEGRAM_BOT_TOKEN ? 'configured' : 'ready',
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'bot_chat', 'telegram_wallet', 'ton_transfers', 'hitl_approvals'],
+      description: 'Obojsmerný privátny chat, schvaľovanie HITL akcií a kryptomenové platby cez Telegram @wallet (TON/USDT).'
     }
   ];
 }

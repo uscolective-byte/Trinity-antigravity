@@ -356,7 +356,7 @@ export const TOOL_SCHEMAS={
     prompt:z.string().trim().max(4000).optional(),
     model:z.enum(['llama-3.3-70b','llama-3.1-8b','llama-3.2-11b-vision']).optional().default('llama-3.3-70b'),
     topic:z.string().trim().max(1000).optional(),
-    target_platform:z.enum(['facebook','instagram','all']).optional().default('all')
+    target_platform:z.enum(['facebook','instagram','whatsapp','linkedin','all']).optional().default('all')
   }).strict(),
   sovereign_ledger_v3:z.object({
     action:z.enum(['status','append','verify_chain','architecture']).default('status'),
@@ -1537,7 +1537,9 @@ export async function runTool(env, agent, name, input, executionContext={}) {
         status:'draft_ready',
         target_profiles:{
           facebook_page:'underground Street collective',
-          instagram_profile:'old_dirty_bastard013'
+          instagram_profile:'old_dirty_bastard013',
+          whatsapp_channel:['whatsapp','all'].includes(platform)?'WhatsApp Direct Broadcast':null,
+          linkedin_feed:['linkedin','all'].includes(platform)?'LinkedIn Professional Feed':null
         },
         meta_connection_status:status.status,
         approval_required:true,
@@ -1719,5 +1721,5 @@ export const TOOL_HELP={
   finance_confirm_transfer:'Overí finančný návrh a oznámi, či je dostupné odoslanie cez poskytovateľa. Aktuálne odoslanie nie je implementované. Argumenty: {proposal_id:string,confirmation_token?:string}',
   finance_audit_ledger:'Prečíta interný audit finančných návrhov a pokusov. Argumenty: {limit?:number}',
   request_owner_approval:'Vytvorí Human-in-the-Loop (HITL) požiadavku a pošle notifikáciu s tlačidlami Schváliť/Zamietnuť do Telegramu a na auru.space: {action_type:provision_trinity_api_key|issue_license|provision_cloudflare_token|provision_openai_project_key|system_action|custom_operation, title:string, rationale:string, payload?:object, ttl_minutes?:number}',
-  meta_manage:'Správa a využitie Meta AI (Llama 3.3/3.1/3.2) a pripojeného Meta účtu (Facebook stránky a Instagram profily): {action?:status|connect_url|pages|ai_generate|create_post_draft, prompt?:string, model?:llama-3.3-70b|llama-3.1-8b|llama-3.2-11b-vision, topic?:string, target_platform?:facebook|instagram|all}'
+  meta_manage:'Správa a využitie Meta AI (Llama 3.3/3.1/3.2) a sociálnych sietí (Facebook, Instagram, WhatsApp, LinkedIn): {action?:status|connect_url|pages|ai_generate|create_post_draft, prompt?:string, model?:llama-3.3-70b|llama-3.1-8b|llama-3.2-11b-vision, topic?:string, target_platform?:facebook|instagram|whatsapp|linkedin|all}'
 };
