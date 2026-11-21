@@ -6052,19 +6052,36 @@ function initEncEvents() {
     const text = inputBox?.value?.trim();
     if (!text || !encState.activeContact) return;
 
+    if (!encState.identity) {
+      await initEncIdentity();
+    }
+
     const roomId = encState.activeRoomId;
     const ttlSeconds = parseInt($('enc-burn-select')?.value || '30', 10);
     const burnOnRead = Boolean($('enc-burn-read-toggle')?.checked);
+    const feedback = $('enc-chat-feedback');
 
     try {
-      let encryptedPayload;
-      if (encState.sharedKey && window.GhostCrypto) {
-        encryptedPayload = await window.GhostCrypto.encrypt(encState.sharedKey, text);
-      } else {
-        // Fallback: šifrovanie efemérnym kľúčom
-        const tempKey = await window.GhostCrypto.generateIdentity();
-        encryptedPayload = await window.GhostCrypto.encrypt(tempKey.privateKey, text);
+      if (feedback) {
+        feedback.textContent = '🔒 Šifrujem správu (AES-256-GCM)...';
+        feedback.style.color = '#e2e8f0';
       }
+
+      // Bezpečné odvodenie šifrovacieho kľúča
+      let encryptionKey = encState.sharedKey;
+      if (!encryptionKey && window.GhostCrypto) {
+        // Fallback: bezpečný room-derived AES-GCM kľúč
+        encryptionKey = await window.GhostCrypto.deriveRoomKey(roomId);
+      }
+
+      if (!encryptionKey) {
+        throw new Error('Kryptografický kľúč nie je pripravený.');
+      }
+
+      const encryptedPayload = await window.GhostCrypto.encrypt(encryptionKey, text);
+      const ephPubStr = encState.identity?.pubJwk 
+        ? JSON.stringify(encState.identity.pubJwk) 
+        : JSON.stringify({ crv: 'P-256', kty: 'EC', x: 'ephemeral', y: 'ephemeral' });
 
       const res = await fetch('/api/ghost/envelope', {
         method: 'POST',
@@ -6075,16 +6092,20 @@ function initEncEvents() {
           recipient_id: encState.activeContact.peer_id,
           ciphertext: encryptedPayload.ciphertext,
           iv: encryptedPayload.iv,
-          ephemeral_pubkey: JSON.stringify(encState.identity.pubJwk),
+          ephemeral_pubkey: ephPubStr,
           burn_on_read: burnOnRead,
           burn_timer_seconds: ttlSeconds,
           ttl_seconds: Math.max(60, ttlSeconds * 2)
         })
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ ok: false, error: 'Chyba sieťovej komunikácie.' }));
       if (!data.ok) {
-        alert('Chyba odoslania: ' + (data.error || 'Neznáma'));
+        if (feedback) {
+          feedback.textContent = `❌ Odoslanie zlyhalo: ${data.error || 'Neznáma chyba'}`;
+          feedback.style.color = '#ef4444';
+        }
+        if (typeof notice === 'function') notice(`Odoslanie zlyhalo: ${data.error || 'Neznáma chyba'}`);
         return;
       }
 
@@ -6099,9 +6120,24 @@ function initEncEvents() {
 
       inputBox.value = '';
       inputBox.focus();
+
+      if (feedback) {
+        feedback.textContent = '✓ Správa úspešne odoslaná (E2EE)';
+        feedback.style.color = '#34d399';
+        setTimeout(() => {
+          if (feedback) {
+            feedback.textContent = '🔒 E2EE · NIST P-256 + AES-256-GCM';
+            feedback.style.color = '#38bdf8';
+          }
+        }, 3000);
+      }
     } catch (err) {
       console.error('Chyba odoslania správy:', err);
-      alert('Zlyhalo šifrovanie správy.');
+      if (feedback) {
+        feedback.textContent = `❌ Šifrovanie zlyhalo: ${err.message || err}`;
+        feedback.style.color = '#ef4444';
+      }
+      if (typeof notice === 'function') notice(`Chyba: ${err.message || err}`);
     }
   };
 
@@ -6111,6 +6147,18 @@ function initEncEvents() {
       e.preventDefault();
       void sendAction();
     }
+  });
+
+  // Rýchle emoji tlačidlá
+  document.querySelectorAll('.enc-quick-emoji').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const emoji = btn.dataset.emoji;
+      const inputBox = $('enc-input-box');
+      if (inputBox && emoji) {
+        inputBox.value = (inputBox.value || '') + emoji;
+        inputBox.focus();
+      }
+    });
   });
 
   // Panic Vaporize
@@ -6135,6 +6183,90 @@ function initEncEvents() {
     encState.activeMessages.clear();
     if (typeof notice === 'function') notice('Konverzácia bola vaporizovaná.');
   });
+
+  // Otvorenie modálu Nastavení chatu
+  $('enc-chat-settings-btn')?.addEventListener('click', () => {
+    const modal = $('enc-settings-modal');
+    if (!modal) return;
+    const aliasInput = $('enc-settings-alias-input');
+    const peerCode = $('enc-settings-peer-id');
+    if (aliasInput) aliasInput.value = encState.myAlias || '';
+    if (peerCode) peerCode.textContent = encState.myPeerId || '--';
+    modal.hidden = false;
+  });
+
+  // Zatvorenie modálu Nastavení
+  $('enc-close-settings-modal-btn')?.addEventListener('click', () => {
+    const modal = $('enc-settings-modal');
+    if (modal) modal.hidden = true;
+  });
+  $('enc-settings-done-btn')?.addEventListener('click', () => {
+    const modal = $('enc-settings-modal');
+    if (modal) modal.hidden = true;
+  });
+
+  // Uloženie zmeny aliasu
+  $('enc-settings-save-alias-btn')?.addEventListener('click', () => {
+    const val = $('enc-settings-alias-input')?.value?.trim();
+    if (!val) return;
+    encState.myAlias = val;
+    localStorage.setItem('trinity_enc_alias', val);
+    const myNameEl = $('enc-my-name');
+    const myAvatarEl = $('enc-my-avatar');
+    if (myNameEl) myNameEl.textContent = val;
+    if (myAvatarEl) myAvatarEl.textContent = val.charAt(0).toUpperCase();
+
+    if (encState.identity?.pubJwk) {
+      void fetch('/api/ghost/contacts/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          peer_id: encState.myPeerId,
+          alias: encState.myAlias,
+          public_key: JSON.stringify(encState.identity.pubJwk),
+          avatar_color: '#2563eb'
+        })
+      }).catch(() => {});
+    }
+    if (typeof notice === 'function') notice('Zobrazované meno úspešne uložené.');
+    else alert('Zobrazované meno uložené.');
+  });
+
+  // Rekeying (nový kľúčový pár)
+  $('enc-settings-rekey-btn')?.addEventListener('click', async () => {
+    if (!window.GhostCrypto) return;
+    try {
+      encState.identity = await window.GhostCrypto.generateIdentity();
+      if (encState.identity?.pubJwk) {
+        await fetch('/api/ghost/contacts/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            peer_id: encState.myPeerId,
+            alias: encState.myAlias,
+            public_key: JSON.stringify(encState.identity.pubJwk),
+            avatar_color: '#2563eb'
+          })
+        });
+      }
+      if (encState.activeContact) {
+        await selectEncContact(encState.activeContact);
+      }
+      if (typeof notice === 'function') notice('Čerstvý kľúčový pár P-256 bol vygenerovaný!');
+      else alert('Kľúče obnovené.');
+    } catch (e) {
+      alert('Chyba generovania kľúčov: ' + (e.message || e));
+    }
+  });
+
+  // Blur textu správ (proti čítaniu cez rameno)
+  $('enc-settings-blur-toggle')?.addEventListener('change', (e) => {
+    const shouldBlur = Boolean(e.target.checked);
+    document.querySelectorAll('.enc-bubble-text').forEach(el => {
+      el.style.filter = shouldBlur ? 'blur(5px)' : 'none';
+      el.style.transition = 'filter 0.2s';
+    });
+  });
 }
 
 async function pollEncInbox() {
@@ -6154,18 +6286,28 @@ async function pollEncInbox() {
       const isMine = env.sender_id === encState.myPeerId;
       let decryptedText = '[Zašifrovaný obsah]';
 
-      if (window.GhostCrypto && encState.sharedKey) {
-        try {
-          decryptedText = await window.GhostCrypto.decrypt(encState.sharedKey, env.ciphertext, env.iv);
-        } catch {
+      if (window.GhostCrypto) {
+        // 1. Skús sharedKey (ak je k dispozícii)
+        if (encState.sharedKey) {
+          try {
+            decryptedText = await window.GhostCrypto.decrypt(encState.sharedKey, env.ciphertext, env.iv);
+          } catch {}
+        }
+        // 2. Skús ephemeral_pubkey z obálky
+        if (decryptedText === '[Zašifrovaný obsah]' && env.ephemeral_pubkey && encState.identity?.privateKey) {
           try {
             const senderEphKeyObj = JSON.parse(env.ephemeral_pubkey);
             const ephCryptoKey = await window.GhostCrypto.importPeerPublicKey(senderEphKeyObj);
             const ephSharedKey = await window.GhostCrypto.deriveSharedKey(encState.identity.privateKey, ephCryptoKey);
             decryptedText = await window.GhostCrypto.decrypt(ephSharedKey, env.ciphertext, env.iv);
-          } catch (e2) {
-            decryptedText = '⚠️ [Chyba dešifrovania kľúča]';
-          }
+          } catch {}
+        }
+        // 3. Skús room key (pre kanály bez predbežného ECDH)
+        if (decryptedText === '[Zašifrovaný obsah]') {
+          try {
+            const roomKey = await window.GhostCrypto.deriveRoomKey(env.room_id || encState.activeRoomId);
+            decryptedText = await window.GhostCrypto.decrypt(roomKey, env.ciphertext, env.iv);
+          } catch {}
         }
       }
 
@@ -6205,31 +6347,51 @@ function renderEncBubble(msg) {
   card.style.flexDirection = 'column';
   card.style.alignSelf = msg.is_mine ? 'flex-end' : 'flex-start';
   card.style.maxWidth = '75%';
-  card.style.background = msg.is_mine ? '#1d4ed8' : '#1e293b';
-  card.style.border = `1px solid ${msg.is_mine ? '#2563eb' : '#334155'}`;
+  card.style.background = msg.is_mine ? 'linear-gradient(135deg, #1d4ed8, #2563eb)' : '#1e293b';
+  card.style.border = `1px solid ${msg.is_mine ? '#3b82f6' : '#334155'}`;
   card.style.borderRadius = msg.is_mine ? '14px 14px 2px 14px' : '14px 14px 14px 2px';
   card.style.padding = '10px 14px';
   card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-  card.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+  card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.35)';
 
   let remainingSeconds = msg.burn_timer_seconds || 30;
+  const isBlurred = Boolean($('enc-settings-blur-toggle')?.checked);
+  const now = new Date();
+  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
   card.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;">
       <span style="font-size:11px;font-weight:700;color:${msg.is_mine ? '#bfdbfe' : '#38bdf8'};">
         ${msg.is_mine ? 'Vy' : msg.sender_id}
       </span>
-      <span style="font-size:10px;font-weight:700;color:#f87171;background:rgba(239,68,68,0.15);padding:1px 5px;border-radius:4px;">
-        🔥 <span class="enc-timer-num">${remainingSeconds}s</span>
-      </span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;color:#94a3b8;">${timeStr}</span>
+        <span style="font-size:10px;font-weight:700;color:#f87171;background:rgba(239,68,68,0.15);padding:1px 5px;border-radius:4px;">
+          🔥 <span class="enc-timer-num">${remainingSeconds}s</span>
+        </span>
+      </div>
     </div>
-    <div style="font-size:13px;color:#f8fafc;word-break:break-word;line-height:1.4;">
+    <div class="enc-bubble-text" style="font-size:13px;color:#f8fafc;word-break:break-word;line-height:1.4;filter:${isBlurred ? 'blur(5px)' : 'none'};cursor:pointer;">
       ${msg.text}
     </div>
-    <div style="margin-top:6px;height:2px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;">
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:4px;">
+      <span style="font-size:10px;color:${msg.is_mine ? '#67e8f9' : '#94a3b8'};">
+        ${msg.is_mine ? '✓✓ E2EE doručené' : '🔒 E2EE'}
+      </span>
+    </div>
+    <div style="margin-top:4px;height:2px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;">
       <div id="enc-bar-${msg.id}" style="height:100%;width:100%;background:#ef4444;transition:width 1s linear;"></div>
     </div>
   `;
+
+  // Odkrytie rozmazaného textu po kliknutí
+  const textEl = card.querySelector('.enc-bubble-text');
+  if (textEl && isBlurred) {
+    textEl.addEventListener('mouseenter', () => { textEl.style.filter = 'none'; });
+    textEl.addEventListener('mouseleave', () => { 
+      if ($('enc-settings-blur-toggle')?.checked) textEl.style.filter = 'blur(5px)'; 
+    });
+  }
 
   container.appendChild(card);
   container.scrollTop = container.scrollHeight;

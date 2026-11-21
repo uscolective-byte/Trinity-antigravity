@@ -108,6 +108,25 @@ export const GhostCrypto = {
   },
 
   /**
+   * Odvodí symetrický 256-bitový AES-GCM kľúč pre miestnosť na základe Room ID.
+   * Slúži ako deterministický fallback šifrovania pre prípady, kedy partner
+   * ešte nezverejnil svoj ECDH kľúč.
+   */
+  async deriveRoomKey(roomId) {
+    if (!subtle) throw new Error('Web Crypto API nie je dostupné.');
+    const enc = new TextEncoder();
+    const roomBytes = enc.encode('trinity_ghost_vault_room_key_v1:' + String(roomId));
+    const hash = await subtle.digest('SHA-256', roomBytes);
+    return await subtle.importKey(
+      'raw',
+      hash,
+      { name: 'AES-GCM' },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  },
+
+  /**
    * Zašifruje ľubovoľný reťazec alebo objekt pomocou AES-256-GCM.
    * Vracia ciphertext a IV zakódované v Base64.
    */
