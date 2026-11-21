@@ -482,7 +482,7 @@ renderExtraCheck('groq','Groq LPU');renderExtraCheck('deepseek','DeepSeek API');
 function renderWallet(wallet){$('wallet-balance').textContent=new Intl.NumberFormat('sk-SK',{style:'currency',currency:'EUR'}).format(wallet.balance);const list=$('wallet-transactions');list.replaceChildren();for(const item of wallet.transactions.slice(0,12)){const row=node('article',undefined,'api-key-item'),sign=item.type==='deposit'?'+':'−',info=node('div');info.append(node('b',`${sign}${item.amount.toFixed(2)} € · ${item.type}`),node('small',`${item.recipient||item.note||'Sandbox'} · ${item.created_at}`));row.append(info);list.append(row);}if(!wallet.transactions.length)list.append(node('p','Zatiaľ bez evidovaných pohybov.','skeleton'));}
 function renderUsers(items,ownerEmail){const list=$('settings-users');list.replaceChildren();for(const item of items){const card=node('article',undefined,'api-key-item'),info=node('div');info.append(node('b',item.display_name||item.email),node('small',`${item.email} · ${item.role} · ${item.status}`));card.append(info);if(item.email.toLowerCase()!==String(ownerEmail||'').toLowerCase()){const role=node('select');for(const value of ['user','admin']){const option=node('option',value);option.value=value;option.selected=item.role===value;role.append(option);}const status=node('select');for(const value of ['active','blocked']){const option=node('option',value);option.value=value;option.selected=item.status===value;status.append(option);}const save=node('button','Uložiť');save.onclick=safe(async()=>{await opsApi('/users/'+encodeURIComponent(item.email)+'/role',{role:role.value,status:status.value});await loadSettings();});card.append(role,status,save);}list.append(card);}if(!items.length)list.append(node('p','Žiadni ďalší používatelia.','skeleton'));}
 function accountRole(role){return ({owner:'Vlastník',admin:'Administrátor',user:'Používateľ',guest:'Hosť / Ukážka'}[role]||'Hosť / Ukážka');}
-function renderAccount(){if($('owner-overview-nav'))$('owner-overview-nav').hidden=state?.account?.role!=='owner';const account=state?.account||{},identity=account.email||'Basterix Workspace',role=accountRole(account.role),owner=account.role==='owner',admin=['owner','admin'].includes(account.role),guest=account.role==='guest'||!account.role;$('account-label').textContent=owner?'◆ Vlastník prihlásený':admin?'◆ Admin prihlásený':guest?'● Hosť (Prehliadanie)':'● Prihlásený';$('account-detail').textContent=guest?'auru.space · Basterix Režim':`${identity} · ${role}`;$('account-state').classList.toggle('admin-account',admin);$('account-state').hidden=false;$('logout').hidden=guest;$('operations').hidden=!admin;$('settings-account-status').textContent=owner?'◆ Vlastnícky prístup':admin?'◆ Administrátorský prístup':'✓ Používateľský prístup';$('settings-account-detail').textContent=`${identity} · ${role}`;$('owner-growth-panel').hidden=!owner;$('control-eyebrow').textContent=owner?'TRINITY OWNER CONTROL':'TRINITY ADMIN CONTROL';$('control-title').innerHTML=owner?'Vlastnícke <em>centrum</em>':'Administrátorské <em>centrum</em>';$('control-copy').textContent=owner?'Tvoje súkromné riadenie Trinity, obchodných schopností, agentov a cloudových integrácií.':'Prevádzka, používatelia, agenti a cloudové integrácie.';$('control-role').textContent=owner?'OWNER':'ADMIN';$('control-role-detail').textContent=owner?'plný vlastnícky prístup':'správa systému';}
+function renderAccount(){if($('owner-overview-nav'))$('owner-overview-nav').hidden=state?.account?.role!=='owner';const account=state?.account||{},identity=account.email||'Basterix Workspace',role=accountRole(account.role),owner=account.role==='owner',admin=['owner','admin'].includes(account.role),guest=account.role==='guest'||!account.role;$('account-label').textContent=owner?'◆ Vlastník prihlásený':admin?'◆ Admin prihlásený':guest?'● Hosť (Prehliadanie)':'● Prihlásený';$('account-detail').textContent=guest?'auru.space · Basterix Režim':`${identity} · ${role}`;$('account-state').classList.toggle('admin-account',admin);$('account-state').hidden=false;$('logout').hidden=guest;$('operations').hidden=!admin;$('settings-account-status').textContent=owner?'◆ Vlastnícky prístup':admin?'◆ Administrátorský prístup':'✓ Používateľský prístup';$('settings-account-detail').textContent=`${identity} · ${role}`;$('owner-growth-panel').hidden=!owner;$('control-eyebrow').textContent=owner?'TRINITY OWNER CONTROL':'TRINITY ADMIN CONTROL';$('control-title').innerHTML=owner?'Vlastnícke <em>centrum</em>':'Administrátorské <em>centrum</em>';$('control-copy').textContent=owner?'Tvoje súkromné riadenie Trinity, obchodných schopností, agentov a cloudových integrácií.':'Prevádzka, používatelia, agenti a cloudové integrácie.';$('control-role').textContent=owner?'OWNER':'ADMIN';$('control-role-detail').textContent=owner?'plný vlastnícky prístup':'správa systému';if(!guest&&typeof startGlobalGhostPolling==='function'){startGlobalGhostPolling();}}
 function applySettingsFilter(){const query=$('settings-search').value.trim().toLocaleLowerCase('sk');document.querySelectorAll('[data-settings-section]').forEach(panel=>{const categoryMatch=settingsFilter==='all'?panel.dataset.settingsSection!=='audit':panel.dataset.settingsSection===settingsFilter,queryMatch=!query||(panel.textContent+' '+(panel.dataset.settingsKeywords||'')).toLocaleLowerCase('sk').includes(query);panel.classList.toggle('settings-filtered',!(categoryMatch&&queryMatch));});}
 function loadLocalPreferences(){const density=localStorage.getItem('trinity-density')||'comfortable',motion=localStorage.getItem('trinity-reduced-motion')==='true';$('settings-default-engine').value=localStorage.getItem('trinity-engine')||'auto';$('settings-start-view').value=localStorage.getItem('trinity-start-view')||'chat';$('settings-open-details').checked=localStorage.getItem('trinity-open-details')==='true';$('settings-density').value=density;$('settings-language').value=language;$('settings-reduced-motion').checked=motion;document.body.classList.toggle('compact-ui',density==='compact');document.body.classList.toggle('reduce-motion',motion);applyStudioPreferences();}
 let connectorCatFilter='all',cachedConnectorsCatalog=[],cachedSecretsForConnectors=[];
@@ -5856,6 +5856,216 @@ if (typeof globalThis !== 'undefined') {
   globalThis.GhostCrypto = globalThis.GhostCrypto || BuiltinGhostCrypto;
 }
 
+// ── NOTIFICATION ENGINE (AUDIO CHIME, WEB NOTIFICATIONS, BADGES) ──
+let encAudioCtx = null;
+let encSoundEnabled = localStorage.getItem('trinity_enc_sound') !== 'false';
+let encUnreadCount = 0;
+const encContactUnreadMap = new Map();
+let originalDocumentTitle = document.title || 'Trinity · AI Studio';
+
+function playEncChime() {
+  if (!encSoundEnabled) return;
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!encAudioCtx || encAudioCtx.state === 'closed') {
+      encAudioCtx = new AudioCtx();
+    }
+    if (encAudioCtx.state === 'suspended') {
+      void encAudioCtx.resume();
+    }
+    const now = encAudioCtx.currentTime;
+
+    // Harmonický príjemný zvonček (D5 587Hz -> A5 880Hz)
+    const osc = encAudioCtx.createOscillator();
+    const gain = encAudioCtx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, now);
+    osc.frequency.exponentialRampToValueAtTime(880.00, now + 0.12);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.2, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+    osc.connect(gain);
+    gain.connect(encAudioCtx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.45);
+  } catch (err) {}
+}
+
+function updateEncNavBadge() {
+  const badge = $('enc-nav-badge');
+  if (!badge) return;
+  if (encUnreadCount > 0) {
+    badge.textContent = encUnreadCount > 99 ? '99+' : String(encUnreadCount);
+    badge.hidden = false;
+  } else {
+    badge.hidden = true;
+  }
+}
+
+function updateEncContactBadges() {
+  document.querySelectorAll('.enc-contact-item').forEach(el => {
+    const peerId = el.dataset.peerId;
+    const badgeEl = el.querySelector('.enc-contact-unread-badge');
+    const unread = encContactUnreadMap.get(peerId) || 0;
+    if (badgeEl) {
+      if (unread > 0) {
+        badgeEl.textContent = unread > 99 ? '99+' : String(unread);
+        badgeEl.style.display = 'inline-block';
+      } else {
+        badgeEl.style.display = 'none';
+      }
+    }
+  });
+}
+
+function clearEncUnreadForContact(peerId) {
+  if (peerId && encContactUnreadMap.has(peerId)) {
+    const unread = encContactUnreadMap.get(peerId) || 0;
+    encUnreadCount = Math.max(0, encUnreadCount - unread);
+    encContactUnreadMap.delete(peerId);
+    updateEncNavBadge();
+    updateEncContactBadges();
+    if (encUnreadCount === 0) {
+      document.title = originalDocumentTitle;
+    } else {
+      document.title = `(${encUnreadCount}) 💬 Nová správa · Trinity`;
+    }
+  }
+}
+
+function triggerEncNotification(senderId, senderAlias, snippet = 'Nová šifrovaná správa') {
+  // 1. Zvuk
+  playEncChime();
+
+  // 2. Počítadlo a blikanie
+  const isCurrentActive = currentView === 'encrypted_shits' && encState.activeContact?.peer_id === senderId && !document.hidden;
+  if (!isCurrentActive) {
+    encUnreadCount++;
+    const prev = encContactUnreadMap.get(senderId) || 0;
+    encContactUnreadMap.set(senderId, prev + 1);
+    updateEncNavBadge();
+    updateEncContactBadges();
+    document.title = `(${encUnreadCount}) 💬 Nová správa · Trinity`;
+  }
+
+  // 3. Web Notification API
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+    try {
+      const notif = new Notification(`💬 ${senderAlias || senderId}`, {
+        body: 'Nová šifrovaná správa so sebazničením v Trinity',
+        icon: '/mobile-icon-192.png',
+        tag: `ghost-${senderId}`,
+        renotify: true
+      });
+      notif.onclick = () => {
+        window.focus();
+        if (typeof setView === 'function') setView('encrypted_shits');
+        const c = encState.contacts.find(x => x.peer_id === senderId);
+        if (c) selectEncContact(c);
+        notif.close();
+      };
+    } catch {}
+  }
+
+  // 4. In-App Toast upozornenie
+  if (currentView !== 'encrypted_shits' || encState.activeContact?.peer_id !== senderId) {
+    if (typeof notice === 'function') {
+      notice(`💬 Nová správa od: ${senderAlias || senderId}`);
+    }
+  }
+}
+
+window.addEventListener('focus', () => {
+  if (currentView === 'encrypted_shits' && encState.activeContact) {
+    clearEncUnreadForContact(encState.activeContact.peer_id);
+  }
+});
+
+let globalGhostPollingStarted = false;
+let globalGhostLastSeen = Date.now() - 30000;
+
+function startGlobalGhostPolling() {
+  if (globalGhostPollingStarted) return;
+  globalGhostPollingStarted = true;
+
+  setInterval(async () => {
+    if (!encState.myPeerId) {
+      if (state?.account?.email) {
+        encState.myPeerId = state.account.email.split('@')[0];
+        encState.myAlias = state.account.name || encState.myPeerId;
+      } else {
+        return;
+      }
+    }
+
+    try {
+      const res = await fetch(`/api/ghost/inbox?recipient_id=${encodeURIComponent(encState.myPeerId)}&since=${globalGhostLastSeen}`);
+      const data = await res.json();
+      if (!data.ok || !Array.isArray(data.envelopes)) return;
+
+      for (const env of data.envelopes) {
+        if (env.created_at > globalGhostLastSeen) {
+          globalGhostLastSeen = env.created_at;
+        }
+        if (encState.activeMessages.has(env.id)) continue;
+        if (env.sender_id === encState.myPeerId) continue;
+
+        const sender = encState.contacts.find(c => c.peer_id === env.sender_id);
+        const senderAlias = sender?.alias || env.sender_id;
+
+        // Oznámenie (zvuk, notifikácia na ploche, badge)
+        triggerEncNotification(env.sender_id, senderAlias);
+
+        // Ak je otvorená relácia s týmto kontaktom, vykresli správu
+        if (currentView === 'encrypted_shits' && encState.activeContact?.peer_id === env.sender_id) {
+          let decryptedText = '[Zašifrovaný obsah]';
+          const cryptoEngine = (typeof window !== 'undefined' && window.GhostCrypto) || BuiltinGhostCrypto;
+          if (cryptoEngine) {
+            if (encState.sharedKey) {
+              try { decryptedText = await cryptoEngine.decrypt(encState.sharedKey, env.ciphertext, env.iv); } catch {}
+            }
+            if (decryptedText === '[Zašifrovaný obsah]' && env.ephemeral_pubkey && encState.identity?.privateKey) {
+              try {
+                const senderEphKeyObj = JSON.parse(env.ephemeral_pubkey);
+                const ephCryptoKey = await cryptoEngine.importPeerPublicKey(senderEphKeyObj);
+                const ephSharedKey = await cryptoEngine.deriveSharedKey(encState.identity.privateKey, ephCryptoKey);
+                decryptedText = await cryptoEngine.decrypt(ephSharedKey, env.ciphertext, env.iv);
+              } catch {}
+            }
+            if (decryptedText === '[Zašifrovaný obsah]') {
+              try {
+                const roomKey = await cryptoEngine.deriveRoomKey(env.room_id || encState.activeRoomId);
+                decryptedText = await cryptoEngine.decrypt(roomKey, env.ciphertext, env.iv);
+              } catch {}
+            }
+          }
+
+          renderEncBubble({
+            id: env.id,
+            sender_id: env.sender_id,
+            is_mine: false,
+            text: decryptedText,
+            burn_timer_seconds: env.burn_timer_seconds || 30
+          });
+
+          if (env.burn_on_read) {
+            void fetch('/api/ghost/read', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ envelope_id: env.id })
+            }).catch(() => {});
+          }
+        }
+      }
+    } catch {}
+  }, 3500);
+}
+
 // ── TRINITY ENCRYPTED_SHITS · SOVEREIGN ZERO-KNOWLEDGE E2EE CONTROLLER ──
 let encState = {
   identity: null,
@@ -5891,6 +6101,7 @@ async function initEncIdentity() {
 async function loadEncryptedShitsView() {
   await initEncIdentity();
   initEncEvents();
+  startGlobalGhostPolling();
 
   // Aktualizuj profil v ľavom paneli
   const avatarElem = $('enc-my-avatar');
@@ -5995,14 +6206,24 @@ function renderEncContactsList(contacts) {
       ? `<span style="color:#94a3b8;font-size:10px;">${c.email}</span>` 
       : '<span style="color:#64748b;font-size:10px;">🔒 Šifrovaná relácia</span>';
 
+    const unread = encContactUnreadMap.get(c.peer_id) || 0;
+    const unreadBadge = `
+      <span class="enc-contact-unread-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;display:${unread > 0 ? 'inline-block' : 'none'};box-shadow:0 0 6px rgba(239,68,68,0.5);">
+        ${unread > 99 ? '99+' : unread}
+      </span>
+    `;
+
     item.innerHTML = `
       <div style="width:36px;height:36px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;flex-shrink:0;">
         ${initial}
       </div>
       <div style="flex:1;min-width:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
-          <b style="font-size:13px;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.alias || c.peer_id}</b>
-          ${registeredBadge}
+          <div style="display:flex;align-items:center;gap:6px;min-width:0;">
+            <b style="font-size:13px;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.alias || c.peer_id}</b>
+            ${registeredBadge}
+          </div>
+          ${unreadBadge}
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
           <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${subtitle}</div>
@@ -6020,6 +6241,7 @@ async function selectEncContact(contact) {
   encState.activeContact = contact;
   encState.lastSeenTimestamp = 0;
   encState.activeMessages.clear();
+  clearEncUnreadForContact(contact.peer_id);
 
   // Zvýrazni v zozname
   document.querySelectorAll('.enc-contact-item').forEach(el => {
@@ -6480,6 +6702,85 @@ function initEncEvents() {
       el.style.transition = 'filter 0.2s';
     });
   });
+
+  // ── NOTIFIKÁCIE & ZVUKOVÉ OVLÁDANIE ──
+  const notifBtn = $('enc-enable-notifications-btn');
+  const updateNotifBtnState = () => {
+    if (typeof Notification === 'undefined') {
+      if (notifBtn) notifBtn.style.display = 'none';
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      if (notifBtn) {
+        notifBtn.textContent = '🔔 Notifikácie: Zap';
+        notifBtn.style.color = '#34d399';
+        notifBtn.style.borderColor = '#059669';
+      }
+      const setNotifBtn = $('enc-settings-notif-btn');
+      if (setNotifBtn) {
+        setNotifBtn.textContent = '✓ Povolené';
+        setNotifBtn.style.color = '#34d399';
+      }
+    } else if (Notification.permission === 'denied') {
+      if (notifBtn) {
+        notifBtn.textContent = '🔕 Notifikácie: Blokované';
+        notifBtn.style.color = '#ef4444';
+      }
+    } else {
+      if (notifBtn) {
+        notifBtn.textContent = '🔔 Notifikácie';
+        notifBtn.style.color = '#cbd5e1';
+      }
+    }
+  };
+  updateNotifBtnState();
+
+  const requestNotifPermission = async () => {
+    if (typeof Notification === 'undefined') {
+      alert('Váš prehliadač nepodporuje Web Notifications API.');
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    updateNotifBtnState();
+    if (perm === 'granted') {
+      playEncChime();
+      if (typeof notice === 'function') notice('Systémové notifikácie boli úspešne povolené!');
+      else alert('Systémové notifikácie boli povolené!');
+    }
+  };
+
+  $('enc-enable-notifications-btn')?.addEventListener('click', requestNotifPermission);
+  $('enc-settings-notif-btn')?.addEventListener('click', requestNotifPermission);
+
+  const soundBtn = $('enc-sound-toggle-btn');
+  const soundToggle = $('enc-settings-sound-toggle');
+  if (soundToggle) soundToggle.checked = encSoundEnabled;
+
+  const updateSoundUI = () => {
+    if (soundBtn) {
+      soundBtn.textContent = encSoundEnabled ? '🔊 Zvuk: Zap' : '🔇 Zvuk: Vyp';
+      soundBtn.style.color = encSoundEnabled ? '#34d399' : '#94a3b8';
+    }
+    if (soundToggle) soundToggle.checked = encSoundEnabled;
+    localStorage.setItem('trinity_enc_sound', encSoundEnabled ? 'true' : 'false');
+  };
+  updateSoundUI();
+
+  soundBtn?.addEventListener('click', () => {
+    encSoundEnabled = !encSoundEnabled;
+    updateSoundUI();
+    if (encSoundEnabled) playEncChime();
+  });
+
+  soundToggle?.addEventListener('change', (e) => {
+    encSoundEnabled = Boolean(e.target.checked);
+    updateSoundUI();
+    if (encSoundEnabled) playEncChime();
+  });
+
+  $('enc-test-sound-btn')?.addEventListener('click', () => {
+    playEncChime();
+  });
 }
 
 async function pollEncInbox() {
@@ -6523,6 +6824,10 @@ async function pollEncInbox() {
             decryptedText = await cryptoEngine.decrypt(roomKey, env.ciphertext, env.iv);
           } catch {}
         }
+      }
+
+      if (!isMine) {
+        triggerEncNotification(env.sender_id, encState.activeContact?.alias || env.sender_id, decryptedText);
       }
 
       renderEncBubble({

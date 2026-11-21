@@ -1,4 +1,4 @@
-<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#0b0d12"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="stylesheet" href="/chat.css?v=13.2.0"><link rel="stylesheet" href="/builder.css?v=13.2.0"><link rel="stylesheet" href="/theme.css?v=13.2.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=13.2.2" defer></script><script src="/ghost-crypto.js?v=13.2.2" defer></script><link rel="stylesheet" href="/garage.css?v=13.2.0"><link rel="stylesheet" href="/mobile.css?v=13.2.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui">
+<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#0b0d12"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="stylesheet" href="/chat.css?v=13.2.0"><link rel="stylesheet" href="/builder.css?v=13.2.0"><link rel="stylesheet" href="/theme.css?v=13.2.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=13.2.3" defer></script><script src="/ghost-crypto.js?v=13.2.3" defer></script><link rel="stylesheet" href="/garage.css?v=13.2.0"><link rel="stylesheet" href="/mobile.css?v=13.2.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui">
 <aside class="sidebar">
   <a href="#chat" class="brand" data-view-link="chat"><span class="brand-mark">T</span><span>Trinity<small>AI STUDIO</small></span></a>
   <div class="sidebar-quick-actions">
@@ -14,7 +14,7 @@
     <button data-view="domains"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><b>Domény &amp; Hosting</b></button>
     <button data-view="wallet"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span><b>Platby &amp; Peňaženka</b></button>
     <button data-view="connect" id="connect-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span><b>Prepojenia &amp; Siete</b></button>
-    <button data-view="encrypted_shits" id="encrypted-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm3 7a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></span><b>encrypted_shits</b></button>
+    <button data-view="encrypted_shits" id="encrypted-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm3 7a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></span><b>encrypted_shits</b><span id="enc-nav-badge" hidden style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:auto;box-shadow:0 0 8px rgba(239,68,68,0.6);">0</span></button>
     <button data-view="crypto" id="crypto-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><polygon points="12 2 21 8.5 21 15.5 12 22 3 15.5 3 8.5 12 2"/></svg></span><b>Tetrakis ($TTK)</b></button>
     <button data-view="documents"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><b>Dokumentácia</b></button>
     <button data-view="settings"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><b data-i18n="settings">Nastavenia &amp; Licencie</b></button>
@@ -276,6 +276,12 @@
           <span style="font-size:11px;color:#94a3b8;">Zero-Knowledge šifrovaný messenger s automatickou sebadeštrukciou správ</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" id="enc-enable-notifications-btn" class="secondary" title="Povoliť notifikácie správ na ploche a v mobile" style="padding:4px 9px;font-size:11px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:4px;">
+            🔔 Notifikácie
+          </button>
+          <button type="button" id="enc-sound-toggle-btn" class="secondary" title="Prepnúť zvuk notifikácií" style="padding:4px 9px;font-size:11px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:4px;">
+            🔊 Zvuk: Zap
+          </button>
           <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;"></span>
           <span style="font-size:11px;color:#34d399;font-weight:600;">Súkromné kľúče bezpečne v prehliadači</span>
         </div>
@@ -452,10 +458,17 @@
               <span>Automaticky skartovať správy po odchode</span>
               <input type="checkbox" id="enc-settings-autoshred-toggle" checked>
             </label>
-            <label style="display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#cbd5e1;cursor:pointer;">
-              <span>Zvukové notifikácie pri príchode správy</span>
-              <input type="checkbox" id="enc-settings-sound-toggle">
-            </label>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:#cbd5e1;cursor:pointer;">
+                <input type="checkbox" id="enc-settings-sound-toggle" checked>
+                <span>Zvukové upozornenie pri príchode správy</span>
+              </label>
+              <button type="button" id="enc-test-sound-btn" class="secondary" style="padding:2px 8px;font-size:10px;border-radius:4px;cursor:pointer;">▶ Vyskúšať zvuk</button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#cbd5e1;">Systémové push notifikácie na plochu</span>
+              <button type="button" id="enc-settings-notif-btn" class="secondary" style="padding:2px 8px;font-size:10px;border-radius:4px;cursor:pointer;">🔔 Povoliť</button>
+            </div>
           </div>
 
           <!-- Close Button -->
