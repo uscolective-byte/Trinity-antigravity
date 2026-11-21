@@ -1,4 +1,4 @@
-<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#0b0d12"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="stylesheet" href="/chat.css?v=13.2.0"><link rel="stylesheet" href="/builder.css?v=13.2.0"><link rel="stylesheet" href="/theme.css?v=13.2.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=13.2.0" defer></script><link rel="stylesheet" href="/garage.css?v=13.2.0"><link rel="stylesheet" href="/mobile.css?v=13.2.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui">
+<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#0b0d12"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="stylesheet" href="/chat.css?v=13.2.0"><link rel="stylesheet" href="/builder.css?v=13.2.0"><link rel="stylesheet" href="/theme.css?v=13.2.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=13.2.0" defer></script><script src="/ghost-crypto.js" defer></script><link rel="stylesheet" href="/garage.css?v=13.2.0"><link rel="stylesheet" href="/mobile.css?v=13.2.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui">
 <aside class="sidebar">
   <a href="#chat" class="brand" data-view-link="chat"><span class="brand-mark">T</span><span>Trinity<small>AI STUDIO</small></span></a>
   <div class="sidebar-quick-actions">
@@ -14,6 +14,7 @@
     <button data-view="domains"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><b>Domény &amp; Hosting</b></button>
     <button data-view="wallet"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span><b>Platby &amp; Peňaženka</b></button>
     <button data-view="connect" id="connect-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span><b>Prepojenia &amp; Siete</b></button>
+    <button data-view="ghost" id="ghost-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm3 7a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></span><b>Ghost Vault (E2EE)</b></button>
     <button data-view="crypto" id="crypto-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><polygon points="12 2 21 8.5 21 15.5 12 22 3 15.5 3 8.5 12 2"/></svg></span><b>Tetrakis ($TTK)</b></button>
     <button data-view="documents"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><b>Dokumentácia</b></button>
     <button data-view="settings"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><b data-i18n="settings">Nastavenia &amp; Licencie</b></button>
@@ -258,6 +259,96 @@
             <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Lokálny most pre súbory a automatizácie na tvojom počítači cez skript <code>Start-PC-Bridge-7777.cmd</code>.</p>
           </div>
           <a href="http://127.0.0.1:7777/health" target="_blank" rel="noopener noreferrer" class="secondary" style="text-align:center;text-decoration:none;display:block;padding:9px;border-radius:8px;font-weight:600;">Overiť lokálny most ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRINITY GHOST VAULT (ZERO-KNOWLEDGE E2EE EPHEMERAL MESSENGER) -->
+    <section id="ghost-view" class="view ghost-view" hidden style="padding:20px;max-width:1100px;margin:0 auto;overflow-y:auto;height:calc(100vh - 70px);">
+      <div style="margin-bottom:20px;text-align:center;">
+        <h2 style="font-size:24px;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;">
+          <span style="background:rgba(239,68,68,0.15);color:#ef4444;padding:6px 12px;border-radius:10px;font-size:20px;border:1px solid rgba(239,68,68,0.3);">🛡️ E2EE</span>
+          Trinity Ghost Vault · Tajný Šifrovaný Chat
+        </h2>
+        <p style="color:#94a3b8;font-size:13px;max-width:800px;margin:6px auto 0 auto;">
+          Nekompromisné end-to-end šifrovanie (ECDH Curve P-256 + 256-bit AES-GCM). Súkromné kľúče existujú <strong>iba vo vašom prehliadači</strong>. Server správy nevie dešifrovať a po prečítaní alebo uplynutí času ich <strong>trvalo zničí</strong>.
+        </p>
+      </div>
+
+      <!-- Security Status Bar -->
+      <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;"></span>
+          <span style="font-size:12px;color:#f8fafc;font-weight:600;">Zero-Knowledge Blind Relay: <span style="color:#34d399;">AKTÍVNE</span></span>
+        </div>
+        <div id="ghost-fingerprint-box" style="font-size:12px;color:#94a3b8;font-family:monospace;background:#1e293b;padding:4px 10px;border-radius:6px;">
+          Bezpečnostný kód: <span id="ghost-safety-code" style="color:#38bdf8;">Inicializuje sa...</span>
+        </div>
+        <button type="button" id="ghost-vaporize-btn" class="danger" style="background:#ef4444;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
+          🚨 Vaporizovať / Zničiť chat
+        </button>
+      </div>
+
+      <!-- Room & Key Exchange Setup -->
+      <div class="panel" style="background:#131d31;border:1px solid #1e2d4a;border-radius:12px;padding:18px;margin-bottom:18px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;align-items:end;">
+          <div>
+            <label style="display:block;font-size:11px;color:#94a3b8;margin-bottom:4px;font-weight:600;">Meno tajnej miestnosti (Room ID):</label>
+            <input type="text" id="ghost-room-id" placeholder="napr. vault-secret-alpha" style="width:100%;padding:8px 12px;background:#0b0f19;border:1px solid #2d3b55;border-radius:8px;color:#fff;font-size:13px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;color:#94a3b8;margin-bottom:4px;font-weight:600;">Tvoje kódové meno (Alias):</label>
+            <input type="text" id="ghost-peer-id" placeholder="napr. Basterix" style="width:100%;padding:8px 12px;background:#0b0f19;border:1px solid #2d3b55;border-radius:8px;color:#fff;font-size:13px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;color:#94a3b8;margin-bottom:4px;font-weight:600;">Sebadeštrukcia správ (TTL časovač):</label>
+            <select id="ghost-ttl-select" style="width:100%;padding:8px 12px;background:#0b0f19;border:1px solid #2d3b55;border-radius:8px;color:#fff;font-size:13px;">
+              <option value="15">🔥 15 sekúnd (Ultra rýchle zničenie)</option>
+              <option value="30" selected>🔥 30 sekúnd (Odporúčané)</option>
+              <option value="60">⏳ 1 minúta</option>
+              <option value="300">⏳ 5 minút</option>
+              <option value="3600">⏳ 1 hodina</option>
+              <option value="86400">⏳ 24 hodín</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button type="button" id="ghost-join-btn" class="primary" style="flex:1;padding:8px 14px;border-radius:8px;font-weight:600;font-size:13px;">
+              🔑 Vstúpiť do Vaultu
+            </button>
+            <button type="button" id="ghost-invite-btn" class="secondary" style="padding:8px 14px;border-radius:8px;font-weight:600;font-size:13px;">
+              🔗 Pozvánka
+            </button>
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#cbd5e1;cursor:pointer;">
+            <input type="checkbox" id="ghost-burn-on-read" checked>
+            <strong>Burn-on-Read:</strong> Zmazať zo servera v milisekunde po potvrdení dešifrovania
+          </label>
+          <span id="ghost-room-status" style="font-size:11px;color:#fbbf24;margin-left:auto;">Neaktívna relácia (zadaj Room a klikni Vstúpiť)</span>
+        </div>
+      </div>
+
+      <!-- Messages Stream Panel -->
+      <div class="panel" style="background:#0b0f19;border:1px solid #1e2d4a;border-radius:12px;display:flex;flex-direction:column;height:420px;overflow:hidden;margin-bottom:18px;">
+        <div style="padding:10px 16px;background:#131d31;border-bottom:1px solid #1e2d4a;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;color:#94a3b8;font-weight:600;">🔒 ZAŠIFROVANÝ DÁTOVÝ TOK (IN-MEMORY ONLY)</span>
+          <span id="ghost-active-peers" style="font-size:11px;color:#34d399;">Účastníci: 0</span>
+        </div>
+
+        <div id="ghost-messages-container" style="flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
+          <div style="text-align:center;color:#64748b;font-size:12px;margin:auto;">
+            Zatiaľ žiadne správy. Zadaj Room ID, tvoj alias a klikni na <strong>Vstúpiť do Vaultu</strong>.<br>
+            Po vstupe pošli tajný odkaz partnerovi cez Telegram, Signal, WhatsApp alebo Viber.
+          </div>
+        </div>
+
+        <!-- Composer -->
+        <div style="padding:12px 16px;background:#131d31;border-top:1px solid #1e2d4a;display:flex;gap:10px;">
+          <input type="text" id="ghost-msg-input" placeholder="Napíš prísne tajnú správu..." style="flex:1;padding:10px 14px;background:#0b0f19;border:1px solid #2d3b55;border-radius:8px;color:#fff;font-size:13px;" disabled>
+          <button type="button" id="ghost-send-msg-btn" class="primary" style="padding:10px 20px;border-radius:8px;font-weight:600;font-size:13px;" disabled>
+            🔒 Odoslať
+          </button>
         </div>
       </div>
     </section>

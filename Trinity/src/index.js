@@ -156,6 +156,8 @@ import metaConnectJS from '../public/meta-connect.js.txt';
 import directConnectHTML from '../public/connect.html';
 import {handleInboundWebhook} from './inbound-webhooks.js';
 import {handleMetaConnection} from './meta-connector.js';
+import {handleGhostVaultApi} from './ghost-vault.js';
+import ghostCryptoJS from '../public/ghost-crypto.js.txt';
 import serviceWorkerJS from '../public/assistant/sw.js.txt';
 import spotifyJS from '../public/assistant/spotify.js.txt';
 import authBootstrapJS from '../public/auth-bootstrap.js.txt';
@@ -273,7 +275,7 @@ async function route(request,env,ctx){
       'Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
     }});
   }
-  if(request.method==='GET'&&['/','/ops','/dashboard','/index.html','/connect','/links','/landing','/welcome','/about'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
+  if(request.method==='GET'&&['/','/ops','/dashboard','/index.html','/connect','/links','/landing','/welcome','/about','/ghost'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
     'X-Trinity-Host': reqHostname,
     'X-Trinity-Mode': isOmniDevHost ? 'omni-dev' : 'production',
     'Cache-Control':'no-cache, no-store, must-revalidate',
@@ -284,10 +286,12 @@ async function route(request,env,ctx){
       +"; connect-src 'self' https:"
       +(drivePickerEnabled&&path!=='/ops'?" https://accounts.google.com https://www.googleapis.com":"")
       +"; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
+  if(path.startsWith('/api/ghost/')) return handleGhostVaultApi(request,env,ctx);
   const inboundWebhookMatch=path.match(/^\/api\/v1\/webhooks\/([a-zA-Z0-9_-]+)$/);
   if(inboundWebhookMatch)return handleInboundWebhook(request,env,ctx,inboundWebhookMatch[1]);
   if(request.method==='GET'&&['/connect/meta','/api/assistant/connectors/meta/callback'].includes(path))return new Response(metaConnectHTML,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"}});
   if(request.method==='GET'&&path==='/meta-connect.js')return new Response(metaConnectJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
+  if(request.method==='GET'&&path==='/ghost-crypto.js')return new Response(ghostCryptoJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'}});
   if(request.method==='GET'&&path==='/app.js')return new Response(appJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/style.css')return new Response(css+'\n'+refreshCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/chat.js')return new Response(assistantJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
