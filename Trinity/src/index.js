@@ -258,14 +258,6 @@ async function route(request,env,ctx){
       policies:Object.values(TRINITY_POLICIES)
     });
   }
-  if(request.method==='GET'&&['/landing','/welcome','/about'].includes(path)){
-    return new Response(renderLandingHtml({host:reqHostname,environment:env.TRINITY_ENV||'production',version:TRINITY_VERSION}),{headers:{
-      'Content-Type':'text/html; charset=utf-8',
-      'X-Trinity-Host':reqHostname,
-      'Cache-Control':'no-cache, must-revalidate',
-      'Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
-    }});
-  }
   const hitlPageMatch=path.match(/^\/approve\/([0-9a-f-]{36})$/i);
   if(hitlPageMatch&&request.method==='GET'){
     let authUser=null;
@@ -281,7 +273,7 @@ async function route(request,env,ctx){
       'Content-Security-Policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
     }});
   }
-  if(request.method==='GET'&&['/','/ops','/dashboard','/index.html'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
+  if(request.method==='GET'&&['/','/ops','/dashboard','/index.html','/connect','/links','/landing','/welcome','/about'].includes(path))return new Response(path==='/ops'?html:assistantHTML,{headers:{'Content-Type':'text/html; charset=utf-8',
     'X-Trinity-Host': reqHostname,
     'X-Trinity-Mode': isOmniDevHost ? 'omni-dev' : 'production',
     'Cache-Control':'no-cache, no-store, must-revalidate',
@@ -289,10 +281,9 @@ async function route(request,env,ctx){
       +(drivePickerEnabled&&path!=='/ops'?" https://apis.google.com https://accounts.google.com":"")
       +"; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; frame-src 'self' blob: data: https://open.spotify.com"
       +(drivePickerEnabled&&path!=='/ops'?" https://accounts.google.com https://docs.google.com https://drive.google.com https://apis.google.com":"")
-      +"; connect-src 'self'"
+      +"; connect-src 'self' https:"
       +(drivePickerEnabled&&path!=='/ops'?" https://accounts.google.com https://www.googleapis.com":"")
       +"; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
-  if(request.method==='GET'&&['/connect','/links'].includes(path))return new Response(directConnectHTML,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache','Content-Security-Policy':"default-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"}});
   const inboundWebhookMatch=path.match(/^\/api\/v1\/webhooks\/([a-zA-Z0-9_-]+)$/);
   if(inboundWebhookMatch)return handleInboundWebhook(request,env,ctx,inboundWebhookMatch[1]);
   if(request.method==='GET'&&['/connect/meta','/api/assistant/connectors/meta/callback'].includes(path))return new Response(metaConnectHTML,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"}});

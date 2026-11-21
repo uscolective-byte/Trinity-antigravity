@@ -366,6 +366,7 @@ async function readChatStream(response,onEvent){
 async function sessions(){const rows=await api('/sessions');$('sessions').replaceChildren();for(const row of rows){const button=node('button',row.title.slice(0,45));button.onclick=safe(async()=>{session=row.session;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');});$('sessions').append(button);}}
 const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],commodities:['TRINITY COMMODITY DESK','Komodity & Trading','Analýza všetkých 22 svetových komodít, autonómne investovanie, nákup a predaj v portfóliu.'],wallet:['FINANČNÉ CENTRUM TRINITY','Peňaženka & Platobné Terminály','Skutočná správa zostatkov, platobné terminály na príjem a okamžité výbery peňazí.'],modules:['TRINITY OPEN-DATA','Open-Data Moduly','100% bezplatné živé API: počasie, Wikipédia, DoH DNSSEC, spot krypto, HN tech správy a Svetová banka.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.'],graph:['TRINITY GRAPH RAG','Pamäťový Graf','Vizuálne prepojenie dlhodobej pamäte, domén, projektov a transakcií v reálnom čase.'],omnidev:['TRINITY OMNI-DEV','Omni-Dev Studio (auru.dev)','Autonómne štúdio s ovládaním PC, dynamickými skillmi, editorom kódu a auditom.'],
 crypto:['TETRAKIS ($TTK) — PLATBY TRINITY','Tetrakis Wallet & Payments','Neväzobná peňaženka a overenie skutočného stavu TTK kontraktu.'],
+connect:['PREPOJENIA & SIETE TRINITY','Prepojenia & Siete','Jediné centrum pre všetky kanály: Telegram @wallet, Viber Pay, Paysafe, WhatsApp, Meta, LinkedIn, Webhooky a PC Bridge.'],
 agentlab:['AI AGENT SANDBOX & LAB','AI Agent Lab (auru.dev)','Vytváranie, trénovanie, testovanie a spúšťanie autonómnych AI agentov.'],workflows:['VISUAL WORKFLOWS','Drag & Drop Workflows','Vizuálna orchestrácia procesov, exekúcie PC brány a automatizácie.']};
 function updateHeading(){const meta=viewMeta[currentView]||viewMeta.dashboard;$('page-kicker').textContent=meta[0];$('page-title').textContent=meta[1].includes(' ')?meta[1]:t(meta[1]);$('subtitle').textContent=t(meta[2]);}
 async function setView(name,updateHash=true){if(name==='dashboard'&&state?.account?.role!=='owner')name='chat';if(!viewMeta[name])name='dashboard';currentView=name;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${name}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===name));updateHeading();if(updateHash)history.replaceState(null,'',`#${name}`);if(name==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(name==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();}if(name==='projects')await loadProjects();if(name==='domains'){await loadDomains();await loadDomainEnvironments();}if(name==='commodities')await loadCommodityDesk();if(name==='wallet')await loadWalletView();if(name==='crypto')await loadCryptoView();if(name==='modules')await loadModulesView();if(name==='documents')await loadTrinityDocuments();if(name==='graph')await loadGraphView();if(name==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(name==='omnidev'){await loadOmniDev();initOmniDevEvents();}
@@ -5652,4 +5653,15 @@ function initSovereignShield() {
 }
 initSovereignShield();
 initDocsSearch();
+document.addEventListener('click', e => {
+  const btn = e.target && e.target.closest ? e.target.closest('[data-copy]') : null;
+  if (btn && btn.dataset && btn.dataset.copy) {
+    void navigator.clipboard?.writeText(btn.dataset.copy).then(() => {
+      if (typeof notice === 'function') notice('Skopírované do schránky!');
+      else alert('Skopírované do schránky!');
+    }).catch(() => {
+      prompt('Skopírujte text ručne:', btn.dataset.copy);
+    });
+  }
+});
 
