@@ -297,10 +297,11 @@ export const TOOL_SCHEMAS={
     data:z.record(z.string(),z.unknown()).optional()
   }).strict()
   ,onedrive_manage:z.object({
-    action:z.enum(['status','drive_info','list_files','get_file','upload_file','create_folder','delete_file','delete_item']).default('status'),
+    action:z.enum(['status','drive_info','list_files','search_files','get_file','read_file','upload_file','create_folder','delete_file','delete_item']).default('status'),
     path:z.string().optional(),
     itemId:z.string().optional(),
     name:z.string().optional(),
+    query:z.string().optional(),
     content:z.union([z.string(),z.record(z.string(),z.unknown())]).optional(),
     contentType:z.string().optional(),
     profile:z.string().optional()
@@ -1686,7 +1687,7 @@ export const TOOL_HELP={
   firecrawl_scrape:'Pošle verejnú URL nakonfigurovanému Firecrawl adaptéru na vybranú operáciu. Argumenty: {url:string, mode?:scrape|crawl|map, onlyMainContent?:boolean}',
   firebase_manage:'Integrácia s Google Firebase (Read & Write: hosting, čítanie, ukladanie a mazanie Firestore dokumentov + D1 mirror): {action:status|get_document|set_document|delete_document, projectId?:string, collection?:string, documentId?:string, data?:object}',
   google_drive_verify:'Overí a stiahne súbor z povoleného priečinka Google Drive a vráti názov, veľkosť a SHA-256: {fileId:string}',
-  onedrive_manage:'Plná správa Microsoft OneDrive a Office 365 (Read & Write: čítanie, sťahovanie, nahrávanie súborov, vytváranie priečinkov a mazanie súborov): {action:status|drive_info|list_files|get_file|upload_file|create_folder|delete_file|delete_item, path?:string, itemId?:string, name?:string, content?:string|object, profile?:string}',
+  onedrive_manage:'Plná správa Microsoft OneDrive a Office 365 (Read & Write: vyhľadávanie, čítanie obsahu, sťahovanie, nahrávanie súborov, vytváranie priečinkov a mazanie súborov): {action:status|drive_info|list_files|search_files|get_file|read_file|upload_file|create_folder|delete_file|delete_item, path?:string, itemId?:string, name?:string, query?:string, content?:string|object, profile?:string}',
   google_cloud_manage:'Správa a diagnostika Google Cloud Platform (tangential-osprey-dl7cp), Vertex AI a Gemini modelov: {action:status|list_models, projectId?:string}',
   local_bridge_manage:'Diagnostika a stav lokálneho PC mosta Trinity (Local-Desktop port 8795, Local-Gateway port 7789, pracovné priečinky PC stanice): {action:status|ping}',
   integration_status:'Prehľad všetkých pripojených externých platforiem a pilierov (Cloudflare, GitHub, OneDrive, Google Cloud, Local PC Bridge, Firebase, Supabase): {}',

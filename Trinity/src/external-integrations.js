@@ -649,6 +649,16 @@ export async function manageFirebase(env, actor = 'trinity', action = 'status', 
   return { success: false, error: `Neznáma Firebase akcia: ${action}` };
 }
 
+function encodeOneDrivePath(rawPath = '') {
+  return String(rawPath || '')
+    .trim()
+    .replace(/^\/+|\/+$/g, '')
+    .split('/')
+    .filter(Boolean)
+    .map(segment => encodeURIComponent(segment))
+    .join('/');
+}
+
 export async function manageOneDrive(env, actor = 'trinity', action = 'status', params = {}) {
   const token = await resolveProviderSecret(env, 'onedrive') || await resolveProviderSecret(env, 'microsoft');
   const profile = params.profile || 'personal_msa';
@@ -696,17 +706,24 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
   if (action === 'drive_info') {
     if (!token) return { success: false, error: 'Chýba OneDrive token.' };
     const resp = await fetch('https://graph.microsoft.com/v1.0/me/drive', {
-      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      signal: AbortSignal.timeout(15000)
     });
     const data = await resp.json().catch(() => ({}));
-    return { success: resp.ok, drive: data };
+    return {
+      success: resp.ok,
+      drive: data,
+      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba čítania informácií o disku'}` })
+    };
   }
 
   if (action === 'list_files') {
     if (!token) return { success: false, error: 'Chýba OneDrive token.' };
-    const folderPath = params.path ? `root:/${encodeURIComponent(params.path).replace(/%2F/g, '/')}:/children` : 'root/children';
+    const cleanPath = encodeOneDrivePath(params.path);
+    const folderPath = cleanPath ? `root:/${cleanPath}:/children` : 'root/children';
     const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/${folderPath}?$top=50`, {
-      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      signal: AbortSignal.timeout(15000)
     });
     const data = await resp.json().catch(() => ({}));
     return {
@@ -719,47 +736,120 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
         web_url: f.webUrl,
         last_modified: f.lastModifiedDateTime
       })),
-      total: data.value?.length || 0
+      total: data.value?.length || 0,
+      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba výpisu priečinka'}` })
+    };
+  }
+
+  if (action === 'search_files') {
+    if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    const query = String(params.query || params.name || '').trim();
+    if (!query) return { success: false, error: 'Chýba hľadaný výraz (query) pre OneDrive.' };
+    const escaped = encodeURIComponent(query.replace(/'/g, "''"));
+    const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root/search(q='${escaped}')?$top=50`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      signal: AbortSignal.timeout(15000)
+    });
+    const data = await resp.json().catch(() => ({}));
+    return {
+      success: resp.ok,
+      query,
+      files: (data.value || []).map(f => ({
+        id: f.id,
+        name: f.name,
+        path: f.parentReference?.path ? `${f.parentReference.path.replace(/^\/drive\/root:?/, '')}/${f.name}`.replace(/^\/+/, '') : f.name,
+        size: f.size,
+        is_folder: Boolean(f.folder),
+        web_url: f.webUrl,
+        last_modified: f.lastModifiedDateTime
+      })),
+      total: data.value?.length || 0,
+      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba vyhľadávania'}` })
     };
   }
 
   if (action === 'get_file') {
     if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    const cleanPath = encodeOneDrivePath(params.path);
     const endpoint = params.itemId
       ? `https://graph.microsoft.com/v1.0/me/drive/items/${encodeURIComponent(params.itemId)}`
-      : `https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(params.path || '')}`;
+      : cleanPath
+        ? `https://graph.microsoft.com/v1.0/me/drive/root:/${cleanPath}`
+        : null;
+    if (!endpoint) return { success: false, error: 'Chýba itemId alebo path pre načítanie súboru v OneDrive.' };
     const resp = await fetch(endpoint, {
-      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      signal: AbortSignal.timeout(15000)
     });
     const data = await resp.json().catch(() => ({}));
-    return { success: resp.ok, item: data };
+    return {
+      success: resp.ok,
+      item: data,
+      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba načítania súboru'}` })
+    };
+  }
+
+  if (action === 'read_file') {
+    if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    const cleanPath = encodeOneDrivePath(params.path);
+    const endpoint = params.itemId
+      ? `https://graph.microsoft.com/v1.0/me/drive/items/${encodeURIComponent(params.itemId)}/content`
+      : cleanPath
+        ? `https://graph.microsoft.com/v1.0/me/drive/root:/${cleanPath}:/content`
+        : null;
+    if (!endpoint) return { success: false, error: 'Chýba itemId alebo path pre čítanie obsahu súboru v OneDrive.' };
+    const resp = await fetch(endpoint, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!resp.ok) {
+      const errData = await resp.json().catch(() => ({}));
+      return { success: false, error: `OneDrive HTTP ${resp.status}: ${errData.error?.message || 'Nepodarilo sa prečítať súbor'}` };
+    }
+    const rawText = await resp.text();
+    const maxChars = 200_000;
+    const truncated = rawText.length > maxChars;
+    return {
+      success: true,
+      content: truncated ? rawText.slice(0, maxChars) : rawText,
+      truncated,
+      bytes: rawText.length,
+      content_type: resp.headers.get('content-type') || 'text/plain'
+    };
   }
 
   if (action === 'upload_file') {
     if (!token) return { success: false, error: 'Chýba OneDrive token.' };
-    const path = params.path;
-    if (!path || typeof path !== 'string') return { success: false, error: 'Chýba cieľová cesta (path) v OneDrive.' };
+    const cleanPath = encodeOneDrivePath(params.path);
+    if (!cleanPath) return { success: false, error: 'Chýba cieľová cesta (path) v OneDrive.' };
     const content = typeof params.content === 'string' ? params.content : JSON.stringify(params.content || {});
-    const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(path).replace(/%2F/g, '/')}:/content`, {
+    const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${cleanPath}:/content`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': params.contentType || 'text/plain; charset=utf-8' },
-      body: content
+      body: content,
+      signal: AbortSignal.timeout(15000)
     });
     const data = await resp.json().catch(() => ({}));
-    return { success: resp.ok, file: data };
+    return {
+      success: resp.ok,
+      file: data,
+      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba nahrávania súboru'}` })
+    };
   }
 
   if (action === 'create_folder') {
     if (!token) return { success: false, error: 'Chýba OneDrive token.' };
     const name = params.name;
     if (!name || typeof name !== 'string') return { success: false, error: 'Chýba názov nového priečinka (name).' };
-    const endpoint = params.path
-      ? `https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(params.path).replace(/%2F/g, '/')}:/children`
+    const cleanPath = encodeOneDrivePath(params.path);
+    const endpoint = cleanPath
+      ? `https://graph.microsoft.com/v1.0/me/drive/root:/${cleanPath}:/children`
       : 'https://graph.microsoft.com/v1.0/me/drive/root/children';
     const resp = await fetch(endpoint, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ name, folder: {}, '@microsoft.graph.conflictBehavior': 'rename' })
+      body: JSON.stringify({ name, folder: {}, '@microsoft.graph.conflictBehavior': 'rename' }),
+      signal: AbortSignal.timeout(15000)
     });
     const data = await resp.json().catch(() => ({}));
     return { success: resp.ok, folder: data, ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba vytvorenia priečinka'}` }) };
@@ -767,17 +857,24 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
 
   if (action === 'delete_file' || action === 'delete_item') {
     if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    const cleanPath = encodeOneDrivePath(params.path);
     const endpoint = params.itemId
       ? `https://graph.microsoft.com/v1.0/me/drive/items/${encodeURIComponent(params.itemId)}`
-      : params.path
-        ? `https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(params.path).replace(/%2F/g, '/')}`
+      : cleanPath
+        ? `https://graph.microsoft.com/v1.0/me/drive/root:/${cleanPath}`
         : null;
     if (!endpoint) return { success: false, error: 'Chýba itemId alebo path pre zmazanie položky v OneDrive.' };
     const resp = await fetch(endpoint, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(15000)
     });
-    return { success: resp.ok || resp.status === 204, deleted: true, status: resp.status };
+    const ok = resp.ok || resp.status === 204;
+    if (!ok) {
+      const errData = await resp.json().catch(() => ({}));
+      return { success: false, deleted: false, status: resp.status, error: `OneDrive HTTP ${resp.status}: ${errData.error?.message || 'Chyba mazania položky'}` };
+    }
+    return { success: true, deleted: true, status: resp.status };
   }
 
   return { success: false, error: `Neznáma OneDrive akcia: ${action}` };

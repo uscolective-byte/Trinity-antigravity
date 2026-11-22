@@ -154,6 +154,56 @@ test('manageOneDrive handles create_folder and delete_file', async () => {
   }
 });
 
+test('manageOneDrive handles nested get_file, read_file, search_files and truthful delete failure', async () => {
+  const originalFetch = globalThis.fetch;
+  const recorded = [];
+
+  globalThis.fetch = async (url, opts = {}) => {
+    const u = String(url);
+    recorded.push({ url: u, method: opts.method || 'GET' });
+    if (u.includes("/root/search(q='trinity')")) {
+      return new Response(JSON.stringify({
+        value: [{ id: 'item_1', name: 'notes.md', size: 42, parentReference: { path: '/drive/root:/PC-Backup' } }]
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (u.endsWith('/root:/PC-Backup/my%20notes.md:/content')) {
+      return new Response('zaloha z PC funguje', { status: 200, headers: { 'Content-Type': 'text/markdown' } });
+    }
+    if (u.endsWith('/root:/PC-Backup/my%20notes.md')) {
+      return new Response(JSON.stringify({ id: 'item_1', name: 'my notes.md' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (opts.method === 'DELETE') {
+      return new Response(JSON.stringify({ error: { message: 'Item not found' } }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+    }
+    return new Response(JSON.stringify({ error: { message: 'unexpected url ' + u } }), { status: 400 });
+  };
+
+  try {
+    const mockEnv = { ONEDRIVE_TOKEN: 'test-od-token' };
+
+    const searchRes = await manageOneDrive(mockEnv, 'agent:trinity', 'search_files', { query: 'trinity' });
+    assert.equal(searchRes.success, true);
+    assert.equal(searchRes.total, 1);
+    assert.equal(searchRes.files[0].path, 'PC-Backup/notes.md');
+
+    const metaRes = await manageOneDrive(mockEnv, 'agent:trinity', 'get_file', { path: '/PC-Backup/my notes.md' });
+    assert.equal(metaRes.success, true);
+    assert.equal(metaRes.item.name, 'my notes.md');
+
+    const readRes = await manageOneDrive(mockEnv, 'agent:trinity', 'read_file', { path: '/PC-Backup/my notes.md' });
+    assert.equal(readRes.success, true);
+    assert.equal(readRes.content, 'zaloha z PC funguje');
+    assert.equal(readRes.truncated, false);
+
+    const failDel = await manageOneDrive(mockEnv, 'agent:trinity', 'delete_file', { itemId: 'missing_99' });
+    assert.equal(failDel.success, false);
+    assert.equal(failDel.deleted, false);
+    assert.match(failDel.error, /HTTP 404/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('manageFirebase handles delete_document from D1 mirror and Firestore', async () => {
   const deletedSql = [];
   const mockEnv = {
