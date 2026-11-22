@@ -1,4 +1,4 @@
-<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#0b0c0e"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"><link rel="stylesheet" href="/chat.css?v=14.0.0"><link rel="stylesheet" href="/builder.css?v=14.0.0"><link rel="stylesheet" href="/theme.css?v=14.0.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=14.0.0" defer></script><script src="/ghost-crypto.js?v=14.0.0" defer></script><link rel="stylesheet" href="/garage.css?v=14.0.0"><link rel="stylesheet" href="/mobile.css?v=14.0.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui">
+<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#080807"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"><link rel="stylesheet" href="/chat.css?v=15.0.0"><link rel="stylesheet" href="/builder.css?v=15.0.0"><link rel="stylesheet" href="/theme.css?v=15.0.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=15.0.0" defer></script><script src="/ghost-crypto.js?v=15.0.0" defer></script><link rel="stylesheet" href="/garage.css?v=15.0.0"><link rel="stylesheet" href="/mobile.css?v=15.0.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui">
 <aside class="sidebar">
   <a href="#chat" class="brand" data-view-link="chat"><span class="brand-mark">T</span><span>Trinity<small>AI STUDIO</small></span></a>
   <div class="sidebar-quick-actions">
@@ -39,8 +39,21 @@
   <header><div class="page-heading"><span id="page-kicker">AI STUDIO</span><strong id="page-title">Trinity</strong><small id="subtitle" data-i18n="dashboardHere">Inteligentný pracovný priestor.</small></div><div class="header-actions"><span id="environment-badge" class="environment-badge" title="Aktívne prostredie">AI STUDIO</span><div class="domain-bridge-switch" hidden><a href="https://auru.dev" class="bridge-link dev-link">auru.dev</a><span class="bridge-sep">⇄</span><a href="https://auru.space" class="bridge-link space-link">auru.space</a><span class="sync-live-badge" id="sync-live-badge">Sync</span></div><span class="fast-model-pill" hidden><span class="fast-dot"></span><b>Turbo AI</b></span><span id="pc-bridge-badge" class="pc-bridge-badge" title="Stav lokálneho PC Bridge"><span class="pc-dot"></span> <b id="pc-bridge-text">PC: Kontrola…</b></span><button id="sovereign-shield-badge" class="sovereign-shield-badge" type="button" title="Sovereign Ledger MMR Kryptografický Audit"><span class="shield-pulse-dot"></span> <b id="sovereign-shield-text">Ledger: Overený</b></button><div id="account-state" class="account-state" role="status" aria-live="polite" hidden><span class="account-dot" aria-hidden="true"></span><span><b id="account-label">Prihlásený</b><small id="account-detail">—</small></span></div><button id="open-legal-header-btn" type="button" title="Licenčná zmluva, Podmienky & Anti-Spam">Licencie &amp; AUP</button><button id="theme" type="button" aria-label="Prepnúť farebný režim">Vzhľad</button><button id="memory-button" data-i18n="memory" style="display:none">Pamäť</button><button id="tools-button" data-i18n="tools" style="display:none">Schopnosti</button><select id="language" aria-label="Language"><option value="auto">AUTO</option><option value="sk">SK</option><option value="en">EN</option><option value="cs">CS</option><option value="de">DE</option><option value="fr">FR</option><option value="es">ES</option><option value="it">IT</option><option value="pl">PL</option><option value="uk">UK</option><option value="ja">JA</option><option value="ko">KO</option><option value="zh">ZH</option></select><button id="logout" type="button" hidden>Odhlásiť</button></div></header>
   <div id="notice" role="status" hidden></div>
   <section id="login" hidden>
+    <div class="auth-showcase">
+      <div>
+        <div class="auth-showcase-seal" aria-hidden="true">T</div>
+        <span class="auth-showcase-kicker">TRINITY ATELIER · SOVEREIGN STUDIO</span>
+        <h1>Jedno štúdio. Plná kontrola nad tvojím cloudom.</h1>
+        <p>46 autonómnych AI špecialistov, tvorba webov, Cloudflare &amp; Vercel nasadenia, OneDrive záloha a Zero-Knowledge E2EE komunikácia v čistom rozhraní.</p>
+      </div>
+      <div class="auth-showcase-stats">
+        <div class="auth-stat-row"><span>PRODUKCIA</span><strong>auru.space · auru.dev</strong></div>
+        <div class="auth-stat-row"><span>CLOUD PILIERE</span><strong>Cloudflare · Vercel · OneDrive</strong></div>
+        <div class="auth-stat-row"><span>OVERENIE</span><strong>Truth Policy 2.1 · Zero-Knowledge</strong></div>
+      </div>
+    </div>
     <div class="auth-card-wrapper">
-      <span class="eyebrow" style="display:inline-block;font:600 11px ui-monospace,monospace;letter-spacing:.08em;color:var(--accent);margin-bottom:8px;">TRINITY AI STUDIO · SECURE ACCESS</span>
+      <span class="eyebrow" style="display:inline-block;font:600 10.5px var(--font-mono);letter-spacing:.12em;margin-bottom:8px;">TRINITY AI STUDIO · SECURE ACCESS</span>
       <h2 id="auth-title" data-i18n="loginTitle">Prihlásenie do Trinity</h2>
       <p id="auth-subtitle" class="muted" data-i18n="loginHint">Vyber si spôsob prihlásenia alebo si vytvor nový účet.</p>
 
@@ -897,17 +910,17 @@
       <div id="ui-custom-widgets-slot" class="ui-custom-widgets-grid" hidden></div>
     </section>
     <section id="chat-view" class="view chat-view"><div id="chat-area"><section id="welcome" class="welcome-zen">
-        <div class="avatar large"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-        <span class="eyebrow" data-i18n="welcomeLabel">TRINITY · AI STUDIO WORKSPACE</span>
+        <div class="avatar large"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M12 6v14M7 11l5-5 5 5"/></svg></div>
+        <span class="eyebrow" data-i18n="welcomeLabel">TRINITY ATELIER · AI STUDIO</span>
         <h1 data-i18n="greeting">Čo dnes postavíme?</h1>
-        <p data-i18n="intro">Streamovaná multi-model AI, tvorba webov, domény a overené nástroje v jednom čistom rozhraní.</p>
+        <p data-i18n="intro">Streamovaná multi-model AI, tvorba webov, Cloudflare &amp; Vercel nasadenia a overené nástroje v jednom čistom štúdiu.</p>
         <div class="suggestions">
-          <button type="button" data-open-chat data-prompt="Vytvor modernú webovú stránku v AI Studiu s čistým dizajnom."><strong>Vytvoriť web v AI Studiu</strong><small>Návrh, kód a publikovanie na doménu</small></button>
-          <button type="button" data-open-chat data-prompt="Skontroluj stav mojich domén auru.dev a auru.space, Cloudflare a Vercel nasadení."><strong>Cloudflare &amp; Vercel nasadenia</strong><small>Stav auru.space, auru.dev a projektov</small></button>
-          <button type="button" data-open-chat data-prompt="Vyhľadaj a skontroluj moje zálohované súbory na Microsoft OneDrive."><strong>OneDrive záloha z PC</strong><small>Vyhľadávanie a čítanie súborov v cloude</small></button>
-          <button type="button" data-view="connect"><strong>Prepojenia &amp; Siete →</strong><small>Vercel, OneDrive, Telegram, MCP a webhooky</small></button>
-          <button type="button" data-view="crypto"><strong>Tetrakis ($TTK) &amp; Peňaženka →</strong><small>Stav kontraktu, platby a terminály</small></button>
-          <button type="button" data-view="documents"><strong>Dokumentácia &amp; Nástroje →</strong><small>Katalóg schopností a auditné záznamy</small></button>
+          <button type="button" data-open-chat data-prompt="Vytvor modernú webovú stránku v AI Studiu s čistým dizajnom."><span class="sug-idx">01</span><strong>AI Studio Web</strong><small>Návrh, kód a publikovanie na doménu</small></button>
+          <button type="button" data-open-chat data-prompt="Skontroluj stav mojich domén auru.dev a auru.space, Cloudflare a Vercel nasadení."><span class="sug-idx">02</span><strong>Cloudflare &amp; Vercel</strong><small>Stav auru.space, auru.dev a projektov</small></button>
+          <button type="button" data-open-chat data-prompt="Vyhľadaj a skontroluj moje zálohované súbory na Microsoft OneDrive."><span class="sug-idx">03</span><strong>OneDrive záloha</strong><small>Vyhľadávanie a čítanie súborov v cloude</small></button>
+          <button type="button" data-view="connect"><span class="sug-idx">04</span><strong>Prepojenia &amp; Siete →</strong><small>Vercel, OneDrive, Telegram, MCP a webhooky</small></button>
+          <button type="button" data-view="crypto"><span class="sug-idx">05</span><strong>Tetrakis ($TTK) →</strong><small>Stav kontraktu, platby a terminály</small></button>
+          <button type="button" data-view="documents"><span class="sug-idx">06</span><strong>Dokumentácia →</strong><small>Katalóg schopností a auditné záznamy</small></button>
         </div>
         <div class="welcome-trust-bar">
           <span>Rate-Limited &amp; Anti-Spam Active</span>
