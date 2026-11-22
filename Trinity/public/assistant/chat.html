@@ -1,4 +1,4 @@
-<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#0b0d12"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="stylesheet" href="/chat.css?v=13.2.0"><link rel="stylesheet" href="/builder.css?v=13.2.0"><link rel="stylesheet" href="/theme.css?v=13.2.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=13.2.3" defer></script><script src="/ghost-crypto.js?v=13.2.3" defer></script><link rel="stylesheet" href="/garage.css?v=13.2.0"><link rel="stylesheet" href="/mobile.css?v=13.2.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui">
+<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#0b0c0e"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"><link rel="stylesheet" href="/chat.css?v=14.0.0"><link rel="stylesheet" href="/builder.css?v=14.0.0"><link rel="stylesheet" href="/theme.css?v=14.0.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=14.0.0" defer></script><script src="/ghost-crypto.js?v=14.0.0" defer></script><link rel="stylesheet" href="/garage.css?v=14.0.0"><link rel="stylesheet" href="/mobile.css?v=14.0.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui">
 <aside class="sidebar">
   <a href="#chat" class="brand" data-view-link="chat"><span class="brand-mark">T</span><span>Trinity<small>AI STUDIO</small></span></a>
   <div class="sidebar-quick-actions">
@@ -92,174 +92,223 @@
     </div>
   </section>
   <div id="app-views">
-    <section id="connect-view" class="view connect-view" hidden style="padding:20px;max-width:1100px;margin:0 auto;overflow-y:auto;height:calc(100vh - 70px);">
-      <div style="margin-bottom:24px;text-align:center;">
-        <h2 style="font-size:24px;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;">⚡ Trinity Direct Connect Hub</h2>
-        <p style="color:#94a3b8;font-size:14px;margin-top:4px;">Centrálne riadenie všetkých komunikačných sietí, poslov, Web3 a digitálnych peňaženiek na jedinom mieste</p>
+    <section id="connect-view" class="view connect-view" hidden>
+      <div class="connect-hub-header">
+        <span class="connect-hub-kicker">TRINITY DIRECT CONNECT HUB</span>
+        <h2>Prepojenia, Siete &amp; Cloudové Piliere</h2>
+        <p>Centrálne riadenie cloudu, nasadení, úložísk, komunikačných sietí a digitálnych peňaženiek na jednom čistom mieste.</p>
       </div>
 
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;">
-        <!-- Telegram Bot -->
-        <div class="panel" style="background:#131d31;border:1px solid #1e2d4a;border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div class="connect-grid">
+        <!-- Vercel Edge Deployments -->
+        <article class="panel connect-card">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:22px;background:rgba(255,255,255,0.06);padding:8px;border-radius:8px;">✈️</span>
+            <div class="connect-card-head">
+              <span class="connect-icon">VC</span>
               <div>
-                <b style="color:#fff;font-size:16px;">Telegram Bot</b>
-                <div style="font-size:10px;color:#34d399;font-weight:700;">1-KLIK SPOJENIE</div>
+                <b class="connect-card-title">Vercel Edge &amp; Deployments</b>
+                <div class="connect-tag">PROJEKTY · DOMÉNY · REDEPLOY</div>
               </div>
             </div>
-            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Priame spojenie s botom <strong>@Antigravity_trinity_bot</strong>. Príkazy <code>/status</code>, <code>/wallet</code>, <code>/crypto</code> a bezpečné notifikácie.</p>
+            <p>Priame ovládanie Vercel projektov, nasadení a domén cez <code>vercel_manage</code> a GitHub Actions workflow <code>vercel-deploy.yml</code>.</p>
           </div>
-          <a href="https://t.me/Antigravity_trinity_bot" target="_blank" rel="noopener noreferrer" class="primary" style="text-align:center;text-decoration:none;display:block;padding:9px;border-radius:8px;font-weight:600;">Otvoriť v Telegrame ↗</a>
-        </div>
+          <div class="connect-actions">
+            <a href="https://vercel.com/new" target="_blank" rel="noopener noreferrer" class="primary">Vercel Dashboard ↗</a>
+            <button type="button" class="secondary" data-view="settings">Token v Trezore</button>
+          </div>
+        </article>
+
+        <!-- Microsoft OneDrive (PC Backup) -->
+        <article class="panel connect-card">
+          <div>
+            <div class="connect-card-head">
+              <span class="connect-icon">OD</span>
+              <div>
+                <b class="connect-card-title">Microsoft OneDrive &amp; 365</b>
+                <div class="connect-tag">ZÁLOHA Z PC · SEARCH · READ</div>
+              </div>
+            </div>
+            <p>Vyhľadávanie (<code>search_files</code>), čítanie (<code>read_file</code>) a správa tvojich zálohovaných súborov cez Microsoft Graph API.</p>
+          </div>
+          <div class="connect-actions">
+            <a href="https://onedrive.live.com/" target="_blank" rel="noopener noreferrer" class="primary">Otvoriť OneDrive ↗</a>
+            <button type="button" class="secondary" data-view="settings">Token v Trezore</button>
+          </div>
+        </article>
+
+        <!-- Telegram Bot -->
+        <article class="panel connect-card">
+          <div>
+            <div class="connect-card-head">
+              <span class="connect-icon">TG</span>
+              <div>
+                <b class="connect-card-title">Telegram Bot</b>
+                <div class="connect-tag">1-KLIK SPOJENIE</div>
+              </div>
+            </div>
+            <p>Priame spojenie s botom <strong>@Antigravity_trinity_bot</strong>. Príkazy <code>/status</code>, <code>/wallet</code>, <code>/crypto</code> a bezpečné notifikácie.</p>
+          </div>
+          <div class="connect-actions">
+            <a href="https://t.me/Antigravity_trinity_bot" target="_blank" rel="noopener noreferrer" class="primary">Otvoriť v Telegrame ↗</a>
+          </div>
+        </article>
 
         <!-- Telegram @wallet & Tetrakis Crypto -->
-        <div class="panel" style="background:#131d31;border:1px solid #1e2d4a;border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;">
+        <article class="panel connect-card">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:22px;background:rgba(255,255,255,0.06);padding:8px;border-radius:8px;">💎</span>
+            <div class="connect-card-head">
+              <span class="connect-icon">TTK</span>
               <div>
-                <b style="color:#fff;font-size:16px;">Telegram @wallet & Tetrakis</b>
-                <div style="font-size:10px;color:#fbbf24;font-weight:700;">TON · USDT · TTK</div>
+                <b class="connect-card-title">Telegram @wallet &amp; Tetrakis</b>
+                <div class="connect-tag">TON · USDT · TTK</div>
               </div>
             </div>
-            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Oficiálna peňaženka @wallet pre TON a USDT platby + <strong>Tetrakis ($TTK)</strong> ERC-20 na Base sieti (1 000 000 000 TTK).</p>
+            <p>Oficiálna peňaženka @wallet pre TON a USDT platby + <strong>Tetrakis ($TTK)</strong> ERC-20 na Base sieti (1 000 000 000 TTK).</p>
           </div>
-          <div style="display:flex;gap:8px;">
-            <a href="https://t.me/wallet" target="_blank" rel="noopener noreferrer" class="primary" style="flex:1;text-align:center;text-decoration:none;padding:9px;border-radius:8px;font-weight:600;">@wallet ↗</a>
-            <button type="button" class="secondary btn-copy" style="flex:1;" data-copy="1,000,000,000 TTK (Base ChainID: 8453)">Kopírovať TTK</button>
+          <div class="connect-actions">
+            <a href="https://t.me/wallet" target="_blank" rel="noopener noreferrer" class="primary">@wallet ↗</a>
+            <button type="button" class="secondary btn-copy" data-copy="1,000,000,000 TTK (Base ChainID: 8453)">Kopírovať TTK</button>
           </div>
-        </div>
+        </article>
 
         <!-- Viber Pay & Viber Bot -->
-        <div class="panel" style="background:#131d31;border:1px solid #1e2d4a;border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;">
+        <article class="panel connect-card">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:22px;background:rgba(255,255,255,0.06);padding:8px;border-radius:8px;">💜</span>
+            <div class="connect-card-head">
+              <span class="connect-icon">VB</span>
               <div>
-                <b style="color:#fff;font-size:16px;">Viber Pay & Viber Bot</b>
-                <div style="font-size:10px;color:#a78bfa;font-weight:700;">VIBER PAY · RAKUTEN</div>
+                <b class="connect-card-title">Viber Pay &amp; Viber Bot</b>
+                <div class="connect-tag">VIBER PAY · RAKUTEN</div>
               </div>
             </div>
-            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Obojsmerné správy cez Viber Chat API a peňaženka <strong>Viber Pay</strong> pre okamžité P2P prevody v EUR cez telefónne číslo.</p>
+            <p>Obojsmerné správy cez Viber Chat API a peňaženka <strong>Viber Pay</strong> pre okamžité P2P prevody v EUR cez telefónne číslo.</p>
           </div>
-          <div style="display:flex;gap:8px;">
-            <a href="viber://chat" class="primary" style="flex:1;text-align:center;text-decoration:none;padding:9px;border-radius:8px;font-weight:600;">Otvoriť Viber ↗</a>
-            <button type="button" class="secondary btn-copy" style="flex:1;" data-copy="https://auru.space/api/v1/webhooks/viber">Viber Webhook</button>
+          <div class="connect-actions">
+            <a href="viber://chat" class="primary">Otvoriť Viber ↗</a>
+            <button type="button" class="secondary btn-copy" data-copy="https://auru.space/api/v1/webhooks/viber">Viber Webhook</button>
           </div>
-        </div>
+        </article>
 
         <!-- Paysafe & Paysafecard Wallet -->
-        <div class="panel" style="background:#131d31;border:1px solid #1e2d4a;border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;">
+        <article class="panel connect-card">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:22px;background:rgba(255,255,255,0.06);padding:8px;border-radius:8px;">🎫</span>
+            <div class="connect-card-head">
+              <span class="connect-icon">PS</span>
               <div>
-                <b style="color:#fff;font-size:16px;">Paysafe & Paysafecard</b>
-                <div style="font-size:10px;color:#fbbf24;font-weight:700;">MYPAYSAFE · 16-PIN · SKRILL</div>
+                <b class="connect-card-title">Paysafe &amp; Paysafecard</b>
+                <div class="connect-tag">MYPAYSAFE · 16-PIN · SKRILL</div>
               </div>
             </div>
-            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">16-miestne Paysafecard PIN kupóny, digitálna peňaženka <strong>myPaysafe</strong> a platobné relácie Skrill / Neteller.</p>
+            <p>16-miestne Paysafecard PIN kupóny, digitálna peňaženka <strong>myPaysafe</strong> a platobné relácie Skrill / Neteller.</p>
           </div>
-          <div style="display:flex;gap:8px;">
-            <a href="https://my.paysafecard.com/" target="_blank" rel="noopener noreferrer" class="primary" style="flex:1;text-align:center;text-decoration:none;padding:9px;border-radius:8px;font-weight:600;">myPaysafe ↗</a>
-            <button type="button" class="secondary btn-copy" style="flex:1;" data-copy="https://auru.space/api/v1/webhooks/paysafe">Paysafe Webhook</button>
+          <div class="connect-actions">
+            <a href="https://my.paysafecard.com/" target="_blank" rel="noopener noreferrer" class="primary">myPaysafe ↗</a>
+            <button type="button" class="secondary btn-copy" data-copy="https://auru.space/api/v1/webhooks/paysafe">Paysafe Webhook</button>
           </div>
-        </div>
+        </article>
 
         <!-- WhatsApp Business & Direct -->
-        <div class="panel" style="background:#131d31;border:1px solid #1e2d4a;border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;">
+        <article class="panel connect-card">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:22px;background:rgba(255,255,255,0.06);padding:8px;border-radius:8px;">💬</span>
+            <div class="connect-card-head">
+              <span class="connect-icon">WA</span>
               <div>
-                <b style="color:#fff;font-size:16px;">WhatsApp Business & Direct</b>
-                <div style="font-size:10px;color:#34d399;font-weight:700;">WA.ME · CLOUD API</div>
+                <b class="connect-card-title">WhatsApp Business &amp; Direct</b>
+                <div class="connect-tag">WA.ME · CLOUD API</div>
               </div>
             </div>
-            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Priamy chat cez <code>wa.me</code> a Meta Cloud API webhook overovaný v Sovereign Ledger.</p>
+            <p>Priamy chat cez <code>wa.me</code> a Meta Cloud API webhook overovaný v Sovereign Ledger.</p>
           </div>
-          <div style="display:flex;gap:8px;">
-            <a href="https://wa.me/" target="_blank" rel="noopener noreferrer" class="primary" style="flex:1;text-align:center;text-decoration:none;padding:9px;border-radius:8px;font-weight:600;">Otvoriť WhatsApp ↗</a>
-            <button type="button" class="secondary btn-copy" style="flex:1;" data-copy="https://auru.space/api/v1/webhooks/whatsapp">WhatsApp Webhook</button>
+          <div class="connect-actions">
+            <a href="https://wa.me/" target="_blank" rel="noopener noreferrer" class="primary">Otvoriť WhatsApp ↗</a>
+            <button type="button" class="secondary btn-copy" data-copy="https://auru.space/api/v1/webhooks/whatsapp">WhatsApp Webhook</button>
           </div>
-        </div>
+        </article>
 
         <!-- LinkedIn B2B & Content Hub -->
-        <div class="panel" style="background:#131d31;border:1px solid #1e2d4a;border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;">
+        <article class="panel connect-card">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:22px;background:rgba(255,255,255,0.06);padding:8px;border-radius:8px;">💼</span>
+            <div class="connect-card-head">
+              <span class="connect-icon">IN</span>
               <div>
-                <b style="color:#fff;font-size:16px;">LinkedIn B2B & Content</b>
-                <div style="font-size:10px;color:#a78bfa;font-weight:700;">SHARE API · B2B LEADS</div>
+                <b class="connect-card-title">LinkedIn B2B &amp; Content</b>
+                <div class="connect-tag">SHARE API · B2B LEADS</div>
               </div>
             </div>
-            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Priame zdieľanie statusov a myšlienkového líderstva na LinkedIn s nástrojom <code>meta_manage</code>.</p>
+            <p>Priame zdieľanie statusov a myšlienkového líderstva na LinkedIn s nástrojom <code>meta_manage</code>.</p>
           </div>
-          <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fauru.space" target="_blank" rel="noopener noreferrer" class="primary" style="text-align:center;text-decoration:none;display:block;padding:9px;border-radius:8px;font-weight:600;">Zdieľať na LinkedIn ↗</a>
-        </div>
+          <div class="connect-actions">
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fauru.space" target="_blank" rel="noopener noreferrer" class="primary">Zdieľať na LinkedIn ↗</a>
+          </div>
+        </article>
 
         <!-- Meta (Facebook & Instagram) -->
-        <div class="panel" style="background:#131d31;border:1px solid #1e2d4a;border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;">
+        <article class="panel connect-card">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:22px;background:rgba(255,255,255,0.06);padding:8px;border-radius:8px;">♾️</span>
+            <div class="connect-card-head">
+              <span class="connect-icon">MT</span>
               <div>
-                <b style="color:#fff;font-size:16px;">Meta (FB & Instagram)</b>
-                <div style="font-size:10px;color:#34d399;font-weight:700;">OAUTH PREPOJENIE</div>
+                <b class="connect-card-title">Meta (FB &amp; Instagram)</b>
+                <div class="connect-tag">OAUTH PREPOJENIE</div>
               </div>
             </div>
-            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Stránka <em>underground Street collective</em> a profil <em>@old_dirty_bastard013</em>.</p>
+            <p>Stránka <em>underground Street collective</em> a profil <em>@old_dirty_bastard013</em>.</p>
           </div>
-          <a href="/connect/meta" class="primary" style="text-align:center;text-decoration:none;display:block;padding:9px;border-radius:8px;font-weight:600;">Pripojiť Meta cez OAuth ↗</a>
-        </div>
+          <div class="connect-actions">
+            <a href="/connect/meta" class="primary">Pripojiť Meta cez OAuth ↗</a>
+          </div>
+        </article>
 
         <!-- Univerzálny Inbound Webhook -->
-        <div class="panel" style="background:#131d31;border:1px solid #1e2d4a;border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;">
+        <article class="panel connect-card">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:22px;background:rgba(255,255,255,0.06);padding:8px;border-radius:8px;">🪝</span>
+            <div class="connect-card-head">
+              <span class="connect-icon">WH</span>
               <div>
-                <b style="color:#fff;font-size:16px;">Univerzálny Webhook</b>
-                <div style="font-size:10px;color:#34d399;font-weight:700;">LINK PRE APLIKÁCIE</div>
+                <b class="connect-card-title">Univerzálny Webhook</b>
+                <div class="connect-tag">LINK PRE APLIKÁCIE</div>
               </div>
             </div>
-            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Link pre Make.com, n8n, Zapier, Stripe, GitHub, Discord. Dáta dorazia priamo do Trinity.</p>
+            <p>Link pre Make.com, n8n, Zapier, Stripe, GitHub, Discord. Dáta dorazia priamo do Trinity.</p>
           </div>
-          <button type="button" class="secondary btn-copy" style="width:100%;" data-copy="https://auru.space/api/v1/webhooks/incoming">Kopírovať Webhook Link</button>
-        </div>
+          <div class="connect-actions">
+            <button type="button" class="secondary btn-copy" data-copy="https://auru.space/api/v1/webhooks/incoming">Kopírovať Webhook Link</button>
+          </div>
+        </article>
 
         <!-- MCP pre AI Asistentov -->
-        <div class="panel" style="background:#131d31;border:1px solid #1e2d4a;border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;">
+        <article class="panel connect-card">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:22px;background:rgba(255,255,255,0.06);padding:8px;border-radius:8px;">🤖</span>
+            <div class="connect-card-head">
+              <span class="connect-icon">MCP</span>
               <div>
-                <b style="color:#fff;font-size:16px;">MCP pre AI Asistentov</b>
-                <div style="font-size:10px;color:#34d399;font-weight:700;">CLAUDE · CURSOR · VS CODE</div>
+                <b class="connect-card-title">MCP pre AI Asistentov</b>
+                <div class="connect-tag">CLAUDE · CURSOR · VS CODE</div>
               </div>
             </div>
-            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Priame prepojenie Trinity nástrojov a pamäte do Claude Desktop, Cursor a Antigravity.</p>
+            <p>Priame prepojenie Trinity nástrojov a pamäte do Claude Desktop, Cursor a Antigravity.</p>
           </div>
-          <button type="button" class="secondary btn-copy" style="width:100%;" data-copy="https://auru.space/mcp">Kopírovať MCP URL</button>
-        </div>
+          <div class="connect-actions">
+            <button type="button" class="secondary btn-copy" data-copy="https://auru.space/mcp">Kopírovať MCP URL</button>
+          </div>
+        </article>
 
         <!-- Lokálny PC Bridge -->
-        <div class="panel" style="background:#131d31;border:1px solid #1e2d4a;border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;">
+        <article class="panel connect-card">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:22px;background:rgba(255,255,255,0.06);padding:8px;border-radius:8px;">💻</span>
+            <div class="connect-card-head">
+              <span class="connect-icon">PC</span>
               <div>
-                <b style="color:#fff;font-size:16px;">Lokálny PC Bridge (7777 / 8791)</b>
-                <div style="font-size:10px;color:#34d399;font-weight:700;">WINDOWS DÉMON</div>
+                <b class="connect-card-title">Lokálny PC Bridge (7777 / 8791)</b>
+                <div class="connect-tag">WINDOWS DÉMON</div>
               </div>
             </div>
-            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Lokálny most pre súbory a automatizácie na tvojom počítači cez skript <code>Start-PC-Bridge-7777.cmd</code>.</p>
+            <p>Lokálny most pre súbory a automatizácie na tvojom počítači cez skript <code>Start-PC-Bridge-7777.cmd</code>.</p>
           </div>
-          <a href="http://127.0.0.1:7777/health" target="_blank" rel="noopener noreferrer" class="secondary" style="text-align:center;text-decoration:none;display:block;padding:9px;border-radius:8px;font-weight:600;">Overiť lokálny most ↗</a>
-        </div>
+          <div class="connect-actions">
+            <a href="http://127.0.0.1:7777/health" target="_blank" rel="noopener noreferrer" class="secondary">Overiť lokálny most ↗</a>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -853,13 +902,12 @@
         <h1 data-i18n="greeting">Čo dnes postavíme?</h1>
         <p data-i18n="intro">Streamovaná multi-model AI, tvorba webov, domény a overené nástroje v jednom čistom rozhraní.</p>
         <div class="suggestions">
-          <button type="button" data-view="documents" style="border-color:rgba(56,189,248,0.5);background:rgba(56,189,248,0.1);color:#38bdf8;font-weight:600">📚 Nová Dokumentácia &amp; Nástroje →</button>
-          <button type="button" data-view="crypto" style="border-color:rgba(245,158,11,0.5);background:rgba(245,158,11,0.1);color:#fbbf24;font-weight:600">💎 Tetrakis ($TTK) &amp; Peňaženka →</button>
-          <button type="button" data-view="connect" style="border-color:rgba(139,92,246,0.5);background:rgba(139,92,246,0.1);color:#c084fc;font-weight:600">🌐 Prepojenia &amp; Siete →</button>
-          <button type="button" data-open-chat data-prompt="Vytvor modernú webovú stránku v AI Studiu s čistým dizajnom.">Vytvoriť web v AI Studiu</button>
-          <button type="button" data-open-chat data-prompt="Skontroluj stav mojich domén auru.dev a auru.space a over DNS.">Overiť domény &amp; DNS</button>
-          <button type="button" data-open-chat data-prompt="Vygeneruj platobný odkaz a SEPA EPC QR kód pre klienta.">Pripraviť platbu &amp; faktúru</button>
-          <button type="button" data-open-chat data-prompt="Spusti diagnostiku cez PC Bridge a skontroluj stav systému.">Systémová diagnostika PC</button>
+          <button type="button" data-open-chat data-prompt="Vytvor modernú webovú stránku v AI Studiu s čistým dizajnom."><strong>Vytvoriť web v AI Studiu</strong><small>Návrh, kód a publikovanie na doménu</small></button>
+          <button type="button" data-open-chat data-prompt="Skontroluj stav mojich domén auru.dev a auru.space, Cloudflare a Vercel nasadení."><strong>Cloudflare &amp; Vercel nasadenia</strong><small>Stav auru.space, auru.dev a projektov</small></button>
+          <button type="button" data-open-chat data-prompt="Vyhľadaj a skontroluj moje zálohované súbory na Microsoft OneDrive."><strong>OneDrive záloha z PC</strong><small>Vyhľadávanie a čítanie súborov v cloude</small></button>
+          <button type="button" data-view="connect"><strong>Prepojenia &amp; Siete →</strong><small>Vercel, OneDrive, Telegram, MCP a webhooky</small></button>
+          <button type="button" data-view="crypto"><strong>Tetrakis ($TTK) &amp; Peňaženka →</strong><small>Stav kontraktu, platby a terminály</small></button>
+          <button type="button" data-view="documents"><strong>Dokumentácia &amp; Nástroje →</strong><small>Katalóg schopností a auditné záznamy</small></button>
         </div>
         <div class="welcome-trust-bar">
           <span>Rate-Limited &amp; Anti-Spam Active</span>
