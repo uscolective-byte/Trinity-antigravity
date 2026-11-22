@@ -963,15 +963,251 @@ export async function manageLocalBridge(env, actor = 'trinity', action = 'status
   return { success: false, error: `Neznáma Local Bridge akcia: ${action}` };
 }
 
+export async function manageVercel(env, actor = 'trinity', action = 'status', params = {}) {
+  const token = await resolveProviderSecret(env, 'vercel');
+  const teamId = params.teamId || env?.VERCEL_TEAM_ID || env?.VERCEL_ORG_ID || null;
+  const withTeam = (baseUrl, extraParams = {}) => {
+    const u = new URL(baseUrl);
+    if (teamId) u.searchParams.set('teamId', String(teamId));
+    for (const [k, v] of Object.entries(extraParams)) {
+      if (v !== undefined && v !== null && v !== '') u.searchParams.set(k, String(v));
+    }
+    return u.toString();
+  };
+  const headers = token ? { Authorization: `Bearer ${token}`, Accept: 'application/json' } : {};
+
+  if (action === 'status') {
+    if (!token) {
+      return {
+        success: false,
+        connected: false,
+        verified: false,
+        source: 'unconfigured',
+        message: 'Vercel token zatiaľ nie je nakonfigurovaný. Vlož Vercel API token v Trezore (poskytovateľ vercel).'
+      };
+    }
+    try {
+      const resp = await fetch(withTeam('https://api.vercel.com/v2/user'), {
+        headers,
+        signal: AbortSignal.timeout(12000)
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (resp.ok && data.user) {
+        return {
+          success: true,
+          connected: true,
+          verified: true,
+          source: 'vercel_api',
+          user: {
+            id: data.user.id || data.user.uid || null,
+            username: data.user.username || null,
+            email: data.user.email || null,
+            name: data.user.name || null
+          },
+          team_id: teamId
+        };
+      }
+      return {
+        success: false,
+        connected: false,
+        verified: false,
+        error: `Vercel API odpovedalo HTTP ${resp.status}: ${data.error?.message || 'prístup zamietnutý'}`
+      };
+    } catch (err) {
+      return { success: false, connected: false, verified: false, error: err.message };
+    }
+  }
+
+  if (!token) return { success: false, error: 'Chýba Vercel token. Nastav ho v Trezore pod poskytovateľom vercel.' };
+
+  if (action === 'list_projects') {
+    const limit = Math.min(Math.max(Number(params.limit) || 20, 1), 100);
+    const resp = await fetch(withTeam('https://api.vercel.com/v9/projects', { limit }), {
+      headers,
+      signal: AbortSignal.timeout(15000)
+    });
+    const data = await resp.json().catch(() => ({}));
+    return {
+      success: resp.ok,
+      projects: (data.projects || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        framework: p.framework || null,
+        repo: p.link?.repo ? `${p.link.org || ''}/${p.link.repo}`.replace(/^\/+/, '') : null,
+        updated_at: p.updatedAt || null
+      })),
+      total: data.projects?.length || 0,
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Chyba načítania projektov'}` })
+    };
+  }
+
+  if (action === 'list_deployments') {
+    const limit = Math.min(Math.max(Number(params.limit) || 20, 1), 100);
+    const resp = await fetch(withTeam('https://api.vercel.com/v6/deployments', {
+      projectId: params.projectId || env?.VERCEL_PROJECT_ID || '',
+      target: params.target || '',
+      limit
+    }), {
+      headers,
+      signal: AbortSignal.timeout(15000)
+    });
+    const data = await resp.json().catch(() => ({}));
+    return {
+      success: resp.ok,
+      deployments: (data.deployments || []).map(d => ({
+        uid: d.uid,
+        name: d.name,
+        url: d.url ? (d.url.startsWith('http') ? d.url : `https://${d.url}`) : null,
+        state: d.state || d.readyState || null,
+        target: d.target || 'preview',
+        created_at: d.created || d.createdAt || null
+      })),
+      total: data.deployments?.length || 0,
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Chyba načítania nasadení'}` })
+    };
+  }
+
+  if (action === 'get_deployment') {
+    const deploymentId = params.deploymentId || params.id;
+    if (!deploymentId) return { success: false, error: 'Chýba deploymentId pre zistenie detailu nasadenia.' };
+    const resp = await fetch(withTeam(`https://api.vercel.com/v13/deployments/${encodeURIComponent(deploymentId)}`), {
+      headers,
+      signal: AbortSignal.timeout(15000)
+    });
+    const data = await resp.json().catch(() => ({}));
+    return {
+      success: resp.ok,
+      deployment: resp.ok ? {
+        id: data.id || data.uid,
+        name: data.name,
+        url: data.url ? (data.url.startsWith('http') ? data.url : `https://${data.url}`) : null,
+        ready_state: data.readyState || data.status || null,
+        target: data.target || 'preview',
+        created_at: data.createdAt || null
+      } : null,
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Nasadenie sa nenašlo'}` })
+    };
+  }
+
+  if (action === 'list_domains') {
+    const projectId = params.projectId || env?.VERCEL_PROJECT_ID || null;
+    const url = projectId
+      ? withTeam(`https://api.vercel.com/v9/projects/${encodeURIComponent(projectId)}/domains`)
+      : withTeam('https://api.vercel.com/v5/domains', { limit: 50 });
+    const resp = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
+    const data = await resp.json().catch(() => ({}));
+    const rawDomains = data.domains || [];
+    return {
+      success: resp.ok,
+      domains: rawDomains.map(d => ({
+        name: d.name,
+        verified: Boolean(d.verified),
+        redirect: d.redirect || null,
+        git_branch: d.gitBranch || null
+      })),
+      total: rawDomains.length,
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Chyba načítania domén'}` })
+    };
+  }
+
+  if (action === 'add_domain') {
+    const projectId = params.projectId || env?.VERCEL_PROJECT_ID;
+    const domain = String(params.domain || params.name || '').trim().toLowerCase();
+    if (!projectId || !domain) return { success: false, error: 'Pre pridanie domény zadaj projectId aj domain.' };
+    const resp = await fetch(withTeam(`https://api.vercel.com/v10/projects/${encodeURIComponent(projectId)}/domains`), {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: domain }),
+      signal: AbortSignal.timeout(15000)
+    });
+    const data = await resp.json().catch(() => ({}));
+    return {
+      success: resp.ok,
+      domain: resp.ok ? { name: data.name, verified: Boolean(data.verified), verification: data.verification || [] } : null,
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Chyba pridania domény'}` })
+    };
+  }
+
+  if (action === 'list_env') {
+    const projectId = params.projectId || env?.VERCEL_PROJECT_ID;
+    if (!projectId) return { success: false, error: 'Chýba projectId pre výpis environment premenných.' };
+    const resp = await fetch(withTeam(`https://api.vercel.com/v9/projects/${encodeURIComponent(projectId)}/env`), {
+      headers,
+      signal: AbortSignal.timeout(15000)
+    });
+    const data = await resp.json().catch(() => ({}));
+    return {
+      success: resp.ok,
+      envs: (data.envs || []).map(e => ({
+        id: e.id,
+        key: e.key,
+        type: e.type,
+        target: e.target || []
+      })),
+      total: data.envs?.length || 0,
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Chyba čítania env premenných'}` })
+    };
+  }
+
+  if (action === 'redeploy') {
+    const deploymentId = params.deploymentId || params.id;
+    const name = params.name || params.projectName || 'trinity-sovereign-os';
+    if (!deploymentId) return { success: false, error: 'Chýba deploymentId pre opätovné nasadenie (redeploy).' };
+    const resp = await fetch(withTeam('https://api.vercel.com/v13/deployments'), {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        deploymentId,
+        target: params.target || 'production'
+      }),
+      signal: AbortSignal.timeout(15000)
+    });
+    const data = await resp.json().catch(() => ({}));
+    return {
+      success: resp.ok,
+      deployment: resp.ok ? {
+        id: data.id || data.uid,
+        name: data.name,
+        url: data.url ? (data.url.startsWith('http') ? data.url : `https://${data.url}`) : null,
+        ready_state: data.readyState || 'QUEUED',
+        target: data.target || params.target || 'production'
+      } : null,
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Redeploy zlyhal'}` })
+    };
+  }
+
+  if (action === 'cancel_deployment') {
+    const deploymentId = params.deploymentId || params.id;
+    if (!deploymentId) return { success: false, error: 'Chýba deploymentId pre zrušenie nasadenia.' };
+    const resp = await fetch(withTeam(`https://api.vercel.com/v12/deployments/${encodeURIComponent(deploymentId)}/cancel`), {
+      method: 'PATCH',
+      headers,
+      signal: AbortSignal.timeout(15000)
+    });
+    const data = await resp.json().catch(() => ({}));
+    return {
+      success: resp.ok,
+      cancelled: resp.ok,
+      deployment_id: deploymentId,
+      ready_state: data.readyState || null,
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Zrušenie nasadenia zlyhalo'}` })
+    };
+  }
+
+  return { success: false, error: `Neznáma Vercel akcia: ${action}` };
+}
+
 export async function listAllIntegrations(env) {
-  const [cfToken, ghToken, oneToken, gcToken, fcToken, fbToken, sbToken] = await Promise.all([
+  const [cfToken, ghToken, oneToken, gcToken, fcToken, fbToken, sbToken, vcToken] = await Promise.all([
     resolveProviderSecret(env, 'cloudflare'),
     resolveProviderSecret(env, 'github'),
     resolveProviderSecret(env, 'onedrive'),
     resolveProviderSecret(env, 'google_cloud').catch(() => null),
     resolveProviderSecret(env, 'firecrawl'),
     resolveProviderSecret(env, 'firebase'),
-    resolveProviderSecret(env, 'supabase')
+    resolveProviderSecret(env, 'supabase'),
+    resolveProviderSecret(env, 'vercel')
   ]);
 
   return [
@@ -983,6 +1219,15 @@ export async function listAllIntegrations(env) {
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'control', 'dns_manage', 'cache_purge', 'workers_list'],
       description: 'Plná obojsmerná správa (Read & Write): Workers, D1 databáz, KV Mastermind, R2 archívu a DNS záznamov.'
+    },
+    {
+      id: 'vercel',
+      name: 'Vercel Edge Deployments & Domains',
+      category: 'Cloud & Infrastructure',
+      status: vcToken ? 'configured' : 'ready',
+      access_mode: 'read_write',
+      capabilities: ['read', 'write', 'list_projects', 'list_deployments', 'list_domains', 'add_domain', 'redeploy', 'cancel_deployment'],
+      description: 'Plná obojsmerná správa (Read & Write): Vercel projekty, produkčné a preview nasadenia, domény a env premenné (bez čítania tajných hodnôt).'
     },
     {
       id: 'github',

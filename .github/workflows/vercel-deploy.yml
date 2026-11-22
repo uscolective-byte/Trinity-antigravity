@@ -1,0 +1,70 @@
+name: Vercel Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'vercel.json'
+      - 'Trinity/public/**'
+      - '.github/workflows/vercel-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trinity-vercel-deploy
+  cancel-in-progress: false
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate vercel.json and static bridge assets
+        run: |
+          node -e '
+            const fs = require("fs");
+            const cfg = JSON.parse(fs.readFileSync("vercel.json", "utf8"));
+            if (!cfg.outputDirectory || !fs.existsSync(cfg.outputDirectory)) {
+              throw new Error("Missing Vercel outputDirectory: " + cfg.outputDirectory);
+            }
+            if (!fs.existsSync(cfg.outputDirectory + "/index.html")) {
+              throw new Error("Missing index.html in " + cfg.outputDirectory);
+            }
+            if (!Array.isArray(cfg.rewrites) || !cfg.rewrites.some(r => r.source === "/api/:path*")) {
+              throw new Error("vercel.json must rewrite /api/:path* to Trinity API");
+            }
+            console.log("vercel.json validated:", cfg.name, "->", cfg.outputDirectory, "(" + cfg.rewrites.length + " rewrites)");
+          '
+
+      - name: Check Vercel deployment credentials
+        id: creds
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Vercel secrets (VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID) are not yet configured in GitHub Secrets; validation passed and remote Vercel deploy was skipped."
+          fi
+
+      - name: Deploy to Vercel Production
+        if: ${{ steps.creds.outputs.ready == 'true' }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npx --yes vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
+          npx --yes vercel@latest build --prod --token="$VERCEL_TOKEN"
+          DEPLOY_URL=$(npx --yes vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "Verified Vercel production deployment: $DEPLOY_URL"

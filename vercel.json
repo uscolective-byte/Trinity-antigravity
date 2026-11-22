@@ -35,6 +35,14 @@
     {
       "source": "/mcp/:path*",
       "destination": "https://auru.space/mcp/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "https://auru.space/health"
+    },
+    {
+      "source": "/ready",
+      "destination": "https://auru.space/ready"
     }
   ],
   "$schema": "https://openapi.vercel.sh/vercel.json",

@@ -8,7 +8,7 @@
 import {languageDirective,PRODUCT_RECOMMENDATIONS_DIRECTIVE,CONVERSATION_CONTINUITY_DIRECTIVE} from './cognition.js';
 
 export const FAST_TOOLS=new Set([
-  'diagnostic_ping','pc_file_read','pc_open_file','pc_open_app','pc_open_url','onedrive_manage','google_cloud_manage','google_drive_verify',
+  'diagnostic_ping','pc_file_read','pc_open_file','pc_open_app','pc_open_url','onedrive_manage','vercel_manage','google_cloud_manage','google_drive_verify',
   'calculate','current_time','analyze_text','convert_units','statistics','infrastructure_status','project_snapshot',
   'search_memory','knowledge_search','web_search','web_fetch','browser_scrape','browser_render','github_manage',
   'list_capabilities','list_skills','list_connectors','service_status','integration_status',
@@ -147,6 +147,9 @@ export function directChatTool(task,tools){
  if(/^(?:prosim\s+)?(?:co je nove|co sa robilo|co si robila|posledne ulohy|prehlad projektov|projekty)\s*[?.!]*$/.test(text)&&tools.includes('project_snapshot'))return {name:'project_snapshot',arguments:{}};
  if(tools.includes('onedrive_manage')&&/^(?:prosim\s+)?(?:skontroluj|over|stav)\s+(?:microsoft\s+)?onedrive[?.!]*$/.test(text))return {name:'onedrive_manage',arguments:{action:'status'}};
  if(tools.includes('onedrive_manage')&&/^(?:prosim\s+)?(?:vypis|zobraz)\s+(?:mi\s+)?subory\s+(?:v|na|z)\s+onedrive[?.!]*$/.test(text))return {name:'onedrive_manage',arguments:{action:'list_files'}};
+ if(tools.includes('vercel_manage')&&/^(?:prosim\s+)?(?:skontroluj|over|stav)\s+vercel[?.!]*$/.test(text))return {name:'vercel_manage',arguments:{action:'status'}};
+ if(tools.includes('vercel_manage')&&/^(?:prosim\s+)?(?:vypis|zobraz)\s+(?:mi\s+)?projekty\s+(?:na|vo|v)\s+vercel[iu]?[?.!]*$/.test(text))return {name:'vercel_manage',arguments:{action:'list_projects'}};
+ if(tools.includes('vercel_manage')&&/^(?:prosim\s+)?(?:vypis|zobraz)\s+(?:mi\s+)?(?:nasadenia|deploye|deployments)\s+(?:na|vo|v)\s+vercel[iu]?[?.!]*$/.test(text))return {name:'vercel_manage',arguments:{action:'list_deployments'}};
  if(tools.includes('google_cloud_manage')&&/^(?:prosim\s+)?(?:vypis|zobraz)\s+(?:mi\s+)?(?:gemini\s+modely|modely\s+gemini)[?.!]*$/.test(text))return {name:'google_cloud_manage',arguments:{action:'list_models'}};
  const drive=String(task).trim().match(/^(?:pros[ií]m\s+)?over\s+(?:mi\s+)?(?:s[uú]bor\s+(?:v|na)\s+)?google\s+drive\s+([a-zA-Z0-9_-]{8,160})[?.!]*$/iu);
  if(drive&&tools.includes('google_drive_verify'))return {name:'google_drive_verify',arguments:{fileId:drive[1]}};
