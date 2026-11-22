@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 const source=readFileSync(new URL('../public/assistant/sw.js.txt',import.meta.url),'utf8');
+const currentCache=source.match(/const CACHE_NAME=['"]([^'"]+)['"]/)?.[1]||'trinity-mobile-public-v4';
 function worker({offline=false}={}){
   const listeners=new Map(),stored=new Map(),requests=[],deleted=[];
   const cache={async put(path,response){stored.set(path,response);},async match(path){return stored.get(path);}};
   const ctx={URL,Response,Promise,Set,self:{location:{origin:'https://auru.space'},addEventListener:(name,fn)=>listeners.set(name,fn),async skipWaiting(){},clients:{async claim(){}}},
-    caches:{async open(){return cache;},async keys(){return ['other-app-private','trinity-mobile-public-old','trinity-mobile-public-v1'];},async delete(key){deleted.push(key);}},
+    caches:{async open(){return cache;},async keys(){return ['other-app-private','trinity-mobile-public-old',currentCache];},async delete(key){deleted.push(key);}},
     async fetch(input){requests.push(typeof input==='string'?input:input.url);if(offline)throw Error('offline');return new Response('public-asset');}};
   vm.createContext(ctx);vm.runInContext(source,ctx);
   function request(path,{method='GET',mode='cors',origin='https://auru.space'}={}){
