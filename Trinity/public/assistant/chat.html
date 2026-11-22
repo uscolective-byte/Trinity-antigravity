@@ -1,4 +1,4 @@
-<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#080807"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"><link rel="stylesheet" href="/chat.css?v=15.0.0"><link rel="stylesheet" href="/builder.css?v=15.0.0"><link rel="stylesheet" href="/theme.css?v=15.0.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=15.0.0" defer></script><script src="/ghost-crypto.js?v=15.0.0" defer></script><link rel="stylesheet" href="/garage.css?v=15.0.0"><link rel="stylesheet" href="/mobile.css?v=15.0.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui">
+<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#17212b"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"><link rel="stylesheet" href="/chat.css?v=16.0.0"><link rel="stylesheet" href="/builder.css?v=16.0.0"><link rel="stylesheet" href="/theme.css?v=16.0.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=16.0.0" defer></script><script src="/ghost-crypto.js?v=16.0.0" defer></script><link rel="stylesheet" href="/garage.css?v=16.0.0"><link rel="stylesheet" href="/mobile.css?v=16.0.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui">
 <aside class="sidebar">
   <a href="#chat" class="brand" data-view-link="chat"><span class="brand-mark">T</span><span>Trinity<small>AI STUDIO</small></span></a>
   <div class="sidebar-quick-actions">
@@ -910,17 +910,19 @@
       <div id="ui-custom-widgets-slot" class="ui-custom-widgets-grid" hidden></div>
     </section>
     <section id="chat-view" class="view chat-view"><div id="chat-area"><section id="welcome" class="welcome-zen">
-        <div class="avatar large"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M12 6v14M7 11l5-5 5 5"/></svg></div>
-        <span class="eyebrow" data-i18n="welcomeLabel">TRINITY ATELIER · AI STUDIO</span>
-        <h1 data-i18n="greeting">Čo dnes postavíme?</h1>
-        <p data-i18n="intro">Streamovaná multi-model AI, tvorba webov, Cloudflare &amp; Vercel nasadenia a overené nástroje v jednom čistom štúdiu.</p>
+        <div class="tg-bot-intro-bubble">
+          <div class="avatar large"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+          <span class="eyebrow" data-i18n="welcomeLabel">TRINITY MESSENGER · AI &amp; @WALLET</span>
+          <h1 data-i18n="greeting">Čo dnes postavíme?</h1>
+          <p data-i18n="intro">Rýchly chat s Trinity AI, integrovaná @wallet peňaženka, AI Studio, Cloudflare &amp; Vercel nasadenia a OneDrive na jednom mieste.</p>
+        </div>
         <div class="suggestions">
-          <button type="button" data-open-chat data-prompt="Vytvor modernú webovú stránku v AI Studiu s čistým dizajnom."><span class="sug-idx">01</span><strong>AI Studio Web</strong><small>Návrh, kód a publikovanie na doménu</small></button>
-          <button type="button" data-open-chat data-prompt="Skontroluj stav mojich domén auru.dev a auru.space, Cloudflare a Vercel nasadení."><span class="sug-idx">02</span><strong>Cloudflare &amp; Vercel</strong><small>Stav auru.space, auru.dev a projektov</small></button>
-          <button type="button" data-open-chat data-prompt="Vyhľadaj a skontroluj moje zálohované súbory na Microsoft OneDrive."><span class="sug-idx">03</span><strong>OneDrive záloha</strong><small>Vyhľadávanie a čítanie súborov v cloude</small></button>
-          <button type="button" data-view="connect"><span class="sug-idx">04</span><strong>Prepojenia &amp; Siete →</strong><small>Vercel, OneDrive, Telegram, MCP a webhooky</small></button>
-          <button type="button" data-view="crypto"><span class="sug-idx">05</span><strong>Tetrakis ($TTK) →</strong><small>Stav kontraktu, platby a terminály</small></button>
-          <button type="button" data-view="documents"><span class="sug-idx">06</span><strong>Dokumentácia →</strong><small>Katalóg schopností a auditné záznamy</small></button>
+          <button type="button" data-view="wallet"><span class="sug-idx">01</span><strong>Peňaženka @wallet →</strong><small>Zostatok, prijať platbu, odoslať, terminály</small></button>
+          <button type="button" data-open-chat data-prompt="Vytvor modernú webovú stránku v AI Studiu s čistým dizajnom."><span class="sug-idx">02</span><strong>AI Studio Web</strong><small>Návrh, kód a publikovanie na doménu</small></button>
+          <button type="button" data-open-chat data-prompt="Skontroluj stav mojich domén auru.dev a auru.space, Cloudflare a Vercel nasadení."><span class="sug-idx">03</span><strong>Cloudflare &amp; Vercel</strong><small>Stav auru.space, auru.dev a projektov</small></button>
+          <button type="button" data-open-chat data-prompt="Vyhľadaj a skontroluj moje zálohované súbory na Microsoft OneDrive."><span class="sug-idx">04</span><strong>OneDrive záloha</strong><small>Vyhľadávanie a čítanie súborov v cloude</small></button>
+          <button type="button" data-view="connect"><span class="sug-idx">05</span><strong>Prepojenia &amp; Siete →</strong><small>Vercel, OneDrive, Telegram, MCP a webhooky</small></button>
+          <button type="button" data-view="crypto"><span class="sug-idx">06</span><strong>Tetrakis ($TTK) →</strong><small>Stav kontraktu, on-chain platby a token</small></button>
         </div>
         <div class="welcome-trust-bar">
           <span>Rate-Limited &amp; Anti-Spam Active</span>
@@ -1691,49 +1693,106 @@
     </section>
 
     <section id="wallet-view" class="view wallet-view" hidden>
-      <div class="section-intro">
-        <span class="eyebrow">FINANČNÉ CENTRUM TRINITY · PLATOBNÉ TERMINÁLY & PEŇAŽENKA</span>
-        <h1>Peňaženka, platobné požiadavky a evidencia</h1>
-        <p>Trinity eviduje sandbox zostatok a vytvára platobné požiadavky. Externé bankové alebo blockchainové prevody musíš podpísať a vykonať v príslušnej peňaženke; samotný odkaz ani QR nie je potvrdená platba.</p>
-      </div>
-
-      <div class="metric-grid domain-metrics tabular-metrics">
-        <article class="metric blue">
-          <span>SANDBOX ZOSTATOK</span>
-          <strong id="wstat-balance">0,00 €</strong>
-          <small>nie je to bankový ani on-chain zostatok</small>
-        </article>
-        <article class="metric teal">
-          <span>SANDBOX DISPONIBILNÉ</span>
-          <strong id="wstat-available">0,00 €</strong>
-          <small id="wstat-status">žiadny reálny payout sa nevykonáva</small>
-        </article>
-        <article class="metric gold">
-          <span>PRIJATÉ PLATBY</span>
-          <strong id="wstat-received">0,00 €</strong>
-          <small>cez terminály & SEPA</small>
-        </article>
-        <article class="metric purple">
-          <span>CELKOVÉ VÝBERY</span>
-          <strong id="wstat-withdrawn">0,00 €</strong>
-          <small>evidované položky; nie sú to vykonané výbery</small>
-        </article>
-        <article class="metric coral">
-          <span>AKTÍVNE TERMINÁLY</span>
-          <strong id="wstat-terminals-count">0</strong>
-          <small>iba výslovne nastavené kanály</small>
-        </article>
-      </div>
-
-      <nav class="trinity-subnav" id="wallet-subnav" aria-label="Sekcie peňaženky">
-        <button type="button" class="subnav-btn active" data-wallet-tab="terminal">📥 Prijať platbu (POS Terminál)</button>
-        <button type="button" class="subnav-btn" data-wallet-tab="payout">📤 Vybrať peniaze (Payout na banku / PayPal)</button>
-        <button type="button" class="subnav-btn" data-wallet-tab="config">⚙ Nastavenie terminálov & Krypto peňaženka</button>
-        <button type="button" class="subnav-btn" data-wallet-tab="history">📜 Pohyby a výpisy</button>
-        <div class="subnav-actions">
-          <button type="button" id="wallet-refresh-btn" class="primary">↻ Obnoviť peňaženku</button>
+      <div class="tg-wallet-hero">
+        <div class="tg-wallet-topbar">
+          <span class="tg-wallet-badge"><span class="tg-wallet-badge-dot"></span>Trinity @wallet</span>
+          <button type="button" id="wallet-refresh-btn" class="tg-wallet-refresh">↻ Obnoviť</button>
         </div>
-      </nav>
+        <span class="tg-wallet-label">SANDBOX ZOSTATOK</span>
+        <strong id="wstat-balance" class="tg-wallet-balance">0,00 €</strong>
+        <small id="wstat-status" class="tg-wallet-sub">žiadny reálny payout sa nevykonáva</small>
+        <nav id="wallet-subnav" class="tg-wallet-actions" aria-label="Sekcie peňaženky">
+          <button type="button" class="subnav-btn tg-circle-action active" data-wallet-tab="terminal">
+            <span class="tg-circle-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14"/><polyline points="19 12 12 19 5 12"/></svg></span>
+            <span class="tg-circle-label">Prijať</span>
+          </button>
+          <button type="button" class="subnav-btn tg-circle-action" data-wallet-tab="payout">
+            <span class="tg-circle-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 19V5"/><polyline points="5 12 12 5 19 12"/></svg></span>
+            <span class="tg-circle-label">Odoslať</span>
+          </button>
+          <button type="button" class="subnav-btn tg-circle-action" data-wallet-tab="config">
+            <span class="tg-circle-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
+            <span class="tg-circle-label">Terminály</span>
+          </button>
+          <button type="button" class="subnav-btn tg-circle-action" data-wallet-tab="history">
+            <span class="tg-circle-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></span>
+            <span class="tg-circle-label">História</span>
+          </button>
+        </nav>
+      </div>
+
+      <section class="tg-wallet-assets" aria-label="Aktíva a bilancia peňaženky">
+        <div class="tg-wallet-assets-head">
+          <span>AKTÍVA &amp; BILANCIA</span>
+          <span>TRINITY @WALLET</span>
+        </div>
+        <div class="tg-asset-row">
+          <div class="tg-asset-left">
+            <span class="tg-asset-avatar eur">€</span>
+            <div class="tg-asset-meta">
+              <b>Sandbox disponibilné</b>
+              <small>nie je to bankový ani on-chain zostatok</small>
+            </div>
+          </div>
+          <div class="tg-asset-right">
+            <strong id="wstat-available">0,00 €</strong>
+            <small>EUR účet</small>
+          </div>
+        </div>
+        <div class="tg-asset-row">
+          <div class="tg-asset-left">
+            <span class="tg-asset-avatar in">↓</span>
+            <div class="tg-asset-meta">
+              <b>Prijaté platby</b>
+              <small>cez POS terminály, Revolut &amp; SEPA</small>
+            </div>
+          </div>
+          <div class="tg-asset-right">
+            <strong id="wstat-received">0,00 €</strong>
+            <small>celkový príjem</small>
+          </div>
+        </div>
+        <div class="tg-asset-row">
+          <div class="tg-asset-left">
+            <span class="tg-asset-avatar out">↑</span>
+            <div class="tg-asset-meta">
+              <b>Evidované výbery</b>
+              <small>evidované položky; nie sú to vykonané výbery</small>
+            </div>
+          </div>
+          <div class="tg-asset-right">
+            <strong id="wstat-withdrawn">0,00 €</strong>
+            <small>payout záznamy</small>
+          </div>
+        </div>
+        <div class="tg-asset-row">
+          <div class="tg-asset-left">
+            <span class="tg-asset-avatar pos">POS</span>
+            <div class="tg-asset-meta">
+              <b>Aktívne terminály</b>
+              <small>iba výslovne nastavené platobné kanály</small>
+            </div>
+          </div>
+          <div class="tg-asset-right">
+            <strong id="wstat-terminals-count">0</strong>
+            <small>kanálov</small>
+          </div>
+        </div>
+        <div class="tg-asset-row">
+          <div class="tg-asset-left">
+            <span class="tg-asset-avatar ttk">TTK</span>
+            <div class="tg-asset-meta">
+              <b>Tetrakis ($TTK)</b>
+              <small>Web3 token, on-chain kontrakt &amp; brána</small>
+            </div>
+          </div>
+          <div class="tg-asset-right">
+            <button type="button" class="secondary" data-view="crypto">Otvoriť →</button>
+          </div>
+        </div>
+      </section>
+
+      <p class="tg-wallet-disclaimer">Trinity eviduje sandbox zostatok a vytvára platobné požiadavky. Externé bankové alebo blockchainové prevody musíš podpísať a vykonať v príslušnej peňaženke; samotný odkaz ani QR nie je potvrdená platba.</p>
 
       <!-- PANE 1: POS PLATOBNÝ TERMINÁL NA PRÍJEM PLATIEB -->
       <div id="wallet-pane-terminal" class="wallet-tab-pane">
