@@ -3,12 +3,12 @@
  * @subsystem OMNIDEV_DIAGNOSTICS_AND_RECOVERY
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Deterministický analyzátor stack-trace chýb, AST/JSX párovač a generátor diff návrhov pre OmniDev Studio.
+ * @description Deterministic stack-trace analyzer, AST/JSX matcher, and diff proposal generator for OmniDev Studio.
  */
 /**
  * OMNIDEV STUDIO DIAGNOSTICS & SELF-HEALING MODULE (Pillar 5 / P1)
- * Analyzuje stack trace chyby v OmniDev Studio, izoluje padajúce závislosti
- * a generuje opravný patch, ktorý vyžaduje Ring 0 autorizáciu vlastníka Basterix.
+ * Analyzes stack-trace errors in OmniDev Studio, isolates failing dependencies,
+ * and generates a recovery patch requiring Ring 0 authorization from owner Basterix.
  */
 
 import { SovereignLockMiddleware } from './sovereign-lock.js';

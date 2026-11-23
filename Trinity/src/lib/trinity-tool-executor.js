@@ -1,8 +1,8 @@
 /**
  * Trinity Tool Execution Loop
  * 
- * Prepojuje 57 registrovaných nástrojov s dispatch engine.
- * Zapisuje návratové hodnoty do core_tool_receipts.
+ * Connects 57 registered tools with the dispatch engine.
+ * Records return payloads in core_tool_receipts.
  * 
  * @version 1.0.0
  * @author Trinity Team
@@ -20,7 +20,7 @@ export class ToolExecutor {
     this.trace = trace;
     this.db = env.DB || env.TRINITY_D1;
     
-    // Mapovanie nástrojov na service bindingy
+    // Mapping of tools to service bindings
     this.serviceMap = {
       'CHAT_INFERENCE_SERVICE': env.CHAT_INFERENCE_SERVICE || env.AI_INFERENCE_SERVICE,
       'CORE': env.CORE || env.CORE_SERVICE || env.TRINITY_CORE,
@@ -34,7 +34,7 @@ export class ToolExecutor {
   }
 
   /**
-   * Načíta definíciu nástroja z D1 databázy
+   * Loads a tool definition from the D1 database
    */
   async getToolDefinition(toolId) {
     const result = await this.db.prepare(
@@ -44,7 +44,7 @@ export class ToolExecutor {
   }
 
   /**
-   * Hlavná metóda — vykoná nástroj a zapíše receipt
+   * Primary method — executes a tool and records its receipt
    */
   async execute(toolId, input = {}, runId = null, step = 0) {
     let ownedRun = null;
@@ -88,7 +88,7 @@ export class ToolExecutor {
       step
     }, this.trace);
 
-    // Načítaj definíciu
+    // Load tool definition
     const tool = await this.getToolDefinition(toolId);
     if (!tool) {
       await this._writeReceipt(run_id, step, toolId, 'not_found', receipt_id, input, { error: 'Tool not registered' });
@@ -96,7 +96,7 @@ export class ToolExecutor {
       return { status: 'not_found', error: `Tool ${toolId} not registered` };
     }
 
-    // Dispatch na správny service binding
+    // Dispatch to the appropriate service binding
     const serviceBinding = this.serviceMap[tool.handler_target];
     if (!serviceBinding) {
       await this._writeReceipt(run_id, step, toolId, 'no_handler', receipt_id, input, { error: `No service binding for ${tool.handler_target}` });
@@ -104,7 +104,7 @@ export class ToolExecutor {
       return { status: 'no_handler', error: `No service binding configured for ${tool.handler_target}` };
     }
 
-    // Vykonaj
+    // Execute tool
     const startTime = Date.now();
     try {
       const response = await serviceBinding.fetch(`https://trinity.internal/tool/${encodeURIComponent(toolId)}`, {
@@ -140,7 +140,7 @@ export class ToolExecutor {
         
         return { status: 'success', output, receipt_id, durationMs };
       } else {
-        // Chyba z service
+        // Service error
         await this._writeReceipt(run_id, step, toolId, 'error', receipt_id, input, output);
         await this._updateToolStats(toolId, false, durationMs);
         
@@ -171,7 +171,7 @@ export class ToolExecutor {
   }
 
   /**
-   * Zapíše receipt do core_tool_receipts
+   * Writes a receipt into core_tool_receipts
    */
   async _writeReceipt(run_id, step, tool, status, receipt_id, input, output) {
     try {
@@ -199,7 +199,7 @@ export class ToolExecutor {
   }
 
   /**
-   * Aktualizuje štatistiky nástroja v registry
+   * Updates tool statistics in the registry
    */
   async _updateToolStats(toolId, success, durationMs) {
     try {
@@ -225,7 +225,7 @@ export class ToolExecutor {
   }
 
   /**
-   * Spustí reťaz nástrojov (pipeline)
+   * Executes a chain of tools (pipeline)
    */
   async executePipeline(steps, initialInput = {}) {
     const run_id = await this._createRun('Tool pipeline', initialInput, steps.length);
@@ -248,7 +248,7 @@ export class ToolExecutor {
         break;
       }
 
-      // Output z predchádzajúceho kroku je input pre ďalší
+      // Output from the previous step becomes input for the next
       currentInput = result.output || {};
     }
 
@@ -258,7 +258,7 @@ export class ToolExecutor {
   }
 
   /**
-   * Zoznam všetkých dostupných nástrojov pre AI
+   * Lists all available tools for AI
    */
   async listAvailableTools() {
     const result = await this.db.prepare(

@@ -46,7 +46,7 @@ test('invalid JSON, network failure and timeout produce readable errors',async()
 
 test('login configuration rejects invalid JSON shapes instead of silently enabling a fallback',async()=>{
  for(const data of [null,{},[],{google_enabled:true},{google_enabled:'false',google_required:false}]){
-  const s=setup(async()=>Response.json(data));await assert.rejects(s.auth.config(),/Konfigurácia prihlásenia/);
+  const s=setup(async()=>Response.json(data));await assert.rejects(s.auth.config(),/Login configuration/);
  }
  const data={google_enabled:true,google_required:true};
  assert.deepEqual(await setup(async()=>Response.json(data)).auth.config(),data);

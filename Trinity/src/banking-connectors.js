@@ -3,7 +3,7 @@
  * @subsystem EXTERNAL_CONNECTORS
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul banking-connectors.js (Trinity/src/banking-connectors.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Banking and multi-wallet connectors registry (Trinity/src/banking-connectors.js) in TRINITY OMNI-CORE.
  */
 /**
  * Banking & Multi-Wallet Connectors Registry for Trinity
@@ -87,15 +87,15 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
     },
     status: 'needs_provider_setup',
     status_reason: revolutHandle
-      ? 'Revolut odkaz je nakonfigurovaný. Trinity neoverila vlastníctvo profilu ani prijatie platby.'
-      : 'Revolut odkaz nie je nastavený. Pripojenie osobného účtu cez Open Banking nie je aktívne.',
+      ? 'Revolut link is configured. Trinity has not verified profile ownership or payment receipt.'
+      : 'Revolut link is not configured. Personal account Open Banking connection is inactive.',
     can_receive: Boolean(revolutHandle),
     can_read_balance: false,
     can_payout: false,
     requires_business: false,
     verified_balance: null,
     last_sync_at: null,
-    next_action: 'Nastaviť bezplatné GoCardless (Nordigen) API pre automatické čítanie pohybov na osobnom Revolute.'
+    next_action: 'Configure GoCardless (Nordigen) Open Banking API for automated personal Revolut transaction reads.'
   };
 
   // 2. PayPal Checkout & Personal Connector
@@ -119,8 +119,8 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
     },
     status: 'needs_provider_setup',
     status_reason: hasPaypalSecret
-      ? `PayPal poverenia sú nastavené v režime ${paypalMode}, ale ich platnosť ani spojenie s účtom neboli týmto registrom overené.`
-      : 'PayPal účet ani platobný odkaz nie sú overené.',
+      ? `PayPal credentials are configured in ${paypalMode} mode, but their validity and account linkage were not verified by this registry.`
+      : 'Neither a PayPal account nor a payment link is verified.',
     can_receive: Boolean(paypalEmailAddress || paypalHandle),
     can_read_balance: false,
     can_payout: false,
@@ -128,8 +128,8 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
     verified_balance: null,
     last_sync_at: null,
     next_action: paypalEmailAddress || paypalHandle
-      ? 'Overiť účet a platobný tok v PayPal pred prijímaním zákazníckych platieb.'
-      : 'Nastaviť overený PayPal účet.'
+      ? 'Verify the PayPal account and checkout flow before accepting customer payments.'
+      : 'Configure a verified PayPal account.'
   };
 
   // 3. Telegram Wallet Connector
@@ -145,15 +145,15 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
     },
     status: tonAddress ? 'needs_user_consent' : 'needs_provider_setup',
     status_reason: tonAddress
-      ? 'TON adresa je nastavená. Trinity neoverila vlastníctvo adresy ani zostatok; Bot token k peňaženke nemá prístup.'
-      : 'Zadaj svoju osobnú TON adresu z aplikácie Telegram (@wallet -> Vložiť -> USDT/TON), aby Trinity mohla vygenerovať QR kódy a kontrolovať prichádzajúce vklady.',
+      ? 'TON address is configured. Trinity has not verified address ownership or balance; bot tokens have no wallet access.'
+      : 'Enter your personal TON address from Telegram (@wallet -> Deposit -> USDT/TON) so Trinity can generate QR codes and track incoming deposits.',
     can_receive: Boolean(tonAddress),
     can_read_balance: false,
     can_payout: false,
     requires_business: false,
     verified_balance: null, // TON / USDT balance
     last_sync_at: null,
-    next_action: tonAddress ? 'Pripravené na prijímanie krypto platieb.' : 'Otvoriť Telegram @wallet a skopírovať TON adresu.'
+    next_action: tonAddress ? 'Ready to receive crypto payments.' : 'Open Telegram @wallet and copy your TON address.'
   };
 
   // 4. Owner-configured EVM receive address. A public RPC balance read does not
@@ -167,7 +167,7 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
   }
   const cryptoEvm = {
     id: 'crypto_evm',
-    name: `EVM adresa (${chain.label})`,
+    name: `EVM Address (${chain.label})`,
     category: 'onchain_crypto',
     account_type: cryptoAddress ? 'owner_configured_address' : 'unconfigured',
     currency: 'USDC',
@@ -179,10 +179,10 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
     },
     status: !cryptoAddress ? 'needs_provider_setup' : (onchainBalance?.ok ? 'needs_user_consent' : 'error'),
     status_reason: !cryptoAddress
-      ? 'Krypto prijímacia adresa nie je nastavená.'
+      ? 'Crypto receiving address is not configured.'
       : (onchainBalance?.ok
-        ? `Verejné RPC načítalo USDC zostatok na ${chain.label}; vlastníctvo adresy ani prijatie platby tým nie je overené.`
-        : `Nastavenú adresu sa nepodarilo overiť cez ${chain.label} RPC.`),
+        ? `Public RPC read USDC balance on ${chain.label}; address ownership and payment receipt are not verified by this check.`
+        : `Failed to verify the configured address via ${chain.label} RPC.`),
     can_receive: Boolean(cryptoAddress),
     can_read_balance: Boolean(onchainBalance?.ok),
     can_payout: false,
@@ -195,8 +195,8 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
     } : null,
     last_sync_at: onchainBalance?.ok ? onchainBalance.fetched_at : null,
     next_action: cryptoAddress
-      ? 'Pred zákazníckymi platbami over vlastníctvo adresy podpisom z pripojenej peňaženky.'
-      : 'Pripoj svoju vlastnú EVM peňaženku alebo nastav prijímaciu adresu.'
+      ? 'Verify address ownership with a wallet signature before accepting customer payments.'
+      : 'Connect your own EVM wallet or configure a receiving address.'
   };
 
   // 5. SEPA Instant & Bank QR
@@ -213,8 +213,8 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
     },
     status: iban ? 'needs_user_consent' : 'needs_provider_setup',
     status_reason: iban
-      ? 'IBAN má platný formát a kontrolný súčet. Trinity neoverila vlastníctvo účtu ani prijatie platby.'
-      : 'IBAN nie je nastavený.',
+      ? 'IBAN format and checksum are valid. Trinity has not verified account ownership or payment receipt.'
+      : 'IBAN is not configured.',
     can_receive: Boolean(iban && accountName),
     can_read_balance: false,
     can_payout: false,
@@ -222,8 +222,8 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
     verified_balance: null,
     last_sync_at: null,
     next_action: iban && accountName
-      ? 'Skontrolovať IBAN a meno príjemcu pred odoslaním platobnej požiadavky.'
-      : 'Nastaviť IBAN a meno príjemcu.'
+      ? 'Verify IBAN and recipient name before sending a payment request.'
+      : 'Configure IBAN and recipient name.'
   };
 
   // 6. Viber Pay & Wallet
@@ -239,15 +239,15 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
     },
     status: viberPhone ? 'needs_user_consent' : 'needs_provider_setup',
     status_reason: viberPhone
-      ? 'Telefónne číslo pre Viber Pay je nastavené. Trinity neoverila zostatok; prevody sa uskutočňujú cez aplikáciu Viber.'
-      : 'Telefónne číslo pre Viber Pay nie je nastavené.',
+      ? 'Viber Pay phone number is configured. Trinity has not verified balance; transfers are executed in the Viber app.'
+      : 'Viber Pay phone number is not configured.',
     can_receive: Boolean(viberPhone),
     can_read_balance: false,
     can_payout: false,
     requires_business: false,
     verified_balance: null,
     last_sync_at: null,
-    next_action: viberPhone ? 'Pripravené na prijímanie platieb cez Viber Pay.' : 'Nastaviť telefónne číslo pre Viber Pay.'
+    next_action: viberPhone ? 'Ready to receive payments via Viber Pay.' : 'Configure Viber Pay phone number.'
   };
 
   // 7. Paysafe (Paysafecard / myPaysafe & Skrill)
@@ -263,22 +263,22 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
     },
     status: paysafeAccount ? 'needs_user_consent' : 'needs_provider_setup',
     status_reason: paysafeAccount
-      ? 'Paysafe / myPaysafe konto je nastavené. 16-miestne PIN kódy podliehajú overeniu pri vyrovnaní.'
-      : 'myPaysafe účet ani Paysafe obchodný účet nie sú nastavené.',
+      ? 'Paysafe / myPaysafe account is configured. 16-digit PIN vouchers require verification at settlement.'
+      : 'Neither myPaysafe nor a Paysafe merchant account is configured.',
     can_receive: Boolean(paysafeAccount),
     can_read_balance: false,
     can_payout: false,
     requires_business: false,
     verified_balance: null,
     last_sync_at: null,
-    next_action: paysafeAccount ? 'Pripravené na prijímanie Paysafecard kódov a myPaysafe úhrad.' : 'Nastaviť myPaysafe identifikátor alebo Paysafe konto.'
+    next_action: paysafeAccount ? 'Ready to accept Paysafecard vouchers and myPaysafe payments.' : 'Configure myPaysafe identifier or Paysafe account.'
   };
 
   return {
     owner_id: ownerId,
     mode: 'sovereign_multiwallet',
     updated_at: new Date().toISOString(),
-    truth_policy: 'Všetky stavy a zostatky sú striktne overené. Zákaz sčítavania mien bez doloženého kurzu. Nuly sa nepoužívajú ako náhrada neznámeho zostatku.',
+    truth_policy: 'All connector statuses and balances are strictly verified. Cross-currency totals without an evidenced FX rate are forbidden. Zero is never substituted for an unknown balance.',
     connectors: [
       revolutPersonal,
       paypal,
@@ -297,7 +297,7 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
 export async function syncConnector(env, ownerId = 'admin', connectorId) {
   const registry = await getConnectorsRegistry(env, ownerId);
   const connector = registry.connectors.find(c => c.id === connectorId);
-  if (!connector) throw new HttpError(404, `Konektor '${connectorId}' neexistuje.`);
+  if (!connector) throw new HttpError(404, `Connector '${connectorId}' not found (Konektor '${connectorId}' neexistuje).`);
 
   return {
     connector_id: connectorId,

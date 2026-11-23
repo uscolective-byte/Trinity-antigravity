@@ -3,7 +3,7 @@
  * @subsystem AUTONOMOUS_LONG_TERM_MEMORY
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Automatická extrakcia trvalých preferencií, štýlu komunikácie a kontextu projektov do ops_memory bez ukladania tajných kľúčov.
+ * @description Automatic extraction of durable preferences, communication style, and project context into ops_memory without storing secret keys.
  */
 
 const SECRET_PATTERNS = /(?:\b(?:gh[pousr]_[A-Za-z0-9_]{16,}|github_pat_[A-Za-z0-9_]{16,}|trn_live_[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9_-]{16,}|AIza[A-Za-z0-9_-]{20,}|xoxb-[A-Za-z0-9-]+|re_[A-Za-z0-9_]{16,})\b|\bBearer\s+[A-Za-z0-9._~-]{16,}|(?:password|heslo|secret|token|api[_-]?key)\s*[:=])/i;
@@ -20,7 +20,8 @@ function safeExcerpt(text = '', limit = 320) {
 }
 
 /**
- * Deterministicky vyberie z používateľovej správy bezpečné trvalé fakty a preferencie.
+ * Deterministically extracts safe durable facts and preferences from a user message.
+ * Preserves Slovak user-input triggers (plus English equivalents) and canonical ops_memory keys.
  * @param {string} task
  * @param {string} reply
  * @returns {Array<{key:string, value:string}>}
@@ -34,21 +35,21 @@ export function extractDurableMemoryInsights(task = '', reply = '') {
   const folded = fold(cleanTask);
   const insights = [];
 
-  if (/\b(ludsk|prirodzen|tykaj|vykaj|komunikac|ton|humor|kratk|strucn|podrobn|slovensky|anglicky|vibe|styl|vzor|hip\s*hop|garage)\b/.test(folded)) {
+  if (/\b(ludsk|prirodzen|tykaj|vykaj|komunikac|ton|humor|kratk|strucn|podrobn|slovensky|anglicky|vibe|styl|vzor|hip\s*hop|garage|human|natural|tone|brief|concise|detailed|style)\b/.test(folded)) {
     insights.push({
       key: 'profil/auto:komunikacny_styl',
-      value: `Používateľova preferencia komunikácie a štýlu: ${safeExcerpt(cleanTask, 280)}`
+      value: `User communication and style preference: ${safeExcerpt(cleanTask, 280)}`
     });
   }
 
-  if (/\b(mam\s+rad|paci\s+sa\s+mi|nepaci\s+sa\s+mi|preferujem|nikdy\s+ne|vzdy\s+chcem|chcem\s+aby|neznasam)\b/.test(folded)) {
+  if (/\b(mam\s+rad|paci\s+sa\s+mi|nepaci\s+sa\s+mi|preferujem|nikdy\s+ne|vzdy\s+chcem|chcem\s+aby|neznasam|i\s+prefer|i\s+like|i\s+dislike|always\s+want)\b/.test(folded)) {
     insights.push({
       key: 'profil/auto:preferencia',
       value: safeExcerpt(cleanTask, 280)
     });
   }
 
-  if (/\b(pracujem\s+na|moj\s+projekt|moja\s+domena|budujem|chcem\s+spustit|nasad\s+na|moje\s+pc|moj\s+ucet)\b/.test(folded)) {
+  if (/\b(pracujem\s+na|moj\s+projekt|moja\s+domena|budujem|chcem\s+spustit|nasad\s+na|moje\s+pc|moj\s+ucet|working\s+on|my\s+project|my\s+domain|building)\b/.test(folded)) {
     insights.push({
       key: 'kontext/auto:aktivny_zamer',
       value: safeExcerpt(cleanTask, 280)
@@ -58,7 +59,7 @@ export function extractDurableMemoryInsights(task = '', reply = '') {
   if (cleanTask.length >= 20 && String(reply || '').trim().length >= 20) {
     insights.push({
       key: 'kontext/auto:posledna_tema',
-      value: `Úloha: ${safeExcerpt(cleanTask, 180)} | Záver: ${safeExcerpt(reply, 180)}`
+      value: `Task: ${safeExcerpt(cleanTask, 180)} | Conclusion: ${safeExcerpt(reply, 180)}`
     });
   }
 
@@ -66,7 +67,7 @@ export function extractDurableMemoryInsights(task = '', reply = '') {
 }
 
 /**
- * Uloží extrahované bezpečné fakty do D1 tabuľky ops_memory (non-fatal).
+ * Persists extracted safe facts into the D1 ops_memory table (non-fatal).
  */
 export async function persistAutoMemory(env, { task, resultText } = {}) {
   if (!env?.DB?.prepare) return { saved: 0 };

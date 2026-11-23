@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul revolut.js (Trinity/src/revolut.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Revolut Pro, PayPal payment links, unified commerce catalog, and webhook verification module (Trinity/src/revolut.js).
  */
 import {resolveProviderSecret} from './secret-vault.js';
 import bundledCatalog from '../config/revolut-pro-products.json' with {type:'json'};
@@ -81,14 +81,14 @@ export const proPaymentUrl=z.preprocess(v=>typeof v==='string'?normalizeRevolutI
   const u=new URL(value);
   return u.protocol==='https:'&&!u.username&&!u.password&&!u.port&&!u.hash&&u.pathname!=='/'&&['checkout.revolut.com','pay.revolut.com','revolut.me'].includes(u.hostname);
  }catch{return false;}
-},'Použi platobný odkaz alebo @meno z Revolut (revolut.me alebo pay.revolut.com).').transform(value=>new URL(value).href));
+},'Use a valid Revolut payment link or @handle (revolut.me or pay.revolut.com).').transform(value=>new URL(value).href));
 
 export const paypalPaymentUrl=z.preprocess(v=>typeof v==='string'?normalizePaypalInput(v):v,z.string().max(2048).url().refine(value=>{
  try{
   const u=new URL(value);
   return u.protocol==='https:'&&!u.username&&!u.password&&!u.port&&!u.hash&&u.pathname!=='/'&&['paypal.com','www.paypal.com','paypal.me','www.paypal.me'].includes(u.hostname);
  }catch{return false;}
-},'Zadaj svoj PayPal e-mail, PayPal.me meno (@meno) alebo PayPal HTTPS odkaz.').transform(value=>new URL(value).href));
+},'Provide a valid PayPal email, PayPal.me handle (@handle), or PayPal HTTPS link.').transform(value=>new URL(value).href));
 
 export const proProductSchema=z.object({
  id:productId,
@@ -113,11 +113,11 @@ export const paypalProductSchema=z.object({
 }).strict();
 
 export const proCatalogSchema=z.object({products:z.array(proProductSchema).max(20)}).strict().superRefine((data,ctx)=>{
- if(new Set(data.products.map(p=>p.id)).size!==data.products.length)ctx.addIssue({code:'custom',path:['products'],message:'ID produktov sa nesmú opakovať.'});
+ if(new Set(data.products.map(p=>p.id)).size!==data.products.length)ctx.addIssue({code:'custom',path:['products'],message:'Product IDs must be unique.'});
 });
 
 export const paypalCatalogSchema=z.object({products:z.array(paypalProductSchema).max(20)}).strict().superRefine((data,ctx)=>{
- if(new Set(data.products.map(p=>p.id)).size!==data.products.length)ctx.addIssue({code:'custom',path:['products'],message:'ID produktov sa nesmú opakovať.'});
+ if(new Set(data.products.map(p=>p.id)).size!==data.products.length)ctx.addIssue({code:'custom',path:['products'],message:'Product IDs must be unique.'});
 });
 
 export const commerceAccountsSchema=z.object({
@@ -132,10 +132,10 @@ export const commerceAccountsSchema=z.object({
 }).strict();
 
 const DEFAULT_PAYPAL_PACKAGES=[
- {id:'web-na-kluc',name:'Tvorba moderného webu na kľúč (AI Studio + Cloudflare)',description:'Kompletný responzívny web na mieru, nasadenie na Cloudflare a základné SEO.',amount_cents:49000},
- {id:'domena-rezervacia',name:'Prenájom alebo rezervácia prémiovej domény',description:'Mesačný prenájom alebo rezervácia domény vrátane kompletného nastavenia DNS.',amount_cents:4900},
- {id:'ai-automatizacia',name:'AI automatizácia a integrácia na mieru',description:'Návrh, implementácia a nasadenie AI asistenta alebo automatizovaného workflowu.',amount_cents:79000},
- {id:'web-audit-seo',name:'Rýchlostný, bezpečnostný a SEO audit webu',description:'Hĺbková kontrola webu, PDF report s dôkazmi a návrh okamžitých zlepšení.',amount_cents:19000}
+ {id:'web-na-kluc',name:'Turnkey Modern Website (AI Studio + Cloudflare)',description:'Complete responsive custom website, Cloudflare deployment, and baseline SEO.',amount_cents:49000},
+ {id:'domena-rezervacia',name:'Premium Domain Lease or Reservation',description:'Monthly domain lease or reservation including full DNS configuration.',amount_cents:4900},
+ {id:'ai-automatizacia',name:'Custom AI Automation & Integration',description:'Design, implementation, and deployment of an AI assistant or automated workflow.',amount_cents:79000},
+ {id:'web-audit-seo',name:'Performance, Security & SEO Website Audit',description:'In-depth website inspection, evidence-backed PDF report, and actionable fixes.',amount_cents:19000}
 ];
 
 function escapeHtml(s){
@@ -148,8 +148,8 @@ function renderCheckoutPageHtml(product,accounts,env){
  const eur=(Number(product.amount_cents||0)/100).toFixed(2);
  const seller=accounts?.business_name||'Trinity PayPal Checkout';
  const isPersonal=(accounts?.account_type||'personal')==='personal';
- const note=accounts?.note||'Bezpečná okamžitá platba cez PayPal v EUR (účet alebo platobná karta).';
- return `<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(product.name)} · ${eur} € | PayPal Platba</title>
+ const note=accounts?.note||'Secure instant payment via PayPal in EUR (PayPal balance or card).';
+ return `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(product.name)} · ${eur} € | PayPal Checkout</title>
 <style>
   :root{color-scheme:dark;--bg:#070d19;--card:#0f172a;--line:rgba(148,163,184,0.18);--ink:#f8fafc;--muted:#94a3b8;--pp-blue:#0070ba;--pp-gold:#ffc439}
   *{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:radial-gradient(circle at top,#0f2447 0%,var(--bg) 65%);color:var(--ink)}
@@ -170,15 +170,15 @@ function renderCheckoutPageHtml(product,accounts,env){
 <main class="checkout-card">
   <div class="badge-row">
     <span class="pill">💳 ${product.provider==='paypal'?'PayPal Checkout':'Revolut Checkout'}</span>
-    <span class="seller">${escapeHtml(seller)} (${isPersonal?'Osobný účet':'Obchodný účet'})</span>
+    <span class="seller">${escapeHtml(seller)} (${isPersonal?'Personal account':'Business account'})</span>
   </div>
   <h1>${escapeHtml(product.name)}</h1>
   ${product.description?`<p class="desc">${escapeHtml(product.description)}</p>`:''}
-  <div class="price-box"><span>Suma na úhradu</span><strong>${eur} €</strong></div>
+  <div class="price-box"><span>Amount due</span><strong>${eur} €</strong></div>
   ${isPayPal && clientId ? `<div id="paypal-button-container" style="min-height:45px"></div>` : ''}
-  <a class="pp-btn" href="${escapeHtml(product.payment_url)}" rel="noopener noreferrer">💙 Zaplatiť ${eur} € cez PayPal</a>
-  <a class="pp-direct" href="${escapeHtml(product.payment_url)}" rel="noopener noreferrer">Otvoriť priamy platobný odkaz ↗</a>
-  <div class="meta">${escapeHtml(note)}<br>ID ponuky: <code>${escapeHtml(product.id)}</code></div>
+  <a class="pp-btn" href="${escapeHtml(product.payment_url)}" rel="noopener noreferrer">💙 Pay ${eur} € via PayPal</a>
+  <a class="pp-direct" href="${escapeHtml(product.payment_url)}" rel="noopener noreferrer">Open direct payment link ↗</a>
+  <div class="meta">${escapeHtml(note)}<br>Offer ID: <code>${escapeHtml(product.id)}</code></div>
 </main>
 ${isPayPal && clientId ? `<script src="https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=EUR"></script>
 <script>
@@ -200,7 +200,7 @@ ${isPayPal && clientId ? `<script src="https://www.paypal.com/sdk/js?client-id=$
           headers: { 'Content-Type': 'application/json' }
         });
         const details = await res.json();
-        alert('Platba bola úspešne dokončená! ID: ' + (details.id || details.order_id || 'OK'));
+        alert('Payment completed successfully! ID: ' + (details.id || details.order_id || 'OK'));
         window.location.reload();
       }
     }).render('#paypal-button-container');
@@ -212,13 +212,13 @@ ${isPayPal && clientId ? `<script src="https://www.paypal.com/sdk/js?client-id=$
 async function catalog(env){
  const stored=env.Mastermind?await env.Mastermind.get(CONFIG_KEY):null;
  const raw=stored??env.REVOLUT_PRO_PRODUCTS_JSON??JSON.stringify(bundledCatalog);
- try{return proCatalogSchema.parse(JSON.parse(raw));}catch{throw new HttpError(503,'Neplatná konfigurácia Revolut Pro produktov.');}
+ try{return proCatalogSchema.parse(JSON.parse(raw));}catch{throw new HttpError(503,'Invalid Revolut Pro product catalog configuration.');}
 }
 
 async function paypalCatalog(env){
  const stored=env.Mastermind?await env.Mastermind.get(PAYPAL_CONFIG_KEY):null;
  const raw=stored??env.PAYPAL_PRODUCTS_JSON??JSON.stringify({products:[]});
- try{return paypalCatalogSchema.parse(JSON.parse(raw));}catch{throw new HttpError(503,'Neplatná konfigurácia PayPal produktov.');}
+ try{return paypalCatalogSchema.parse(JSON.parse(raw));}catch{throw new HttpError(503,'Invalid PayPal product catalog configuration.');}
 }
 
 export async function commerceAccounts(env){
@@ -232,7 +232,7 @@ export async function commerceAccounts(env){
     paypal_url:'saboivan2008@gmail.com',
     revolut_url:'https://revolut.me/isabo91',
     default_currency:'EUR',
-    note:'Oficiálna platobná brána vlastníka systému Basterix (Ivan Sabo · RevTag: isabo91 · PayPal: saboivan2008@gmail.com).'
+    note:'Official payment gateway of system owner Basterix (Ivan Sabo · RevTag: isabo91 · PayPal: saboivan2008@gmail.com).'
    });
   }
   return commerceAccountsSchema.parse({});
@@ -253,7 +253,7 @@ export async function revolutProStatus(env){
 
 export async function configureRevolutPro(env,ownerId,input){
  const data=proCatalogSchema.parse(input);
- if(!env.Mastermind)throw new HttpError(503,'Úložisko konfigurácie Revolut Pro nie je pripojené.');
+ if(!env.Mastermind)throw new HttpError(503,'Revolut Pro configuration storage is not connected.');
  // Saving public checkout links does not grant account access or payment authority.
  await env.Mastermind.put(CONFIG_KEY,JSON.stringify(data),{metadata:{owner_id:ownerId,updated_at:new Date().toISOString()}});
  return {...await revolutProStatus(env),saved:true};
@@ -266,7 +266,7 @@ export async function paypalStatus(env){
 
 export async function configurePaypal(env,ownerId,input){
  const data=paypalCatalogSchema.parse(input);
- if(!env.Mastermind)throw new HttpError(503,'Úložisko konfigurácie PayPal nie je pripojené.');
+ if(!env.Mastermind)throw new HttpError(503,'PayPal configuration storage is not connected.');
  await env.Mastermind.put(PAYPAL_CONFIG_KEY,JSON.stringify(data),{metadata:{owner_id:ownerId,updated_at:new Date().toISOString()}});
  return {...await paypalStatus(env),saved:true};
 }
@@ -307,7 +307,7 @@ export async function configureCommerceAccounts(env,ownerId,input){
  if(!raw.paypal_identifier&&raw.paypal_url)raw.paypal_identifier=String(raw.paypal_url).trim();
  const autoGen=Boolean(raw.auto_generate_offers);
  const data=commerceAccountsSchema.parse(raw);
- if(!env.Mastermind)throw new HttpError(503,'Úložisko obchodného profilu nie je pripojené.');
+ if(!env.Mastermind)throw new HttpError(503,'Commerce profile storage is not connected.');
  const toStore={...data};
  delete toStore.auto_generate_offers;
  await env.Mastermind.put(COMMERCE_ACCOUNTS_KEY,JSON.stringify(toStore),{metadata:{owner_id:ownerId,updated_at:new Date().toISOString()}});
@@ -402,7 +402,7 @@ export async function handleRevolutProPublic(request,env){
  const headers={'Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Robots-Tag':'noindex'};
  if(listing)return Response.json({provider:'revolut-pro',mode:'live-payment-links',products:data.products.filter(available).map(p=>publicProduct(p,'revolut-pro')),payment_status:'not_checked',automatic_payment_verification:false},{headers});
  const product=data.products.find(p=>p.id===checkout[1]&&available(p));
- if(!product)throw new HttpError(404,'Platobný odkaz nie je dostupný.');
+ if(!product)throw new HttpError(404,'Payment link is not available.');
  // The destination is owner-configured and validated; a URL query cannot replace it.
  return new Response(null,{status:302,headers:{...headers,Location:product.payment_url}});
 }
@@ -426,7 +426,7 @@ export async function handlePaypalPublic(request,env){
  }else if(product){
   product={...product,provider:'paypal'};
  }
- if(!product)throw new HttpError(404,'Platobný odkaz PayPal nie je dostupný.');
+ if(!product)throw new HttpError(404,'PayPal payment link is not available.');
  if(hostedCheckout||url.searchParams.get('page')==='1'){
   const accounts=await commerceAccounts(env);
   return new Response(renderCheckoutPageHtml(product,accounts,env),{
@@ -444,23 +444,23 @@ export async function handleCommercePublic(request,env){
   let webhookSecret=env?.REVOLUT_WEBHOOK_SECRET||null;
   if(!webhookSecret){try{webhookSecret=await resolveProviderSecret(env,'revolut_webhook');}catch{}}
   if(!webhookSecret){
-   return Response.json({ok:false,error:'REVOLUT_WEBHOOK_SECRET nie je nastavený v Cloudflare Secrets.'},{status:503,headers:{'Cache-Control':'no-store'}});
+   return Response.json({ok:false,error:'REVOLUT_WEBHOOK_SECRET is not configured in Cloudflare Secrets.'},{status:503,headers:{'Cache-Control':'no-store'}});
   }
   const rawBody=await request.text();
   const sigHeader=request.headers.get('Revolut-Signature')||'';
   const tsHeader=request.headers.get('Revolut-Request-Timestamp')||'';
   const v1=sigHeader.split(',').map(p=>p.trim()).find(p=>p.startsWith('v1='))?.slice(3)||'';
   if(!v1||!tsHeader){
-   return Response.json({ok:false,error:'Chýba Revolut-Signature alebo Revolut-Request-Timestamp hlavička.'},{status:401});
+   return Response.json({ok:false,error:'Missing Revolut-Signature or Revolut-Request-Timestamp header.'},{status:401});
   }
   const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(webhookSecret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
   const mac=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(`v1.${tsHeader}.${rawBody}`));
   const expected=Array.from(new Uint8Array(mac)).map(b=>b.toString(16).padStart(2,'0')).join('');
   if(expected!==v1.toLowerCase()){
-   return Response.json({ok:false,error:'Neplatný podpis Revolut webhooku.'},{status:401});
+   return Response.json({ok:false,error:'Invalid Revolut webhook signature.'},{status:401});
   }
   let event={};
-  try{event=JSON.parse(rawBody);}catch{return Response.json({ok:false,error:'Neplatný JSON payload.'},{status:400});}
+  try{event=JSON.parse(rawBody);}catch{return Response.json({ok:false,error:'Invalid JSON payload.'},{status:400});}
   const receiptId=`revwh_${Date.now()}_${crypto.randomUUID().slice(0,8)}`;
   if(env?.DB){
    await env.DB.prepare("INSERT INTO ops_events (action, details) VALUES (?, ?)").bind('revolut_webhook_verified',JSON.stringify({receipt_id:receiptId,event:event?.event||null,order_id:event?.order_id||null,received_at:new Date().toISOString()})).run().catch(()=>{});

@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul ui-evolution.js (Trinity/src/ui-evolution.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module ui-evolution.js (Trinity/src/ui-evolution.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import { z } from 'zod';
 import { HttpError } from './security.js';
@@ -15,7 +15,7 @@ const UI_CHANGES_KV_KEY = 'assistant:ui:changes';
 export const UI_PRESETS = {
   default: {
     id: 'default',
-    name: 'Trinity Cosmic Dark (Predvolený)',
+    name: 'Trinity Cosmic Dark (Default)',
     primary: '#38bdf8',
     secondary: '#6366f1',
     accent: '#14b8a6',
@@ -82,7 +82,7 @@ export const uiWidgetSchema = z.object({
 }).strict();
 
 export const uiEvolutionInputSchema = z.object({
-  title: z.string().trim().min(2).max(140).optional().default('Úprava rozhrania Trinity'),
+  title: z.string().trim().min(2).max(140).optional().default('Trinity UI update'),
   preset: z.enum(Object.keys(UI_PRESETS)).optional(),
   primary_color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().nullable(),
   secondary_color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().nullable(),
@@ -121,7 +121,7 @@ export function sanitizeCustomCss(rawCss = '') {
   const str = String(rawCss || '').trim();
   if (!str) return '';
   if (/@import|javascript:|expression\s*\(|url\s*\(|<\/style|<script/i.test(str)) {
-    throw new HttpError(400, 'Vlastné CSS nesmie obsahovať externé url(), @import ani skriptové výrazy.');
+    throw new HttpError(400, 'Custom CSS must not contain external url(), @import, or script expressions.');
   }
   return str.slice(0, 12000);
 }
@@ -266,7 +266,7 @@ export async function applyUiEvolution(env, actor = 'owner', rawInput = {}) {
   const status = input.propose_only ? 'proposed' : 'applied';
   const changeRecord = {
     id: changeId,
-    title: input.title || (input.reset_default ? 'Obnovenie predvoleného UI' : `UI úprava (${nextState.preset})`),
+    title: input.title || (input.reset_default ? 'Restore default UI' : `UI update (${nextState.preset})`),
     status,
     css: generatedCss,
     state_snapshot: nextState,
@@ -283,22 +283,22 @@ export async function applyUiEvolution(env, actor = 'owner', rawInput = {}) {
   }
 
   await recordStepDocument(env, {
-    title: `Trinity UI Samorozvoj: ${changeRecord.title}`,
+    title: `Trinity UI Self-Evolution: ${changeRecord.title}`,
     category: 'ui_evolution',
     step_name: `ui_evolution:${status}`,
     actor,
-    summary: `Trinity upravila vlastné používateľské rozhranie (téma: ${nextState.preset}, stav: ${status}, widgety: ${nextState.widgets.length}).`,
+    summary: `Trinity updated its user interface (preset: ${nextState.preset}, status: ${status}, widgets: ${nextState.widgets.length}).`,
     content: [
-      `### Zmenené parametre UI`,
-      `- **Téma (Preset)**: \`${nextState.preset}\``,
-      `- **Primárna farba**: \`${nextState.primary_color || UI_PRESETS[nextState.preset]?.primary}\``,
-      `- **Sekundárna farba**: \`${nextState.secondary_color || UI_PRESETS[nextState.preset]?.secondary}\``,
-      `- **Veľkosť písma**: \`${nextState.font_scale}\``,
-      `- **Zaoblenie prvkov**: \`${nextState.radius_scale}\``,
-      `- **Značka v hlavičke**: ${nextState.brand_title} — ${nextState.brand_subtitle}`,
-      `- **Počet aktívnych UI widgetov**: ${nextState.widgets.length}`,
+      `### Modified UI Parameters`,
+      `- **Preset**: \`${nextState.preset}\``,
+      `- **Primary color**: \`${nextState.primary_color || UI_PRESETS[nextState.preset]?.primary}\``,
+      `- **Secondary color**: \`${nextState.secondary_color || UI_PRESETS[nextState.preset]?.secondary}\``,
+      `- **Font scale**: \`${nextState.font_scale}\``,
+      `- **Radius scale**: \`${nextState.radius_scale}\``,
+      `- **Header brand**: ${nextState.brand_title} — ${nextState.brand_subtitle}`,
+      `- **Active UI widgets**: ${nextState.widgets.length}`,
       '',
-      '### Vygenerované CSS',
+      '### Generated CSS',
       '```css',
       generatedCss,
       '```'
@@ -320,7 +320,7 @@ export async function handleUiChangeAction(env, actor, id, action) {
   const current = await getUiEvolutionState(env);
   const changes = [...(current.changes || [])];
   const idx = changes.findIndex(item => item.id === id);
-  if (idx < 0) throw new HttpError(404, 'Záznam zmeny vzhľadu nebol nájdený.');
+  if (idx < 0) throw new HttpError(404, 'UI change record not found.');
 
   const target = changes[idx];
   if (action === 'approve') {
@@ -333,19 +333,19 @@ export async function handleUiChangeAction(env, actor, id, action) {
     const fallbackState = target.previous_snapshot || DEFAULT_UI_STATE;
     await writeKvAndDb(env, UI_STATE_KV_KEY, fallbackState);
   } else {
-    throw new HttpError(400, 'Neplatná akcia pre zmenu vzhľadu.');
+    throw new HttpError(400, 'Invalid UI change action.');
   }
 
   changes[idx] = target;
   await writeKvAndDb(env, UI_CHANGES_KV_KEY, changes);
 
   await recordStepDocument(env, {
-    title: `Trinity UI ${action === 'approve' ? 'Schválenie zmeny' : 'Návrat vzhľadu (Rollback)'}: ${target.title}`,
+    title: `Trinity UI ${action === 'approve' ? 'Change Approved' : 'Rollback'}: ${target.title}`,
     category: 'ui_evolution',
     step_name: `ui_change:${action}`,
     actor,
-    summary: `Zmena vzhľadu ${target.id} bola prepnutá do stavu ${target.status}.`,
-    content: `Používateľ alebo Trinity vykonala akciu **${action}** nad zmenou UI \`${target.id}\` (${target.title}).`,
+    summary: `UI change ${target.id} transitioned to status ${target.status}.`,
+    content: `Actor executed **${action}** on UI change \`${target.id}\` (${target.title}).`,
     receipt_id: `ui:${action}:${target.id}`,
     tags: ['ui-evolution', action]
   });

@@ -3,17 +3,17 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul multi-category-skills.js (Trinity/src/multi-category-skills.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module multi-category-skills.js (Trinity/src/multi-category-skills.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * Trinity Multi-Category Skills & Tool Suite
- * Poskytuje skutočné, overiteľné a vysoko kvalitné nástroje pre:
- * - Vývojárov (Regex tester, JSON Schema validácia, Analýza kódu)
- * - Zábavu & Hry (RPG quest master, Trivia quiz engine, Generátor hádaniek)
- * - Vzdelávanie & Učenie (Jazykový lektor, Matematický rozbor, Leitner kartičky)
- * - Životný štýl & Zdravie (Sledovanie návykov, Výpočet makroživín, Dychové cvičenia)
- * - Kreatívnu tvorbu (Rýmy a poézia, Formátovač scenárov)
- * - Vedu & Prieskum (Periodická tabuľka prvkov, Fyzikálne konštanty a kalkulácie)
+ * Provides real, verifiable, high-quality deterministic tools for:
+ * - Developers (Regex tester, JSON Schema validation, Code snippet analysis)
+ * - Entertainment & Games (RPG quest master, Trivia quiz engine, Riddle generator)
+ * - Education & Learning (Language tutor, Math concept explainer, Leitner flashcards)
+ * - Lifestyle & Wellness (Habit tracker, Nutrition macro calculator, Breath & focus coach)
+ * - Creative Studio (Rhymes & poetry, Screenplay formatter)
+ * - Science & Discovery (Periodic table lookup, Physical constants & calculations)
  */
 
 function stripDiacritics(str) {
@@ -21,7 +21,7 @@ function stripDiacritics(str) {
 }
 
 // ==========================================
-// 1. VÝVOJÁRSKE NÁSTROJE (DEVELOPER TOOLBOX)
+// 1. DEVELOPER TOOLBOX
 // ==========================================
 
 export const developerSkills = {
@@ -31,10 +31,10 @@ export const developerSkills = {
     const text = typeof params === 'object' && params?.text !== undefined ? String(params.text) : '';
 
     if (!pattern || typeof pattern !== 'string') {
-      return { success: false, error: 'Chýba regulárny výraz (pattern).' };
+      return { success: false, error: 'Missing regular expression (pattern).' };
     }
     if (pattern.length > 500) {
-      return { success: false, error: 'Regulárny výraz presahuje maximálnu dĺžku 500 znakov.' };
+      return { success: false, error: 'Regular expression exceeds the maximum length of 500 characters.' };
     }
     const cleanFlags = flags.replace(/[^gimsuy]/g, '');
 
@@ -78,20 +78,20 @@ export const developerSkills = {
         duration_ms: Date.now() - start
       };
     } catch (err) {
-      return { success: false, error: `Chyba syntaxe regulárneho výrazu: ${err.message}` };
+      return { success: false, error: `Regular expression syntax error: ${err.message}` };
     }
   },
 
   jsonSchemaValidate: (params) => {
     if (!params || typeof params !== 'object') {
-      return { success: false, error: 'Očakáva sa objekt s poliami { schema, data }.' };
+      return { success: false, error: 'Expected an object with fields { schema, data }.' };
     }
     const { schema, data } = params;
     if (!schema || typeof schema !== 'object') {
-      return { success: false, error: 'Chýba schéma alebo nie je platný objekt.' };
+      return { success: false, error: 'Missing schema or schema is not a valid object.' };
     }
     if (data === undefined) {
-      return { success: false, error: 'Chýbajú dáta na validáciu.' };
+      return { success: false, error: 'Missing data to validate.' };
     }
 
     const errors = [];
@@ -101,10 +101,10 @@ export const developerSkills = {
         const actualType = Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value;
         if (expected.type === 'integer') {
           if (typeof value !== 'number' || !Number.isInteger(value)) {
-            errors.push(`${path}: očakávaný typ 'integer', prijaté '${actualType}'`);
+            errors.push(`${path}: expected type 'integer', received '${actualType}'`);
           }
         } else if (expected.type !== actualType) {
-          errors.push(`${path}: očakávaný typ '${expected.type}', prijaté '${actualType}'`);
+          errors.push(`${path}: expected type '${expected.type}', received '${actualType}'`);
           return;
         }
       }
@@ -112,7 +112,7 @@ export const developerSkills = {
       if (expected.required && Array.isArray(expected.required) && typeof value === 'object' && value !== null) {
         for (const req of expected.required) {
           if (!(req in value)) {
-            errors.push(`${path}: chýba povinné pole '${req}'`);
+            errors.push(`${path}: missing required field '${req}'`);
           }
         }
       }
@@ -127,19 +127,19 @@ export const developerSkills = {
 
       if (typeof value === 'string') {
         if (typeof expected.minLength === 'number' && value.length < expected.minLength) {
-          errors.push(`${path}: dĺžka reťazca (${value.length}) je menšia ako minLength (${expected.minLength})`);
+          errors.push(`${path}: string length (${value.length}) is less than minLength (${expected.minLength})`);
         }
         if (typeof expected.maxLength === 'number' && value.length > expected.maxLength) {
-          errors.push(`${path}: dĺžka reťazca (${value.length}) je väčšia ako maxLength (${expected.maxLength})`);
+          errors.push(`${path}: string length (${value.length}) is greater than maxLength (${expected.maxLength})`);
         }
       }
 
       if (typeof value === 'number') {
         if (typeof expected.minimum === 'number' && value < expected.minimum) {
-          errors.push(`${path}: hodnota (${value}) je menšia ako minimum (${expected.minimum})`);
+          errors.push(`${path}: value (${value}) is less than minimum (${expected.minimum})`);
         }
         if (typeof expected.maximum === 'number' && value > expected.maximum) {
-          errors.push(`${path}: hodnota (${value}) je väčšia ako maximum (${expected.maximum})`);
+          errors.push(`${path}: value (${value}) is greater than maximum (${expected.maximum})`);
         }
       }
     }
@@ -159,7 +159,7 @@ export const developerSkills = {
     const language = typeof params === 'object' && params?.language ? String(params.language).toLowerCase() : 'auto';
 
     if (typeof code !== 'string' || !code.trim()) {
-      return { success: false, error: 'Chýba kód na analýzu.' };
+      return { success: false, error: 'Missing code to analyze.' };
     }
 
     const lines = code.split(/\r?\n/);
@@ -207,13 +207,13 @@ export const developerSkills = {
         comment_ratio_pct: totalLines ? Math.round((commentLines / totalLines) * 100) : 0,
         estimated_cyclomatic_complexity: branchComplexity
       },
-      evaluation: branchComplexity > 15 ? 'Vysoká zložitosť – odporúčaný refaktoring.' : branchComplexity > 8 ? 'Stredná zložitosť.' : 'Čistý a jednoduchý kód.'
+      evaluation: branchComplexity > 15 ? 'High complexity — refactoring recommended.' : branchComplexity > 8 ? 'Moderate complexity.' : 'Clean and simple code.'
     };
   }
 };
 
 // ==========================================
-// 2. ZÁBAVA, HRY & VOĽNÝ ČAS (ENTERTAINMENT & ARCADE)
+// 2. ENTERTAINMENT & ARCADE
 // ==========================================
 
 export const entertainmentSkills = {
@@ -221,8 +221,8 @@ export const entertainmentSkills = {
     const action = params.action || 'start';
     let state = params.state || {
       hero: { name: params.heroName || 'Aura Knight', class: params.heroClass || 'Warrior', hp: 100, maxHp: 100, mana: 50, gold: 20, level: 1, xp: 0 },
-      inventory: ['Liečivý elixír', 'Bronzový meč'],
-      location: 'Brána do Tieňovej veže',
+      inventory: ['Healing Potion', 'Bronze Sword'],
+      location: 'Gate of the Shadow Tower',
       turn: 1
     };
 
@@ -231,37 +231,37 @@ export const entertainmentSkills = {
     let choices = [];
 
     if (action === 'start') {
-      storyBeat = `Stojíš pred masívnymi kamennými dverami Tieňovej veže. Vzduchom sa nesie chlad a ozvena starodávnych kúzel. Tvoja zbraň (${state.inventory[1] || 'Zbraň'}) sa mierne leskne.`;
+      storyBeat = `You stand before the massive stone doors of the Shadow Tower. A chill drifts through the air along with the echo of ancient spells. Your weapon (${state.inventory[1] || 'Weapon'}) faintly gleams.`;
       choices = [
-        'Vstúpiť cez hlavnú bránu (akcia: enter_gate)',
-        'Preskúmať tajnú chodbu pod klenbami (akcia: explore_tunnel)',
-        'Otvoriť batoh a použiť predmet (akcia: use_item)'
+        'Enter through the main gate (action: enter_gate)',
+        'Explore the secret tunnel beneath the vaults (action: explore_tunnel)',
+        'Open backpack and use an item (action: use_item)'
       ];
     } else if (action === 'enter_gate') {
       state.turn++;
       if (roll >= 10) {
         state.hero.xp += 25;
         state.hero.gold += 15;
-        storyBeat = `Hod d20: ${roll} (Úspech!). Prekĺzol si okolo spiaceho kamenného chrliča. Získal si 15 zlatých mincí z opustenej truhlice.`;
-        state.location = 'Veľká sieň s runovým oltárom';
+        storyBeat = `d20 roll: ${roll} (Success!). You slipped past the sleeping stone gargoyle and claimed 15 gold coins from an abandoned chest.`;
+        state.location = 'Great Hall of the Rune Altar';
       } else {
         const dmg = 15;
         state.hero.hp = Math.max(0, state.hero.hp - dmg);
-        storyBeat = `Hod d20: ${roll} (Neúspech!). Kamenný chrlič sa prebudil a zasiahol ťa pazúrom za ${dmg} HP.`;
-        state.location = 'Brána do Tieňovej veže (po boji)';
+        storyBeat = `d20 roll: ${roll} (Failure!). The stone gargoyle awakened and struck you with its claws for ${dmg} HP.`;
+        state.location = 'Gate of the Shadow Tower (after combat)';
       }
-      choices = ['Preskúmať runový oltár', 'Pokračovať po točitom schodisku nahor', 'Použiť liečivý elixír'];
+      choices = ['Inspect the rune altar', 'Climb the spiral staircase', 'Use a healing potion'];
     } else if (action === 'explore_tunnel') {
       state.turn++;
       state.hero.xp += 30;
-      if (!state.inventory.includes('Kľúč z temného kryštálu')) {
-        state.inventory.push('Kľúč z temného kryštálu');
+      if (!state.inventory.includes('Dark Crystal Key')) {
+        state.inventory.push('Dark Crystal Key');
       }
-      storyBeat = `V úzkej vlhkej chodbe si našiel starobylý artefakt: Kľúč z temného kryštálu! Cítiš z neho prúdenie tajomnej energie.`;
-      choices = ['Vrátiť sa k hlavnej sieni', 'Vložiť kľúč do tajnej niky v stene'];
+      storyBeat = `In the narrow damp tunnel you discovered an ancient artifact: the Dark Crystal Key! You feel arcane energy pulsing within it.`;
+      choices = ['Return to the main hall', 'Insert the key into the hidden wall niche'];
     } else {
-      storyBeat = `Vykonal si akciu '${action}'. Svet okolo teba reaguje na tvoje rozhodnutie.`;
-      choices = ['Pokračovať v bádaní', 'Oddýchnuť si pri ohnisku'];
+      storyBeat = `You performed action '${action}'. The world around you responds to your choice.`;
+      choices = ['Continue exploring', 'Rest by the campfire'];
     }
 
     return {
@@ -274,12 +274,13 @@ export const entertainmentSkills = {
   },
 
   triviaQuizEngine: (params = {}) => {
+    // Slovak-language domain trivia bank preserved for Slovak quiz gameplay and deterministic test coverage
     const TRIVIA_DATABASE = [
-      { id: 'geo_1', category: 'Geografia', q: 'Aké je hlavné mesto Austrálie?', options: ['Sydney', 'Melbourne', 'Canberra', 'Brisbane'], correct: 'Canberra', explanation: 'Canberra bola vybraná v roku 1908 ako kompromis medzi Sydney a Melbourne.' },
-      { id: 'sci_1', category: 'Veda', q: 'Aká je najrýchlejšia známa rýchlosť vo vesmíre?', options: ['Rýchlosť zvuku', 'Rýchlosť svetla vo vákuu', 'Rýchlosť slnečného vetra', 'Rýchlosť neutrín'], correct: 'Rýchlosť svetla vo vákuu', explanation: 'Rýchlosť svetla vo vákuu c je presne 299 792 458 m/s.' },
-      { id: 'hist_1', category: 'História', q: 'V ktorom roku vznikla Slovenská republika?', options: ['1989', '1992', '1993', '2004'], correct: '1993', explanation: 'Slovenská republika vznikla 1. januára 1993 po pokojnom rozdelení ČSFR.' },
-      { id: 'tech_1', category: 'Technológie', q: 'Ktorá spoločnosť vytvorila programovací jazyk JavaScript?', options: ['Microsoft', 'Netscape', 'Sun Microsystems', 'Google'], correct: 'Netscape', explanation: 'Brendan Eich vytvoril JavaScript v roku 1995 pre spoločnosť Netscape Communications.' },
-      { id: 'nature_1', category: 'Biológia', q: 'Ktorý orgán ľudského tela spotrebúva najviac energie v pokoji?', options: ['Srdce', 'Pečeň', 'Mozog', 'Pľúca'], correct: 'Mozog', explanation: 'Mozog dospelého človeka tvorí cca 2 % hmotnosti tela, no spotrebúva približne 20 % celkového kyslíka a glukózy.' }
+      { id: 'geo_1', category: 'Geografia', category_en: 'Geography', q: 'Aké je hlavné mesto Austrálie?', options: ['Sydney', 'Melbourne', 'Canberra', 'Brisbane'], correct: 'Canberra', explanation: 'Canberra bola vybraná v roku 1908 ako kompromis medzi Sydney a Melbourne.' },
+      { id: 'sci_1', category: 'Veda', category_en: 'Science', q: 'Aká je najrýchlejšia známa rýchlosť vo vesmíre?', options: ['Rýchlosť zvuku', 'Rýchlosť svetla vo vákuu', 'Rýchlosť slnečného vetra', 'Rýchlosť neutrín'], correct: 'Rýchlosť svetla vo vákuu', explanation: 'Rýchlosť svetla vo vákuu c je presne 299 792 458 m/s.' },
+      { id: 'hist_1', category: 'História', category_en: 'History', q: 'V ktorom roku vznikla Slovenská republika?', options: ['1989', '1992', '1993', '2004'], correct: '1993', explanation: 'Slovenská republika vznikla 1. januára 1993 po pokojnom rozdelení ČSFR.' },
+      { id: 'tech_1', category: 'Technológie', category_en: 'Technology', q: 'Ktorá spoločnosť vytvorila programovací jazyk JavaScript?', options: ['Microsoft', 'Netscape', 'Sun Microsystems', 'Google'], correct: 'Netscape', explanation: 'Brendan Eich vytvoril JavaScript v roku 1995 pre spoločnosť Netscape Communications.' },
+      { id: 'nature_1', category: 'Biológia', category_en: 'Biology', q: 'Ktorý orgán ľudského tela spotrebúva najviac energie v pokoji?', options: ['Srdce', 'Pečeň', 'Mozog', 'Pľúca'], correct: 'Mozog', explanation: 'Mozog dospelého človeka tvorí cca 2 % hmotnosti tela, no spotrebúva približne 20 % celkového kyslíka a glukózy.' }
     ];
 
     const category = params.category ? stripDiacritics(params.category) : null;
@@ -289,22 +290,22 @@ export const entertainmentSkills = {
     if (userQuestionId && userAnswer !== undefined) {
       const qItem = TRIVIA_DATABASE.find(item => item.id === userQuestionId);
       if (!qItem) {
-        return { success: false, error: `Otázka s ID '${userQuestionId}' nebola nájdená.` };
+        return { success: false, error: `Question with ID '${userQuestionId}' was not found.` };
       }
       const isCorrect = stripDiacritics(userAnswer).trim() === stripDiacritics(qItem.correct).trim();
       return {
         success: true,
-        evaluation: isCorrect ? 'Správne!' : 'Nesprávne.',
+        evaluation: isCorrect ? 'Correct!' : 'Incorrect.',
         is_correct: isCorrect,
         correct_answer: qItem.correct,
         explanation: qItem.explanation
       };
     }
 
-    const filtered = category 
-      ? TRIVIA_DATABASE.filter(item => stripDiacritics(item.category).includes(category))
+    const filtered = category
+      ? TRIVIA_DATABASE.filter(item => stripDiacritics(item.category).includes(category) || stripDiacritics(item.category_en).includes(category))
       : TRIVIA_DATABASE;
-    
+
     const picked = filtered.length ? filtered[Math.floor(Math.random() * filtered.length)] : TRIVIA_DATABASE[0];
 
     return {
@@ -317,6 +318,7 @@ export const entertainmentSkills = {
   },
 
   riddleGenerator: (params = {}) => {
+    // Slovak-language riddle bank preserved for Slovak quiz gameplay and deterministic test coverage
     const RIDDLES = [
       { id: 'rid_1', riddle: 'Mám mestá, ale žiadne domy. Mám hory, ale žiadne stromy. Mám vodu, ale žiadne ryby. Čo som?', answer: 'Mapa', hint: 'Nájdete ma na papieri alebo v GPS navigácii.' },
       { id: 'rid_2', riddle: 'Čím viac z neho odoberiete, tým je väčší. Čo to je?', answer: 'Diera (jama)', hint: 'Vykopete ju v zemi.' },
@@ -326,13 +328,13 @@ export const entertainmentSkills = {
 
     if (params.riddleId && params.guess !== undefined) {
       const target = RIDDLES.find(r => r.id === params.riddleId);
-      if (!target) return { success: false, error: 'Hádanka neexistuje.' };
+      if (!target) return { success: false, error: 'Riddle does not exist.' };
       const ok = stripDiacritics(params.guess).includes(stripDiacritics(target.answer).split(' ')[0]);
       return {
         success: true,
         is_correct: ok,
         answer: target.answer,
-        evaluation: ok ? 'Výborne, uhádol si!' : 'Tentoraz to nevyšlo.'
+        evaluation: ok ? 'Well done, you guessed it!' : 'Not quite this time.'
       };
     }
 
@@ -347,7 +349,7 @@ export const entertainmentSkills = {
 };
 
 // ==========================================
-// 3. VZDELÁVANIE & UČENIE (EDUCATION ACADEMY)
+// 3. EDUCATION ACADEMY
 // ==========================================
 
 export const educationSkills = {
@@ -356,12 +358,13 @@ export const educationSkills = {
     const targetLang = params.targetLang || 'en';
 
     if (!phrase || typeof phrase !== 'string') {
-      return { success: false, error: 'Zadaj text alebo frázu na precvičenie / preklad.' };
+      return { success: false, error: 'Please provide a text or phrase to practice or translate.' };
     }
 
     const words = phrase.trim().split(/\s+/);
     const notes = [];
 
+    // Slovak-language grammar and false-friend tutoring rules
     if (phrase.includes('som išiel') || phrase.includes('som bol')) {
       notes.push('Slovenský minulý čas: tvorí sa pomocným slovesom byť + l-ovým príčastím.');
     }
@@ -374,15 +377,15 @@ export const educationSkills = {
       original_phrase: phrase,
       word_count: words.length,
       target_language: targetLang,
-      grammatical_notes: notes.length ? notes : ['Veta je syntakticky zrozumiteľná. Odporúča sa dbať na správnu interpunkciu.'],
-      learning_tip: 'Pri osvojovaní nového jazyka pomáha tvoriť si z každej novej frázy aspoň 2 alternatívne obmeny.'
+      grammatical_notes: notes.length ? notes : ['The sentence is syntactically clear. Pay attention to proper punctuation.'],
+      learning_tip: 'When learning a new language, try forming at least 2 alternative variations of every new phrase.'
     };
   },
 
   mathConceptExplainer: (params = {}) => {
     const concept = typeof params === 'string' ? params : params?.concept || params?.topic;
     if (!concept || typeof concept !== 'string') {
-      return { success: false, error: 'Zadaj matematický koncept (napr. derivácia, integrál, pytagorova veta, matica, percentá).' };
+      return { success: false, error: 'Please provide a math concept (e.g., derivative, integral, Pythagorean theorem, matrix, percentages).' };
     }
 
     const c = stripDiacritics(concept);
@@ -391,40 +394,40 @@ export const educationSkills = {
     let stepExample = [];
 
     if (c.includes('deriva') || c.includes('derivative')) {
-      explanation = 'Derivácia funkcie v danom bode vyjadruje okamžitú mieru zmeny (smernicu dotyčnice ku grafu funkcie).';
+      explanation = 'The derivative of a function at a given point expresses its instantaneous rate of change (the slope of the tangent line to the curve).';
       formula = "f'(x) = lim_{h -> 0} (f(x+h) - f(x)) / h";
       stepExample = [
-        'Zadanie: zderivuj f(x) = 3x^2 + 5x - 7',
-        "Krok 1: Pravidlo mocniny (x^n)' = n * x^(n-1)",
-        "Krok 2: Derivácia 3x^2 je 3 * 2x = 6x",
-        "Krok 3: Derivácia 5x je 5 * 1 = 5, derivácia konštanty -7 je 0",
-        "Výsledok: f'(x) = 6x + 5"
+        'Problem: differentiate f(x) = 3x^2 + 5x - 7',
+        "Step 1: Power rule (x^n)' = n * x^(n-1)",
+        "Step 2: Derivative of 3x^2 is 3 * 2x = 6x",
+        "Step 3: Derivative of 5x is 5 * 1 = 5, derivative of constant -7 is 0",
+        "Result: f'(x) = 6x + 5"
       ];
     } else if (c.includes('integ') || c.includes('integral')) {
-      explanation = 'Neurčitý integrál predstavuje antideriváciu, zatiaľ čo určitý integrál počíta orientovaný obsah plochy pod krivkou funkcie.';
-      formula = '∫ f(x) dx = F(x) + C, kde F\'(x) = f(x)';
+      explanation = 'An indefinite integral represents antiderivation, while a definite integral computes the signed area under a function curve.';
+      formula = "∫ f(x) dx = F(x) + C, where F'(x) = f(x)";
       stepExample = [
-        'Zadanie: vypočítaj ∫ (4x^3 + 2) dx',
-        'Krok 1: Pravidlo mocniny ∫ x^n dx = (x^(n+1))/(n+1) pre n ≠ -1',
-        'Krok 2: 4 * (x^4)/4 + 2x + C',
-        'Výsledok: x^4 + 2x + C'
+        'Problem: compute ∫ (4x^3 + 2) dx',
+        'Step 1: Power rule ∫ x^n dx = (x^(n+1))/(n+1) for n ≠ -1',
+        'Step 2: 4 * (x^4)/4 + 2x + C',
+        'Result: x^4 + 2x + C'
       ];
     } else if (c.includes('pytagor') || c.includes('pythagor')) {
-      explanation = 'Pytagorova veta platí pre pravouhlý trojuholník: obsah štvorca nad preponou sa rovná súčtu obsahov štvorcov nad oboma odvesnami.';
-      formula = 'a² + b² = c² (kde c je prepona)';
+      explanation = 'The Pythagorean theorem applies to right triangles: the area of the square on the hypotenuse equals the sum of the areas of the squares on both legs.';
+      formula = 'a² + b² = c² (where c is the hypotenuse)';
       stepExample = [
-        'Zadanie: odvesny a = 3 cm, b = 4 cm. Určte preponu c.',
-        'Krok 1: c² = 3² + 4² = 9 + 16 = 25',
-        'Krok 2: c = √25 = 5 cm',
-        'Výsledok: c = 5 cm'
+        'Problem: legs a = 3 cm, b = 4 cm. Find the hypotenuse c.',
+        'Step 1: c² = 3² + 4² = 9 + 16 = 25',
+        'Step 2: c = √25 = 5 cm',
+        'Result: c = 5 cm'
       ];
     } else {
-      explanation = `Prehľad konceptu '${concept}': V matematike sa koncept opiera o axiomatický základ, formálnu definíciu a overiteľné odvodenie.`;
+      explanation = `Concept overview for '${concept}': In mathematics, the concept builds on axioms, a formal definition, and verifiable derivation.`;
       formula = 'f(x) = y';
       stepExample = [
-        'Krok 1: Identifikuj vstupné premenné a definičný obor',
-        'Krok 2: Aplikuj príslušné algebrické alebo analytické pravidlo',
-        'Krok 3: Skontroluj výsledok skúškou správnosti'
+        'Step 1: Identify input variables and domain',
+        'Step 2: Apply the appropriate algebraic or analytical rule',
+        'Step 3: Verify the result by checking consistency'
       ];
     }
 
@@ -459,7 +462,7 @@ export const educationSkills = {
         new_box: nextBox,
         interval_days: nextIntervalDays,
         next_review_date: nextReviewDate,
-        message: nextBox > box ? 'Skvelé! Karta postupuje do vyššieho boxu.' : 'Karta bola vrátená do Boxu 1 na upevnenie.'
+        message: nextBox > box ? 'Great! The card advances to a higher box.' : 'Card returned to Box 1 for reinforcement.'
       };
     }
 
@@ -467,18 +470,18 @@ export const educationSkills = {
       success: true,
       current_box: box,
       leitner_schedule: intervals,
-      status: 'pripravené na hodnotenie (použi rating: again | good | easy)'
+      status: 'ready for rating (use rating: again | good | easy)'
     };
   }
 };
 
 // ==========================================
-// 4. ŽIVOTNÝ ŠTÝL & ZDRAVIE (LIFESTYLE & WELLNESS)
+// 4. LIFESTYLE & WELLNESS
 // ==========================================
 
 export const lifestyleSkills = {
   habitForge: (params = {}) => {
-    const habitName = params.habitName || 'Denné čítanie & kódovanie';
+    const habitName = params.habitName || 'Daily reading & coding';
     const history = Array.isArray(params.history) ? params.history : [1, 1, 1, 0, 1, 1, 1];
 
     let streak = 0;
@@ -498,8 +501,8 @@ export const lifestyleSkills = {
       total_days: totalDays,
       completed_days: completedDays,
       completion_rate_pct: completionRatePct,
-      habit_strength: completionRatePct >= 80 ? 'Vynikajúci návyk (silné upevnenie)' : completionRatePct >= 50 ? 'Budujúci sa návyk' : 'Vyžaduje vyššiu konzistenciu',
-      advice: streak > 0 ? `Výborne! Tvoj streak je ${streak} dní. Udržuj reťaz neprerušenú.` : 'Dnes je ideálny deň začať nový streak.'
+      habit_strength: completionRatePct >= 80 ? 'Strong habit (well established)' : completionRatePct >= 50 ? 'Developing habit' : 'Needs higher consistency',
+      advice: streak > 0 ? `Great job! Your current streak is ${streak} days. Keep the chain unbroken.` : 'Today is an ideal day to start a new streak.'
     };
   },
 
@@ -544,45 +547,46 @@ export const lifestyleSkills = {
 
   breathFocusCoach: (params = {}) => {
     const technique = params.technique || 'box_breathing';
-    
+
     if (technique === '4_7_8') {
       return {
         success: true,
-        technique: '4-7-8 Relaxačné dýchanie Dr. Weila',
-        purpose: 'Rýchle zníženie stresu a podpora zaspávania aktiváciou parasympatika.',
+        technique: 'Dr. Weil 4-7-8 Relaxation Breathing',
+        purpose: 'Rapid stress reduction and sleep support by activating the parasympathetic nervous system.',
         cycle: { inhale_seconds: 4, hold_seconds: 7, exhale_seconds: 8 },
         recommended_rounds: 4,
-        instructions: 'Nádych nosom 4s, zadržanie dychu 7s, pomalý výdych ústami 8s so zvukom šumenia.'
+        instructions: 'Inhale through the nose for 4s, hold breath for 7s, exhale slowly through the mouth for 8s with a whooshing sound.'
       };
     }
     if (technique === 'pomodoro') {
       return {
         success: true,
-        technique: 'Klasický Pomodoro interval',
-        purpose: 'Vysoké sústredenie a prevencia mentálnej únavy.',
+        technique: 'Classic Pomodoro Interval',
+        purpose: 'High focus and prevention of mental fatigue.',
         intervals: { focus_minutes: 25, short_break_minutes: 5, long_break_minutes: 15, cycles_before_long_break: 4 },
-        guidance: 'Počas 25 minút sa venuj výlučne jedinej úlohe bez sociálnych sietí a notifikácií.'
+        guidance: 'Dedicate 25 minutes exclusively to a single task without social media or notifications.'
       };
     }
 
     return {
       success: true,
-      technique: 'Box Breathing (Štvorcové dýchanie Navy SEALs)',
-      purpose: 'Okamžité upokojenie mysle, zlepšenie koncentrácie a regulácia tepu.',
+      technique: 'Box Breathing (Navy SEALs Square Breathing)',
+      purpose: 'Immediate mental calm, improved concentration, and heart-rate regulation.',
       cycle: { inhale_seconds: 4, hold_seconds: 4, exhale_seconds: 4, empty_hold_seconds: 4 },
       recommended_duration_minutes: 5,
-      instructions: '4 sekundy nádych, 4 sekundy zadržať dych, 4 sekundy výdych, 4 sekundy zadržať prázdne pľúca.'
+      instructions: '4 seconds inhale, 4 seconds hold, 4 seconds exhale, 4 seconds hold on empty lungs.'
     };
   }
 };
 
 // ==========================================
-// 5. KREATÍVNA TVORBA (CREATIVE STUDIO PLUS)
+// 5. CREATIVE STUDIO PLUS
 // ==========================================
 
 export const creativeSkills = {
   rhymePoemCraft: (params = {}) => {
     const word = params.word || 'svetlo';
+    // Slovak rhyme dictionary preserved for Slovak creative writing & test coverage
     const RHYME_DICTIONARY = {
       'svetlo': ['teplo', 'peklo', 'rieklo', 'utieklo', 'zmäklo'],
       'kod': ['mod', 'bod', 'rod', 'pochod', 'schod', 'plod'],
@@ -592,20 +596,20 @@ export const creativeSkills = {
     };
 
     const cleanWord = stripDiacritics(word).trim();
-    const rhymes = RHYME_DICTIONARY[cleanWord] || ['podobne znejúce koncovky: -' + cleanWord.slice(-3)];
+    const rhymes = RHYME_DICTIONARY[cleanWord] || ['similar-sounding endings: -' + cleanWord.slice(-3)];
 
     return {
       success: true,
       word: cleanWord,
       rhymes,
-      meter_hint: 'Pri písaní viazaného verša dodržiavaj rovnaký počet slabík na riadok (napr. 8- alebo 10-slabičný jamb).'
+      meter_hint: 'When writing metered verse, maintain a consistent syllable count per line (e.g., 8- or 10-syllable iambic meter).'
     };
   },
 
   screenplayFormatter: (params = {}) => {
     const { sceneHeading, action, character, dialogue, parenthetical } = params;
     if (!sceneHeading && !dialogue && !action) {
-      return { success: false, error: 'Zadaj aspoň sceneHeading, action alebo dialogue.' };
+      return { success: false, error: 'Provide at least sceneHeading, action, or dialogue.' };
     }
 
     const lines = [];
@@ -636,41 +640,43 @@ export const creativeSkills = {
 };
 
 // ==========================================
-// 6. VEDA & PRIESKUM (SCIENCE EXPLORER)
+// 6. SCIENCE EXPLORER
 // ==========================================
 
 export const scienceSkills = {
   periodicTableLookup: (params = {}) => {
     const query = typeof params === 'string' ? params : params?.element;
     if (!query || typeof query !== 'string') {
-      return { success: false, error: 'Zadaj názov prvku, chemickú značku alebo protónové číslo (napr. H, Kyslík, 6, Fe, Au).' };
+      return { success: false, error: 'Provide an element name, chemical symbol, or atomic number (e.g., H, Oxygen, 6, Fe, Au).' };
     }
 
+    // Preserves name_sk for Slovak chemical element lookup compatibility alongside English names
     const ELEMENTS = [
-      { z: 1, sym: 'H', name: 'Vodík', mass: 1.008, group: 1, period: 1, category: 'nekov', en: 2.20 },
-      { z: 2, sym: 'He', name: 'Hélium', mass: 4.0026, group: 18, period: 1, category: 'vznešený plyn', en: null },
-      { z: 6, sym: 'C', name: 'Uhlík', mass: 12.011, group: 14, period: 2, category: 'nekov', en: 2.55 },
-      { z: 7, sym: 'N', name: 'Dusík', mass: 14.007, group: 15, period: 2, category: 'nekov', en: 3.04 },
-      { z: 8, sym: 'O', name: 'Kyslík', mass: 15.999, group: 16, period: 2, category: 'nekov', en: 3.44 },
-      { z: 11, sym: 'Na', name: 'Sodík', mass: 22.990, group: 1, period: 3, category: 'alkalický kov', en: 0.93 },
-      { z: 14, sym: 'Si', name: 'Kremík', mass: 28.085, group: 14, period: 3, category: 'polokov', en: 1.90 },
-      { z: 26, sym: 'Fe', name: 'Železo', mass: 55.845, group: 8, period: 4, category: 'prechodný kov', en: 1.83 },
-      { z: 29, sym: 'Cu', name: 'Meď', mass: 63.546, group: 11, period: 4, category: 'prechodný kov', en: 1.90 },
-      { z: 79, sym: 'Au', name: 'Zlato', mass: 196.97, group: 11, period: 6, category: 'prechodný kov', en: 2.54 }
+      { z: 1, sym: 'H', name: 'Vodík', name_en: 'Hydrogen', mass: 1.008, group: 1, period: 1, category: 'nonmetal', en: 2.20 },
+      { z: 2, sym: 'He', name: 'Hélium', name_en: 'Helium', mass: 4.0026, group: 18, period: 1, category: 'noble gas', en: null },
+      { z: 6, sym: 'C', name: 'Uhlík', name_en: 'Carbon', mass: 12.011, group: 14, period: 2, category: 'nonmetal', en: 2.55 },
+      { z: 7, sym: 'N', name: 'Dusík', name_en: 'Nitrogen', mass: 14.007, group: 15, period: 2, category: 'nonmetal', en: 3.04 },
+      { z: 8, sym: 'O', name: 'Kyslík', name_en: 'Oxygen', mass: 15.999, group: 16, period: 2, category: 'nonmetal', en: 3.44 },
+      { z: 11, sym: 'Na', name: 'Sodík', name_en: 'Sodium', mass: 22.990, group: 1, period: 3, category: 'alkali metal', en: 0.93 },
+      { z: 14, sym: 'Si', name: 'Kremík', name_en: 'Silicon', mass: 28.085, group: 14, period: 3, category: 'metalloid', en: 1.90 },
+      { z: 26, sym: 'Fe', name: 'Železo', name_en: 'Iron', mass: 55.845, group: 8, period: 4, category: 'transition metal', en: 1.83 },
+      { z: 29, sym: 'Cu', name: 'Meď', name_en: 'Copper', mass: 63.546, group: 11, period: 4, category: 'transition metal', en: 1.90 },
+      { z: 79, sym: 'Au', name: 'Zlato', name_en: 'Gold', mass: 196.97, group: 11, period: 6, category: 'transition metal', en: 2.54 }
     ];
 
     const q = stripDiacritics(query).trim();
-    const match = ELEMENTS.find(e => 
-      stripDiacritics(e.sym) === q || 
-      stripDiacritics(e.name) === q || 
+    const match = ELEMENTS.find(e =>
+      stripDiacritics(e.sym) === q ||
+      stripDiacritics(e.name) === q ||
+      stripDiacritics(e.name_en) === q ||
       String(e.z) === q
     );
 
     if (!match) {
       return {
         success: false,
-        error: `Prvok '${query}' nebol nájdený v základnej databáze prvkov.`,
-        available_samples: ELEMENTS.map(e => `${e.sym} (${e.name})`)
+        error: `Element '${query}' was not found in the core element database.`,
+        available_samples: ELEMENTS.map(e => `${e.sym} (${e.name_en} / ${e.name})`)
       };
     }
 
@@ -678,6 +684,7 @@ export const scienceSkills = {
       success: true,
       atomic_number: match.z,
       symbol: match.sym,
+      name_en: match.name_en,
       name_sk: match.name,
       atomic_mass_u: match.mass,
       group: match.group,
@@ -689,12 +696,12 @@ export const scienceSkills = {
 
   physicsConstants: (params = {}) => {
     const CONSTANTS = {
-      c: { name: 'Rýchlosť svetla vo vákuu', value: 299792458, unit: 'm/s', exact: true },
-      h: { name: 'Planckova konštanta', value: 6.62607015e-34, unit: 'J·s', exact: true },
-      G: { name: 'Gravitačná konštanta', value: 6.67430e-11, unit: 'm³/(kg·s²)', exact: false },
-      k_B: { name: 'Boltzmannova konštanta', value: 1.380649e-23, unit: 'J/K', exact: true },
-      e: { name: 'Elementárny elektrický náboj', value: 1.602176634e-19, unit: 'C', exact: true },
-      N_A: { name: 'Avogadrova konštanta', value: 6.02214076e23, unit: 'mol⁻¹', exact: true }
+      c: { name: 'Speed of light in vacuum', value: 299792458, unit: 'm/s', exact: true },
+      h: { name: 'Planck constant', value: 6.62607015e-34, unit: 'J·s', exact: true },
+      G: { name: 'Gravitational constant', value: 6.67430e-11, unit: 'm³/(kg·s²)', exact: false },
+      k_B: { name: 'Boltzmann constant', value: 1.380649e-23, unit: 'J/K', exact: true },
+      e: { name: 'Elementary electric charge', value: 1.602176634e-19, unit: 'C', exact: true },
+      N_A: { name: 'Avogadro constant', value: 6.02214076e23, unit: 'mol⁻¹', exact: true }
     };
 
     const symbol = params.symbol ? String(params.symbol) : null;

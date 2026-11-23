@@ -3,7 +3,7 @@
  * @subsystem AUTH_AND_SECURITY_GATE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul security.js (Trinity/src/security.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Authentication, session, origin, JSON parsing, and rate-limiting security module (Trinity/src/security.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import { timingSafeEqual } from 'node:crypto';
 export class HttpError extends Error {
@@ -51,7 +51,7 @@ export async function issueSession(env,until=Date.now()+43200000,email=null,requ
     const created=await env.DB.prepare(
       "INSERT INTO ops_sessions(token_hash,expires_at,email) SELECT ?,?,email FROM ops_users WHERE email=? AND password_hash=? AND status NOT IN ('blocked','rejected')"
     ).bind(await hash(token),expires,normalizedEmail,passwordHash).run();
-    if(created.meta?.changes!==1)throw new HttpError(401,'Nesprávny e-mail alebo heslo.');
+    if(created.meta?.changes!==1)throw new HttpError(401,'Invalid email or password.');
   }
   else if(email)await env.DB.prepare('INSERT INTO ops_sessions(token_hash,expires_at,email) VALUES(?,?,?)').bind(await hash(token),expires,email.trim().toLowerCase()).run();
   else await env.DB.prepare('INSERT INTO ops_sessions(token_hash,expires_at) VALUES(?,?)').bind(await hash(token),expires).run();
@@ -97,26 +97,26 @@ export async function authenticate(request, env) {
       }
     }
   }
-  throw new HttpError(401, 'Prihlás sa do Trinity.');
+  throw new HttpError(401, 'Sign in to Trinity.');
 }
 export function checkOrigin(request,env={}) {
   const origin = request.headers.get('Origin');
-  if (origin && origin !== new URL(request.url).origin&&!localLoopbackRequest(request,env)) throw new HttpError(403, 'Cudzí pôvod požiadavky je zakázaný.');
+  if (origin && origin !== new URL(request.url).origin&&!localLoopbackRequest(request,env)) throw new HttpError(403, 'Cross-origin request is forbidden.');
 }
 export async function readJSON(request, limit = 24000) {
-  if (!request.headers.get('Content-Type')?.includes('application/json')) throw new HttpError(415, 'Vyžaduje sa JSON.');
-  if (Number(request.headers.get('Content-Length') || 0) > limit) throw new HttpError(413, 'Požiadavka je príliš veľká.');
+  if (!request.headers.get('Content-Type')?.includes('application/json')) throw new HttpError(415, 'JSON content type is required.');
+  if (Number(request.headers.get('Content-Length') || 0) > limit) throw new HttpError(413, 'Request payload is too large.');
   const reader = request.body?.getReader();
-  if (!reader) throw new HttpError(400, 'Chýba obsah požiadavky.');
+  if (!reader) throw new HttpError(400, 'Missing request body.');
   let size = 0, chunks = [];
   while (true) {
     const {value, done} = await reader.read(); if (done) break;
     size += value.length;
-    if (size > limit) { await reader.cancel(); throw new HttpError(413, 'Požiadavka je príliš veľká.'); }
+    if (size > limit) { await reader.cancel(); throw new HttpError(413, 'Request payload is too large.'); }
     chunks.push(value);
   }
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); }
-  catch { throw new HttpError(400, 'Neplatný JSON.'); }
+  catch { throw new HttpError(400, 'Invalid JSON.'); }
 }
 export async function rateLimit(env, key, maximum, seconds = 60) {
   const window = Math.floor(Date.now() / (seconds * 1000));
@@ -124,7 +124,7 @@ export async function rateLimit(env, key, maximum, seconds = 60) {
     ON CONFLICT(key) DO UPDATE SET window=excluded.window,
     count=CASE WHEN ops_limits.window=excluded.window THEN ops_limits.count+1 ELSE 1 END RETURNING count`)
     .bind(key, window).first();
-  if (row.count > maximum) throw new HttpError(429, 'Príliš veľa požiadaviek. Skús to neskôr.');
+  if (row.count > maximum) throw new HttpError(429, 'Too many requests. Please try again later.');
 }
 export function secure(response) {
   const out = new Response(response.body, response);

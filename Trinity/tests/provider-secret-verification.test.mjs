@@ -43,10 +43,10 @@ test('OpenAI-compatible providers only verify after successful, valid models res
   }
   await assert.rejects(()=>verifyOpenAICompatible(url,'synthetic-secret','groq',{
     fetcher:async()=>Response.json({message:'not a models response'})
-  }),/katalóg/);
+  }),/invalid model catalog/);
   await assert.rejects(()=>verifyOpenAICompatible(url,'synthetic-secret','groq',{
     fetcher:async()=>{throw Error('synthetic-secret should not appear in response')}
-  }),/nepodarilo overiť/);
+  }),/could not be verified/);
   const ok=await verifyOpenAICompatible(url,'synthetic-secret','groq',{
     fetcher:async()=>Response.json({data:[{id:'model-a'},{id:'model-b'}]})
   });
@@ -62,7 +62,7 @@ test('Anthropic 5xx and malformed API response do not verify a secret',async()=>
   }),/HTTP 503/);
   await assert.rejects(()=>verifyAnthropic('synthetic-secret',{
     fetcher:async()=>Response.json({unknown:'shape'})
-  }),/katalóg/);
+  }),/valid model catalog/);
   const ok=await verifyAnthropic('synthetic-secret',{
     fetcher:async()=>Response.json({data:[{id:'claude-model'}]})
   });
@@ -89,13 +89,13 @@ test('Telegram bot authentication verifies getMe but never asserts webhook activ
 
 test('Telegram token or provider denial cannot be represented as connected',async()=>{
   const token='123456789:'+('a'.repeat(28));
-  await assert.rejects(()=>verifyTelegramBot('invalid-token',{fetcher:()=>{throw Error('not called')}}),/formát/);
+  await assert.rejects(()=>verifyTelegramBot('invalid-token',{fetcher:()=>{throw Error('not called')}}),/invalid format/);
   await assert.rejects(()=>verifyTelegramBot(token,{
     fetcher:async()=>Response.json({ok:false,description:'synthetic invalid bot'},{status:401})
   }),/HTTP 401/);
   await assert.rejects(()=>verifyTelegramBot(token,{
     fetcher:async()=>{throw Error('transport failure')}
-  }),/nedostupné/);
+  }),/unavailable/);
 });
 
 

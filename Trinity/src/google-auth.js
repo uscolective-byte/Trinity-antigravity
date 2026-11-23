@@ -3,7 +3,7 @@
  * @subsystem AUTH_AND_SECURITY_GATE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul google-auth.js (Trinity/src/google-auth.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Google OAuth 2.0 PKCE login and RS256 ID token verification for TRINITY OMNI-CORE.
  */
 import {equal,hash,HttpError,isOwnerEmail,issueSession} from './security.js';
 
@@ -39,23 +39,23 @@ export const googleAuthRequired=env=>env.TRINITY_AUTH_MODE==='google'||env.GOOGL
 async function signingKeys(force=false){
   if(!force&&cachedJwks&&cachedJwksUntil>Date.now())return cachedJwks;
   const response=await fetch('https://www.googleapis.com/oauth2/v3/certs',{signal:AbortSignal.timeout(10000)});
-  if(!response.ok)throw new HttpError(502,'Google podpisovacie kľúče nie sú dostupné.');
-  const data=await response.json();if(!Array.isArray(data.keys))throw new HttpError(502,'Google vrátil neplatný zoznam kľúčov.');
+  if(!response.ok)throw new HttpError(502,'Google signing keys are unavailable.');
+  const data=await response.json();if(!Array.isArray(data.keys))throw new HttpError(502,'Google returned an invalid key list.');
   cachedJwks=data.keys;cachedJwksUntil=Date.now()+Math.min(Number(response.headers.get('Cache-Control')?.match(/max-age=(\d+)/)?.[1]||3600),3600)*1000;return cachedJwks;
 }
 
 export async function verifyGoogleIdToken(token,{clientId,nonce},getKeys=signingKeys){
-  if(typeof token!=='string'||token.length>16000)throw new HttpError(401,'Google prihlasovací token je neplatný.');
-  const parts=token.split('.');if(parts.length!==3)throw new HttpError(401,'Google prihlasovací token je neplatný.');
-  let header,claims;try{header=JSON.parse(new TextDecoder().decode(base64UrlDecode(parts[0])));claims=JSON.parse(new TextDecoder().decode(base64UrlDecode(parts[1])));}catch{throw new HttpError(401,'Google prihlasovací token je neplatný.');}
-  if(header.alg!=='RS256'||typeof header.kid!=='string')throw new HttpError(401,'Google podpis tokenu nie je podporovaný.');
+  if(typeof token!=='string'||token.length>16000)throw new HttpError(401,'Google ID token is invalid.');
+  const parts=token.split('.');if(parts.length!==3)throw new HttpError(401,'Google ID token is invalid.');
+  let header,claims;try{header=JSON.parse(new TextDecoder().decode(base64UrlDecode(parts[0])));claims=JSON.parse(new TextDecoder().decode(base64UrlDecode(parts[1])));}catch{throw new HttpError(401,'Google ID token is invalid.');}
+  if(header.alg!=='RS256'||typeof header.kid!=='string')throw new HttpError(401,'Google token signature algorithm is not supported.');
   let keys=await getKeys();let jwk=keys.find(key=>key.kid===header.kid&&key.kty==='RSA');
   if(!jwk){keys=await getKeys(true);jwk=keys.find(key=>key.kid===header.kid&&key.kty==='RSA');}
-  if(!jwk)throw new HttpError(401,'Google podpisový kľúč nebol nájdený.');
+  if(!jwk)throw new HttpError(401,'Google signing key was not found.');
   let valid=false;try{const publicKey=await crypto.subtle.importKey('jwk',jwk,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);valid=await crypto.subtle.verify({name:'RSASSA-PKCS1-v1_5'},publicKey,base64UrlDecode(parts[2]),textEncoder.encode(`${parts[0]}.${parts[1]}`));}catch{valid=false;}
-  if(!valid)throw new HttpError(401,'Google token podpis nie je platný.');
+  if(!valid)throw new HttpError(401,'Google token signature is invalid.');
   const now=Math.floor(Date.now()/1000),audiences=Array.isArray(claims.aud)?claims.aud:[claims.aud];
-  if(!['accounts.google.com','https://accounts.google.com'].includes(claims.iss)||!audiences.includes(clientId)||(audiences.length>1&&claims.azp!==clientId)||!Number.isFinite(claims.exp)||claims.exp<=now||!Number.isFinite(claims.iat)||claims.iat>now+60||claims.nonce!==nonce||claims.email_verified!==true||typeof claims.email!=='string'||typeof claims.sub!=='string')throw new HttpError(401,'Google účet alebo overenie e-mailu nie je platné.');
+  if(!['accounts.google.com','https://accounts.google.com'].includes(claims.iss)||!audiences.includes(clientId)||(audiences.length>1&&claims.azp!==clientId)||!Number.isFinite(claims.exp)||claims.exp<=now||!Number.isFinite(claims.iat)||claims.iat>now+60||claims.nonce!==nonce||claims.email_verified!==true||typeof claims.email!=='string'||typeof claims.sub!=='string')throw new HttpError(401,'Google account claims or email verification are invalid.');
   return {email:claims.email.trim().toLowerCase(),sub:claims.sub,name:typeof claims.name==='string'?claims.name.slice(0,160):claims.email};
 }
 
@@ -63,7 +63,7 @@ function redirect(path,cookies=[]){const response=new Response(null,{status:303,
 const clearStateCookie='trinity_google_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0';
 
 export async function beginGoogleLogin(env, request=null){
-  if(!googleOAuthConfigured(env))throw new HttpError(503,'Google OAuth ešte nie je nakonfigurované.');
+  if(!googleOAuthConfigured(env))throw new HttpError(503,'Google OAuth is not configured yet.');
   const state=randomToken(),nonce=randomToken(),verifier=randomToken(),challenge=base64UrlEncode(new Uint8Array(await crypto.subtle.digest('SHA-256',textEncoder.encode(verifier))));
   const now=Date.now();await env.DB.prepare('DELETE FROM ops_oauth_states WHERE expires_at<=?').bind(now).run();
   await env.DB.prepare('INSERT INTO ops_oauth_states(state_hash,nonce,code_verifier,expires_at) VALUES(?,?,?,?)').bind(await hash(state),nonce,verifier,now+10*60_000).run();
@@ -74,17 +74,17 @@ export async function beginGoogleLogin(env, request=null){
 }
 
 export async function finishGoogleLogin(request,env){
-  if(!googleOAuthConfigured(env))throw new HttpError(503,'Google OAuth ešte nie je nakonfigurované.');
+  if(!googleOAuthConfigured(env))throw new HttpError(503,'Google OAuth is not configured yet.');
   const url=new URL(request.url),state=url.searchParams.get('state'),code=url.searchParams.get('code');
-  if(url.searchParams.has('error')||!state||!code)throw new HttpError(401,'Prihlásenie cez Google bolo zrušené alebo je neplatné.');
+  if(url.searchParams.has('error')||!state||!code)throw new HttpError(401,'Google sign-in was cancelled or is invalid.');
   const cookieState=request.headers.get('Cookie')?.match(/(?:^|;\s*)trinity_google_state=([A-Za-z0-9_-]{40,})/)?.[1];
-  if(!cookieState||!await equal(state,cookieState))throw new HttpError(401,'Google prihlasovacia relácia sa nezhoduje. Skús to znovu.');
+  if(!cookieState||!await equal(state,cookieState))throw new HttpError(401,'Google sign-in session state does not match. Please try again.');
   const transaction=await env.DB.prepare('DELETE FROM ops_oauth_states WHERE state_hash=? AND expires_at>? RETURNING nonce,code_verifier').bind(await hash(state),Date.now()).first();
-  if(!transaction)throw new HttpError(401,'Google prihlasovacia relácia vypršala alebo už bola použitá.');
+  if(!transaction)throw new HttpError(401,'Google sign-in session expired or was already used.');
   const redirectUri=resolveGoogleRedirectUri(request,env);
   const form=new URLSearchParams({code,client_id:env.GOOGLE_CLIENT_ID,client_secret:env.GOOGLE_CLIENT_SECRET,redirect_uri:redirectUri,grant_type:'authorization_code',code_verifier:transaction.code_verifier});
   const tokenResponse=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:form,signal:AbortSignal.timeout(15000)});
-  if(!tokenResponse.ok)throw new HttpError(401,'Google prihlasovací kód sa nepodarilo overiť.');
+  if(!tokenResponse.ok)throw new HttpError(401,'Failed to verify Google authorization code.');
   const tokens=await tokenResponse.json();const identity=await verifyGoogleIdToken(tokens.id_token,{clientId:env.GOOGLE_CLIENT_ID,nonce:transaction.nonce});
   const isOwner=isOwnerEmail(env,identity.email),isAdmin=isOwner||isGoogleAdminEmail(env,identity.email),dbRole=isAdmin?'admin':'user',now=Date.now();
   await env.DB.prepare(`INSERT INTO ops_users(email,google_sub,display_name,role,status) VALUES(?,?,?,?,?)

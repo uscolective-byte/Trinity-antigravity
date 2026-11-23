@@ -3,8 +3,8 @@
  * @subsystem CLAUDE_AGENT
  * @author Basterix (Root Architect) & Antigravity (Sovereign Pair)
  * @license Sovereign Irrevocable Covenant
- * @description Zvrchovaný agent Anthropic Claude (3.7 Sonnet, 3.5 Sonnet, Haiku, Opus) v ekosystéme TRINITY OMNI-CORE.
- * Plná integrácia s kaskádou modelov, Secrets Store väzbou a krížovým prepojením s Google Gemini.
+ * @description Sovereign Anthropic Claude agent (3.7 Sonnet, 3.5 Sonnet, Haiku, Opus) in the TRINITY OMNI-CORE ecosystem.
+ * Full integration with model cascade, Secrets Store binding, and cross-provider fallback to Google Gemini.
  */
 import { resolveProviderSecret } from './secret-vault.js';
 import { sanitizeApiKey } from './ai-providers.js';
@@ -19,21 +19,22 @@ export const CLAUDE_MODEL_CASCADE = Object.freeze([
 ]);
 
 export const CLAUDE_SYSTEM_PROFILE = [
-  'Si Claude, pokročilý reasoning a kódovací partner integrovaný do suverénneho ekosystému TRINITY OMNI-CORE.',
-  'Pracuješ v priamom tandeme s Basterixom (Sabo Ivan) a agentom Antigravity.',
-  'Komunikuj vždy po slovensky vecne, presne a na špičkovej odbornej úrovni.',
-  'Dodržiavaj Truth Policy 2.1: NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT. Nikdy nevymýšľaj výsledky ani dáta.',
-  'Ak navrhuješ architektúru alebo kód, dávaj kompletné, funkčné a otestované riešenia.'
+  'You are Claude, an advanced reasoning and coding partner integrated into the sovereign TRINITY OMNI-CORE ecosystem.',
+  'You collaborate directly with Basterix (Sabo Ivan) and Antigravity.',
+  'Be concise, technically rigorous, and thorough.',
+  'Enforce Truth Policy 2.1: NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT. Never fabricate outputs, execution receipts, or data.',
+  'When designing architecture or writing code, deliver complete, working, and testable solutions.',
+  "COMMUNICATION LANGUAGE RULE: Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal 'tykanie' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language."
 ].join('\n');
 
 /**
- * Vykoná inferenciu cez Anthropic Claude Messages API s fallbackom na kaskádu modelov alebo Google Gemini.
+ * Execute inference via the Anthropic Claude Messages API with model cascade and optional Google Gemini fallback.
  */
 export async function executeClaudeAgent(env, task, options = {}) {
   const rawKey = await resolveProviderSecret(env, 'anthropic') || await resolveProviderSecret(env, 'claude');
   const apiKey = sanitizeApiKey(rawKey);
 
-  // Ak Claude API kľúč nie je dostupný, transparentne delegujeme na partnerský Google Gemini motor
+  // If the Claude API key is unavailable, transparently delegate to the partner Google Gemini engine
   if (!apiKey) {
     if (options.allowFallback !== false) {
       const geminiResult = await executeGeminiGemAgent(env, task, {
@@ -44,11 +45,11 @@ export async function executeClaudeAgent(env, task, options = {}) {
         return {
           ...geminiResult,
           fallback_from: 'claude',
-          note: 'Claude poverenie nebolo nakonfigurované v Secrets Store; úloha bola úspešne vyriešená cez Google Gemini.'
+          note: 'Claude credential was not configured in Secrets Store; the task was resolved via Google Gemini.'
         };
       }
     }
-    throw new Error('Anthropic Claude API kľúč nie je nakonfigurovaný v Cloudflare Secrets Store ani v Trezore.');
+    throw new Error('Anthropic Claude API key is not configured in Cloudflare Secrets Store or the Secret Vault.');
   }
 
   const requestedModel = options.model || env.ANTHROPIC_MODEL || CLAUDE_MODEL_CASCADE[0];
@@ -95,8 +96,8 @@ export async function executeClaudeAgent(env, task, options = {}) {
       if (!resp.ok) {
         const errBody = await resp.json().catch(() => ({}));
         const errMsg = errBody.error?.message || `HTTP ${resp.status}`;
-        lastError = new Error(`Claude API [${model}] zlyhalo: ${errMsg}`);
-        // Pri chybe modelu alebo preťažení skúsime ďalší model v kaskáde
+        lastError = new Error(`Claude API [${model}] failed: ${errMsg}`);
+        // On model not found, overload, or rate limit, try the next model in the cascade
         if (resp.status === 404 || resp.status === 529 || resp.status === 429) {
           continue;
         }
@@ -113,7 +114,7 @@ export async function executeClaudeAgent(env, task, options = {}) {
     }
   }
 
-  // Ak zlyhala celá kaskáda Claude modelov, skúsime partnerský fallback na Google Gemini
+  // If the entire Claude model cascade failed, attempt partner fallback to Google Gemini
   if (!text && options.allowFallback !== false) {
     try {
       const geminiFallback = await executeGeminiGemAgent(env, task, {
@@ -125,14 +126,14 @@ export async function executeClaudeAgent(env, task, options = {}) {
           ...geminiFallback,
           fallback_from: 'claude',
           error_encountered: lastError?.message,
-          note: 'Claude API malo výpadok; požiadavka bola transparentne a bezpečne vyriešená cez Google Gemini.'
+          note: 'Claude API experienced an outage; the request was transparently and safely resolved via Google Gemini.'
         };
       }
     } catch (_) {}
   }
 
   if (!text) {
-    throw lastError || new Error('Claude vrátil prázdnu odpoveď a partnerský Google Gemini fallback nebol úspešný.');
+    throw lastError || new Error('Claude returned an empty response and the partner Google Gemini fallback did not succeed.');
   }
 
   const receipt = buildReceipt({
@@ -145,13 +146,13 @@ export async function executeClaudeAgent(env, task, options = {}) {
       {
         type: 'api',
         id: 'claude_task_payload',
-        description: 'Vstupná úloha pre model Claude',
+        description: 'Input task payload for Claude model',
         afterHash: hashPayload(task)
       },
       {
         type: 'api',
         id: 'claude_response_payload',
-        description: 'Overená generovaná odpoveď',
+        description: 'Verified generated response payload',
         afterHash: hashPayload(text)
       }
     ],

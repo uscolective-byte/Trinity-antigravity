@@ -3,12 +3,12 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul TrinityBrainV4.js (Trinity/src/v4/TrinityBrainV4.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module TrinityBrainV4.js (Trinity/src/v4/TrinityBrainV4.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * TRINITY BRAIN V4 — AUTONOMOUS EVOLUTIONARY META-ORCHESTRATOR
- * Architektúra: Cloudflare Durable Object + Hybrid Bridge Sync
- * Sub-systémy: MetaBrain, QuantumCoreEngine (QCE-Fusion), EvoEngineV3, SkillForge, HybridBrain
+ * Architecture: Cloudflare Durable Object + Hybrid Bridge Sync
+ * Subsystems: MetaBrain, QuantumCoreEngine (QCE-Fusion), EvoEngineV3, SkillForge, HybridBrain
  */
 
 import { MetaBrain } from './MetaBrain.js';
@@ -27,13 +27,13 @@ export class TrinityBrainV4 {
       async put(key, val) { this._data.set(key, val); }
     };
 
-    // 1. Inicializácia pamäťových vrstiev (In-Memory Buffer)
-    this.stm = []; // Short-Term Memory (posledných N udalostí)
+    // 1. Initialize memory layers (in-memory buffer)
+    this.stm = []; // Short-Term Memory (last N events)
     this.stmMaxLimit = 50;
-    this.ltm = new Map(); // Long-Term Memory (ontológia, vzorce)
-    this.etm = []; // Episodic Memory (história interakcií a zámerov)
+    this.ltm = new Map(); // Long-Term Memory (ontology, patterns)
+    this.etm = []; // Episodic Memory (interaction and intent history)
 
-    // 2. Stav identity a evolučného cyklu
+    // 2. Identity state and evolutionary cycle configuration
     this.genome = {
       version: '10.4.0-EVO',
       generation: 1,
@@ -55,7 +55,7 @@ export class TrinityBrainV4 {
       mutationRate: 0.05
     };
 
-    // 3. Inicializácia podriadených systémov
+    // 3. Initialize subsystems
     this.meta = new MetaBrain(this.env);
     this.qce = new QuantumCoreEngine(this.env, { weights: this.genome.agentConsensusWeights });
     this.evo = new EvoEngineV3(this.storage, this.env);
@@ -66,7 +66,7 @@ export class TrinityBrainV4 {
   }
 
   /**
-   * Asynchrónna hydratácia perzistentného stavu z Durable Object Storage
+   * Asynchronously hydrates persistent state from Durable Object storage.
    */
   async ensureInitialized() {
     if (this.initialized) return;
@@ -95,9 +95,9 @@ export class TrinityBrainV4 {
   }
 
   /**
-   * HLAVNÝ VSTUP: Kognitívny a exekučný cyklus TrinityBrainV4
-   * @param {Object} input - Vstupná požiadavka (prompt, task, payload)
-   * @param {Object} clientMeta - Kontext klienta (PC Bridge stav, latencia, autorizácia)
+   * PRIMARY ENTRY POINT: TrinityBrainV4 cognitive and execution cycle.
+   * @param {Object} input - Incoming request (prompt, task, payload)
+   * @param {Object} clientMeta - Client context (PC Bridge status, latency, authorization)
    */
   async processTask(input, clientMeta = {}) {
     await this.ensureInitialized();
@@ -106,7 +106,7 @@ export class TrinityBrainV4 {
 
     try {
       // ---------------------------------------------------------
-      // FÁZA 1: PERCEPTION & METAFYZICKÁ INTERPRETÁCIA (MetaBrain)
+      // PHASE 1: PERCEPTION & METAPHYSICAL INTERPRETATION (MetaBrain)
       // ---------------------------------------------------------
       const metaContext = await this.meta.perceive({
         input,
@@ -114,11 +114,11 @@ export class TrinityBrainV4 {
         etmSnapshot: this.etm.slice(-5)
       });
 
-      // Zápis do STM
+      // Record in STM
       this._pushSTM({ phase: 'PERCEPTION', cycleId, metaContext });
 
       // ---------------------------------------------------------
-      // FÁZA 2: HYBRID ROUTING DECISION (HybridBrain)
+      // PHASE 2: HYBRID ROUTING DECISION (HybridBrain)
       // ---------------------------------------------------------
       const targetExecutionTarget = await this.hybrid.routeDecision({
         metaContext,
@@ -127,7 +127,7 @@ export class TrinityBrainV4 {
       });
 
       // ---------------------------------------------------------
-      // FÁZA 3: PARALELNÝ REASONING & FÚZIA (QCE-Fusion)
+      // PHASE 3: PARALLEL REASONING & FUSION (QCE-Fusion)
       // ---------------------------------------------------------
       const qcePlan = await this.qce.executeFusion({
         task: input,
@@ -137,7 +137,7 @@ export class TrinityBrainV4 {
       });
 
       // ---------------------------------------------------------
-      // FÁZA 4: DYNAMICKÁ SYNTÉZA CHÝBAJÚCICH SCHOPNOSTÍ (SkillForge)
+      // PHASE 4: DYNAMIC SYNTHESIS OF MISSING CAPABILITIES (SkillForge)
       // ---------------------------------------------------------
       let executionResult = null;
       if (qcePlan.requiresNewSkill) {
@@ -149,7 +149,7 @@ export class TrinityBrainV4 {
       }
 
       // ---------------------------------------------------------
-      // FÁZA 5: EXEKÚCIA (Cloud vs PC Bridge)
+      // PHASE 5: EXECUTION (Cloud vs PC Bridge)
       // ---------------------------------------------------------
       if (targetExecutionTarget === 'PC_BRIDGE') {
         executionResult = await this.hybrid.dispatchToLocalBridge(qcePlan.decision);
@@ -158,7 +158,7 @@ export class TrinityBrainV4 {
       }
 
       // ---------------------------------------------------------
-      // FÁZA 6: EVOLUČNÝ REFLEXNÝ CYKLUS & MUTÁCIA (EvoEngineV3)
+      // PHASE 6: EVOLUTIONARY REFLECTION CYCLE & MUTATION (EvoEngineV3)
       // ---------------------------------------------------------
       const totalLatency = Math.round(performance.now() - cycleStartTime);
       const reflection = await this.evo.evaluateCycle({
@@ -170,7 +170,7 @@ export class TrinityBrainV4 {
         currentGenome: this.genome
       });
 
-      // Ak evolučný engine našiel priaznivejšiu mutáciu, aktualizuj genóm
+      // If the evolutionary engine discovered a fitter mutation, promote the genome
       if (reflection.promotedGenome) {
         this.genome = reflection.promotedGenome;
         try {
@@ -180,7 +180,7 @@ export class TrinityBrainV4 {
       }
 
       // ---------------------------------------------------------
-      // FÁZA 7: PAMÄŤOVÝ IMPRINT (LTM & ETM)
+      // PHASE 7: MEMORY IMPRINT (LTM & ETM)
       // ---------------------------------------------------------
       await this._imprintMemories(input, qcePlan, executionResult, reflection);
 
@@ -201,8 +201,8 @@ export class TrinityBrainV4 {
       };
 
     } catch (error) {
-      // Auto-Rollback a sebaopravný proces pri zlyhaní
-      console.error(`[TrinityBrainV4 CRITICAL] Zlyhanie v cykle ${cycleId}:`, error);
+      // Auto-rollback and self-recovery workflow on failure
+      console.error(`[TrinityBrainV4 CRITICAL] Failure in cycle ${cycleId}:`, error);
       await this.evo.recordFailure({ cycleId, error: error.message, genome: this.genome });
 
       return {
@@ -215,7 +215,7 @@ export class TrinityBrainV4 {
   }
 
   /**
-   * Zápis do Short-Term Memory s rotáciou
+   * Appends an entry to Short-Term Memory with bounded rotation.
    */
   _pushSTM(entry) {
     this.stm.push({ ...entry, timestamp: Date.now() });
@@ -225,12 +225,12 @@ export class TrinityBrainV4 {
   }
 
   /**
-   * Zápis úspešných stratégií do LTM a histórie preferencií do ETM
+   * Stores successful strategies in LTM and preference history in ETM.
    */
   async _imprintMemories(input, plan, result, reflection) {
     const timestamp = Date.now();
 
-    // 1. Zápis do ETM (Epizodická pamäť: čo chcel používateľ a ako sme to vyriešili)
+    // 1. Write to ETM (Episodic memory: user intent and how it was resolved)
     this.etm.push({
       intent: input.intent || input.name || 'TASK',
       userPreferenceIndicator: input.style || 'neutral',
@@ -242,7 +242,7 @@ export class TrinityBrainV4 {
       await this.storage.put('brain_etm', this.etm);
     } catch (_) {}
 
-    // 2. Zápis do LTM (Ontologické pravidlá a overené postupy)
+    // 2. Write to LTM (Ontological rules and verified procedures)
     if (result.success && reflection.fitnessScoreDelta > 0) {
       const patternKey = `pattern_${input.type || 'generic'}`;
       this.ltm.set(patternKey, {
@@ -257,7 +257,7 @@ export class TrinityBrainV4 {
   }
 
   /**
-   * Exekúcia cloudových natívnych operácií (ak nejde cez PC-Bridge)
+   * Executes cloud-native operations (when not dispatched via PC-Bridge).
    */
   async _executeCloudAction(decision) {
     if (decision.action === 'EXECUTE_SKILL') {
@@ -271,19 +271,19 @@ export class TrinityBrainV4 {
   }
 
   /**
-   * HTTP rozhranie pre Durable Object RPC / Fetch
+   * HTTP interface for Durable Object RPC / Fetch.
    */
   async fetch(request) {
     await this.ensureInitialized();
     const url = new URL(request.url);
 
-    // Autorizačná kontrola pre volania brány
+    // Authorization check for gateway requests
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     const requiredKey = this.env.TRINITY_GATEWAY_KEY;
 
-    // Ak je zadaný kľúč a nesedí, vráť 401
+    // Reject with 401 when a key is configured and the provided bearer token does not match
     if (requiredKey && token && token !== requiredKey) {
-      return new Response(JSON.stringify({ error: 'Lokálna brána nie je autorizovaná.' }), {
+      return new Response(JSON.stringify({ error: 'Local gateway is not authorized.' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
       });

@@ -1,4 +1,4 @@
-﻿import {test} from 'node:test';
+import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createSelfImprovementProposal, approveSelfImprovementProposal, applySelfImprovementProposal, ownerLearnBehaviorRule, behaviorRulesDirective} from '../src/self-improvement.js';
 
@@ -51,7 +51,7 @@ test('self-improvement proposals require owner approval before plugin installati
   const proposal=await createSelfImprovementProposal(env,{title:'Install audit module',description:'Install the existing audit plugin from the Trinity catalogue.',kind:'plugin_install',plugin_id:'audit'},'owner@example.test');
   assert.equal(proposal.status,'pending');
   let installed=false;
-  await assert.rejects(()=>applySelfImprovementProposal(env,proposal.id,'owner',async()=>{installed=true;}),/schválený vlastníkom/i);
+  await assert.rejects(()=>applySelfImprovementProposal(env,proposal.id,'owner',async()=>{installed=true;}),/approved by the Trinity owner/i);
   assert.equal(installed,false);
   await approveSelfImprovementProposal(env,proposal.id,'owner@example.test');
   const applied=await applySelfImprovementProposal(env,proposal.id,'owner@example.test',async id=>{installed=true;return {id,status:'installed'};});
@@ -77,6 +77,6 @@ test('owner can teach Trinity an audited behavior rule that becomes active witho
   const applied=await ownerLearnBehaviorRule(env,'Pri odpovediach vždy najprv zhrň výsledok v jednej vete.','owner-chat');
   assert.equal(applied.status,'applied');
   assert.ok(env.events.some(e=>e.action==='self_improvement_rule_activated'));
-  assert.match(behaviorRulesDirective([applied]),/NAUČENÉ ZLEPŠENIA/);
+  assert.match(behaviorRulesDirective([applied]),/LEARNED IMPROVEMENTS/);
   assert.equal(behaviorRulesDirective([]),'');
 });

@@ -1,6 +1,6 @@
 /**
- * Trinity Router — Ultrarýchly URL pattern matcher
- * Bez externých regex knižníc
+ * Trinity Router — Ultra-fast URL pattern matcher
+ * No external regex libraries
  * @version 1.0.0
  */
 
@@ -10,9 +10,9 @@ export class Router {
   }
 
   /**
-   * Pridá route
+   * Adds a route
    * @param {string} method - GET, POST, PUT, DELETE, OPTIONS
-   * @param {string} pattern - URL pattern, napr. "/api/chat" alebo "/api/conversations/:id/messages"
+   * @param {string} pattern - URL pattern, e.g. "/api/chat" or "/api/conversations/:id/messages"
    * @param {function} handler - (request, env, ctx, params, query) => Response
    */
   add(method, pattern, handler) {
@@ -36,8 +36,8 @@ export class Router {
   delete(pattern, handler) { return this.add("DELETE", pattern, handler); }
 
   /**
-   * Matchne request proti routom
-   * @returns {handler, params, query} alebo null
+   * Matches a request against registered routes
+   * @returns {handler, params, query} or null
    */
   match(method, pathname) {
     for (const route of this.routes) {
@@ -54,7 +54,7 @@ export class Router {
   }
 
   /**
-   * Spracuje request cez router
+   * Handles a request through the router
    */
   async handle(request, env, ctx) {
     const url = new URL(request.url);
@@ -66,7 +66,7 @@ export class Router {
 }
 
 /**
- * Helper pre JSON response
+ * Helper for JSON responses
  */
 export function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
@@ -82,7 +82,7 @@ export function json(data, status = 200, extraHeaders = {}) {
 }
 
 /**
- * Helper pre OPTIONS preflight
+ * Helper for OPTIONS preflight responses
  */
 export function preflight() {
   return new Response(null, {

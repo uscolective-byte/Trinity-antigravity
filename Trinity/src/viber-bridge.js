@@ -3,14 +3,14 @@
  * @subsystem VIBER_MESSAGING_AND_WALLET_BRIDGE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Obojsmerný most medzi ekosystémom Trinity, Viber Chat API a peňaženkou Viber Pay.
- * Spĺňa Truth Policy 2.1 – žiadne vymyslené zostatky ani potvrdenia platieb bez dôkazu.
+ * @description Bidirectional bridge between the Trinity ecosystem, Viber Chat API, and Viber Pay wallet.
+ * Complies with Truth Policy 2.1 — no fabricated balances or payment confirmations without evidence.
  */
 
 import { executeStatus, executePC, executeCrypto, executeFleet } from './telegram-bridge.js';
 
 /**
- * Normalizuje telefónne číslo pre Viber Pay (+421... alebo 09...)
+ * Normalizes a phone number for Viber Pay (+421... or local digits).
  * @param {string} raw
  * @returns {string|null}
  */
@@ -24,7 +24,7 @@ export function normalizeViberPhone(raw) {
 }
 
 /**
- * Vracia stav integrácie Viber bota a peňaženky Viber Pay.
+ * Returns the integration status of the Viber bot and Viber Pay wallet.
  * @param {object} env
  * @returns {object}
  */
@@ -43,7 +43,7 @@ export function viberIntegrationStatus(env) {
 }
 
 /**
- * Zostaví informačnú správu pre peňaženku Viber Pay a multi-wallet ekosystém Trinity.
+ * Builds the user-facing Slovak summary for Viber Pay and the multi-wallet Trinity ecosystem.
  * @param {object} env
  * @param {string} ownerId
  * @returns {Promise<string>}
@@ -98,7 +98,7 @@ export async function executeViberWallet(env, ownerId = 'admin') {
 }
 
 /**
- * Spracuje prichádzajúcu udalosť alebo správu z Viber Chat API.
+ * Processes an incoming event or message from the Viber Chat API.
  * @param {object} env
  * @param {object} payload
  * @returns {Promise<object>}
@@ -106,12 +106,12 @@ export async function executeViberWallet(env, ownerId = 'admin') {
 export async function processViberUpdate(env, payload = {}) {
   const event = payload.event;
 
-  // 1. Webhook overovací ping
+  // 1. Webhook verification ping
   if (event === 'webhook') {
     return { status: 0, message: 'ok', event: 'webhook' };
   }
 
-  // 2. Používateľ otvoril dialóg (conversation_started)
+  // 2. User opened a conversation (conversation_started)
   if (event === 'conversation_started') {
     const userName = payload.user?.name || 'Partner';
     return {
@@ -133,7 +133,7 @@ export async function processViberUpdate(env, payload = {}) {
     };
   }
 
-  // 3. Správa od používateľa
+  // 3. Message from user
   if (event === 'message') {
     const text = String(payload.message?.text || '').trim();
     const senderId = payload.sender?.id;
@@ -152,10 +152,10 @@ export async function processViberUpdate(env, payload = {}) {
     } else if (/^\/help/i.test(text)) {
       replyText = '⚡ TRINITY VIBER BOT:\n\n• /wallet - Viber Pay, Telegram @wallet & Paysafe\n• /status - Zdravie systému\n• /crypto - Ceny BTC/ETH/SOL & Tetrakis TTK\n• /pc - Stav lokálneho PC mosta\n• /fleet - Zoznam agentov';
     } else {
-      replyText = `Prijal som tvoju požiadavku: "${text.slice(0, 80)}". Pre zobrazenie finančných prepojení a peňaženiek napíš /wallet.`;
+      replyText = `Prijala som tvoju požiadavku: "${text.slice(0, 80)}". Pre zobrazenie finančných prepojení a peňaženiek napíš /wallet.`;
     }
 
-    // Ak máme VIBER_AUTH_TOKEN a senderId, odošleme odpoveď cez oficiálne Chat API
+    // If VIBER_AUTH_TOKEN and senderId are available, deliver the reply via the official Chat API
     if (env.VIBER_AUTH_TOKEN && senderId) {
       try {
         await fetch('https://chatapi.viber.com/pa/send_message', {
@@ -188,7 +188,7 @@ export async function processViberUpdate(env, payload = {}) {
 }
 
 /**
- * Spracuje HTTP požiadavku na /api/v1/webhooks/viber
+ * Handles HTTP requests to /api/v1/webhooks/viber.
  * @param {Request} request
  * @param {object} env
  * @param {object} ctx
@@ -204,12 +204,12 @@ export async function handleViberWebhook(request, env, ctx) {
     try {
       payload = await request.json();
     } catch {
-      return Response.json({ error: 'Neplatný JSON formát v tele Viber požiadavky.' }, { status: 400 });
+      return Response.json({ error: 'Invalid JSON payload in Viber webhook request.' }, { status: 400 });
     }
 
     const result = await processViberUpdate(env, payload);
     return Response.json(result, { status: 200 });
   }
 
-  return Response.json({ error: 'Metóda nepovolená' }, { status: 405 });
+  return Response.json({ error: 'Method not allowed' }, { status: 405 });
 }

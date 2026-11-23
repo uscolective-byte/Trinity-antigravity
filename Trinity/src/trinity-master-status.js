@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul trinity-master-status.js (Trinity/src/trinity-master-status.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module trinity-master-status.js (Trinity/src/trinity-master-status.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import {trinityMasterBindingStatus} from './trinity-master-secrets.js';
 

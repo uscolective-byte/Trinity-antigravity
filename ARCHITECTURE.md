@@ -75,3 +75,15 @@
 - **EP-33:** Dynamické prispôsobenie používateľského rozhrania (`ui-evolution.js`).
 - **EP-34:** Automatická synchronizácia verzie a dokumentácie (`sync-release-docs.mjs`).
 - **EP-35:** Kryptografická verifikácia nasadenia (`verify-deployment.mjs`).
+
+---
+
+## Rozšírená architektúra v11.1.0 — Messenger, `@wallet`, Tetrakis (`$TTK`) & Google AI Studio Bridge
+
+1. **Dual-Language Architecture:** Interné inžinierske jadro (`Trinity/src/*`, komentáre, JSDoc, interné logy, schémy nástrojov, ko-kreačné prompty) pracuje v **angličtine (English)**, zatiaľ čo používateľská komunikácia smerom k majiteľovi a používateľom prebieha prirodzenou **slovenčinou (Slovak)** s Truth Policy 2.1.
+2. **Google AI Studio Bridge (`Trinity/src/google-ai-studio-bridge.js`):** Serverový klient pre `generativelanguage.googleapis.com/v1beta` (`x-goog-api-key` hlavička, 3-vrstvové načítanie kľúča z Worker secrets / Secrets Store / AES-GCM D1 Vaultu, model discovery + 404 kaskáda, multi-turn Trinity ↔ Google AI Studio ko-kreácia) vystavený cez `/api/assistant/ai-studio/*`, nástroj `google_ai_studio` a MCP nástroje `google_ai_studio_*`.
+3. **Tetrakis (`$TTK`) Native Space & 4 ekosystémové piliere:** Neväzobný Web3 priestor vedľa `@wallet` (Base L2 ERC-20, fixná zásoba `1 000 000 000 TTK`, `/tetrakis-logo.png`, fail-closed Truth Policy 2.1) so 4 natívnymi rolami:
+   - Natívne in-chat platby a okamžité P2P prevody (`Trinity Messenger` & `@wallet`),
+   - Ekonomika Mini-Apps, AI Studia a botov/agentov/skillov,
+   - Domény, používateľské mená (`@handle`), hosting a digitálne aktíva,
+   - Ekonomika tvorcov, edge výpočtov/úložiska a neväzobný Tetrakis Space.

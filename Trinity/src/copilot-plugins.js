@@ -3,27 +3,27 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul copilot-plugins.js (Trinity/src/copilot-plugins.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Trinity Copilot plugin ecosystem registry and skill enablement governance for TRINITY OMNI-CORE.
  */
 /**
  * Trinity Copilot Plugin Ecosystem
- * Poskytuje správu pluginov pre Trinity Copilot:
- * - Registrácia pluginov s metadátami, závislosťami a zoznamom skillov
- * - Vstavané pluginy (Core, PowerPlatform, WebResearch, Media, Analytics, PCBridge, Dialog)
- * - Podpora pre dynamické zapínanie / vypínanie pluginov
+ * Provides plugin management for Trinity Copilot:
+ * - Plugin registration with metadata, dependencies, and skill lists
+ * - Built-in plugins (Core, PowerPlatform, WebResearch, Media, Analytics, PCBridge, Dialog, etc.)
+ * - Dynamic enabling and disabling of optional plugins
  */
 
 export const BUILTIN_COPILOT_PLUGINS = [
   {
     id:'integration-diagnostics',name:'Integration Configuration Diagnostics',version:'1.0.0',
-    description:'Kontrola konfigurácie AI, Copilot Studio a PC Bridge bez odhalenia tajomstiev; živé spojenie vyžaduje samostatný test.',
+    description:'Inspect configuration of AI, Copilot Studio, and PC Bridge without disclosing secrets; live connectivity requires a separate check.',
     skills:['integrationReadiness'],category:'integration',enabled:true,required:false
   },
   {
     id: 'core-copilot',
     name: 'Core Copilot Pack',
     version: '1.0.0',
-    description: 'Základné robustné mechanizmy: validácia, timeout, circuit-breaker, retry a audit.',
+    description: 'Core resilience mechanisms: validation, timeout, circuit breaker, retry, and auditing.',
     skills: ['validateInput', 'withTimeout', 'checkHttpStatus', 'checkResponseStructure', 'logAudit', 'withRetry', 'circuitBreaker', 'rateLimiter', 'cacheGet', 'cachePut', 'recordMetrics'],
     category: 'core',
     enabled: true,
@@ -33,7 +33,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'powerplatform-connector',
     name: 'Power Platform & Dynamics 365 Dataverse Connector',
     version: '2.0.0',
-    description: 'Integrácia s Microsoft Power Platform, Dynamics 365 Dataverse (CRM) a Copilot Studio.',
+    description: 'Integration with Microsoft Power Platform, Dynamics 365 Dataverse (CRM), and Copilot Studio.',
     skills: ['callPowerPlatform', 'dataverseWhoAmI', 'dataverseQuery', 'dataverseCreateRecord', 'dataverseUpdateRecord', 'dataverseDeleteRecord'],
     category: 'integration',
     enabled: true,
@@ -43,7 +43,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'web-researcher',
     name: 'Web Research Plugin',
     version: '1.0.0',
-    description: 'Webové vyhľadávanie a extrakcia relevantných úryvkov zo zdrojov.',
+    description: 'Web search and extraction of relevant source excerpts.',
     skills: ['webSearch'],
     category: 'integration',
     enabled: true,
@@ -53,7 +53,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'media-studio',
     name: 'Media & Image Generation Plugin',
     version: '1.0.0',
-    description: 'Tvorba obrázkov cez Workers AI a ukladanie médií do R2.',
+    description: 'Image generation via Workers AI and media storage in R2.',
     skills: ['generateImage', 'r2Store', 'r2Get'],
     category: 'media',
     enabled: true,
@@ -63,7 +63,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'data-analytics',
     name: 'Data & Text Analytics Plugin',
     version: '1.0.0',
-    description: 'Analýza textu, detekcia sentimentu, presné výpočty a štatistika.',
+    description: 'Text analysis, sentiment detection, precise calculations, and descriptive statistics.',
     skills: ['analyzeText', 'calculate', 'statistics'],
     category: 'analytics',
     enabled: true,
@@ -73,7 +73,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'pc-bridge-automation',
     name: 'PC Bridge & Git Automation Plugin',
     version: '1.0.0',
-    description: 'Spúšťanie lokálnych overených skriptov s SHA-256 a Git operácie.',
+    description: 'Execution of verified local scripts with SHA-256 receipts and Git operations.',
     skills: ['pcRunScript', 'pcGitCommit', 'pcGitPr'],
     category: 'automation',
     enabled: true,
@@ -83,7 +83,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'dialog-experience',
     name: 'Dialog & User Experience Plugin',
     version: '1.0.0',
-    description: 'Správa histórie relácií, viacjazyčnosť, fallback, bohaté formátovanie a sanitizácia.',
+    description: 'Session history management, multilingual support, fallbacks, rich formatting, and sanitization.',
     skills: ['dialogManagement', 'detectLanguage', 'multilingualSupport', 'fallbackHandler', 'formatRichResponse', 'rateLimitedFeedback', 'securitySanitise'],
     category: 'user',
     enabled: true,
@@ -93,7 +93,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'security-devops',
     name: 'Security & DevOps Toolkit',
     version: '1.1.0',
-    description: 'Audit kódu, refactoring, kontrola SQL dotazov, kryptografické hashe, semver a JWT analýza.',
+    description: 'Code auditing, refactoring, SQL query inspection, cryptographic hashes, semver, and JWT decoding.',
     skills: ['codeRefactor', 'sqlValidate', 'cryptoHash', 'diffCompare', 'semverCheck', 'jwtDecode'],
     category: 'security',
     enabled: true,
@@ -103,7 +103,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'data-intelligence',
     name: 'Data Intelligence & Processing',
     version: '1.1.0',
-    description: 'Inteligentná transformácia JSON ciest, RFC CSV parser, štatistika a Base64 kódovanie.',
+    description: 'JSON path transformation, RFC CSV parsing, statistics, and Base64 encoding/decoding.',
     skills: ['jsonTransform', 'csvParse', 'statistics', 'analyzeText', 'base64Codec'],
     category: 'analytics',
     enabled: true,
@@ -113,7 +113,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'web-standards',
     name: 'Web Standards & Network Defense',
     version: '1.1.0',
-    description: 'Sanitizácia HTML, Markdown kompilátor, analýza URL a validácia IP adries.',
+    description: 'HTML sanitization, Markdown compiler, URL parsing, and IP address validation.',
     skills: ['htmlSanitize', 'markdownToHtml', 'urlParse', 'ipCheck', 'colorPalette'],
     category: 'web',
     enabled: true,
@@ -123,7 +123,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'cloud-worker-ops',
     name: 'Cloudflare Worker Operations & Telemetry',
     version: '1.1.0',
-    description: 'Telemetria workerov, hodnotenie latencie, chybovosti a ochrana pred preťažením.',
+    description: 'Worker telemetry, latency and error-rate evaluation, and overload protection.',
     skills: ['cloudMetricEvaluate', 'checkHttpStatus', 'circuitBreaker', 'rateLimiter', 'recordMetrics'],
     category: 'cloud',
     enabled: true,
@@ -133,7 +133,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'gemini-developer-pack',
     name: 'Gemini Developer Agent & Automation Suite',
     version: '1.0.0',
-    description: 'Vývoj a správa Trinity cez Gemini: diagnostika, spúšťanie overených príkazov, inšpekcia súborov a nasadzovanie.',
+    description: 'Trinity development and operations via Gemini: diagnostics, verified commands, file inspection, and deployment.',
     skills: ['geminiDevStatus', 'geminiDevRunCommand', 'geminiDevFileInspect', 'geminiDevDeploy'],
     category: 'automation',
     enabled: true,
@@ -143,7 +143,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'ai-studio-builder',
     name: 'AI Studio Builder Plugin',
     version: '1.0.0',
-    description: 'Copilot agent vytvára, upravuje a vypisuje weby v Trinity AI Studio.',
+    description: 'Copilot agent builds, revises, and lists web apps in Trinity AI Studio.',
     skills: ['aiStudioBuild', 'aiStudioRevise', 'aiStudioList'],
     category: 'automation',
     enabled: true,
@@ -153,7 +153,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'copilot-studio-agent',
     name: 'Microsoft Copilot Studio Agent (Direct Line)',
     version: '1.0.0',
-    description: 'Trinity kladie otázky agentovi z Microsoft Copilot Studio cez webový kanál Direct Line.',
+    description: 'Trinity queries a Microsoft Copilot Studio agent over the Direct Line web channel.',
     skills: ['copilotStudioAsk'],
     category: 'integration',
     enabled: true,
@@ -163,18 +163,17 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'productivity-plus',
     name: 'Productivity Plus',
     version: '1.0.0',
-    description: 'Praktické nástroje: slug, čas čítania, extraktívne zhrnutie, rozdiel dátumov a cron plán.',
+    description: 'Practical utilities: slugify, reading time, extractive summary, date diff, and cron scheduling.',
     skills: ['slugify', 'readingTime', 'extractiveSummary', 'dateDiff', 'cronNextRuns'],
     category: 'analytics',
     enabled: true,
     required: false
-  }
-,
+  },
   {
     id: 'developer-toolbox',
     name: 'Developer Engineering & Syntax Toolbox',
     version: '1.0.0',
-    description: 'Nástroje pre vývojárov: testovanie a ladenie regulárnych výrazov, validácia JSON schém a metrická analýza kódu.',
+    description: 'Developer utilities: regular expression testing/debugging, JSON Schema validation, and code snippet metrics.',
     skills: ['regexTester', 'jsonSchemaValidate', 'codeSnippetAnalyze'],
     category: 'engineering',
     enabled: true,
@@ -184,7 +183,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'entertainment-arcade',
     name: 'Interactive Entertainment & Gaming Arcade',
     version: '1.0.0',
-    description: 'Zábavný herný balík: textový RPG quest a dungeon master, vedomostný kvíz a generátor logických hádaniek.',
+    description: 'Interactive gaming pack: text RPG quest and dungeon master, trivia quiz engine, and logic riddle generator.',
     skills: ['rpgQuestMaster', 'triviaQuizEngine', 'riddleGenerator'],
     category: 'entertainment',
     enabled: true,
@@ -194,7 +193,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'education-academy',
     name: 'Education, Language & Science Academy',
     version: '1.0.0',
-    description: 'Vzdelávací modul: interaktívny jazykový lektor, krokové matematické rozbory a Leitner kartičkový systém.',
+    description: 'Learning module: interactive language tutor, step-by-step math explanations, and Leitner flashcard deck.',
     skills: ['languageTutor', 'mathConceptExplainer', 'flashcardStudyDeck'],
     category: 'education',
     enabled: true,
@@ -204,7 +203,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'lifestyle-wellness',
     name: 'Lifestyle, Habits & Wellness Coach',
     version: '1.0.0',
-    description: 'Osobný rozvoj a zdravie: sledovanie návykov a streakov, výpočet makroživín (BMR/TDEE) a riadené dychové cvičenia.',
+    description: 'Personal growth and wellness: habit and streak tracking, BMR/TDEE macro calculation, and guided breathing.',
     skills: ['habitForge', 'nutritionMacroCalc', 'breathFocusCoach'],
     category: 'lifestyle',
     enabled: true,
@@ -214,7 +213,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'creative-studio-plus',
     name: 'Creative Studio & Screenplay Workshop',
     version: '1.0.0',
-    description: 'Kreatívna tvorba: generátor rýmov a poetických štruktúr a formátovač scenárov podľa štandardov.',
+    description: 'Creative toolkit: rhyme and poetic structure generator and standard screenplay formatter.',
     skills: ['rhymePoemCraft', 'screenplayFormatter'],
     category: 'creative',
     enabled: true,
@@ -224,7 +223,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'science-explorer',
     name: 'Science & Fundamental Physics Explorer',
     version: '1.0.0',
-    description: 'Vedecký modul: periodická tabuľka chemických prvkov a presné univerzálne fyzikálne konštanty.',
+    description: 'Scientific module: periodic table of chemical elements and exact universal physical constants.',
     skills: ['periodicTableLookup', 'physicsConstants'],
     category: 'science',
     enabled: true,
@@ -234,7 +233,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'azure-foundry-agent',
     name: 'Azure AI Foundry Agent & Knowledge Bridge',
     version: '1.0.0',
-    description: 'Prepojenie Trinity s Microsoft Azure AI Foundry Agent Service (DA-RG-australiacentral) a Knowledge Indexom.',
+    description: 'Connects Trinity to Microsoft Azure AI Foundry Agent Service (DA-RG-australiacentral) and the Knowledge Index.',
     skills: ['azureFoundryAgentSync', 'azureKnowledgeSearch', 'azureIndexAudit'],
     category: 'integration',
     enabled: true,
@@ -244,7 +243,7 @@ export const BUILTIN_COPILOT_PLUGINS = [
     id: 'antigravity-suite',
     name: 'Google Antigravity Agentic Tool Suite',
     version: '1.0.0',
-    description: 'Kompletná sada agentických nástrojov Antigravity (read_file, write_file, edit_file, run_command, manage_task, search_marketplace).',
+    description: 'Full Antigravity agentic tool suite (read_file, write_file, edit_file, run_command, manage_task, search_marketplace).',
     skills: ['antigravityReadFile', 'antigravityWriteFile', 'antigravityEditFile', 'antigravityRunCommand', 'antigravityManageTask', 'antigravitySearchMarketplace'],
     category: 'engineering',
     enabled: true,
@@ -262,11 +261,11 @@ class CopilotPluginRegistry {
 
   register(plugin) {
     if (!plugin?.id || !plugin?.name) {
-      throw new Error('Plugin musí obsahovať aspoň id a name.');
+      throw new Error('Plugin must include at least id and name.');
     }
     const existing = this._plugins.get(plugin.id);
     if (existing?.required) {
-      throw new Error(`Povinný systémový plugin '${plugin.id}' nie je možné prepísať.`);
+      throw new Error(`Required system plugin '${plugin.id}' cannot be overwritten.`);
     }
     this._plugins.set(plugin.id, {
       ...plugin,
@@ -287,16 +286,16 @@ class CopilotPluginRegistry {
 
   enable(id) {
     const plugin = this._plugins.get(id);
-    if (!plugin) throw new Error(`Plugin '${id}' neexistuje.`);
+    if (!plugin) throw new Error(`Plugin '${id}' does not exist.`);
     plugin.enabled = true;
     return plugin;
   }
 
   disable(id) {
     const plugin = this._plugins.get(id);
-    if (!plugin) throw new Error(`Plugin '${id}' neexistuje.`);
+    if (!plugin) throw new Error(`Plugin '${id}' does not exist.`);
     if (plugin.required) {
-      throw new Error(`Povinný plugin '${id}' nie je možné vypnúť.`);
+      throw new Error(`Required plugin '${id}' cannot be disabled.`);
     }
     plugin.enabled = false;
     return plugin;
@@ -317,5 +316,5 @@ export const copilotPlugins = BUILTIN_COPILOT_PLUGINS;
 
 export function assertCopilotSkillEnabled(name) {
   const owners=copilotPluginRegistry.list().filter(plugin=>plugin.skills?.includes(name));
-  if(owners.length&&!owners.some(plugin=>plugin.enabled))throw new Error(`Plugin pre skill '${name}' je vypnutý.`);
+  if(owners.length&&!owners.some(plugin=>plugin.enabled))throw new Error(`Plugin for skill '${name}' is disabled.`);
 }

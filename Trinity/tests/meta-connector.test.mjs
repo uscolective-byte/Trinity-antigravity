@@ -58,7 +58,7 @@ async function authorize(env,context){
 test('missing setup is explicit and no fake account is connected',async t=>{
  const {env,context,sqlite}=fixture(t);delete env.META_APP_ID;
  const status=await metaStatus(env,context.ownerId,context.origin);assert.equal(status.status,'needs_setup');
- await assert.rejects(()=>beginMetaConnection(env,context),/nie je nastavená/);
+ await assert.rejects(()=>beginMetaConnection(env,context),/not configured yet/);
  assert.equal(sqlite.prepare('SELECT count(*) AS n FROM meta_connections').get().n,0);
 });
 
@@ -72,14 +72,14 @@ test('provider rejection diagnostics contain only static stages and bounded nume
    :valid.fetcher(url,options);
   await assert.rejects(()=>authorize(env,context).then(input=>completeMetaConnection(env,input,rejected)),error=>{
    assert.equal(error.status,502);
-   assert.equal(error.message,'Meta odmietla požiadavku; skontroluj prihlásenie a oprávnenia. [stage='+stage+'; http=400; code=100; subcode=463]');
+   assert.equal(error.message,'Meta rejected the request; verify login and permissions. [stage='+stage+'; http=400; code=100; subcode=463]');
    return true;
   });
  }
  for(const unsafe of [token,'190',-1,1.5,2147483648,{message:token},[190]]){
   await assert.rejects(()=>authorize(env,context).then(input=>completeMetaConnection(env,input,async()=>Response.json({error:{code:unsafe,error_subcode:unsafe,message:env.META_APP_SECRET}},{status:400}))),error=>{
    assert.equal(error.status,502);
-   assert.equal(error.message,'Meta odmietla požiadavku; skontroluj prihlásenie a oprávnenia. [stage=token_exchange; http=400]');
+   assert.equal(error.message,'Meta rejected the request; verify login and permissions. [stage=token_exchange; http=400]');
    return true;
   });
  }
@@ -102,7 +102,7 @@ test('provider redirects never expose credentials, read redirect bodies or persi
    return p.fetcher(url,options);
   };
   await assert.rejects(()=>authorize(env,context).then(input=>completeMetaConnection(env,input,fetcher)),error=>{
-   assert.equal(error.status,502);assert.match(error.message,/presmerovanie/);
+   assert.equal(error.status,502);assert.match(error.message,/redirect/);
    assert.equal(error.message.includes(token),false);assert.equal(error.message.includes(env.META_APP_SECRET),false);return true;
   });
   assert.equal(cancelled,true);assert.equal(calls.length,phase==='exchange'?1:2);
@@ -113,16 +113,16 @@ test('provider redirects never expose credentials, read redirect bodies or persi
 test('real SQL transaction is session/owner bound, one-use and persists encrypted identity evidence',async t=>{
  const {env,context,sqlite}=fixture(t),{calls,fetcher}=provider();
  const input=await authorize(env,context);
- await assert.rejects(()=>completeMetaConnection(env,{...input,ownerId:'other'},fetcher),/inej relácii/);
- await assert.rejects(()=>completeMetaConnection(env,{...input,session:'b'.repeat(64)},fetcher),/inej relácii/);
+ await assert.rejects(()=>completeMetaConnection(env,{...input,ownerId:'other'},fetcher),/another session/);
+ await assert.rejects(()=>completeMetaConnection(env,{...input,session:'b'.repeat(64)},fetcher),/another session/);
  assert.equal(calls.length,0);
  const connected=await completeMetaConnection(env,input,fetcher);
  assert.equal(connected.status,'connected_read_only');assert.equal(connected.publishing_enabled,false);
  assert.equal(connected.pages[0].instagram.username,'creator');assert.equal(connected.account.id,'123');
  assert.equal(JSON.stringify(connected).includes(token),false);assert.equal(JSON.stringify(connected).includes('must-not-escape'),false);
  const stored=sqlite.prepare('SELECT * FROM ops_secret_vault').get();assert.notEqual(stored.secret_ciphertext,token);
- await assert.rejects(()=>getSecretMaterial(env,{ownerId:'other',id:stored.id,provider:'custom'}),/neexistuje/);
- await assert.rejects(()=>completeMetaConnection(env,input,fetcher),/inej relácii/);assert.equal(calls.length,4);
+ await assert.rejects(()=>getSecretMaterial(env,{ownerId:'other',id:stored.id,provider:'custom'}),/neexistuje|not found/i);
+ await assert.rejects(()=>completeMetaConnection(env,input,fetcher),/another session/);assert.equal(calls.length,4);
  assert.equal((await metaStatus(env,'other',context.origin)).status,'not_connected');
 });
 test('a production connection is shared across both domains without reusing OAuth state',async t=>{
@@ -130,7 +130,7 @@ test('a production connection is shared across both domains without reusing OAut
  const dev={...context,origin:'https://auru.dev'};
  const space={...context,origin:'https://auru.space'};
  const p=provider();
- await assert.rejects(()=>authorize(env,dev).then(input=>completeMetaConnection(env,{...input,origin:space.origin},p.fetcher)),/inej relácii/);
+ await assert.rejects(()=>authorize(env,dev).then(input=>completeMetaConnection(env,{...input,origin:space.origin},p.fetcher)),/another session/);
  assert.equal(p.calls.length,0);
  await completeMetaConnection(env,await authorize(env,dev),p.fetcher);
  assert.equal((await metaStatus(env,context.ownerId,space.origin)).status,'connected_read_only');
@@ -141,16 +141,16 @@ test('a production connection is shared across both domains without reusing OAut
 test('expired state, changed app configuration and denied scopes fail closed',async t=>{
  const {env,context,sqlite}=fixture(t),p=provider();
  const expired=await authorize(env,context);sqlite.exec('UPDATE meta_oauth_transactions SET expires_at=0');
- await assert.rejects(()=>completeMetaConnection(env,expired,p.fetcher),/vypršalo/);assert.equal(p.calls.length,0);
+ await assert.rejects(()=>completeMetaConnection(env,expired,p.fetcher),/expired/);assert.equal(p.calls.length,0);
  const changed=await authorize(env,context);env.META_APP_ID='999';
- await assert.rejects(()=>completeMetaConnection(env,changed,p.fetcher),/inej relácii/);assert.equal(p.calls.length,0);
+ await assert.rejects(()=>completeMetaConnection(env,changed,p.fetcher),/another session/);assert.equal(p.calls.length,0);
  const denied=await authorize(env,context);
- await assert.rejects(()=>completeMetaConnection(env,denied,provider({permissions:['public_profile']}).fetcher),/oprávnenia/);
+ await assert.rejects(()=>completeMetaConnection(env,denied,provider({permissions:['public_profile']}).fetcher),/permissions/);
  assert.equal(sqlite.prepare('SELECT count(*) AS n FROM meta_connections').get().n,0);
 });
 test('identity errors and token revocation never become a fabricated connected account',async t=>{
  const {env,context}=fixture(t);
- await assert.rejects(async()=>completeMetaConnection(env,await authorize(env,context),provider({profile:{}}).fetcher),/identitu/);
+ await assert.rejects(async()=>completeMetaConnection(env,await authorize(env,context),provider({profile:{}}).fetcher),/identity/);
  await completeMetaConnection(env,await authorize(env,context),provider().fetcher);
  await assert.rejects(()=>refreshMetaConnection(env,context,provider({revoked:true}).fetcher),error=>error.status===401&&!error.message.includes(token));
  assert.equal((await metaStatus(env,context.ownerId,context.origin)).status,'reauthorization_required');
@@ -185,7 +185,7 @@ test('revoked/deleted local tokens and changed app settings do not report connec
  env.META_APP_ID='123456';
  sqlite.exec("UPDATE ops_secret_vault SET status='revoked'");
  assert.equal((await metaStatus(env,context.ownerId,context.origin)).status,'reauthorization_required');
- await assert.rejects(()=>refreshMetaConnection(env,context,provider().fetcher),/neexistuje/);
+ await assert.rejects(()=>refreshMetaConnection(env,context,provider().fetcher),/neexistuje|not found/i);
  sqlite.exec('DELETE FROM ops_secret_vault');
  assert.equal((await metaStatus(env,context.ownerId,context.origin)).status,'reauthorization_required');
 });

@@ -68,7 +68,7 @@ export async function executeDevHubCommand(env,ownerId='admin',input) {
     executed:false,
     error:'DEVHUB_EXECUTOR_NOT_CONFIGURED',
     result:{
-      output:'Tento príkaz nedokážem vykonať: chýba overený executor pre '+target+'.'
+      output:'Cannot execute this command: missing verified executor for '+target+'.'
     }
   };
 }

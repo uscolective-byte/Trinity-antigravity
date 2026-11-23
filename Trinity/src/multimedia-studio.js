@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul multimedia-studio.js (Trinity/src/multimedia-studio.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module multimedia-studio.js (Trinity/src/multimedia-studio.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import { z } from 'zod';
 import { createArtifact, createPdfArtifact } from './artifacts.js';
@@ -36,7 +36,7 @@ export const generatePresentationSchema = z.object({
   topic: z.string().trim().min(2).max(2000),
   title: z.string().trim().max(160).optional(),
   subtitle: z.string().trim().max(300).optional(),
-  audience: z.string().trim().max(160).optional().default('Klienti, investori a tím'),
+  audience: z.string().trim().max(160).optional().default('Clients, investors, and team'),
   theme: z.enum(PRESENTATION_THEMES).optional().default('midnight-tech'),
   slides_count: z.number().int().min(4).max(10).optional().default(6),
   key_points: z.array(z.string().trim().max(300)).max(10).optional().default([])
@@ -395,13 +395,13 @@ export async function generateMusicTrack(env, actor, rawInput = {}) {
     seed
   });
 
-  const slug = slugify(title, 'trinity-skladba');
+  const slug = slugify(title, 'trinity-track');
   const filename = `${slug}-${input.genre}-${bpm}bpm.wav`;
   const artifact = await createArtifact(env, {
     filename,
     content: wavBytes,
     contentType: 'audio/wav',
-    notes: `Hudobná skladba (${preset.keyName}, ${bpm} BPM, ${input.duration_sec}s): ${input.prompt}`,
+    notes: `Music track (${preset.keyName}, ${bpm} BPM, ${input.duration_sec}s): ${input.prompt}`,
     createdBy: typeof actor === 'string' ? actor : (actor?.email || 'trinity')
   });
 
@@ -440,20 +440,20 @@ export async function generateMusicTrack(env, actor, rawInput = {}) {
   await saveCreationRecord(env, record);
 
   await recordStepDocument(env, {
-    title: `Hudobná produkcia: ${title}`,
+    title: `Music production: ${title}`,
     category: 'workflow_step',
     step_name: 'generate_music',
     actor: record.created_by,
-    summary: `Vygenerovaná polyfonická skladba vo formáte WAV (${preset.keyName}, ${bpm} BPM, ${input.duration_sec}s).`,
+    summary: `Generated polyphonic WAV track (${preset.keyName}, ${bpm} BPM, ${input.duration_sec}s).`,
     content: [
-      `# 🎵 Hudobná skladba: ${title}`,
+      `# 🎵 Music Track: ${title}`,
       ``,
-      `- **Žáner a tónina:** ${preset.keyName}`,
+      `- **Genre & Key:** ${preset.keyName}`,
       `- **Tempo:** ${bpm} BPM`,
-      `- **Dĺžka:** ${input.duration_sec} sekúnd (22.05 kHz · 16-bit PCM WAV)`,
-      `- **Zadanie:** ${input.prompt}`,
-      `- **Prehrať / Stiahnuť WAV:** [Stiahnuť ${filename}](${artifact.download_url})`,
-      `- **Priamy stream:** \`${artifact.url}\``
+      `- **Duration:** ${input.duration_sec} seconds (22.05 kHz · 16-bit PCM WAV)`,
+      `- **Prompt:** ${input.prompt}`,
+      `- **Play / Download WAV:** [Download ${filename}](${artifact.download_url})`,
+      `- **Direct Stream:** \`${artifact.url}\``
     ].join('\n'),
     receipt_id: `music:${artifact.id}`,
     tags: ['multimedia', 'music', input.genre]
@@ -703,12 +703,12 @@ export function buildVideoScenes(prompt, title, style, scenesCount = 4, duration
     .filter(s => s.length > 3);
 
   const defaultTemplates = [
-    { badge: 'SCÉNA 01 · ÚVOD & VÍZIA', heading: title || 'Nová éra digitálnej inteligencie', caption: sentences[0] || cleanPrompt },
-    { badge: 'SCÉNA 02 · DYNAMIKA & TECHNOLÓGIA', heading: 'Architektúra a živý výkon v reálnom čase', caption: sentences[1] || `Vizualizácia kľúčových prvkov: ${cleanPrompt.slice(0, 90)}` },
-    { badge: 'SCÉNA 03 · HODNOTA & DOPAD', heading: 'Merateľné výsledky, dizajn a automatizácia', caption: sentences[2] || 'Prepojenie umelej inteligencie, cloudu a kreatívnej produkcie.' },
-    { badge: 'SCÉNA 04 · FINÁLE & VÝZVA K AKCII', heading: 'Trinity Creative Studio · Budúcnosť je tu', caption: sentences[3] || 'Pripravené na okamžité nasadenie a zdieľanie.' },
-    { badge: 'SCÉNA 05 · ROZŠÍRENÁ PERSPEKTÍVA', heading: 'Globálna škálovateľnosť na Cloudflare Edge', caption: sentences[4] || 'Rýchlosť, bezpečnosť a nekonečné možnosti tvorby.' },
-    { badge: 'SCÉNA 06 · ZÁVEREČNÁ SYNTÉZA', heading: title || 'Trinity 11.0 Motion Engine', caption: sentences[5] || cleanPrompt }
+    { badge: 'SCENE 01 · INTRO & VISION', heading: title || 'New Era of Digital Intelligence', caption: sentences[0] || cleanPrompt },
+    { badge: 'SCENE 02 · DYNAMICS & TECHNOLOGY', heading: 'Architecture and Real-Time Performance', caption: sentences[1] || `Visualizing core elements: ${cleanPrompt.slice(0, 90)}` },
+    { badge: 'SCENE 03 · VALUE & IMPACT', heading: 'Measurable Results, Design & Automation', caption: sentences[2] || 'Connecting artificial intelligence, cloud infrastructure, and creative production.' },
+    { badge: 'SCENE 04 · FINALE & CALL TO ACTION', heading: 'Trinity Creative Studio · Built for Scale', caption: sentences[3] || 'Ready for immediate deployment and sharing.' },
+    { badge: 'SCENE 05 · EXPANDED PERSPECTIVE', heading: 'Global Scalability on Cloudflare Edge', caption: sentences[4] || 'Speed, security, and limitless creative workflows.' },
+    { badge: 'SCENE 06 · FINAL SYNTHESIS', heading: title || 'Trinity 11.0 Motion Engine', caption: sentences[5] || cleanPrompt }
   ];
 
   const scenes = [];
@@ -719,7 +719,7 @@ export function buildVideoScenes(prompt, title, style, scenesCount = 4, duration
     scenes.push({
       index: i + 1,
       scene_index: i + 1,
-      badge: `SCÉNA 0${i + 1} · ${style.toUpperCase()}`,
+      badge: `SCENE 0${i + 1} · ${style.toUpperCase()}`,
       heading,
       title: heading,
       subtitle,
@@ -784,14 +784,14 @@ export function renderInteractiveVideoPlayerHtml({ title, prompt, style = 'cinem
   </div>
   <div class="controls">
     <div class="btn-group">
-      <button type="button" class="primary" id="play-btn">▶ Prehrať so zvukom</button>
-      <button type="button" id="restart-btn">↺ Od začiatku</button>
-      <button type="button" id="mute-btn">🔊 Zvuk ZAP</button>
+      <button type="button" class="primary" id="play-btn">▶ Play with audio</button>
+      <button type="button" id="restart-btn">↺ Restart</button>
+      <button type="button" id="mute-btn">🔊 Sound ON</button>
     </div>
     <div class="progress-wrap" id="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
     <div class="btn-group">
-      <button type="button" id="record-webm-btn" title="Nahrá a stiahne skutočné .webm video">⬇ Exportovať .WebM Video</button>
-      <button type="button" id="fs-btn">⛶ Celá obrazovka</button>
+      <button type="button" id="record-webm-btn" title="Records and downloads a real .webm video">⬇ Export .WebM Video</button>
+      <button type="button" id="fs-btn">⛶ Fullscreen</button>
     </div>
   </div>
   <div class="scenes-strip" id="scenes-strip"></div>
@@ -997,7 +997,7 @@ requestAnimationFrame(drawFrame);
 document.getElementById('play-btn').onclick = () => {
   initAudio();
   playing = !playing;
-  document.getElementById('play-btn').textContent = playing ? '⏸ Pozastaviť' : '▶ Prehrať so zvukom';
+  document.getElementById('play-btn').textContent = playing ? '⏸ Pause' : '▶ Play with audio';
 };
 document.getElementById('restart-btn').onclick = () => {
   initAudio();
@@ -1007,7 +1007,7 @@ document.getElementById('restart-btn').onclick = () => {
 document.getElementById('mute-btn').onclick = () => {
   initAudio();
   soundEnabled = !soundEnabled;
-  document.getElementById('mute-btn').textContent = soundEnabled ? '🔊 Zvuk ZAP' : '🔇 Stlmené';
+  document.getElementById('mute-btn').textContent = soundEnabled ? '🔊 Sound ON' : '🔇 Muted';
 };
 document.getElementById('progress-wrap').onclick = (e) => {
   const rect = e.currentTarget.getBoundingClientRect();
@@ -1028,7 +1028,7 @@ document.getElementById('record-webm-btn').onclick = () => {
     return;
   }
   if (!canvas.captureStream || typeof MediaRecorder === 'undefined') {
-    alert('Tento prehliadač nepodporuje priamy Canvas MediaRecorder export.');
+    alert('This browser does not support direct Canvas MediaRecorder export.');
     return;
   }
   const preferredTypes = [
@@ -1065,7 +1065,7 @@ document.getElementById('record-webm-btn').onclick = () => {
     a.download = '${slugify(title, 'trinity-video')}.' + ext;
     a.click();
     btn.disabled = false;
-    btn.textContent = '⬇ Exportovať .WebM Video';
+    btn.textContent = '⬇ Export .WebM Video';
     mediaRecorderInstance = null;
   };
 
@@ -1075,7 +1075,7 @@ document.getElementById('record-webm-btn').onclick = () => {
   mediaRecorderInstance.start();
 
   let remaining = Math.ceil(TOTAL_SEC);
-  btn.textContent = '⏹ Zastaviť (nahrávam ' + remaining + 's)';
+  btn.textContent = '⏹ Stop (recording ' + remaining + 's)';
   recordTimerInterval = setInterval(() => {
     remaining--;
     if (remaining <= 0) {
@@ -1083,7 +1083,7 @@ document.getElementById('record-webm-btn').onclick = () => {
         mediaRecorderInstance.stop();
       }
     } else {
-      btn.textContent = '⏹ Zastaviť (nahrávam ' + remaining + 's)';
+      btn.textContent = '⏹ Stop (recording ' + remaining + 's)';
     }
   }, 1000);
 };
@@ -1129,7 +1129,7 @@ export async function generateVideoCreation(env, actor, rawInput = {}) {
     filename: videoFilename,
     content: videoBytes,
     contentType: 'video/webm',
-    notes: `Skutočné 16:9 WebM Video (${input.style}, ${scenes.length} scén, ${input.duration_sec}s · ${providerName}): ${input.prompt}`,
+    notes: `Native 16:9 WebM Video (${input.style}, ${scenes.length} scenes, ${input.duration_sec}s · ${providerName}): ${input.prompt}`,
     createdBy: typeof actor === 'string' ? actor : (actor?.email || 'trinity')
   });
 
@@ -1164,7 +1164,7 @@ export async function generateVideoCreation(env, actor, rawInput = {}) {
     filename: playerFilename,
     content: html,
     contentType: 'text/html; charset=utf-8',
-    notes: `Kino prehrávač a storyboard (${input.style}, ${scenes.length} scén, ${input.duration_sec}s): ${input.prompt}`,
+    notes: `Interactive cinema player and storyboard (${input.style}, ${scenes.length} scenes, ${input.duration_sec}s): ${input.prompt}`,
     createdBy: typeof actor === 'string' ? actor : (actor?.email || 'trinity')
   });
 
@@ -1201,22 +1201,22 @@ export async function generateVideoCreation(env, actor, rawInput = {}) {
   await saveCreationRecord(env, record);
 
   await recordStepDocument(env, {
-    title: `Video produkcia: ${title}`,
+    title: `Video production: ${title}`,
     category: 'workflow_step',
     step_name: 'generate_video',
     actor: record.created_by,
-    summary: `Vygenerované skutočné 16:9 video (${providerName}, ${input.duration_sec}s, ${videoBytes.byteLength} bajtov) so sprievodným kinom a storyboardom.`,
+    summary: `Generated native 16:9 video (${providerName}, ${input.duration_sec}s, ${videoBytes.byteLength} bytes) with companion cinema player and storyboard.`,
     content: [
-      `# 🎬 Video produkcia: ${title}`,
+      `# 🎬 Video Production: ${title}`,
       ``,
-      `- **Poskytovateľ / Engine:** ${providerName}`,
-      `- **Štýl:** ${input.style}`,
-      `- **Formát & Veľkosť:** WebM VP8 · ${input.duration_sec}s · ${videoBytes.byteLength} B`,
-      `- **Prehrať video stream:** [Spustiť video stream](${videoStreamUrl})`,
-      `- **Stiahnuť súbor .webm:** [Stiahnuť ${videoFilename}](${videoDownloadUrl})`,
-      `- **Interaktívne kino a storyboard:** [Otvoriť kino](${playerArtifact.url})`,
+      `- **Provider / Engine:** ${providerName}`,
+      `- **Style:** ${input.style}`,
+      `- **Format & Size:** WebM VP8 · ${input.duration_sec}s · ${videoBytes.byteLength} B`,
+      `- **Play video stream:** [Launch video stream](${videoStreamUrl})`,
+      `- **Download .webm file:** [Download ${videoFilename}](${videoDownloadUrl})`,
+      `- **Interactive cinema & storyboard:** [Open player](${playerArtifact.url})`,
       ``,
-      `## Storyboard scén`,
+      `## Scene Storyboard`,
       ...scenes.map(s => `- **${s.badge} — ${s.heading}:** ${s.subtitle}`)
     ].join('\n'),
     receipt_id: `video:${videoArtifact.id}`,
@@ -1278,8 +1278,8 @@ export async function generateVideoCreation(env, actor, rawInput = {}) {
 // 3. INTERACTIVE 16:9 PRESENTATION / SLIDE DECK + PDF EXPORT
 // ============================================================================
 function buildPresentationSlides({ topic, title, subtitle, audience, slidesCount = 6, keyPoints = [] }) {
-  const mainTitle = title || `Prezentácia: ${topic.slice(0, 64)}`;
-  const sub = subtitle || `Strategický prehľad, architektúra a kľúčové prínosy pre: ${audience}`;
+  const mainTitle = title || `Presentation: ${topic.slice(0, 64)}`;
+  const sub = subtitle || `Strategic overview, architecture, and key benefits for: ${audience}`;
   const rawSentences = String(topic || '')
     .split(/(?<=[.!?])\s+|\s*[,;–—]\s*/)
     .map(s => s.trim())
@@ -1294,101 +1294,101 @@ function buildPresentationSlides({ topic, title, subtitle, audience, slidesCount
       heading: mainTitle,
       lead: sub,
       bullets: [
-        points[0] || `Hlavná téma a vízia: ${topic.slice(0, 120)}`,
-        `Cieľová skupina: ${audience}`,
-        'Kompletný návrh, kľúčové metriky a akčný plán nasadenia'
+        points[0] || `Core theme and vision: ${topic.slice(0, 120)}`,
+        `Target audience: ${audience}`,
+        'Complete proposal, key metrics, and deployment action plan'
       ],
       metrics: [
-        { label: 'CIEĽOVÝ DOPAD', value: '10× Rýchlosť' },
-        { label: 'ARCHITEKTÚRA', value: 'Cloud & AI' },
-        { label: 'STAV', value: 'Pripravené' }
+        { label: 'TARGET IMPACT', value: '10× Speed' },
+        { label: 'ARCHITECTURE', value: 'Cloud & AI' },
+        { label: 'STATUS', value: 'Ready' }
       ],
-      notes: 'Úvodný slajd predstavuje hlavnú víziu, kontext a hodnotovú ponuku.'
+      notes: 'Opening slide presenting the main vision, context, and value proposition.'
     },
     {
       num: 2,
-      kicker: 'SLIDE 02 · VÝZVA & PRÍLEŽITOSŤ NA TRHU',
-      heading: 'Prečo je táto téma kľúčová práve teraz',
-      lead: points[1] || 'Súčasný trh vyžaduje rýchlu adaptáciu, automatizáciu a jasne merateľnú pridanú hodnotu.',
+      kicker: 'SLIDE 02 · MARKET CHALLENGE & OPPORTUNITY',
+      heading: 'Why This Topic Matters Right Now',
+      lead: points[1] || 'Today\'s market requires rapid adaptation, automation, and clearly measurable added value.',
       bullets: [
-        'Eliminácia manuálnych úzkych miest a zastaraných postupov',
-        'Využitie moderných AI nástrojov a okamžitej cloudovej infraštruktúry',
-        'Preukázateľná úspora nákladov a vyššia konverzia u klientov'
+        'Eliminating manual bottlenecks and legacy processes',
+        'Leveraging modern AI tooling and instant cloud infrastructure',
+        'Demonstrable cost savings and higher client conversion'
       ],
       metrics: [
-        { label: 'ÚSPORA ČASU', value: '68 %' },
-        { label: 'DOSTUPNOSŤ', value: '99.9 % Edge' },
-        { label: 'NÁVRATNOSŤ (ROI)', value: '< 3 mesiace' }
+        { label: 'TIME SAVINGS', value: '68 %' },
+        { label: 'AVAILABILITY', value: '99.9 % Edge' },
+        { label: 'PAYBACK (ROI)', value: '< 3 months' }
       ],
-      notes: 'Zdôraznite kontrast medzi starým riešením a novým prístupom.'
+      notes: 'Highlight the contrast between the legacy approach and the new solution.'
     },
     {
       num: 3,
-      kicker: 'SLIDE 03 · ARCHITEKTÚRA & RIEŠENIE',
-      heading: 'Ako funguje navrhované riešenie v praxi',
-      lead: points[2] || `Komplexné riešenie postavené pre: ${mainTitle}`,
+      kicker: 'SLIDE 03 · ARCHITECTURE & SOLUTION',
+      heading: 'How the Proposed Solution Works in Practice',
+      lead: points[2] || `Comprehensive solution designed for: ${mainTitle}`,
       bullets: [
-        '1. Vstupná analýza dát, požiadaviek a cieľov projektu',
-        '2. Automatizované spracovanie, tvorba výstupov a kontrola kvality',
-        '3. Okamžité publikovanie, meranie výsledkov a priebežná optimalizácia'
+        '1. Initial analysis of data, requirements, and project goals',
+        '2. Automated processing, output generation, and quality assurance',
+        '3. Immediate publishing, outcome measurement, and continuous optimization'
       ],
       metrics: [
-        { label: 'FAZA 1', value: 'Analýza & Návrh' },
-        { label: 'FÁZA 2', value: 'Produkcia & AI' },
-        { label: 'FÁZA 3', value: 'Rast & Škálovanie' }
+        { label: 'PHASE 1', value: 'Analysis & Design' },
+        { label: 'PHASE 2', value: 'Production & AI' },
+        { label: 'PHASE 3', value: 'Growth & Scale' }
       ],
-      notes: 'Prejdite tri piliere riešenia krok za krokom.'
+      notes: 'Walk through the three pillars of the solution step by step.'
     },
     {
       num: 4,
-      kicker: 'SLIDE 04 · KĽÚČOVÉ PRÍNOSY & FUNKCIE',
-      heading: 'Hlavné konkurenčné výhody a hodnota',
-      lead: points[3] || 'Spojenie špičkového dizajnu, bezpečnosti a plnej autonómie.',
+      kicker: 'SLIDE 04 · KEY BENEFITS & CAPABILITIES',
+      heading: 'Core Competitive Advantages and Value',
+      lead: points[3] || 'Combining refined design, security, and full autonomy.',
       bullets: [
-        'Okamžitá pripravenosť na produkčné nasadenie bez zložitej údržby',
-        'Bezpečné spracovanie dát a transparentný audit každého kroku',
-        'Jednoduché prepojenie na platobné brány, domény a firemné procesy'
+        'Immediate production readiness without heavy maintenance overhead',
+        'Secure data handling and transparent audit trail for every step',
+        'Seamless integration with payment gateways, domains, and business workflows'
       ],
       metrics: [
-        { label: 'BEZPEČNOSŤ', value: 'AES-GCM 256' },
-        { label: 'INTEGRÁCIA', value: 'API & Webhooks' },
-        { label: 'ŠKÁLOVANIE', value: 'Globálne' }
+        { label: 'SECURITY', value: 'AES-GCM 256' },
+        { label: 'INTEGRATION', value: 'API & Webhooks' },
+        { label: 'SCALING', value: 'Global' }
       ],
-      notes: 'Zamerajte sa na konkrétne benefity pre koncového zákazníka alebo investora.'
+      notes: 'Focus on concrete benefits for end customers or investors.'
     },
     {
       num: 5,
-      kicker: 'SLIDE 05 · EKONOMIKA & PLÁN IMPLEMENTÁCIE',
-      heading: 'Časový harmonogram a obchodný model',
-      lead: points[4] || 'Rozfázovanie projektu do rýchlych a kontrolovateľných míľnikov.',
+      kicker: 'SLIDE 05 · ECONOMICS & IMPLEMENTATION PLAN',
+      heading: 'Delivery Timeline and Business Model',
+      lead: points[4] || 'Phased delivery into fast, verifiable milestones.',
       bullets: [
-        'Týždeň 1–2: Príprava prostredia, prototyp a validácia so zainteresovanými stranami',
-        'Týždeň 3–4: Spustenie ostrej prevádzky, meranie KPI a zber spätnej väzby',
-        'Mesiac 2+: Škálovanie, automatizácia predaja a rozširovanie portfólia'
+        'Week 1–2: Environment setup, prototype, and stakeholder validation',
+        'Week 3–4: Production launch, KPI tracking, and feedback collection',
+        'Month 2+: Scaling, sales automation, and portfolio expansion'
       ],
       metrics: [
-        { label: 'ŠTART PROJEKTU', value: 'Okamžite' },
-        { label: 'PRVÝ VÝSTUP', value: 'Do 48 hodín' },
-        { label: 'CIEĽ', value: 'Dlhodobý rast' }
+        { label: 'PROJECT KICKOFF', value: 'Immediate' },
+        { label: 'FIRST DELIVERY', value: 'Within 48h' },
+        { label: 'GOAL', value: 'Long-term growth' }
       ],
-      notes: 'Ukážte realistický a rýchly plán dodania.'
+      notes: 'Present a realistic and rapid delivery plan.'
     },
     {
       num: 6,
-      kicker: 'SLIDE 06 · ZÁVER & ĎALŠIE KROKY',
-      heading: 'Zhrnutie a výzva k spolupráci',
-      lead: points[5] || `Ďakujeme za pozornosť · ${mainTitle}`,
+      kicker: 'SLIDE 06 · CONCLUSION & NEXT STEPS',
+      heading: 'Summary and Call to Action',
+      lead: points[5] || `Thank you for your attention · ${mainTitle}`,
       bullets: [
-        'Schválenie cieľového rozsahu a prioritných míľnikov',
-        'Spustenie pilotnej prevádzky a vyhodnotenie prvých metrík',
-        'Kontakt a okamžitá podpora tímu Trinity AI Studio'
+        'Approve target scope and priority milestones',
+        'Launch pilot operation and evaluate initial metrics',
+        'Direct support from the Trinity AI Studio team'
       ],
       metrics: [
-        { label: 'PRIPRAVENOSŤ', value: '100 %' },
-        { label: 'PODPORA', value: '24/7 Trinity AI' },
-        { label: 'AKCIA', value: 'Spustiť dnes →' }
+        { label: 'READINESS', value: '100 %' },
+        { label: 'SUPPORT', value: '24/7 Trinity AI' },
+        { label: 'ACTION', value: 'Start today →' }
       ],
-      notes: 'Záverečný slajd — vyzvite publikum na otázky a potvrdenie ďalšieho kroku.'
+      notes: 'Closing slide — invite questions and confirm the next step.'
     }
   ];
 
@@ -1398,7 +1398,7 @@ function buildPresentationSlides({ topic, title, subtitle, audience, slidesCount
     extra.push({
       ...template,
       num: i + 1,
-      kicker: `SLIDE ${String(i + 1).padStart(2, '0')} · ${template.kicker.split('·')[1]?.trim() || 'PREHĽAD'}`
+      kicker: `SLIDE ${String(i + 1).padStart(2, '0')} · ${template.kicker.split('·')[1]?.trim() || 'OVERVIEW'}`
     });
   }
   return extra;
@@ -1430,17 +1430,17 @@ export function renderPresentationDeckHtml({ title, subtitle, audience, theme = 
       </ul>
       <footer class="slide-footer">
         <span>✦ ${escapeHtml(title)}</span>
-        <span>Publikum: ${escapeHtml(audience)}</span>
+        <span>Audience: ${escapeHtml(audience)}</span>
       </footer>
     </section>
   `).join('\n');
 
   return `<!doctype html>
-<html lang="sk">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${escapeHtml(title)} · Trinity Prezentácia</title>
+<title>${escapeHtml(title)} · Trinity Presentation</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:${pal.bg};color:${pal.text};font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh;display:flex;flex-direction:column}
@@ -1476,11 +1476,11 @@ export function renderPresentationDeckHtml({ title, subtitle, audience, theme = 
   <header class="deck-toolbar">
     <b>📊 ${escapeHtml(title)}</b>
     <div class="deck-actions">
-      <button type="button" id="prev-btn">← Predchádzajúci</button>
+      <button type="button" id="prev-btn">← Previous</button>
       <span id="page-indicator">1 / ${slides.length}</span>
-      <button type="button" class="primary" id="next-btn">Ďalší slajd →</button>
-      <button type="button" id="print-btn">🖨️ Tlačiť / Uložiť PDF</button>
-      <button type="button" id="fs-btn">⛶ Celá obrazovka</button>
+      <button type="button" class="primary" id="next-btn">Next Slide →</button>
+      <button type="button" id="print-btn">🖨️ Print / Save PDF</button>
+      <button type="button" id="fs-btn">⛶ Fullscreen</button>
     </div>
   </header>
   <main class="deck-stage" id="deck-stage">
@@ -1511,8 +1511,8 @@ export function renderPresentationDeckHtml({ title, subtitle, audience, theme = 
 
 export async function generatePresentationDeck(env, actor, rawInput = {}) {
   const input = generatePresentationSchema.parse(rawInput);
-  const title = input.title || `Prezentácia: ${input.topic.slice(0, 56)}`;
-  const subtitle = input.subtitle || `Kompletná prezentácia a strategický prehľad (${input.audience})`;
+  const title = input.title || `Presentation: ${input.topic.slice(0, 56)}`;
+  const subtitle = input.subtitle || `Complete presentation and strategic overview (${input.audience})`;
   const slides = buildPresentationSlides({
     topic: input.topic,
     title,
@@ -1530,15 +1530,15 @@ export async function generatePresentationDeck(env, actor, rawInput = {}) {
     slides
   });
 
-  const slug = slugify(title, 'trinity-prezentacia');
-  const htmlFilename = `${slug}-prezentacia.html`;
-  const pdfFilename = `${slug}-prezentacia.pdf`;
+  const slug = slugify(title, 'trinity-presentation');
+  const htmlFilename = `${slug}-presentation.html`;
+  const pdfFilename = `${slug}-presentation.pdf`;
 
   const htmlArtifact = await createArtifact(env, {
     filename: htmlFilename,
     content: html,
     contentType: 'text/html; charset=utf-8',
-    notes: `Interaktívna 16:9 HTML5 prezentácia (${slides.length} slajdov, téma ${input.theme}): ${input.topic}`,
+    notes: `Interactive 16:9 HTML5 presentation (${slides.length} slides, theme ${input.theme}): ${input.topic}`,
     createdBy: typeof actor === 'string' ? actor : (actor?.email || 'trinity')
   });
 
@@ -1553,7 +1553,7 @@ export async function generatePresentationDeck(env, actor, rawInput = {}) {
     title,
     content: pdfTextContent,
     author: 'Trinity Presentation Studio',
-    notes: `PDF verzia prezentácie (${slides.length} slajdov): ${title}`,
+    notes: `PDF presentation export (${slides.length} slides): ${title}`,
     createdBy: typeof actor === 'string' ? actor : (actor?.email || 'trinity')
   });
 
@@ -1583,21 +1583,21 @@ export async function generatePresentationDeck(env, actor, rawInput = {}) {
   await saveCreationRecord(env, record);
 
   await recordStepDocument(env, {
-    title: `Prezentácia (Slide Deck + PDF): ${title}`,
+    title: `Presentation (Slide Deck + PDF): ${title}`,
     category: 'workflow_step',
     step_name: 'generate_presentation',
     actor: record.created_by,
-    summary: `Vygenerovaná ${slides.length}-slajdová interaktívna 16:9 prezentácia (.html) aj tlačový PDF dokument (.pdf).`,
+    summary: `Generated ${slides.length}-slide interactive 16:9 presentation (.html) and printable PDF document (.pdf).`,
     content: [
-      `# 📊 Prezentácia: ${title}`,
+      `# 📊 Presentation: ${title}`,
       ``,
-      `- **Podtitulok:** ${subtitle}`,
-      `- **Publikum:** ${input.audience}`,
-      `- **Téma:** ${input.theme} (${slides.length} slajdov)`,
-      `- **Interaktívny Slide Deck (16:9 HTML5):** [Otvoriť prezentáciu](${htmlArtifact.url})`,
-      `- **PDF Export na stiahnutie:** [Stiahnuť PDF (${pdfFilename})](${pdfArtifact.download_url})`,
+      `- **Subtitle:** ${subtitle}`,
+      `- **Audience:** ${input.audience}`,
+      `- **Theme:** ${input.theme} (${slides.length} slides)`,
+      `- **Interactive Slide Deck (16:9 HTML5):** [Open presentation](${htmlArtifact.url})`,
+      `- **Downloadable PDF Export:** [Download PDF (${pdfFilename})](${pdfArtifact.download_url})`,
       ``,
-      `## Obsah slajdov`,
+      `## Slide Contents`,
       ...slides.map(s => `### ${s.kicker} — ${s.heading}\n${s.lead}\n${s.bullets.map(b => `- ${b}`).join('\n')}`)
     ].join('\n'),
     receipt_id: `presentation:${htmlArtifact.id}`,
@@ -1676,7 +1676,7 @@ export function renderHighResSvgArtwork({ title, prompt, style = 'photorealistic
 
 export async function generatePhotoCreation(env, actor, rawInput = {}) {
   const input = generatePhotoStudioSchema.parse(rawInput);
-  const title = input.title || `Fotografia: ${input.prompt.slice(0, 48)}`;
+  const title = input.title || `Photo: ${input.prompt.slice(0, 48)}`;
   const stylePrompts = {
     photorealistic: 'photorealistic, ultra-detailed 8k photography, natural studio lighting, sharp focus',
     cinematic: 'cinematic film still, anamorphic lens, dramatic volumetric lighting, color graded',
@@ -1728,10 +1728,10 @@ export async function generatePhotoCreation(env, actor, rawInput = {}) {
       aspectRatio: input.aspect_ratio
     });
     const art = await createArtifact(env, {
-      filename: `${slugify(title, 'trinity-foto')}.svg`,
+      filename: `${slugify(title, 'trinity-photo')}.svg`,
       content: svg,
       contentType: 'image/svg+xml; charset=utf-8',
-      notes: `Vizuálna grafika (${input.style}): ${input.prompt}`,
+      notes: `Visual artwork (${input.style}): ${input.prompt}`,
       createdBy: typeof actor === 'string' ? actor : (actor?.email || 'trinity')
     });
     artifactId = art.id;
@@ -1762,18 +1762,18 @@ export async function generatePhotoCreation(env, actor, rawInput = {}) {
   await saveCreationRecord(env, record);
 
   await recordStepDocument(env, {
-    title: `Fotografia & Vizuál: ${title}`,
+    title: `Photo & Visual: ${title}`,
     category: 'workflow_step',
     step_name: 'generate_photo',
     actor: record.created_by,
-    summary: `Vygenerovaná fotografia/vizuál v štýle ${input.style} (${input.aspect_ratio}).`,
+    summary: `Generated photo/visual in ${input.style} style (${input.aspect_ratio}).`,
     content: [
-      `# 📸 Fotografia & Vizuál: ${title}`,
+      `# 📸 Photo & Visual: ${title}`,
       ``,
-      `- **Štýl:** ${input.style} (${input.aspect_ratio})`,
+      `- **Style:** ${input.style} (${input.aspect_ratio})`,
       `- **Model:** \`${usedModel}\``,
-      `- **Zadanie:** ${input.prompt}`,
-      `- **Odkaz na obrázok:** [Zobraziť obrázok](${url})`
+      `- **Prompt:** ${input.prompt}`,
+      `- **Image link:** [View image](${url})`
     ].join('\n'),
     receipt_id: `photo:${artifactId}`,
     tags: ['multimedia', 'photo', input.style]
@@ -1814,21 +1814,21 @@ export async function generatePhotoCreation(env, actor, rawInput = {}) {
 }
 
 // ============================================================================
-// 5. CREATIVE PACKS ("A TAKÉ": INFOGRAPHICS, SOCIAL MEDIA PACKS, STORYBOARDS)
+// 5. CREATIVE PACKS (INFOGRAPHICS, SOCIAL MEDIA PACKS, STORYBOARDS, BRAND KITS)
 // ============================================================================
 export async function generateCreativePack(env, actor, rawInput = {}) {
   const input = generateCreativePackSchema.parse(rawInput);
   const typeLabels = {
-    infographic: 'Interaktívna Infografika & Plagát',
-    social_pack: 'Kampaň pre Sociálne Siete (Instagram · LinkedIn · TikTok)',
-    storyboard: 'Režisérsky Storyboard & Scenár',
-    brand_kit: 'Brand Identity & Dizajn Manuál'
+    infographic: 'Interactive Infographic & Poster',
+    social_pack: 'Social Media Campaign (Instagram · LinkedIn · TikTok)',
+    storyboard: 'Director Storyboard & Script',
+    brand_kit: 'Brand Identity & Design System'
   };
   const label = typeLabels[input.pack_type] || typeLabels.infographic;
   const title = input.title || `${label}: ${input.prompt.slice(0, 46)}`;
 
   const html = `<!doctype html>
-<html lang="sk">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1854,15 +1854,15 @@ export async function generateCreativePack(env, actor, rawInput = {}) {
     <p>${escapeHtml(input.prompt)}</p>
   </header>
   <section class="grid">
-    <article class="card"><h3>1. Hlavný vizuálny koncept & Hook</h3><p>Výrazná titulná kompozícia navrhnutá pre okamžité zaujatie pozornosti do 3 sekúnd. Kľúčové posolstvo: <b>${escapeHtml(input.prompt.slice(0, 120))}</b></p><span class="tag">Hero Visual · 1080×1080 & 16:9</span></article>
-    <article class="card"><h3>2. Štruktúrované dáta & Argumentácia</h3><p>Prehľadné rozdelenie na 3 hlavné piliere hodnoty, vizuálne KPI ukazovatele a jasný kontrast pred/po nasadení.</p><span class="tag">Infografika & Dáta</span></article>
-    <article class="card"><h3>3. Copywriting, Hashtagy & Výzva k akcii (CTA)</h3><p>Pripravené texty pre posty, príbehy (Stories/Reels) a priamu konverziu klientov.</p><span class="tag">#TrinityAI #DigitalStudio #Inovacie</span></article>
+    <article class="card"><h3>1. Core Visual Concept & Hook</h3><p>High-impact hero composition engineered to capture attention within 3 seconds. Core message: <b>${escapeHtml(input.prompt.slice(0, 120))}</b></p><span class="tag">Hero Visual · 1080×1080 & 16:9</span></article>
+    <article class="card"><h3>2. Structured Data & Messaging</h3><p>Clear breakdown into 3 core value pillars, visual KPI indicators, and crisp before/after contrast.</p><span class="tag">Infographic & Data</span></article>
+    <article class="card"><h3>3. Copywriting, Hashtags & Call to Action (CTA)</h3><p>Ready-to-publish copy for posts, Stories/Reels, and direct client conversion.</p><span class="tag">#TrinityAI #DigitalStudio #Innovation</span></article>
   </section>
 </div>
 </body>
 </html>`;
 
-  const slug = slugify(title, 'trinity-kreativny-balik');
+  const slug = slugify(title, 'trinity-creative-pack');
   const artifact = await createArtifact(env, {
     filename: `${slug}-${input.pack_type}.html`,
     content: html,
@@ -1889,12 +1889,12 @@ export async function generateCreativePack(env, actor, rawInput = {}) {
   await saveCreationRecord(env, record);
 
   await recordStepDocument(env, {
-    title: `Kreatívny balík (${label}): ${title}`,
+    title: `Creative Pack (${label}): ${title}`,
     category: 'workflow_step',
     step_name: 'generate_creative_pack',
     actor: record.created_by,
-    summary: `Vygenerovaný kreatívny balík typu ${input.pack_type}: ${input.prompt}`,
-    content: `# ✨ ${title}\n\n- **Typ:** ${label}\n- **Zadanie:** ${input.prompt}\n- **Otvoriť výstup:** [${artifact.filename}](${artifact.url})`,
+    summary: `Generated creative pack of type ${input.pack_type}: ${input.prompt}`,
+    content: `# ✨ ${title}\n\n- **Type:** ${label}\n- **Prompt:** ${input.prompt}\n- **Open output:** [${artifact.filename}](${artifact.url})`,
     receipt_id: `creative:${artifact.id}`,
     tags: ['multimedia', input.pack_type]
   });

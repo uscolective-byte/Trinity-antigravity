@@ -3,11 +3,11 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul os-registry.js (Trinity/src/os-registry.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module os-registry.js (Trinity/src/os-registry.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * TRINITY 12.0 SOVEREIGN AI OPERATING SYSTEM REGISTRY & SCHEDULER
- * Riadiaca vrstva pre Agent Registry, Capability-First Scheduler, Policy Engine a Knowledge Graph.
+ * Control layer for Agent Registry, Capability-First Scheduler, Policy Engine, and Knowledge Graph.
  */
 import {z} from 'zod';
 import {HttpError} from './security.js';
@@ -89,10 +89,10 @@ export function sanitizeD1(val) {
 }
 
 /**
- * Policy Engine: Validácia deklaratívnych invariantov
+ * Policy Engine: Validation of declarative invariants
  */
 export async function isPolicyEnabled(env, policyName) {
-  if (!env?.DB?.prepare) return true; // Fail-safe pre in-memory prostredie
+  if (!env?.DB?.prepare) return true; // Fail-safe for in-memory environments
   try {
     const row = await env.DB.prepare('SELECT enabled FROM sovereign_policies WHERE name=?').bind(sanitizeD1(policyName)).first();
     return row ? Boolean(row.enabled) : true;
@@ -112,18 +112,18 @@ export function enforceCompletedEvidence(status, result) {
 }
 
 /**
- * Agent Registry: Registrácia a správa stavov
+ * Agent Registry: Agent registration and state management
  */
 export async function registerAgent(env, input) {
   const {agent_id,name,type,version,status,endpoint,owner,capabilities}=agentRegistrationSchema.parse(input);
   const now = Date.now();
   if (env?.DB?.prepare) {
     const existing=await env.DB.prepare('SELECT owner FROM agents WHERE agent_id=?').bind(agent_id).first();
-    if(existing&&existing.owner!==owner)throw new HttpError(409,'ID agenta už patrí inému vlastníkovi.');
+    if(existing&&existing.owner!==owner)throw new HttpError(409,'Agent ID already belongs to another owner.');
     const capabilityRows=[];
     for(const capName of capabilities){
       const cap=await env.DB.prepare('SELECT capability_id FROM capabilities WHERE name=?').bind(capName).first();
-      if(!cap?.capability_id)throw new HttpError(400,`Neznáma capability: ${capName}`);
+      if(!cap?.capability_id)throw new HttpError(400,`Unknown capability: ${capName}`);
       capabilityRows.push(cap);
     }
     await env.DB.prepare(`
@@ -148,7 +148,7 @@ export async function registerAgent(env, input) {
       now
     ).run();
 
-    // Registrácia nahrádza capability set, aby odobraté oprávnenia nezostali aktívne.
+    // Registration replaces the capability set so revoked permissions do not remain active.
     await env.DB.prepare('DELETE FROM agent_capabilities WHERE agent_id=?').bind(agent_id).run();
     for (const cap of capabilityRows) {
       await env.DB.prepare(`
@@ -161,7 +161,7 @@ export async function registerAgent(env, input) {
 }
 
 /**
- * Heartbeat telemetria a stráženie dostupnosti
+ * Heartbeat telemetry and availability tracking
  */
 export async function recordHeartbeat(env, input) {
   const {agent_id,status,active_jobs,latency_ms,cpu_load,memory_load}=heartbeatSchema.parse(input);
@@ -195,7 +195,7 @@ export async function recordHeartbeat(env, input) {
 }
 
 /**
- * Agent Leasing: Zámky úloh s expiračným oknom
+ * Agent Leasing: Expiring task exclusivity locks
  */
 export async function acquireLease(env, input) {
   const {agent_id,job_id,lease_seconds}=leaseSchema.parse(input);
@@ -221,7 +221,7 @@ export async function acquireLease(env, input) {
       expires_at,
       now
     ).first();
-    if(!claimed)throw new Error(`Úloha ${job_id} už má aktívny lease iného agenta.`);
+    if(!claimed)throw new Error(`Job ${job_id} already has an active lease held by another agent.`);
     return claimed;
   }
 
@@ -261,7 +261,7 @@ export async function findBestResource(env,input={}){
 
 export async function publishSovereignEvent(env,input){
   const event=sovereignEventSchema.parse(input);
-  if(!env?.DB?.prepare)throw new Error('Sovereign event ledger nie je dostupný.');
+  if(!env?.DB?.prepare)throw new Error('Sovereign event ledger is not available.');
   const id=crypto.randomUUID(),idempotencyKey=event.idempotency_key||crypto.randomUUID(),occurredAt=Date.now();
   await env.DB.prepare(`INSERT INTO sovereign_events(id,topic,aggregate_type,aggregate_id,payload_json,delivery_status,idempotency_key,occurred_at)
     VALUES(?,?,?,?,?,'pending',?,?) ON CONFLICT(idempotency_key) DO NOTHING`)
@@ -272,19 +272,19 @@ export async function publishSovereignEvent(env,input){
 }
 
 /**
- * Capability-First Scheduler: Vyhľadanie najvhodnejšieho agenta
+ * Capability-First Scheduler: Finds the best-suited agent for required capabilities
  */
 export async function findBestAgentForCapabilities(env, requiredCapabilities = []) {
   if (!Array.isArray(requiredCapabilities) || requiredCapabilities.length === 0) {
-    return { agent_id: null, endpoint: null, rank: 0, strategy: 'missing_requirements', warning: 'Scheduler vyžaduje aspoň jednu capability.' };
+    return { agent_id: null, endpoint: null, rank: 0, strategy: 'missing_requirements', warning: 'Scheduler requires at least one capability.' };
   }
 
   if (!env?.DB?.prepare) {
-    return { agent_id: null, endpoint: null, rank: 0, strategy: 'registry_unavailable', warning: 'Capability registry nie je dostupný.' };
+    return { agent_id: null, endpoint: null, rank: 0, strategy: 'registry_unavailable', warning: 'Capability registry is not available.' };
   }
 
   const now = Date.now();
-  const staleThreshold = now - 60000; // Agent musí mať heartbeat za posledných 60s
+  const staleThreshold = now - 60000; // Agent must have recorded a heartbeat within the last 60s
 
   const placeholders = requiredCapabilities.map(() => '?').join(',');
   const query = `
@@ -311,11 +311,11 @@ export async function findBestAgentForCapabilities(env, requiredCapabilities = [
       endpoint: null,
       rank: 0,
       strategy: 'no_capability_match',
-      warning: `Žiadny živý agent nepokrýva všetky požadované schopnosti: ${requiredCapabilities.join(', ')}`
+      warning: `No live agent covers all required capabilities: ${requiredCapabilities.join(', ')}`
     };
   }
 
-  // Kontrola závislostí: Sú zdravé uzly, od ktorých kandidát závisí?
+  // Dependency health check: verify all critical nodes the candidate depends on are healthy
   const deps = (await env.DB.prepare(`
     SELECT ad.depends_on_agent_id, a.status, a.heartbeat_at
     FROM agent_dependencies ad
@@ -330,7 +330,7 @@ export async function findBestAgentForCapabilities(env, requiredCapabilities = [
       endpoint: null,
       rank: 0,
       strategy: 'dependency_blocked',
-      warning: `Agent ${candidate.agent_id} bol preskočený, pretože kritická závislosť ${unhealthyDep.depends_on_agent_id} je nezdravá.`
+      warning: `Agent ${candidate.agent_id} was skipped because critical dependency ${unhealthyDep.depends_on_agent_id} is unhealthy.`
     };
   }
 
@@ -344,7 +344,7 @@ export async function findBestAgentForCapabilities(env, requiredCapabilities = [
 }
 
 /**
- * Reputation Engine: Výpočet metrík dôvery
+ * Reputation Engine: Trust metric calculation
  */
 export async function updateAgentReputation(env, input) {
   const {agent_id,success,latency_ms,audit_score}=reputationUpdateSchema.parse(input);
@@ -364,7 +364,7 @@ export async function updateAgentReputation(env, input) {
   const avg_latency = ((rep.avg_latency_ms * (total - 1)) + latency_ms) / total;
   const latency_factor = Math.max(0.0, Math.min(1.0, 1.0 - (avg_latency / 10000)));
 
-  // Dôveryhodnosť vážená úspešnosťou, latenciou a auditným hodnotením
+  // Trust score weighted by success rate, latency, and audit score
   const trust_score = Math.max(0.1, Math.min(1.0, (success_rate * 0.5) + (latency_factor * 0.25) + (audit_score * 0.25)));
 
   await env.DB.prepare(`
@@ -387,7 +387,7 @@ export async function updateAgentReputation(env, input) {
     now
   ).run();
 
-  // Zápis nového trust_score priamo k agentovi
+  // Persist the updated trust_score directly on the agent record
   await env.DB.prepare('UPDATE agents SET trust_score=?1, updated_at=?2 WHERE agent_id=?3')
     .bind(trust_score, now, sanitizeD1(agent_id)).run();
 
@@ -395,7 +395,7 @@ export async function updateAgentReputation(env, input) {
 }
 
 /**
- * Multi-Level Knowledge Graph: Zápis a previazanie poznatkov
+ * Multi-Level Knowledge Graph: Recording and linking knowledge observations
  */
 export async function recordKnowledgeGraphNode(env, input) {
   const {entityType,entityName,observation,receiptId,source}=knowledgeObservationSchema.parse(input);
@@ -405,19 +405,19 @@ export async function recordKnowledgeGraphNode(env, input) {
   const evId = `ev_${now}_${Math.random().toString(36).slice(2, 8)}`;
 
   if (env?.DB?.prepare) {
-    // 1. Entita
+    // 1. Entity
     await env.DB.prepare(`
       INSERT OR IGNORE INTO kg_entities (id, type, name, created_at)
       VALUES (?1, ?2, ?3, ?4)
     `).bind(entityId, sanitizeD1(entityType), sanitizeD1(entityName), now).run();
 
-    // 2. Pozorovanie
+    // 2. Observation
     await env.DB.prepare(`
       INSERT INTO kg_observations (id, entity_id, observation, source, confidence, timestamp)
       VALUES (?1, ?2, ?3, ?4, 1.0, ?5)
     `).bind(obsId, entityId, sanitizeD1(observation), sanitizeD1(source), now).run();
 
-    // 3. Dôkaz (Evidence)
+    // 3. Evidence
     if (receiptId) {
       await env.DB.prepare(`
         INSERT INTO kg_evidence (id, observation_id, receipt_id, verified, timestamp)

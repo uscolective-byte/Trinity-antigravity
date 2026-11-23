@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul version.js (Trinity/src/version.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module version.js (Trinity/src/version.js) in the TRINITY OMNI-CORE ecosystem.
  */
 export const TRINITY_VERSION='11.1.0';
 

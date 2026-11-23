@@ -3,13 +3,13 @@
  * @subsystem PAYSAFE_FINANCIAL_CONNECTOR
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Integrovaný konektor pre finančnú skupinu Paysafe (Paysafecard, myPaysafe peňaženka, Skrill a NETELLER).
- * Spĺňa Truth Policy 2.1 – reálne formáty 16-miestnych PIN kódov, validácia a žiadne vymyslené zostatky.
+ * @description Integrated connector for Paysafe Financial Group (Paysafecard, myPaysafe wallet, Skrill, and NETELLER).
+ * Complies with Truth Policy 2.1 — strict 16-digit PIN format validation and zero fabricated balances.
  */
 
 /**
- * Normalizuje a overuje formát 16-miestneho Paysafecard PIN kódu.
- * Akceptuje formát 16 číslic bez medzier alebo 4x4 číslice oddelené pomlčkami/medzerami.
+ * Normalizes and validates a 16-digit Paysafecard PIN code.
+ * Accepts 16 digits without spaces or 4x4 groups separated by dashes/spaces.
  * @param {string} raw
  * @returns {string|null}
  */
@@ -23,7 +23,7 @@ export function normalizePaysafePin(raw) {
 }
 
 /**
- * Formátuje 16-miestny PIN kód do čitateľného tvaru XXXX-XXXX-XXXX-XXXX.
+ * Formats a 16-digit PIN code into human-readable XXXX-XXXX-XXXX-XXXX groups.
  * @param {string} pin
  * @returns {string|null}
  */
@@ -34,7 +34,7 @@ export function formatPaysafePin(pin) {
 }
 
 /**
- * Maskuje PIN kód pre bezpečné logovanie (zobrazí len prvé 4 a posledné 4 číslice).
+ * Masks a PIN code for safe logging (revealing only the first 4 and last 4 digits).
  * @param {string} pin
  * @returns {string|null}
  */
@@ -45,7 +45,7 @@ export function maskPaysafePin(pin) {
 }
 
 /**
- * Normalizuje identifikátor myPaysafe konta (e-mail alebo používateľské meno).
+ * Normalizes a myPaysafe account identifier (email address or username).
  * @param {string} raw
  * @returns {string|null}
  */
@@ -58,7 +58,7 @@ export function normalizePaysafeAccount(raw) {
 }
 
 /**
- * Vracia stav integrácie Paysafe v systéme Trinity.
+ * Returns the Paysafe integration status within Trinity.
  * @param {object} env
  * @returns {object}
  */
@@ -87,7 +87,7 @@ export function paysafeIntegrationStatus(env) {
 }
 
 /**
- * Pripraví platobnú reláciu alebo odkaz pre úhradu cez Paysafe / Paysafecard.
+ * Prepares a payment session or redirect handle for Paysafe / Paysafecard checkout.
  * @param {object} env
  * @param {object} params
  * @returns {Promise<object>}
@@ -100,7 +100,7 @@ export async function createPaysafeChargeSession(env, params = {}) {
 
   const status = paysafeIntegrationStatus(env);
 
-  // Ak máme aktívne Paysafe API poverenia, pokúsime sa vytvoriť Payment Handle cez REST API
+  // When live Paysafe API credentials are configured, attempt to create a Payment Handle via REST API
   if (status.configured && env.PAYSAFE_API_KEY) {
     try {
       const basicAuth = btoa(`${env.PAYSAFE_API_KEY}:`);
@@ -141,7 +141,7 @@ export async function createPaysafeChargeSession(env, params = {}) {
     } catch {}
   }
 
-  // Fallback pre priame použitie myPaysafe peňaženky alebo 16-miestnych kódov
+  // Fallback for direct myPaysafe wallet usage or 16-digit voucher codes
   return {
     ok: true,
     provider: 'paysafe',
@@ -152,17 +152,16 @@ export async function createPaysafeChargeSession(env, params = {}) {
     purpose,
     portal_url: status.portal_url,
     instructions: [
-      '1. Otvor myPaysafe peňaženku (https://my.paysafecard.com/) alebo zakúp 16-miestny Paysafecard kupón.',
-      `2. Do platby / poznámky uveď referenciu: VS${vs} - ${purpose}.`,
-      '3. Po úhrade zadaj 16-miestny PIN do Trinity pre automatické zapísanie a overenie v Sovereign Ledger.'
+      '1. Open your myPaysafe wallet (https://my.paysafecard.com/) or purchase a 16-digit Paysafecard voucher.',
+      `2. Include the payment reference: VS${vs} - ${purpose}.`,
+      '3. After payment, submit the 16-digit PIN in Trinity for ledger recording and verification.'
     ],
     method: 'MYPAYSAFE_OR_VOUCHER'
   };
 }
 
 /**
- * Overí a zaeviduje predložený Paysafecard 16-miestny kupón.
- * @param {object} env
+ * Validates and formats a submitted 16-digit Paysafecard voucher PIN.
  * @param {string} rawPin
  * @param {number} expectedAmountEur
  * @returns {object}
@@ -172,7 +171,7 @@ export function verifyPaysafeVoucherFormat(rawPin, expectedAmountEur = 0) {
   if (!normalized) {
     return {
       valid: false,
-      reason: 'Neplatný formát Paysafecard PIN. Kód musí obsahovať presne 16 číslic (napr. 0123-4567-8901-2345).'
+      reason: 'Invalid Paysafecard PIN format. The code must contain exactly 16 digits (e.g. 0123-4567-8901-2345).'
     };
   }
 
@@ -182,6 +181,6 @@ export function verifyPaysafeVoucherFormat(rawPin, expectedAmountEur = 0) {
     formatted_pin: formatPaysafePin(normalized),
     expected_amount_eur: Number(expectedAmountEur.toFixed(2)),
     status: 'voucher_recorded',
-    note: 'Voucher bol naformátovaný a pripravený na vyrovnanie v pokladnici Trinity.'
+    note: 'Voucher formatted and staged for settlement in the Trinity treasury.'
   };
 }

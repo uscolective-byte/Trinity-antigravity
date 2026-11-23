@@ -3,7 +3,7 @@
  * @subsystem SOVEREIGN_LEDGER_V3
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Sedemvrstvová architektúra (35 epikov), kryptografický reťazený Sovereign Ledger v3, TMAC konsenzus, Code Provenance a State Replay.
+ * @description Seven-layer architecture (35 epics), cryptographically chained Sovereign Ledger v3, TMAC consensus, Code Provenance, and State Replay.
  */
 /**
  * TRINITY OMNI-CORE & SOVEREIGN LEDGER V3
@@ -77,7 +77,7 @@ export class SovereignLedgerV3 {
       ).bind(blockIndex, timestamp, actor, action, payloadHash, prevHash, blockHash,
         rollbackRef, block.receipt, payloadStr).run();
       if (result?.success !== true || (result.meta?.changes != null && result.meta.changes !== 1)) {
-        throw new HttpError(503, 'Zápis do trvalého ledgeru nebol potvrdený.');
+        throw new HttpError(503, 'Write to persistent ledger was not confirmed.');
       }
     } else {
       this.inMemoryBlocks.push({...block, payload_json:payloadStr});
@@ -88,7 +88,7 @@ export class SovereignLedgerV3 {
 
   async verifyIntegrity(limit = 100) {
     if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1000) {
-      throw new HttpError(400, 'Limit kontroly ledgeru musí byť od 1 do 1000.');
+      throw new HttpError(400, 'Ledger verification limit must be between 1 and 1000.');
     }
     const scope = this.env?.DB ? 'd1' : 'memory';
     try {
@@ -159,15 +159,15 @@ export class ComputeBudgetManager {
 export class TruthAssertionProtocol {
   static assertSuccess(actionName, verifiableEvidence) {
     if (!verifiableEvidence) {
-      throw new HttpError(422, `Truth Assertion Violation: Akcia "${actionName}" neposkytla žiadny overiteľný dôkaz (evidence).`);
+      throw new HttpError(422, `Truth Assertion Violation: Action "${actionName}" provided no verifiable evidence.`);
     }
 
     if (typeof verifiableEvidence === 'object') {
       if (verifiableEvidence.exitCode != null && verifiableEvidence.exitCode !== 0) {
-        throw new HttpError(500, `Truth Assertion: Proces skončil chybovým kódom ${verifiableEvidence.exitCode}.`);
+        throw new HttpError(500, `Truth Assertion: Process exited with non-zero code ${verifiableEvidence.exitCode}.`);
       }
       if (verifiableEvidence.status === 'failed' || verifiableEvidence.error) {
-        throw new HttpError(500, `Truth Assertion: Akcia zlyhala: ${verifiableEvidence.error || 'Neznáma chyba'}`);
+        throw new HttpError(500, `Truth Assertion: Action failed: ${verifiableEvidence.error || 'Unknown error'}`);
       }
     }
 
@@ -190,7 +190,7 @@ export class MultiAgentConsensus {
     for (const role of roles) {
       let vote = 'APPROVED';
       let score = 90;
-      let review = 'Riešenie spĺňa štandardy a overiteľnosť.';
+      let review = 'Proposal meets architecture standards and verifiability requirements.';
 
       if (role === 'AURA_SENTINEL') {
         // Security check
@@ -198,10 +198,10 @@ export class MultiAgentConsensus {
         if (dangerous) {
           vote = 'REJECTED';
           score = 20;
-          review = 'Detegované rizikové vzory v návrhu.';
+          review = 'High-risk patterns detected in proposal.';
         } else {
           score = 95;
-          review = 'Bezpečnostný audit bez nálezov.';
+          review = 'Security audit passed with no findings.';
         }
       } else if (role === 'AURA_TESTER') {
         // Verifiability check
@@ -209,10 +209,10 @@ export class MultiAgentConsensus {
         if (!hasTests) {
           vote = 'CONDITIONAL';
           score = 65;
-          review = 'Chýba explicitný testovací scenár, vyžaduje syntézu testov.';
+          review = 'Missing explicit test scenario; requires test synthesis.';
         } else {
           score = 92;
-          review = 'Testovateľnosť overená.';
+          review = 'Testability verified.';
         }
       }
 
@@ -223,8 +223,8 @@ export class MultiAgentConsensus {
     // Devil's Advocate perspective
     const devilCritique = {
       role: 'DEVILS_ADVOCATE',
-      potential_edge_case: 'Overiť správanie pri výpadku siete a reštarte procesu.',
-      robustness_recommendation: 'Použiť atomický zápis a transakčný rollback snapshot.'
+      potential_edge_case: 'Verify behavior under network partition and process restart.',
+      robustness_recommendation: 'Use atomic writes and a transactional rollback snapshot.'
     };
 
     const consensusScore = Math.round(totalScore / roles.length);
@@ -301,7 +301,7 @@ ${testCases}
       strategy: 'semantic_union',
       merged_imports: mergedImports,
       merged_exports: mergedExports,
-      note: 'Sémantické zlúčenie importov a exportov bez kolízie identifikátorov.'
+      note: 'Semantic union of imports and exports without identifier collisions.'
     };
   }
 }
@@ -460,7 +460,7 @@ export class StateReplayEngine {
   async replayExecution(executionId, deterministicRunner) {
     const snapshot = this.executionSnapshots.get(executionId);
     if (!snapshot) {
-      throw new HttpError(404, `State Replay: Záznam s ID ${executionId} nebol nájdený v histórii.`);
+      throw new HttpError(404, `State Replay: Execution record '${executionId}' was not found in history.`);
     }
 
     // Replay runner with identical original inputs
@@ -516,19 +516,19 @@ export class ZeroTrustSecurityCore {
   static evaluateCall({ actor, tool, args, tokenRole = 'standard' }) {
     // 1. Verify token & identity
     if (!actor) {
-      return { allowed: false, reason: 'Identita aktora nie je poskytnutá (Zero Trust fail).' };
+      return { allowed: false, reason: 'Actor identity was not provided (Zero Trust fail).' };
     }
 
     // 2. Privilege boundary check
     const restrictedFinance = ['finance_propose_transfer', 'finance_confirm_transfer'];
     if (restrictedFinance.includes(tool) && !['owner', 'admin'].includes(tokenRole)) {
-      return { allowed: false, reason: 'Finančné operácie vyžadujú explicitnú rolu vlastníka (owner/admin).' };
+      return { allowed: false, reason: 'Financial operations require an explicit owner role (owner/admin).' };
     }
 
     // 3. Secret leak check in arguments
     const argsStr = JSON.stringify(args || {});
     if (/["']?(?:api_key|private_key|access_token|password|secret)["']?\s*[:=]\s*["'][^"']{16,}["']/i.test(argsStr)) {
-      return { allowed: false, reason: 'Detegovaný pokus o odoslanie citlivého kľúča v argumentoch.' };
+      return { allowed: false, reason: 'Detected attempt to pass a sensitive key in arguments.' };
     }
 
     return {

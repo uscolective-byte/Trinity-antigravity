@@ -3,14 +3,14 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul quantum_core.js (Trinity/src/quantum_core.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module quantum_core.js (Trinity/src/quantum_core.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import { QCA } from './qca.js';
 export { QCA };
 
 export class QuantumCoreEngine {
   /**
-   * Spustí Quantum Cognitive Accelerator (QCA) meta-vrstvy Trinity / Aura.
+   * Executes the Quantum Cognitive Accelerator (QCA) of the Trinity / Aura meta-layer.
    * @param {string} query
    * @param {object} [context]
    * @param {object} [env]
@@ -20,10 +20,10 @@ export class QuantumCoreEngine {
   }
 
   /**
-   * Vypočíta interferenčný faktor medzi dvoma stavmi na základe amplitúd a fázového posunu.
+   * Computes the interference factor between two states based on amplitudes and phase difference.
    * @param {{amplitude: number, phaseAngle: number}} stateA
    * @param {{amplitude: number, phaseAngle: number}} stateB
-   * @returns {number} Rozsah [0, 1]
+   * @returns {number} Range [0, 1]
    */
   static computeInterference(stateA, stateB) {
     const ampA = Math.max(0, Math.min(Number(stateA?.amplitude) || 0, 1.0));
@@ -32,55 +32,55 @@ export class QuantumCoreEngine {
     const thetaB = Number(stateB?.phaseAngle) || 0;
     const phaseDiff = thetaA - thetaB;
     const cosDiff = Math.cos(phaseDiff);
-    // 1 = plná konštruktívna interferencia (fázy zhodné), 0 = plná deštruktívna (protifáza PI)
+    // 1 = full constructive interference (aligned phases), 0 = full destructive interference (antiphase PI)
     const normalizedPhase = (1 + cosDiff) / 2;
     return Math.max(0, Math.min(1, Number((normalizedPhase * Math.min(ampA, ampB)).toFixed(4))));
   }
 
   /**
-   * Kolabuje superpozíciu stavov do výsledného manifestovaného textu.
+   * Collapses a superposition of states into the resulting manifested text.
    * @param {Array<{dimension: string, content: string, phaseAngle: number, amplitude: number}>} states
    * @param {{exists?: boolean, pathReport?: string}} [empiricalAnchor]
    */
   static collapseSuperposition(states, empiricalAnchor = { exists: true }) {
-    // 1️⃣ Empirický veto: fyzická realita má absolútnu prednosť
+    // 1️⃣ Empirical veto: physical reality takes absolute precedence
     if (!empiricalAnchor.exists && empiricalAnchor.pathReport) {
       return {
         dominantDimension: "empiria",
-        manifestedText: `[Ontologický kolaps zlyhal]: Fyzická realita vyvrátila predpoklad (${empiricalAnchor.pathReport}).`,
+        manifestedText: `[Ontological collapse failed]: Physical reality refuted the assumption (${empiricalAnchor.pathReport}).`,
         coherenceScore: 0,
         destructiveInterferenceCount: 1,
       };
     }
 
-    // 2️⃣ Odstránenie šumu (amplitúda < 0.2)
+    // 2️⃣ Noise removal (amplitude < 0.2)
     const viable = (states || []).filter(s => (Number(s.amplitude) || 0) >= 0.2);
     if (viable.length === 0) {
       return {
         dominantDimension: "none",
-        manifestedText: "Žiadna koherentná hypotéza – kolaps do prázdna.",
+        manifestedText: "No coherent hypothesis — collapsed into void.",
         coherenceScore: 0,
         destructiveInterferenceCount: 0,
       };
     }
 
-    // 3️⃣ Výpočet deštruktívnych interferencií medzi tézou a antitézou
+    // 3️⃣ Compute destructive interference between thesis and antithesis
     let destructiveInterferenceCount = 0;
     const thesis = viable.find(s => s.dimension === "thesis");
     const antithesis = viable.find(s => s.dimension === "antithesis");
 
     if (thesis && antithesis) {
       const interference = this.computeInterference(thesis, antithesis);
-      // Ak je interferencia < 0.25 → silná deštruktívna interferencia
+      // If interference < 0.25 -> strong destructive interference
       if (interference < 0.25) destructiveInterferenceCount++;
     }
 
-    // 4️⃣ Dominantná dimenzia – najvyššia amplitúda
+    // 4️⃣ Dominant dimension — highest amplitude
     const dominant = viable.reduce((best, cur) =>
       (Number(cur.amplitude) || 0) > (Number(best.amplitude) || 0) ? cur : best
     );
 
-    // 5️⃣ Koherenčné skóre – priemer amplitúd všetkých viable stavov
+    // 5️⃣ Coherence score — mean amplitude of all viable states
     const coherenceScore =
       viable.reduce((sum, s) => sum + (Number(s.amplitude) || 0), 0) / viable.length;
 
@@ -93,7 +93,7 @@ export class QuantumCoreEngine {
   }
 
   /**
-   * Paralelné uvažovanie: vyhodnotí 3 až 7 paralelných myšlienkových vetiev a vyberie najlepšiu.
+   * Parallel reasoning: evaluates 3 to 7 parallel reasoning branches and selects the best one.
    * @param {Array<{id: string, hypothesis: string, amplitude: number, phaseAngle: number, tags?: string[]}>} branches
    * @param {{preference?: 'creative'|'analytical'|'balanced'}} [options]
    */
@@ -105,7 +105,7 @@ export class QuantumCoreEngine {
     const scoredBranches = branches.map((b, idx) => {
       const amp = Math.max(0.1, Math.min(1.0, Number(b.amplitude) || 0.7));
       const phase = Number(b.phaseAngle) || (idx * (Math.PI / 4));
-      // Pre kreatívnu preferenciu dávame bonus vetvám s inovatívnymi tagmi alebo divergentnou fázou
+      // For creative preference, boost branches with innovative tags or divergent phase
       const isCreativeBonus = options.preference === 'creative' && (b.tags?.includes('innovative') || b.tags?.includes('creative') || (phase > 0 && phase < Math.PI));
       const finalScore = Number((amp * (isCreativeBonus ? 1.25 : 1.0)).toFixed(4));
       return {
@@ -115,7 +115,7 @@ export class QuantumCoreEngine {
       };
     });
 
-    // Zoradenie podľa skóre zostupne
+    // Sort by score descending
     scoredBranches.sort((a, b) => b.calculatedScore - a.calculatedScore);
     const winner = scoredBranches[0];
 
@@ -131,7 +131,7 @@ export class QuantumCoreEngine {
   }
 
   /**
-   * Multi-Agent Fusion: Zjednotí výstupy špecialistov (Guardian, Sentinel, Planner, Optimizer, Analyzer).
+   * Multi-Agent Fusion: unifies specialist outputs (Guardian, Sentinel, Planner, Optimizer, Analyzer).
    * @param {Record<string, {content: string, confidence?: number}>} agentOutputs
    * @param {Record<string, number>} [weights]
    */
@@ -167,7 +167,7 @@ export class QuantumCoreEngine {
     const collapse = this.collapseSuperposition(states);
     const consensusScore = Number((collapse.coherenceScore * (totalWeight / roles.length)).toFixed(3));
 
-    // Syntetizovaný konsenzus
+    // Synthesized consensus
     const fusedInsights = states.map(s => `[${s.dimension.toUpperCase()}]: ${s.content}`).join('\n');
 
     return {
@@ -180,7 +180,7 @@ export class QuantumCoreEngine {
   }
 
   /**
-   * Error-Correction Layer: Fázovo koriguje a odstraňuje chyby v návrhu riešenia.
+   * Error-Correction Layer: phase-corrects and removes flaws in a candidate solution draft.
    * @param {string} draft
    * @param {Array<{pattern: RegExp|string, fix: string, reason: string}>} corrections
    */

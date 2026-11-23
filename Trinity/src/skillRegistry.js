@@ -3,15 +3,15 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul skillRegistry.js (Trinity/src/skillRegistry.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module skillRegistry.js (Trinity/src/skillRegistry.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import { developerSkills, entertainmentSkills, educationSkills, lifestyleSkills, creativeSkills, scienceSkills } from './multi-category-skills.js';
 /**
  * Trinity Copilot Skill Registry
- * Komplexný zoznam skillov a pluginov pre agenta TrinityCopilotAgent:
- * 1️⃣ Core skilly (validácia, timeout, HTTP status, štruktúra, audit, retry, circuit-breaker, rate-limiting, cache, metriky)
- * 2️⃣ Integrácie s externými službami (Power Platform / Copilot Studio, Web search, Generovanie obrázkov, Text analysis, Výpočty a štatistika, PC Bridge, Git, D1, R2)
- * 3️⃣ Užívateľské skilly (Dialog management, Multilingual support, Fallback, Rich-response formatting, Rate-limited UI feedback, Security & sanitisation)
+ * Comprehensive registry of skills and plugins for TrinityCopilotAgent:
+ * 1️⃣ Core skills (validation, timeout, HTTP status, response structure, audit, retry, circuit-breaker, rate-limiting, cache, metrics)
+ * 2️⃣ External service integrations (Power Platform / Copilot Studio, Web search, Image generation, Text analysis, Calculations & statistics, PC Bridge, Git, D1, R2)
+ * 3️⃣ User skills (Dialog management, Multilingual support, Fallback, Rich-response formatting, Rate-limited UI feedback, Security & sanitisation)
  */
 
 import { runPracticalTool } from './practical-skills.js';
@@ -30,17 +30,17 @@ import { memorySkills } from './memorySkill.js';
 export { memorySkills };
 import { EXTENDED_SKILLS } from './extended-catalog.js';
 
-// In-memory cache a fallback stav circuit-breakeru
+// In-memory cache and fallback circuit-breaker state
 const memoryCache = new Map();
 const memoryCbState = new Map();
 const memoryRateLimits = new Map();
 export const memorySessions = new Map();
 
 /**
- * 1️⃣ ZÁKLADNÉ SKILLY (CORE)
+ * 1️⃣ CORE SKILLS
  */
 export const coreSkills = {
-  // Validácia vstupu: overí, že query je neprázdny reťazec a prípadne ďalšie parametre
+  // Input validation: verifies that query is a non-empty string and validates optional parameters
   validateInput: (query, options = {}) => {
     if (!query || typeof query !== 'string' || !query.trim()) {
       throw new Error("Parameter 'query' must be a non-empty string");
@@ -54,7 +54,7 @@ export const coreSkills = {
     return { valid: true, query: query.trim(), options };
   },
 
-  // Timeout & AbortController: zabránia nekonečnému čakaniu na odpoveď
+  // Timeout & AbortController: prevents hanging requests indefinitely
   withTimeout: async (fnOrPromise, timeoutMs = 8000, externalSignal = null) => {
     const controller = new AbortController();
     let abortedByExternal = false;
@@ -91,7 +91,7 @@ export const coreSkills = {
     }
   },
 
-  // Kontrola HTTP statusu: rýchlo odhalí 4xx/5xx chyby
+  // HTTP status check: detects 4xx/5xx errors immediately
   checkHttpStatus: async (response) => {
     if (!response.ok) {
       const txt = await response.text().catch(() => '');
@@ -100,7 +100,7 @@ export const coreSkills = {
     return response;
   },
 
-  // Kontrola štruktúry odpovede: zabezpečí, že API vráti očakávané pole/objekt
+  // Response structure check: ensures the API returned the expected fields/object
   checkResponseStructure: (data, requiredFields = []) => {
     if (!data || typeof data !== 'object') {
       throw new Error('Invalid response structure: expected an object or array');
@@ -114,7 +114,7 @@ export const coreSkills = {
     return data;
   },
 
-  // Centralizované logovanie: zapisuje chyby a udalosti do konzoly a do D1 tabuľky audit / ops_events
+  // Centralized audit logging: writes errors and events to console and D1 audit / ops_events tables
   logAudit: async (env, level, message, details = null) => {
     const consoleFn = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
     consoleFn(`[TrinityCopilotAgent ${String(level).toUpperCase()}]:`, message, details ? JSON.stringify(details) : '');
@@ -126,7 +126,7 @@ export const coreSkills = {
         await env.DB.prepare("INSERT INTO audit (timestamp, level, message, details) VALUES (datetime('now'), ?, ?, ?)")
           .bind(level, message, detailsJson).run();
       } catch (err) {
-        // Ak tabuľka audit ešte neexistuje, fallback na ops_events
+        // If the audit table does not exist yet, fall back to ops_events
         try {
           await env.DB.prepare("INSERT INTO ops_events (action, details) VALUES (?, ?)")
             .bind('copilot_audit', JSON.stringify({ level, message, details, timestamp })).run();
@@ -136,7 +136,7 @@ export const coreSkills = {
     return { logged: true, level, message, timestamp };
   },
 
-  // Retry s exponenciálnym backoffom: pri dočasných chybách (502, 503, 504, 429) automaticky zopakuje požiadavku
+  // Retry with exponential backoff: automatically retries transient errors (502, 503, 504, 429)
   withRetry: async (fn, args = [], retries = 3, backoff = 500, retryableStatusCodes = [502, 503, 504, 429]) => {
     let attempt = 0;
     while (true) {
@@ -147,7 +147,7 @@ export const coreSkills = {
         const statusMatch = e.message?.match(/HTTP\s+(\d{3})/i);
         const status = statusMatch ? parseInt(statusMatch[1], 10) : null;
 
-        // Ak ide o trvalú klientsku chybu (okrem 429), neopakuj
+        // Do not retry permanent client errors (other than 429)
         if (status && status >= 400 && status < 500 && status !== 429) {
           throw e;
         }
@@ -160,7 +160,7 @@ export const coreSkills = {
     }
   },
 
-  // Circuit-breaker: po niekoľkých neúspešných pokusoch dočasne “vypne” volanie
+  // Circuit-breaker: temporarily opens after repeated failures to protect upstream services
   circuitBreaker: {
     async getState(serviceKey, env) {
       let raw = null;
@@ -222,7 +222,7 @@ export const coreSkills = {
     }
   },
 
-  // Rate-limiting: ochrana pred prekročením limitov API (napr. 60 req/min)
+  // Rate-limiting: protects against exceeding API rate limits (e.g. 60 req/min)
   rateLimiter: async (key, env, options = { limit: 60, windowSeconds: 60 }) => {
     const limit = options.limit || 60;
     const windowSec = options.windowSeconds || 60;
@@ -263,7 +263,7 @@ export const coreSkills = {
     return { allowed: true, count: count + 1, limit, remaining: Math.max(0, limit - (count + 1)) };
   },
 
-  // Caching: ukladá výsledky do KV na krátky čas (30s – 5min)
+  // Caching: stores results in KV for a short window (30s - 5min)
   cacheGet: async (key, env) => {
     try {
       if (env?.CACHE) {
@@ -296,7 +296,7 @@ export const coreSkills = {
     return true;
   },
 
-  // Audit & metriky: zaznamená čas spracovania, status kódu, typ chyby
+  // Audit & metrics: records latency, status codes, and error counters
   recordMetrics: (env, metricName, value = 1, type = 'counter') => {
     if (env?.METRICS) {
       try {
@@ -314,10 +314,10 @@ export const coreSkills = {
 };
 
 /**
- * 2️⃣ INTEGRÁCIE S EXTERNÝMI SLUŽBAMI
+ * 2️⃣ EXTERNAL SERVICE INTEGRATIONS
  */
 export const integrationSkills = {
-  // Power Platform / Copilot Studio: volanie oficiálneho endpointu Copilot Studio
+  // Power Platform / Copilot Studio: calls the official Copilot Studio endpoint
   callPowerPlatform: async (query, env, options = {}) => {
     const endpoint = options.endpoint || (
       env?.POWER_PLATFORM_URL
@@ -330,12 +330,12 @@ export const integrationSkills = {
         return {
           conversations: [{
             id: 'mock-conv-' + Date.now(),
-            reply: `[Power Platform Demo] Odpoveď na dotaz: "${query}"`,
+            reply: `[Power Platform Demo] Response to query: "${query}"`,
             created_at: new Date().toISOString()
           }]
         };
       }
-      throw new Error('POWER_PLATFORM_URL nie je nakonfigurovaná.');
+      throw new Error('POWER_PLATFORM_URL is not configured (POWER_PLATFORM_URL nie je nakonfigurovaná).');
     }
 
     const controller = new AbortController();
@@ -368,19 +368,19 @@ export const integrationSkills = {
     }
   },
 
-  // Web-search: vyhľadá informácie na internete a vráti relevantné úryvky
+  // Web-search: searches the web and returns relevant excerpts
   webSearch: async (query, env, options = {}) => {
     if (options.mock) {
       return {
         query,
         results: [
-          { title: 'Prehľad: ' + query, url: 'https://example.com/search?q=' + encodeURIComponent(query), snippet: 'Ukážka výsledku vyhľadávania pre ' + query }
+          { title: 'Overview: ' + query, url: 'https://example.com/search?q=' + encodeURIComponent(query), snippet: 'Sample search result snippet for ' + query }
         ]
       };
     }
     const token = env?.OLLAMA_API_KEY || (typeof env?.OLLAMA_SECRET === 'string' ? env.OLLAMA_SECRET : null);
     if (!token) {
-      return { query, results: [], note: 'Webové vyhľadávanie vyžaduje aktívny kľúč OLLAMA_API_KEY alebo Bing konektor.' };
+      return { query, results: [], note: 'Web search requires an active OLLAMA_API_KEY or Bing connector.' };
     }
     const r = await fetch('https://ollama.com/api/web_search', {
       method: 'POST',
@@ -400,13 +400,13 @@ export const integrationSkills = {
     };
   },
 
-  // Generovanie obrázkov: vytvorí vizuálny výstup cez Workers AI a uloží do R2
+  // Image generation: generates visual output via Workers AI and stores it in R2
   generateImage: async (prompt, env, options = {}) => {
     if (!env?.AI || (!env?.ARTIFACTS && !env?.R2)) {
       if (options.mock) {
         return { id: 'mock-img-id', url: '/media/mock-image.jpg', prompt, mock: true };
       }
-      throw new Error('Generovanie obrázkov vyžaduje Workers AI a R2 bucket (ARTIFACTS).');
+      throw new Error('Image generation requires Workers AI and an R2 bucket (ARTIFACTS).');
     }
     const model = env.IMAGE_MODEL || '@cf/black-forest-labs/flux-1-schnell';
     const generated = await env.AI.run(model, { prompt });
@@ -414,7 +414,7 @@ export const integrationSkills = {
     if (typeof generated?.image === 'string') bytes = Uint8Array.from(Buffer.from(generated.image, 'base64'));
     else if (generated instanceof Uint8Array) bytes = generated;
     else if (generated instanceof ArrayBuffer) bytes = new Uint8Array(generated);
-    else throw new Error('Generovanie obrázka vrátilo neznámy formát');
+    else throw new Error('Image generation returned an unsupported format');
 
     const id = crypto.randomUUID();
     const key = `media/copilot/${id}.jpg`;
@@ -426,7 +426,7 @@ export const integrationSkills = {
     return { id, key, url: `/api/assistant/media/images/${id}`, prompt };
   },
 
-  // Text-analysis: počet slov, vety, sentiment a extrakcia entít
+  // Text-analysis: word count, sentence count, sentiment, and entity extraction
   analyzeText: (text) => {
     if (typeof text !== 'string') throw new Error('analyzeText requires string input');
     const words = text.match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu) || [];
@@ -437,12 +437,12 @@ export const integrationSkills = {
     const sentences = withoutUrlsOrEmails.trim() ? withoutUrlsOrEmails.split(/(?<=[.!?])\s+|\s*[.!?]+$/).filter(x => x.trim()).length : 0;
     const readingMinutes = Math.ceil(words.length / 200);
 
-    // Extrakcia entít
+    // Entity extraction
     const emails = [...new Set(text.match(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g) || [])];
     const urls = [...new Set((text.match(/https?:\/\/[^\s<>()]+/g) || []).map(u => u.replace(/[.,;!?]+$/, '')))];
     const dates = [...new Set(text.match(/\b(?:\d{4}-\d{2}-\d{2}|\d{1,2}\.\s?\d{1,2}\.\s?\d{4})\b/g) || [])];
 
-    // Jednoduchá analýza sentimentu
+    // Bilingual (SK/EN) lexical sentiment signals
     const posWords = ['super', 'výborn', 'skvel', 'úspešn', 'perfekt', 'dobre', 'good', 'great', 'awesome', 'excellent', 'success', 'happy'];
     const negWords = ['chyba', 'zlyha', 'problém', 'špatn', 'zlý', 'fail', 'error', 'broken', 'bad', 'poor', 'danger', 'warn'];
     const lower = text.toLowerCase();
@@ -463,27 +463,27 @@ export const integrationSkills = {
     };
   },
 
-  // Výpočty a štatistika
+  // Calculations and statistics
   calculate: (operation, values) => {
     if (!Array.isArray(values) || !values.length) throw new Error('calculate requires non-empty array of numbers');
     if (operation === 'add') return values.reduce((a, b) => a + b, 0);
     if (operation === 'subtract') return values.slice(1).reduce((a, b) => a - b, values[0]);
     if (operation === 'multiply') return values.reduce((a, b) => a * b, 1);
     if (operation === 'divide') {
-      if (values.slice(1).includes(0)) throw new Error('Delenie nulou nie je povolené.');
+      if (values.slice(1).includes(0)) throw new Error('Division by zero is not allowed (Delenie nulou).');
       return values.slice(1).reduce((a, b) => a / b, values[0]);
     }
     if (operation === 'mean') return values.reduce((a, b) => a + b, 0) / values.length;
-    throw new Error(`Nepodporovaná operácia: ${operation}`);
+    throw new Error(`Unsupported operation: ${operation}`);
   },
 
   statistics: (values, percentile = null) => {
     return runPracticalTool('statistics', { values, ...(percentile !== null ? { percentile } : {}) });
   },
 
-  // PC Bridge – spúšťanie skriptov na PC s overeným SHA-256 a timeoutom
+  // PC Bridge — runs scripts on PC with verified SHA-256 and timeout
   pcRunScript: async (command, env, options = {}) => {
-    if (!command || typeof command !== 'string') throw new Error('pcRunScript vyžaduje príkaz ako reťazec.');
+    if (!command || typeof command !== 'string') throw new Error('pcRunScript requires a command string.');
     const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(command));
     const sha256 = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
 
@@ -492,7 +492,7 @@ export const integrationSkills = {
     }
 
     if (!env?.PC_BRIDGE && !env?.TRINITY_PC_BRIDGE) {
-      throw new Error('PC Bridge nie je prepojený alebo dostupný.');
+      throw new Error('PC Bridge is not connected or available.');
     }
 
     const bridge = env.PC_BRIDGE || env.TRINITY_PC_BRIDGE;
@@ -513,7 +513,7 @@ export const integrationSkills = {
     return await resp.json();
   },
 
-  // Git / CI-CD – commitovanie a PR
+  // Git / CI-CD — commits and pull requests
   pcGitCommit: async (message, env, options = {}) => {
     return integrationSkills.pcRunScript(`git commit -m "${message.replace(/"/g, '\\"')}"`, env, options);
   },
@@ -523,9 +523,9 @@ export const integrationSkills = {
     return integrationSkills.pcRunScript(cmd, env, options);
   },
 
-  // Databáza D1 – perzistentné úložisko
+  // D1 database — persistent storage
   dbPersist: async (table, data, env) => {
-    if (!env?.DB) throw new Error('Databáza D1 nie je dostupná.');
+    if (!env?.DB) throw new Error('D1 database is not available.');
     const columns = Object.keys(data);
     const placeholders = columns.map(() => '?').join(', ');
     const sql = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`;
@@ -534,16 +534,16 @@ export const integrationSkills = {
   },
 
   dbQuery: async (sql, params = [], env) => {
-    if (!env?.DB) throw new Error('Databáza D1 nie je dostupná.');
+    if (!env?.DB) throw new Error('D1 database is not available.');
     const stmt = env.DB.prepare(sql);
     const bound = params.length > 0 ? stmt.bind(...params) : stmt;
     return await bound.all();
   },
 
-  // R2 – úložisko pre súbory a obrázky
+  // R2 — object storage for files and images
   r2Store: async (key, body, contentType = 'application/octet-stream', env) => {
     const bucket = env?.R2 || env?.ARTIFACTS;
-    if (!bucket) throw new Error('R2 úložisko nie je dostupné.');
+    if (!bucket) throw new Error('R2 storage is not available.');
     await bucket.put(key, body, {
       httpMetadata: { contentType },
       customMetadata: { stored_at: new Date().toISOString() }
@@ -553,19 +553,19 @@ export const integrationSkills = {
 
   r2Get: async (key, env) => {
     const bucket = env?.R2 || env?.ARTIFACTS;
-    if (!bucket) throw new Error('R2 úložisko nie je dostupné.');
+    if (!bucket) throw new Error('R2 storage is not available.');
     return await bucket.get(key);
   }
 };
 
 /**
- * 2️⃣b ROZŠÍRENÉ INŽINIERSKE A PREVÁDZKOVÉ SKILLY
+ * 2️⃣b EXTENDED ENGINEERING & OPERATIONAL SKILLS
  */
 export const extendedEngineeringSkills = {
   codeRefactor: (code, options = {}) => {
     const rawCode = (typeof code === 'object' && code !== null) ? (code.code || '') : code;
     const opts = (typeof code === 'object' && code !== null) ? { ...code, ...options } : options;
-    if (typeof rawCode !== 'string') throw new Error('codeRefactor vyžaduje reťazec kódu.');
+    if (typeof rawCode !== 'string') throw new Error('codeRefactor requires a code string.');
     let result = rawCode;
     if (opts.removeTrailingWhitespace !== false) {
       result = result.split('\n').map(l => l.trimEnd()).join('\n');
@@ -583,7 +583,7 @@ export const extendedEngineeringSkills = {
 
   sqlValidate: (sql, options = {}) => {
     const rawSql = (typeof sql === 'object' && sql !== null) ? (sql.sql || sql.query || '') : sql;
-    if (!rawSql || typeof rawSql !== 'string') throw new Error('sqlValidate vyžaduje SQL dotaz.');
+    if (!rawSql || typeof rawSql !== 'string') throw new Error('sqlValidate requires an SQL query.');
     const trimmed = rawSql.trim();
     const isSelect = /^SELECT\b/i.test(trimmed);
     const isMutating = /^(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|TRUNCATE)\b/i.test(trimmed);
@@ -601,7 +601,7 @@ export const extendedEngineeringSkills = {
   cryptoHash: async (text, algorithm = 'SHA-256') => {
     const rawText = (typeof text === 'object' && text !== null) ? (text.text || text.data || '') : text;
     const algoInput = (typeof text === 'object' && text !== null && text.algorithm) ? text.algorithm : algorithm;
-    if (typeof rawText !== 'string') throw new Error('cryptoHash vyžaduje textový reťazec.');
+    if (typeof rawText !== 'string') throw new Error('cryptoHash requires a text string.');
     const validAlgos = ['SHA-1', 'SHA-256', 'SHA-384', 'SHA-512'];
     const selectedAlgo = validAlgos.includes(String(algoInput).toUpperCase()) ? String(algoInput).toUpperCase() : 'SHA-256';
     const digest = await crypto.subtle.digest(selectedAlgo, new TextEncoder().encode(rawText));
@@ -633,7 +633,7 @@ export const extendedEngineeringSkills = {
     const raw = (typeof jsonInput === 'object' && jsonInput !== null && 'json' in jsonInput) ? jsonInput.json : jsonInput;
     const pList = (typeof jsonInput === 'object' && jsonInput !== null && Array.isArray(jsonInput.paths)) ? jsonInput.paths : paths;
     const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    if (!data || typeof data !== 'object') throw new Error('jsonTransform vyžaduje platný objekt alebo pole.');
+    if (!data || typeof data !== 'object') throw new Error('jsonTransform requires a valid object or array.');
     if (!pList.length) return { transformed: data };
     const extract = {};
     for (const p of pList) {
@@ -644,10 +644,10 @@ export const extendedEngineeringSkills = {
 
   semverCheck: (version) => {
     const raw = (typeof version === 'object' && version !== null) ? (version.version || version.ver || '') : version;
-    if (typeof raw !== 'string') throw new Error('semverCheck vyžaduje verziu ako reťazec.');
+    if (typeof raw !== 'string') throw new Error('semverCheck requires a version string.');
     const semverRegex = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+([0-9A-Za-z.-]+))?$/;
     const match = raw.trim().match(semverRegex);
-    if (!match) return { valid: false, error: 'Reťazec nespĺňa formát SemVer (napr. 1.2.3).' };
+    if (!match) return { valid: false, error: 'String does not match SemVer format (e.g. 1.2.3).' };
     const major = parseInt(match[1], 10);
     const minor = parseInt(match[2], 10);
     const patch = parseInt(match[3], 10);
@@ -664,9 +664,9 @@ export const extendedEngineeringSkills = {
 
   jwtDecode: (token) => {
     const raw = (typeof token === 'object' && token !== null) ? (token.token || token.jwt || '') : token;
-    if (!raw || typeof raw !== 'string') throw new Error('jwtDecode vyžaduje JWT token.');
+    if (!raw || typeof raw !== 'string') throw new Error('jwtDecode requires a JWT token.');
     const parts = raw.trim().split('.');
-    if (parts.length !== 3) throw new Error('Neplatný formát JWT (očakávajú sa 3 segmenty).');
+    if (parts.length !== 3) throw new Error('Invalid JWT format (expected 3 segments).');
     const decodePart = (b64Url) => {
       const b64 = b64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonStr = atob(b64);
@@ -678,7 +678,7 @@ export const extendedEngineeringSkills = {
       const isExpired = payload.exp ? (Date.now() >= payload.exp * 1000) : null;
       return { header, payload, is_expired: isExpired };
     } catch (e) {
-      throw new Error(`Chyba pri dekódovaní JWT: ${e.message}`);
+      throw new Error(`Failed to decode JWT: ${e.message}`);
     }
   },
 
@@ -713,7 +713,7 @@ export const extendedEngineeringSkills = {
   csvParse: (csvText, delimiter = ',') => {
     const raw = (typeof csvText === 'object' && csvText !== null) ? (csvText.csv || csvText.csvText || '') : csvText;
     const delim = (typeof csvText === 'object' && csvText !== null && csvText.delimiter) ? csvText.delimiter : delimiter;
-    if (typeof raw !== 'string') throw new Error('csvParse vyžaduje CSV text.');
+    if (typeof raw !== 'string') throw new Error('csvParse requires CSV text.');
     const lines = raw.trim().split(/\r?\n/).filter(l => l.trim().length > 0);
     if (!lines.length) return { headers: [], rows: [] };
     const headers = lines[0].split(delim).map(h => h.trim().replace(/^["']|["']$/g, ''));
@@ -732,7 +732,7 @@ export const extendedEngineeringSkills = {
   base64Codec: (input, mode = 'encode') => {
     const raw = (typeof input === 'object' && input !== null) ? (input.input || input.text || '') : input;
     const m = (typeof input === 'object' && input !== null && input.mode) ? input.mode : mode;
-    if (typeof raw !== 'string') throw new Error('base64Codec vyžaduje reťazec.');
+    if (typeof raw !== 'string') throw new Error('base64Codec requires a string.');
     if (m === 'decode') {
       const decoded = atob(raw.trim());
       return { mode: 'decode', result: decoded };
@@ -743,7 +743,7 @@ export const extendedEngineeringSkills = {
 
   urlParse: (urlString) => {
     const raw = (typeof urlString === 'object' && urlString !== null) ? (urlString.url || urlString.urlString || '') : urlString;
-    if (!raw || typeof raw !== 'string') throw new Error('urlParse vyžaduje URL adresu.');
+    if (!raw || typeof raw !== 'string') throw new Error('urlParse requires a URL string.');
     const parsed = new URL(raw);
     const params = Object.fromEntries(parsed.searchParams.entries());
     return {
@@ -807,7 +807,7 @@ export const extendedEngineeringSkills = {
 };
 
 /**
- * 3️⃣ UŽÍVATEĽSKÉ SKILLY
+ * 3️⃣ USER SKILLS
  */
 export const userSkills = {
   dialogManagement: {
@@ -884,7 +884,7 @@ export const userSkills = {
       detected_language: detected,
       target_language: targetLang,
       directive: targetLang === 'sk'
-        ? 'Odpovedaj prirodzene, jasne a spisovne v slovenčine.'
+        ? 'Reply naturally, clearly, and fluently in Slovak.'
         : `Answer naturally, clearly and fluently in language code: ${targetLang}.`
     };
   },
@@ -938,7 +938,7 @@ export const userSkills = {
       state: status,
       location: location || `/api/copilot/jobs/${jobId}`,
       poll_interval_ms: 1500,
-      message: 'Spracúvam požiadavku na pozadí...'
+      message: 'Processing request in the background...'
     };
   },
 
@@ -974,13 +974,13 @@ export const userSkills = {
 };
 
 /**
- * 3.5️⃣ SCHOPNOSTI CHATGPT (CODE INTERPRETER, DEEP REASONING, DATA ANALYST, CREATIVE WRITER)
+ * 3.5️⃣ CHATGPT CAPABILITIES (CODE INTERPRETER, DEEP REASONING, DATA ANALYST, CREATIVE WRITER)
  */
 export const chatGptSkills = {
   chatGptCodeInterpreter: (payload) => {
     const raw = typeof payload === 'object' && payload !== null ? (payload.code || payload.expression || '') : payload;
     const lang = typeof payload === 'object' && payload !== null && payload.language ? payload.language : 'javascript';
-    if (typeof raw !== 'string' || !raw.trim()) throw new Error('chatGptCodeInterpreter vyžaduje kód alebo matematický výraz.');
+    if (typeof raw !== 'string' || !raw.trim()) throw new Error('chatGptCodeInterpreter requires code or a mathematical expression.');
     const start = Date.now();
     let result;
     try {
@@ -989,7 +989,7 @@ export const chatGptSkills = {
       } else {
         // Function parameters do not isolate globals, credentials, I/O or CPU.
         // Arbitrary code must run through a separately authorized sandbox.
-        return { success: false, error: 'Spustenie kódu vyžaduje izolovaný executor, ktorý nie je pripojený. Pre výpočty použi calculate; JSON je dostupný s language=json.', code: 'SANDBOX_UNAVAILABLE', language: lang, duration_ms: Date.now() - start };
+        return { success: false, error: 'Code execution requires an isolated sandbox executor, which is not connected. Use calculate for math; JSON parsing is available with language=json.', code: 'SANDBOX_UNAVAILABLE', language: lang, duration_ms: Date.now() - start };
       }
       return { success: true, output: result, type: typeof result, language: lang, duration_ms: Date.now() - start };
     } catch (err) {
@@ -1000,15 +1000,15 @@ export const chatGptSkills = {
   chatGptDeepReasoning: (payload) => {
     const topic = typeof payload === 'object' && payload !== null ? (payload.topic || payload.query || '') : payload;
     const method = typeof payload === 'object' && payload !== null && payload.method ? payload.method : 'first_principles';
-    if (typeof topic !== 'string' || !topic.trim()) throw new Error('chatGptDeepReasoning vyžaduje tému na analýzu.');
+    if (typeof topic !== 'string' || !topic.trim()) throw new Error('chatGptDeepReasoning requires a topic to analyze.');
     return {
       topic: topic.trim(),
       framework: 'ChatGPT Advanced Reasoning Engine',
       method,
       reasoning_steps: [
-        { phase: 'Pochopenie fundamentu', note: `Dekompozícia zadania "${topic}" na základné axiómy bez domnienok.` },
-        { phase: 'Kritická analýza & alternatívy', note: 'Zhodnotenie protichodných hypotéz a technických obmedzení.' },
-        { phase: 'Syntéza & verifikácia', note: 'Formulácia optimálneho riešenia s konkrétnym overiteľným postupom.' }
+        { phase: 'First-principles decomposition', note: `Decompose "${topic}" into core axioms without unverified assumptions.` },
+        { phase: 'Critical analysis & alternatives', note: 'Evaluate competing hypotheses and technical constraints.' },
+        { phase: 'Synthesis & verification', note: 'Formulate the optimal solution with a concrete verifiable procedure.' }
       ],
       completed_at: new Date().toISOString()
     };
@@ -1037,12 +1037,12 @@ export const chatGptSkills = {
   chatGptCreativeWriter: (payload) => {
     const topic = typeof payload === 'object' && payload !== null ? (payload.topic || payload.theme || '') : payload;
     const format = typeof payload === 'object' && payload !== null && payload.format ? payload.format : 'article';
-    if (typeof topic !== 'string' || !topic.trim()) throw new Error('chatGptCreativeWriter vyžaduje tému.');
+    if (typeof topic !== 'string' || !topic.trim()) throw new Error('chatGptCreativeWriter requires a topic.');
     return {
       topic: topic.trim(),
       format,
-      structure: ['Pútavý hook & kontext', 'Jadro témy & pridaná hodnota', 'Praktické príklady', 'Záver & Call-to-Action'],
-      style: 'profesionálny, dynamický, pútavý',
+      structure: ['Engaging hook & context', 'Core topic & value proposition', 'Practical examples', 'Conclusion & Call-to-Action'],
+      style: 'professional, dynamic, engaging',
       created_at: new Date().toISOString()
     };
   },
@@ -1050,12 +1050,12 @@ export const chatGptSkills = {
   chatGptFeynmanExplainer: (payload) => {
     const concept = typeof payload === 'object' && payload !== null ? (payload.concept || payload.topic || '') : payload;
     const level = typeof payload === 'object' && payload !== null && payload.level ? payload.level : 'feynman_analogy';
-    if (typeof concept !== 'string' || !concept.trim()) throw new Error('chatGptFeynmanExplainer vyžaduje koncept.');
+    if (typeof concept !== 'string' || !concept.trim()) throw new Error('chatGptFeynmanExplainer requires a concept.');
     return {
       concept: concept.trim(),
       level,
       method: 'Feynman Learning Technique',
-      principles: ['Jednoduchá analógia z bežného života', 'Odstránenie zbytočného žargónu', 'Identifikácia bielych miest v chápaní'],
+      principles: ['Simple everyday analogy', 'Eliminate unnecessary jargon', 'Identify knowledge gaps'],
       verified: true
     };
   },
@@ -1063,11 +1063,11 @@ export const chatGptSkills = {
   chatGptPromptEngineer: (payload) => {
     const task = typeof payload === 'object' && payload !== null ? (payload.task || payload.prompt || '') : payload;
     const targetModel = typeof payload === 'object' && payload !== null && payload.targetModel ? payload.targetModel : 'gpt-4o';
-    if (typeof task !== 'string' || !task.trim()) throw new Error('chatGptPromptEngineer vyžaduje zadanie úlohy.');
+    if (typeof task !== 'string' || !task.trim()) throw new Error('chatGptPromptEngineer requires a task prompt.');
     return {
       task: task.trim(),
       target_model: targetModel,
-      enhanced_structure: ['Kontext a rola', 'Špecifikácia cieľa', 'Obmedzenia a formát výstupu', 'Príklady dobrej praxe'],
+      enhanced_structure: ['Context and role', 'Goal specification', 'Constraints and output format', 'Best-practice examples'],
       optimized: true
     };
   }
@@ -1146,7 +1146,7 @@ export const dataverseSkills = {
     });
     if (!resp.ok) {
       const txt = await resp.text().catch(() => '');
-      throw new Error(`Dataverse WhoAmI zlyhal (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
+      throw new Error(`Dataverse WhoAmI failed (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
     }
     const data = await resp.json();
     return {
@@ -1160,7 +1160,7 @@ export const dataverseSkills = {
 
   dataverseQuery: async (entitySet, queryParams = {}, env = {}, options = {}) => {
     if (!entitySet || typeof entitySet !== 'string') {
-      throw new Error('dataverseQuery vyžaduje názov entity (napr. accounts, contacts, incidents)');
+      throw new Error('dataverseQuery requires an entity set name (e.g., accounts, contacts, incidents)');
     }
     const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
     const token = await resolveDataverseToken(env, options);
@@ -1170,8 +1170,8 @@ export const dataverseSkills = {
         entitySet,
         count: 2,
         value: [
-          { id: 'mock-1', name: `Ukážkový záznam 1 (${entitySet})`, createdon: new Date().toISOString() },
-          { id: 'mock-2', name: `Ukážkový záznam 2 (${entitySet})`, createdon: new Date().toISOString() }
+          { id: 'mock-1', name: `Sample record 1 (${entitySet})`, createdon: new Date().toISOString() },
+          { id: 'mock-2', name: `Sample record 2 (${entitySet})`, createdon: new Date().toISOString() }
         ],
         instance_url: instanceUrl,
         mock: !token || Boolean(options.mock)
@@ -1197,7 +1197,7 @@ export const dataverseSkills = {
     });
     if (!resp.ok) {
       const txt = await resp.text().catch(() => '');
-      throw new Error(`Dataverse query zlyhal pre ${entitySet} (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
+      throw new Error(`Dataverse query failed for ${entitySet} (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
     }
     const data = await resp.json();
     return {
@@ -1208,7 +1208,7 @@ export const dataverseSkills = {
   },
 
   dataverseCreateRecord: async (entitySet, recordData = {}, env = {}, options = {}) => {
-    if (!entitySet || typeof entitySet !== 'string') throw new Error('dataverseCreateRecord vyžaduje entitySet');
+    if (!entitySet || typeof entitySet !== 'string') throw new Error('dataverseCreateRecord requires entitySet');
     const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
     const token = await resolveDataverseToken(env, options);
 
@@ -1237,13 +1237,13 @@ export const dataverseSkills = {
     });
     if (!resp.ok) {
       const txt = await resp.text().catch(() => '');
-      throw new Error(`Dataverse create zlyhal pre ${entitySet} (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
+      throw new Error(`Dataverse create failed for ${entitySet} (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
     }
     return await resp.json().catch(() => ({ entitySet, created: true }));
   },
 
   dataverseUpdateRecord: async (entitySet, id, recordData = {}, env = {}, options = {}) => {
-    if (!entitySet || !id) throw new Error('dataverseUpdateRecord vyžaduje entitySet a id');
+    if (!entitySet || !id) throw new Error('dataverseUpdateRecord requires entitySet and id');
     const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
     const token = await resolveDataverseToken(env, options);
 
@@ -1273,13 +1273,13 @@ export const dataverseSkills = {
     });
     if (!resp.ok) {
       const txt = await resp.text().catch(() => '');
-      throw new Error(`Dataverse update zlyhal pre ${entitySet}(${id}) (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
+      throw new Error(`Dataverse update failed for ${entitySet}(${id}) (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
     }
     return await resp.json().catch(() => ({ id, entitySet, updated: true }));
   },
 
   dataverseDeleteRecord: async (entitySet, id, env = {}, options = {}) => {
-    if (!entitySet || !id) throw new Error('dataverseDeleteRecord vyžaduje entitySet a id');
+    if (!entitySet || !id) throw new Error('dataverseDeleteRecord requires entitySet and id');
     const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
     const token = await resolveDataverseToken(env, options);
 
@@ -1298,7 +1298,7 @@ export const dataverseSkills = {
     });
     if (!resp.ok) {
       const txt = await resp.text().catch(() => '');
-      throw new Error(`Dataverse delete zlyhal pre ${entitySet}(${id}) (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
+      throw new Error(`Dataverse delete failed for ${entitySet}(${id}) (HTTP ${resp.status}): ${txt.slice(0, 200)}`);
     }
     return { id, entitySet, deleted: true };
   }
@@ -1306,7 +1306,7 @@ export const dataverseSkills = {
 
 /**
  * 2C) GEMINI LOCAL & CLOUD DEVELOPER SKILLS
- * Umožňuje vývoj Trinity cez Google Gemini na lokálnom PC aj v cloude
+ * Enables Trinity development via Google Gemini on local PC and in the cloud.
  */
 export const geminiDeveloperSkills = {
   geminiDevStatus: async (env = {}) => ({
@@ -1331,17 +1331,14 @@ export const geminiDeveloperSkills = {
 };
 
 /**
- * Celý zjednotený objekt skills
- */
-/**
  * 2D) AI STUDIO BUILDER SKILLS
- * Umožňujú Copilot agentovi vytvárať a upravovať weby cez Trinity AI Studio.
- * studio.js sa importuje dynamicky, aby nevznikla cyklická závislosť so services.js.
+ * Allows the Copilot agent to create and revise websites via Trinity AI Studio.
+ * studio.js is dynamically imported to avoid circular dependencies with services.js.
  */
 export const studioSkills = {
   aiStudioBuild: async (params, env = {}) => {
     const input = typeof params === 'string' ? { prompt: params } : (params || {});
-    if (!env?.DB) return { success: false, error: 'AI Studio vyžaduje D1 databázu (env.DB).' };
+    if (!env?.DB) return { success: false, error: 'AI Studio requires a D1 database (env.DB).' };
     try {
       const { createStudioProject } = await import('./studio.js');
       const project = await createStudioProject(env, 'primary', {
@@ -1358,8 +1355,8 @@ export const studioSkills = {
 
   aiStudioRevise: async (params, env = {}) => {
     const input = params || {};
-    if (!env?.DB) return { success: false, error: 'AI Studio vyžaduje D1 databázu (env.DB).' };
-    if (!input.project_id) return { success: false, error: 'Chýba project_id.' };
+    if (!env?.DB) return { success: false, error: 'AI Studio requires a D1 database (env.DB).' };
+    if (!input.project_id) return { success: false, error: 'Missing project_id.' };
     try {
       const { reviseStudioProject } = await import('./studio.js');
       const project = await reviseStudioProject(env, 'primary', input.project_id, {
@@ -1374,7 +1371,7 @@ export const studioSkills = {
   },
 
   aiStudioList: async (params, env = {}) => {
-    if (!env?.DB) return { success: false, error: 'AI Studio vyžaduje D1 databázu (env.DB).' };
+    if (!env?.DB) return { success: false, error: 'AI Studio requires a D1 database (env.DB).' };
     try {
       const { listStudioProjects } = await import('./studio.js');
       return { success: true, items: await listStudioProjects(env, 'primary') };
@@ -1386,16 +1383,16 @@ export const studioSkills = {
 
 /**
  * 2E) COPILOT STUDIO AGENT (Direct Line)
- * Trinity položí otázku agentovi z Copilot Studio cez webový kanál (Direct Line).
- * Tajný kód webového kanála je Worker secret COPILOT_STUDIO_SECRET; nikdy sa nevracia ani nezapisuje do logov.
+ * Sends a query from Trinity to a Copilot Studio agent over the Direct Line web channel.
+ * The web channel secret is Worker secret COPILOT_STUDIO_SECRET; never returned or logged.
  */
 export const copilotStudioSkills = {
   copilotStudioAsk: async (params, env = {}, options = {}) => {
     const input = typeof params === 'string' ? { query: params } : (params || {});
     const query = String(input.query || '').trim();
-    if (!query) return { success: false, error: 'Chýba query.' };
+    if (!query) return { success: false, error: 'Missing query.' };
     const secret = env?.COPILOT_STUDIO_SECRET;
-    if (!secret) return { success: false, error: 'COPILOT_STUDIO_SECRET nie je nastavený (wrangler secret put COPILOT_STUDIO_SECRET).' };
+    if (!secret) return { success: false, error: 'COPILOT_STUDIO_SECRET is not configured (wrangler secret put COPILOT_STUDIO_SECRET).' };
     const configuredBase = String(env?.DIRECTLINE_URL || 'https://directline.botframework.com').replace(/\/+$/, '');
     const base = configuredBase.endsWith('/v3/directline') ? configuredBase : configuredBase + '/v3/directline';
     const timeoutMs = Math.min(Math.max(Number(options.timeoutMs) || 20000, 3000), 45000);
@@ -1407,7 +1404,7 @@ export const copilotStudioSkills = {
         body: body ? JSON.stringify(body) : undefined,
         signal: AbortSignal.timeout(Math.max(1000, deadline - Date.now()))
       });
-      if (!resp.ok) throw new Error(`Direct Line ${method} ${path.split('?')[0]} zlyhalo (HTTP ${resp.status}).`);
+      if (!resp.ok) throw new Error(`Direct Line ${method} ${path.split('?')[0]} failed (HTTP ${resp.status}).`);
       return resp.json();
     };
     try {
@@ -1435,7 +1432,7 @@ export const copilotStudioSkills = {
         }
         await new Promise(resolve => setTimeout(resolve, options.pollMs ?? 1200));
       }
-      if (!replies.length) return { success: false, error: 'Agent neodpovedal v časovom limite.', conversationId };
+      if (!replies.length) return { success: false, error: 'Agent did not reply within the timeout window.', conversationId };
       return { success: true, conversationId, replies };
     } catch (error) {
       return { success: false, error: String(error.message || error).replace(secret, '[redacted]') };
@@ -1444,7 +1441,7 @@ export const copilotStudioSkills = {
 };
 
 /**
- * 2F) PRODUCTIVITY PLUS – deterministické pomocné skilly (bez externých služieb)
+ * 2F) PRODUCTIVITY PLUS — deterministic helper skills (no external services)
  */
 const SK_EN_STOPWORDS = new Set(('a aby aj ak ako ale alebo ani asi až bol bola boli bolo bude by byť či do ho ja jej jeho ju k každý keď ktorý len má mal mi mu my na nad nie od on ona oni po pre pri s sa si som su sú tak to toto tu ty už v vo z zo že ' +
   'the a an and are as at be by for from has have he her his i in is it its of on or she that the their they this to was we were will with you your').split(' '));
@@ -1456,15 +1453,15 @@ function parseCronField(field, min, max) {
   const values = new Set();
   for (const part of String(field).split(',')) {
     const m = part.match(/^(\*|\d+(?:-\d+)?)(?:\/(\d+))?$/);
-    if (!m) throw new Error(`Neplatné pole cron výrazu: '${field}'.`);
+    if (!m) throw new Error(`Invalid cron field: '${field}'.`);
     const step = m[2] ? Number(m[2]) : 1;
-    if (step < 1) throw new Error('Krok v cron výraze musí byť aspoň 1.');
+    if (step < 1) throw new Error('Cron step must be at least 1.');
     let lo = min, hi = max;
     if (m[1] !== '*') {
       const [a, b] = m[1].split('-').map(Number);
       lo = a; hi = b === undefined ? (m[2] ? max : a) : b;
     }
-    if (lo < min || hi > max || lo > hi) throw new Error(`Hodnota mimo rozsahu ${min}-${max} v poli '${field}'.`);
+    if (lo < min || hi > max || lo > hi) throw new Error(`Value out of range ${min}-${max} in cron field '${field}'.`);
     for (let v = lo; v <= hi; v += step) values.add(v);
   }
   return values;
@@ -1473,7 +1470,7 @@ function parseCronField(field, min, max) {
 export const productivityPlusSkills = {
   slugify: (params) => {
     const text = typeof params === 'string' ? params : params?.text;
-    if (typeof text !== 'string' || !text.trim()) return { success: false, error: 'Chýba text.' };
+    if (typeof text !== 'string' || !text.trim()) return { success: false, error: 'Missing text.' };
     const slug = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
     return { success: true, slug };
@@ -1481,7 +1478,7 @@ export const productivityPlusSkills = {
 
   readingTime: (params) => {
     const text = typeof params === 'string' ? params : params?.text;
-    if (typeof text !== 'string' || !text.trim()) return { success: false, error: 'Chýba text.' };
+    if (typeof text !== 'string' || !text.trim()) return { success: false, error: 'Missing text.' };
     const wpm = Math.min(Math.max(Number(params?.wpm) || 200, 60), 600);
     const words = wordsOf(text).length;
     const minutes = words / wpm;
@@ -1490,7 +1487,7 @@ export const productivityPlusSkills = {
 
   extractiveSummary: (params) => {
     const text = typeof params === 'string' ? params : params?.text;
-    if (typeof text !== 'string' || text.trim().length < 40) return { success: false, error: 'Text je príliš krátky na zhrnutie.' };
+    if (typeof text !== 'string' || text.trim().length < 40) return { success: false, error: 'Text is too short to summarize.' };
     const sentences = splitSentences(text.slice(0, 50000));
     const count = Math.min(Math.max(Number(params?.sentences) || 3, 1), 8);
     if (sentences.length <= count) return { success: true, summary: sentences.join(' '), sentences: sentences.length, method: 'extractive' };
@@ -1507,7 +1504,7 @@ export const productivityPlusSkills = {
 
   dateDiff: (params) => {
     const from = new Date(params?.from), to = new Date(params?.to);
-    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return { success: false, error: 'Neplatný dátum (použi ISO, napr. 2026-10-18).' };
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return { success: false, error: 'Invalid date (use ISO format, e.g. 2026-10-18).' };
     const ms = to - from;
     const days = Math.round(ms / 86400000);
     let business = 0;
@@ -1524,14 +1521,14 @@ export const productivityPlusSkills = {
   cronNextRuns: (params) => {
     const expression = typeof params === 'string' ? params : params?.expression;
     const parts = String(expression || '').trim().split(/\s+/);
-    if (parts.length !== 5) return { success: false, error: 'Cron výraz musí mať 5 polí (minúta hodina deň mesiac deň-v-týždni).' };
+    if (parts.length !== 5) return { success: false, error: 'Cron expression must have 5 fields (minute hour day-of-month month day-of-week).' };
     try {
       const minute = parseCronField(parts[0], 0, 59), hour = parseCronField(parts[1], 0, 23),
         dom = parseCronField(parts[2], 1, 31), month = parseCronField(parts[3], 1, 12), dow = parseCronField(parts[4].replace(/\b7\b/g, '0'), 0, 6);
       const domAny = parts[2] === '*', dowAny = parts[4] === '*';
       const limit = Math.min(Math.max(Number(params?.count) || 3, 1), 10);
       const start = params?.from ? new Date(params.from) : new Date();
-      if (Number.isNaN(start.getTime())) return { success: false, error: 'Neplatný dátum začiatku.' };
+      if (Number.isNaN(start.getTime())) return { success: false, error: 'Invalid start date.' };
       const cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate(), start.getUTCHours(), start.getUTCMinutes() + 1));
       const runs = [];
       for (let i = 0; i < 527040 && runs.length < limit; i++, cursor.setUTCMinutes(cursor.getUTCMinutes() + 1)) {
@@ -1597,7 +1594,7 @@ export const domainSkills = {
   },
   domainInspect: async (params = {}, env) => {
     const domain = await getDomain(env, params.domain || params.id || params.name);
-    if (!domain) throw new Error(`Doména '${params.domain || params.id || params.name}' nebola nájdená.`);
+    if (!domain) throw new Error(`Domain '${params.domain || params.id || params.name}' was not found.`);
     const [dns_records, transactions] = await Promise.all([
       listDnsRecords(env, domain.id),
       listDomainTransactions(env, domain.id)
@@ -1641,14 +1638,14 @@ export const coreCatalogSkills = {
     skill: "planning",
     status: "completed",
     actionable_plan: {
-      goal: String(params.query || params.goal || "Plánovanie zadania").slice(0, 300),
+      goal: String(params.query || params.goal || "Task planning").slice(0, 300),
       phases: [
-        { phase: 1, name: "Analýza a validácia požiadaviek", status: "ready" },
-        { phase: 2, name: "Technický návrh a overenie predpokladov", status: "ready" },
-        { phase: 3, name: "Implementácia s otestovaním hraničných stavov", status: "ready" },
-        { phase: 4, name: "Verifikácia, audit a nasadenie", status: "ready" }
+        { phase: 1, name: "Requirements analysis and validation", status: "ready" },
+        { phase: 2, name: "Technical design and assumption verification", status: "ready" },
+        { phase: 3, name: "Implementation with edge-case testing", status: "ready" },
+        { phase: 4, name: "Verification, audit, and deployment", status: "ready" }
       ],
-      success_criteria: ["Spätná overiteľnosť", "Nulové neautorizované zmeny", "Záznam v audit logu"]
+      success_criteria: ["Independent verifiability", "Zero unauthorized changes", "Recorded in audit log"]
     },
     timestamp: new Date().toISOString()
   }),
@@ -1679,7 +1676,7 @@ export const coreCatalogSkills = {
     skill: "evidence-research",
     status: "completed",
     evidence_structure: {
-      topic: String(params.query || params.topic || "Výskum").slice(0, 300),
+      topic: String(params.query || params.topic || "Research").slice(0, 300),
       truth_policy: "evidence-required",
       status: "verified"
     },
@@ -1710,7 +1707,7 @@ export const coreCatalogSkills = {
   "paper-trading": async (params = {}) => ({
     skill: "paper-trading",
     status: "completed",
-    commodity_sectors: ["Drahé kovy", "Energie", "Priemyselné kovy", "Poľnohospodárstvo", "Mäso & dobytok"],
+    commodity_sectors: ["Precious Metals", "Energy", "Industrial Metals", "Agriculture", "Livestock & Meat"],
     total_commodities_tracked: 22,
     mode: "simulation-only",
     timestamp: new Date().toISOString()
@@ -1739,9 +1736,9 @@ export const coreCatalogSkills = {
     skill: "clear-communication",
     status: "completed",
     guidelines: [
-      "Najprv výsledok",
-      "Krátke a vecné vysvetlenie v slovenskom jazyku",
-      "Jasné odporúčanie ďalšieho kroku"
+      "Result first",
+      "Concise and factual explanation in Slovak",
+      "Clear recommendation for the next step"
     ],
     timestamp: new Date().toISOString()
   }),
@@ -1749,7 +1746,7 @@ export const coreCatalogSkills = {
     skill: "customer-acquisition",
     status: "completed",
     blueprint: {
-      segment: String(params.segment || "Všeobecný").slice(0, 100),
+      segment: String(params.segment || "General").slice(0, 100),
       offer_type: "managed-services",
       checkout_options: ["Revolut Pro", "PayPal Live"],
       outreach_status: "draft-only-requires-authorization"
@@ -1789,7 +1786,7 @@ export const catalogSkills = Object.fromEntries(
 );
 
 export const sovereignAgentSkills = {
-  // Jadro, Orchestrácia a Autonómia
+  // Core, Orchestration & Autonomy
   'trinity-core-orchestrator': async (params = {}, env = {}) => {
     const input = typeof params === 'string' ? { task: params } : (params || {});
     return {
@@ -1844,18 +1841,18 @@ export const sovereignAgentSkills = {
       receipt_id: crypto.randomUUID(),
       topic: input.topic || 'strategic decision',
       perspectives: {
-        operator: 'Zamerať sa na spoľahlivosť, latenciu a dodržanie limitov.',
-        skeptic: 'Aké sú predpoklady, ktoré môžu zlyhať pri výpadku siete alebo API?',
-        visionary: 'Ako tento krok rozširuje autonómiu suverénnej triády do budúcna?',
-        customer_advocate: 'Je rozhranie jednoduché, jasné a bez zbytočných bariér pre Tvorcu?',
-        finance_mind: 'Aké sú náklady na tokeny, Cloudflare operácie a celkovú efektivitu?'
+        operator: 'Focus on reliability, latency, and staying within operational limits.',
+        skeptic: 'Which assumptions could fail during a network or API outage?',
+        visionary: 'How does this step expand the autonomy of the sovereign triad going forward?',
+        customer_advocate: 'Is the interface simple, clear, and free of unnecessary friction for the Creator?',
+        finance_mind: 'What are the token costs, Cloudflare operation counts, and overall efficiency?'
       },
       executed_at: new Date().toISOString()
     };
   },
   'get_more_perspectives': async (params, env) => sovereignAgentSkills['get-more-perspectives'](params, env),
 
-  // Infraštruktúra, Edge & Integrácie
+  // Infrastructure, Edge & Integrations
   'cloudflare-worker-manager': async (params = {}, env = {}) => {
     const input = typeof params === 'string' ? { action: params } : (params || {});
     return {
@@ -1910,7 +1907,7 @@ export const sovereignAgentSkills = {
   },
   'copilot_studio_connector': async (params, env) => sovereignAgentSkills['copilot-studio-connector'](params, env),
 
-  // Vývoj, Bezpečnosť a Git
+  // Development, Security & Git
   'polyglot-coder': async (params = {}, env = {}) => {
     const input = typeof params === 'string' ? { language: params } : (params || {});
     return {
@@ -2007,7 +2004,7 @@ export const sovereignAgentSkills = {
   },
   'git_deployment_sync': async (params, env) => sovereignAgentSkills['git-deployment-sync'](params, env),
 
-  // Dokumentácia, Štýl a Znalosti
+  // Documentation, Style & Knowledge
   'notion-workspace-sync': async (params = {}, env = {}) => {
     const input = typeof params === 'string' ? { page: params } : (params || {});
     return {
@@ -2041,7 +2038,7 @@ export const sovereignAgentSkills = {
       status: 'completed',
       receipt_id: crypto.randomUUID(),
       owner: 'Sabo Ivan / Basterix',
-      tone: 'prirodzený, priamy, úctivý, partnerský a vecný',
+      tone: 'natural, direct, respectful, collaborative, and factual',
       language: 'sk',
       executed_at: new Date().toISOString()
     };
@@ -2090,7 +2087,7 @@ export const skills = {
 };
 
 /**
- * 4️⃣ DYNAMICKÝ SKILL REGISTRY PRE TRINITY
+ * 4️⃣ DYNAMIC SKILL REGISTRY FOR TRINITY
  */
 class SkillRegistry {
   constructor() {
@@ -2099,7 +2096,7 @@ class SkillRegistry {
 
   register(name, fn, meta = {}) {
     if (!name || typeof fn !== 'function') {
-      throw new Error('register vyžaduje neprázdny názov a funkciu');
+      throw new Error('register requires a non-empty name and a function');
     }
     this._customSkills.set(name, { fn, meta, registeredAt: new Date().toISOString() });
     return this;
@@ -2135,7 +2132,7 @@ class SkillRegistry {
   async execute(name, ...args) {
     assertCopilotSkillEnabled(name);
     const fn = this.get(name);
-    if (!fn) throw new Error(`Skill '${name}' nebol nájdený v registry.`);
+    if (!fn) throw new Error(`Skill '${name}' was not found in registry.`);
     return await fn(...args);
   }
 }

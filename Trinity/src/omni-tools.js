@@ -3,13 +3,13 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul omni-tools.js (Trinity/src/omni-tools.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module omni-tools.js (Trinity/src/omni-tools.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * TRINITY OMNI-TOOLS ARSENAL
- * 
- * Produkčný súbor overených nástrojov pre Cloudflare, GitHub, Mail, Universal API
- * a obojsmerný PC Execution Bridge. Žiadne mocky — priama exekúcia a Truth Policy 2.0 doklady.
+ *
+ * Production module of verified tools for Cloudflare, GitHub, Mail, Universal API,
+ * and the bidirectional PC Execution Bridge. Zero mocks — direct execution with Truth Policy 2.1 receipts.
  */
 
 import { resolveProviderSecret } from './secret-vault.js';

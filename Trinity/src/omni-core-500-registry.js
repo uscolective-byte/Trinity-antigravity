@@ -3,7 +3,7 @@
  * @subsystem OMNI_CORE_500_REGISTRY
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Kanonický register všetkých 500 architektonických a systémových vylepšení (#001 - #500) a 75 základných pilierov ekosystému TRINITY OMNI-CORE.
+ * @description Canonical registry of all 500 architectural and system improvements (#001 - #500) and 75 foundational pillars of the TRINITY OMNI-CORE ecosystem.
  */
 
 export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
@@ -13,7 +13,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická detekcia a prepájanie audio vstupov a výstupov vo Windows pri zapojení nového mikrofónu či slúchadiel."
+    "description": "Automatic detection and switching of Windows audio inputs and outputs when a new microphone or headphones are connected."
   },
   {
     "id": "IMP-002",
@@ -21,7 +21,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul pre tichú inštaláciu systémových balíčkov a nástrojov cez Windows Package Manager (winget) bez interakčných dialógov."
+    "description": "Module for silent installation of system packages and tools via Windows Package Manager (winget) without interactive dialogs."
   },
   {
     "id": "IMP-003",
@@ -29,7 +29,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Inteligentné dynamické riadenie jasu a kontrastu monitora na základe dennej doby a úrovne okolitého svetla."
+    "description": "Intelligent dynamic control of monitor brightness and contrast based on time of day and ambient light levels."
   },
   {
     "id": "IMP-004",
@@ -37,7 +37,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Virtuálny audio mixér umožňujúci Trinity smerovať systémový zvuk, vlastný syntetizovaný hlas a hudbu do oddelených kanálov."
+    "description": "Virtual audio mixer allowing Trinity to route system sound, synthesized voice, and music into separate channels."
   },
   {
     "id": "IMP-005",
@@ -45,7 +45,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Modul pre automatické rozpoznávanie a triedenie stiahnutých súborov podľa typu a kontextu do dedikovaných priečinkov."
+    "description": "Module for automatic recognition and sorting of downloaded files by type and context into dedicated folders."
   },
   {
     "id": "IMP-006",
@@ -53,7 +53,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Lokálny transkripčný server využívajúci Whisper na prevod audio nahrávok a hlasových správ na text bez odosielania dát do cloudu."
+    "description": "Local transcription server powered by Whisper to convert audio recordings and voice messages into text without sending data to the cloud."
   },
   {
     "id": "IMP-007",
@@ -61,7 +61,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatické generovanie a registrácia unikátnych používateľských makier pre opakujúce sa rutinné sekvencie úloh."
+    "description": "Automatic generation and registration of custom user macros for repetitive routine task sequences."
   },
   {
     "id": "IMP-008",
@@ -69,7 +69,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Monitor integrity systémového registra Windows s okamžitým varovaním a blokovaním neautorizovaných zápisov."
+    "description": "Windows Registry integrity monitor with immediate alerts and blocking of unauthorized writes."
   },
   {
     "id": "IMP-009",
@@ -77,7 +77,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Nástroj na automatické vyčistenie pamäte RAM od neaktívnych procesov pri spustení hardvérovo náročnej úlohy."
+    "description": "Tool for automatically clearing RAM of inactive processes when launching a hardware-intensive task."
   },
   {
     "id": "IMP-010",
@@ -85,7 +85,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Dynamické škálovanie frekvencie procesora v závislosti od priority aktuálne bežiaceho výpočtu v Trinity."
+    "description": "Dynamic CPU frequency scaling based on the priority of the currently running Trinity computation."
   },
   {
     "id": "IMP-011",
@@ -93,7 +93,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatická kontrola a aktualizácia grafických ovládačov a systémových runtime knižníc (DirectX, VC++ Redistributable)."
+    "description": "Automatic checking and updating of graphics drivers and system runtime libraries (DirectX, VC++ Redistributable)."
   },
   {
     "id": "IMP-012",
@@ -101,7 +101,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Nástroj na bezpečné odpájanie externých úložísk zabezpečujúci dokončenie všetkých zápisových operácií pred odpojením."
+    "description": "Tool for safely ejecting external storage devices, ensuring all write operations complete before disconnection."
   },
   {
     "id": "IMP-013",
@@ -109,7 +109,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Detektor výpadku elektrickej siete na základe stavu UPS s automatickým uložením otvorenej práce a bezpečným vypnutím."
+    "description": "Power outage detector based on UPS status with automatic saving of open work and safe shutdown."
   },
   {
     "id": "IMP-014",
@@ -117,7 +117,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Špecializovaný správca virtuálnych plôch Windows pre automatické rozmiestňovanie okien aplikácií podľa pracovného módu."
+    "description": "Dedicated Windows virtual desktop manager for automatically arranging application windows according to work mode."
   },
   {
     "id": "IMP-015",
@@ -125,7 +125,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická konverzia schém a modelov do interaktívnych 3D objektov vo formáte glTF pre rýchly náhľad v prehliadači."
+    "description": "Automatic conversion of schematics and models into interactive glTF 3D objects for quick browser preview."
   },
   {
     "id": "IMP-016",
@@ -133,7 +133,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Monitor latencie vstupných periférií identifikujúci oneskorenie klávesnice a myši spôsobené preťažením procesora."
+    "description": "Input peripheral latency monitor identifying keyboard and mouse delays caused by CPU overload."
   },
   {
     "id": "IMP-017",
@@ -141,7 +141,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Správca systémových tlačiarní s automatickým prevodom tlačených úloh do formátu PDF bez nutnosti fyzickej tlače."
+    "description": "System printer manager with automatic conversion of print jobs to PDF without requiring physical printing."
   },
   {
     "id": "IMP-018",
@@ -149,7 +149,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Nástroj na generovanie heatmáp používateľskej aktivity pre optimalizáciu rozloženia ovládacích prvkov v rozhraní."
+    "description": "Tool for generating user activity heatmaps to optimize control placement across the interface."
   },
   {
     "id": "IMP-019",
@@ -157,7 +157,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Integrovaný emulátor virtuálnych sériových COM portov pre komunikáciu s mikrokontrolérmi a IoT doskami (Arduino, ESP32)."
+    "description": "Integrated virtual serial COM port emulator for communicating with microcontrollers and IoT boards (Arduino, ESP32)."
   },
   {
     "id": "IMP-020",
@@ -165,7 +165,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na sledovanie spotreby elektrickej energie celého systému s kalkuláciou nákladov na jednotlivé výpočtové úlohy."
+    "description": "Module for monitoring whole-system electrical power consumption with cost calculation per computational task."
   },
   {
     "id": "IMP-021",
@@ -173,7 +173,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatická kompresia a rotácia starých aplikačných logov na úsporu miesta na disku bez straty histórie."
+    "description": "Automatic compression and rotation of old application logs to save disk space without losing history."
   },
   {
     "id": "IMP-022",
@@ -181,7 +181,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Inteligentný rozdeľovač obrazovky pre automatické zarovnanie okien (Tiling Window Manager vrstva pre Windows)."
+    "description": "Intelligent screen splitter for automatic window alignment (Tiling Window Manager layer for Windows)."
   },
   {
     "id": "IMP-023",
@@ -189,7 +189,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Hardvérový diagnostik chýb pamäte RAM spúšťajúci kontrolné testy integrity pri nečinnosti systému."
+    "description": "Hardware RAM error diagnostic running integrity verification tests during system idle periods."
   },
   {
     "id": "IMP-024",
@@ -197,7 +197,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na okamžité stíšenie všetkých mediálnych prehrávačov pri prichádzajúcom hovore alebo hlasovom príkaze."
+    "description": "Module for instantly muting all media players upon an incoming call or voice command."
   },
   {
     "id": "IMP-025",
@@ -205,7 +205,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Virtuálna webkamera generujúca syntetický videoprúd s diagnostickými informáciami pre testovacie videokonferencie."
+    "description": "Virtual webcam generating a synthetic video stream with diagnostic information for test video conferences."
   },
   {
     "id": "IMP-026",
@@ -213,7 +213,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatické vytváranie bodov obnovenia systému Windows pred každou kritickou inštaláciou alebo zmenou ovládačov."
+    "description": "Automatic creation of Windows System Restore points before every critical installation or driver change."
   },
   {
     "id": "IMP-027",
@@ -221,7 +221,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na extrakciu a analýzu metadát (EXIF) zo snímok s možnosťou ich automatického odstránenia pred zdieľaním."
+    "description": "Tool for extracting and analyzing EXIF metadata from images with optional automatic removal before sharing."
   },
   {
     "id": "IMP-028",
@@ -229,7 +229,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Monitor zaplnenia vyrovnávacej pamäte SSD diskov s optimalizáciou TRIM príkazov pre udržanie maximálnej rýchlosti."
+    "description": "SSD cache utilization monitor with TRIM command optimization to maintain peak performance."
   },
   {
     "id": "IMP-029",
@@ -237,7 +237,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Automatické prepínanie zvukových profilov medzi kódovaním, hraním hier a nahrávaním hlasu."
+    "description": "Automatic switching of audio profiles between coding, gaming, and voice recording."
   },
   {
     "id": "IMP-030",
@@ -245,7 +245,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Správca sieťových adaptérov automaticky prepínajúci medzi Wi-Fi a ethernetovým káblom na základe rýchlosti a stability."
+    "description": "Network adapter manager automatically switching between Wi-Fi and Ethernet cable based on speed and stability."
   },
   {
     "id": "IMP-031",
@@ -253,7 +253,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Detektor poškodených sektorov disku s preventívnym presunom kritických súborov Trinity na bezpečné bloky."
+    "description": "Damaged disk sector detector with preventive relocation of critical Trinity files to healthy blocks."
   },
   {
     "id": "IMP-032",
@@ -261,7 +261,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická synchronizácia systémového času s presnými atómovými hodinami cez zabezpečený NTP protokol."
+    "description": "Automatic system clock synchronization with precise atomic clocks over secure NTP."
   },
   {
     "id": "IMP-033",
@@ -269,7 +269,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Modul na simuláciu stlačenia klávesov s nastaviteľným náhodným oneskorením pre testovanie odolnosti používateľských formulárov."
+    "description": "Module for simulating keystrokes with configurable random jitter to test user form resilience."
   },
   {
     "id": "IMP-034",
@@ -277,7 +277,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Nástroj na automatické stiahnutie a aplikáciu bezpečnostných záplat operačného systému v nočných hodinách."
+    "description": "Tool for automatically downloading and applying operating system security patches overnight."
   },
   {
     "id": "IMP-035",
@@ -285,7 +285,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Správca Bluetooth pripojení s automatickým párovaním dôveryhodných periférií po štarte systému."
+    "description": "Bluetooth connection manager with automatic pairing of trusted peripherals at system startup."
   },
   {
     "id": "IMP-036",
@@ -293,7 +293,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Monitor systémových interruptov (DPC/ISR latencia) na odhalenie problémových ovládačov spôsobujúcich sekanie zvuku."
+    "description": "System interrupt monitor (DPC/ISR latency) for identifying problematic drivers causing audio stuttering."
   },
   {
     "id": "IMP-037",
@@ -301,7 +301,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Virtuálny disk v operačnej pamäti (RAMDisk) pre ultra-rýchle spracovanie dočasných súborov a kompilácií."
+    "description": "In-memory virtual disk (RAMDisk) for ultra-fast processing of temporary files and compilations."
   },
   {
     "id": "IMP-038",
@@ -309,7 +309,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Nástroj na automatickú detekciu a ukončenie duplicitne spustených inštancií toho istého programu."
+    "description": "Tool for automatically detecting and terminating duplicate running instances of the same program."
   },
   {
     "id": "IMP-039",
@@ -317,7 +317,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Správca environmentálnych premenných Windows s vizuálnym editorom a kontrolou neexistujúcich ciest."
+    "description": "Windows environment variable manager with a visual editor and validation of nonexistent paths."
   },
   {
     "id": "IMP-040",
@@ -325,7 +325,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Automatická detekcia typu pripojenej batérie v notebooku a dynamická úprava profilu spotreby energie."
+    "description": "Automatic detection of connected laptop battery type and dynamic adjustment of the power consumption profile."
   },
   {
     "id": "IMP-041",
@@ -333,7 +333,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Generátor syntetických záťažových testov pre procesor a pamäť na overenie stability nového pretaktovania."
+    "description": "Synthetic stress test generator for CPU and memory to verify stability of new overclock settings."
   },
   {
     "id": "IMP-042",
@@ -341,7 +341,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na automatické vytváranie a kontrolu integrity archívov vo formátoch 7z, TAR a Zstandard."
+    "description": "Module for automatic creation and integrity verification of archives in 7z, TAR, and Zstandard formats."
   },
   {
     "id": "IMP-043",
@@ -349,7 +349,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Nástroj na monitoring otvorených portov a počúvajúcich služieb na lokálnom sieťovom rozhraní localhost."
+    "description": "Tool for monitoring open ports and listening services on the local localhost network interface."
   },
   {
     "id": "IMP-044",
@@ -357,7 +357,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Automatická oprava asociácií prípon súborov vo Windows poškodených neodbornou inštaláciou softvéru."
+    "description": "Automatic repair of Windows file extension associations damaged by improper software installations."
   },
   {
     "id": "IMP-045",
@@ -365,7 +365,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Správca fontov s automatickým zisťovaním chýbajúcich znakov (glyphs) v nainštalovaných typografických rodinách."
+    "description": "Font manager with automatic detection of missing glyphs across installed typeface families."
   },
   {
     "id": "IMP-046",
@@ -373,7 +373,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na dynamickú zmenu tapety pracovnej plochy zobrazujúcej aktuálny systémový status a vyťaženie Trinity."
+    "description": "Tool for dynamically updating the desktop wallpaper to display live Trinity system status and load."
   },
   {
     "id": "IMP-047",
@@ -381,7 +381,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Detektor pripojenia viacerých monitorov s automatickým obnovením uloženej konfigurácie pracovných okien."
+    "description": "Multi-monitor connection detector with automatic restoration of saved workspace window layouts."
   },
   {
     "id": "IMP-048",
@@ -389,7 +389,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Automatický čistič kľúčov v systémovom registri po odinštalovaných programoch."
+    "description": "Automatic cleaner for leftover Windows Registry keys left behind by uninstalled programs."
   },
   {
     "id": "IMP-049",
@@ -397,7 +397,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na sledovanie životnosti SSD disku (S.M.A.R.T. atribúty) s predikciou zostávajúceho času do zlyhania."
+    "description": "SSD lifespan monitor (S.M.A.R.T. attributes) predicting remaining time before failure."
   },
   {
     "id": "IMP-050",
@@ -405,7 +405,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Modul na generovanie zoznamu všetkých nainštalovaných programov a ich export do formátu JSON."
+    "description": "Module for generating an inventory of all installed programs and exporting it to JSON format."
   },
   {
     "id": "IMP-051",
@@ -413,7 +413,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická detekcia a konfigurácia proxy serverov pri prechode medzi rôznymi sieťami."
+    "description": "Automatic detection and configuration of proxy servers when switching between different networks."
   },
   {
     "id": "IMP-052",
@@ -421,7 +421,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Nástroj na emuláciu dotykovej obrazovky pomocou kurzora myši pre testovanie responzívnych aplikácií."
+    "description": "Tool for emulating a touchscreen using the mouse cursor to test responsive applications."
   },
   {
     "id": "IMP-053",
@@ -429,7 +429,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Správca zvukových zariadení s funkciou prevencie náhleho ohluchnutia normalizáciou hlasitosti."
+    "description": "Audio device manager with volume normalization to prevent sudden loudness spikes."
   },
   {
     "id": "IMP-054",
@@ -437,7 +437,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Nástroj na vytváranie virtuálnych sieťových kariet pre testovanie sieťových aplikácií v izolovanej podsieti."
+    "description": "Tool for creating virtual network adapters to test networked applications in an isolated subnet."
   },
   {
     "id": "IMP-055",
@@ -445,7 +445,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Automatická kontrola digitálnych podpisov spúšťaných binárnych súborov pre overenie ich pôvodu."
+    "description": "Automatic verification of digital signatures on executed binaries to confirm their provenance."
   },
   {
     "id": "IMP-056",
@@ -453,7 +453,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Systémový merač prenosovej rýchlosti zápisu a čítania na jednotlivých diskových oddieloch v reálnom čase."
+    "description": "Real-time system meter measuring read and write throughput across individual disk partitions."
   },
   {
     "id": "IMP-057",
@@ -461,7 +461,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na automatické zapnutie šetriča obrazovky a uzamknutie pracovnej stanice pri absencii pohybu používateľa."
+    "description": "Module for automatically activating the screensaver and locking the workstation when user activity stops."
   },
   {
     "id": "IMP-058",
@@ -469,7 +469,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Monitor stability napájacích vetiev základnej dosky s varovaním pri poklese napätia na 12V zbernici."
+    "description": "Motherboard power rail stability monitor with alerts when voltage drops on the 12V rail."
   },
   {
     "id": "IMP-059",
@@ -477,7 +477,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na automatické odstraňovanie neplatných odkazov a zástupcov z ponuky Štart a plochy."
+    "description": "Tool for automatically removing broken links and invalid shortcuts from the Start menu and desktop."
   },
   {
     "id": "IMP-060",
@@ -485,7 +485,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Správca systémových služieb Windows s možnosťou ich hromadného vypnutia do režimu maximálneho herného výkonu."
+    "description": "Windows system services manager capable of batch-disabling non-essential services for maximum gaming performance mode."
   },
   {
     "id": "IMP-061",
@@ -493,7 +493,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Detektor pripojenia HDMI/DisplayPort audio zariadení s automatickou rekonfiguráciou predvoleného prehrávača."
+    "description": "HDMI/DisplayPort audio device connection detector with automatic reconfiguration of the default playback device."
   },
   {
     "id": "IMP-062",
@@ -501,7 +501,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická detekcia zmeny verejnej IP adresy s okamžitou aktualizáciou dynamických DNS záznamov."
+    "description": "Automatic detection of public IP address changes with immediate updates to dynamic DNS records."
   },
   {
     "id": "IMP-063",
@@ -509,7 +509,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na generovanie detailných správ o hardvérovej architektúre základnej dosky a PCIe slotov."
+    "description": "Tool for generating detailed reports on motherboard hardware architecture and PCIe slot topology."
   },
   {
     "id": "IMP-064",
@@ -517,7 +517,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Modul na automatické čistenie miniatúr a indexov vyhľadávania Windows Search pri podozrení na korupciu."
+    "description": "Module for automatically clearing thumbnails and Windows Search indexes when corruption is suspected."
   },
   {
     "id": "IMP-065",
@@ -525,7 +525,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Monitor aktivity diskového podsystému s identifikáciou procesov blokujúcich uvoľnenie konkrétneho súboru."
+    "description": "Disk subsystem activity monitor identifying processes locking a specific file from being released."
   },
   {
     "id": "IMP-066",
@@ -533,7 +533,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na emuláciu rôznych typov klávesníc a rozložení klávesov (QWERTY, QWERTZ, Dvorak) na softvérovej úrovni."
+    "description": "Tool for software-level emulation of different keyboard types and layouts (QWERTY, QWERTZ, Dvorak)."
   },
   {
     "id": "IMP-067",
@@ -541,7 +541,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatické zálohovanie a obnova konfigurácií sieťových adaptérov a smerovacích tabuliek."
+    "description": "Automatic backup and restoration of network adapter configurations and routing tables."
   },
   {
     "id": "IMP-068",
@@ -549,7 +549,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Správca plánovaných úloh Windows s funkciou detekcie podozrivých úloh pridaných malvérom."
+    "description": "Windows Task Scheduler manager with detection of suspicious scheduled tasks added by malware."
   },
   {
     "id": "IMP-069",
@@ -557,7 +557,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na vizualizáciu diskového priestoru pomocou interaktívnych stromových máp na okamžité nájdenie veľkých priečinkov."
+    "description": "Disk space visualization tool using interactive treemaps to immediately locate large folders."
   },
   {
     "id": "IMP-070",
@@ -565,7 +565,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatický prepínač farebných profilov monitora (sRGB, DCI-P3) pri spustení grafických aplikácií."
+    "description": "Automatic monitor color profile switcher (sRGB, DCI-P3) when launching graphics applications."
   },
   {
     "id": "IMP-071",
@@ -573,7 +573,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na generovanie zoznamu otvorených súborových deskriptorov a sieťových socketov pre každý proces."
+    "description": "Module for listing open file descriptors and network sockets for every running process."
   },
   {
     "id": "IMP-072",
@@ -581,7 +581,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Detektor sieťových paketov (jednoduchý packet sniffer) na zachytávanie chýb v lokálnej komunikácii API."
+    "description": "Network packet detector (lightweight packet sniffer) for capturing errors in local API communication."
   },
   {
     "id": "IMP-073",
@@ -589,7 +589,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na automatickú synchronizáciu schránky medzi viacerými počítačmi v lokálnej sieti."
+    "description": "Tool for automatic clipboard synchronization across multiple computers on a local network."
   },
   {
     "id": "IMP-074",
@@ -597,7 +597,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Správca skupinových politík Windows (GPO) umožňujúci automatickú aplikáciu bezpečnostných hardenovacích skriptov."
+    "description": "Windows Group Policy Object (GPO) manager enabling automatic application of security hardening scripts."
   },
   {
     "id": "IMP-075",
@@ -605,7 +605,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na meranie odozvy DNS serverov s automatickým výberom najrýchlejšieho dostupného poskytovateľa."
+    "description": "DNS server latency benchmarking module with automatic selection of the fastest available provider."
   },
   {
     "id": "IMP-076",
@@ -613,7 +613,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Sémantický parser prichádzajúcich e-mailových správ extrahujúci termíny, úlohy a finančné požiadavky."
+    "description": "Semantic parser for incoming email messages extracting deadlines, tasks, and financial requests."
   },
   {
     "id": "IMP-077",
@@ -621,7 +621,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický generátor personalizovaných e-mailových odpovedí rešpektujúci formálny a neformálny tón."
+    "description": "Automatic generator of personalized email replies respecting formal and informal tone."
   },
   {
     "id": "IMP-078",
@@ -629,7 +629,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na sledovanie otvorenia e-mailu a kliknutí na odkazy v odoslaných správach."
+    "description": "Module for tracking email opens and link clicks in sent messages."
   },
   {
     "id": "IMP-079",
@@ -637,7 +637,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Inteligentný manažér e-mailových príloh s automatickým ukladaním faktúr do účtovného priečinka."
+    "description": "Intelligent email attachment manager with automatic saving of invoices into the accounting folder."
   },
   {
     "id": "IMP-080",
@@ -645,7 +645,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatické odhlasovanie z nevyžiadaných marketingových newsletterov jedným kliknutím."
+    "description": "One-click automatic unsubscription from unwanted marketing newsletters."
   },
   {
     "id": "IMP-081",
@@ -653,7 +653,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul pre hromadné odosielanie personalizovaných e-mailov s časovým odstupom proti zablokovaniu účtu."
+    "description": "Bulk personalized email sender with rate pacing to prevent account suspension."
   },
   {
     "id": "IMP-082",
@@ -661,7 +661,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Šifrovanie e-mailovej komunikácie pomocou PGP kľúčov s automatickým podpisovaním odchádzajúcich správ."
+    "description": "Email communication encryption using PGP keys with automatic signing of outgoing messages."
   },
   {
     "id": "IMP-083",
@@ -669,7 +669,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na detekciu phishingových odkazov a podozrivých odosielateľov v prichádzajúcej pošte."
+    "description": "Tool for detecting phishing links and suspicious senders in incoming mail."
   },
   {
     "id": "IMP-084",
@@ -677,7 +677,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatická konverzia e-mailových vlákien do formátu Markdown pre archiváciu v znalostnej databáze."
+    "description": "Automatic conversion of email threads into Markdown format for archiving in the knowledge base."
   },
   {
     "id": "IMP-085",
@@ -685,7 +685,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Modul na generovanie profesionálnych e-mailových podpisov s dynamickým logom a kontaktmi."
+    "description": "Module for generating professional email signatures with dynamic logos and contact details."
   },
   {
     "id": "IMP-086",
@@ -693,7 +693,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Plánovač stretnutí porovnávajúci dostupnosť vo viacerých kalendároch a navrhujúci optimálne časy."
+    "description": "Meeting scheduler comparing availability across multiple calendars and proposing optimal times."
   },
   {
     "id": "IMP-087",
@@ -701,7 +701,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatické generovanie odkazov na Google Meet a Zoom pri vytvorení novej udalosti v kalendári."
+    "description": "Automatic generation of Google Meet and Zoom links when creating a new calendar event."
   },
   {
     "id": "IMP-088",
@@ -709,7 +709,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na extrakciu zoznamu úloh z kalendárových poznámok a ich zaradenie do týždenného plánu."
+    "description": "Module for extracting action item lists from calendar notes and scheduling them into the weekly plan."
   },
   {
     "id": "IMP-089",
@@ -717,7 +717,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Inteligentný budík prispôsobujúci čas zobudenia podľa aktuálnej dopravnej situácie pred prvým stretnutím."
+    "description": "Smart alarm adjusting wake-up time based on live traffic conditions before the first meeting."
   },
   {
     "id": "IMP-090",
@@ -725,7 +725,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Automatické odosielanie ospravedlňujúcich správ pri zistení meškania na plánovanú schôdzku."
+    "description": "Automatic sending of apology messages when a delay to a scheduled meeting is detected."
   },
   {
     "id": "IMP-091",
@@ -733,7 +733,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na synchronizáciu osobných a pracovných kalendárov s maskovaním detailov súkromných udalostí."
+    "description": "Tool for synchronizing personal and work calendars while masking private event details."
   },
   {
     "id": "IMP-092",
@@ -741,7 +741,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Automatické generovanie týždenného časového auditu zobrazujúceho pomer schôdzok a hlbokej práce."
+    "description": "Automatic generation of a weekly time audit showing the ratio of meetings to deep work."
   },
   {
     "id": "IMP-093",
@@ -749,7 +749,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Modul na blokovanie rušivých schôdzok v obdobiach vyhradených pre neprerušované programovanie."
+    "description": "Module for blocking disruptive meetings during periods reserved for uninterrupted coding."
   },
   {
     "id": "IMP-094",
@@ -757,7 +757,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Detektor konfliktov v kalendári s automatickým návrhom presunu menej dôležitej udalosti."
+    "description": "Calendar conflict detector with automatic suggestions to reschedule lower-priority events."
   },
   {
     "id": "IMP-095",
@@ -765,7 +765,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Automatické zasielanie súhrnu agendy a podkladov účastníkom stretnutia hodinu vopred."
+    "description": "Automatic delivery of agenda summaries and briefing materials to meeting participants one hour in advance."
   },
   {
     "id": "IMP-096",
@@ -773,7 +773,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na monitorovanie a sťahovanie najnovších príspevkov z RSS kanálov a technických blogov."
+    "description": "Module for monitoring and downloading the latest posts from RSS feeds and technical blogs."
   },
   {
     "id": "IMP-097",
@@ -781,7 +781,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Automatický generátor zhrnutí odborných vedeckých článkov z portálov arXiv a ResearchGate."
+    "description": "Automatic summarizer for scientific papers from arXiv and ResearchGate."
   },
   {
     "id": "IMP-098",
@@ -789,7 +789,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na extrakciu čistého textu z webových stránok s odstránením reklám, menu a pätiek."
+    "description": "Tool for extracting clean text from web pages while stripping ads, navigation menus, and footers."
   },
   {
     "id": "IMP-099",
@@ -797,7 +797,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická detekcia zmien na sledovaných webových stránkach s okamžitým diff hlásením."
+    "description": "Automatic change detection on monitored web pages with immediate diff notifications."
   },
   {
     "id": "IMP-100",
@@ -805,7 +805,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na sťahovanie celých webových stránok do offline archívu vo formáte WARC alebo MHTML."
+    "description": "Module for downloading entire web pages into offline archives in WARC or MHTML format."
   },
   {
     "id": "IMP-101",
@@ -813,7 +813,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický prekladač cudzojazyčných článkov do slovenčiny so zachovaním technického žargónu."
+    "description": "Automatic translator of foreign-language articles into Slovak while preserving technical terminology."
   },
   {
     "id": "IMP-102",
@@ -821,7 +821,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na extrakciu kontaktov a sociálnych profilov z navštívených webových stránok."
+    "description": "Tool for extracting contacts and social profiles from visited web pages."
   },
   {
     "id": "IMP-103",
@@ -829,7 +829,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická kontrola nefunkčných odkazov (broken links) na spravovaných weboch."
+    "description": "Automatic broken-link checker for managed websites."
   },
   {
     "id": "IMP-104",
@@ -837,7 +837,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na agregáciu komentárov a spätnej väzby na produkty z fór ako Reddit a Hacker News."
+    "description": "Module for aggregating product comments and feedback from forums such as Reddit and Hacker News."
   },
   {
     "id": "IMP-105",
@@ -845,7 +845,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Generátor audio podcastov z textových článkov pomocou syntézy hlasu pre počúvanie na cestách."
+    "description": "Audio podcast generator converting text articles into speech via voice synthesis for listening on the go."
   },
   {
     "id": "IMP-106",
@@ -853,7 +853,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický sťahovač a organizátor open-source datasetov pre trénovanie lokálnych modelov."
+    "description": "Automatic downloader and organizer of open-source datasets for training local models."
   },
   {
     "id": "IMP-107",
@@ -861,7 +861,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Nástroj na sledovanie cenových zmien hardvéru a komponentov na e-shopoch s grafom vývoja."
+    "description": "Tool for tracking hardware and component price changes across online stores with historical charts."
   },
   {
     "id": "IMP-108",
@@ -869,7 +869,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na generovanie zoznamu zdrojov a citácií v normách APA a IEEE k rešeršovaným témam."
+    "description": "Module for generating reference lists and citations in APA and IEEE standards for researched topics."
   },
   {
     "id": "IMP-109",
@@ -877,7 +877,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická kontrola pravopisu a štylistiky textov v slovenčine s návrhmi na zlepšenie čitateľnosti."
+    "description": "Automatic spelling and style checker for Slovak texts with readability improvement suggestions."
   },
   {
     "id": "IMP-110",
@@ -885,7 +885,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na anonymizáciu mien a citlivých entít v textových dokumentoch pred ich zverejnením."
+    "description": "Tool for anonymizing names and sensitive entities in text documents prior to publication."
   },
   {
     "id": "IMP-111",
@@ -893,7 +893,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatický generátor indexov a registrov pojmov pre rozsiahle technické manuály."
+    "description": "Automatic index and glossary generator for large technical manuals."
   },
   {
     "id": "IMP-112",
@@ -901,7 +901,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Modul na konverziu formátov elektronických kníh (EPUB, MOBI, PDF) s optimalizáciou formátovania."
+    "description": "E-book format conversion module (EPUB, MOBI, PDF) with layout optimization."
   },
   {
     "id": "IMP-113",
@@ -909,7 +909,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na detekciu plagiátorstva porovnávajúci text voči lokálnej databáze dokumentov."
+    "description": "Plagiarism detection tool comparing text against a local document database."
   },
   {
     "id": "IMP-114",
@@ -917,7 +917,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatické generovanie pútavých titulkov a meta popisov pre články na základe ich obsahu."
+    "description": "Automatic generation of engaging headlines and meta descriptions for articles based on their content."
   },
   {
     "id": "IMP-115",
@@ -925,7 +925,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na extrakciu kľúčových slov a sémantických tém z rozsiahlych nestruktúrovaných textov."
+    "description": "Module for extracting keywords and semantic topics from large unstructured texts."
   },
   {
     "id": "IMP-116",
@@ -933,7 +933,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická tvorba interaktívnych kvízov a kartičiek (flashcards) pre štúdium z poznámok."
+    "description": "Automatic creation of interactive quizzes and study flashcards from notes."
   },
   {
     "id": "IMP-117",
@@ -941,7 +941,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Nástroj na formátovanie kódu v dokumentoch so správnym zvýrazňovaním syntaxe pre PDF export."
+    "description": "Tool for formatting code in documents with accurate syntax highlighting for PDF export."
   },
   {
     "id": "IMP-118",
@@ -949,7 +949,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatické dopĺňanie chýbajúcich bibliografických údajov na základe ISBN alebo DOI kódu."
+    "description": "Automatic enrichment of missing bibliographic metadata based on ISBN or DOI identifiers."
   },
   {
     "id": "IMP-119",
@@ -957,7 +957,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na generovanie štruktúrovaných mind-máp z textových zápisov vo formáte Markdown."
+    "description": "Module for generating structured mind maps from Markdown text notes."
   },
   {
     "id": "IMP-120",
@@ -965,7 +965,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na analýzu sentimentu v zákazníckych recenziách a príspevkoch na sociálnych sieťach."
+    "description": "Sentiment analysis tool for customer reviews and social media posts."
   },
   {
     "id": "IMP-121",
@@ -973,7 +973,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický tvorca prepisov rozhovorov s rozlíšením jednotlivých hovoriacich (diarizácia)."
+    "description": "Automatic interview transcript creator with speaker identification (diarization)."
   },
   {
     "id": "IMP-122",
@@ -981,7 +981,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na generovanie alternatívnych textov (alt text) pre obrázky na webe na základe počítačového videnia."
+    "description": "Module for generating web image alt text using computer vision."
   },
   {
     "id": "IMP-123",
@@ -989,7 +989,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na detekciu formálnych logických chýb a protirečení v navrhovaných technických špecifikáciách."
+    "description": "Tool for detecting formal logical errors and contradictions in proposed technical specifications."
   },
   {
     "id": "IMP-124",
@@ -997,7 +997,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická konverzia tabuliek z obrázkov a skenov priamo do vzorcov a dát v Exceli."
+    "description": "Automatic conversion of tables from images and scans directly into Excel formulas and data."
   },
   {
     "id": "IMP-125",
@@ -1005,7 +1005,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Modul na kompresiu textu zachovávajúci iba nosné informačné jadro pre rýchle čítanie."
+    "description": "Text compression module preserving only core informational content for rapid reading."
   },
   {
     "id": "IMP-126",
@@ -1013,7 +1013,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Lokálny manažér Docker kontajnerov umožňujúci štart, stop a monitoring kontajnerov cez príkazový riadok."
+    "description": "Local Docker container manager supporting starting, stopping, and monitoring containers from the command line."
   },
   {
     "id": "IMP-127",
@@ -1021,7 +1021,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Automatické generovanie Dockerfile a docker-compose konfigurácií na základe analýzy kódu projektu."
+    "description": "Automatic generation of Dockerfile and docker-compose configurations based on project code analysis."
   },
   {
     "id": "IMP-128",
@@ -1029,7 +1029,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Nástroj na audit zraniteľností v závislostiach balíčkov (npm audit, pip-audit) pred zostavením buildu."
+    "description": "Dependency vulnerability auditing tool (npm audit, pip-audit) executed prior to build assembly."
   },
   {
     "id": "IMP-129",
@@ -1037,7 +1037,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Automatická aktualizácia zastaraných závislostí v package.json s overením kompatibility verzií."
+    "description": "Automatic updating of outdated dependencies in package.json with version compatibility verification."
   },
   {
     "id": "IMP-130",
@@ -1045,7 +1045,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Modul na generovanie OpenAPI (Swagger) špecifikácií priamo z anotácií v zdrojovom kóde."
+    "description": "Module for generating OpenAPI (Swagger) specifications directly from source code annotations."
   },
   {
     "id": "IMP-131",
@@ -1053,7 +1053,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Mockovací server schopný simulovať REST a GraphQL endpointy pre frontendový vývoj bez bežiaceho backendu."
+    "description": "Mock server capable of simulating REST and GraphQL endpoints for frontend development without a live backend."
   },
   {
     "id": "IMP-132",
@@ -1061,7 +1061,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Nástroj na profiling pamäťových únikov (memory leaks) v JavaScript a Python aplikáciách."
+    "description": "Memory leak profiling tool for JavaScript and Python applications."
   },
   {
     "id": "IMP-133",
@@ -1069,7 +1069,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický generátor databázových migračných skriptov na základe porovnania dvoch schém."
+    "description": "Automatic database migration script generator based on comparing two schemas."
   },
   {
     "id": "IMP-134",
@@ -1077,7 +1077,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Modul na formátovanie a linting kódu (Prettier, Black, ESLint) integrovaný do pre-commit hookov."
+    "description": "Code formatting and linting module (Prettier, Black, ESLint) integrated into pre-commit hooks."
   },
   {
     "id": "IMP-135",
@@ -1085,7 +1085,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická kontrola dodržiavania konvencií v názvoch premenných a funkcií v celom tíme."
+    "description": "Automatic enforcement of variable and function naming conventions across the entire team."
   },
   {
     "id": "IMP-136",
@@ -1093,7 +1093,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na generovanie komplexných regulárnych výrazov na základe pozitívnych a negatívnych príkladov."
+    "description": "Tool for generating complex regular expressions from positive and negative examples."
   },
   {
     "id": "IMP-137",
@@ -1101,7 +1101,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na dekompiláciu a analýzu bytecode súborov pre odhalenie skrytého správania knižníc."
+    "description": "Bytecode decompilation and analysis module for uncovering hidden library behavior."
   },
   {
     "id": "IMP-138",
@@ -1109,7 +1109,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Automatický konvertor kódu medzi rôznymi programovacími jazykmi (napr. Python na TypeScript)."
+    "description": "Automatic source code converter between programming languages (e.g., Python to TypeScript)."
   },
   {
     "id": "IMP-139",
@@ -1117,7 +1117,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na benchmarking a porovnanie rýchlosti dvoch alternatívnych implementácií algoritmu."
+    "description": "Benchmarking tool for comparing the execution speed of two alternative algorithm implementations."
   },
   {
     "id": "IMP-140",
@@ -1125,7 +1125,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Modul na generovanie realistických syntetických mien, adries a rodných čísel pre záťažové testy."
+    "description": "Module for generating realistic synthetic names, addresses, and personal IDs for load testing."
   },
   {
     "id": "IMP-141",
@@ -1133,7 +1133,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Automatická detekcia a refaktoring duplicitných blokov kódu do zdieľaných pomocných funkcií."
+    "description": "Automatic detection and refactoring of duplicate code blocks into shared helper functions."
   },
   {
     "id": "IMP-142",
@@ -1141,7 +1141,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na vizualizáciu toku riadenia (Control Flow Graph) zložitých funkcií pre ľahšie ladenie."
+    "description": "Control Flow Graph visualizer for complex functions to simplify debugging."
   },
   {
     "id": "IMP-143",
@@ -1149,7 +1149,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na monitoring chybových hlásení v produkcii s automatickým zoskupovaním podľa príčiny."
+    "description": "Production error monitoring module with automatic grouping by root cause."
   },
   {
     "id": "IMP-144",
@@ -1157,7 +1157,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický validátor JSON a YAML konfiguračných súborov voči definovaným JSON schémam."
+    "description": "Automatic validator for JSON and YAML configuration files against defined JSON Schemas."
   },
   {
     "id": "IMP-145",
@@ -1165,7 +1165,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na generovanie prehľadných CLI rozhraní s podporou nápovedy, vlajok a automatického dopĺňania."
+    "description": "Tool for generating clean CLI interfaces with help text, flags, and autocomplete support."
   },
   {
     "id": "IMP-146",
@@ -1173,7 +1173,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Modul na testovanie odolnosti API voči neštandardným vstupom a pretečeniu zásobníka (Fuzz testing)."
+    "description": "API resilience testing module for malformed inputs and stack overflows (Fuzz testing)."
   },
   {
     "id": "IMP-147",
@@ -1181,7 +1181,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Automatický extraktor SQL dopytov z aplikačných logov s analýzou ich exekučných plánov (EXPLAIN)."
+    "description": "Automatic SQL query extractor from application logs with execution plan analysis (EXPLAIN)."
   },
   {
     "id": "IMP-148",
@@ -1189,7 +1189,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na vizuálne porovnávanie zmien v dizajne komponentov pomocou snímok pixel-by-pixel."
+    "description": "Visual regression comparison tool for component design changes using pixel-by-pixel snapshots."
   },
   {
     "id": "IMP-149",
@@ -1197,7 +1197,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na správu funkčných prepínačov (Feature Flags) umožňujúci zapínať funkcie bez nového nasadenia."
+    "description": "Feature flags management module enabling capability toggles without a new deployment."
   },
   {
     "id": "IMP-150",
@@ -1205,7 +1205,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický analyzátor veľkosti výsledného webového balíka (Webpack/Vite bundle analyzer)."
+    "description": "Automatic web bundle size analyzer (Webpack/Vite bundle analyzer)."
   },
   {
     "id": "IMP-151",
@@ -1213,7 +1213,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Nástroj na konverziu Postman kolekcií priamo do automatizovaných integračných testov."
+    "description": "Tool for converting Postman collections directly into automated integration tests."
   },
   {
     "id": "IMP-152",
@@ -1221,7 +1221,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na generovanie typových definícií TypeScript zo surových JSON odpovedí servera."
+    "description": "Module for generating TypeScript type definitions from raw server JSON responses."
   },
   {
     "id": "IMP-153",
@@ -1229,7 +1229,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická kontrola prítomnosti autorských hlavičiek a licencií v každom súbore projektu."
+    "description": "Automatic verification of copyright headers and license notices in every project file."
   },
   {
     "id": "IMP-154",
@@ -1237,7 +1237,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Nástroj na detekciu hardkódovaných tajomstiev a hesiel v histórii celého Git repozitára."
+    "description": "Tool for detecting hardcoded secrets and passwords across the full Git repository history."
   },
   {
     "id": "IMP-155",
@@ -1245,7 +1245,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Modul na správu lokálnych Kubernetes klastrov (k3s, Minikube) cez zjednodušené príkazy."
+    "description": "Module for managing local Kubernetes clusters (k3s, Minikube) through simplified commands."
   },
   {
     "id": "IMP-156",
@@ -1253,7 +1253,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Automatický generátor testovacích scenárov v syntaxi Gherkin pre správaním riadený vývoj (BDD)."
+    "description": "Automatic test scenario generator in Gherkin syntax for Behavior-Driven Development (BDD)."
   },
   {
     "id": "IMP-157",
@@ -1261,7 +1261,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Nástroj na vizualizáciu vzťahov medzi tabuľkami v relačných databázach do formátu ERD diagramu."
+    "description": "Tool for visualizing table relationships in relational databases as ERD diagrams."
   },
   {
     "id": "IMP-158",
@@ -1269,7 +1269,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Modul na testovanie sieťovej latencie a priepustnosti medzi mikroslužbami v servisnej sieti."
+    "description": "Module for testing network latency and throughput between microservices in a service mesh."
   },
   {
     "id": "IMP-159",
@@ -1277,7 +1277,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický konvertor medzi architektonickými štýlmi REST a GraphQL."
+    "description": "Automatic converter between REST and GraphQL architectural styles."
   },
   {
     "id": "IMP-160",
@@ -1285,7 +1285,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Nástroj na simuláciu výpadkov sieťového spojenia a chybových odpovedí servera (Chaos Engineering)."
+    "description": "Tool for simulating network outages and server error responses (Chaos Engineering)."
   },
   {
     "id": "IMP-161",
@@ -1293,7 +1293,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na sledovanie spotreby pamäte pri spracovaní veľkých prúdov dát (Stream processing)."
+    "description": "Module for monitoring memory consumption during large-scale stream processing."
   },
   {
     "id": "IMP-162",
@@ -1301,7 +1301,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický generátor administrátorských rozhraní na základe definície databázových modelov."
+    "description": "Automatic admin dashboard generator driven by database model definitions."
   },
   {
     "id": "IMP-163",
@@ -1309,7 +1309,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Nástroj na meranie percentuálneho pokrytia kódu testami s generovaním interaktívneho HTML reportu."
+    "description": "Code test coverage measurement tool generating interactive HTML reports."
   },
   {
     "id": "IMP-164",
@@ -1317,7 +1317,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Modul na bezpečnú migráciu dát medzi rôznymi databázovými enginami (napr. PostgreSQL do MongoDB)."
+    "description": "Module for safe data migration across different database engines (e.g., PostgreSQL to MongoDB)."
   },
   {
     "id": "IMP-165",
@@ -1325,7 +1325,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická validácia prístupnosti webových rozhraní podľa štandardov WCAG 2.1."
+    "description": "Automatic web interface accessibility validator compliant with WCAG 2.1 standards."
   },
   {
     "id": "IMP-166",
@@ -1333,7 +1333,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Nástroj na paralelizáciu behu testov naprieč viacerými jadrami procesora pre skrátenie doby buildu."
+    "description": "Tool for parallelizing test execution across multiple CPU cores to shorten build times."
   },
   {
     "id": "IMP-167",
@@ -1341,7 +1341,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na správu a verzovanie schém udalostí v architektúrach riadených udalosťami (Event-driven)."
+    "description": "Module for managing and versioning event schemas in event-driven architectures."
   },
   {
     "id": "IMP-168",
@@ -1349,7 +1349,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický generátor klientskych SDK knižníc pre viaceré jazyky z jednej špecifikácie API."
+    "description": "Automatic multi-language client SDK generator from a single API specification."
   },
   {
     "id": "IMP-169",
@@ -1357,7 +1357,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na detekciu cyklických závislostí medzi modulmi softvérového projektu."
+    "description": "Tool for detecting cyclic dependencies between modules in a software project."
   },
   {
     "id": "IMP-170",
@@ -1365,7 +1365,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na monitoring zdravia a dostupnosti externých third-party API služieb tretieho rádu."
+    "description": "Health and availability monitoring module for external third-party API services."
   },
   {
     "id": "IMP-171",
@@ -1373,7 +1373,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Automatický optimalizátor obrázkových assetov priamo v procese zostavovania webového projektu."
+    "description": "Automatic image asset optimizer integrated directly into the web project build pipeline."
   },
   {
     "id": "IMP-172",
@@ -1381,7 +1381,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Nástroj na audit dodržiavania princípov 12-faktorovej aplikácie v cloudových mikroslužbách."
+    "description": "Compliance auditing tool verifying adherence to Twelve-Factor App principles in cloud microservices."
   },
   {
     "id": "IMP-173",
@@ -1389,7 +1389,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na generovanie zrozumiteľných zoznamov zmien v rozhraniach API (Breaking Changes detector)."
+    "description": "Module for generating clear API changelog reports (Breaking Changes detector)."
   },
   {
     "id": "IMP-174",
@@ -1397,7 +1397,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Automatický tester kompatibility webových stránok v rôznych prehliadačoch a zariadeniach."
+    "description": "Automatic cross-browser and cross-device website compatibility tester."
   },
   {
     "id": "IMP-175",
@@ -1405,7 +1405,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Nástroj na správu a rotáciu šifrovacích kľúčov v databázach s nulovým prestojom aplikácie."
+    "description": "Tool for managing and rotating database encryption keys with zero application downtime."
   },
   {
     "id": "IMP-176",
@@ -1413,7 +1413,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Modul na sledovanie stavu a zostatkov kryptomenových peňaženiek na rôznych blockchainových sieťach."
+    "description": "Module for tracking cryptocurrency wallet status and balances across multiple blockchain networks."
   },
   {
     "id": "IMP-177",
@@ -1421,7 +1421,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatické sledovanie cien plynu (Gas tracker) na sieti Ethereum pre odoslanie transakcie pri najnižších poplatkoch."
+    "description": "Automatic Ethereum gas price tracker for submitting transactions at the lowest fees."
   },
   {
     "id": "IMP-178",
@@ -1429,7 +1429,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Nástroj na automatickú tvorbu a podpisovanie offline kryptomenových transakcií na izolovanom počítači."
+    "description": "Tool for automatically crafting and signing offline cryptocurrency transactions on an air-gapped computer."
   },
   {
     "id": "IMP-179",
@@ -1437,7 +1437,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Modul na generovanie daňových reportov z obchodovania a transakcií na krypto burzách."
+    "description": "Module for generating tax reports from cryptocurrency exchange trading and transactions."
   },
   {
     "id": "IMP-180",
@@ -1445,7 +1445,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický monitor likvidácie pozícií a maržových úrovní v DeFi protokoloch."
+    "description": "Automatic liquidation and margin level monitor across DeFi protocols."
   },
   {
     "id": "IMP-181",
@@ -1453,7 +1453,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Nástroj na kontrolu bezpečnosti smart kontraktov a odhaľovanie známych zraniteľností pred interakciou."
+    "description": "Smart contract security auditing tool detecting known vulnerabilities prior to interaction."
   },
   {
     "id": "IMP-182",
@@ -1461,7 +1461,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Modul na archiváciu celých blockchainových blokov pre lokálne analytické dotazovanie."
+    "description": "Module for archiving full blockchain blocks for local analytical querying."
   },
   {
     "id": "IMP-183",
@@ -1469,7 +1469,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Automatický generátor faktúr s integrovaným QR kódom pre okamžitú platbu cez Pay by square."
+    "description": "Automatic invoice generator with integrated QR codes for instant payment via Pay by square."
   },
   {
     "id": "IMP-184",
@@ -1477,7 +1477,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Nástroj na párovanie bankových výpisov s vystavenými faktúrami s identifikáciou neplatičov."
+    "description": "Tool for reconciling bank statements with issued invoices and identifying overdue accounts."
   },
   {
     "id": "IMP-185",
@@ -1485,7 +1485,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na kalkuláciu ziskov, strát a marží v reálnom čase z predaja tovaru a služieb."
+    "description": "Real-time profit, loss, and margin calculation module for sales of goods and services."
   },
   {
     "id": "IMP-186",
@@ -1493,7 +1493,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický prepočet kurzov mien podľa denných kurzových lístkov Európskej centrálnej banky."
+    "description": "Automatic currency exchange conversion using daily European Central Bank exchange rates."
   },
   {
     "id": "IMP-187",
@@ -1501,7 +1501,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na sledovanie predplatných a opakujúcich sa platieb s upozornením na blížiacu sa obnovu."
+    "description": "Subscription and recurring payment tracker with advance renewal reminders."
   },
   {
     "id": "IMP-188",
@@ -1509,7 +1509,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Modul na kategorizáciu osobných výdavkov do grafov s identifikáciou nadmerného míňania."
+    "description": "Personal expense categorization module with charts highlighting overspending."
   },
   {
     "id": "IMP-189",
@@ -1517,7 +1517,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická kontrola platnosti DIČ a IČ DPH v európskom systéme VIES."
+    "description": "Automatic validation of tax IDs and VAT IDs against the European VIES system."
   },
   {
     "id": "IMP-190",
@@ -1525,7 +1525,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Nástroj na simuláciu úverových splátok a porovnanie hypotekárnych ponúk s rôznou fixáciou."
+    "description": "Loan amortization simulator comparing mortgage offers across different fixed-rate periods."
   },
   {
     "id": "IMP-191",
@@ -1533,7 +1533,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na stráženie cash flow s predikciou finančnej situácie na nasledujúcich 90 dní."
+    "description": "Cash flow monitoring module forecasting financial position over the next 90 days."
   },
   {
     "id": "IMP-192",
@@ -1541,7 +1541,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický generátor upomienok pre meškajúce platby odberateľov s odstupňovanou naliehavosťou."
+    "description": "Automatic payment reminder generator for overdue customer invoices with escalating urgency."
   },
   {
     "id": "IMP-193",
@@ -1549,7 +1549,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Nástroj na sledovanie hodnoty celého investičného portfólia (akcie, ETF, nehnuteľnosti, krypto) na jednom mieste."
+    "description": "Unified investment portfolio tracker consolidating stocks, ETFs, real estate, and crypto in one view."
   },
   {
     "id": "IMP-194",
@@ -1557,7 +1557,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na automatické sťahovanie elektronických výpisov z bánk cez zabezpečené PSD2 rozhrania."
+    "description": "Module for automatically fetching electronic bank statements via secure PSD2 interfaces."
   },
   {
     "id": "IMP-195",
@@ -1565,7 +1565,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Automatický audit účtovných dokladov na odhalenie chýbajúcich náležitostí pred podaním daňového priznania."
+    "description": "Automatic accounting document auditor identifying missing required fields before tax filing."
   },
   {
     "id": "IMP-196",
@@ -1573,7 +1573,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na výpočet uhlíkovej stopy prevádzky serverov a kancelárie s návrhmi na jej kompenzáciu."
+    "description": "Tool for calculating server and office carbon footprint with offset recommendations."
   },
   {
     "id": "IMP-197",
@@ -1581,7 +1581,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Modul na správu firemného majetku s generovaním inventárnych štítkov a QR kódov."
+    "description": "Company asset management module generating inventory labels and QR codes."
   },
   {
     "id": "IMP-198",
@@ -1589,7 +1589,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický generátor zmlúv o dielo a dohôd o mlčanlivosti (NDA) podľa pripravených vzorov."
+    "description": "Automatic generator for service contracts and non-disclosure agreements (NDAs) from templates."
   },
   {
     "id": "IMP-199",
@@ -1597,7 +1597,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na sledovanie legislatívnych zmien v obchodnom zákonníku a ich dopadu na podnikanie."
+    "description": "Tool for monitoring legislative changes in commercial law and assessing business impact."
   },
   {
     "id": "IMP-200",
@@ -1605,7 +1605,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na anonymné nahlasovanie nekalých praktík (Whistleblowing) v súlade so smernicami EÚ."
+    "description": "Anonymous whistleblowing reporting module compliant with EU directives."
   },
   {
     "id": "IMP-201",
@@ -1613,7 +1613,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický organizátor firemných certifikátov a licencií s upozornením na koniec platnosti."
+    "description": "Automatic organizer for corporate certificates and licenses with expiration alerts."
   },
   {
     "id": "IMP-202",
@@ -1621,7 +1621,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na riadenie prístupových kariet a návštev v kancelárskych priestoroch."
+    "description": "Access badge and visitor management tool for office premises."
   },
   {
     "id": "IMP-203",
@@ -1629,7 +1629,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na výpočet cestovných náhrad a diét pre služobné cesty zamestnancov."
+    "description": "Module for calculating travel reimbursements and per diem allowances for employee business trips."
   },
   {
     "id": "IMP-204",
@@ -1637,7 +1637,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický systém na zber a vyhodnocovanie spätnej väzby zamestnancov a ich spokojnosti."
+    "description": "Automated system for collecting and analyzing employee feedback and satisfaction."
   },
   {
     "id": "IMP-205",
@@ -1645,7 +1645,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Nástroj na plánovanie dovoleniek a pracovných zmien s kontrolou minimálneho personálneho zabezpečenia."
+    "description": "Vacation and shift scheduling tool enforcing minimum staffing coverage."
   },
   {
     "id": "IMP-206",
@@ -1653,7 +1653,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Generátor QR kódov pre rýchle pripojenie k firemnej Wi-Fi sieti pre návštevy."
+    "description": "QR code generator for quick guest onboarding to corporate Wi-Fi networks."
   },
   {
     "id": "IMP-207",
@@ -1661,7 +1661,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na sledovanie stavu a expirácie lekárničiek a požiarnych prístrojov v priestoroch firmy."
+    "description": "Module for tracking the status and expiration of first-aid kits and fire extinguishers on company premises."
   },
   {
     "id": "IMP-208",
@@ -1669,7 +1669,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický dispečer pre prideľovanie parkovacích miest zamestnancom podľa vyťaženosti."
+    "description": "Automatic parking space dispatcher allocating employee spots based on occupancy."
   },
   {
     "id": "IMP-209",
@@ -1677,7 +1677,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na správu firemného vozového parku so sledovaním STK, poistenia a spotreby paliva."
+    "description": "Corporate fleet management tool tracking technical inspections, insurance, and fuel consumption."
   },
   {
     "id": "IMP-210",
@@ -1685,7 +1685,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na automatickú archiváciu starých papierových dokumentov prevedených do elektronickej podoby."
+    "description": "Module for automatically archiving legacy paper documents digitized into electronic format."
   },
   {
     "id": "IMP-211",
@@ -1693,7 +1693,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický generátor organizačných štruktúr firmy s prehľadom oddelení a kompetencií."
+    "description": "Automatic company org-chart generator outlining departments and responsibilities."
   },
   {
     "id": "IMP-212",
@@ -1701,7 +1701,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na sledovanie cien energií na burze s riadením odberu v čase lacnej tarify."
+    "description": "Tool for monitoring wholesale energy prices and scheduling consumption during off-peak tariff windows."
   },
   {
     "id": "IMP-213",
@@ -1709,7 +1709,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na kontrolu súladu spracovania osobných údajov s nariadením GDPR."
+    "description": "Module for auditing personal data processing compliance with GDPR regulations."
   },
   {
     "id": "IMP-214",
@@ -1717,7 +1717,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Automatický plánovač revízií elektrických zariadení a strojov podľa platných noriem."
+    "description": "Automatic inspection scheduler for electrical equipment and machinery per applicable standards."
   },
   {
     "id": "IMP-215",
@@ -1725,7 +1725,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na vyhodnocovanie kľúčových ukazovateľov výkonnosti (KPI) jednotlivých projektov."
+    "description": "Tool for evaluating Key Performance Indicators (KPIs) across individual projects."
   },
   {
     "id": "IMP-216",
@@ -1733,7 +1733,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Modul na simuláciu ekonomických scenárov (kríza, rast, inflácia) a ich dopadu na ziskovosť."
+    "description": "Economic scenario simulation module (downturn, growth, inflation) assessing profitability impact."
   },
   {
     "id": "IMP-217",
@@ -1741,7 +1741,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatický generátor štvrťročných správ pre investorov s interaktívnymi grafmi."
+    "description": "Automatic quarterly investor report generator with interactive charts."
   },
   {
     "id": "IMP-218",
@@ -1749,7 +1749,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na správu registratúry a evidenciu došlej a odoslanej firemnej pošty."
+    "description": "Records management tool logging incoming and outgoing corporate correspondence."
   },
   {
     "id": "IMP-219",
@@ -1757,7 +1757,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na kontrolu solventnosti obchodných partnerov v registroch dlžníkov a exekúcií."
+    "description": "Module for checking business partner solvency against debtor and enforcement registries."
   },
   {
     "id": "IMP-220",
@@ -1765,7 +1765,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický monitor verejných obstarávaní a tenderov v segmente softvérového vývoja."
+    "description": "Automatic public procurement and tender monitor for the software development sector."
   },
   {
     "id": "IMP-221",
@@ -1773,7 +1773,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na kalkuláciu ceny zákazkového softvéru na základe odhadu človeko-hodín a rizík."
+    "description": "Custom software pricing calculator based on person-hour estimates and risk factors."
   },
   {
     "id": "IMP-222",
@@ -1781,7 +1781,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na správu reklamácií a tiketov technickej podpory s automatickou eskaláciou."
+    "description": "Claims and technical support ticket management module with automatic escalation."
   },
   {
     "id": "IMP-223",
@@ -1789,7 +1789,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický generátor propagačných materiálov a bannerov s firemnou identitou."
+    "description": "Automatic generator of promotional materials and banners aligned with brand identity."
   },
   {
     "id": "IMP-224",
@@ -1797,7 +1797,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na sledovanie zmien v reputácii značky v online priestore a na sociálnych sieťach."
+    "description": "Tool for tracking brand reputation shifts across online media and social networks."
   },
   {
     "id": "IMP-225",
@@ -1805,7 +1805,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Modul na riadenie životného cyklu digitálnych produktov od návrhu po stiahnutie z trhu."
+    "description": "Digital product lifecycle management module from initial design through market retirement."
   },
   {
     "id": "IMP-226",
@@ -1813,7 +1813,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Lokálny nástroj na konverziu vektorovej grafiky z formátu SVG do rastrových formátov s vysokým DPI."
+    "description": "Local tool for converting SVG vector graphics into high-DPI raster formats."
   },
   {
     "id": "IMP-227",
@@ -1821,7 +1821,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Modul na extrakciu farebnej palety z ľubovoľného obrázka s prevodom do HEX a RGB kódov."
+    "description": "Module for extracting color palettes from any image with HEX and RGB code conversion."
   },
   {
     "id": "IMP-228",
@@ -1829,7 +1829,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatické generovanie animovaných GIFov zo sekvencií obrázkov alebo krátkych videí."
+    "description": "Automatic animated GIF generator from image sequences or short video clips."
   },
   {
     "id": "IMP-229",
@@ -1837,7 +1837,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Nástroj na odstraňovanie pozadia z produktových fotografií pomocou lokálnych AI modelov."
+    "description": "Tool for removing backgrounds from product photos using local AI models."
   },
   {
     "id": "IMP-230",
@@ -1845,7 +1845,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na generovanie favikónov vo všetkých potrebných rozlíšeniach pre moderné webové prehliadače."
+    "description": "Favicon generator producing all required resolutions for modern web browsers."
   },
   {
     "id": "IMP-231",
@@ -1853,7 +1853,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Automatická oprava červených očí a retušovanie drobných kazov na portrétnych fotografiách."
+    "description": "Automatic red-eye correction and minor blemish retouching for portrait photos."
   },
   {
     "id": "IMP-232",
@@ -1861,7 +1861,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na konverziu 3D skenov do zjednodušených low-poly modelov pre použitie na webe."
+    "description": "Tool for converting 3D scans into lightweight low-poly models suitable for web delivery."
   },
   {
     "id": "IMP-233",
@@ -1869,7 +1869,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na generovanie textúr a bezšvových vzorov (seamless patterns) pre webový dizajn."
+    "description": "Module for generating textures and seamless patterns for web design."
   },
   {
     "id": "IMP-234",
@@ -1877,7 +1877,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický stabilizátor roztraseného videa pomocou algoritmov sledovania pohybu."
+    "description": "Automatic shaky video stabilizer powered by motion-tracking algorithms."
   },
   {
     "id": "IMP-235",
@@ -1885,7 +1885,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na strih audia a odstránenie ticha alebo nežiaduceho šumu na pozadí nahrávky."
+    "description": "Audio editing tool for trimming silence and removing unwanted background noise from recordings."
   },
   {
     "id": "IMP-236",
@@ -1893,7 +1893,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na generovanie titulkov k videám vo formáte SRT s presným časovaním k reči."
+    "description": "Module for generating SRT video subtitles with accurate speech-aligned timestamps."
   },
   {
     "id": "IMP-237",
@@ -1901,7 +1901,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická zmena pomeru strán videa (napr. 16:9 na 9:16) pre formáty Stories a Reels s inteligentným orezom."
+    "description": "Automatic video aspect-ratio converter (e.g., 16:9 to 9:16) with smart cropping for Stories and Reels."
   },
   {
     "id": "IMP-238",
@@ -1909,7 +1909,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na vkladanie dynamických vodoznakov do videí chrániacich obsah pred odcudzením."
+    "description": "Tool for embedding dynamic watermarks into videos to protect content against theft."
   },
   {
     "id": "IMP-239",
@@ -1917,7 +1917,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na generovanie pútavých náhľadových obrázkov (thumbnails) pre videá s textovým pútačom."
+    "description": "Module for generating eye-catching video thumbnails with text callouts."
   },
   {
     "id": "IMP-240",
@@ -1925,7 +1925,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická detekcia scén a prestrihov vo videu s rozdelením na samostatné kapitoly."
+    "description": "Automatic video scene and cut detection splitting footage into separate chapters."
   },
   {
     "id": "IMP-241",
@@ -1933,7 +1933,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na zmenu tóniny a tempa hudobných stôp bez zmeny ich výšky tónu."
+    "description": "Tool for adjusting musical track key and tempo independently without altering pitch."
   },
   {
     "id": "IMP-242",
@@ -1941,7 +1941,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na konverziu MIDI súborov na realistické audio stopy pomocou zvukových fontov."
+    "description": "Module for rendering MIDI files into realistic audio tracks using soundfonts."
   },
   {
     "id": "IMP-243",
@@ -1949,7 +1949,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický generátor vizualizácií hudby (spektrum, osciloskop) pre publikovanie skladieb na webe."
+    "description": "Automatic music visualization generator (spectrum, oscilloscope) for publishing tracks on the web."
   },
   {
     "id": "IMP-244",
@@ -1957,7 +1957,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na extrakciu jednotlivých nástrojov a vokálov z hudobného mixu (Stems separation)."
+    "description": "Tool for isolating individual instruments and vocals from a music mix (Stems separation)."
   },
   {
     "id": "IMP-245",
@@ -1965,7 +1965,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Modul na normalizáciu hlasitosti zvukových súborov podľa štandardov EBU R128 pre vysielanie."
+    "description": "Audio loudness normalization module compliant with EBU R128 broadcast standards."
   },
   {
     "id": "IMP-246",
@@ -1973,7 +1973,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická syntéza zvukových efektov (kliknutia, výbuchy, ambientný hluk) pre používateľské rozhrania."
+    "description": "Automatic sound effect synthesis (clicks, impacts, ambient noise) for user interfaces."
   },
   {
     "id": "IMP-247",
@@ -1981,7 +1981,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na synchronizáciu pier postavy (Lip-sync) vo videu s novou jazykovou audio stopou."
+    "description": "Character lip-sync tool aligning video mouth movements with a new language audio track."
   },
   {
     "id": "IMP-248",
@@ -1989,7 +1989,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Modul na reštaurovanie a zafarbenie starých čiernobielych fotografií pomocou neurónových sietí."
+    "description": "Neural-network module for restoring and colorizing old black-and-white photographs."
   },
   {
     "id": "IMP-249",
@@ -1997,7 +1997,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatický generátor panoramatických záberov zo série prekrývajúcich sa fotografií."
+    "description": "Automatic panorama generator stitching sequences of overlapping photographs."
   },
   {
     "id": "IMP-250",
@@ -2005,7 +2005,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_1_SYSTEM_DESKTOP_HARDWARE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nástroj na vytváranie interaktívnych 360-stupňových prehliadok priestorov pre webové stránky."
+    "description": "Tool for creating interactive 360-degree virtual space tours for websites."
   },
   {
     "id": "IMP-251",
@@ -2013,7 +2013,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Architektúra autonómneho bootstrapu Trinity jadra bez závislosti na externom inicializačnom procese."
+    "description": "Autonomous Trinity kernel bootstrap architecture with zero dependency on external initialization processes."
   },
   {
     "id": "IMP-252",
@@ -2021,7 +2021,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Zavedenie Sovereign Ledger v3 s kryptografickým reťazením stavov každého agenta."
+    "description": "Introduction of Sovereign Ledger v3 with cryptographic state chaining for every agent."
   },
   {
     "id": "IMP-253",
@@ -2029,7 +2029,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Dynamické prideľovanie exekučného rozpočtu (Compute Budget) jednotlivým sub-agentom podľa priority úlohy."
+    "description": "Dynamic execution compute budget allocation across individual sub-agents based on task priority."
   },
   {
     "id": "IMP-254",
@@ -2037,7 +2037,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Distribuovaný stavový automat synchronizovaný medzi lokálnym desktopom a Cloudflare D1."
+    "description": "Distributed state machine synchronized between the local desktop and Cloudflare D1."
   },
   {
     "id": "IMP-255",
@@ -2045,7 +2045,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Zavedenie striktného verifikačného protokolu Truth-Assertion – žiadny stav sa neoznačí ako splnený bez podpísaného dôkazu o vykonaní."
+    "description": "Enforcement of the strict Truth-Assertion verification protocol — no state is marked complete without signed execution proof."
   },
   {
     "id": "IMP-256",
@@ -2053,7 +2053,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický fall-back mechanizmus z cloudu na lokálny offline LLM engine pri výpadku konektivity."
+    "description": "Automatic cloud-to-local offline LLM engine fallback mechanism during connectivity outages."
   },
   {
     "id": "IMP-257",
@@ -2061,7 +2061,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Vzájomná kryptografická atestácia medzi agentickými uzlami cez asymetrické kľúče Ed25519."
+    "description": "Mutual cryptographic attestation between agent nodes using asymmetric Ed25519 keys."
   },
   {
     "id": "IMP-258",
@@ -2069,7 +2069,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Implementácia protokolu Trinity Multi-Agent Consensus (TMAC) pre schvaľovanie kritických zápisov do registrov."
+    "description": "Implementation of the Trinity Multi-Agent Consensus (TMAC) protocol for approving critical registry writes."
   },
   {
     "id": "IMP-259",
@@ -2077,7 +2077,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Samostatná evolučná slučka generujúca a testujúca nové nástroje v izolovanom procese."
+    "description": "Autonomous evolutionary loop generating and testing new tools inside an isolated process."
   },
   {
     "id": "IMP-260",
@@ -2085,7 +2085,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Deterministické prehrávanie stavu (State Replay Engine) na ladenie chýb a rekonštrukciu havárie."
+    "description": "Deterministic State Replay Engine for error debugging and crash reconstruction."
   },
   {
     "id": "IMP-261",
@@ -2093,7 +2093,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Vstavaný sandbox pre samomodifikáciu kódu Trinity s automatickým rollbackom pri zlyhaní testov integrity."
+    "description": "Built-in sandbox for Trinity code self-modification with automatic rollback upon integrity test failure."
   },
   {
     "id": "IMP-262",
@@ -2101,7 +2101,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Vektorový smerovač intentov schopný prekladať voľný príkaz na presnú DAG sekvenciu podúloh."
+    "description": "Vector intent router translating free-form commands into precise DAG subtask sequences."
   },
   {
     "id": "IMP-263",
@@ -2109,7 +2109,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Zavedenie dynamických váh dôveryhodnosti pre jednotlivé podriadené agentické roly."
+    "description": "Introduction of dynamic trust weights for individual subordinate agent roles."
   },
   {
     "id": "IMP-264",
@@ -2117,7 +2117,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Natívny most pre synchronizáciu lokálnych priečinkov s Cloudflare R2 bucketom v reálnom čase."
+    "description": "Native bridge synchronizing local folders with a Cloudflare R2 bucket in real time."
   },
   {
     "id": "IMP-265",
@@ -2125,7 +2125,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Automatická optimalizácia veľkosti kontextového okna odstraňovaním sémanticky redundantných tokenov."
+    "description": "Automatic context window size optimization by pruning semantically redundant tokens."
   },
   {
     "id": "IMP-266",
@@ -2133,7 +2133,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Hierarchický orchestrátor rozdeľujúci makro-ciele na mikro-akcie s vlastným životným cyklom."
+    "description": "Hierarchical orchestrator decomposing macro-goals into micro-actions with independent lifecycles."
   },
   {
     "id": "IMP-267",
@@ -2141,7 +2141,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Integrovaný systémový watchdog monitorujúci pamäťové úniky a latenciu inter-agentickej komunikácie."
+    "description": "Integrated system watchdog monitoring memory leaks and inter-agent communication latency."
   },
   {
     "id": "IMP-268",
@@ -2149,7 +2149,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Autonómny generátor unit a integračných testov spúšťaný pred každým commitom do systémových vetiev."
+    "description": "Autonomous unit and integration test generator executed prior to every commit to system branches."
   },
   {
     "id": "IMP-269",
@@ -2157,7 +2157,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Decentralizovaný register nástrojov umožňujúci dynamické načítanie nových CLI a MCP rozhraní za behu."
+    "description": "Decentralized tool registry enabling dynamic runtime loading of new CLI and MCP interfaces."
   },
   {
     "id": "IMP-270",
@@ -2165,7 +2165,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Hardvérové viazanie podpisového kľúča Trinity na TPM/Secure Enclave hostiteľského stroja."
+    "description": "Hardware binding of Trinity's signing key to the host machine's TPM/Secure Enclave."
   },
   {
     "id": "IMP-271",
@@ -2173,7 +2173,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Real-time streamovanie telemetrických dát agentov do Cloudflare KV pre globálny stavový prehľad."
+    "description": "Real-time streaming of agent telemetry data to Cloudflare KV for a global status overview."
   },
   {
     "id": "IMP-272",
@@ -2181,7 +2181,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Protokol pre riadené zlyhanie (Graceful Degradation), ktorý pri vyčerpaní tokenov prejde do úsporného heuristického módu."
+    "description": "Graceful Degradation protocol transitioning to a low-overhead heuristic mode when token budgets are exhausted."
   },
   {
     "id": "IMP-273",
@@ -2189,7 +2189,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný mechanizmus eliminácie halucinácií porovnávajúci výstup LLM voči schéma-validátorom."
+    "description": "Built-in hallucination elimination mechanism validating LLM output against schema validators."
   },
   {
     "id": "IMP-274",
@@ -2197,7 +2197,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Asynchrónny event-bus prepájajúci lokálne PowerShell skripty s Cloudflare Queue architektúrou."
+    "description": "Asynchronous event bus connecting local PowerShell scripts with the Cloudflare Queues architecture."
   },
   {
     "id": "IMP-275",
@@ -2205,7 +2205,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Samostatný bezpečnostný auditor analyzujúci každý generovaný skript pred jeho spustením v hostiteľskom OS."
+    "description": "Standalone security auditor analyzing every generated script before execution on the host OS."
   },
   {
     "id": "IMP-276",
@@ -2213,7 +2213,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Zavedenie multi-modelovej arbitráže: kritické rozhodnutia sú overované tromi nezávislými modelmi súčasne."
+    "description": "Multi-model arbitration: critical decisions are verified simultaneously by three independent models."
   },
   {
     "id": "IMP-277",
@@ -2221,7 +2221,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Dynamické generovanie Docker kontajnerov pre beh riskantných nástrojov mimo hlavného jadra."
+    "description": "Dynamic Docker container provisioning for executing risky tools outside the primary kernel."
   },
   {
     "id": "IMP-278",
@@ -2229,7 +2229,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Protokol pre prenos kontextovej relácie medzi desktopovým klientom a mobilným rozhraním bez straty stavu."
+    "description": "Protocol for transferring contextual sessions between the desktop client and mobile interface without state loss."
   },
   {
     "id": "IMP-279",
@@ -2237,7 +2237,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatická kompresia a indexácia histórie úloh do lokálnej vektorovej databázy SQLite-VSS."
+    "description": "Automatic compression and indexing of task history into a local SQLite-VSS vector database."
   },
   {
     "id": "IMP-280",
@@ -2245,7 +2245,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Vstavaná syntéza abstraktných abstraktov (Abstract Syntax Tree) pre priamu manipuláciu so zdrojovým kódom."
+    "description": "Built-in Abstract Syntax Tree (AST) synthesis for direct source code manipulation."
   },
   {
     "id": "IMP-281",
@@ -2253,7 +2253,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Schopnosť dynamického rozširovania systémovej pamäte RAM swapovaním na disk cez pamäťovo mapované súbory."
+    "description": "Dynamic RAM expansion capability via disk swapping through memory-mapped files."
   },
   {
     "id": "IMP-282",
@@ -2261,7 +2261,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Autonómne vyjednávanie priorít medzi bežiacimi agentmi pri nedostatku hardvérových prostriedkov."
+    "description": "Autonomous priority negotiation among running agents under hardware resource contention."
   },
   {
     "id": "IMP-283",
@@ -2269,7 +2269,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Zavedenie digitálnej identity Trinity s vlastnou decentralizovanou adresou (DID)."
+    "description": "Introduction of Trinity's digital identity with a dedicated Decentralized Identifier (DID)."
   },
   {
     "id": "IMP-284",
@@ -2277,7 +2277,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Integrovaná kontrola dodržiavania Sovereign Charteru v každom systémovom cykle."
+    "description": "Integrated Sovereign Charter compliance verification executed in every system cycle."
   },
   {
     "id": "IMP-285",
@@ -2285,7 +2285,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Samostatný refaktoringový proces prečisťujúci zastaraný kód Trinity v nočných hodinách."
+    "description": "Autonomous nightly refactoring process cleaning up obsolete Trinity code."
   },
   {
     "id": "IMP-286",
@@ -2293,7 +2293,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Zavedenie mikro-transakčného ledgeru pre interné účtovanie výpočtových nákladov jednotlivých modulov."
+    "description": "Micro-transaction ledger for internal accounting of compute costs per module."
   },
   {
     "id": "IMP-287",
@@ -2301,7 +2301,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická detekcia a blokovanie rekurzívnych promptových slučiek."
+    "description": "Automatic detection and blocking of recursive prompt loops."
   },
   {
     "id": "IMP-288",
@@ -2309,7 +2309,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Šifrovanie medziprocesovej komunikácie cez TLS 1.3 s lokálne generovanými certifikátmi."
+    "description": "Inter-process communication encryption over TLS 1.3 using locally generated certificates."
   },
   {
     "id": "IMP-289",
@@ -2317,7 +2317,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Hybridný RAG systém kombinujúci fulltextové BM25 vyhľadávanie s kosenusovou podobnosťou vektorov."
+    "description": "Hybrid RAG system combining BM25 full-text search with cosine vector similarity."
   },
   {
     "id": "IMP-290",
@@ -2325,7 +2325,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Protokol pre záchranu systému pri korupcii primárnej databázy (Emergency State Recovery)."
+    "description": "Emergency State Recovery protocol for restoring the system when the primary database is corrupted."
   },
   {
     "id": "IMP-291",
@@ -2333,7 +2333,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Dynamické generovanie natívnych C/Rust binárok pre výkonnostne kritické slučky Trinity."
+    "description": "Dynamic compilation of native C/Rust binaries for performance-critical Trinity loops."
   },
   {
     "id": "IMP-292",
@@ -2341,7 +2341,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie permanentného zoznamu zakázaných operácií (Blacklisted Execution Patterns) na úrovni jadra."
+    "description": "Kernel-level enforcement of a permanent list of forbidden operations (Blacklisted Execution Patterns)."
   },
   {
     "id": "IMP-293",
@@ -2349,7 +2349,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická registrácia a rotácia webhookov pre externé komunikačné brány."
+    "description": "Automatic registration and rotation of webhooks for external communication gateways."
   },
   {
     "id": "IMP-294",
@@ -2357,7 +2357,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný parser systémových logov s prediktívnou analýzou hardvérových zlyhaní."
+    "description": "Built-in system log parser with predictive analysis of hardware failures."
   },
   {
     "id": "IMP-295",
@@ -2365,7 +2365,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Distribuované zámky (Distributed Locks) pre zabezpečenie atomických operácií naprieč uzlami."
+    "description": "Distributed locks guaranteeing atomic operations across nodes."
   },
   {
     "id": "IMP-296",
@@ -2373,7 +2373,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Nezávislý proces overovania dostupnosti a odozvy pripojených API poskytovateľov."
+    "description": "Independent process verifying availability and latency of connected API providers."
   },
   {
     "id": "IMP-297",
@@ -2381,7 +2381,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Zavedenie dynamických profilov správania agentov prispôsobujúcich úroveň detailov výstupu."
+    "description": "Dynamic agent behavior profiles adapting output detail levels to context."
   },
   {
     "id": "IMP-298",
@@ -2389,7 +2389,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Mechanizmus pre bezpečné vstrekovanie environmentálnych premenných priamo do operačnej pamäte bez zápisu na disk."
+    "description": "Mechanism for securely injecting environment variables directly into memory without writing to disk."
   },
   {
     "id": "IMP-299",
@@ -2397,7 +2397,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatická detekcia a paralelizácia nezávislých krokov v exekučnom grafe."
+    "description": "Automatic detection and parallelization of independent steps in the execution graph."
   },
   {
     "id": "IMP-300",
@@ -2405,7 +2405,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Samodiagnostický modul kontrolujúci konzistenciu stavu Sovereign Ledgeru po každom reštarte."
+    "description": "Self-diagnostic module verifying Sovereign Ledger state consistency after every restart."
   },
   {
     "id": "IMP-301",
@@ -2413,7 +2413,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Architektúra zásuvných modulov (Plugin Engine) s dynamickou kontrolou verzií rozhraní."
+    "description": "Plugin Engine architecture with dynamic interface version checking."
   },
   {
     "id": "IMP-302",
@@ -2421,7 +2421,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Vstavaný emulátor terminálu umožňujúci agentom interaktívnu prácu s CLI nástrojmi."
+    "description": "Built-in terminal emulator allowing agents to interact directly with CLI tools."
   },
   {
     "id": "IMP-303",
@@ -2429,7 +2429,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Protokol pre automatickú migráciu dátových schém D1 databázy bez výpadku systému."
+    "description": "Zero-downtime automatic D1 database schema migration protocol."
   },
   {
     "id": "IMP-304",
@@ -2437,7 +2437,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Inteligentný rate-limiter zabraňujúci zablokovaniu kľúčov pri vysokom zaťažení externých služieb."
+    "description": "Intelligent rate limiter preventing API key lockouts under heavy load on external services."
   },
   {
     "id": "IMP-305",
@@ -2445,7 +2445,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Zavedenie mechanizmu dôkazov o nečinnosti (Heartbeat Ledger) pre overenie behu monitorovacích agentov."
+    "description": "Heartbeat Ledger liveness-proof mechanism verifying active execution of monitoring agents."
   },
   {
     "id": "IMP-306",
@@ -2453,7 +2453,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Kontextový splitter rozdeľujúci obrovské súborové stromy na spracovateľné chunk-bloky."
+    "description": "Context splitter partitioning massive file trees into manageable chunks."
   },
   {
     "id": "IMP-307",
@@ -2461,7 +2461,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatický generátor OpenAPI rozhraní pre každý novovytvorený interný mikromodul."
+    "description": "Automatic OpenAPI specification generator for every newly created internal micro-module."
   },
   {
     "id": "IMP-308",
@@ -2469,7 +2469,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Izolovaný manažér tajomstiev s riadeným prístupom na báze jednoúčelových časovo obmedzených tokenov."
+    "description": "Isolated secrets manager with controlled access via single-use, time-bounded tokens."
   },
   {
     "id": "IMP-309",
@@ -2477,7 +2477,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Multi-tenant podpora pre separáciu dát medzi osobným profilom a systémovými operáciami Trinity."
+    "description": "Multi-tenant support isolating data between personal profiles and Trinity system operations."
   },
   {
     "id": "IMP-310",
@@ -2485,7 +2485,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Zavedenie metrikovej vrstvy merajúcej presnosť splnenia cieľov jednotlivými sub-agentmi."
+    "description": "Metrics layer measuring goal completion accuracy across individual sub-agents."
   },
   {
     "id": "IMP-311",
@@ -2493,7 +2493,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatické čistenie a purgovanie Cloudflare CDN cache pri zmene statických systémových dát."
+    "description": "Automatic clearing and purging of Cloudflare CDN cache whenever static system data changes."
   },
   {
     "id": "IMP-312",
@@ -2501,7 +2501,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný validátor sémantickej integrity zabraňujúci prepísaniu dôležitých súborov prázdnym obsahom."
+    "description": "Built-in semantic integrity validator preventing critical files from being overwritten with empty content."
   },
   {
     "id": "IMP-313",
@@ -2509,7 +2509,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Schopnosť klonovania a vetvenia celého stavu systému Trinity pre A/B testovanie architektúry."
+    "description": "Full Trinity system state cloning and branching for architectural A/B testing."
   },
   {
     "id": "IMP-314",
@@ -2517,7 +2517,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Autonómny DNS manažér aktualizujúci smerovanie subdomén podľa dostupnosti lokálnych uzlov."
+    "description": "Autonomous DNS manager updating subdomain routing according to local node availability."
   },
   {
     "id": "IMP-315",
@@ -2525,7 +2525,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Formálna verifikácia generovaného kódu pred spustením pomocou statických analyzátorov."
+    "description": "Formal pre-execution verification of generated code using static analyzers."
   },
   {
     "id": "IMP-316",
@@ -2533,7 +2533,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie decentralizovaného p2p protokolu pre priame prepojenie dvoch inštancií Trinity."
+    "description": "Decentralized peer-to-peer protocol for direct linking between two Trinity instances."
   },
   {
     "id": "IMP-317",
@@ -2541,7 +2541,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická syntéza a ukladanie metadát ku každému vygenerovanému systémovému artefaktu."
+    "description": "Automatic metadata synthesis and storage for every generated system artifact."
   },
   {
     "id": "IMP-318",
@@ -2549,7 +2549,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Mechanizmus dynamickej kompresie systémových stavov pred odoslaním do trvalého úložiska."
+    "description": "Dynamic system state compression mechanism prior to committing to persistent storage."
   },
   {
     "id": "IMP-319",
@@ -2557,7 +2557,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Integrovaný cron-scheduler schopný spúšťať agentické workflowy na základe komplexných časových výrazov."
+    "description": "Integrated cron scheduler capable of triggering agentic workflows from complex schedule expressions."
   },
   {
     "id": "IMP-320",
@@ -2565,7 +2565,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Samostatný proces monitorujúci dodržiavanie definovaných etických a bezpečnostných mantinelov."
+    "description": "Dedicated monitoring process enforcing defined ethical and safety guardrails."
   },
   {
     "id": "IMP-321",
@@ -2573,7 +2573,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Vstavané rozhranie pre natívnu manipuláciu s Windows Registry cez bezpečný abstrakčný wrapper."
+    "description": "Built-in interface for native Windows Registry manipulation through a safe abstraction wrapper."
   },
   {
     "id": "IMP-322",
@@ -2581,7 +2581,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Optimalizátor dopytov pre Cloudflare D1 minimalizujúci počet čítacích a zapisovacích operácií."
+    "description": "Cloudflare D1 query optimizer minimizing read and write operation counts."
   },
   {
     "id": "IMP-323",
@@ -2589,7 +2589,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Mechanizmus okamžitého zablokovania systému (Emergency Killswitch) aktivovateľný špecifickým kľúčom."
+    "description": "Immediate Emergency Killswitch mechanism activatable with a dedicated key."
   },
   {
     "id": "IMP-324",
@@ -2597,7 +2597,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie dynamických systémových promptov prispôsobujúcich sa aktuálnej záťaži a chybovosti."
+    "description": "Dynamic system prompts adapting automatically to current system load and error rates."
   },
   {
     "id": "IMP-325",
@@ -2605,7 +2605,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Automatická tvorba inkrementálnych záloh lokálneho stavu na šifrované externé úložiská."
+    "description": "Automatic creation of incremental local state backups onto encrypted external storage."
   },
   {
     "id": "IMP-326",
@@ -2613,7 +2613,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Smerovač sieťového trafficu obchádzajúci blokované alebo spomalené sieťové trasy."
+    "description": "Network traffic router bypassing blocked or degraded network paths."
   },
   {
     "id": "IMP-327",
@@ -2621,7 +2621,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Správca lokálnych Python virtuálnych prostredí zabezpečujúci nulové konflikty knižníc medzi nástrojmi."
+    "description": "Local Python virtual environment manager ensuring zero library conflicts across tools."
   },
   {
     "id": "IMP-328",
@@ -2629,7 +2629,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Protokol pre overenie identity používateľa cez kryptografickú výzvu (Challenge-Response Auth)."
+    "description": "Cryptographic Challenge-Response Auth protocol for verifying user identity."
   },
   {
     "id": "IMP-329",
@@ -2637,7 +2637,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Autonómny scavenger neplatných a osirotených súborov v systémových pracovných priečinkoch."
+    "description": "Autonomous scavenger cleaning up invalid and orphaned files in system working directories."
   },
   {
     "id": "IMP-330",
@@ -2645,7 +2645,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný analyzátor časovej zložitosti úloh pre presnejší odhad doby dokončenia."
+    "description": "Built-in task time-complexity analyzer for more accurate completion time estimates."
   },
   {
     "id": "IMP-331",
@@ -2653,7 +2653,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Zavedenie auditného reťazca pre sledovanie pôvodu každej riadky kódu (Code Provenance Tracking)."
+    "description": "Audit trail tracking the origin of every line of code (Code Provenance Tracking)."
   },
   {
     "id": "IMP-332",
@@ -2661,7 +2661,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Dynamická rekonfigurácia parametrov modelov (Temperature, Top-P) podľa typu vykonávanej úlohy."
+    "description": "Dynamic reconfiguration of model parameters (Temperature, Top-P) according to task type."
   },
   {
     "id": "IMP-333",
@@ -2669,7 +2669,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Paralelné vykonávanie vyhľadávacích dotazov s fúziou výsledkov cez Reciprocal Rank Fusion."
+    "description": "Parallel search query execution with result merging via Reciprocal Rank Fusion."
   },
   {
     "id": "IMP-334",
@@ -2677,7 +2677,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Samostatný subsystém pre správu a validáciu SSL/TLS certifikátov na edge endpointoch."
+    "description": "Dedicated subsystem for managing and validating SSL/TLS certificates on edge endpoints."
   },
   {
     "id": "IMP-335",
@@ -2685,7 +2685,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Protokol pre asynchrónne hlásenie stavu úloh do externých dashboardov cez WebSockets."
+    "description": "Protocol for asynchronous task status reporting to external dashboards over WebSockets."
   },
   {
     "id": "IMP-336",
@@ -2693,7 +2693,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická detekcia zmeny štruktúry externých API s okamžitým návrhom adaptéra."
+    "description": "Automatic detection of external API schema changes with immediate adapter proposals."
   },
   {
     "id": "IMP-337",
@@ -2701,7 +2701,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Zavedenie vyrovnávacej vrstvy (Semantic Cache) pre elimináciu opakovaných volaní drahých modelov."
+    "description": "Semantic Cache layer eliminating redundant calls to expensive models."
   },
   {
     "id": "IMP-338",
@@ -2709,7 +2709,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Architektúra mikrojadra (Microkernel) oddeľujúca základnú logiku Trinity od externých nástrojov."
+    "description": "Microkernel architecture decoupling core Trinity logic from external tools."
   },
   {
     "id": "IMP-339",
@@ -2717,7 +2717,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný konvertor dátových štruktúr zabezpečujúci interoperabilitu medzi JSON, YAML a Protocol Buffers."
+    "description": "Built-in data structure converter providing interoperability across JSON, YAML, and Protocol Buffers."
   },
   {
     "id": "IMP-340",
@@ -2725,7 +2725,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Mechanizmus pre bezpečné pozastavenie a obnovenie bežiaceho workflowu (Suspend/Resume Engine)."
+    "description": "Suspend/Resume Engine for safely pausing and resuming running workflows."
   },
   {
     "id": "IMP-341",
@@ -2733,7 +2733,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická kontrola integrity závislostí repozitárov pomocou generovania softvérového kusovníka (SBOM)."
+    "description": "Automatic repository dependency integrity verification via Software Bill of Materials (SBOM) generation."
   },
   {
     "id": "IMP-342",
@@ -2741,7 +2741,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Zavedenie pravidiel pre prioritné prideľovanie šírky pásma sieťovým volaniam Trinity."
+    "description": "Priority bandwidth allocation rules for Trinity network calls."
   },
   {
     "id": "IMP-343",
@@ -2749,7 +2749,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Samostatný optimalizátor SQL indexov pre lokálne a edge databázy podľa profilu dopytov."
+    "description": "Standalone SQL index optimizer for local and edge databases driven by query profiles."
   },
   {
     "id": "IMP-344",
@@ -2757,7 +2757,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Protokol pre riadenie stavu batérie a napájania na klientskom zariadení počas náročných výpočtov."
+    "description": "Client battery and power management protocol during compute-intensive workloads."
   },
   {
     "id": "IMP-345",
@@ -2765,7 +2765,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Vstavaný generátor mockov pre simuláciu externých systémov pri offline testovaní."
+    "description": "Built-in mock generator for simulating external systems during offline testing."
   },
   {
     "id": "IMP-346",
@@ -2773,7 +2773,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Schopnosť automatického škálovania počtu paralelných agentických vlákien podľa zaťaženia CPU."
+    "description": "Automatic scaling of concurrent agent worker threads based on CPU load."
   },
   {
     "id": "IMP-347",
@@ -2781,7 +2781,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Zavedenie immutable dátových štruktúr pre reprezentáciu kontextu a histórie volaní."
+    "description": "Immutable data structures representing execution context and invocation history."
   },
   {
     "id": "IMP-348",
@@ -2789,7 +2789,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Automatická oprava poškodených konfiguračných súborov obnovou z posledného overeného stavu."
+    "description": "Automatic repair of corrupted configuration files by restoring the last verified state."
   },
   {
     "id": "IMP-349",
@@ -2797,7 +2797,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Mechanizmus pre bezpečný export celého stavu Trinity do prenosného šifrovaného balíka."
+    "description": "Mechanism for securely exporting the entire Trinity state into a portable encrypted bundle."
   },
   {
     "id": "IMP-350",
@@ -2805,7 +2805,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Architektúra nulovej dôvery (Zero Trust Architecture) aplikovaná na všetky interné volania modulov."
+    "description": "Zero Trust Architecture enforced across all internal module invocations."
   },
   {
     "id": "IMP-351",
@@ -2813,7 +2813,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Integrácia priameho zberu telemetrie cez OpenTelemetry do centralizovaného trace logu."
+    "description": "Direct OpenTelemetry telemetry collection into a centralized trace log."
   },
   {
     "id": "IMP-352",
@@ -2821,7 +2821,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie autonómneho vyvažovania záťaže medzi lokálnymi a vzdialenými inferenčnými uzlami."
+    "description": "Autonomous load balancing between local and remote inference nodes."
   },
   {
     "id": "IMP-353",
@@ -2829,7 +2829,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Mechanizmus pre dynamickú zmenu systémových pravidiel bez nutnosti reštartu celého jadra."
+    "description": "Mechanism for dynamically updating system rules without restarting the entire kernel."
   },
   {
     "id": "IMP-354",
@@ -2837,7 +2837,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická detekcia race-conditions v asynchrónnych skriptoch Trinity."
+    "description": "Automatic race-condition detection in asynchronous Trinity scripts."
   },
   {
     "id": "IMP-355",
@@ -2845,7 +2845,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Schopnosť lokálneho cachovania celých webových stránok a dokumentácií pre offline prístup agentov."
+    "description": "Local caching of full web pages and documentation for offline agent access."
   },
   {
     "id": "IMP-356",
@@ -2853,7 +2853,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Protokol pre bezpečné odovzdanie exekučných práv medzi dvoma rôznymi inštanciami systému."
+    "description": "Protocol for securely handing off execution privileges between two distinct system instances."
   },
   {
     "id": "IMP-357",
@@ -2861,7 +2861,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Vstavaný profilér pamäťovej náročnosti jednotlivých promptov a odpovedí."
+    "description": "Built-in memory footprint profiler for individual prompts and responses."
   },
   {
     "id": "IMP-358",
@@ -2869,7 +2869,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická segmentácia rozsiahlych úloh do menších atomických transakcií."
+    "description": "Automatic segmentation of large tasks into smaller atomic transactions."
   },
   {
     "id": "IMP-359",
@@ -2877,7 +2877,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie adaptívneho backoff algoritmu pri opakovaných zlyhaniach sieťových požiadaviek."
+    "description": "Adaptive backoff algorithm for repeated network request failures."
   },
   {
     "id": "IMP-360",
@@ -2885,7 +2885,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Mechanizmus pre overenie platnosti tokenov a kľúčov pred začatím akejkoľvek operácie."
+    "description": "Pre-flight validation mechanism verifying token and key validity before starting any operation."
   },
   {
     "id": "IMP-361",
@@ -2893,7 +2893,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Autonómny proces pre kontrolu a nápravu diskových oprávnení v systémovom priečinku Trinity."
+    "description": "Autonomous process auditing and repairing disk permissions in the Trinity system directory."
   },
   {
     "id": "IMP-362",
@@ -2901,7 +2901,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Vstavaný kompilátor promptov prevádzajúci vysokoúrovňové inštrukcie na optimalizované systémové príkazy."
+    "description": "Built-in prompt compiler translating high-level instructions into optimized system commands."
   },
   {
     "id": "IMP-363",
@@ -2909,7 +2909,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Protokol pre zjednotenú správu chybových kódov naprieč všetkými subsystémami."
+    "description": "Unified error code management protocol across all subsystems."
   },
   {
     "id": "IMP-364",
@@ -2917,7 +2917,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie hierarchických menných priestorov pre izoláciu dát medzi jednotlivými projektmi."
+    "description": "Hierarchical namespaces isolating data across individual projects."
   },
   {
     "id": "IMP-365",
@@ -2925,7 +2925,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Automatické sledovanie finančných nákladov na každú jednotlivú agentickú reláciu."
+    "description": "Automatic financial cost tracking for every individual agent session."
   },
   {
     "id": "IMP-366",
@@ -2933,7 +2933,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Schopnosť dynamického pripájania lokálnych GPU prostriedkov pre akceleráciu vektorových výpočtov."
+    "description": "Dynamic attachment of local GPU resources to accelerate vector computations."
   },
   {
     "id": "IMP-367",
@@ -2941,7 +2941,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Mechanizmus pre automatickú obnovu zlyhaných WebSocket spojení s dobehnutím zmeškaných správ."
+    "description": "Automatic recovery of failed WebSocket connections with catch-up replay of missed messages."
   },
   {
     "id": "IMP-368",
@@ -2949,7 +2949,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Vstavaný parser git diffov schopný inteligentne vyhodnocovať rizikovosť commitu."
+    "description": "Built-in git diff parser capable of intelligently assessing commit risk."
   },
   {
     "id": "IMP-369",
@@ -2957,7 +2957,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Protokol pre distribúciu kľúčov cez Shamir's Secret Sharing medzi viacero bezpečných uzlov."
+    "description": "Key distribution protocol using Shamir's Secret Sharing across multiple secure nodes."
   },
   {
     "id": "IMP-370",
@@ -2965,7 +2965,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie dynamických filtrov na výstupe zabraňujúcich úniku súkromných kľúčov do logov."
+    "description": "Dynamic output redaction filters preventing private keys from leaking into logs."
   },
   {
     "id": "IMP-371",
@@ -2973,7 +2973,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Automatická syntéza dátových modelov z relačných schém do TypeScript a Python rozhraní."
+    "description": "Automatic synthesis of TypeScript and Python data models from relational schemas."
   },
   {
     "id": "IMP-372",
@@ -2981,7 +2981,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Architektúra pre beh viacerých paralelných verzií toho istého nástroja vedľa seba (Side-by-Side Execution)."
+    "description": "Side-by-Side Execution architecture running multiple versions of the same tool concurrently."
   },
   {
     "id": "IMP-373",
@@ -2989,7 +2989,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Vstavaný manažér prioritných front správ (Priority Queue) s prevenciou hladovania nízko-prioritných úloh."
+    "description": "Built-in Priority Queue message manager with starvation prevention for low-priority tasks."
   },
   {
     "id": "IMP-374",
@@ -2997,7 +2997,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Samostatný monitor sieťovej latencie prepínajúci endpointy podľa geografickej polohy klienta."
+    "description": "Standalone network latency monitor switching endpoints based on client geographic location."
   },
   {
     "id": "IMP-375",
@@ -3005,7 +3005,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Protokol pre bezpečné potvrdzovanie dávkových operácií jedným kryptografickým podpisom."
+    "description": "Protocol for securely authorizing batch operations with a single cryptographic signature."
   },
   {
     "id": "IMP-376",
@@ -3013,7 +3013,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatická detekcia anomálií v správaní agentov na základe odchýlky od historických vzorov."
+    "description": "Automatic anomaly detection in agent behavior based on deviations from historical patterns."
   },
   {
     "id": "IMP-377",
@@ -3021,7 +3021,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie formalizovaného jazyka pre definíciu Trinity procesných pravidiel (Trinity DSL)."
+    "description": "Formalized domain-specific language for defining Trinity process rules (Trinity DSL)."
   },
   {
     "id": "IMP-378",
@@ -3029,7 +3029,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Mechanizmus pre priebežnú defragmentáciu lokálnych databázových súborov."
+    "description": "Continuous defragmentation mechanism for local database files."
   },
   {
     "id": "IMP-379",
@@ -3037,7 +3037,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Schopnosť generovania statických interaktívnych reportov o stave systému vo formáte standalone HTML."
+    "description": "Generation of interactive standalone HTML reports summarizing system state."
   },
   {
     "id": "IMP-380",
@@ -3045,7 +3045,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Vstavaný manažér procesných vlákien s presným priradením CPU afinity pre stabilitu systému."
+    "description": "Built-in thread manager with explicit CPU affinity assignment for system stability."
   },
   {
     "id": "IMP-381",
@@ -3053,7 +3053,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Protokol pre overenie integrity prenášaných binárnych balíkov pomocou hash stromov (Merkle Trees)."
+    "description": "Integrity verification protocol for transferred binary packages using Merkle Trees."
   },
   {
     "id": "IMP-382",
@@ -3061,7 +3061,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatická adaptácia časových limitov (Timeouts) podľa historickej doby odozvy operácie."
+    "description": "Automatic timeout adaptation informed by historical operation response times."
   },
   {
     "id": "IMP-383",
@@ -3069,7 +3069,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Zavedenie mechanizmu pre bezpečné mazanie citlivých premenných z pamäte prepísaním nulami."
+    "description": "Secure memory wiping mechanism overwriting sensitive variables with zeros upon disposal."
   },
   {
     "id": "IMP-384",
@@ -3077,7 +3077,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Architektúra podporujúca bezproblémový beh v prostrediach bez prístupu na verejný internet (Air-Gapped Mode)."
+    "description": "Architecture supporting seamless operation in environments without public internet access (Air-Gapped Mode)."
   },
   {
     "id": "IMP-385",
@@ -3085,7 +3085,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Vstavaný analyzátor tokenovej efektivity optimalizujúci dĺžku promptov bez straty významu."
+    "description": "Built-in token efficiency analyzer optimizing prompt length without losing meaning."
   },
   {
     "id": "IMP-386",
@@ -3093,7 +3093,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Autonómny proces pre kontrolu integrity dátových väzieb v znalostnom grafe."
+    "description": "Autonomous process verifying data link integrity within the knowledge graph."
   },
   {
     "id": "IMP-387",
@@ -3101,7 +3101,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Protokol pre automatické vyjednanie formátu dát medzi komunikujúcimi agentmi (Content Negotiation)."
+    "description": "Content Negotiation protocol automatically agreeing on data formats between communicating agents."
   },
   {
     "id": "IMP-388",
@@ -3109,7 +3109,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie centrálneho registra chýb s automatickým priraďovaním odporúčaných opráv."
+    "description": "Central error registry automatically mapping errors to recommended remediations."
   },
   {
     "id": "IMP-389",
@@ -3117,7 +3117,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Mechanizmus pre okamžité zrušenie všetkých podriadených procesov pri zrušení hlavnej úlohy."
+    "description": "Cascading cancellation mechanism immediately terminating all child processes when a parent task is aborted."
   },
   {
     "id": "IMP-390",
@@ -3125,7 +3125,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Schopnosť dynamického mapovania systémových volaní OS na abstraktné príkazy Trinity."
+    "description": "Dynamic mapping of operating system syscalls to abstract Trinity commands."
   },
   {
     "id": "IMP-391",
@@ -3133,7 +3133,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Vstavaný systém pre tvorbu a overovanie kryptografických časových pečiatok (Timestamping Authority)."
+    "description": "Built-in Timestamping Authority for issuing and verifying cryptographic timestamps."
   },
   {
     "id": "IMP-392",
@@ -3141,7 +3141,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatická optimalizácia veľkosti pamäťového bufferu pre I/O operácie podľa typu disku."
+    "description": "Automatic I/O memory buffer sizing tailored to underlying disk characteristics."
   },
   {
     "id": "IMP-393",
@@ -3149,7 +3149,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Protokol pre koordináciu distribuovaných transakcií pomocou dvojfázového commitu (2PC)."
+    "description": "Distributed transaction coordination protocol using Two-Phase Commit (2PC)."
   },
   {
     "id": "IMP-394",
@@ -3157,7 +3157,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Zavedenie spätnoväzbovej slučky, kde agent hodnotí úspešnosť vlastného kroku pred pokračovaním."
+    "description": "Feedback loop in which an agent evaluates the success of its own step before proceeding."
   },
   {
     "id": "IMP-395",
@@ -3165,7 +3165,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Samostatný proces pre monitoring a prevenciu zaplnenia diskového priestoru kritickými logmi."
+    "description": "Dedicated process monitoring and preventing critical logs from exhausting disk space."
   },
   {
     "id": "IMP-396",
@@ -3173,7 +3173,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Vstavaný analyzátor syntaktickej správnosti generovaného kódu pred zápisom do finálneho súboru."
+    "description": "Built-in syntax analyzer validating generated code before writing it to the target file."
   },
   {
     "id": "IMP-397",
@@ -3181,7 +3181,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Architektúra umožňujúca dynamickú zmenu topológie prepojenia agentov za behu systému."
+    "description": "Architecture enabling dynamic runtime reconfiguration of agent interconnect topology."
   },
   {
     "id": "IMP-398",
@@ -3189,7 +3189,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Protokol pre bezpečné zdieľanie overených stavov medzi rôznymi používateľskými profilmi."
+    "description": "Protocol for securely sharing verified states across different user profiles."
   },
   {
     "id": "IMP-399",
@@ -3197,7 +3197,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Automatické generovanie spätnej kompatibility pri zmene dátových štruktúr v Sovereign Ledger."
+    "description": "Automatic backward-compatibility generation when Sovereign Ledger data structures evolve."
   },
   {
     "id": "IMP-400",
@@ -3205,7 +3205,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Mechanizmus pre detekciu zacyklenia v reťazci volaní nástrojov (Tool-Call Loop Breaker)."
+    "description": "Tool-Call Loop Breaker detecting and interrupting cyclic tool invocation chains."
   },
   {
     "id": "IMP-401",
@@ -3213,7 +3213,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Zavedenie špecializovaného pamäťového registra pre ukladanie prechodných výpočtových hypotéz."
+    "description": "Dedicated memory register for storing transient computational hypotheses."
   },
   {
     "id": "IMP-402",
@@ -3221,7 +3221,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Vstavaný validátor bezpečnostných hlavičiek pri komunikácii cez HTTP rozhrania."
+    "description": "Built-in security header validator for HTTP interface communications."
   },
   {
     "id": "IMP-403",
@@ -3229,7 +3229,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Autonómny manažér pre správu a obnovu vypršaných bezpečnostných certifikátov na edgei."
+    "description": "Autonomous manager renewing and rotating expired security certificates at the edge."
   },
   {
     "id": "IMP-404",
@@ -3237,7 +3237,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Protokol pre deterministické prideľovanie identifikátorov úlohám naprieč celým klastrom."
+    "description": "Protocol for deterministic task identifier assignment across the entire cluster."
   },
   {
     "id": "IMP-405",
@@ -3245,7 +3245,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Schopnosť dynamickej rekonštrukcie poškodeného kontextového okna z histórie ledgeru."
+    "description": "Dynamic reconstruction of a corrupted context window from ledger history."
   },
   {
     "id": "IMP-406",
@@ -3253,7 +3253,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie adaptívneho vzorkovania telemetrických dát pre zníženie záťaže úložiska."
+    "description": "Adaptive telemetry sampling to reduce storage overhead."
   },
   {
     "id": "IMP-407",
@@ -3261,7 +3261,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Vstavaný manažér systémových prerušení (Interrupt Handler) pre okamžitú reakciu na príkazy používateľa."
+    "description": "Built-in Interrupt Handler ensuring immediate responsiveness to user commands."
   },
   {
     "id": "IMP-408",
@@ -3269,7 +3269,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Automatická kontrola formálnej zhody kódu s bezpečnostnými štandardmi OWASP pred nasadením."
+    "description": "Automatic pre-deployment compliance check of code against OWASP security standards."
   },
   {
     "id": "IMP-409",
@@ -3277,7 +3277,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Protokol pre riadené uvoľňovanie systémových prostriedkov pri dlhodobej nečinnosti Trinity."
+    "description": "Controlled resource-release protocol reclaiming system resources during prolonged Trinity inactivity."
   },
   {
     "id": "IMP-410",
@@ -3285,7 +3285,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Zavedenie dynamickej priority pre I/O operácie zaručujúcej plynulosť interakcie používateľa."
+    "description": "Dynamic I/O priority scheduling ensuring smooth interactive user responsiveness."
   },
   {
     "id": "IMP-411",
@@ -3293,7 +3293,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Architektúra pre paralelný beh viacerých vyhľadávacích stratégií s výberom najrelevantnejšej odpovede."
+    "description": "Architecture running multiple retrieval strategies in parallel and selecting the most relevant answer."
   },
   {
     "id": "IMP-412",
@@ -3301,7 +3301,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný mechanizmus pre detekciu zmien v systémovom prostredí (OS aktualizácie, zmeny ciest)."
+    "description": "Built-in detector for host environment changes (OS updates, path modifications)."
   },
   {
     "id": "IMP-413",
@@ -3309,7 +3309,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Autonómny proces pre čistenie a konsolidáciu fragmentovaných dátových blokov v SQLite."
+    "description": "Autonomous process compacting and consolidating fragmented SQLite data blocks."
   },
   {
     "id": "IMP-414",
@@ -3317,7 +3317,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Protokol pre bezpečné potvrdzovanie prijatia správ medzi distribuovanými uzlami (ACK/NACK Engine)."
+    "description": "ACK/NACK Engine confirming reliable message delivery between distributed nodes."
   },
   {
     "id": "IMP-415",
@@ -3325,7 +3325,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Schopnosť dynamického vytvárania záchranných bodov (Checkpoints) v dlhotrvajúcich výpočtoch."
+    "description": "Dynamic checkpointing capability for long-running computations."
   },
   {
     "id": "IMP-416",
@@ -3333,7 +3333,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Zavedenie mechanizmu pre striktnú typovú kontrolu parametrov pri volaní všetkých systémových funkcií."
+    "description": "Strict parameter type validation enforced across all system function calls."
   },
   {
     "id": "IMP-417",
@@ -3341,7 +3341,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Vstavaný analyzátor efektivity využitia kontextu identifikujúci ignorované inštrukcie v prompte."
+    "description": "Built-in context utilization analyzer identifying ignored instructions inside prompts."
   },
   {
     "id": "IMP-418",
@@ -3349,7 +3349,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Automatická detekcia zastaraných dát v cache a ich asynchrónna obnova na pozadí."
+    "description": "Automatic stale-cache detection with asynchronous background refresh."
   },
   {
     "id": "IMP-419",
@@ -3357,7 +3357,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Protokol pre bezpečný prenos šifrovaných konfiguračných balíkov cez nezabezpečené siete."
+    "description": "Protocol for securely transporting encrypted configuration bundles across untrusted networks."
   },
   {
     "id": "IMP-420",
@@ -3365,7 +3365,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Zavedenie izolovaných pamäťových zón pre beh experimentálnych alebo netestovaných sub-agentov."
+    "description": "Isolated memory zones for running experimental or untested sub-agents."
   },
   {
     "id": "IMP-421",
@@ -3373,7 +3373,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Samostatný monitor stability sieťových socketov s automatickým resetom zamrznutých spojení."
+    "description": "Dedicated network socket stability monitor automatically resetting stalled connections."
   },
   {
     "id": "IMP-422",
@@ -3381,7 +3381,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný konvertor formátov logov do štandardizovaného formátu JSONLines pre rýchlu analýzu."
+    "description": "Built-in log converter normalizing outputs into JSONLines format for rapid analysis."
   },
   {
     "id": "IMP-423",
@@ -3389,7 +3389,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Architektúra podporujúca okamžitý hot-reloading zmenených skriptov bez nutnosti vypnutia procesu."
+    "description": "Architecture supporting instant hot-reloading of modified scripts without process restarts."
   },
   {
     "id": "IMP-424",
@@ -3397,7 +3397,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Protokol pre validáciu kryptografických podpisov externých balíkov pred ich inštaláciou."
+    "description": "Protocol validating cryptographic signatures of external packages prior to installation."
   },
   {
     "id": "IMP-425",
@@ -3405,7 +3405,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie pravidiel pre automatickú eskaláciu nevyriešených systémových konfliktov na operátora."
+    "description": "Automated escalation rules routing unresolved system conflicts to the human operator."
   },
   {
     "id": "IMP-426",
@@ -3413,7 +3413,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Mechanizmus pre transparentné presmerovanie volaní pri zlyhaní primárneho inferenčného uzla."
+    "description": "Transparent call failover rerouting requests when the primary inference node fails."
   },
   {
     "id": "IMP-427",
@@ -3421,7 +3421,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Schopnosť syntézy kompaktných systémových stavov pre zobrazenie v minimalistických UI lištách."
+    "description": "Compact system state synthesis tailored for minimalist UI status bars."
   },
   {
     "id": "IMP-428",
@@ -3429,7 +3429,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný manažér časových pásiem zabezpečujúci jednotnú synchronizáciu v UTC naprieč celým systémom."
+    "description": "Built-in timezone manager guaranteeing unified UTC synchronization across the entire system."
   },
   {
     "id": "IMP-429",
@@ -3437,7 +3437,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Autonómny proces pre verifikáciu dostupnosti záložných dátových úložísk."
+    "description": "Autonomous process verifying availability of backup data stores."
   },
   {
     "id": "IMP-430",
@@ -3445,7 +3445,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Protokol pre dynamické prispôsobenie úrovne logovania podľa aktuálneho stavu systému (Debug on Error)."
+    "description": "Dynamic logging level adjustment protocol tied to live system health (Debug on Error)."
   },
   {
     "id": "IMP-431",
@@ -3453,7 +3453,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Zavedenie mechanizmu pre bezpečné zlučovanie paralelných vetiev úloh do jedného výsledku."
+    "description": "Mechanism for safely merging parallel task branches into a single unified output."
   },
   {
     "id": "IMP-432",
@@ -3461,7 +3461,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný parser výstupov konzoly s automatickou filtráciou riadiacich ANSI sekvencií."
+    "description": "Built-in console output parser automatically stripping ANSI control escape sequences."
   },
   {
     "id": "IMP-433",
@@ -3469,7 +3469,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Architektúra zabezpečujúca striktnú kauzalitu udalostí v distribuovanom prostredí cez Lamportove hodiny."
+    "description": "Architecture enforcing strict distributed event causality using Lamport clocks."
   },
   {
     "id": "IMP-434",
@@ -3477,7 +3477,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Protokol pre periodickú kontrolu konzistencie medzi lokálnym stavom a vzdialeným edge úložiskom."
+    "description": "Periodic consistency check protocol comparing local state against remote edge storage."
   },
   {
     "id": "IMP-435",
@@ -3485,7 +3485,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Zavedenie automatických bezpečnostných limitov na hĺbku vnorenia generovaných dátových štruktúr."
+    "description": "Automatic safety depth limits on nested generated data structures."
   },
   {
     "id": "IMP-436",
@@ -3493,7 +3493,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Samostatný proces pre optimalizáciu spotreby sieťových dát pri behu na mobilných pripojeniach."
+    "description": "Dedicated process optimizing network data consumption when operating over mobile connections."
   },
   {
     "id": "IMP-437",
@@ -3501,7 +3501,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný validátor regulárnych výrazov zabraňujúci útokom typu ReDoS (Regular Expression DoS)."
+    "description": "Built-in regular expression validator preventing ReDoS (Regular Expression DoS) attacks."
   },
   {
     "id": "IMP-438",
@@ -3509,7 +3509,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Schopnosť dynamickej alokácie dočasného diskového priestoru pre veľké dátové operácie."
+    "description": "Dynamic temporary disk space allocation for large data operations."
   },
   {
     "id": "IMP-439",
@@ -3517,7 +3517,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Protokol pre koordinované vypnutie všetkých agentov s garantovaným uložením rozpracovaného stavu."
+    "description": "Coordinated multi-agent shutdown protocol guaranteeing persistence of in-progress state."
   },
   {
     "id": "IMP-440",
@@ -3525,7 +3525,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie metrikovej vrstvy pre sledovanie latencie jednotlivých nástrojov v reálnom čase."
+    "description": "Metrics layer tracking per-tool execution latency in real time."
   },
   {
     "id": "IMP-441",
@@ -3533,7 +3533,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný manažér systémových notifikácií s inteligentným združovaním podobných hlásení."
+    "description": "Built-in system notification manager intelligently grouping similar alerts."
   },
   {
     "id": "IMP-442",
@@ -3541,7 +3541,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Autonómna detekcia pokusov o prompt injection v prichádzajúcich externých dátach."
+    "description": "Autonomous detection of prompt injection attempts in incoming external data."
   },
   {
     "id": "IMP-443",
@@ -3549,7 +3549,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Architektúra podporujúca plynulý prechod medzi rôznymi verziami Sovereign Ledgeru."
+    "description": "Architecture supporting seamless migrations between different Sovereign Ledger versions."
   },
   {
     "id": "IMP-444",
@@ -3557,7 +3557,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Protokol pre bezpečné vykonávanie transakčných zápisov s možnosťou atomického rollbacku."
+    "description": "Transactional write protocol with guaranteed atomic rollback capability."
   },
   {
     "id": "IMP-445",
@@ -3565,7 +3565,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Zavedenie pravidiel pre automatickú rotáciu šifrovacích kľúčov bez prerušenia prevádzky."
+    "description": "Automated encryption key rotation rules operating without service interruption."
   },
   {
     "id": "IMP-446",
@@ -3573,7 +3573,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný analyzátor sémantickej hustoty textu pre maximalizáciu informačného obsahu odpovedí."
+    "description": "Built-in semantic density analyzer maximizing informational value of responses."
   },
   {
     "id": "IMP-447",
@@ -3581,7 +3581,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Schopnosť dynamického pripájania externých vedomostných grafov cez štandard SPARQL/RDF."
+    "description": "Dynamic attachment of external knowledge graphs via SPARQL/RDF standards."
   },
   {
     "id": "IMP-448",
@@ -3589,7 +3589,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Protokol pre overenie integrity systémového prostredia pred spustením produkčných procesov."
+    "description": "Pre-flight system environment integrity verification before launching production processes."
   },
   {
     "id": "IMP-449",
@@ -3597,7 +3597,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie mechanizmu pre automatické potlačenie redundantných systémových varovaní."
+    "description": "Automated suppression mechanism deduplicating redundant system warnings."
   },
   {
     "id": "IMP-450",
@@ -3605,7 +3605,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Samostatný proces pre optimalizáciu štruktúry vektorového indexu na základe frekvencie dopytov."
+    "description": "Dedicated process optimizing vector index structure based on query frequency."
   },
   {
     "id": "IMP-451",
@@ -3613,7 +3613,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný validátor štruktúry odpovedí zabezpečujúci striktné dodržanie požadovanej JSON schémy."
+    "description": "Built-in response structure validator enforcing strict compliance with required JSON Schemas."
   },
   {
     "id": "IMP-452",
@@ -3621,7 +3621,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Architektúra umožňujúca beh Trinity ako natívnej služby operačného systému (Windows Service/Daemon)."
+    "description": "Architecture allowing Trinity to run as a native operating system service (Windows Service/Daemon)."
   },
   {
     "id": "IMP-453",
@@ -3629,7 +3629,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Protokol pre asynchrónne spracovanie veľkých súborov cez prúdové čítanie (Streaming I/O)."
+    "description": "Asynchronous large-file processing protocol using Streaming I/O."
   },
   {
     "id": "IMP-454",
@@ -3637,7 +3637,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Zavedenie adaptívneho mechanizmu pre voľbu optimálnej veľkosti chunkov pri vektorizácii dokumentov."
+    "description": "Adaptive chunk-sizing mechanism selecting optimal vectorization splits for documents."
   },
   {
     "id": "IMP-455",
@@ -3645,7 +3645,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný manažér pre správu virtuálnych sieťových rozhraní a tunelov."
+    "description": "Built-in manager for virtual network interfaces and tunnels."
   },
   {
     "id": "IMP-456",
@@ -3653,7 +3653,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Autonómny proces pre detekciu mŕtveho kódu a nepoužívaných nástrojov v ekosystéme Trinity."
+    "description": "Autonomous process detecting dead code and unused tools across the Trinity ecosystem."
   },
   {
     "id": "IMP-457",
@@ -3661,7 +3661,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Protokol pre bezpečné overovanie integrity generovaných binárnych artefaktov cez kontrolné súčty."
+    "description": "Checksum verification protocol validating integrity of generated binary artifacts."
   },
   {
     "id": "IMP-458",
@@ -3669,7 +3669,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Zavedenie dynamických bezpečnostných profilov prepínajúcich systém do striktného režimu pri podozrivej aktivite."
+    "description": "Dynamic security profiles switching the system into strict lockdown mode on suspicious activity."
   },
   {
     "id": "IMP-459",
@@ -3677,7 +3677,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Vstavaný analyzátor závislostí úloh zabraňujúci vzniku mŕtveho bodu (Deadlock Prevention)."
+    "description": "Built-in task dependency analyzer preventing circular waits (Deadlock Prevention)."
   },
   {
     "id": "IMP-460",
@@ -3685,7 +3685,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Schopnosť automatického škálovania počtu replík kritických služieb podľa záťaže."
+    "description": "Automatic horizontal replica scaling of critical services based on demand."
   },
   {
     "id": "IMP-461",
@@ -3693,7 +3693,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Protokol pre zjednotené formátovanie a štrukturalizáciu systémových výnimiek."
+    "description": "Unified formatting and structuring protocol for system exceptions."
   },
   {
     "id": "IMP-462",
@@ -3701,7 +3701,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie mechanizmu pre overenie správnosti konfigurácie pred jej uložením do trvalého stavu."
+    "description": "Pre-commit configuration validation ensuring correctness before persisting state."
   },
   {
     "id": "IMP-463",
@@ -3709,7 +3709,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný manažér pre správu a izoláciu dočasných systémových socketov."
+    "description": "Built-in manager for provisioning and isolating temporary system sockets."
   },
   {
     "id": "IMP-464",
@@ -3717,7 +3717,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Autonómny proces pre kontrolu a nápravu nekonzistentných záznamov v registri nástrojov."
+    "description": "Autonomous process auditing and repairing inconsistent entries in the tool registry."
   },
   {
     "id": "IMP-465",
@@ -3725,7 +3725,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Architektúra podporujúca distribuované trasovanie požiadaviek naprieč všetkými vrstvami Trinity."
+    "description": "Architecture supporting distributed request tracing across every Trinity layer."
   },
   {
     "id": "IMP-466",
@@ -3733,7 +3733,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Protokol pre bezpečné odovzdanie citlivých parametrov medzi procesmi cez chránenú pamäť."
+    "description": "Protocol for securely passing sensitive parameters between processes via protected memory."
   },
   {
     "id": "IMP-467",
@@ -3741,7 +3741,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Zavedenie mechanizmu pre priebežnú optimalizáciu spotreby tokenov pri dlhých dialógoch."
+    "description": "Continuous token consumption optimization mechanism for long-running dialogues."
   },
   {
     "id": "IMP-468",
@@ -3749,7 +3749,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný analyzátor stability sieťových ciest identifikujúci problematické uzly v reálnom čase."
+    "description": "Built-in network path stability analyzer identifying degraded hops in real time."
   },
   {
     "id": "IMP-469",
@@ -3757,7 +3757,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Schopnosť dynamického generovania diagnostických balíkov pre rýchlu analýzu systémových havárií."
+    "description": "Dynamic diagnostic bundle generator enabling rapid post-mortem crash analysis."
   },
   {
     "id": "IMP-470",
@@ -3765,7 +3765,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Protokol pre riadenie prístupu k hardvérovým prostriedkom na základe explicitných oprávnení."
+    "description": "Explicit permission-based access control protocol governing hardware resource usage."
   },
   {
     "id": "IMP-471",
@@ -3773,7 +3773,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie pravidiel pre automatickú izoláciu zlyhávajúcich modulov bez vplyvu na zvyšok systému."
+    "description": "Automated fault-isolation rules quarantining failing modules without disrupting the wider system."
   },
   {
     "id": "IMP-472",
@@ -3781,7 +3781,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný validátor konzistencie dátových typov pri medziprocesovej komunikácii."
+    "description": "Built-in data type consistency validator for inter-process communication."
   },
   {
     "id": "IMP-473",
@@ -3789,7 +3789,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Autonómny proces pre monitoring integrity a platnosti API webhookov."
+    "description": "Autonomous process monitoring API webhook integrity and validity."
   },
   {
     "id": "IMP-474",
@@ -3797,7 +3797,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Architektúra umožňujúca dynamickú zmenu stratégie ukladania dát podľa ich citlivosti."
+    "description": "Architecture dynamically selecting data storage strategies based on data sensitivity."
   },
   {
     "id": "IMP-475",
@@ -3805,7 +3805,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Protokol pre overenie pravosti systémových príkazov pomocou digitálnych podpisov."
+    "description": "Protocol authenticating system commands via cryptographic digital signatures."
   },
   {
     "id": "IMP-476",
@@ -3813,7 +3813,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie mechanizmu pre automatickú syntézu dokumentácie k novo vyvinutým interným modulom."
+    "description": "Automated documentation synthesis for newly developed internal modules."
   },
   {
     "id": "IMP-477",
@@ -3821,7 +3821,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Vstavaný manažér systémových zdrojov zabezpečujúci férové delenie CPU času medzi procesmi."
+    "description": "Built-in system resource manager ensuring fair CPU time sharing across processes."
   },
   {
     "id": "IMP-478",
@@ -3829,7 +3829,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Schopnosť dynamického prepínania medzi rôznymi formátmi vektorových indexov podľa typu dát."
+    "description": "Dynamic switching between vector index formats tailored to dataset characteristics."
   },
   {
     "id": "IMP-479",
@@ -3837,7 +3837,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Protokol pre bezpečný a riadený export systémových auditných záznamov do externých archívov."
+    "description": "Controlled, secure export protocol transferring system audit logs to external archives."
   },
   {
     "id": "IMP-480",
@@ -3845,7 +3845,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Zavedenie adaptívnych filtrov pre elimináciu šumu a irelevantných dát z kontextu."
+    "description": "Adaptive context filters stripping noise and irrelevant data."
   },
   {
     "id": "IMP-481",
@@ -3853,7 +3853,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Vstavaný analyzátor výkonnosti jednotlivých kódových funkcií Trinity s vizualizáciou úzkych hrdiel."
+    "description": "Built-in performance profiler analyzing individual Trinity functions with bottleneck visualization."
   },
   {
     "id": "IMP-482",
@@ -3861,7 +3861,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Autonómny proces pre kontrolu súladu stavu systému s bezpečnostnými predpismi Sovereign Charter."
+    "description": "Autonomous process auditing live system state against Sovereign Charter security mandates."
   },
   {
     "id": "IMP-483",
@@ -3869,7 +3869,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Architektúra podporujúca beh v plne deterministickom simulačnom režime pre potreby testovania."
+    "description": "Architecture supporting a fully deterministic simulation mode for repeatable testing."
   },
   {
     "id": "IMP-484",
@@ -3877,7 +3877,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Protokol pre bezpečnú synchronizáciu konfiguračných zmien medzi viacerými inštanciami Trinity."
+    "description": "Secure configuration synchronization protocol across multiple Trinity instances."
   },
   {
     "id": "IMP-485",
@@ -3885,7 +3885,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie mechanizmu pre automatické rozpoznanie a izoláciu chybných dátových vstupov."
+    "description": "Automated recognition and quarantine of malformed data inputs."
   },
   {
     "id": "IMP-486",
@@ -3893,7 +3893,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Vstavaný manažér pre správu a kontrolu integrity systémových fontov a grafických rozhraní."
+    "description": "Built-in manager verifying integrity of system fonts and graphical interfaces."
   },
   {
     "id": "IMP-487",
@@ -3901,7 +3901,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Schopnosť dynamického prispôsobenia komunikačného protokolu podľa kvality pripojenia."
+    "description": "Dynamic adaptation of the communication protocol to match live link quality."
   },
   {
     "id": "IMP-488",
@@ -3909,7 +3909,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Protokol pre overenie úplnosti dátových prenosov pred spustením následných závislých úloh."
+    "description": "Data transfer completeness verification protocol enforced before launching dependent tasks."
   },
   {
     "id": "IMP-489",
@@ -3917,7 +3917,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie pravidiel pre striktnú segregáciu systémových a používateľských dátových tokov."
+    "description": "Strict segregation rules separating system data streams from user data streams."
   },
   {
     "id": "IMP-490",
@@ -3925,7 +3925,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný analyzátor spotreby energie výpočtových operácií Trinity."
+    "description": "Built-in energy consumption analyzer for Trinity computational operations."
   },
   {
     "id": "IMP-491",
@@ -3933,7 +3933,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L3_MEMORY_ENGINE",
     "epic": "EPIC-09",
-    "description": "Autonómny proces pre optimalizáciu štruktúry databázových dopytov na základe histórie volaní."
+    "description": "Autonomous process optimizing database query structures from historical execution patterns."
   },
   {
     "id": "IMP-492",
@@ -3941,7 +3941,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L1_TRINITY_KERNEL",
     "epic": "EPIC-01",
-    "description": "Architektúra umožňujúca dynamickú aktualizáciu jadra Trinity bez prerušenia bežiacich úloh."
+    "description": "Architecture enabling live Trinity kernel upgrades without interrupting running tasks."
   },
   {
     "id": "IMP-493",
@@ -3949,7 +3949,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L7_EVOLUTION_ENGINE",
     "epic": "EPIC-21",
-    "description": "Protokol pre overenie integrity a pôvodu externých kódových balíkov pred ich spustením."
+    "description": "Pre-execution provenance and integrity verification protocol for external code packages."
   },
   {
     "id": "IMP-494",
@@ -3957,7 +3957,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Zavedenie mechanizmu pre automatickú archiváciu starých stavov Sovereign Ledgeru."
+    "description": "Automated archival mechanism for aging Sovereign Ledger state snapshots."
   },
   {
     "id": "IMP-495",
@@ -3965,7 +3965,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Vstavaný manažér pre správu systémových udalostí s garantovaným doručením správ."
+    "description": "Built-in system event manager providing guaranteed message delivery."
   },
   {
     "id": "IMP-496",
@@ -3973,7 +3973,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Schopnosť dynamického generovania vizuálnych topologických máp bežiacich agentov a ich prepojení."
+    "description": "Dynamic generation of visual topology maps displaying active agents and their interconnections."
   },
   {
     "id": "IMP-497",
@@ -3981,7 +3981,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L6_SECURITY_CORE",
     "epic": "EPIC-15",
-    "description": "Protokol pre bezpečné a šifrované ukladanie záložných kľúčov systému."
+    "description": "Encrypted storage protocol for safeguarding system backup recovery keys."
   },
   {
     "id": "IMP-498",
@@ -3989,7 +3989,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L5_EXECUTION_ENGINE",
     "epic": "EPIC-11",
-    "description": "Zavedenie mechanizmu pre striktné overenie splnenia predpokladov (Prerequisites Check) pred každou akciou."
+    "description": "Strict pre-execution Prerequisites Check validating all conditions prior to every action."
   },
   {
     "id": "IMP-499",
@@ -3997,7 +3997,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L2_ORCHESTRATION",
     "epic": "EPIC-06",
-    "description": "Vstavaný analyzátor efektivity využitia hardvérových prostriedkov jednotlivými agentickými rolami."
+    "description": "Built-in analyzer evaluating hardware resource efficiency per agent role."
   },
   {
     "id": "IMP-500",
@@ -4005,7 +4005,7 @@ export const OMNI_CORE_500_IMPROVEMENTS = Object.freeze([
     "part": "PART_2_OMNI_CORE_ARCHITECTURE_250",
     "layer": "L4_SOVEREIGN_LEDGER",
     "epic": "EPIC-02",
-    "description": "Globálny synchronizačný uzol prepájajúci lokálnu exekúciu, Cloudflare Workers a Sovereign Ledger do jedného nerozpojiteľného autonómneho celku."
+    "description": "Global synchronization hub uniting local execution, Cloudflare Workers, and Sovereign Ledger into a single inseparable autonomous system."
   }
 ]);
 
@@ -4013,377 +4013,377 @@ export const OMNI_CORE_75_FOUNDATIONAL_PILLARS = Object.freeze([
   {
     "id": "P-01",
     "number": 1,
-    "description": "Lokálny systémový spúšťač desktopových aplikácií Windows cez IPC a PowerShell most bez potreby grafického klikania."
+    "description": "Local Windows desktop application launcher operating over IPC and a PowerShell bridge without GUI clicking."
   },
   {
     "id": "P-02",
     "number": 2,
-    "description": "Priame hlboké prepojenie na WhatsApp Desktop na otváranie špecifických chatov podľa telefónneho čísla alebo mena kontaktu."
+    "description": "Direct deep link to WhatsApp Desktop for opening specific chats by phone number or contact name."
   },
   {
     "id": "P-03",
     "number": 3,
-    "description": "Bezpečný trezor relácií na ukladanie perzistentných cookies a prístupových tokenov pre sociálne siete Meta, Instagram a Facebook."
+    "description": "Secure session vault storing persistent cookies and access tokens for Meta, Instagram, and Facebook."
   },
   {
     "id": "P-04",
     "number": 4,
-    "description": "Finančná brána s dvojfaktorovou autorizáciou a hardvérovým limitom na maximálnu sumu jednej transakcie."
+    "description": "Financial gateway with two-factor authorization and a hardware-enforced cap on maximum single-transaction amount."
   },
   {
     "id": "P-05",
     "number": 5,
-    "description": "Nemenný kryptografický auditný záznamník (Ledger) pre každú finančnú operáciu s časovou pečiatkou a hash overením."
+    "description": "Immutable cryptographic audit Ledger recording every financial operation with timestamps and hash verification."
   },
   {
     "id": "P-06",
     "number": 6,
-    "description": "Mechanizmus Truth Policy s nulovou toleranciou konfabulácií, ktorý pri zlyhaní príkazu vráti presný chybový kód namiesto simulácie úspechu."
+    "description": "Zero-confabulation Truth Policy mechanism returning the exact error code on command failure instead of simulating success."
   },
   {
     "id": "P-07",
     "number": 7,
-    "description": "Diagnostický analyzátor stack trace chýb pre modul OmniDev Studio s automatickou izoláciou padajúcich dependencií."
+    "description": "Diagnostic stack-trace analyzer for the OmniDev Studio module with automatic isolation of failing dependencies."
   },
   {
     "id": "P-08",
     "number": 8,
-    "description": "Samoliečiaci modul (Self-Healing Runtime), ktorý po páde skriptu analyzuje chybový riadok a automaticky aplikuje opravný patch."
+    "description": "Self-Healing Runtime module that inspects the failing line after a script crash and automatically applies a corrective patch."
   },
   {
     "id": "P-09",
     "number": 9,
-    "description": "Vstavané OCR jadro na rozpoznávanie a extrakciu textu z aktívneho okna monitora v reálnom čase."
+    "description": "Built-in OCR engine recognizing and extracting text from the active monitor window in real time."
   },
   {
     "id": "P-10",
     "number": 10,
-    "description": "Autonómny GUI ovládač pre simuláciu kliknutí myšou a klávesových skratiek v programoch bez otvoreného API."
+    "description": "Autonomous GUI controller simulating mouse clicks and keyboard shortcuts in applications lacking an open API."
   },
   {
     "id": "P-11",
     "number": 11,
-    "description": "Monitor systémových procesov na detekciu zamrznutých úloh s automatickým reštartom a uvoľnením systémových prostriedkov."
+    "description": "System process monitor detecting frozen tasks, automatically restarting them, and reclaiming system resources."
   },
   {
     "id": "P-12",
     "number": 12,
-    "description": "Headless prehliadač s emuláciou ľudského správania na obchádzanie detekcie botov pri automatizovanom zbere dát."
+    "description": "Headless browser with human-like interaction emulation for resilient automated data collection."
   },
   {
     "id": "P-13",
     "number": 13,
-    "description": "Human-in-the-loop prerušenie, ktoré pri zobrazení CAPTCHA výzvy pozastaví proces a notifikuje používateľa."
+    "description": "Human-in-the-loop pause gate that halts execution and notifies the user whenever a CAPTCHA challenge appears."
   },
   {
     "id": "P-14",
     "number": 14,
-    "description": "Plnotextové sémantické indexovanie lokálnych diskov pre okamžité vyhľadávanie v kóde, zmluvách a dokumentoch."
+    "description": "Full-text semantic indexing of local drives for instant search across source code, contracts, and documents."
   },
   {
     "id": "P-15",
     "number": 15,
-    "description": "Automatický Git strážca, ktorý pri detekcii zmien vykoná commit, vygeneruje zmysluplnú správu a synchronizuje repozitár."
+    "description": "Automated Git guardian that detects changes, commits with a meaningful message, and synchronizes the repository."
   },
   {
     "id": "P-16",
     "number": 16,
-    "description": "Izolovaný dočasný sandbox na testovanie neoverených skriptov v jednorazových prostrediach pred ich spustením v systéme."
+    "description": "Isolated ephemeral sandbox for testing unverified scripts in disposable environments before host execution."
   },
   {
     "id": "P-17",
     "number": 17,
-    "description": "Denný výdavkový strop s automatickým zablokovaním finančných kanálov pri podozrivom počte požiadaviek."
+    "description": "Daily spending cap automatically blocking financial channels upon detecting a suspicious surge in requests."
   },
   {
     "id": "P-18",
     "number": 18,
-    "description": "Push notifikačný kanál na mobilný telefón na okamžité schválenie citlivých príkazov jedným kliknutím."
+    "description": "Mobile push notification channel enabling one-tap approval of sensitive commands."
   },
   {
     "id": "P-19",
     "number": 19,
-    "description": "Overovač systémových závislostí, ktorý pred spustením modulu skontroluje prítomnosť knižníc v systémovej ceste PATH."
+    "description": "System dependency verifier checking for required libraries on the system PATH before launching a module."
   },
   {
     "id": "P-20",
     "number": 20,
-    "description": "Výstupný kontrolný filter faktov, ktorý zablokuje odpoveď agenta, ak jej tvrdenia nezodpovedajú reálnym dátam z konzoly."
+    "description": "Output fact-checking filter blocking an agent response when claims contradict real console evidence."
   },
   {
     "id": "P-21",
     "number": 21,
-    "description": "Systémový Wake-Word detektor bežiaci lokálne na nízkej spotrebe CPU pre hlasovú aktiváciu bez nutnosti dotyku."
+    "description": "Low-CPU local Wake-Word detector enabling hands-free voice activation."
   },
   {
     "id": "P-22",
     "number": 22,
-    "description": "Obojsmerný stream spracovania reči (STT) a prirodzenej syntézy hlasu (TTS) s nulovou odozvou pre hlasový dialóg."
+    "description": "Bidirectional speech-to-text (STT) and natural text-to-speech (TTS) stream with ultra-low latency for voice dialogue."
   },
   {
     "id": "P-23",
     "number": 23,
-    "description": "Akustické stavové signály informujúce o dokončení procesov, chybách alebo potrebe používateľského zásahu."
+    "description": "Acoustic status cues signaling task completions, errors, or requests for user intervention."
   },
   {
     "id": "P-24",
     "number": 24,
-    "description": "Asynchrónny dispečer úloh na pozadí, ktorý okamžite uvoľňuje hlavné vlákno pre ďalšie príkazy."
+    "description": "Asynchronous background task dispatcher immediately freeing the main thread for subsequent commands."
   },
   {
     "id": "P-25",
     "number": 25,
-    "description": "Udalosťami riadený plánovač (Event-driven Cron) spúšťajúci úlohy na základe vyťaženia procesora alebo príchodu dát."
+    "description": "Event-driven Cron scheduler triggering workloads based on CPU load or incoming data events."
   },
   {
     "id": "P-26",
     "number": 26,
-    "description": "Prioritná fronta procesov zaručujúca prednostné vybavenie bezpečnostných a systémových operácií pred rutinnými úlohami."
+    "description": "Priority process queue guaranteeing security and core system operations precede routine workloads."
   },
   {
     "id": "P-27",
     "number": 27,
-    "description": "Šifrovaný obojsmerný most do aplikácie Telegram na plnohodnotné vzdialené ovládanie počítača cez chat."
+    "description": "Encrypted bidirectional Telegram bridge providing full remote computer control via chat."
   },
   {
     "id": "P-28",
     "number": 28,
-    "description": "Zjednotená schránka správ agregujúca notifikácie z e-mailov, WhatsAppu a sietí s inteligentným filtrom spamu."
+    "description": "Unified inbox aggregating notifications from email, WhatsApp, and social networks with intelligent spam filtering."
   },
   {
     "id": "P-29",
     "number": 29,
-    "description": "Kontextový generátor návrhov odpovedí na správy zohľadňujúci tón komunikácie a históriu vzťahu s kontaktom."
+    "description": "Context-aware reply suggestion generator adapting to communication tone and contact relationship history."
   },
   {
     "id": "P-30",
     "number": 30,
-    "description": "Automatická rotácia a validácia API kľúčov a OAuth tokenov pred dosiahnutím dátumu ich exspirácie."
+    "description": "Automatic rotation and validation of API keys and OAuth tokens ahead of expiration."
   },
   {
     "id": "P-31",
     "number": 31,
-    "description": "Hardvérová ochrana citlivých údajov využívajúca Windows DPAPI a lokálny bezpečnostný čip TPM na šifrovanie hesiel."
+    "description": "Hardware-backed credential protection using Windows DPAPI and the local TPM chip for password encryption."
   },
   {
     "id": "P-32",
     "number": 32,
-    "description": "Riadenie prístupových práv na úrovni rolí (RBAC), ktoré bráni bežným modulom pristupovať k privátnym kľúčom a financiám."
+    "description": "Role-Based Access Control (RBAC) preventing standard modules from accessing private keys and financial controls."
   },
   {
     "id": "P-33",
     "number": 33,
-    "description": "Syntetizátor automatických testov generujúci jednotkové a integračné testy ku každému novému bloku kódu."
+    "description": "Automated test synthesizer generating unit and integration tests for every newly authored code block."
   },
   {
     "id": "P-34",
     "number": 34,
-    "description": "Analyzátor kódovej architektúry generujúci stromové mapy závislostí a identifikujúci mŕtvy nepoužívaný kód."
+    "description": "Code architecture analyzer generating dependency trees and identifying dead unused code."
   },
   {
     "id": "P-35",
     "number": 35,
-    "description": "Asistent riešenia konfliktov pri zlučovaní vetiev v Gite s podrobným vysvetlením kolíznych riadkov pred potvrdením."
+    "description": "Git merge conflict resolution assistant explaining colliding lines in detail prior to confirmation."
   },
   {
     "id": "P-36",
     "number": 36,
-    "description": "Smart Home most prepájajúci systém so štandardmi Zigbee a Home Assistant pre fyzické ovládanie spotrebičov v izbe."
+    "description": "Smart Home bridge connecting the system to Zigbee and Home Assistant standards for controlling room appliances."
   },
   {
     "id": "P-37",
     "number": 37,
-    "description": "Monitor stavu hardvéru sledujúci teploty procesora a grafiky s funkciou automatického obmedzenia výkonu pri prehriatí."
+    "description": "Hardware health monitor tracking CPU and GPU temperatures with automatic thermal throttling protection."
   },
   {
     "id": "P-38",
     "number": 38,
-    "description": "Detektor pripojenia vymeniteľných úložísk s automatickou kontrolou integrity a ponukou zálohovania kľúčových priečinkov."
+    "description": "Removable storage detector performing automatic integrity checks and offering backups of key folders."
   },
   {
     "id": "P-39",
     "number": 39,
-    "description": "Dlhodobá vektorová pamäť s ukladaním sémantických embeddingov pre zachovanie kontextu naprieč týždňami."
+    "description": "Long-term vector memory storing semantic embeddings to preserve context across weeks."
   },
   {
     "id": "P-40",
     "number": 40,
-    "description": "Dynamický znalostný graf prepájajúci entity, projekty, chyby a technické rozhodnutia do vzájomných súvislostí."
+    "description": "Dynamic knowledge graph linking entities, projects, bugs, and technical decisions into interconnected context."
   },
   {
     "id": "P-41",
     "number": 41,
-    "description": "Ranný generátor brífingov sumarizujúci nočné procesy, systémové logy a naplánované priority dňa."
+    "description": "Morning briefing generator summarizing overnight processes, system logs, and scheduled daily priorities."
   },
   {
     "id": "P-42",
     "number": 42,
-    "description": "Lokálny sieťový firewall sledujúci odchádzajúce dátové toky z jednotlivých skriptov s detekciou anomálií."
+    "description": "Local network firewall inspecting outbound traffic per script with anomaly detection."
   },
   {
     "id": "P-43",
     "number": 43,
-    "description": "Kontrolór integrity súborov porovnávajúci SHA-256 kontrolné súčty systémových skriptov na detekciu neoprávnených úprav."
+    "description": "File integrity verifier comparing SHA-256 checksums of system scripts to detect unauthorized tampering."
   },
   {
     "id": "P-44",
     "number": 44,
-    "description": "Dočasné kontajnerizované prostredie spúšťané cez Docker na jednorazovú bezpečnú kompiláciu neznámeho kódu."
+    "description": "Ephemeral containerized Docker environment for one-off safe compilation of unknown code."
   },
   {
     "id": "P-45",
     "number": 45,
-    "description": "Dávkový multimediálny procesor využívajúci FFmpeg na automatickú kompresiu, orezanie a formátovanie videa a audia."
+    "description": "Batch multimedia processor leveraging FFmpeg for automatic video and audio compression, trimming, and transcoding."
   },
   {
     "id": "P-46",
     "number": 46,
-    "description": "Plánovač príspevkov na sociálne siete s automatickým generovaním sprievodného textu a publikovaním podľa kalendára."
+    "description": "Social media post scheduler automatically drafting copy and publishing according to a calendar."
   },
   {
     "id": "P-47",
     "number": 47,
-    "description": "Generátor technickej dokumentácie konvertujúci zdrojový kód do diagramov Mermaid a štruktúrovaných príručiek v Markdown."
+    "description": "Technical documentation generator converting source code into Mermaid diagrams and structured Markdown guides."
   },
   {
     "id": "P-48",
     "number": 48,
-    "description": "Multi-agentická architektúra so špecializovanými rolami pre samostatného vývojára, testera a bezpečnostného audítora."
+    "description": "Multi-agent architecture with specialized roles for independent developer, tester, and security auditor."
   },
   {
     "id": "P-49",
     "number": 49,
-    "description": "Oponentúrny mechanizmus (Devil's Advocate), v ktorom jeden pod-agent povinne hľadá slabiny v riešení druhého agenta."
+    "description": "Adversarial review mechanism (Devil's Advocate) where one sub-agent is required to probe weaknesses in another agent's solution."
   },
   {
     "id": "P-50",
     "number": 50,
-    "description": "Konsenzuálny hlasovací systém vyhodnocujúci viacero alternatívnych riešení a vyberajúci technicky najstabilnejšiu cestu."
+    "description": "Consensus voting system evaluating multiple candidate solutions and selecting the most technically robust path."
   },
   {
     "id": "P-51",
     "number": 51,
-    "description": "Schránka s históriou systémového clipboardu s automatickým rozpoznávaním a triedením kódov, odkazov a obrázkov."
+    "description": "System clipboard history manager automatically recognizing and categorizing code snippets, links, and images."
   },
   {
     "id": "P-52",
     "number": 52,
-    "description": "Automatický extraktor tabuliek a dát z neštruktúrovaných faktúr a PDF dokumentov do formátov CSV a SQLite."
+    "description": "Automatic table and data extractor converting unstructured invoices and PDF documents into CSV and SQLite."
   },
   {
     "id": "P-53",
     "number": 53,
-    "description": "Lokálny DNS a doménový manažér na smerovanie lokálnych testovacích projektov na vlastné doménové aliasy."
+    "description": "Local DNS and domain manager routing local test projects to custom domain aliases."
   },
   {
     "id": "P-54",
     "number": 54,
-    "description": "Modul reverzného inžinierstva sieťových požiadaviek na analýzu privátnych webových rozhraní pre bezproblémovú integráciu."
+    "description": "Network request reverse-engineering module analyzing private web interfaces for seamless integration."
   },
   {
     "id": "P-55",
     "number": 55,
-    "description": "Správca virtuálnych prostredí automaticky izolujúci verzie Pythonu a balíčkov pre každý samostatný podprojekt."
+    "description": "Virtual environment manager automatically isolating Python versions and packages for each subproject."
   },
   {
     "id": "P-56",
     "number": 56,
-    "description": "Dátový skartovač na bezpečné viacnásobné prepísanie a nevratné vymazanie dočasných súborov s citlivými údajmi."
+    "description": "Data shredder performing multi-pass overwrites for irreversible deletion of temporary sensitive files."
   },
   {
     "id": "P-57",
     "number": 57,
-    "description": "Automatický generátor vizuálnych náhľadov a screenshotov webových aplikácií po každom úspešnom builde."
+    "description": "Automatic visual preview and screenshot generator for web applications after every successful build."
   },
   {
     "id": "P-58",
     "number": 58,
-    "description": "Detektor duplicitných súborov na diskoch vyhľadávajúci zhodné dáta na základe hashovania bez ohľadu na názov súboru."
+    "description": "Disk duplicate file detector locating identical content by cryptographic hash regardless of filename."
   },
   {
     "id": "P-59",
     "number": 59,
-    "description": "Inteligentný regulátor šírky sieťového pásma znižujúci rýchlosť sťahovania na pozadí pri detekcii aktívnej práce používateľa."
+    "description": "Intelligent network bandwidth throttler slowing background downloads whenever active user work is detected."
   },
   {
     "id": "P-60",
     "number": 60,
-    "description": "Prekladač príkazov prirodzeného jazyka priamo na natívne príkazy operačného systému PowerShell s bezpečnostným náhľadom."
+    "description": "Natural-language command translator converting prompts directly into native PowerShell commands with a safety preview."
   },
   {
     "id": "P-61",
     "number": 61,
-    "description": "Emulátor terminálových relácií schopný udržiavať dlhotrvajúce SSH spojenia na vzdialené servery a automaticky ich obnovovať."
+    "description": "Terminal session emulator maintaining persistent SSH connections to remote servers with automatic reconnection."
   },
   {
     "id": "P-62",
     "number": 62,
-    "description": "Automatický generátor changelogov analyzujúci rozdiely medzi verziami a vytvárajúci zrozumiteľný zoznam noviniek."
+    "description": "Automatic changelog generator analyzing version diffs and producing human-readable release summaries."
   },
   {
     "id": "P-63",
     "number": 63,
-    "description": "Lokálny webhook server prijímajúci správy z externých platforiem a spúšťajúci príslušné lokálne automatizácie."
+    "description": "Local webhook server receiving external platform events and triggering corresponding local automations."
   },
   {
     "id": "P-64",
     "number": 64,
-    "description": "Analyzátor výkonnostných úzkych hrdiel profilujúci spotrebu pamäte a CPU jednotlivými funkciami Trinity."
+    "description": "Performance bottleneck analyzer profiling memory and CPU consumption across individual Trinity functions."
   },
   {
     "id": "P-65",
     "number": 65,
-    "description": "Správca systémových fontov a grafických assetov s automatickým sťahovaním a inštaláciou potrebných typografických balíkov."
+    "description": "System font and graphic asset manager automatically downloading and installing required typography packages."
   },
   {
     "id": "P-66",
     "number": 66,
-    "description": "Modul pre anonymizáciu osobných údajov pred odoslaním diagnostických logov do externých modelov alebo služieb."
+    "description": "Personal data anonymization module redacting PII before sending diagnostic logs to external models or services."
   },
   {
     "id": "P-67",
     "number": 67,
-    "description": "Automatický generátor mockovacích dát pre vývojové databázy bez nutnosti ručného vytvárania testovacích záznamov."
+    "description": "Automatic mock data generator populating development databases without manual test record creation."
   },
   {
     "id": "P-68",
     "number": 68,
-    "description": "Systémový časovač s technikou Pomodoro integrovaný do pracovného toku s jemnými akustickými upozorneniami."
+    "description": "Workflow-integrated Pomodoro timer providing gentle acoustic notifications."
   },
   {
     "id": "P-69",
     "number": 69,
-    "description": "Lokálna záloha offline dokumentácie k programovacím jazykom a rámcom prístupná aj pri výpadku internetového pripojenia."
+    "description": "Local offline documentation mirror for programming languages and frameworks accessible without internet connectivity."
   },
   {
     "id": "P-70",
     "number": 70,
-    "description": "Modul pre automatické generovanie a overovanie SSL certifikátov pre lokálne a edge vývojové domény."
+    "description": "Module for automatically generating and validating SSL certificates for local and edge development domains."
   },
   {
     "id": "P-71",
     "number": 71,
-    "description": "Inteligentný manažér sťahovania súborov s automatickým obnovovaním prerušených spojení a overovaním kontrolných súčtov."
+    "description": "Intelligent file download manager supporting automatic resume of interrupted transfers and checksum verification."
   },
   {
     "id": "P-72",
     "number": 72,
-    "description": "Systémový čistič odstraňujúci dočasné súbory kompilátorov, cache prehliadačov a staré logy pri poklese voľného miesta na disku."
+    "description": "System cleaner purging temporary compiler files, browser caches, and old logs when free disk space runs low."
   },
   {
     "id": "P-73",
     "number": 73,
-    "description": "Diagnostický nástroj latencie siete testujúci stabilitu pripojenia k primárnym cloudovým bránam a databázam."
+    "description": "Network latency diagnostic tool testing connection stability to primary cloud gateways and databases."
   },
   {
     "id": "P-74",
     "number": 74,
-    "description": "Generátor štruktúrovaných JSON schém z voľného textu pre garantovaný formát odpovedí pri volaní interných funkcií."
+    "description": "Structured JSON Schema generator from free-form text guaranteeing consistent response formats for internal function calls."
   },
   {
     "id": "P-75",
     "number": 75,
-    "description": "Hlavný resetovací mechanizmus umožňujúci jedným overeným príkazom uviesť všetky subsystémy do bezpečného východiskového stavu."
+    "description": "Master reset mechanism restoring all subsystems to a safe baseline state via a single verified command."
   }
 ]);
 

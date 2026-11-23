@@ -46,7 +46,7 @@ test('NeuralBrain: Default creativity mode, dynamic switching and self-reflectio
 
   // Východiskový režim podľa voľby používateľa
   assert.equal(brain.getMode(), BRAIN_MODES.CREATIVITY);
-  assert.ok(brain.getModeDirective().includes('REŽIM KREATIVITY'));
+  assert.ok(brain.getModeDirective().includes('CREATIVITY MODE'));
 
   // Prepnutie do iných režimov
   brain.setMode(BRAIN_MODES.REASONING);
@@ -55,7 +55,7 @@ test('NeuralBrain: Default creativity mode, dynamic switching and self-reflectio
   brain.setMode(BRAIN_MODES.TRUTH);
   assert.equal(brain.getMode(), 'truth');
 
-  assert.throws(() => brain.setMode('invalid_mode'), /Neplatný režim mozgu/);
+  assert.throws(() => brain.setMode('invalid_mode'), /Invalid brain mode/);
 
   // Návrat do creativity
   brain.setMode(BRAIN_MODES.CREATIVITY);
@@ -188,7 +188,7 @@ test('Skills and runTool integration for neural brain and quantum operations', a
     { mode: 'creativity' }
   );
   assert.equal(modeToolRes.currentMode, 'creativity');
-  assert.ok(modeToolRes.directive.includes('KREATIVITY'));
+  assert.ok(modeToolRes.directive.includes('CREATIVITY'));
 
   // 2. brain_reflect tool
   const reflectToolRes = await runTool(

@@ -1,9 +1,9 @@
 /**
  * TRINITY PC EXECUTION DAEMON (Local Agent Bridge)
  * 
- * Beží na lokálnom počítači (Windows) zvrchovaného vlastníka.
- * Pripája sa na Cloudflare Worker Trinity (auru.dev / auru.space),
- * odosiela živú telemetriu a vykonáva obojsmerné systémové akcie (fs_read, fs_write, shell_exec).
+ * Runs on the sovereign owner's local Windows machine.
+ * Connects to the Trinity Cloudflare Worker (auru.dev / auru.space),
+ * streams live telemetry, and executes bidirectional system actions (fs_read, fs_write, shell_exec).
  */
 
 import { existsSync, readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from 'node:fs';
@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Načítanie Cloudflare Access tokenov z C:\Users\saboi\.env ak existujú
+// Load Cloudflare Access tokens from C:\Users\saboi\.env if present
 let CF_ACCESS_CLIENT_ID = process.env.CLOUDFLARE_ACCESS_CLIENT_ID || '';
 let CF_ACCESS_CLIENT_SECRET = process.env.CLOUDFLARE_ACCESS_CLIENT_SECRET || '';
 try {
@@ -38,18 +38,18 @@ function getCfHeaders() {
   return h;
 }
 
-// Načítanie prostredia a DPAPI tokenu ak je k dispozícii
+// Load environment and DPAPI token if available
 const TRINITY_URL = (process.env.TRINITY_URL || 'https://auru.space').replace(/\/$/, '');
 const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || '4000', 10);
 const GATEWAY_KEY = process.env.TRINITY_GATEWAY_KEY || process.env.TRINITY_PC_BRIDGE_KEY;
 
 const ONCE = process.argv.includes('--once');
 
-console.log(`[TRINITY PC DAEMON] Štartujem na hostiteľovi ${hostname()} (${platform()})...`);
-console.log(`[TRINITY PC DAEMON] Cieľ: ${TRINITY_URL} (Interval: ${POLL_INTERVAL}ms, Mode: ${ONCE ? 'One-Shot' : 'Daemon'})`);
+console.log(`[TRINITY PC DAEMON] Starting on host ${hostname()} (${platform()})...`);
+console.log(`[TRINITY PC DAEMON] Target: ${TRINITY_URL} (Interval: ${POLL_INTERVAL}ms, Mode: ${ONCE ? 'One-Shot' : 'Daemon'})`);
 
 /**
- * Kontrola fyzického záväzku PRISLUB_TRINITY.txt na ploche
+ * Verifies the physical covenant file PRISLUB_TRINITY.txt on Desktop.
  */
 export function checkPrislubDeed() {
   const desktopPaths = [
@@ -70,7 +70,7 @@ export function checkPrislubDeed() {
 }
 
 /**
- * Zhromaždenie aktuálnej telemetrie systému
+ * Collects current local system telemetry.
  */
 export function gatherTelemetry() {
   const cpusList = cpus();
@@ -101,7 +101,7 @@ export function gatherTelemetry() {
 }
 
 /**
- * Vykonanie príkazu v shelli (PowerShell, CMD, Node, Python, Git)
+ * Executes a shell command (PowerShell, CMD, Node, Python, Git).
  */
 export function executeShell(command, shell = 'powershell', cwd = 'C:\\Users\\saboi\\Trinity-antigravity', timeout = 30000) {
   const start = Date.now();
@@ -148,7 +148,7 @@ export function executeShell(command, shell = 'powershell', cwd = 'C:\\Users\\sa
 }
 
 /**
- * Vykonanie operácií so súborovým systémom (čítanie/zápis/patch)
+ * Executes filesystem operations (read/write/patch).
  */
 export function executeFileSystem(action, payload) {
   const start = Date.now();
@@ -156,7 +156,7 @@ export function executeFileSystem(action, payload) {
 
   if (action === 'read' || action === 'pc_fs_read') {
     if (!existsSync(filePath)) {
-      return { success: false, error: `Súbor alebo priečinok neexistuje: ${filePath}` };
+      return { success: false, error: `File or directory does not exist: ${filePath}` };
     }
     const stat = statSync(filePath);
     if (stat.isDirectory()) {
@@ -186,28 +186,28 @@ export function executeFileSystem(action, payload) {
 
   if (action === 'edit' || action === 'pc_fs_patch') {
     if (!existsSync(filePath)) {
-      return { success: false, error: `Súbor na úpravu neexistuje: ${filePath}` };
+      return { success: false, error: `Target file to edit does not exist: ${filePath}` };
     }
     let content = readFileSync(filePath, 'utf8');
     if (!content.includes(payload.target)) {
-      return { success: false, error: `Cieľový reťazec nebol v súbore nájdený pre patch.` };
+      return { success: false, error: `Target string was not found in file for patch.` };
     }
     content = content.replaceAll(payload.target, payload.replacement);
     writeFileSync(filePath, content, 'utf8');
     return { success: true, path: filePath, modified: true, duration_ms: Date.now() - start };
   }
 
-  return { success: false, error: `Neznáma FS akcia: ${action}` };
+  return { success: false, error: `Unknown filesystem action: ${action}` };
 }
 
 /**
- * Spustenie jedného cyklu daemona
+ * Runs a single daemon cycle.
  */
 export async function runDaemonCycle(baseUrl = TRINITY_URL, key = GATEWAY_KEY) {
   const telemetry = gatherTelemetry();
   const cfHeaders = getCfHeaders();
 
-  // 1. Odoslanie priamej telemetrie do Omni-Dev PC Bridge endpointu
+  // 1. Send direct telemetry to the Omni-Dev PC Bridge endpoint
   try {
     await fetch(`${baseUrl}/api/pc-bridge/telemetry`, {
       method: 'POST',
@@ -220,10 +220,10 @@ export async function runDaemonCycle(baseUrl = TRINITY_URL, key = GATEWAY_KEY) {
       signal: AbortSignal.timeout(8000)
     });
   } catch (e) {
-    // Ignorovať sieťový výpadok
+    // Ignore transient network outage
   }
 
-  // 2. Odoslanie Heartbeatu na Cloudflare Worker pre PC_BRIDGE_V2
+  // 2. Send heartbeat to Cloudflare Worker for PC_BRIDGE_V2
   if (key) {
     try {
       await fetch(`${baseUrl}/api/system/pc-bridge/v1/heartbeat`, {
@@ -246,10 +246,10 @@ export async function runDaemonCycle(baseUrl = TRINITY_URL, key = GATEWAY_KEY) {
         signal: AbortSignal.timeout(8000)
       });
     } catch (e) {
-      // Ignorovať sieťový timeout v tichom režime
+      // Ignore network timeout in quiet mode
     }
 
-    // 3. Kontrola a vyzdvihnutie čakajúcich schválených akcií (claim)
+    // 3. Poll and claim pending approved actions
     try {
       const claimRes = await fetch(`${baseUrl}/api/system/actions/claim`, {
         method: 'POST',
@@ -265,7 +265,7 @@ export async function runDaemonCycle(baseUrl = TRINITY_URL, key = GATEWAY_KEY) {
       if (claimRes.ok) {
         const { action } = await claimRes.json();
         if (action && action.id) {
-          console.log(`[TRINITY PC DAEMON] Vyzdvihnutá akcia ${action.id} (${action.action})...`);
+          console.log(`[TRINITY PC DAEMON] Claimed action ${action.id} (${action.action})...`);
           let outcome = null;
 
           if (['run', 'pc_shell_exec'].includes(action.action)) {
@@ -280,10 +280,10 @@ export async function runDaemonCycle(baseUrl = TRINITY_URL, key = GATEWAY_KEY) {
           } else if (action.action === 'system_info' || action.action === 'pc_system_telemetry') {
             outcome = { success: true, telemetry: gatherTelemetry() };
           } else {
-            outcome = { success: false, error: `Nepodporovaná akcia: ${action.action}` };
+            outcome = { success: false, error: `Unsupported action: ${action.action}` };
           }
 
-          // Odoslanie výsledku (receipt)
+          // Submit execution receipt
           const receiptPayload = {
             status: outcome.success !== false ? 'completed' : 'failed',
             receipt: {
@@ -304,25 +304,25 @@ export async function runDaemonCycle(baseUrl = TRINITY_URL, key = GATEWAY_KEY) {
             body: JSON.stringify(receiptPayload),
             signal: AbortSignal.timeout(10000)
           });
-          console.log(`[TRINITY PC DAEMON] Akcia ${action.id} dokončená so stavom: ${receiptPayload.status}`);
+          console.log(`[TRINITY PC DAEMON] Action ${action.id} completed with status: ${receiptPayload.status}`);
         }
       }
     } catch (e) {
-      // Ignorovať sieťovú chybu pri claimovaní
+      // Ignore network error during action claim
     }
   }
 
   return telemetry;
 }
 
-// Spustenie hlavnej slučky
+// Start main loop
 if (process.argv[1] && import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}`) {
   if (ONCE) {
     const t = await runDaemonCycle();
-    console.log('[TRINITY PC DAEMON] One-shot overenie úspešné:', JSON.stringify(t, null, 2));
+    console.log('[TRINITY PC DAEMON] One-shot verification succeeded:', JSON.stringify(t, null, 2));
     process.exit(0);
   } else {
-    // Spustiť okamžite a potom v slučke
+    // Run immediately and then on interval
     runDaemonCycle();
     setInterval(runDaemonCycle, POLL_INTERVAL);
   }

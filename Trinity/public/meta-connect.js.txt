@@ -7,19 +7,19 @@
  const endpoint='/api/assistant/connectors/meta';
  async function api(suffix='',data){
   const response=await fetch(endpoint+suffix,{method:data?'POST':'GET',credentials:'same-origin',cache:'no-store',headers:data?{'Content-Type':'application/json'}:{},body:data?JSON.stringify(data):undefined});
-  const result=await response.json();if(!response.ok)throw Error(response.status===401?'Najprv sa prihlás do Trinity a potom otvor prepojenie znova.':result.error||'Prepojenie Meta zlyhalo.');
+  const result=await response.json();if(!response.ok)throw Error(response.status===401?'Sign in to Trinity first and then open the connection again.':result.error||'Meta connection failed.');
   return result;
  }
  function render(result){
-  status.textContent=result.status==='needs_setup'?'Meta aplikácia ešte nie je nakonfigurovaná.':result.status==='connected_read_only'?'Účet bol overený. Publikovanie je vypnuté.':result.status==='expired'?'Platnosť pripojenia vypršala. Prihlás účet znova.':'Účet ešte nie je pripojený.';
+  status.textContent=result.status==='needs_setup'?'Meta app is not configured yet.':result.status==='connected_read_only'?'Account verified. Publishing remains disabled.':result.status==='expired'?'Connection has expired. Please sign in again.':'Account is not connected yet.';
   details.textContent=JSON.stringify(result,null,2);
   start.disabled=result.status==='needs_setup';verify.disabled=result.status!=='connected_read_only';
  }
  function error(e){status.textContent=e.message;}
- start.onclick=async()=>{start.disabled=true;try{const result=await api('/start',{});const target=new URL(result.authorization_url);if(target.protocol!=='https:'||target.hostname!=='www.facebook.com')throw Error('Neplatná prihlasovacia adresa.');location.assign(target.href);}catch(e){error(e);start.disabled=false;}};
+ start.onclick=async()=>{start.disabled=true;try{const result=await api('/start',{});const target=new URL(result.authorization_url);if(target.protocol!=='https:'||target.hostname!=='www.facebook.com')throw Error('Invalid authorization URL.');location.assign(target.href);}catch(e){error(e);start.disabled=false;}};
  verify.onclick=async()=>{verify.disabled=true;try{render(await api('/verify',{}));}catch(e){error(e);}};
  (async()=>{try{
-  if(denied){render(await api());status.textContent='Prihlásenie Meta bolo odmietnuté. Účet sa nepripojil.';return;}
+  if(denied){render(await api());status.textContent='Meta sign-in was declined. Account was not connected.';return;}
   render(code&&state?await api('/complete',{code,state}):await api());
  }catch(e){error(e);}})();
 })();

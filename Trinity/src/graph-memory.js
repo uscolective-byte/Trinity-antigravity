@@ -3,7 +3,7 @@
  * @subsystem MEMORY_AND_KNOWLEDGE_ENGINE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul graph-memory.js (Trinity/src/graph-memory.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module graph-memory.js (Trinity/src/graph-memory.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import { z } from 'zod';
 import { HttpError } from './security.js';
@@ -28,11 +28,11 @@ export const graphEdgeInputSchema = z.object({
 }).strict();
 
 /**
- * Synchronizuje graf pamäte priamo zo skutočných záznamov v D1 databáze
- * (domény, projekty, transakcie a poznámky) bez simulácie.
+ * Synchronizes the memory graph directly from live D1 database records
+ * (domains, projects, transactions, and notes) without simulation.
  */
 export async function syncGraphFromEcosystem(env) {
-  if (!env.DB) throw new HttpError(503, 'Databáza D1 nie je dostupná.');
+  if (!env.DB) throw new HttpError(503, 'D1 database is not available.');
 
   const nodes = [];
   const edges = [];
@@ -81,7 +81,7 @@ export async function syncGraphFromEcosystem(env) {
       nodes.push({
         id: pNodeId,
         type: 'project',
-        label: p.name || `Projekt ${p.id.slice(0, 8)}`,
+        label: p.name || `Project ${p.id.slice(0, 8)}`,
         properties_json: JSON.stringify({ version: p.version, status: p.status, updated_at: p.updated_at })
       });
       edges.push({
@@ -172,10 +172,10 @@ export async function syncGraphFromEcosystem(env) {
 }
 
 /**
- * Získa kompletný graf pre vizualizáciu v rozhraní (Force-Directed Graph)
+ * Fetches the full memory graph for UI visualization (Force-Directed Graph).
  */
 export async function getGraphVisualization(env) {
-  if (!env.DB) throw new HttpError(503, 'Databáza D1 nie je dostupná.');
+  if (!env.DB) throw new HttpError(503, 'D1 database is not available.');
 
   const nodes = (await env.DB.prepare('SELECT id, type, label, properties_json, updated_at FROM graph_memory_nodes LIMIT 250').all()).results || [];
   const edges = (await env.DB.prepare('SELECT id, source_id, target_id, relationship, weight, properties_json FROM graph_memory_edges LIMIT 400').all()).results || [];
@@ -208,7 +208,7 @@ export async function getGraphVisualization(env) {
 }
 
 /**
- * Graph RAG traversal: Nájde relevantné uzly a ich 1-hop a 2-hop susedov pre danú požiadavku
+ * Graph RAG traversal: finds relevant nodes and their 1-hop and 2-hop neighbors for a query.
  */
 export async function queryGraphContext(env, queryText, depth = 2, maxNodes = 10) {
   if (!env.DB || !queryText) return { matched_nodes: [], relationships: [] };

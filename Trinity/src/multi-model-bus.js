@@ -3,7 +3,7 @@
  * @subsystem MULTI_MODEL_CONSENSUS_BUS
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Paralelný Multi-Model Consensus Bus cez reálnych nakonfigurovaných AI poskytovateľov (Workers AI, Gemini, OpenAI, Claude, Groq, DeepSeek, Mistral, OpenRouter). Dodržiava Truth Policy 2.0 (žiadne vymyslené odpovede nenastavených modelov).
+ * @description Parallel Multi-Model Consensus Bus across real configured AI providers (Workers AI, Gemini, OpenAI, Claude, Groq, DeepSeek, Mistral, OpenRouter). Enforces Truth Policy 2.0 (never fabricates replies from unconfigured models).
  */
 
 import { callModel } from './services.js';
@@ -31,7 +31,7 @@ const ALLOWED_PROVIDERS = new Set([
 ]);
 
 /**
- * Spustí paralelný dotaz na všetkých zvolených poskytovateľov a spojí overené odpovede.
+ * Dispatches a parallel query to all selected providers and merges verified responses.
  * @param {object} env
  * @param {string} task
  * @param {object} [opts]
@@ -42,7 +42,7 @@ const ALLOWED_PROVIDERS = new Set([
 export async function runMultiModelConsensus(env, task, opts = {}) {
   const cleanTask = String(task || '').trim();
   if (!cleanTask) {
-    throw new Error('Chýba zadanie (task) pre Multi-Model Consensus.');
+    throw new Error('Missing task for Multi-Model Consensus.');
   }
 
   const requested = Array.isArray(opts.providers) && opts.providers.length
@@ -50,12 +50,12 @@ export async function runMultiModelConsensus(env, task, opts = {}) {
     : [...DEFAULT_CONSENSUS_PROVIDERS];
   const providers = [...new Set(requested)].slice(0, 8);
   if (!providers.length) {
-    throw new Error('Nie je vybraný žiadny platný AI poskytovateľ pre konsenzus.');
+    throw new Error('No valid AI provider selected for consensus.');
   }
 
   const maxTokens = Math.min(Math.max(Number(opts.maxTokens) || 1200, 256), 4096);
   const systemPrompt =
-    'Si Trinity (v12.0). Odpovedz jasne, ľudsky, prakticky a vecne v jazyku používateľa. Nikdy nevymýšľaj neexistujúce dáta ani vykonané akcie.';
+    'You are Trinity (v12.0). Answer clearly, naturally, practically, and accurately. Never fabricate non-existent data or claim unverified executed actions. Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal \'tykanie\' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language.';
   const messages = [
     { role: 'system', content: systemPrompt },
     { role: 'user', content: cleanTask }
@@ -85,8 +85,8 @@ export async function runMultiModelConsensus(env, task, opts = {}) {
       return item.value;
     }
     const reason = item.status === 'rejected'
-      ? (item.reason?.message || String(item.reason || 'Chyba poskytovateľa'))
-      : 'Model vrátil prázdnu odpoveď.';
+      ? (item.reason?.message || String(item.reason || 'Provider error'))
+      : 'Model returned an empty response.';
     return {
       provider,
       ok: false,
@@ -100,7 +100,7 @@ export async function runMultiModelConsensus(env, task, opts = {}) {
 
   if (succeeded.length === 0) {
     const summaryErr = failed.map((f) => `${f.provider}: ${f.error}`).join('; ');
-    throw new Error(`Žiadny model pre konsenzus neodpovedal (${summaryErr}).`);
+    throw new Error(`No consensus model responded (${summaryErr}).`);
   }
 
   let consensusText = succeeded[0].text;
@@ -111,12 +111,12 @@ export async function runMultiModelConsensus(env, task, opts = {}) {
       {
         role: 'system',
         content:
-          'Si syntetizátor Multi-Model konsenzu Trinity. Máš nižšie skutočné odpovede z viacerých AI modelov na rovnakú otázku. Vytvor z nich jednu jasnú, ľudskú, praktickú odpoveď v jazyku používateľa: zhrň zhodu, doplň najlepšie nápady z jednotlivých modelov a stručne upozorni, ak sa niekde rozchádzajú. Nevymýšľaj fakty navyše.'
+          'You are Trinity\'s Multi-Model Consensus Synthesizer. Below are real responses from multiple AI models to the same question. Synthesize them into one clear, natural, practical response: summarize areas of agreement, integrate the strongest insights from each model, and briefly note where they diverge. Never fabricate extra facts. Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal \'tykanie\' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language.'
       },
       {
         role: 'user',
         content:
-          `Otázka:\n${cleanTask}\n\n` +
+          `Question:\n${cleanTask}\n\n` +
           succeeded.map((r) => `--- ${r.provider} (${r.model}) ---\n${r.text.slice(0, 3500)}`).join('\n\n')
       }
     ];
@@ -130,7 +130,7 @@ export async function runMultiModelConsensus(env, task, opts = {}) {
         synthesizedBy = `${succeeded[0].provider} (${synth.model || succeeded[0].model})`;
       }
     } catch {
-      // Ak finálna syntéza zlyhá, vrátime poctivý súhrn bez vymýšľania
+      // If final synthesis fails, return an honest summary without fabrication
       consensusText = succeeded.map((r) => `**${r.provider} (${r.model})**:\n${r.text}`).join('\n\n');
     }
   } else if (succeeded.length === 1 && failed.length > 0) {

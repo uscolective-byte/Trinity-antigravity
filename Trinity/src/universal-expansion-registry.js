@@ -24,20 +24,20 @@ export async function registerExpansion(env,owner,input){
   const revision=crypto.randomUUID();
   const saved=await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('expansion_registered',?)")
     .bind(JSON.stringify({owner,revision,definition})).run();
-  if(saved?.success!==true||(saved.meta?.changes!=null&&saved.meta.changes!==1))throw new HttpError(503,'D1 nepotvrdila registráciu rozšírenia.');
+  if(saved?.success!==true||(saved.meta?.changes!=null&&saved.meta.changes!==1))throw new HttpError(503,'D1 did not confirm extension registration.');
   return {id:definition.id,revision,status:'registered',steps:definition.steps.map(step=>step.tool)};
 }
 
 export async function invokeExpansion(env,owner,input){
   const {id}=invokeSchema.parse(input);
   const current=await env.DB.prepare("SELECT details FROM ops_events WHERE action='expansion_registered' AND json_extract(details,'$.owner')=? AND json_extract(details,'$.definition.id')=? ORDER BY id DESC LIMIT 1").bind(owner,id).first();
-  if(!current)throw new HttpError(404,'Rozšírenie pre tento profil neexistuje.');
+  if(!current)throw new HttpError(404,'Extension does not exist for this profile.');
   const {revision,definition:stored}=JSON.parse(current.details);
   const definition=validatedManifest(stored);
   const results=[];
   for(const {tool,args} of definition.steps){
     const result=assertNoSimulatedData(await runTool(env,'orchestrator',tool,args),tool);
-    if(result==null||result.error||result.ok===false||result.success===false)throw new HttpError(502,'Rozšírenie nezískalo výsledok nástroja '+tool+'.');
+    if(result==null||result.error||result.ok===false||result.success===false)throw new HttpError(502,'Extension did not receive a result from tool '+tool+'.');
     results.push({tool,result});
   }
   const ledger=new SovereignLedgerV3(env);

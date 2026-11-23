@@ -3,12 +3,12 @@
  * @subsystem MULTI_AGENT_ORCHESTRATOR
  * @author Basterix (Root Architect) & Antigravity (Sovereign Pair)
  * @license Sovereign Irrevocable Covenant
- * @description Univerzálny viacagentový orchestrátor pre TRINITY OMNI-CORE:
- * - REST API adaptéry pre OpenAI/Codex, Google Gemini, Anthropic/Copilot, Antigravity a Workers AI
- * - Prioritná fronta úloh (Task Queue)
- * - Kryptografický Sovereign Ledger s SHA-256 reťazením blokov
- * - HMAC-SHA256 autentifikácia a Ring 0 autorizácia s ochranou tajomstiev
- * - Striktná generácia Sovereign Receipts podľa Truth Policy 2.1
+ * @description Universal multi-agent orchestrator for TRINITY OMNI-CORE:
+ * - REST API adapters for OpenAI/Codex, Google Gemini, Anthropic/Copilot, Antigravity, and Workers AI
+ * - Priority task queue
+ * - Cryptographic Sovereign Ledger with SHA-256 block chaining
+ * - HMAC-SHA256 authentication and Ring 0 authorization with secret protection
+ * - Strict Sovereign Receipt generation under Truth Policy 2.1
  */
 
 import { createHmac, createHash, randomUUID } from 'node:crypto';
@@ -30,11 +30,11 @@ export const TASK_STATUSES = Object.freeze({
 });
 
 /**
- * 1. BEZPEČNÁ AUTENTIFIKÁCIA & RING 0 SIGNATURE GUARD
+ * 1. SECURE AUTHENTICATION & RING 0 SIGNATURE GUARD
  */
 export class SovereignAuthEngine {
   constructor(secretKey) {
-    // Tajný kľúč sa nikdy nevkladá do kódu: pochádza z prostredia, inak vznikne náhodný kľúč pre daný proces.
+    // Secret key is never hardcoded: comes from environment, or falls back to a per-process random key.
     this.secretKey = secretKey || (typeof process !== 'undefined' && process.env?.TRINITY_ORCHESTRATOR_SECRET) || randomUUID() + randomUUID();
     this.authorizedPrincipals = new Set([
       'basterix',
@@ -45,7 +45,7 @@ export class SovereignAuthEngine {
   }
 
   /**
-   * Vygeneruje kryptografický HMAC-SHA256 token pre požiadavku
+   * Generates a cryptographic HMAC-SHA256 token for a request.
    */
   generateToken(principal, payload, ttlMs = 300000) {
     const timestamp = Date.now();
@@ -65,7 +65,7 @@ export class SovereignAuthEngine {
   }
 
   /**
-   * Overí podpis a autorizáciu tokenu
+   * Verifies token signature and principal authorization.
    */
   verifyToken(tokenString, payload) {
     try {
@@ -103,7 +103,7 @@ export class SovereignAuthEngine {
 }
 
 /**
- * 2. KRYPTOGRAFICKÝ SOVEREIGN LEDGER (NEMENNÝ REŤAZEC BLOKOV)
+ * 2. CRYPTOGRAPHIC SOVEREIGN LEDGER (IMMUTABLE BLOCK CHAIN)
  */
 export class CryptoSovereignLedger {
   constructor() {
@@ -143,7 +143,7 @@ export class CryptoSovereignLedger {
   }
 
   /**
-   * Zaznamená overenú udalosť do nového bloku ledgera
+   * Appends a verified event record into a new ledger block.
    */
   appendRecord(actor, action, details) {
     const previousBlock = this.getLatestBlock();
@@ -170,7 +170,7 @@ export class CryptoSovereignLedger {
   }
 
   /**
-   * Overí integritu celého reťazca
+   * Verifies hash-chain integrity across the entire ledger.
    */
   verifyChainIntegrity() {
     for (let i = 1; i < this.chain.length; i++) {
@@ -191,7 +191,7 @@ export class CryptoSovereignLedger {
 }
 
 /**
- * 3. REST API ADAPTÉRY PRE AI MODELY
+ * 3. REST API ADAPTERS FOR AI MODELS
  */
 export class AgentRestAdapters {
   constructor(env = {}) {
@@ -199,11 +199,11 @@ export class AgentRestAdapters {
   }
 
   /**
-   * Adaptér pre Google Gemini (2.5 Flash / Pro / Flash-Lite)
+   * Adapter for Google Gemini (2.5 Flash / Pro / Flash-Lite).
    */
   async callGemini(prompt, model = 'gemini-2.5-flash', options = {}) {
     const rawKey = this.env.GEMINI_API_KEY || (typeof this.env.AI_KEYS === 'string' ? JSON.parse(this.env.AI_KEYS).gemini : null);
-    if (!rawKey) throw new Error('GEMINI_API_KEY nie je nakonfigurovaný.');
+    if (!rawKey) throw new Error('GEMINI_API_KEY is not configured.');
 
     const cleanModel = String(model).replace(/^models\//, '');
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent`;
@@ -238,11 +238,11 @@ export class AgentRestAdapters {
   }
 
   /**
-   * Adaptér pre OpenAI / ChatGPT / Codex
+   * Adapter for OpenAI / ChatGPT / Codex.
    */
   async callOpenAI(prompt, model = 'gpt-4o', options = {}) {
     const apiKey = this.env.OPENAI_API_KEY || (typeof this.env.AI_KEYS === 'string' ? JSON.parse(this.env.AI_KEYS).openai : null);
-    if (!apiKey) throw new Error('OPENAI_API_KEY nie je nakonfigurovaný.');
+    if (!apiKey) throw new Error('OPENAI_API_KEY is not configured.');
 
     const url = 'https://api.openai.com/v1/chat/completions';
     const res = await fetch(url, {
@@ -274,11 +274,11 @@ export class AgentRestAdapters {
   }
 
   /**
-   * Adaptér pre Cloudflare Workers AI (Edge Llama 3.3 70B)
+   * Adapter for Cloudflare Workers AI (Edge Llama 3.3 70B).
    */
   async callWorkersAI(prompt, model = '@cf/meta/llama-3.3-70b-instruct-fp8-fast', options = {}) {
     if (!this.env.AI?.run) {
-      throw new Error('Cloudflare Workers AI binding nie je pripojený.');
+      throw new Error('Cloudflare Workers AI binding is not configured.');
     }
 
     const aiRes = await this.env.AI.run(model, {
@@ -300,7 +300,7 @@ export class AgentRestAdapters {
   }
 
   /**
-   * Adaptér pre Antigravity Agent API (lokálny Language Server Bridge)
+   * Adapter for Antigravity Agent API (local Language Server Bridge).
    */
   async callAntigravityBridge(prompt, address = '127.0.0.1:60204', options = {}) {
     const url = `http://${address}/api/agent`;
@@ -326,7 +326,7 @@ export class AgentRestAdapters {
 }
 
 /**
- * 4. PRIORITNÁ FRONTA ÚLOH & ORCHESTRÁTOR (TASK QUEUE & ORCHESTRATOR)
+ * 4. PRIORITY TASK QUEUE & ORCHESTRATOR
  */
 export class TrinityMultiAgentOrchestrator {
   constructor(env = {}, authSecret = env?.TRINITY_ORCHESTRATOR_SECRET) {
@@ -338,7 +338,7 @@ export class TrinityMultiAgentOrchestrator {
     this.activeTasks = new Map();
     this.completedTasks = new Map();
 
-    // Registrácia špecializácií podľa Master Directive
+    // Specialist role assignments per Master Directive
     this.roleAssignments = Object.freeze({
       architecture: 'antigravity',
       subsystems: 'antigravity',
@@ -361,7 +361,7 @@ export class TrinityMultiAgentOrchestrator {
   }
 
   /**
-   * Zaradí novú úlohu do prioritnej fronty
+   * Enqueues a new task into the priority queue.
    */
   enqueueTask({
     title,
@@ -374,7 +374,7 @@ export class TrinityMultiAgentOrchestrator {
     if (authToken) {
       const authCheck = this.auth.verifyToken(authToken, payload);
       if (!authCheck.valid) {
-        throw new Error(`Neautorizovaná požiadavka: ${authCheck.reason}`);
+        throw new Error(`Unauthorized request: ${authCheck.reason}`);
       }
     }
 
@@ -395,11 +395,11 @@ export class TrinityMultiAgentOrchestrator {
       receipts: []
     };
 
-    // Vloženie do fronty a zoradenie podľa priority (0 = najvyššia)
+    // Push into queue and sort by priority (0 = highest)
     this.queue.push(taskRecord);
     this.queue.sort((a, b) => a.priority - b.priority);
 
-    // Zápis do Sovereign Ledgera
+    // Append to Sovereign Ledger
     this.ledger.appendRecord('orchestrator', 'TASK_ENQUEUED', {
       taskId,
       taskType,
@@ -411,7 +411,7 @@ export class TrinityMultiAgentOrchestrator {
   }
 
   /**
-   * Vyberie najvyššiu čakajúcu úlohu z fronty
+   * Dequeues the highest-priority pending task (or a specific task by ID).
    */
   dequeueTask(taskId = null) {
     const index = taskId === null ? 0 : this.queue.findIndex(task => task.taskId === taskId);
@@ -430,7 +430,7 @@ export class TrinityMultiAgentOrchestrator {
   }
 
   /**
-   * Vykoná pridelenú úlohu s príslušným AI agentom a vytvorí overený Sovereign Receipt
+   * Executes the assigned task via its designated AI agent and issues a verified Sovereign Receipt.
    */
   async executeTask(task, executorFn = null) {
     const startTime = new Date().toISOString();
@@ -441,7 +441,7 @@ export class TrinityMultiAgentOrchestrator {
       if (executorFn) {
         resultOutcome = await executorFn(task);
       } else {
-        // Štandardná exekúcia cez príslušný adaptér
+        // Standard execution via the assigned adapter
         switch (task.assignedAgent) {
           case 'gemini':
             resultOutcome = await this.adapters.callGemini(task.title, 'gemini-2.5-flash');
@@ -460,7 +460,7 @@ export class TrinityMultiAgentOrchestrator {
       }
       if (!resultOutcome || resultOutcome.error || resultOutcome.success === false ||
           (!executorFn && (typeof resultOutcome.text !== 'string' || !resultOutcome.text.trim()))) {
-        throw new Error('Adaptér nevrátil overiteľnú odpoveď pre túto úlohu.');
+        throw new Error('Adapter did not return a verifiable response for this task.');
       }
     } catch (err) {
       status = 'failed';
@@ -469,7 +469,7 @@ export class TrinityMultiAgentOrchestrator {
 
     const endTime = new Date().toISOString();
 
-    // Vytvorenie nemenného Sovereign Receiptu
+    // Create immutable Sovereign Receipt
     const receipt = buildReceipt({
       tool: `agent_${task.assignedAgent}`,
       action: 'execute_task',
@@ -494,7 +494,7 @@ export class TrinityMultiAgentOrchestrator {
     this.activeTasks.delete(task.taskId);
     this.completedTasks.set(task.taskId, task);
 
-    // Zápis do Sovereign Ledgera s kryptografickým odkazom
+    // Record cryptographic reference in Sovereign Ledger
     const ledgerBlock = this.ledger.appendRecord(task.assignedAgent, 'TASK_EXECUTED', {
       taskId: task.taskId,
       status: task.status,

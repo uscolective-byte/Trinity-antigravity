@@ -183,7 +183,7 @@ test('Cudzí používateľ (neznámy email, cudzie číslo, cudzí Windows úče
         { ledger }
       );
     },
-    /ACCESS DENIED: Identita 'hacker@test\.com'/
+    /ACCESS DENIED: Identity 'hacker@test\.com'/
   );
 
   await assert.rejects(
@@ -195,7 +195,7 @@ test('Cudzí používateľ (neznámy email, cudzie číslo, cudzí Windows úče
         { ledger }
       );
     },
-    /ACCESS DENIED: Identita '\+421905123456'/
+    /ACCESS DENIED: Identity '\+421905123456'/
   );
 
   const chainCheck = await ledger.verifyIntegrity();

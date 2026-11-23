@@ -31,7 +31,7 @@ export default {
     const url = new URL(request.url);
     const origin = request.headers.get("Origin") || "*";
 
-    // 1. Voľný CORS (Vývojový režim bez blokovania)
+    // 1. Permissive CORS (unblocked development mode)
     const corsHeaders = {
       "Access-Control-Allow-Origin": origin,
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -52,7 +52,7 @@ export default {
       return await tapProfileService.fetch(request, env, ctx);
     }
 
-    // 3. Jericho Krypto Service Binding (Worker #26)
+    // 3. Jericho Crypto Service Binding (Worker #26)
     if (url.pathname.startsWith("/api/crypto") || url.pathname.startsWith("/crypto")) {
       if (env.JERICHO_SERVICE && typeof env.JERICHO_SERVICE.fetch === "function") {
         const subReq = new Request(request.url.replace("/api/crypto", "/crypto"), request);
@@ -67,7 +67,7 @@ export default {
       return await jerichoCryptoService.fetch(request, env, ctx);
     }
 
-    // 4. Priame spúšťanie nástrojov cez API (/api/tools/execute)
+    // 4. Direct tool execution via API (/api/tools/execute)
     if (request.method === "POST" && url.pathname === "/api/tools/execute") {
       try {
         const { tool, arguments: args } = await request.json();
@@ -83,13 +83,13 @@ export default {
       }
     }
 
-    // 5. Hlavný chat komunikátor (/chat alebo /api/chat)
+    // 5. Primary chat endpoint (/chat or /api/chat)
     if (request.method === "POST" && (url.pathname === "/chat" || url.pathname === "/api/chat")) {
       let body;
       try {
         body = await request.json();
       } catch {
-        return new Response(JSON.stringify({ error: "NEPLATNÝ JSON V TELE POŽIADAVKY" }), {
+        return new Response(JSON.stringify({ error: "INVALID_JSON_BODY" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
@@ -98,7 +98,7 @@ export default {
       const messages = body.messages || [{ role: "user", content: body.message || "" }];
       const lastMsgText = messages[messages.length - 1]?.content || "";
 
-      // Okamžitá kontrola Fast-Chat Routera (Sub-10ms)
+      // Instant Fast-Chat Router check (Sub-10ms)
       const fastResult = handleFastEdgeRoute(lastMsgText, env);
       const fallbackFast = !fastResult.handled ? handleFastChat(lastMsgText, env) : null;
       if (fastResult.handled || fallbackFast?.handled) {
@@ -117,7 +117,7 @@ export default {
         });
       }
 
-      // Spustenie plnohodnotnej 3-Tier inferenčnej kaskády
+      // Run the full 3-Tier inference cascade
       try {
         const aiStream = await runInferenceCascade(messages, env);
 
@@ -156,7 +156,7 @@ export default {
       }
     }
 
-    // 6. Root stav a manifest
+    // 6. Root status and manifest
     return new Response(JSON.stringify({
       system: "TRINITY OMNI-CORE",
       version: "11.2.0-SOVEREIGN",

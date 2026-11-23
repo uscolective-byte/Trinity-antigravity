@@ -77,8 +77,8 @@ test('disabled diagnostic plugin cannot execute through Copilot and does not dis
   assert.equal(typeof skills.integrationReadiness,'function');
   copilotPluginRegistry.disable('integration-diagnostics');
   try{
-    await assert.rejects(TrinityCopilotAgent('inspect',{}, {skill:'integrationReadiness',enableFallback:false}),/vypnutý/);
-    await assert.rejects(skillRegistry.execute('integrationReadiness',{},{}),/vypnutý/);
+    await assert.rejects(TrinityCopilotAgent('inspect',{}, {skill:'integrationReadiness',enableFallback:false}),/disabled/);
+    await assert.rejects(skillRegistry.execute('integrationReadiness',{},{}),/disabled/);
   }
   finally{copilotPluginRegistry.enable('integration-diagnostics');}
 });

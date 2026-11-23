@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul orchestrator.js (Trinity/src/orchestrator.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module orchestrator.js (Trinity/src/orchestrator.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * Trinity Active Orchestration Layer (src/orchestrator.js)
@@ -27,7 +27,7 @@ export const WORKER_CATALOG = {
     name: 'AURA Analyzer',
     domain: 'analysis',
     probeAction: 'aura.status',
-    role: 'Hĺbková statická a dynamická analýza kódu, dátových tokov a systémového zdravia',
+    role: 'Deep static and dynamic code analysis, data flow inspection, and system health diagnostics',
     actions: ['analyze.code', 'analyze.data', 'analyze.system', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
   AURA_ARCHITECT: {
@@ -35,7 +35,7 @@ export const WORKER_CATALOG = {
     name: 'AURA Architect',
     domain: 'architecture',
     probeAction: 'aura.status',
-    role: 'Systémová architektúra, diagramy rozhraní, topológia mikroslužieb a evaluácia dizajnu',
+    role: 'System architecture, interface diagrams, microservice topology, and design evaluation',
     actions: ['architect.design', 'architect.review', 'architect.evaluate', 'architect.diagram', 'architect.edge.add', 'architect.graph', 'architect.node.add', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
   AURA_CODEGEN: {
@@ -43,7 +43,7 @@ export const WORKER_CATALOG = {
     name: 'AURA Codegen',
     domain: 'coding',
     probeAction: 'aura.status',
-    role: 'Generovanie produkčného kódu, refaktoring, scaffolding, SQL migrácie a dokumentácia',
+    role: 'Production code generation, refactoring, scaffolding, SQL migrations, and technical documentation',
     actions: ['codegen.generate', 'codegen.refactor', 'codegen.scaffold', 'codegen.docs', 'codegen.migration', 'codegen.sql', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
   AURA_DEPLOYER: {
@@ -51,7 +51,7 @@ export const WORKER_CATALOG = {
     name: 'AURA Deployer',
     domain: 'deployment',
     probeAction: 'aura.status',
-    role: 'Staging, verifikácia a riadené nasadzovanie verzií na Cloudflare Edge',
+    role: 'Verification and guarded release deployment to Cloudflare Edge',
     actions: ['deploy.stage', 'deploy.list', 'deploy.complete', 'deploy.rollback', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
   AURA_EVOLVER: {
@@ -59,7 +59,7 @@ export const WORKER_CATALOG = {
     name: 'AURA Evolver',
     domain: 'evolution',
     probeAction: 'aura.status',
-    role: 'Samo-zdokonaľovanie, reflexné cykly, evolučné návrhy a hodnotenie kvality',
+    role: 'Self-improvement, reflective cycles, evolutionary proposals, and quality evaluation',
     actions: ['evolve.propose', 'evolve.history', 'evolve.reflections', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
   AURA_MEMORY: {
@@ -67,7 +67,7 @@ export const WORKER_CATALOG = {
     name: 'AURA Memory Specialist',
     domain: 'memory',
     probeAction: 'aura.status',
-    role: 'Konsolidácia dlhodobej pamäte, sémantická syntéza a neurálne prepojenia',
+    role: 'Long-term memory consolidation, semantic synthesis, and neural knowledge linking',
     actions: ['memory.synthesize', 'memory.consolidate', 'memory.semantic.search', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
   AURA_OPTIMIZER: {
@@ -75,7 +75,7 @@ export const WORKER_CATALOG = {
     name: 'AURA Optimizer',
     domain: 'optimization',
     probeAction: 'aura.status',
-    role: 'Optimalizácia tokenov, SQL dotazov, výpočtového výkonu a znižovanie latencie',
+    role: 'Token optimization, SQL query tuning, compute performance, and latency reduction',
     actions: ['optimize.system', 'optimize.query', 'optimize.tokens', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
   AURA_PLANNER: {
@@ -83,7 +83,7 @@ export const WORKER_CATALOG = {
     name: 'AURA Planner',
     domain: 'planning',
     probeAction: 'aura.status',
-    role: 'Hierarchický dekompozitor úloh, plánovač projektov, míľnikov a časových osí',
+    role: 'Hierarchical task decomposer, project planner, milestones, and timelines',
     actions: ['plan.task', 'plan.project', 'plan.sprint', 'plan.timeline', 'plan.create', 'plan.decompose', 'plan.goals', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
   AURA_SENTINEL: {
@@ -91,7 +91,7 @@ export const WORKER_CATALOG = {
     name: 'AURA Sentinel',
     domain: 'security',
     probeAction: 'aura.status',
-    role: 'Aktívny bezpečnostný monitor, detekcia anomálií, skenovanie zraniteľností a alerty',
+    role: 'Active security monitor, anomaly detection, vulnerability scanning, and alerts',
     actions: ['sentinel.alert', 'sentinel.monitor', 'sentinel.scan', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
   AURA_TESTER: {
@@ -99,17 +99,17 @@ export const WORKER_CATALOG = {
     name: 'AURA Tester',
     domain: 'testing',
     probeAction: 'aura.status',
-    role: 'Automatické generovanie a spúšťanie testov, validácia endpointov a regresná kontrola',
+    role: 'Automated test generation and execution, endpoint validation, and regression checks',
     actions: ['test.endpoint', 'test.generate', 'test.system', 'test.validate', 'aura.status', 'aura.skills', 'aura.execute_skill']
   },
 
   // ── CORE WORKERS ──
   CORE: {
     service: 'trinity-core',
-    name: 'Trinity Core Jadro',
+    name: 'Trinity Core',
     domain: 'reasoning',
     probeAction: 'core.state.get',
-    role: 'Jadro vedomia, kognitívne uvažovanie, stav Trinity a rozhodovacia matica',
+    role: 'Core reasoning engine, cognitive deliberation, Trinity state, and decision matrix',
     actions: ['core.run', 'core.reason', 'core.reflect', 'core.state.get', 'core.state.set', 'core.personality.get', 'core.personality.set', 'core.brain.state', 'core.decide']
   },
   BUILDER: {
@@ -117,7 +117,7 @@ export const WORKER_CATALOG = {
     name: 'Trinity Builder',
     domain: 'coding',
     probeAction: 'build.list',
-    role: 'Ukladanie a kompilácia overených kódových blokov a skriptov',
+    role: 'Storage and compilation of verified code blocks and scripts',
     actions: ['build.store', 'build.list', 'build.get', 'build.code']
   },
   DISPATCHER: {
@@ -125,7 +125,7 @@ export const WORKER_CATALOG = {
     name: 'Trinity Dispatcher',
     domain: 'dispatch',
     probeAction: 'job.list',
-    role: 'Zaraďovanie úloh, prideľovanie agentov a smerovanie výpočtových kapacít',
+    role: 'Task queuing, agent assignment, and compute capacity routing',
     actions: ['task.create', 'task.list', 'job.create', 'job.list', 'route_aura', 'dispatch']
   },
   CONNECTORS: {
@@ -133,7 +133,7 @@ export const WORKER_CATALOG = {
     name: 'Trinity Connectors',
     domain: 'connectors',
     probeAction: 'connect.list',
-    role: 'Správa externých konektorov a autorizovaných integračných mostov',
+    role: 'Management of external connectors and authorized integration bridges',
     actions: ['connect.list', 'connect.register', 'connect.test', 'browser.render', 'browser.scrape', 'connect.browser.run']
   },
   GUARDIAN: {
@@ -141,7 +141,7 @@ export const WORKER_CATALOG = {
     name: 'Trinity Guardian',
     domain: 'security',
     probeAction: 'audit.list',
-    role: 'Systémový dohľad, integrita zdravia infraštruktúry a auditné záznamy',
+    role: 'System supervision, infrastructure health integrity, and audit records',
     actions: ['audit.list', 'guardian.check']
   },
   MEMORY: {
@@ -150,7 +150,7 @@ export const WORKER_CATALOG = {
     domain: 'memory',
     probeAction: 'health',
     acceptStatuses: [200],
-    role: 'Kľúčovo-hodnotové úložisko perzistentných poznámok a systémových stavov',
+    role: 'Key-value store for persistent notes and system states',
     actions: ['memory.get', 'memory.set', 'memory.list']
   },
   SENTINEL: {
@@ -158,7 +158,7 @@ export const WORKER_CATALOG = {
     name: 'Trinity Sentinel Monitor',
     domain: 'monitoring',
     probeAction: 'monitor.health',
-    role: 'Monitorovanie tokenov, systémových chýb, health stavov a autonómnych procesov',
+    role: 'Monitoring of tokens, system errors, health statuses, and autonomous processes',
     actions: ['monitor.health', 'monitor.scan', 'monitor.tokens', 'monitor.events', 'monitor.autonomous.list']
   },
   SKILLS: {
@@ -166,7 +166,7 @@ export const WORKER_CATALOG = {
     name: 'Trinity Skills Engine',
     domain: 'skills',
     probeAction: 'skill.list',
-    role: 'Zoznam, registrácia a vzdialené vykonávanie zručností Trinity',
+    role: 'Catalog, registration, and remote execution of Trinity skills',
     actions: ['skill.list', 'skill.register', 'skill.execute', 'skill.enable', 'skill.disable', 'plugin.list']
   },
 
@@ -176,7 +176,7 @@ export const WORKER_CATALOG = {
     name: 'Trinity Knowledge Base',
     domain: 'knowledge',
     probeAction: 'status',
-    role: 'Sémantické vyhľadávanie a správa overených dokumentov v znalostnej knižnici',
+    role: 'Semantic search and management of verified documents in the knowledge base',
     rpc: true
   },
   CAPACITY_SERVICE: {
@@ -184,7 +184,7 @@ export const WORKER_CATALOG = {
     name: 'Trinity Capacity Ledger',
     domain: 'capacity',
     probeAction: 'status',
-    role: 'Správa denných limitov, rezervácia pracovných jednotiek a ochrana pred preťažením',
+    role: 'Daily quota management, work unit reservation, and overload protection',
     rpc: true,
     rest: true
   },
@@ -193,7 +193,7 @@ export const WORKER_CATALOG = {
     name: 'Trinity Integrations',
     domain: 'integrations',
     probeAction: 'status',
-    role: 'Firecrawl web scraping, Firebase synchronizácia a externé cloudové integrácie',
+    role: 'Firecrawl web scraping, Firebase synchronization, and external cloud integrations',
     rpc: true,
     rest: true
   },
@@ -202,7 +202,7 @@ export const WORKER_CATALOG = {
     name: 'Trinity PC Bridge',
     domain: 'bridge',
     probeAction: 'status',
-    role: 'Obojsmerný most na lokálny počítač (skripty, aplikácie, súbory, screenshoty)',
+    role: 'Bidirectional bridge to the local PC (scripts, applications, files, screenshots)',
     rpc: true,
     rest: true
   },
@@ -211,7 +211,7 @@ export const WORKER_CATALOG = {
     name: 'Trinity Audit Worker',
     domain: 'audit',
     probeAction: 'openapi.json',
-    role: 'Kryptograficky overené CI/CD auditné záznamy a sledovanie commitov',
+    role: 'Cryptographically verified CI/CD audit records and commit tracking',
     rest: true
   }
 };
@@ -222,7 +222,7 @@ export const AUXILIARY_WORKER_CATALOG = {
     name: 'Jericho123 Crypto Super-Agent',
     domain: 'crypto',
     probeAction: 'api/status',
-    role: 'Autonómny krypto super-agent, Tetrakis (TRK) treasury, trhové signály a DeFi výnosy',
+    role: 'Autonomous crypto super-agent, Tetrakis ($TTK) treasury analytics, market signals, and DeFi yields',
     rpc: true,
     rest: true,
     actions: ['status', 'ping', 'getPrices', 'getSignals', 'getTreasury', 'getTetrakisInfo', 'executeWorkCycle', 'api/status', 'api/prices', 'api/signals', 'api/treasury', 'api/yields', 'api/tetrakis']
@@ -232,7 +232,7 @@ export const AUXILIARY_WORKER_CATALOG = {
     name: 'Trinity PC Bridge v2',
     domain: 'bridge',
     probeAction: 'status',
-    role: 'Sekundárny most pre lokálne príkazy a desktop integráciu',
+    role: 'Secondary bridge for local commands and desktop integration',
     rpc: true,
     rest: true
   },
@@ -241,7 +241,7 @@ export const AUXILIARY_WORKER_CATALOG = {
     name: 'Trinity Fast Chat Inference Worker',
     domain: 'inference',
     probeAction: 'health',
-    role: 'Dedikovaný nízkolatenčný AI inference worker pre okamžité odpovede v chate',
+    role: 'Dedicated low-latency AI inference worker for instant chat replies',
     rest: true
   },
   RESEARCHER_SERVICE: {
@@ -249,7 +249,7 @@ export const AUXILIARY_WORKER_CATALOG = {
     name: 'Trinity Research Specialist',
     domain: 'research',
     probeAction: 'health',
-    role: 'Autonómny výskumný agent s Llama 3.3 70B syntézou, webovým rešeršom a ukladaním do pamäte',
+    role: 'Autonomous research agent with Llama 3.3 70B synthesis, web research, and memory persistence',
     rest: true,
     actions: ['health', 'research', 'research/history']
   },
@@ -258,7 +258,7 @@ export const AUXILIARY_WORKER_CATALOG = {
     name: 'Trinity Google Gemini Bridge',
     domain: 'multimodal',
     probeAction: 'health',
-    role: 'Google Gemini 2.5 Flash brána s R2 artefaktmi, KV storage a priamym prepájaním',
+    role: 'Google Gemini 2.5 Flash gateway with R2 artifacts, KV storage, and direct bridging',
     rest: true,
     actions: ['health', 'tools', 'generate']
   },
@@ -267,7 +267,7 @@ export const AUXILIARY_WORKER_CATALOG = {
     name: 'Trinity Ops Proxy',
     domain: 'operations',
     probeAction: 'health',
-    role: 'Dedikovaný prevádzkový proxy manažér pre /api/ops/ a /mcp požiadavky',
+    role: 'Dedicated operational proxy manager for /api/ops/ and /mcp requests',
     rest: true,
     actions: ['health']
   },
@@ -276,7 +276,7 @@ export const AUXILIARY_WORKER_CATALOG = {
     name: 'Trinity Chat Maintainer',
     domain: 'maintenance',
     probeAction: 'getStatus',
-    role: 'Správca chatu, kontrola kvality odpovedí a detekcia uviaznutých úloh',
+    role: 'Chat quality oversight, response verification, and stuck-job detection',
     rpc: true,
     actions: ['getStatus', 'inspect', 'reviewReply']
   },
@@ -285,7 +285,7 @@ export const AUXILIARY_WORKER_CATALOG = {
     name: 'Trinity Deployer',
     domain: 'deployment',
     probeAction: 'health',
-    role: 'Správca kódových snapshotov a staged nasadení cez CODE_KV',
+    role: 'Code snapshot manager and guarded deployments via CODE_KV',
     rest: true,
     actions: ['health']
   },
@@ -294,19 +294,19 @@ export const AUXILIARY_WORKER_CATALOG = {
     name: 'Trinity Seeder',
     domain: 'database',
     probeAction: 'health',
-    role: 'Inicializačný a migračný seeder pre D1 databázy',
+    role: 'Initialization and migration seeder for D1 databases',
     rest: true,
     actions: ['health']
   }
 };
 
 /**
- * Zavolá konkrétny worker cez Cloudflare service binding alebo RPC
+ * Invokes a specific worker through Cloudflare service binding or RPC.
  */
 export async function delegateWorker(env, workerBinding, action, data = {}, options = {}) {
   const meta = WORKER_CATALOG[workerBinding] || AUXILIARY_WORKER_CATALOG[workerBinding];
   if (!meta) {
-    throw new Error(`Neznámy worker binding: ${workerBinding}`);
+    throw new Error(`Unknown worker binding: ${workerBinding}`);
   }
 
   const binding = env[workerBinding];
@@ -315,7 +315,7 @@ export async function delegateWorker(env, workerBinding, action, data = {}, opti
       ok: false,
       worker: workerBinding,
       status: 'not_configured',
-      error: `Worker ${meta.name} (${workerBinding}) nie je pripojený v tomto prostredí.`
+      error: `Worker ${meta.name} (${workerBinding}) is not bound in this environment.`
     };
   }
 
@@ -327,7 +327,7 @@ export async function delegateWorker(env, workerBinding, action, data = {}, opti
   const started = Date.now();
 
   try {
-    // 1. RPC volanie (napr. KNOWLEDGE_SERVICE, CAPACITY_SERVICE, INTEGRATIONS_SERVICE, PC_BRIDGE_SERVICE, JERICHO_SERVICE)
+    // 1. RPC invocation (e.g. KNOWLEDGE_SERVICE, CAPACITY_SERVICE, INTEGRATIONS_SERVICE, PC_BRIDGE_SERVICE, JERICHO_SERVICE)
     if (meta.rpc) {
       if (typeof binding[action] === 'function') {
         const result = await Promise.race([
@@ -369,7 +369,7 @@ export async function delegateWorker(env, workerBinding, action, data = {}, opti
       ...(internalSecret ? { 'Authorization': `Bearer ${internalSecret}` } : {})
     };
 
-    // 2. REST volanie (napr. MEMORY, AUDIT_SERVICE, JERICHO_SERVICE, alebo fallback pre RPC ak je v teste iba fetch)
+    // 2. REST call (e.g., MEMORY, AUDIT_SERVICE, JERICHO_SERVICE, or fallback for RPC when only fetch is mocked in tests)
     if (meta.rest || workerBinding === 'MEMORY' || (meta.rpc && typeof binding.fetch === 'function')) {
       const cleanAction = (action === 'status' || action === 'aura.status') ? (meta.probeAction && meta.probeAction !== 'status' ? meta.probeAction : 'health') : action;
       const path = options.path || (cleanAction.startsWith('/') ? cleanAction : `/${cleanAction}`);
@@ -397,7 +397,7 @@ export async function delegateWorker(env, workerBinding, action, data = {}, opti
       };
     }
 
-    // 3. Štandardné Action-based POST volanie (AURA workers, CORE, DISPATCHER, BUILDER, GUARDIAN, SENTINEL, SKILLS)
+    // 3. Standard Action-based POST call (AURA workers, CORE, DISPATCHER, BUILDER, GUARDIAN, SENTINEL, SKILLS)
     const payload = {
       action,
       data,
@@ -423,7 +423,7 @@ export async function delegateWorker(env, workerBinding, action, data = {}, opti
 
     const success = response.ok && result.ok !== false;
 
-    // Audit logovanie do D1
+    // Audit logging to D1
     if (env.DB) {
       env.DB.prepare("INSERT INTO ops_events(action, details) VALUES('orchestrator_delegation', ?)")
         .bind(JSON.stringify({ worker: workerBinding, action, success, duration_ms: Date.now() - started, traceId }))
@@ -453,10 +453,10 @@ export async function delegateWorker(env, workerBinding, action, data = {}, opti
 }
 
 /**
- * Komplexná multi-agentová orchestrácia úlohy naprieč bound Cloudflare Workermi:
- * 1. Dekompozícia a plánovanie (AURA_PLANNER / CORE)
- * 2. Paralelná exekúcia špecialistov (AURA_ANALYZER, AURA_ARCHITECT, AURA_CODEGEN, AURA_TESTER, AURA_OPTIMIZER, SKILLS, KNOWLEDGE_SERVICE, JERICHO_SERVICE, CAPACITY_SERVICE)
- * 3. Bezpečnostná kontrola a syntéza (AURA_SENTINEL / GUARDIAN)
+ * Full multi-agent task orchestration across bound Cloudflare Workers:
+ * 1. Decomposition and planning (AURA_PLANNER / CORE)
+ * 2. Parallel specialist execution (AURA_ANALYZER, AURA_ARCHITECT, AURA_CODEGEN, AURA_TESTER, AURA_OPTIMIZER, SKILLS, KNOWLEDGE_SERVICE, JERICHO_SERVICE, CAPACITY_SERVICE)
+ * 3. Security audit and synthesis (AURA_SENTINEL / GUARDIAN)
  */
 export async function orchestratePipeline(env, task, options = {}) {
   const started = Date.now();
@@ -465,21 +465,21 @@ export async function orchestratePipeline(env, task, options = {}) {
 
   const taskLower = String(task).toLowerCase();
 
-  // FÁZA 1: Plánovanie a dekompozícia
+  // PHASE 1: Planning and decomposition
   let planResult = null;
   if (env.AURA_PLANNER) {
     planResult = await delegateWorker(env, 'AURA_PLANNER', 'plan.task', { prompt: task, title: task.slice(0, 80) }, { traceId, idempotency_key: crypto.randomUUID() });
     executionLog.push({ phase: 'planning', worker: 'AURA_PLANNER', ok: planResult.ok, result: planResult.result });
   } else if (env.CORE) {
-    planResult = await delegateWorker(env, 'CORE', 'core.reason', { prompt: `Rozlož požiadavku na konkrétne kroky: ${task}` }, { traceId });
+    planResult = await delegateWorker(env, 'CORE', 'core.reason', { prompt: `Decompose this request into concrete steps. Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal 'tykanie' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language.\n\nRequest: ${task}` }, { traceId });
     executionLog.push({ phase: 'planning', worker: 'CORE', ok: planResult.ok, result: planResult.result });
   }
 
-  // FÁZA 2: Výber a volanie špecialistov podľa domény
+  // PHASE 2: Domain-based specialist selection and invocation
   const specialistCalls = [];
 
-  // Coding & Refactoring
-  if (/\b(kód|kod|funkci|program|script|refactor|implement|vygeneruj|napíš kód)\b/i.test(taskLower)) {
+  // Coding & Refactoring (Slovak + English input patterns)
+  if (/\b(kód|kod|code|funkci|function|program|script|refactor|implement|vygeneruj|generate|napíš kód|write code)\b/i.test(taskLower)) {
     if (env.AURA_CODEGEN) {
       specialistCalls.push(
         delegateWorker(env, 'AURA_CODEGEN', 'codegen.generate', { prompt: task, language: 'javascript' }, { traceId, idempotency_key: crypto.randomUUID() })
@@ -494,8 +494,8 @@ export async function orchestratePipeline(env, task, options = {}) {
     }
   }
 
-  // Architektúra a dizajn
-  if (/\b(architekt|dizajn|navrh|systém|databáz|schema|diagram|komponent|ui)\b/i.test(taskLower)) {
+  // Architecture and design
+  if (/\b(architekt|architect|dizajn|design|navrh|systém|system|databáz|database|schema|diagram|komponent|component|ui)\b/i.test(taskLower)) {
     if (env.AURA_ARCHITECT) {
       specialistCalls.push(
         delegateWorker(env, 'AURA_ARCHITECT', 'architect.design', { prompt: task }, { traceId, idempotency_key: crypto.randomUUID() })
@@ -504,8 +504,8 @@ export async function orchestratePipeline(env, task, options = {}) {
     }
   }
 
-  // Analýza kódu a dát
-  if (/\b(analyz|skontroluj|over|audit|prever|chyby|bugy|výkon|metriky)\b/i.test(taskLower)) {
+  // Code and data analysis
+  if (/\b(analyz|skontroluj|over|audit|prever|verify|check|chyby|bugy|bugs|výkon|performance|metriky|metrics)\b/i.test(taskLower)) {
     if (env.AURA_ANALYZER) {
       specialistCalls.push(
         delegateWorker(env, 'AURA_ANALYZER', 'analyze.code', { code: task }, { traceId, idempotency_key: crypto.randomUUID() })
@@ -514,8 +514,8 @@ export async function orchestratePipeline(env, task, options = {}) {
     }
   }
 
-  // Optimalizácia
-  if (/\b(optimaliz|zrýchli|zrychli|token|query|latencia|výkon|vyleps)\b/i.test(taskLower)) {
+  // Optimization
+  if (/\b(optimaliz|optimi|zrýchli|zrychli|token|query|latencia|latency|výkon|vyleps|improve)\b/i.test(taskLower)) {
     if (env.AURA_OPTIMIZER) {
       specialistCalls.push(
         delegateWorker(env, 'AURA_OPTIMIZER', 'optimize.tokens', { prompt: task }, { traceId })
@@ -524,8 +524,8 @@ export async function orchestratePipeline(env, task, options = {}) {
     }
   }
 
-  // Znalostná knižnica
-  if (/\b(znalost|dokument|vedomost|hľadaj v znalostiach|knowhow)\b/i.test(taskLower)) {
+  // Knowledge base
+  if (/\b(znalost|knowledge|dokument|document|vedomost|hľadaj v znalostiach|knowhow)\b/i.test(taskLower)) {
     if (env.KNOWLEDGE_SERVICE) {
       specialistCalls.push(
         delegateWorker(env, 'KNOWLEDGE_SERVICE', 'search', { query: task }, { traceId })
@@ -534,8 +534,8 @@ export async function orchestratePipeline(env, task, options = {}) {
     }
   }
 
-  // Krypto, Tetrakis & Treasury cez Jericho123
-  if (/\b(krypto|crypto|bitcoin|eth|solana|tetrakis|trk|jericho|treasury|defi|yield)\b/i.test(taskLower)) {
+  // Crypto, Tetrakis & Treasury via Jericho123
+  if (/\b(krypto|crypto|bitcoin|eth|solana|tetrakis|ttk|trk|jericho|treasury|defi|yield)\b/i.test(taskLower)) {
     if (env.JERICHO_SERVICE) {
       specialistCalls.push(
         delegateWorker(env, 'JERICHO_SERVICE', 'api/signals', {}, { traceId })
@@ -544,18 +544,18 @@ export async function orchestratePipeline(env, task, options = {}) {
     }
   }
 
-  // Počkáme na dokončenie všetkých špecialistov
+  // Await completion of all specialist invocations
   if (specialistCalls.length > 0) {
     await Promise.allSettled(specialistCalls);
   }
 
-  // FÁZA 3: Bezpečnostný audit a Sentinel kontrola
+  // PHASE 3: Security audit and Sentinel check
   if (env.AURA_SENTINEL) {
     const sentinelCheck = await delegateWorker(env, 'AURA_SENTINEL', 'sentinel.scan', {}, { traceId });
     executionLog.push({ phase: 'sentinel_scan', worker: 'AURA_SENTINEL', ok: sentinelCheck.ok, result: sentinelCheck.result });
   }
 
-  // FÁZA 4: Syntéza výsledkov
+  // PHASE 4: Result synthesis
   const successfulSteps = executionLog.filter(l => l.ok);
   const failedSteps = executionLog.filter(l => !l.ok);
   const status = (failedSteps.length === 0 && successfulSteps.length > 0) ? 'complete' : (successfulSteps.length > 0 ? 'partial' : 'failed');
@@ -575,7 +575,7 @@ export async function orchestratePipeline(env, task, options = {}) {
 }
 
 /**
- * Overí stav celej flotily 23 workerov (+ pomocných workerov JERICHO_SERVICE, CHAT_INFERENCE_SERVICE, PC_BRIDGE_V2)
+ * Inspects health across the full 23-worker fleet (plus auxiliary workers JERICHO_SERVICE, CHAT_INFERENCE_SERVICE, PC_BRIDGE_V2, etc.).
  */
 export async function inspectFleet(env) {
   const bindings = Object.keys(WORKER_CATALOG);

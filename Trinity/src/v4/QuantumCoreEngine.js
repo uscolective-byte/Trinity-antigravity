@@ -3,12 +3,12 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul QuantumCoreEngine.js (Trinity/src/v4/QuantumCoreEngine.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module QuantumCoreEngine.js (Trinity/src/v4/QuantumCoreEngine.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * Trinity Quantum Core Engine v10.4 (QCE-Fusion Wrapper)
- * Paralelný reasoning, vážená multi-agent fúzia (Guardian, Sentinel, Planner, Optimizer, Analyzer)
- * a generovanie rozhodovacieho plánu pre TrinityBrainV4.
+ * Parallel reasoning, weighted multi-agent fusion (Guardian, Sentinel, Planner, Optimizer, Analyzer),
+ * and decision plan generation for TrinityBrainV4.
  */
 
 import { QuantumCoreEngine as CoreEngine } from '../quantum_core.js';
@@ -26,41 +26,43 @@ export class QuantumCoreEngine {
   }
 
   /**
-   * Spustí paralelnú fúziu myšlienok naprieč 5 špecialistami.
+   * Executes parallel thought fusion across 5 specialist roles.
    * @param {{task: any, metaContext: any, target: string, weights?: Record<string, number>}} param0
    */
   async executeFusion({ task, metaContext, target, weights }) {
     const effectiveWeights = weights || this.weights;
     const taskText = typeof task === 'string' ? task : (task.query || task.task || JSON.stringify(task));
 
-    // Generovanie paralelných náhľadov 5 rolí
+    // Generate parallel perspectives from 5 roles
     const agentOutputs = {
       guardian: {
-        content: `Kontrola bezpečnosti: Cieľ ${target} spĺňa pravidlá a hranice oprávnení.`,
+        content: `Security check: Target ${target} complies with policies and authorization boundaries.`,
         confidence: 0.95
       },
       sentinel: {
-        content: `Integrita systému: Kognitívna rezonancia je ${metaContext.cognitiveResonance}.`,
+        content: `System integrity: Cognitive resonance is ${metaContext.cognitiveResonance}.`,
         confidence: 0.90
       },
       planner: {
-        content: `Plán postupu: Vykonanie v režime ${metaContext.dominantArchetype} s overením výsledku.`,
+        content: `Execution plan: Proceed in ${metaContext.dominantArchetype} mode with result verification.`,
         confidence: 0.88
       },
       optimizer: {
-        content: `Optimalizácia latencie: Zvolený exekučný cieľ ${target} prináša najlepšiu odozvu.`,
+        content: `Latency optimization: Selected execution target ${target} delivers optimal responsiveness.`,
         confidence: 0.92
       },
       analyzer: {
-        content: `Sémantická analýza: Detekovaný zámer ${metaContext.semanticIntent}.`,
+        content: `Semantic analysis: Detected intent ${metaContext.semanticIntent}.`,
         confidence: 0.89
       }
     };
 
     const fusionResult = CoreEngine.fuseAgentOutputs(agentOutputs, effectiveWeights);
 
-    // Detekcia potreby novej zručnosti (ak úloha vyžaduje špecifickú operáciu mimo existujúceho rozsahu)
-    const requiresNewSkill = Boolean(task?.requiresNewSkill || String(taskText).includes('vytvor_skill'));
+    // Detect whether a new skill must be forged (when the task requires an operation outside current scope)
+    const requiresNewSkill = Boolean(
+      task?.requiresNewSkill || String(taskText).includes('vytvor_skill') || String(taskText).includes('create_skill')
+    );
 
     return {
       confidence: fusionResult.consensusScore,

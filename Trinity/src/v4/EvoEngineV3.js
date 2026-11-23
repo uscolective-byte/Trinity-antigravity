@@ -3,12 +3,12 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul EvoEngineV3.js (Trinity/src/v4/EvoEngineV3.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module EvoEngineV3.js (Trinity/src/v4/EvoEngineV3.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * Trinity EvoEngine v3.0
- * Evolučné riadenie mozgu: fitness scoring, genetické mutácie archetypov a váh agentov,
- * selekcia a auto-rollback pri zlyhaní.
+ * Evolutionary brain controller: fitness scoring, genetic mutations of archetype and agent weights,
+ * selection, and automatic rollback on failure.
  */
 
 export class EvoEngineV3 {
@@ -31,20 +31,20 @@ export class EvoEngineV3 {
   }
 
   /**
-   * Vyhodnotí exekučný cyklus, vypočíta zmenu fitness skóre a navrhne prípadnú mutáciu genómu.
+   * Evaluates an execution cycle, computes the fitness score delta, and proposes a genome mutation if warranted.
    */
   async evaluateCycle({ cycleId, input, qcePlan, executionResult, latencyMs, currentGenome }) {
     const isSuccess = Boolean(executionResult?.success !== false);
-    const latencyScore = Math.max(0, 1.0 - (latencyMs / 5000)); // Rýchlosť: ideál < 500ms
+    const latencyScore = Math.max(0, 1.0 - (latencyMs / 5000)); // Speed: ideal < 500ms
     const consensusBonus = (qcePlan?.confidence || 0.8) * 0.5;
 
-    // Zmena fitness skóre
+    // Fitness score delta
     let fitnessScoreDelta = isSuccess ? Number(((latencyScore * 2.0) + consensusBonus).toFixed(3)) : -5.0;
 
     const baseGenome = currentGenome || this.genome;
     let promotedGenome = null;
 
-    // Ak bol cyklus úspešný a vygeneroval vysoké skóre, otestujeme malú genetickú mutáciu
+    // When the cycle succeeded, test a small adaptive mutation with probability mutationRate
     if (isSuccess && Math.random() < (baseGenome.mutationRate || 0.05)) {
       promotedGenome = this._applyBeneficialMutation(baseGenome, fitnessScoreDelta);
     }
@@ -58,7 +58,7 @@ export class EvoEngineV3 {
   }
 
   /**
-   * Zaznamená zlyhanie a vykoná auto-rollback na overený stav.
+   * Records a cycle failure and engages automatic rollback to a verified state.
    */
   async recordFailure({ cycleId, error, genome }) {
     this.failureHistory.push({
@@ -81,14 +81,14 @@ export class EvoEngineV3 {
   }
 
   /**
-   * Aplikuje jemnú adaptívnu mutáciu na váhy archetypov
+   * Applies a gentle adaptive mutation to archetype weights.
    */
   _applyBeneficialMutation(genome, delta) {
     const mutated = JSON.parse(JSON.stringify(genome));
     mutated.generation = (mutated.generation || 1) + 1;
     mutated.fitnessScore = Number(((mutated.fitnessScore || 100.0) + delta).toFixed(2));
 
-    // Jemná mutácia: mierne posilnenie tvorivého archetypu (creator / magician)
+    // Gentle mutation: slightly reinforce the creative archetype (creator / magician)
     const archetypes = mutated.archetypeWeights;
     const shift = 0.02;
     if (archetypes.creator && archetypes.ruler) {

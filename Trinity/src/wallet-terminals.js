@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul wallet-terminals.js (Trinity/src/wallet-terminals.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module wallet-terminals.js (Trinity/src/wallet-terminals.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import { z } from 'zod';
 import qrcode from 'qrcode-generator';
@@ -16,21 +16,21 @@ import { normalizeViberPhone } from './viber-bridge.js';
 import { normalizePaysafeAccount } from './paysafe-connector.js';
 
 /*
- * Peňaženka a platobné terminály Trinity — iba skutočné údaje.
+ * Trinity Wallet & Payment Terminals — verified data only.
  *
- * Pravidlá tohto modulu (Režim pravdy):
- *  - Žiadne predvolené/vymyslené IBAN-y, e-maily, Revolut/PayPal účty ani krypto adresy.
- *    Kanál bez nastavenia je `configured:false` a nevytvorí sa preň platobný príkaz.
- *  - QR kódy sú skutočné ISO 18004 QR kódy (nie vzor), EPC QR spĺňa EPC069-12.
- *  - Platobný odkaz ani QR nie je prijatá platba. Stav `confirmed_*` vzniká iba
- *    (a) overením transakcie na blockchaine cez verejné RPC, alebo
- *    (b) výslovným potvrdením majiteľa s odkazom na dôkaz (výpis, ID transakcie).
- *  - Trinity neodosiela peniaze z banky, PayPalu ani Revolutu. Výber je iba pripravená
- *    inštrukcia (`prepared`); do evidencie sa zapíše až po nahlásení majiteľom.
- *  - Zostatok je súčet overených záznamov v evidencii Trinity, nie stav bankového účtu.
+ * Module rules (Truth Policy):
+ *  - No fabricated default IBANs, emails, Revolut/PayPal accounts, or crypto addresses.
+ *    Unconfigured channels stay `configured:false` and cannot emit payment requests.
+ *  - QR codes are real ISO 18004 QR codes (not placeholders); EPC QR conforms to EPC069-12.
+ *  - A payment link or QR is NOT a received payment. `confirmed_*` arises only from
+ *    (a) on-chain transaction verification via public RPC, or
+ *    (b) explicit owner confirmation with proof reference (statement, transaction ID).
+ *  - Trinity does not execute bank, PayPal, or Revolut transfers. Payouts are prepared
+ *    instructions (`prepared`) recorded in the ledger only after owner confirmation.
+ *  - Balance equals the sum of verified ledger records in Trinity, not a bank balance.
  */
 
-// ── Schémy ──────────────────────────────────────────────────────────────────
+// ── Schemas ─────────────────────────────────────────────────────────────────
 const toHex = (bytes) => Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 const optionalText = (max) => z.string().trim().max(max).optional().transform((v) => (v ? v : undefined));
 
@@ -76,7 +76,7 @@ export const terminalConfirmSchema = z.object({
   note: z.string().trim().max(300).optional()
 }).strict();
 
-// ── Tabuľky (nové názvy; staré tabuľky z predchádzajúcej verzie sa nepoužívajú) ──
+// ── Tables (v2 table names; legacy tables from older revisions are unused) ──
 const readyDatabases = new WeakSet();
 async function ensureTerminalTables(env) {
   if (!env.DB || readyDatabases.has(env.DB)) return;
@@ -138,7 +138,7 @@ export function normalizeEvmAddress(raw) {
   const body = s.slice(2);
   const mixed = body !== body.toLowerCase() && body !== body.toUpperCase();
   const checksummed = toChecksumAddress(s);
-  if (mixed && checksummed !== s) return null; // zlá kontrolná suma EIP-55 = pravdepodobne preklep
+  if (mixed && checksummed !== s) return null; // invalid EIP-55 checksum = likely typo
   return checksummed;
 }
 
@@ -169,7 +169,7 @@ function normalizePaypalAccount(raw) {
 
 const asciiOnly = (value, max) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x20-\x7E]/g, '').slice(0, max);
 
-// ── QR kódy (skutočný ISO 18004 QR, nie vzor) ───────────────────────────────
+// ── QR codes (real ISO 18004 QR, not placeholders) ────────────────────────
 export function generateQrSvg(text, size = 240) {
   const qr = qrcode(0, 'M');
   qr.addData(String(text), 'Byte');
@@ -239,7 +239,7 @@ export async function readUsdcBalance(chain, address) {
   }
 }
 
-// ── Prehľad ─────────────────────────────────────────────────────────────────
+// ── Overview ────────────────────────────────────────────────────────────────
 function mapCharge(c) {
   return {
     id: c.id,
@@ -357,7 +357,7 @@ export async function getWalletTerminalOverview(env, ownerId = 'admin') {
   };
 }
 
-// ── Konfigurácia ────────────────────────────────────────────────────────────
+// ── Configuration ───────────────────────────────────────────────────────────
 export async function saveWalletTerminalConfig(env, ownerId = 'admin', input = {}) {
   await ensureTerminalTables(env);
   const data = terminalConfigSchema.parse(input);
@@ -420,7 +420,7 @@ export async function saveWalletTerminalConfig(env, ownerId = 'admin', input = {
   return getWalletTerminalOverview(env, ownerId);
 }
 
-// ── Platobný príkaz (príjem) ────────────────────────────────────────────────
+// ── Payment request (incoming) ──────────────────────────────────────────────
 export async function createPaymentTerminalCharge(env, ownerId = 'admin', input = {}) {
   await ensureTerminalTables(env);
   const data = terminalChargeSchema.parse(input);
@@ -469,7 +469,7 @@ export async function createPaymentTerminalCharge(env, ownerId = 'admin', input 
         const usdc = Number((amount * fx.rate).toFixed(2));
         const units = BigInt(Math.round(usdc * 1e6));
         let startBlock = null;
-        try { startBlock = Number(BigInt(await rpc(chain, 'eth_blockNumber', []))); } catch { /* overenie bude možné až s ručným potvrdením */ }
+        try { startBlock = Number(BigInt(await rpc(chain, 'eth_blockNumber', []))); } catch { /* verification will require manual confirmation */ }
         const uri = `ethereum:${chain.usdc}@${chain.id}/transfer?address=${terms.crypto.address}&uint256=${units}`;
         channels.crypto = {
           available: true, network: terms.crypto.network, chain_id: chain.id, token: 'USDC', token_contract: chain.usdc,
@@ -573,7 +573,7 @@ export async function verifyTerminalCharge(env, ownerId = 'admin', input = {}) {
         if (BigInt(log.data) < need) continue;
         const evidenceRef = `${charge.crypto_chain}:${log.transactionHash}:${log.logIndex}`;
         const credited = await creditLedger(env, ownerId, charge, 'onchain_tx', evidenceRef, `USDC prevod ${Number(BigInt(log.data)) / 1e6} v bloku ${Number(BigInt(log.blockNumber))}`);
-        if (!credited) continue; // táto transakcia už pokrýva iný príkaz
+        if (!credited) continue; // transaction already covers another payment request
         await env.DB.prepare("UPDATE ops_terminal_charges_v2 SET status='confirmed_onchain', evidence_type='onchain_tx', evidence_ref=?, confirmed_at=datetime('now') WHERE id=?").bind(evidenceRef, charge.id).run();
         await createTrinityDocument(env, ownerId, {
           title: `Platba ${charge.id} potvrdená na blockchaine`,
@@ -624,7 +624,7 @@ export async function confirmTerminalEntry(env, ownerId = 'admin', input = {}) {
   return { payout: mapPayout(fresh), confirmed: true, basis: 'owner_attested', note: 'Odoslanie nahlásil majiteľ; Trinity peniaze neodoslala.' };
 }
 
-// ── Výber: iba príprava inštrukcie, Trinity neodosiela peniaze ──────────────
+// ── Payout: instruction preparation only, Trinity never sends funds ─────────
 export async function executeWalletPayout(env, ownerId = 'admin', input = {}) {
   await ensureTerminalTables(env);
   const data = terminalPayoutSchema.parse(input);
@@ -685,11 +685,11 @@ export async function cancelWalletPayout(env, ownerId, payoutId) {
   return { id: payoutId, deleted: true, message: 'Návrh výberu bol zmazaný.' };
 }
 
-// ── Skutočná krypto peňaženka ───────────────────────────────────────────────
+// ── Non-custodial EVM crypto wallet ─────────────────────────────────────────
 /**
- * Vygeneruje skutočný EVM kľúčový pár (secp256k1, náhodnosť z crypto.getRandomValues).
- * Do databázy sa ukladá IBA verejná adresa. Privátny kľúč sa vráti raz v odpovedi a Trinity
- * ho nevie obnoviť; kto ho má, ovláda peniaze.
+ * Generate a real EVM keypair (secp256k1 using crypto.getRandomValues entropy).
+ * Only the public address is stored in the database. The private key is returned once
+ * and cannot be recovered by Trinity; whoever holds it controls the funds.
  */
 export function generateEvmKeypair() {
   const privateKey = secp256k1.utils.randomSecretKey ? secp256k1.utils.randomSecretKey() : secp256k1.utils.randomPrivateKey();

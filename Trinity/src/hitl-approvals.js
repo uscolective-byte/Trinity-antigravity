@@ -3,8 +3,8 @@
  * @subsystem HUMAN_IN_THE_LOOP_APPROVALS
  * @author Basterix (Root Architect)
  * @license TRINITY-COMMERCIAL-2.0
- * @description Human-in-the-Loop (HITL) mobilné schvaľovanie cez Telegram inline tlačidlá, e-mail (Resend)
- * a chránenú webovú stránku (/approve/:id) pre citlivé akcie a programatické vydávanie kľúčov/licencií.
+ * @description Human-in-the-Loop (HITL) mobile approval workflow via Telegram inline buttons, email (Resend),
+ * and protected web approval page (/approve/:id) for sensitive actions and programmatic key/license provisioning.
  */
 import { z } from 'zod';
 import { hash, equal, HttpError } from './security.js';
@@ -81,7 +81,7 @@ export async function sendTelegramApprovalPrompt(env, record, approveUrl) {
   const token = typeof env?.TELEGRAM_BOT_TOKEN === 'string' ? env.TELEGRAM_BOT_TOKEN.trim() : '';
   const targets = parseTelegramAllowedIds(env);
   if (!token || !targets.length) {
-    return { sent: false, reason: !token ? 'Chýba TELEGRAM_BOT_TOKEN' : 'Chýba TELEGRAM_ALLOWED_USER_IDS' };
+    return { sent: false, reason: !token ? 'Missing TELEGRAM_BOT_TOKEN' : 'Missing TELEGRAM_ALLOWED_USER_IDS' };
   }
   const chatId = targets[0];
   const expiresIso = new Date(record.expires_at).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
@@ -170,7 +170,7 @@ export async function sendEmailApprovalNotification(env, record, approveUrl) {
   const resendKey = typeof env?.RESEND_API_KEY === 'string' ? env.RESEND_API_KEY.trim() : '';
   const to = ownerEmail(env);
   if (!resendKey || !to) {
-    return { sent: false, reason: !resendKey ? 'RESEND_API_KEY nie je nastavený' : 'Chýba TRINITY_OWNER_EMAIL' };
+    return { sent: false, reason: !resendKey ? 'RESEND_API_KEY is not configured' : 'Missing TRINITY_OWNER_EMAIL' };
   }
   try {
     const response = await fetch('https://api.resend.com/emails', {
@@ -202,7 +202,7 @@ export async function sendEmailApprovalNotification(env, record, approveUrl) {
 }
 
 export async function createHitlApproval(env, { requestUrl, requestedBy = 'trinity', input }) {
-  if (!env?.DB?.prepare) throw new HttpError(503, 'Databáza D1 nie je pripojená.');
+  if (!env?.DB?.prepare) throw new HttpError(503, 'D1 database is not connected.');
   const data = createHitlRequestSchema.parse(input);
   const id = crypto.randomUUID();
   const rawToken = Buffer.from(crypto.getRandomValues(new Uint8Array(24))).toString('base64url');
@@ -293,7 +293,7 @@ async function executeApprovedHitlPayload(env, record, actor) {
       key_prefix: created.key_prefix,
       scopes: created.scopes,
       vault_secret_id: vaultId,
-      note: 'Trinity API kľúč bol vygenerovaný (hodnota nebola zobrazená v logoch).'
+      note: 'Trinity API key generated (secret value redacted from logs).'
     };
   }
 
@@ -320,10 +320,10 @@ async function executeApprovedHitlPayload(env, record, actor) {
       (await resolveProviderSecret(env, 'openai_admin').catch(() => null));
     const projectId = String(payload.project_id || env?.OPENAI_PROJECT_ID || '').trim();
     if (!adminKey) {
-      throw new HttpError(503, 'Chýba OPENAI_ADMIN_KEY (Organization Admin Key) na programatické vytvorenie projektového OpenAI kľúča.');
+      throw new HttpError(503, 'Missing OPENAI_ADMIN_KEY (Organization Admin Key) required for programmatic OpenAI project key provisioning.');
     }
     if (!projectId) {
-      throw new HttpError(400, 'Chýba payload.project_id (alebo env.OPENAI_PROJECT_ID) pre OpenAI projekt.');
+      throw new HttpError(400, 'Missing payload.project_id (or env.OPENAI_PROJECT_ID) for the OpenAI project.');
     }
     const keyName = String(payload.name || `trinity-hitl-${record.id.slice(0, 8)}`).slice(0, 64);
     const resp = await fetch(`https://api.openai.com/v1/organization/projects/${encodeURIComponent(projectId)}/api_keys`, {
@@ -338,7 +338,7 @@ async function executeApprovedHitlPayload(env, record, actor) {
     });
     const body = await resp.json().catch(() => null);
     if (!resp.ok || !body?.value) {
-      throw new HttpError(502, `OpenAI API odmietlo vytvorenie kľúča (HTTP ${resp.status}): ${body?.error?.message || 'over oprávnenia Admin kľúča'}`);
+      throw new HttpError(502, `OpenAI API rejected key creation (HTTP ${resp.status}): ${body?.error?.message || 'verify Admin Key permissions'}`);
     }
     let vaultId = null;
     if (typeof env.TRINITY_VAULT_KEY === 'string' && env.TRINITY_VAULT_KEY) {
@@ -365,12 +365,12 @@ async function executeApprovedHitlPayload(env, record, actor) {
       (typeof env?.CF_API_TOKEN === 'string' && env.CF_API_TOKEN.trim()) ||
       (await resolveProviderSecret(env, 'cloudflare').catch(() => null));
     if (!cfToken) {
-      throw new HttpError(503, 'Chýba CF_API_TOKEN / CLOUDFLARE_API_TOKEN na vytvorenie sub-tokenu.');
+      throw new HttpError(503, 'Missing CF_API_TOKEN / CLOUDFLARE_API_TOKEN required to create a scoped sub-token.');
     }
     const tokenName = String(payload.name || `trinity-scoped-${record.id.slice(0, 8)}`).slice(0, 80);
     const policies = Array.isArray(payload.policies) && payload.policies.length ? payload.policies : null;
     if (!policies) {
-      throw new HttpError(400, 'Chýba payload.policies (zoznam permission groups pre Cloudflare API Token).');
+      throw new HttpError(400, 'Missing payload.policies (permission groups required for Cloudflare API Token).');
     }
     const resp = await fetch('https://api.cloudflare.com/client/v4/user/tokens', {
       method: 'POST',
@@ -385,7 +385,7 @@ async function executeApprovedHitlPayload(env, record, actor) {
     const data = await resp.json().catch(() => null);
     if (!resp.ok || data?.success !== true || !data?.result?.value) {
       const errMsg = data?.errors?.[0]?.message || `HTTP ${resp.status}`;
-      throw new HttpError(502, `Cloudflare API nevytvorilo token: ${errMsg}`);
+      throw new HttpError(502, `Cloudflare API failed to create token: ${errMsg}`);
     }
     let vaultId = null;
     if (typeof env.TRINITY_VAULT_KEY === 'string' && env.TRINITY_VAULT_KEY) {
@@ -407,7 +407,7 @@ async function executeApprovedHitlPayload(env, record, actor) {
 
   if (record.action_type === 'system_action') {
     const actionId = payload.system_action_id;
-    if (!actionId) throw new HttpError(400, 'Chýba payload.system_action_id.');
+    if (!actionId) throw new HttpError(400, 'Missing payload.system_action_id.');
     const approved = await approveSystemAction(env, String(actionId), actor || ownerId);
     return {
       executed: true,
@@ -421,15 +421,15 @@ async function executeApprovedHitlPayload(env, record, actor) {
     executed: true,
     action_type: 'custom_operation',
     approved_payload: payload,
-    note: 'Vlastná operácia bola schválená vlastníkom Trinity.'
+    note: 'Custom operation approved by Trinity owner.'
   };
 }
 
 export async function decideAndExecuteHitlApproval(env, { id, decision, actor = 'owner', channel = 'web' }) {
-  if (!env?.DB?.prepare) throw new HttpError(503, 'Databáza D1 nie je pripojená.');
+  if (!env?.DB?.prepare) throw new HttpError(503, 'D1 database is not connected.');
   const normalizedDecision = String(decision || '').toLowerCase();
   if (!['approve', 'reject'].includes(normalizedDecision)) {
-    throw new HttpError(400, 'Neplatné rozhodnutie (povoľuje sa iba approve alebo reject).');
+    throw new HttpError(400, 'Invalid decision (only approve or reject is permitted).');
   }
 
   const now = Date.now();
@@ -447,7 +447,7 @@ export async function decideAndExecuteHitlApproval(env, { id, decision, actor = 
 
   if (!claimed) {
     const existing = await getHitlApproval(env, id);
-    if (!existing) throw new HttpError(404, 'Požiadavka na schválenie neexistuje.');
+    if (!existing) throw new HttpError(404, 'Approval request not found.');
     throw new HttpError(409, `Požiadavka už bola spracovaná alebo vypršala (stav: ${existing.status}).`);
   }
 

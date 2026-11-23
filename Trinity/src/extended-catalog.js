@@ -3,45 +3,74 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul extended-catalog.js (Trinity/src/extended-catalog.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module extended-catalog.js (Trinity/src/extended-catalog.js) in the TRINITY OMNI-CORE ecosystem.
  */
-// Rozšírený dôveryhodný katalóg Trinity. Položky používajú iba nástroje jadra.
+// Extended trusted Trinity catalog. Entries use only core tools.
+// Bilingual cluster keys preserve matching against Trinity/src/registry.js cluster IDs
+// while exposing English canonical cluster names first (used by skillRegistry.js).
+const CLUSTER_KEYS = {
+  management: ['Management', 'Riadenie'],
+  support: ['Support & Automation', 'Podpora a automatizácia'],
+  development: ['Development', 'Vývoj'],
+  quality: ['Quality & Security', 'Kvalita a bezpečnosť'],
+  data: ['Data & Memory', 'Dáta a pamäť'],
+  cloud: ['Cloud & Operations', 'Cloud a prevádzka'],
+  research: ['Research', 'Výskum'],
+  creation: ['Creation', 'Tvorba']
+};
+
 const skillGroups = [
-  ["delivery", "Dodanie", ["Rozsah", "Požiadavky", "Míľniky", "Závislosti", "Riziká", "Akceptácia", "Priority", "Backlog", "Stav", "Retrospektíva"], ["Riadenie", "Podpora a automatizácia"]],
-  ["software", "Vývoj", ["API kontrakt", "Frontend obrazovka", "Backend služba", "Refaktoring", "Oprava chyby", "Databázová migrácia", "Testovací plán", "Výkonová optimalizácia", "Bezpečná implementácia", "Release balík"], ["Vývoj", "Kvalita a bezpečnosť"]],
-  ["data", "Dáta", ["Návrh schémy", "Bezpečné SQL", "Čistenie záznamov", "CSV kontrola", "Metriky", "Štatistický prehľad", "Pôvod údajov", "Kontrola kvality", "Minimalizácia údajov", "Dátový report"], ["Dáta a pamäť", "Kvalita a bezpečnosť"]],
-  ["cloud", "Cloud", ["Worker konfigurácia", "D1 databáza", "R2 artefakty", "KV cache", "Fronty", "Workflow", "Logy", "Health check", "Incident cloud", "Nákladový prehľad"], ["Cloud a prevádzka", "Vývoj"]],
-  ["research", "Výskum", ["Webové hľadanie", "Výber zdrojov", "Dôkazová mapa", "Porovnanie možností", "Technická dokumentácia", "Overenie faktov", "Zhrnutie literatúry", "Trhový prehľad", "Časová os", "Výskumný report"], ["Výskum", "Dáta a pamäť"]],
-  ["writing", "Text", ["Osnova", "Slovenský text", "Anglický text", "Technická dokumentácia", "Marketingový text", "Jazyková úprava", "Preklad", "Tón komunikácie", "SEO text", "Citácie"], ["Tvorba", "Výskum"]],
-  ["design", "Dizajn", ["UX tok", "UI obrazovka", "Prístupné rozhranie", "Informačná architektúra", "Prototyp", "Vizuálny systém", "Content design", "Responzívne rozloženie", "Komponent", "Dizajnový audit"], ["Tvorba", "Kvalita a bezpečnosť"]],
-  ["security", "Bezpečnosť", ["Model hrozieb", "Tajomstvá", "Prihlásenie", "Oprávnenia", "Validácia vstupov", "Ochrana súkromia", "Bezpečnostný audit", "Supply chain", "Incident response", "Obnova po útoku"], ["Kvalita a bezpečnosť", "Cloud a prevádzka"]],
-  ["automation", "Automatizácia", ["Workflow", "Opakovanie", "Idempotencia", "Plánovanie behov", "Schvaľovanie", "Notifikácie", "Integrácia", "Import údajov", "Export údajov", "Automatizačný audit"], ["Podpora a automatizácia", "Cloud a prevádzka"]],
-  ["support", "Podpora", ["Diagnostika", "Reprodukcia chyby", "Triage", "Koreňová príčina", "Runbook", "Odpoveď používateľovi", "Eskalácia", "FAQ", "Knowledge base", "Handoff"], ["Podpora a automatizácia", "Kvalita a bezpečnosť"]],
-  ["finance", "Financie", ["Rozpočet", "Nákladový model", "Cashflow", "Papierové portfólio", "Rizikové limity", "Scenáre", "Daňový prehľad", "Faktúra", "Unit economics", "Finančný report"], ["Dáta a pamäť", "Výskum"]],
-  ["personal", "Osobná organizácia", ["Úlohy", "Kalendár", "Návyky", "Poznámky", "Sústredenie", "Ciele", "Učenie", "Cestovanie", "Domácnosť", "Osobný prehľad"], ["Riadenie", "Dáta a pamäť"]],
-  ["media", "Médiá", ["Brief obrázka", "Prompt obrázka", "Alternatívny text", "Video plán", "Obsahový kalendár", "Prepis", "Titulky", "Moderácia obsahu", "Brand asset", "Knižnica médií"], ["Tvorba", "Kvalita a bezpečnosť"]],
-  ["quality", "Kvalita", ["Kontrolný zoznam", "Unit testy", "Regresia", "Hraničné prípady", "Peer review", "Dôkaz o výsledku", "Akceptačné testy", "QA dokumentácie", "QA prístupnosti", "Release gate"], ["Kvalita a bezpečnosť", "Podpora a automatizácia"]],
+  ["delivery", "Delivery", ["Scope", "Requirements", "Milestones", "Dependencies", "Risks", "Acceptance", "Priorities", "Backlog", "Status", "Retrospective"], [...CLUSTER_KEYS.management, ...CLUSTER_KEYS.support]],
+  ["software", "Development", ["API contract", "Frontend screen", "Backend service", "Refactoring", "Bug fix", "Database migration", "Test plan", "Performance optimization", "Secure implementation", "Release package"], [...CLUSTER_KEYS.development, ...CLUSTER_KEYS.quality]],
+  ["data", "Data", ["Schema design", "Safe SQL", "Record cleaning", "CSV inspection", "Metrics", "Statistical summary", "Data lineage", "Quality checks", "Data minimization", "Data report"], [...CLUSTER_KEYS.data, ...CLUSTER_KEYS.quality]],
+  ["cloud", "Cloud", ["Worker configuration", "D1 database", "R2 artifacts", "KV cache", "Queues", "Workflow", "Logs", "Health check", "Cloud incident", "Cost overview"], [...CLUSTER_KEYS.cloud, ...CLUSTER_KEYS.development]],
+  ["research", "Research", ["Web search", "Source selection", "Evidence map", "Option comparison", "Technical documentation", "Fact verification", "Literature summary", "Market overview", "Timeline", "Research report"], [...CLUSTER_KEYS.research, ...CLUSTER_KEYS.data]],
+  ["writing", "Writing", ["Outline", "Slovak text", "English text", "Technical documentation", "Marketing copy", "Copyediting", "Translation", "Communication tone", "SEO copy", "Citations"], [...CLUSTER_KEYS.creation, ...CLUSTER_KEYS.research]],
+  ["design", "Design", ["UX flow", "UI screen", "Accessible interface", "Information architecture", "Prototype", "Visual system", "Content design", "Responsive layout", "Component", "Design audit"], [...CLUSTER_KEYS.creation, ...CLUSTER_KEYS.quality]],
+  ["security", "Security", ["Threat model", "Secrets", "Authentication", "Permissions", "Input validation", "Privacy protection", "Security audit", "Supply chain", "Incident response", "Post-attack recovery"], [...CLUSTER_KEYS.quality, ...CLUSTER_KEYS.cloud]],
+  ["automation", "Automation", ["Workflow", "Retries", "Idempotency", "Run scheduling", "Approvals", "Notifications", "Integration", "Data import", "Data export", "Automation audit"], [...CLUSTER_KEYS.support, ...CLUSTER_KEYS.cloud]],
+  ["support", "Support", ["Diagnostics", "Bug reproduction", "Triage", "Root cause", "Runbook", "User reply", "Escalation", "FAQ", "Knowledge base", "Handoff"], [...CLUSTER_KEYS.support, ...CLUSTER_KEYS.quality]],
+  ["finance", "Finance", ["Budget", "Cost model", "Cashflow", "Paper portfolio", "Risk limits", "Scenarios", "Tax overview", "Invoice", "Unit economics", "Financial report"], [...CLUSTER_KEYS.data, ...CLUSTER_KEYS.research]],
+  ["personal", "Personal Organization", ["Tasks", "Calendar", "Habits", "Notes", "Focus", "Goals", "Learning", "Travel", "Household", "Personal overview"], [...CLUSTER_KEYS.management, ...CLUSTER_KEYS.data]],
+  ["media", "Media", ["Image brief", "Image prompt", "Alt text", "Video plan", "Content calendar", "Transcript", "Subtitles", "Content moderation", "Brand asset", "Media library"], [...CLUSTER_KEYS.creation, ...CLUSTER_KEYS.quality]],
+  ["quality", "Quality", ["Checklist", "Unit tests", "Regression", "Edge cases", "Peer review", "Result evidence", "Acceptance tests", "Documentation QA", "Accessibility QA", "Release gate"], [...CLUSTER_KEYS.quality, ...CLUSTER_KEYS.support]],
 ];
 
 export const EXTENDED_SKILLS = skillGroups.flatMap(([key, category, names, clusters]) => names.map((name, index) => ({
-  id: `${key}-${String(index + 1).padStart(2, '0')}`, name: `${category}: ${name}`, description: `${name}: vytvor konkrétny postup, uveď vstupy, overiteľný výstup a zostávajúce obmedzenia.`, clusters, keywords: [name.toLocaleLowerCase('sk'), category.toLocaleLowerCase('sk'), key], steps: [`zistiť vstupy a hranice pre ${name.toLocaleLowerCase('sk')}`, 'zvoliť iba dostupné a povolené nástroje', 'vykonať alebo pripraviť výsledok s označením stavu', 'skontrolovať výstup podľa akceptačných podmienok'], success_checks: ['výstup je spätne overiteľný', 'fakty, odhady a návrhy sú oddelené', 'bez vykonaného nástroja sa akcia neoznačí za dokončenú']})));
+  id: `${key}-${String(index + 1).padStart(2, '0')}`,
+  name: `${category}: ${name}`,
+  description: `${name}: define a concrete procedure, list inputs, verifiable outputs, and remaining constraints.`,
+  clusters,
+  keywords: [name.toLowerCase(), category.toLowerCase(), key],
+  steps: [
+    `identify inputs and boundaries for ${name.toLowerCase()}`,
+    'select only available and authorized tools',
+    'execute or prepare the result with explicit status labeling',
+    'verify output against acceptance criteria'
+  ],
+  success_checks: [
+    'output is independently verifiable',
+    'facts, estimates, and proposals are clearly separated',
+    'no action is marked completed without an executed tool receipt'
+  ]
+})));
 
 const pluginGroups = [
-  ["productivity", "Produktivita", ["Inbox úloh", "Denná agenda", "Ciele", "Poznámky", "Focus plán", "Prioritizácia", "Checklisty"]],
-  ["developer", "Vývoj", ["API kontrakty", "Kontrola kódu", "Diff súborov", "Release balík", "Závislosti", "Changelog", "Technické docs"]],
-  ["data", "Dáta", ["JSON laboratórium", "CSV laboratórium", "Tabuľkové filtre", "Štatistiky", "Deduplikácia", "Redakcia údajov", "Schéma dát"]],
-  ["cloud", "Cloud", ["Worker diagnostika", "D1 prehľad", "R2 archív", "KV prehľad", "Queue plán", "Workflow monitor", "Cloud health"]],
-  ["research", "Výskum", ["Zdrojový radar", "Porovnanie zdrojov", "Dôkazová mapa", "Fact-check", "Technický čitateľ", "Trhový skener", "Výskumný archív"]],
-  ["content", "Obsah", ["Markdown balík", "HTML čistič", "Prekladový balík", "Tón textu", "SEO kontrola", "Citácie", "Textový redaktor"]],
-  ["design", "Dizajn", ["Farby", "Kontrast", "UI komponenty", "UX checklist", "Prompt obrázka", "Alt text", "Layout plán"]],
-  ["security", "Bezpečnosť", ["Security headers", "Trezor tajomstiev", "Auth checklist", "Permission audit", "Input guard", "Privacy scrubber", "Audit dôkazov"]],
-  ["automation", "Automatizácia", ["Workflow builder", "Retry plán", "Idempotency check", "Approval flow", "Notifikácie", "Import pipeline", "Export pipeline"]],
-  ["support", "Podpora", ["Diagnostics", "Incident kit", "Runbook", "Ticket triage", "FAQ builder", "Handoff balík", "Status report"]],
-  ["finance", "Financie", ["Budget board", "Kalkulácie", "Paper trading", "Scenáre", "Unit metrics", "Invoice helper", "Finance report"]],
-  ["time", "Čas", ["Dátumová os", "Time zone", "Trvanie", "Pracovné dni", "Recurrence", "Clock board", "Deadline guard"]],
-  ["integration", "Integrácie", ["MCP registry", "Connector check", "GitHub brief", "Cloudflare brief", "PC Bridge", "Email prep", "Webhook contract"]],
-  ["media", "Médiá", ["Image brief", "Asset metadata", "Caption maker", "Transcript prep", "Moderation", "Brand kit", "Gallery index"]],
-  ["planning", "Plánovanie", ["Roadmap", "Scope guard", "Risk register", "Backlog board", "Milestones", "Requirements", "Acceptance gate"]],
+  ["productivity", "Productivity", ["Task inbox", "Daily agenda", "Goals", "Notes", "Focus plan", "Prioritization", "Checklists"]],
+  ["developer", "Development", ["API contracts", "Code review", "File diff", "Release package", "Dependencies", "Changelog", "Technical docs"]],
+  ["data", "Data", ["JSON lab", "CSV lab", "Table filters", "Statistics", "Deduplication", "Data redaction", "Data schema"]],
+  ["cloud", "Cloud", ["Worker diagnostics", "D1 overview", "R2 archive", "KV overview", "Queue plan", "Workflow monitor", "Cloud health"]],
+  ["research", "Research", ["Source radar", "Source comparison", "Evidence map", "Fact-check", "Technical reader", "Market scanner", "Research archive"]],
+  ["content", "Content", ["Markdown pack", "HTML cleaner", "Translation pack", "Text tone", "SEO check", "Citations", "Text editor"]],
+  ["design", "Design", ["Colors", "Contrast", "UI components", "UX checklist", "Image prompt", "Alt text", "Layout plan"]],
+  ["security", "Security", ["Security headers", "Secret vault", "Auth checklist", "Permission audit", "Input guard", "Privacy scrubber", "Evidence audit"]],
+  ["automation", "Automation", ["Workflow builder", "Retry plan", "Idempotency check", "Approval flow", "Notifications", "Import pipeline", "Export pipeline"]],
+  ["support", "Support", ["Diagnostics", "Incident kit", "Runbook", "Ticket triage", "FAQ builder", "Handoff pack", "Status report"]],
+  ["finance", "Finance", ["Budget board", "Calculations", "Paper trading", "Scenarios", "Unit metrics", "Invoice helper", "Finance report"]],
+  ["time", "Time", ["Date timeline", "Time zone", "Duration", "Business days", "Recurrence", "Clock board", "Deadline guard"]],
+  ["integration", "Integrations", ["MCP registry", "Connector check", "GitHub brief", "Cloudflare brief", "PC Bridge", "Email prep", "Webhook contract"]],
+  ["media", "Media", ["Image brief", "Asset metadata", "Caption maker", "Transcript prep", "Moderation", "Brand kit", "Gallery index"]],
+  ["planning", "Planning", ["Roadmap", "Scope guard", "Risk register", "Backlog board", "Milestones", "Requirements", "Acceptance gate"]],
 ];
 
 const pluginTools = ['plan_work','search_memory','project_snapshot','service_status','calculate','analyze_text','current_time','json_tool','hash_text','convert_units','extract_entities','format_text','date_math','timezone_convert','statistics','csv_inspect','csv_to_json','text_diff','list_cleaner','table_transform','url_inspect','query_string','color_convert','contrast_check','base64_codec','uuid_tool','semver_compare','redact_sensitive','markdown_inspect','html_to_text','business_math','geometry','web_search','generate_image','list_capabilities','list_skills','list_connectors'];
@@ -50,5 +79,5 @@ export const EXTENDED_PLUGINS = pluginGroups.flatMap(([key, category, names], gr
   const id = `${key}-pack-${String(index + 1).padStart(2, '0')}`;
   const tool = key === 'research' ? 'web_search' : key === 'design' && index === 4 ? 'generate_image' : pluginTools[(groupIndex * 7 + index) % pluginTools.length];
   const dependency = key === 'cloud' ? 'Cloudflare bindings' : key === 'developer' ? 'Trinity runtime' : key === 'data' ? 'Worker runtime' : key === 'integration' ? 'Authorized connector' : key === 'finance' ? 'D1 paper ledger' : 'Trinity core';
-  return {id, name: `${category}: ${name}`, icon: icons[groupIndex], description: `Dôveryhodný balík pre ${name.toLocaleLowerCase('sk')}; používa existujúci nástroj ${tool} a neťahá ani nespúšťa externý kód.`, tools: [tool], dependency, version: '1.0.0', category: key, trusted: true};
+  return {id, name: `${category}: ${name}`, icon: icons[groupIndex], description: `Trusted pack for ${name.toLowerCase()}; uses existing tool ${tool} and neither fetches nor executes external code.`, tools: [tool], dependency, version: '1.0.0', category: key, trusted: true};
 }));

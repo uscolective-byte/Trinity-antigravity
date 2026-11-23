@@ -3,15 +3,15 @@
  * @subsystem ORCHESTRATION_AND_SAFETY
  * @author Basterix (Root Architect) & Antigravity
  * @license Sovereign Irrevocable Covenant
- * @description Modul quota-governor.js v ekosystéme TRINITY OMNI-CORE v11.3 / v12.0.
- * Zabezpečuje distribuovaný Token Bucket pre 47 Workerov, bráni zacykleniu sub-agentov
- * a sleduje rozpočet CPU milisekúnd a tokenov.
+ * @description Module quota-governor.js in the TRINITY OMNI-CORE v11.3 / v12.0 ecosystem.
+ * Provides a distributed Token Bucket across 47 Workers, prevents sub-agent forwarding loops,
+ * and tracks CPU millisecond and token budgets.
  */
 
 export const DEFAULT_QUOTA_BUDGET = Object.freeze({
   maxCpuMs: 1500,
   maxTokens: 2500,
-  maxHops: 6, // Maximálny počet preposlaní medzi sub-workermi v reťazci
+  maxHops: 6, // Maximum forwarding hops between sub-workers in a single chain
   refillRateTokensPerSec: 500,
   bucketCapacity: 10000
 });
@@ -41,12 +41,12 @@ export class QuotaTicket {
 
     if (this.hops > this.maxHops) {
       this.status = 'HOPS_EXCEEDED';
-      return { allowed: false, reason: `Reťazec agentov prekročil limit ${this.maxHops} preposlaní na workeri ${worker}.` };
+      return { allowed: false, reason: `Agent chain exceeded the limit of ${this.maxHops} forwarding hops on worker ${worker}.` };
     }
 
     if (this.remainingTokens === 0 || this.remainingCpuMs === 0) {
       this.status = 'QUOTA_DEPLETED';
-      return { allowed: false, reason: `Vyčerpaný rozpočet tokenov/CPU pre požiadavku ${this.ticketId} na workeri ${worker}.` };
+      return { allowed: false, reason: `Token/CPU quota budget depleted for request ${this.ticketId} on worker ${worker}.` };
     }
 
     return { allowed: true, remainingTokens: this.remainingTokens, remainingCpuMs: this.remainingCpuMs, hops: this.hops };
@@ -71,7 +71,7 @@ export class QuotaTicket {
 }
 
 /**
- * Token Bucket pre riadenie globálneho trafficu na modeli alebo sub-workeri
+ * Token Bucket for managing global traffic on a model or sub-worker.
  */
 export class TokenBucket {
   constructor(capacity = 5000, refillPerSecond = 500) {

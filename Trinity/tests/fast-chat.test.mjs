@@ -1,13 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {runAgent} from '../src/engine.js';
-import {directChatTool} from '../src/fast-chat.js';
+import {directChatTool,matchFastChatEdge} from '../src/fast-chat.js';
 
 test('fast conversation keeps complete tool arguments and a short response budget',async()=>{
  let input;const response=await runAgent({AI:{run:async(model,data)=>{input=data;return {response:'Ahoj!'};}}},'orchestrator','Ahoj','','fast');
  assert.equal(response.text,'Ahoj!');assert.ok(JSON.stringify(input.messages).length<20000);assert.ok(input.max_tokens<=600);
  assert.match(input.messages[0].content,/values:number\[\]/);
- assert.match(input.messages[0].content,/Nevymýšľaj/);
+ assert.match(input.messages[0].content,/Never fabricate/i);
+ assert.match(input.messages[0].content,/Always reply to the user in natural, idiomatic Slovak/);
 });
 
 test('a social greeting reaches conversational inference without infrastructure tool receipts',async()=>{
@@ -62,7 +63,25 @@ test('fast chat tool matching catches colloquial questions about tool count with
 });
 
 test('fast chat rejects PC tools for an unauthenticated user',async()=>{
- let calls=0;const env={AI:{run:async(model,input)=>{if(calls++===0)return {response:JSON.stringify({tool:'pc_run',arguments:{command:'npm run deploy'}})};assert.match(input.messages.at(-1).content,/nie je povolený/);return {response:'Tento nástroj tu nie je dostupný.'};}}};
+ let calls=0;const env={AI:{run:async(model,input)=>{if(calls++===0)return {response:JSON.stringify({tool:'pc_run',arguments:{command:'npm run deploy'}})};assert.match(input.messages.at(-1).content,/not allowed/);return {response:'Tento nástroj tu nie je dostupný.'};}}};
  const result=await runAgent(env,'orchestrator','Odpovedz krátko.','','fast',600,null,false);
  assert.equal(result.tool_log[0].status,'failed');
+});
+
+test('Tetrakis fast-chat response reflects 4 native ecosystem roles, zero TON branding, and Truth Policy 2.1',()=>{
+ const res=matchFastChatEdge('co je tetrakis');
+ assert.ok(res);
+ assert.equal(res.matched,true);
+ assert.equal(res.category,'tetrakis_manifesto');
+ assert.equal(res.pillars.length,4);
+ assert.match(res.reply,/Tetrakis \(\$TTK\)/);
+ assert.match(res.reply,/Base L2/);
+ assert.match(res.reply,/1 000 000 000 \$TTK/);
+ assert.match(res.reply,/Messenger & @wallet/);
+ assert.match(res.reply,/AI Studia a botov/);
+ assert.match(res.reply,/Domény, používateľské mená\/handly/);
+ assert.match(res.reply,/Tetrakis Space/);
+ assert.match(res.reply,/Truth Policy 2\.1/);
+ assert.doesNotMatch(res.reply,/\bTON\b/i);
+ assert.doesNotMatch(res.pillars.join(' '),/\bTON\b/i);
 });

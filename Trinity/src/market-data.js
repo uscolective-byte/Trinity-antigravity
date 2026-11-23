@@ -3,16 +3,16 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul market-data.js (Trinity/src/market-data.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Real market data and technical indicator module (Trinity/src/market-data.js) in TRINITY OMNI-CORE.
  */
-// Reálne trhové dáta pre komoditný desk. ŽIADNE vymyslené, simulované ani "predvolené" ceny.
-// Zdroj kotácií a sviečok: Yahoo Finance chart endpoint (bez kľúča, dáta sú oneskorené / neoficiálne).
-// Kurz USD→EUR: ECB cez frankfurter.app. Ak zdroj zlyhá, vraciame available:false s dôvodom – nikdy odhad.
-// Všetky I/O funkcie berú voliteľné `fetchImpl` (alebo čítajú globalThis.fetch v čase volania), aby sa dali testovať bez siete.
+// Real market data for the commodity desk. ZERO fabricated, simulated, or default prices.
+// Quote and candle source: Yahoo Finance chart endpoint (keyless, delayed / unofficial data).
+// USD->EUR FX rate: ECB via frankfurter.app. If a source fails, return available:false with a reason — never estimate.
+// All I/O functions accept an optional `fetchImpl` (or read globalThis.fetch at call time) for offline testability.
 
-export const MARKET_DATA_SOURCE_LABEL = 'Yahoo Finance (query1.finance.yahoo.com) – neoficiálny, oneskorený zdroj';
+export const MARKET_DATA_SOURCE_LABEL = 'Yahoo Finance (query1.finance.yahoo.com) – unofficial, delayed source';
 export const FX_SOURCE_LABEL = 'ECB via frankfurter';
-export const UNVERIFIED_SOURCE_LABEL = 'Bez overeného zdroja';
+export const UNVERIFIED_SOURCE_LABEL = 'No verified data source';
 export const MARKET_CACHE_TTL_MS = 15 * 60 * 1000;
 export const MAX_QUOTE_AGE_DAYS = 10;
 const YAHOO_BASE = 'https://query1.finance.yahoo.com/v8/finance/chart/';
@@ -20,31 +20,31 @@ const FX_URL = 'https://api.frankfurter.app/latest?from=USD&to=EUR';
 const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
 const CACHE_PREFIX = 'marketdata:v1:';
 
-// Mapovanie komodít na Yahoo tickery. Overené skutočným dopytom (stav k tvorbe modulu).
-// `null` = nenašiel sa overiteľný bezplatný zdroj → komodita sa NEOCEŇUJE, nepočíta sa do skóre ani grafov.
+// Commodity-to-Yahoo ticker mapping verified via live queries.
+// `null` = no verifiable free source found -> commodity is NOT priced, scored, or charted.
 export const MARKET_SOURCES = {
-  'XAU-EUR': { ticker: 'GC=F', note: 'COMEX zlato (futures), kotované v USD za t oz' },
-  'XAG-EUR': { ticker: 'SI=F', note: 'COMEX striebro (futures), USD za t oz' },
-  'XPT-EUR': { ticker: 'PL=F', note: 'NYMEX platina (futures), USD za t oz' },
-  'XPD-EUR': { ticker: 'PA=F', note: 'NYMEX paládium (futures), USD za t oz' },
-  'BRENT-EUR': { ticker: 'BZ=F', note: 'NYMEX Brent (futures), USD za barel' },
-  'WTI-EUR': { ticker: 'CL=F', note: 'NYMEX WTI (futures), USD za barel' },
-  'NGAS-EUR': { ticker: 'NG=F', note: 'NYMEX Henry Hub (futures), USD za MMBtu' },
-  'TTF-EUR': { ticker: 'TTF=F', note: 'Dutch TTF (futures), EUR za MWh' },
-  'COPPER-EUR': { ticker: 'HG=F', note: 'COMEX meď (futures), USD za libru (lb)' },
-  'ALUM-EUR': { ticker: 'ALI=F', note: 'COMEX hliník (futures), USD za tonu; nízka likvidita – kotácie môžu byť riedke' },
-  'WHEAT-EUR': { ticker: 'ZW=F', note: 'CBOT pšenica (futures), centy USD za bushel' },
-  'CORN-EUR': { ticker: 'ZC=F', note: 'CBOT kukurica (futures), centy USD za bushel' },
-  'SOY-EUR': { ticker: 'ZS=F', note: 'CBOT sója (futures), centy USD za bushel' },
-  'COFFEE-EUR': { ticker: 'KC=F', note: 'ICE káva Arabica (futures), centy USD za libru' },
-  'COCOA-EUR': { ticker: 'CC=F', note: 'ICE kakao (futures), USD za tonu' },
-  'SUGAR-EUR': { ticker: 'SB=F', note: 'ICE cukor #11 (futures), centy USD za libru' },
-  'BTC-EUR': { ticker: 'BTC-EUR', note: 'Bitcoin v EUR (kryptomena)' },
-  'URAN-EUR': null, // Yahoo UX=F vracia iba expirovaný kontrakt (Dec-20) s 1 bodom – nepoužiteľné
-  'LITH-EUR': null, // žiadna overiteľná bezplatná cena lítia (LIT je ETF akcií, nie cena kovu)
+  'XAU-EUR': { ticker: 'GC=F', note: 'COMEX Gold (futures), quoted in USD per t oz' },
+  'XAG-EUR': { ticker: 'SI=F', note: 'COMEX Silver (futures), USD per t oz' },
+  'XPT-EUR': { ticker: 'PL=F', note: 'NYMEX Platinum (futures), USD per t oz' },
+  'XPD-EUR': { ticker: 'PA=F', note: 'NYMEX Palladium (futures), USD per t oz' },
+  'BRENT-EUR': { ticker: 'BZ=F', note: 'NYMEX Brent Crude (futures), USD per barrel' },
+  'WTI-EUR': { ticker: 'CL=F', note: 'NYMEX WTI Crude (futures), USD per barrel' },
+  'NGAS-EUR': { ticker: 'NG=F', note: 'NYMEX Henry Hub Natural Gas (futures), USD per MMBtu' },
+  'TTF-EUR': { ticker: 'TTF=F', note: 'Dutch TTF Gas (futures), EUR per MWh' },
+  'COPPER-EUR': { ticker: 'HG=F', note: 'COMEX Copper (futures), USD per lb' },
+  'ALUM-EUR': { ticker: 'ALI=F', note: 'COMEX Aluminum (futures), USD per ton; low liquidity — quotes may be sparse' },
+  'WHEAT-EUR': { ticker: 'ZW=F', note: 'CBOT Wheat (futures), USD cents per bushel' },
+  'CORN-EUR': { ticker: 'ZC=F', note: 'CBOT Corn (futures), USD cents per bushel' },
+  'SOY-EUR': { ticker: 'ZS=F', note: 'CBOT Soybeans (futures), USD cents per bushel' },
+  'COFFEE-EUR': { ticker: 'KC=F', note: 'ICE Arabica Coffee (futures), USD cents per lb' },
+  'COCOA-EUR': { ticker: 'CC=F', note: 'ICE Cocoa (futures), USD per ton' },
+  'SUGAR-EUR': { ticker: 'SB=F', note: 'ICE Sugar #11 (futures), USD cents per lb' },
+  'BTC-EUR': { ticker: 'BTC-EUR', note: 'Bitcoin in EUR (cryptocurrency)' },
+  'URAN-EUR': null, // Yahoo UX=F only returns an expired contract (Dec-20) with 1 point — unusable
+  'LITH-EUR': null, // No verifiable free lithium spot price (LIT is an equity ETF, not spot metal)
   'NICKEL-EUR': null,
-  'ZINC-EUR': null, // Yahoo ZNC=F: bez objemu a posledná kotácia je staršia ako 2 mesiace
-  'EUA-EUR': null // CO2.L je ETC (proxy), nie spotová cena EUA – neoverený zdroj
+  'ZINC-EUR': null, // Yahoo ZNC=F: zero volume and last quote is older than 2 months
+  'EUA-EUR': null // CO2.L is an ETC proxy, not spot EUA carbon price — unverified source
 };
 
 export function getMarketSource(symbol) {
@@ -65,7 +65,7 @@ export function normalizeTimeframe(tf) {
   return TIMEFRAMES[key] ? key : '1D';
 }
 
-// ---------- Čisté indikátory (počítané len zo skutočných zatváracích cien) ----------
+// ---------- Pure indicators (computed strictly from actual closing prices) ----------
 
 export function sma(values, period) {
   const out = [];
@@ -79,7 +79,7 @@ export function sma(values, period) {
   return out;
 }
 
-// EMA so SMA seedom; výsledok je zarovnaný na koniec (dĺžka n - period + 1).
+// EMA with SMA seed; output is end-aligned (length n - period + 1).
 export function ema(values, period) {
   if (!Array.isArray(values) || period < 1 || values.length < period) return [];
   const k = 2 / (period + 1);
@@ -92,7 +92,7 @@ export function ema(values, period) {
   return out;
 }
 
-// Wilderovo RSI. Prvá hodnota zodpovedá indexu `period`; dĺžka výstupu n - period.
+// Wilder's RSI. First value corresponds to index `period`; output length is n - period.
 export function rsi(values, period = 14) {
   if (!Array.isArray(values) || values.length <= period) return [];
   let gain = 0;
@@ -114,7 +114,7 @@ export function rsi(values, period = 14) {
   return out;
 }
 
-// Wilderov ATR; TR_0 = high-low, ďalšie TR zohľadňujú predchádzajúce zatvorenie. Dĺžka n - period + 1.
+// Wilder's ATR; TR_0 = high-low, subsequent TRs include previous close. Output length is n - period + 1.
 export function atr(candles, period = 14) {
   if (!Array.isArray(candles) || candles.length < period) return [];
   const tr = candles.map((c, i) => {
@@ -131,7 +131,7 @@ export function atr(candles, period = 14) {
   return out;
 }
 
-// MACD(12,26,9). macd: dĺžka n-slow+1; signal/histogram: dĺžka macd.length-signal+1 (zarovnané na koniec).
+// MACD(12,26,9). macd: length n-slow+1; signal/histogram: length macd.length-signal+1 (end-aligned).
 export function macd(values, fast = 12, slow = 26, signalPeriod = 9) {
   const empty = { macd: [], signal: [], histogram: [] };
   if (!Array.isArray(values) || values.length < slow) return empty;
@@ -147,11 +147,11 @@ export function macd(values, fast = 12, slow = 26, signalPeriod = 9) {
 
 export const lastOf = arr => (Array.isArray(arr) && arr.length ? arr[arr.length - 1] : null);
 
-// ---------- Sieť + cache ----------
+// ---------- Network + Cache ----------
 
 function resolveFetch(fetchImpl) {
   const f = fetchImpl || globalThis.fetch;
-  if (typeof f !== 'function') throw new Error('fetch nie je dostupný');
+  if (typeof f !== 'function') throw new Error('fetch is not available');
   return f;
 }
 
@@ -173,7 +173,7 @@ async function cacheWrite(env, key, value) {
   try {
     await env.Mastermind.put(CACHE_PREFIX + key, JSON.stringify(value), { expirationTtl: Math.round(MARKET_CACHE_TTL_MS / 1000) });
   } catch {
-    // cache je len optimalizácia; chyba zápisu nemení pravdivosť dát
+    // Cache is strictly an optimization; write failures do not affect data truthfulness
   }
 }
 
@@ -184,15 +184,15 @@ export async function getFxRate({ env, fetchImpl, forceRefresh = false } = {}) {
   }
   try {
     const res = await resolveFetch(fetchImpl)(FX_URL, { headers: { 'User-Agent': BROWSER_UA, Accept: 'application/json' }, signal: AbortSignal.timeout(6000) });
-    if (!res.ok) return { available: false, reason: `Kurz USD→EUR (ECB/frankfurter) nedostupný: HTTP ${res.status}` };
+    if (!res.ok) return { available: false, reason: `USD->EUR FX rate (ECB/frankfurter) unavailable: HTTP ${res.status}` };
     const data = await res.json();
     const rate = Number(data?.rates?.EUR);
-    if (!Number.isFinite(rate) || rate <= 0) return { available: false, reason: 'Kurz USD→EUR (ECB/frankfurter) má neplatnú odpoveď' };
+    if (!Number.isFinite(rate) || rate <= 0) return { available: false, reason: 'USD->EUR FX rate (ECB/frankfurter) returned an invalid payload' };
     const fx = { rate, date: String(data?.date || ''), fetched_at: new Date().toISOString() };
     await cacheWrite(env, 'fx:USDEUR', fx);
     return { available: true, rate, date: fx.date, source: FX_SOURCE_LABEL, fetched_at: fx.fetched_at, cached: false };
   } catch (e) {
-    return { available: false, reason: `Kurz USD→EUR (ECB/frankfurter) nedostupný: ${e?.name || 'chyba siete'}` };
+    return { available: false, reason: `USD->EUR FX rate (ECB/frankfurter) unavailable: ${e?.name || 'network error'}` };
   }
 }
 
@@ -202,7 +202,7 @@ function num(v) {
 
 export function parseYahooChart(json) {
   const result = json?.chart?.result?.[0];
-  if (!result) return { ok: false, reason: json?.chart?.error?.description || 'Yahoo Finance nevrátilo žiadne dáta' };
+  if (!result) return { ok: false, reason: json?.chart?.error?.description || 'Yahoo Finance returned no data' };
   const meta = result.meta || {};
   const ts = result.timestamp || [];
   const q = result.indicators?.quote?.[0] || {};
@@ -240,19 +240,19 @@ async function fetchYahoo(env, ticker, range, interval, { fetchImpl, forceRefres
   try {
     const url = `${YAHOO_BASE}${encodeURIComponent(ticker)}?range=${range}&interval=${interval}`;
     const res = await resolveFetch(fetchImpl)(url, { headers: { 'User-Agent': BROWSER_UA, Accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
-    if (!res.ok) return { ok: false, reason: `Zdroj dát (Yahoo Finance) odpovedal HTTP ${res.status}` };
+    if (!res.ok) return { ok: false, reason: `Market data source (Yahoo Finance) returned HTTP ${res.status}` };
     const parsed = parseYahooChart(await res.json());
     if (!parsed.ok) return { ok: false, reason: parsed.reason };
     const fetched_at = new Date().toISOString();
     await cacheWrite(env, key, { fetched_at, data: parsed });
     return { ok: true, data: parsed, fetched_at, cached: false };
   } catch (e) {
-    return { ok: false, reason: `Zdroj dát (Yahoo Finance) nedostupný: ${e?.name || 'chyba siete'}` };
+    return { ok: false, reason: `Market data source (Yahoo Finance) unavailable: ${e?.name || 'network error'}` };
   }
 }
 
 function toEurOrNative(value, nativeCurrency, fx) {
-  // USX = centy USD. Žiadny iný menový prepočet nepodporujeme – radšej nič než odhad.
+  // USX = USD cents. No other currency conversion is supported — return raw rather than guessing.
   const usd = nativeCurrency === 'USX' ? value / 100 : value;
   if (nativeCurrency === 'EUR') return { value: usd, currency: 'EUR' };
   if (fx?.available) return { value: usd * fx.rate, currency: 'EUR' };
@@ -263,7 +263,7 @@ function round(v, digits = 6) {
   return Number(Number(v).toFixed(digits));
 }
 
-// Vráti reálny rad sviečok + kotáciu pre danú komoditu, alebo {available:false, reason}. Nikdy nevymýšľa čísla.
+// Returns real candle series and quote for a commodity, or {available:false, reason}. Never fabricates numbers.
 export async function getMarketSeries(env, symbol, { range, interval, fetchImpl, forceRefresh = false, fx: fxIn } = {}) {
   const src = getMarketSource(symbol);
   if (!src.verified_source) return { available: false, symbol, reason: UNVERIFIED_SOURCE_LABEL, source: null };
@@ -277,16 +277,16 @@ export async function getMarketSeries(env, symbol, { range, interval, fetchImpl,
   const { meta, candles } = raw.data;
   const native = meta.currency;
   if (!['USD', 'USX', 'EUR'].includes(native)) {
-    return { available: false, symbol, ticker: src.ticker, reason: `Nepodporovaná mena zdroja (${native || 'neznáma'}) – cena sa nezobrazuje`, source: MARKET_DATA_SOURCE_LABEL };
+    return { available: false, symbol, ticker: src.ticker, reason: `Unsupported source currency (${native || 'unknown'}) – price omitted`, source: MARKET_DATA_SOURCE_LABEL };
   }
   if (!(meta.price > 0) || !meta.quote_time) {
-    return { available: false, symbol, ticker: src.ticker, reason: 'Zdroj nevrátil platnú aktuálnu kotáciu', source: MARKET_DATA_SOURCE_LABEL };
+    return { available: false, symbol, ticker: src.ticker, reason: 'Source did not return a valid live quote', source: MARKET_DATA_SOURCE_LABEL };
   }
   const quoteAgeMs = Date.now() - Date.parse(meta.quote_time);
   if (quoteAgeMs > MAX_QUOTE_AGE_DAYS * 86400000) {
-    return { available: false, symbol, ticker: src.ticker, reason: `Posledná kotácia zdroja je staršia ako ${MAX_QUOTE_AGE_DAYS} dní (${meta.quote_time}) – cena sa nezobrazuje`, source: MARKET_DATA_SOURCE_LABEL };
+    return { available: false, symbol, ticker: src.ticker, reason: `Latest source quote is older than ${MAX_QUOTE_AGE_DAYS} days (${meta.quote_time}) – price omitted`, source: MARKET_DATA_SOURCE_LABEL };
   }
-  if (!candles.length) return { available: false, symbol, ticker: src.ticker, reason: 'Zdroj nevrátil žiadne historické sviečky', source: MARKET_DATA_SOURCE_LABEL };
+  if (!candles.length) return { available: false, symbol, ticker: src.ticker, reason: 'Source returned no historical candles', source: MARKET_DATA_SOURCE_LABEL };
 
   const conv = v => toEurOrNative(v, native, fx);
   const priceConv = conv(meta.price);
@@ -300,10 +300,10 @@ export async function getMarketSeries(env, symbol, { range, interval, fetchImpl,
     volume: c.volume
   });
   const fxInfo = native === 'EUR'
-    ? { applied: false, note: 'Zdroj kotuje priamo v EUR' }
+    ? { applied: false, note: 'Source quotes directly in EUR' }
     : fx?.available
       ? { applied: true, rate: fx.rate, date: fx.date, source: fx.source, fetched_at: fx.fetched_at, direction: 'USD→EUR' }
-      : { applied: false, available: false, reason: fx?.reason || 'Kurz nedostupný', note: 'Ceny sú v pôvodnej mene USD (bez prepočtu) – kurz sa nehádal.' };
+      : { applied: false, available: false, reason: fx?.reason || 'FX rate unavailable', note: 'Prices are shown in native USD without conversion — FX rate was not estimated.' };
   return {
     available: true,
     symbol,
@@ -313,12 +313,12 @@ export async function getMarketSeries(env, symbol, { range, interval, fetchImpl,
     source: MARKET_DATA_SOURCE_LABEL,
     source_note: src.note,
     delayed: meta.instrument_type !== 'CRYPTOCURRENCY',
-    delay_note: meta.instrument_type === 'CRYPTOCURRENCY' ? 'Kryptomena – takmer real-time, bez záruky' : 'Futures dáta sú oneskorené (typicky ≥10–15 min)',
+    delay_note: meta.instrument_type === 'CRYPTOCURRENCY' ? 'Cryptocurrency – near real-time, no SLA guarantee' : 'Futures data is delayed (typically >= 10–15 min)',
     fetched_at: raw.fetched_at,
     cached: raw.cached,
     range: r,
     interval: i,
-    native_currency: native === 'USX' ? 'USX (centy USD)' : native,
+    native_currency: native === 'USX' ? 'USX (USD cents)' : native,
     currency,
     fx: fxInfo,
     price: round(priceConv.value),
@@ -328,7 +328,7 @@ export async function getMarketSeries(env, symbol, { range, interval, fetchImpl,
   };
 }
 
-// Zmena ceny voči sviečke najbližšej k (teraz - dni) – iba ak taká historická sviečka skutočne existuje.
+// Price change vs. the candle closest to (now - days) — only when such a historical candle actually exists.
 export function pctChangeOverDays(candles, price, days, nowMs = Date.now()) {
   if (!Array.isArray(candles) || candles.length < 2) return null;
   const target = nowMs - days * 86400000;
@@ -340,7 +340,7 @@ export function pctChangeOverDays(candles, price, days, nowMs = Date.now()) {
   return Number((((price - ref.close) / ref.close) * 100).toFixed(2));
 }
 
-// Zmena voči predchádzajúcemu dennému zatvoreniu (posledná sviečka = prebiehajúca relácia).
+// Percentage change vs. previous daily close (last candle represents the active session).
 export function pctChangeVsPreviousClose(dailyCandles, price) {
   if (!Array.isArray(dailyCandles) || dailyCandles.length < 2) return null;
   const prev = dailyCandles[dailyCandles.length - 2].close;

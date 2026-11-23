@@ -3,8 +3,8 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul chat-routing.js (Trinity/src/chat-routing.js) v ekosystéme TRINITY OMNI-CORE.
- * Integruje Kmitočtový Protokol 3-6-9, Quantum Router a Entanglement synchronizáciu.
+ * @description Module chat-routing.js (Trinity/src/chat-routing.js) in the TRINITY OMNI-CORE ecosystem.
+ * Integrates the 3-6-9 Frequency Protocol, Quantum Router, and Entanglement synchronization.
  */
 import {planTask} from './planner.js';
 import {getConfiguredAIProvider} from './ai-providers.js';
@@ -31,11 +31,11 @@ export function selectChatProvider(engine,message,options={}){
   if(normalized==='codex') return 'openai';
   if(normalized!=='auto') return normalized;
 
-  // Protokol 3-6-9: Kvantový router zámerov a vlnová funkcia ψ
+  // Protocol 3-6-9: Quantum intent router and wave function ψ
   const quantumRoute = QuantumRouter.route(message, options.context, options.config);
   const planned = planTask(message);
 
-  // Ak kvantový router aj plánovač indikujú bežný dialóg, použije sa rýchla inferencia
+  // If both the quantum router and planner indicate a normal conversation, use fast inference
   if(quantumRoute.collapsedAgent === 'chat' && planned.intent === 'conversation') {
     return 'fast';
   }
@@ -64,8 +64,8 @@ export async function pickChatProvider(env,engine,message,options={}){
 }
 
 /**
- * Plnohodnotný kvantový rezonančný router pre hlavný tok Trinity (Protokol 3-6-9).
- * Prepojuje Fázu 3 (Téza), Fázu 6 (Antitéza) a Entanglement synchronizáciu bez pollovania.
+ * Full-featured quantum resonance router for the main Trinity flow (Protocol 3-6-9).
+ * Connects Phase 3 (Thesis), Phase 6 (Antithesis), and polling-free Entanglement synchronization.
  * @param {object} env
  * @param {string} engine
  * @param {string} message

@@ -1,8 +1,8 @@
 /**
  * Trinity Model Fallback Validator
  * 
- * Validuje fallback kaskádu modelov.
- * Kontroluje latenciu a správanie pri výpadku primárneho modelu.
+ * Validates the model fallback cascade.
+ * Checks latency and failover behavior when the primary model fails.
  * 
  * @version 1.0.0
  * @author Trinity Team
@@ -18,35 +18,35 @@ const MODEL_ROUTES = {
     fallback: '@cf/meta/llama-3.1-8b-instruct-fast',
     capability: 'GENERAL_CHAT',
     maxLatencyMs: 5000,
-    testPrompt: 'Ahoj, ako sa máš? Odpovedz krátko v slovenčine.'
+    testPrompt: 'Hello, how are you? Reply briefly.'
   },
   'route-coding': {
     primary: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
     fallback: '@cf/meta/llama-3.1-8b-instruct-fast',
     capability: 'CODING',
     maxLatencyMs: 8000,
-    testPrompt: 'Napíš jednoduchú funkciu v JavaScript ktorá vráti súčet dvoch čísel.'
+    testPrompt: 'Write a simple JavaScript function that returns the sum of two numbers.'
   },
   'route-fast': {
     primary: '@cf/meta/llama-3.1-8b-instruct-fast',
     fallback: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
     capability: 'FAST_TASK',
     maxLatencyMs: 2000,
-    testPrompt: 'Čo je hlavné mesto Slovenska? Odpovedz jedným slovom.'
+    testPrompt: 'What is the capital of Slovakia? Answer in one word.'
   },
   'route-reasoning': {
     primary: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
     fallback: '@cf/meta/llama-3.1-8b-instruct-fast',
     capability: 'REASONING',
     maxLatencyMs: 10000,
-    testPrompt: 'Vysvetli logicky: ak A > B a B > C, čo môžeme povedať o A a C?'
+    testPrompt: 'Explain logically: if A > B and B > C, what can we conclude about A and C?'
   },
   'route-embedding': {
     primary: '@cf/baai/bge-base-en-v1.5',
     fallback: '@cf/baai/bge-small-en-v1.5',
     capability: 'EMBEDDING',
     maxLatencyMs: 1000,
-    testPrompt: 'trinity ai assistant slovak'
+    testPrompt: 'trinity ai assistant'
   }
 };
 
@@ -62,7 +62,7 @@ export class ModelValidator {
   }
 
   /**
-   * Otestuje jeden model — zmeria latenciu a kvalitu odpovede
+   * Tests a single model — measures latency and response quality
    */
   async testModel(routeId, model, isPrimary, testPrompt) {
     const startTime = Date.now();
@@ -84,7 +84,7 @@ export class ModelValidator {
         // Chat/completion test
         response = await this.ai.run(model, {
           messages: [
-            { role: 'system', content: 'Si Trinity. Odpovedaj stručne v slovenčine.' },
+            { role: 'system', content: 'You are Trinity. Reply concisely in Slovak.' },
             { role: 'user', content: testPrompt }
           ],
           max_tokens: 200,
@@ -102,14 +102,14 @@ export class ModelValidator {
       const withinLatency = latencyMs <= route.maxLatencyMs;
       const status = withinLatency ? 'healthy' : 'slow';
 
-      // Zápíš do trinity_model_health
+      // Record in trinity_model_health
       await this.db.prepare(
         `UPDATE trinity_model_health 
          SET latency_ms = ?, status = ?, error_message = NULL, checked_at = datetime('now')
          WHERE id = ?`
       ).bind(latencyMs, status, healthId).run();
 
-      // Aktualizuj model_routes
+      // Update model_routes
       if (isPrimary) {
         await this.db.prepare(
           `UPDATE model_routes 
@@ -150,17 +150,17 @@ export class ModelValidator {
   }
 
   /**
-   * Spustí plnú validáciu všetkých routov — primár + fallback
+   * Runs full validation across all routes — primary + fallback
    */
   async validateAll() {
     const results = [];
     
     for (const [routeId, route] of Object.entries(MODEL_ROUTES)) {
-      // Test primárneho modelu
+      // Test primary model
       const primaryResult = await this.testModel(routeId, route.primary, true, route.testPrompt);
       results.push({ route: routeId, role: 'primary', ...primaryResult });
 
-      // Ak primárny zlyhal, testuj fallback
+      // If primary failed, test fallback
       if (primaryResult.status === 'error' && route.fallback) {
         this.logger?.warn('model-validator', 'fallback.triggered', 
           `Primary failed for ${routeId}, testing fallback ${route.fallback}`, {
@@ -170,7 +170,7 @@ export class ModelValidator {
         const fallbackResult = await this.testModel(routeId, route.fallback, false, route.testPrompt);
         results.push({ route: routeId, role: 'fallback', ...fallbackResult });
       } else if (route.fallback) {
-        // Aj keď primárny funguje, otestuj fallback (v pozadí)
+        // Even when primary succeeds, test fallback in the background
         const fallbackResult = await this.testModel(routeId, route.fallback, false, route.testPrompt);
         results.push({ route: routeId, role: 'fallback', ...fallbackResult });
       }
@@ -180,7 +180,7 @@ export class ModelValidator {
   }
 
   /**
-   * Validuje jeden route (pre rýchle health checky)
+   * Validates a single route (for fast health checks)
    */
   async validateRoute(routeId) {
     const route = MODEL_ROUTES[routeId];
@@ -197,7 +197,7 @@ export class ModelValidator {
   }
 
   /**
-   * Súhrn výsledkov
+   * Summarizes validation results
    */
   _summarize(results) {
     const summary = {
@@ -223,7 +223,7 @@ export class ModelValidator {
   }
 
   /**
-   * Cron job — spustí sa periodicky na validáciu
+   * Cron job — runs periodically for validation
    */
   async runHealthCheck() {
     this.logger?.info('model-validator', 'healthcheck.start', 'Starting model health check', {}, this.trace);
@@ -242,7 +242,7 @@ export class ModelValidator {
 // === FALLBACK HANDLER ===
 
 /**
- * Wrapper pre AI volania s automatickým fallbackom
+ * Wrapper for AI calls with automatic fallback
  */
 export async function callWithFallback(env, routeId, input, logger, trace) {
   const route = MODEL_ROUTES[routeId];
@@ -250,7 +250,7 @@ export async function callWithFallback(env, routeId, input, logger, trace) {
 
   const db = env.DB || env.TRINITY_D1;
   
-  // Skús primárny model
+  // Try primary model
   try {
     const startTime = Date.now();
     const response = await env.AI.run(route.primary, input);
@@ -270,10 +270,10 @@ export async function callWithFallback(env, routeId, input, logger, trace) {
       route_id: routeId, model: route.primary, error: primaryError.message
     }, trace);
 
-    // Ak nie je fallback, throw
+    // If no fallback is configured, rethrow
     if (!route.fallback) throw primaryError;
 
-    // Skús fallback
+    // Try fallback model
     logger?.warn('ai-router', 'model.fallback.start', `${routeId} falling back to ${route.fallback}`, {
       route_id: routeId, fallback: route.fallback
     }, trace);

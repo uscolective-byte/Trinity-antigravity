@@ -3,12 +3,12 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul brain.js (Trinity/src/brain.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module brain.js (Trinity/src/brain.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * Trinity Autonomous Quantum Brain v2.0
- * Kvantový mozog pre Trinity: superpozícia myšlienok, teleologická pamäť,
- * fázová interferencia a ontologický kolaps do overenej pravdy.
+ * Quantum brain for Trinity: thought superposition, teleological memory,
+ * phase interference, and ontological collapse into verified truth.
  */
 import {readControl, assertRunning} from './control.js';
 import {getPCBridgeStatus} from './system-actions.js';
@@ -18,7 +18,7 @@ import {processTeleologicalPrompt} from './quantum_pipeline.js';
 
 export class QuantumBrain {
   /**
-   * Kolabuje superpozíciu myšlienkových stavov s rešpektovaním empirického veta.
+   * Collapses a superposition of thought states while honoring the empirical veto.
    * @param {Array<{dimension: string, content: string, phaseAngle: number, amplitude: number}>} states
    * @param {{exists?: boolean, pathReport?: string}} [empiricalAnchor]
    */
@@ -27,14 +27,14 @@ export class QuantumBrain {
   }
 
   /**
-   * Vypočíta fázovú interferenciu medzi dvoma myšlienkovými stavmi.
+   * Computes phase interference between two thought states.
    */
   static computeInterference(stateA, stateB) {
     return QuantumCoreEngine.computeInterference(stateA, stateB);
   }
 
   /**
-   * Spustí teleologické kvantové uvažovanie nad zadaným dopytom.
+   * Executes teleological quantum deliberation for a given prompt.
    * @param {any} env
    * @param {string} prompt
    * @param {string} [sessionId]
@@ -45,13 +45,13 @@ export class QuantumBrain {
   }
 
   /**
-   * Harmonizuje stav systému Trinity: zjednotí ciele, záťaže a spojenie do koherenčného skóre.
+   * Harmonizes Trinity's system state: unifies objectives, load, and connectivity into a coherence score.
    */
   static async harmonizeSystem(env, systemState = {}) {
     const memoryEngine = new TeleologicalMemoryEngine(env?.DB, env?.VECTORIZE, env?.AI);
     let invariants = [];
     try {
-      invariants = await memoryEngine.recallTeleologicalState('Stav systému Trinity', 'system-heartbeat');
+      invariants = await memoryEngine.recallTeleologicalState('Trinity system status', 'system-heartbeat');
     } catch (_) {
       invariants = [];
     }
@@ -59,23 +59,23 @@ export class QuantumBrain {
     const hasStuckJobs = (systemState.active_jobs?.running || 0) > 10;
     const isBridgeDown = systemState.pc_bridge_connected === false;
 
-    // Vytvorenie stavovej superpozície pre mozog systému
+    // Construct state superposition for the system brain
     const states = [
       {
         dimension: 'thesis',
-        content: `Prevádzkový stav normálny. Aktívne úlohy: ${JSON.stringify(systemState.active_jobs || {})}.`,
+        content: `Operational state normal. Active jobs: ${JSON.stringify(systemState.active_jobs || {})}.`,
         phaseAngle: 0,
         amplitude: 0.90
       },
       {
         dimension: 'antithesis',
-        content: `Systémové riziká: uviaznuté úlohy=${hasStuckJobs}, PC bridge offline=${isBridgeDown}.`,
+        content: `System risks: stuck jobs=${hasStuckJobs}, PC bridge offline=${isBridgeDown}.`,
         phaseAngle: Math.PI,
         amplitude: (hasStuckJobs || isBridgeDown) ? 0.75 : 0.25
       },
       {
         dimension: 'synthesis',
-        content: `Harmonizované riadenie: Trinity udržiava ${invariants.length} teleologických invariantov.`,
+        content: `Harmonized control: Trinity maintains ${invariants.length} teleological invariants.`,
         phaseAngle: Math.PI / 4,
         amplitude: 0.95
       }
@@ -101,7 +101,7 @@ export async function runBrainCycle(env) {
   const control = await readControl(env);
   assertRunning(control);
 
-  // 1) Kontrola aktívnych a čakajúcich úloh
+  // 1) Inspect active and queued jobs
   const jobStats = await env.DB.prepare(
     "SELECT status, COUNT(*) AS count FROM ops_jobs WHERE status IN ('queued', 'running', 'pending') GROUP BY status"
   ).all();
@@ -111,10 +111,10 @@ export async function runBrainCycle(env) {
     return acc;
   }, {});
 
-  // 2) Stav spojenia s PC bránou
+  // 2) Inspect PC bridge connectivity status
   const pcBridge = await getPCBridgeStatus(env);
 
-  // 3) Kvantová teleologická harmonizácia mozgu
+  // 3) Quantum teleological brain harmonization
   const timestamp = new Date().toISOString();
   const baseState = {
     active_jobs: activeJobs,
@@ -135,7 +135,7 @@ export async function runBrainCycle(env) {
     console.error('Quantum harmonization fallback:', err?.message || err);
   }
 
-  // 4) Diagnostické vyhodnotenie a zjednotený stav
+  // 4) Diagnostic evaluation and unified status
   const summary = {
     brain_status: 'operational',
     active_jobs: activeJobs,
@@ -145,7 +145,7 @@ export async function runBrainCycle(env) {
     timestamp
   };
 
-  // Uloženie záznamov do ops_events
+  // Persist records into ops_events
   await env.DB.prepare(
     "INSERT INTO ops_events(action, details) VALUES(?, ?)"
   ).bind('brain_cycle_heartbeat', JSON.stringify(summary)).run();

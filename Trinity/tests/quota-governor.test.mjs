@@ -34,11 +34,11 @@ test('Quota Governor: stops infinite agent loop when maxHops is reached', () => 
   assert.equal(res3.allowed, true);
   assert.equal(ticket.hops, 3);
 
-  // 4. hop: Pokus o zacyklenie späť do Trinity -> musí byť ZABLOKOVANÝ
+  // 4. hop: Loop attempt back to Trinity -> must be BLOCKED
   const res4 = ticket.consume({ tokens: 50, cpuMs: 20, worker: 'trinity-core' });
   assert.equal(res4.allowed, false);
   assert.equal(ticket.status, 'HOPS_EXCEEDED');
-  assert.match(res4.reason, /prekročil limit 3 preposlaní/);
+  assert.match(res4.reason, /exceeded the limit of 3 forwarding hops/);
   assert.equal(ticket.canForward(), false);
 });
 
@@ -53,17 +53,17 @@ test('Quota Governor: stops request when token or CPU budget is depleted', () =>
   const res2 = ticket.consume({ tokens: 150, cpuMs: 100, worker: 'worker-2' });
   assert.equal(res2.allowed, false);
   assert.equal(ticket.status, 'QUOTA_DEPLETED');
-  assert.match(res2.reason, /Vyčerpaný rozpočet tokenov\/CPU/);
+  assert.match(res2.reason, /Token\/CPU quota budget depleted/);
 });
 
 test('Quota Governor: TokenBucket limits consumption and refills over time', async () => {
-  const bucket = new TokenBucket(100, 500); // 100 kapacita, rýchle dopĺňanie
+  const bucket = new TokenBucket(100, 500); // 100 capacity, fast refill
   assert.equal(bucket.tryConsume(60), true);
-  assert.equal(bucket.tryConsume(50), false, 'Nestačí kapacita pre 50');
+  assert.equal(bucket.tryConsume(50), false, 'Not enough capacity for 50');
 
-  // Počkáme 100ms na doplnenie tokenov
+  // Wait 100ms for token refill
   await new Promise(r => setTimeout(r, 100));
   bucket.refill();
-  assert.ok(bucket.tokens >= 40, 'Tokeny sa mali doplniť');
+  assert.ok(bucket.tokens >= 40, 'Tokens should have refilled');
   assert.equal(bucket.tryConsume(40), true);
 });

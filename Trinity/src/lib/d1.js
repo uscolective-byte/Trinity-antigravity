@@ -1,6 +1,6 @@
 /**
  * Trinity D1 Storage Helper
- * Parametrizované dotazy pre trinity-v03
+ * Parameterized queries for trinity-v03
  * @version 1.0.0
  */
 

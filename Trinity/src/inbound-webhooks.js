@@ -3,8 +3,8 @@
  * @subsystem INBOUND_WEBHOOKS_AND_DIRECT_LINKS
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Univerzálny prijímač prichádzajúcich webhookov a linkových prepojení
- * bez nutnosti generovať manuálne API kľúče v externých aplikáciách.
+ * @description Universal receiver for inbound webhooks and direct link integrations
+ * without requiring manual API keys in external applications.
  */
 
 import { recordRequestAudit } from './ledger-middleware.js';
@@ -12,11 +12,11 @@ import { telegramToken } from './telegram-bridge.js';
 import { handleViberWebhook } from './viber-bridge.js';
 
 /**
- * Spracuje prichádzajúci webhook z ľubovoľného externého zdroja.
+ * Process an inbound webhook from any external source.
  * @param {Request} request
  * @param {object} env
  * @param {object} ctx
- * @param {string} source - Názov zdroja (github, stripe, make, n8n, discord, generic, atď.)
+ * @param {string} source - Source name (github, stripe, make, n8n, discord, generic, etc.)
  */
 export async function handleInboundWebhook(request, env, ctx, source = 'generic') {
   const url = new URL(request.url);
@@ -26,7 +26,7 @@ export async function handleInboundWebhook(request, env, ctx, source = 'generic'
     return handleViberWebhook(request, env, ctx);
   }
 
-  // 1. GET požiadavky: Verifikácia webhooku (napr. Meta hub.challenge alebo Health Ping)
+  // 1. GET requests: Webhook verification (e.g., Meta hub.challenge or Health Ping)
   if (request.method === 'GET') {
     const hubChallenge = url.searchParams.get('hub.challenge');
     if (hubChallenge) {
@@ -42,11 +42,11 @@ export async function handleInboundWebhook(request, env, ctx, source = 'generic'
       source: normalizedSource,
       status: 'ready',
       endpoint: `https://${url.hostname}/api/v1/webhooks/${normalizedSource}`,
-      instructions: 'Pošli HTTP POST s JSON alebo formulárovými dátami na tento endpoint pre okamžité spracovanie.'
+      instructions: 'Send an HTTP POST with JSON or form data to this endpoint for immediate processing.'
     }, { status: 200 });
   }
 
-  // 2. POST požiadavky: Prijatie dát
+  // 2. POST requests: Payload ingestion
   if (request.method === 'POST') {
     let payload = null;
     let rawText = '';
@@ -69,7 +69,7 @@ export async function handleInboundWebhook(request, env, ctx, source = 'generic'
     const eventId = crypto.randomUUID();
     const timestamp = new Date().toISOString();
 
-    // 3. Asynchrónny audit do Sovereign Ledgeru (neblokujúci)
+    // 3. Asynchronous audit into Sovereign Ledger (non-blocking)
     if (ctx && typeof ctx.waitUntil === 'function') {
       ctx.waitUntil((async () => {
         try {
@@ -90,7 +90,7 @@ export async function handleInboundWebhook(request, env, ctx, source = 'generic'
       })());
     }
 
-    // 4. Uloženie poslednej udalosti do KV pre rýchly prístup
+    // 4. Persist latest event in KV for quick inspection
     const kv = env.Mastermind || env.TRINITY_KV || env.TRINITY_CONTEXT;
     if (kv && ctx && typeof ctx.waitUntil === 'function') {
       ctx.waitUntil((async () => {
@@ -100,12 +100,12 @@ export async function handleInboundWebhook(request, env, ctx, source = 'generic'
             timestamp,
             source: normalizedSource,
             payload: typeof payload === 'object' ? payload : { text: rawText }
-          }), { expirationTtl: 604800 }); // 7 dní
+          }), { expirationTtl: 604800 }); // 7 days
         } catch {}
       })());
     }
 
-    // 5. Asynchrónna notifikácia na Telegram (ak je nastavený bot a používateľ)
+    // 5. Asynchronous Telegram notification to the owner (user-facing message stays in Slovak)
     const tgBotToken = telegramToken(env);
     const tgUserId = env.TELEGRAM_ALLOWED_USER_IDS || '8358735041';
     if (tgBotToken && tgUserId && ctx && typeof ctx.waitUntil === 'function') {
@@ -148,5 +148,5 @@ export async function handleInboundWebhook(request, env, ctx, source = 'generic'
     }, { status: 200 });
   }
 
-  return Response.json({ ok: false, error: 'Metóda nie je povolená' }, { status: 405 });
+  return Response.json({ ok: false, error: 'Method not allowed' }, { status: 405 });
 }

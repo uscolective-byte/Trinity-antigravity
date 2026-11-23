@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul jobs.js (Trinity/src/jobs.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module jobs.js (Trinity/src/jobs.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import {z} from 'zod';
 import {agentById,selectTeam} from './registry.js';
@@ -24,11 +24,11 @@ export const jobSchema=z.object({task:z.string().trim().min(1).max(12000),
   language:z.string().max(35).default('auto').transform(normalizeLanguage),remember:z.boolean().default(false),owner_mode:z.boolean().default(false),user_email:z.string().email().nullable().optional(),idempotency_key:z.string().uuid().optional()}).strict();
 export async function createJob(env, body) {
   const data=jobSchema.parse(body);
-  if(data.agent!=='auto'&&!agentById(data.agent))throw new HttpError(400,'Neznámy agent.');
-  if((data.dispatch_steps||data.requestedMode)&&!data.owner_mode)throw new HttpError(403,'Vykonávací plán a režim vyžadujú reláciu vlastníka.');
+  if(data.agent!=='auto'&&!agentById(data.agent))throw new HttpError(400,'Unknown agent.');
+  if((data.dispatch_steps||data.requestedMode)&&!data.owner_mode)throw new HttpError(403,'Execution plan and mode require an owner session.');
   const team=data.dispatch_steps?data.dispatch_steps.map(step=>step.agent):data.team?[...new Set(data.team)]:selectTeam(data.task,data.mode,data.agent);
-  if(team.some(id=>!agentById(id)))throw new HttpError(400,'Neznámy agent.');
-  if(!env.OPS_WORKFLOW)throw new HttpError(503,'Workflow nie je pripojený.');
+  if(team.some(id=>!agentById(id)))throw new HttpError(400,'Unknown agent.');
+  if(!env.OPS_WORKFLOW)throw new HttpError(503,'Workflow binding is not configured.');
   const id=crypto.randomUUID(), session=data.session_id||crypto.randomUUID(), plan=planTask(data.task, data.owner_mode===true);
   if(data.dispatch_steps)plan.dispatch_steps=data.dispatch_steps;
   if(data.requestedMode)plan.requested_mode=data.requestedMode;
@@ -38,12 +38,12 @@ export async function createJob(env, body) {
   if(row.id!==id)return {id:row.id,session_id:row.session_id,status:row.status,intent:row.intent,risk_level:row.risk_level,plan:JSON.parse(row.plan_json||'{}'),reused:true};
   if(data.remember)await env.DB.prepare("INSERT INTO ops_memory(key,value,source) VALUES(?,?,'user-explicit')").bind('rozhovor/'+id,data.task).run();
   try {await env.OPS_WORKFLOW.create({id,params:{job_id:id,user_email:data.user_email||null}});}
-  catch {await env.DB.prepare("UPDATE ops_jobs SET status='failed', error='Workflow sa nepodarilo spustiť.' WHERE id=?").bind(id).run();throw new HttpError(502,'Workflow sa nepodarilo spustiť.');}
+  catch {await env.DB.prepare("UPDATE ops_jobs SET status='failed', error='Failed to start workflow.' WHERE id=?").bind(id).run();throw new HttpError(502,'Failed to start workflow.');}
   return {id,session_id:session,status:'queued',team,intent:plan.intent,risk_level:plan.risk,plan};
 }
 export async function getJob(env,id) {
   const job=await env.DB.prepare('SELECT * FROM ops_jobs WHERE id=?').bind(id).first();
-  if(!job)throw new HttpError(404,'Úloha neexistuje.');
+  if(!job)throw new HttpError(404,'Job not found.');
   const steps=await env.DB.prepare('SELECT * FROM ops_steps WHERE job_id=? ORDER BY position').bind(id).all();
   return {...job,team:JSON.parse(job.team),plan:JSON.parse(job.plan_json||'{}'),context_summary:JSON.parse(job.context_summary||'null'),steps:steps.results.map(s=>({...s,tool_log:JSON.parse(s.tool_log||'[]')}))};
 }

@@ -3,13 +3,13 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul self-evolution.js (Trinity/src/self-evolution.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module self-evolution.js (Trinity/src/self-evolution.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
- * TRINITY SELF-EVOLUTION ENGINE S AUTO-ROLLBACK POISTKOU & RING 0 SOVEREIGN LOCK
+ * TRINITY SELF-EVOLUTION ENGINE WITH AUTO-ROLLBACK SAFEGUARD & RING 0 SOVEREIGN LOCK
  * 
- * Umožňuje bezpečný self-modifying cyklus pre základné systémové súbory TRINITY
- * výhradne pod priamym príkazom a súhlasom architekta Basterix.
+ * Enables a safe self-modification workflow for core TRINITY system files
+ * strictly under the direct command and consent of architect Basterix.
  */
 
 import { SovereignLockMiddleware } from './sovereign-lock.js';
@@ -19,7 +19,7 @@ export async function backupSystemSnapshot(env, filePath, content) {
   const safeName = filePath.replace(/[^a-zA-Z0-9._-]/g, '_');
   const snapshotKey = `snapshots/${safeName}/${timestamp}.bak`;
 
-  // 1. Záloha do R2 bucketu ARTIFACTS
+  // 1. Backup to the ARTIFACTS R2 bucket
   if (env.ARTIFACTS) {
     try {
       await env.ARTIFACTS.put(snapshotKey, content, {
@@ -31,7 +31,7 @@ export async function backupSystemSnapshot(env, filePath, content) {
     }
   }
 
-  // 2. Rýchla záloha do KV Mastermind pre okamžitý rollback
+  // 2. Fast backup in KV Mastermind for immediate rollback
   if (env.Mastermind) {
     try {
       await env.Mastermind.put(`backup:${filePath}:latest`, content, { expirationTtl: 86400 * 7 });
@@ -48,18 +48,18 @@ export async function restoreSnapshot(env, filePath) {
       return { ok: true, source: 'kv_latest', content: backup };
     }
   }
-  return { ok: false, error: 'Záloha pre obnovenie nebola nájdená.' };
+  return { ok: false, error: 'Backup snapshot for restoration was not found.' };
 }
 
 /**
- * Validácia syntaxe JavaScript kódu
+ * Validates JavaScript source syntax.
  */
 export function validateScriptSyntax(code) {
   try {
     new Function(code);
     return { ok: true };
   } catch (err) {
-    // new Function zlyhá pri ES moduloch s import/export, preto otestujeme len závažné syntaktické chyby
+    // new Function fails on ES modules with import/export, so check only critical syntax errors
     if (err instanceof SyntaxError && !err.message.includes('Cannot use import statement') && !err.message.includes('Unexpected token \'export\'')) {
       return { ok: false, error: err.message };
     }
@@ -68,13 +68,13 @@ export function validateScriptSyntax(code) {
 }
 
 /**
- * Aplikuje sebamodifikáciu s auto-rollbackom
+ * Prepares a self-modification proposal with Ring 0 authorization and syntax screening.
  */
 export async function applySelfModification(env, {
   filePath,
   originalContent,
   newContent,
-  rationale = 'Architektonická úprava vyžadujúca schválenie Basterixom',
+  rationale = 'Architectural modification requiring Basterix approval',
   operatorIdentity = '',
   verifiedSession = false,
   isAutonomousSubagent = false,
@@ -86,10 +86,10 @@ export async function applySelfModification(env, {
   source = 'internal'
 } = {}) {
   if (!filePath || newContent === undefined) {
-    return { ok: false, error: 'Chýba cesta k súboru alebo nový obsah.' };
+    return { ok: false, error: 'Missing file path or new content.' };
   }
 
-  // 0. Ring 0 Sovereign Lock Middleware kontrola (fail-closed)
+  // 0. Ring 0 Sovereign Lock Middleware check (fail-closed)
   const lock = new SovereignLockMiddleware(env);
   const auth = await lock.authorizeCodeMutation({
     operatorIdentity,
@@ -114,13 +114,13 @@ export async function applySelfModification(env, {
     };
   }
 
-  // 1. Kontrola základnej syntaxe
+  // 1. Basic syntax validation
   const syntaxCheck = validateScriptSyntax(newContent);
   if (!syntaxCheck.ok) {
     return {
       ok: false,
       status: 'rejected',
-      error: `Syntaktická chyba nového kódu: ${syntaxCheck.error}`,
+      error: `Syntax error in new code: ${syntaxCheck.error}`,
       rolled_back: true
     };
   }

@@ -2,19 +2,19 @@
  * ════════════════════════════════════════════════════════════════════════════════
  * TRINITY GHOST VAULT · ZERO-KNOWLEDGE E2EE EPHEMERAL MESSENGER (SOVEREIGN WHISPER)
  * ════════════════════════════════════════════════════════════════════════════════
- * 
- * Bezpečnostné a architektonické záruky (Signal Protocol & Telegram Secret Chat ekvivalent):
- * 1. Zero-Knowledge Relay: Server (Trinity Worker) je slepý poštový schránkový smerovač.
- *    Nikdy nevlastní súkromné kľúče, nikdy nevidí otvorený text správ ani príloh.
- * 2. Asymetrická kryptografia (Web Crypto API):
- *    - ECDH kľúčová výmena na krivke NIST P-256 (alebo Ed25519/X25519).
- *    - 256-bitové AES-GCM autentifikované šifrovanie s náhodným 96-bitovým IV pre každú správu.
- *    - Bezpečnostné čísla (Safety Numbers) / Odtlačok integrity na detekciu MITM.
- * 3. Sebadeštrukcia správ (Self-Destruct & Burn-on-Read):
- *    - Mode 1: Burn-on-Read — okamžité fyzické zmazanie z D1 a KV po potvrdení dešifrovania príjemcom.
- *    - Mode 2: TTL Timer — automatická expirácia a trvalé zničenie správ po uplynutí časovača (10s až 24h).
- *    - Mode 3: Panic Vaporize — okamžité zničenie všetkých správ celej miestnosti jedným klikom.
- * 4. Anti-forenzná hygiena: Žiadne logovanie šifier, žiadne zálohovanie, čisté prepisovanie pamäte.
+ *
+ * Security and architectural guarantees (Signal Protocol & Telegram Secret Chat equivalent):
+ * 1. Zero-Knowledge Relay: The server (Trinity Worker) acts purely as a blind mailbox relay.
+ *    It never holds private keys and never sees plaintext messages or attachments.
+ * 2. Asymmetric Cryptography (Web Crypto API):
+ *    - ECDH key exchange on NIST P-256 (or Ed25519/X25519).
+ *    - 256-bit AES-GCM authenticated encryption with a random 96-bit IV per message.
+ *    - Safety Numbers / integrity fingerprint for MITM detection.
+ * 3. Message Self-Destruction (Self-Destruct & Burn-on-Read):
+ *    - Mode 1: Burn-on-Read — immediate physical deletion from D1 and KV upon recipient decryption receipt.
+ *    - Mode 2: TTL Timer — automatic expiration and permanent destruction after countdown (10s to 24h).
+ *    - Mode 3: Panic Vaporize — immediate one-click destruction of all messages in a room.
+ * 4. Anti-forensic hygiene: No ciphertext logging, no archival backups, clean ephemeral lifecycle.
  */
 
 import { z } from 'zod';
@@ -64,10 +64,10 @@ export const ghostHeartbeatSchema = z.object({
 }).strict();
 
 /**
- * Dynamický výpočet stavu online prítomnosti (Presence) podľa timestampu last_seen.
- * - <= 120 sekúnd: online (🟢)
- * - <= 900 sekúnd (15 min): away (🟡)
- * - staršie: offline (⚪)
+ * Dynamically computes online presence status from the last_seen timestamp.
+ * - <= 120 seconds: online
+ * - <= 900 seconds (15 min): away
+ * - older: offline
  */
 export function computePresenceStatus(lastSeen, now = Date.now()) {
   if (!lastSeen) return 'offline';
@@ -126,7 +126,7 @@ export async function ensureGhostVaultTables(db) {
 }
 
 /**
- * Automatické vyčistenie expirovaných správ z databázy D1 a KV.
+ * Automatically purges expired envelopes from D1 and KV.
  */
 export async function cleanupExpiredEnvelopes(db, kv) {
   if (!db) return 0;
@@ -153,7 +153,7 @@ export async function cleanupExpiredEnvelopes(db, kv) {
 }
 
 /**
- * Hlavný router pre /api/ghost/*
+ * Main API router for /api/ghost/*
  */
 export async function handleGhostVaultApi(request, env, ctx) {
   const url = new URL(request.url);
@@ -164,7 +164,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
 
   if (db) {
     await ensureGhostVaultTables(db);
-    // Asynchrónne spustenie vyčistenia expirovaných správ
+    // Trigger asynchronous purge of expired envelopes
     if (ctx?.waitUntil) {
       ctx.waitUntil(cleanupExpiredEnvelopes(db, kv));
     } else {
@@ -172,7 +172,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
     }
   }
 
-  // 1. Bezpečnostný status a verifikácia Zero-Knowledge
+  // 1. Security status and Zero-Knowledge verification
   if (method === 'GET' && path === '/api/ghost/status') {
     let activeEnvelopes = 0;
     let activeSessions = 0;
@@ -211,18 +211,18 @@ export async function handleGhostVaultApi(request, env, ctx) {
     });
   }
 
-  // 2. Registrácia / zistenie verejného kľúča účastníka v miestnosti
+  // 2. Register or refresh a room participant's public key
   if (method === 'POST' && path === '/api/ghost/session') {
     let body;
     try {
       body = await request.json();
     } catch {
-      return new Response(JSON.stringify({ ok: false, error: 'Neplatný JSON formát.' }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Invalid JSON format.' }), { status: 400 });
     }
 
     const parsed = ghostSessionSchema.safeParse(body);
     if (!parsed.success) {
-      return new Response(JSON.stringify({ ok: false, error: 'Neplatné parametre relácie.', details: parsed.error.issues }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Invalid session parameters.', details: parsed.error.issues }), { status: 400 });
     }
 
     const { room_id, peer_id, public_key, nickname, ttl_seconds } = parsed.data;
@@ -253,11 +253,11 @@ export async function handleGhostVaultApi(request, env, ctx) {
     });
   }
 
-  // 3. Zoznam účastníkov a ich verejných kľúčov v miestnosti
+  // 3. List participants and their public keys in a room
   if (method === 'GET' && path.startsWith('/api/ghost/session/')) {
     const roomId = decodeURIComponent(path.slice('/api/ghost/session/'.length));
     if (!roomId) {
-      return new Response(JSON.stringify({ ok: false, error: 'Chýba room_id.' }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Missing room_id.' }), { status: 400 });
     }
 
     let peers = [];
@@ -281,18 +281,18 @@ export async function handleGhostVaultApi(request, env, ctx) {
     });
   }
 
-  // 4. Odoslanie zašifrovanej obálky (Blind Relay)
+  // 4. Submit an encrypted envelope (Blind Relay)
   if (method === 'POST' && path === '/api/ghost/envelope') {
     let body;
     try {
       body = await request.json();
     } catch {
-      return new Response(JSON.stringify({ ok: false, error: 'Neplatný JSON formát.' }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Invalid JSON format.' }), { status: 400 });
     }
 
     const parsed = ghostEnvelopeSchema.safeParse(body);
     if (!parsed.success) {
-      return new Response(JSON.stringify({ ok: false, error: 'Neplatná šifrovaná obálka.', details: parsed.error.issues }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Invalid encrypted envelope.', details: parsed.error.issues }), { status: 400 });
     }
 
     const envData = parsed.data;
@@ -349,14 +349,14 @@ export async function handleGhostVaultApi(request, env, ctx) {
     });
   }
 
-  // 5. Načítanie čakajúcich obálok pre miestnosť / príjemcu (Inbox)
+  // 5. Fetch pending envelopes for a room or recipient (Inbox)
   if (method === 'GET' && path === '/api/ghost/inbox') {
     const roomId = url.searchParams.get('room_id');
     const recipientId = url.searchParams.get('recipient_id');
     const since = parseInt(url.searchParams.get('since') || '0', 10);
 
     if (!roomId && !recipientId) {
-      return new Response(JSON.stringify({ ok: false, error: 'Vyžaduje sa room_id alebo recipient_id.' }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Either room_id or recipient_id is required.' }), { status: 400 });
     }
 
     const now = Date.now();
@@ -400,18 +400,18 @@ export async function handleGhostVaultApi(request, env, ctx) {
     });
   }
 
-  // 6. Potvrdenie prečítania a okamžité fyzické zničenie (Burn-on-Read)
+  // 6. Acknowledge read and immediately destroy physically (Burn-on-Read)
   if (method === 'POST' && path === '/api/ghost/read') {
     let body;
     try {
       body = await request.json();
     } catch {
-      return new Response(JSON.stringify({ ok: false, error: 'Neplatný JSON.' }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Invalid JSON.' }), { status: 400 });
     }
 
     const parsed = ghostReadSchema.safeParse(body);
     if (!parsed.success) {
-      return new Response(JSON.stringify({ ok: false, error: 'Neplatné ID obálky.' }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Invalid envelope ID.' }), { status: 400 });
     }
 
     const { envelope_id } = parsed.data;
@@ -426,11 +426,11 @@ export async function handleGhostVaultApi(request, env, ctx) {
 
         if (row) {
           if (row.burn_on_read) {
-            // Okamžité fyzické zmazanie z databázy
+            // Immediately physically delete from database
             await db.prepare(`DELETE FROM ops_ghost_envelopes WHERE id = ?`).bind(envelope_id).run().catch(() => {});
             destroyed = true;
           } else {
-            // Nastavenie expirácie podľa burn_timer_seconds od prečítania
+            // Set expiration according to burn_timer_seconds from read time
             const newExpiry = now + (row.burn_timer_seconds * 1000);
             await db.prepare(
               `UPDATE ops_ghost_envelopes SET read_at = ?, expires_at = ? WHERE id = ?`
@@ -454,18 +454,18 @@ export async function handleGhostVaultApi(request, env, ctx) {
     });
   }
 
-  // 7. Okamžité núdzové zničenie celej konverzácie / miestnosti (Panic Vaporize)
+  // 7. Immediate emergency destruction of an entire conversation/room (Panic Vaporize)
   if (method === 'POST' && path === '/api/ghost/vaporize') {
     let body;
     try {
       body = await request.json();
     } catch {
-      return new Response(JSON.stringify({ ok: false, error: 'Neplatný JSON.' }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Invalid JSON.' }), { status: 400 });
     }
 
     const parsed = ghostVaporizeSchema.safeParse(body);
     if (!parsed.success) {
-      return new Response(JSON.stringify({ ok: false, error: 'Chýba room_id.' }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Missing room_id.' }), { status: 400 });
     }
 
     const { room_id } = parsed.data;
@@ -494,7 +494,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
     });
   }
 
-  // 8. Zoznam kontaktov a vyhľadávanie v adresári (Encrypted Contacts Directory + Registered Profiles)
+  // 8. Contact listing and search in directory (Encrypted Contacts Directory + Registered Profiles)
   if (method === 'GET' && path === '/api/ghost/contacts') {
     const query = (url.searchParams.get('q') || '').trim().toLowerCase();
     const filterType = (url.searchParams.get('filter') || 'all').toLowerCase(); // 'all', 'registered', 'online'
@@ -578,7 +578,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
 
     const merged = [];
 
-    // Najprv integruj registrované profily zo systému
+    // First integrate registered profiles from the system
     for (const u of registeredUsers) {
       const email = u.email || '';
       const peerId = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_-]/g, '_');
@@ -603,7 +603,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
       ghostPeerMap.delete(peerId);
     }
 
-    // Dopln existujúce ghost kontakty
+    // Append remaining ghost directory contacts
     for (const [peerId, c] of ghostPeerMap.entries()) {
       merged.push({
         ...c,
@@ -611,7 +611,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
       });
     }
 
-    // Dopln predvolené seed uzly ak chýbajú
+    // Append default seed nodes if absent
     for (const seed of defaultSeeds) {
       if (!merged.some(c => c.peer_id === seed.peer_id)) {
         if (!query || seed.alias.toLowerCase().includes(query) || seed.peer_id.toLowerCase().includes(query)) {
@@ -620,7 +620,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
       }
     }
 
-    // Aplikuj filter
+    // Apply contact filter
     let filtered = merged;
     if (filterType === 'registered') {
       filtered = merged.filter(c => c.is_registered);
@@ -638,7 +638,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
     });
   }
 
-  // 8b. Generovanie QR kódu pozvánky (ISO 18004 SVG)
+  // 8b. Generate invite QR code (ISO 18004 SVG)
   if (method === 'GET' && path === '/api/ghost/invite-qr') {
     const data = url.searchParams.get('data') || url.searchParams.get('url') || 'https://auru.dev/#encrypted_shits';
     const size = Math.min(Math.max(parseInt(url.searchParams.get('size') || '240', 10), 100), 600);
@@ -658,18 +658,18 @@ export async function handleGhostVaultApi(request, env, ctx) {
     }
   }
 
-  // 9. Registrácia kontaktu do verejného adresára kľúčov
+  // 9. Register a contact into the public key directory
   if (method === 'POST' && path === '/api/ghost/contacts/register') {
     let body;
     try {
       body = await request.json();
     } catch {
-      return new Response(JSON.stringify({ ok: false, error: 'Neplatný JSON.' }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Invalid JSON.' }), { status: 400 });
     }
 
     const parsed = ghostContactRegisterSchema.safeParse(body);
     if (!parsed.success) {
-      return new Response(JSON.stringify({ ok: false, error: 'Neplatné údaje kontaktu.', details: parsed.error.issues }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Invalid contact details.', details: parsed.error.issues }), { status: 400 });
     }
 
     const { peer_id, alias, public_key, avatar_color } = parsed.data;
@@ -689,18 +689,18 @@ export async function handleGhostVaultApi(request, env, ctx) {
     });
   }
 
-  // 10. Heartbeat pre udržanie aktívneho stavu online (Presence)
+  // 10. Heartbeat for maintaining active online presence
   if (method === 'POST' && (path === '/api/ghost/heartbeat' || path === '/api/ghost/contacts/heartbeat')) {
     let body;
     try {
       body = await request.json();
     } catch {
-      return new Response(JSON.stringify({ ok: false, error: 'Neplatný JSON.' }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Invalid JSON.' }), { status: 400 });
     }
 
     const parsed = ghostHeartbeatSchema.safeParse(body);
     if (!parsed.success) {
-      return new Response(JSON.stringify({ ok: false, error: 'Neplatné dáta heartbeat.', details: parsed.error.issues }), { status: 400 });
+      return new Response(JSON.stringify({ ok: false, error: 'Invalid heartbeat payload.', details: parsed.error.issues }), { status: 400 });
     }
 
     const { peer_id, alias, public_key, avatar_color } = parsed.data;
@@ -719,7 +719,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
           ).bind(peer_id, alias, public_key, avatar_color || '#3b82f6', now).run().catch(() => {});
         }
       } catch (err) {
-        console.error('Chyba zápisu heartbeat:', err);
+        console.error('Heartbeat write error:', err);
       }
     }
 
@@ -728,7 +728,7 @@ export async function handleGhostVaultApi(request, env, ctx) {
     });
   }
 
-  return new Response(JSON.stringify({ ok: false, error: 'Neznámy Ghost Vault endpoint.' }), {
+  return new Response(JSON.stringify({ ok: false, error: 'Unknown Ghost Vault endpoint.' }), {
     status: 404,
     headers: { 'Content-Type': 'application/json; charset=utf-8' }
   });

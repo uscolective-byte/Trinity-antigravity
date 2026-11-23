@@ -1,3 +1,10 @@
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem CORE_RUNTIME
+ * @author Basterix (Root Architect)
+ * @license Sovereign Irrevocable Covenant
+ * @description Module conversation-history.js (Trinity/src/conversation-history.js) — Bounded multi-turn conversation history loader and message formatter.
+ */
 import {usableModelText} from './services.js';
 
 export async function loadConversationHistory(env,sessionId,jobId,opts={}) {

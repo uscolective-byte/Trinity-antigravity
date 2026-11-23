@@ -1,4 +1,8 @@
-/** Missing data stays missing; configuration does not prove connectivity. */
+/**
+ * @module TRINITY_OMNI_CORE
+ * @subsystem TRUTH_ASSERTION_ENGINE
+ * @description Verified user-facing Slovak response formatters. Missing data stays missing; configuration does not prove connectivity.
+ */
 export const UNAVAILABLE='Údaj nie je dostupný v systéme';
 const value=v=>typeof v==='string'&&v.trim()?v.trim():UNAVAILABLE;
 const list=v=>Array.isArray(v)&&v.length?v.map(value).join(', '):UNAVAILABLE;

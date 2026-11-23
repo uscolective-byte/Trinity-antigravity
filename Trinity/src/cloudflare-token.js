@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul cloudflare-token.js (Trinity/src/cloudflare-token.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module cloudflare-token.js (Trinity/src/cloudflare-token.js) in the TRINITY OMNI-CORE ecosystem.
  */
 // Verify a user or an account-owned Cloudflare API token without ever
 // returning its value or raw provider response.

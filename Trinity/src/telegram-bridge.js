@@ -3,7 +3,7 @@
  * @subsystem EXTERNAL_CONNECTORS
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul telegram-bridge.js (Trinity/src/telegram-bridge.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module telegram-bridge.js (Trinity/src/telegram-bridge.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import {callModel} from './services.js';
 import {equal,rateLimit,readJSON} from './security.js';
@@ -32,7 +32,7 @@ export function telegramIntegrationStatus(env) {
       'multi-turn-memory', 'system-grounding', 'clear'
     ],
     live_verified: false,
-    verification_note: 'Konfigurácia nie je dôkazom aktívneho webhooku. Over cez Telegram getWebhookInfo.'
+    verification_note: 'Configuration does not prove an active webhook. Verify via Telegram getWebhookInfo.'
   };
 }
 
@@ -145,7 +145,7 @@ export async function callResilientBrain(env, provider, messages, maxTokens = 20
       if (aiRes?.response?.trim()) return aiRes.response.trim();
     } catch {}
   }
-  throw lastErr || new Error('Žiadny AI poskytovateľ momentálne neodpovedá.');
+  throw lastErr || new Error('No AI provider is currently responding.');
 }
 
 export function parseCommand(input, env) {
@@ -354,8 +354,8 @@ export async function executeResearch(env, topic) {
       }
     } catch {}
   }
-  const system = 'Si autonómny výskumný špecialista Trinity. Poskytni štruktúrovaný, hĺbkový a vecný rešerš k zadanej téme v slovenskom jazyku. Uveď kľúčové fakty, aktuálny stav a zhrnutie. Buď vecný a pravdivý.';
-  const res = await callModel(env, 'gemini', [{role:'system',content:system},{role:'user',content:`Vypracuj stručný rešerš na tému: ${topic}`}], 1000);
+  const system = "You are Trinity's autonomous research specialist. Provide structured, thorough, and factual research on the requested topic. Include key facts, current status, and a concise summary. Be factual and strictly truthful. Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal 'tykanie' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language.";
+  const res = await callModel(env, 'gemini', [{role:'system',content:system},{role:'user',content:`Prepare a concise research brief on the topic: ${topic}`}], 1000);
   return `🔬 Výsledok Výskumu: ${topic}\n\n${res?.text || 'Výskum nevrátil výsledok.'}`;
 }
 
@@ -398,9 +398,10 @@ export async function processTelegramUpdate(env, update) {
       const history = await getChatHistory(env, message.chat.id);
       const grounding = await buildSystemGroundingContext(env, parsed.question);
       const system =
-        'Si Trinity_Telegram, vysoko inteligentná, suverénna AI asistentka ekosystému Trinity 11.1 v súkromnom Telegram chate s majiteľom Sabom Ivanom (Basterixom).\n' +
-        'Odpovedaj prirodzene, bystro, slovensky, s rešpektom a vtipom kde sa hodí, ale striktne pravdivo.\n' +
-        'Tento kanál slúži na reporting, konzultácie, analýzy a riadenie ekosystému. Nemáš oprávnenie spúšťať deštruktívne shell príkazy na PC ani vykonávať platby. Dodržiavaj Truth Policy 2.0 Hardcore – nikdy netvrď, že si niečo vykonala, ak to nie je overené.\n' +
+        "You are Trinity_Telegram, the sovereign AI assistant of the Trinity 11.1 ecosystem in a private Telegram chat with owner Ivan Sabo (Basterix).\n" +
+        "Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal 'tykanie' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language.\n" +
+        "Respond naturally, sharply, respectfully, with light wit when appropriate, and strictly truthfully.\n" +
+        "This channel is for reporting, consultation, analysis, and ecosystem guidance. You are not authorized to run destructive PC shell commands or execute payments. Strictly enforce Truth Policy 2.1 — never claim you executed an action unless it is verified.\n" +
         grounding;
 
       const modelMessages = [
@@ -571,7 +572,7 @@ export async function activateTelegramWebhook(request, env) {
 export async function syncTelegramWebhookForOwner(env, host = 'auru.space') {
   const status = telegramIntegrationStatus(env);
   if (!status.bot_token || !status.webhook_secret || !status.allowed_users) {
-    throw new Error('Telegram integrácia nemá nastavený BOT_TOKEN, WEBHOOK_SECRET alebo ALLOWED_USER_IDS.');
+    throw new Error('Telegram integration is missing BOT_TOKEN, WEBHOOK_SECRET, or ALLOWED_USER_IDS.');
   }
   const safeHost = host === 'auru.dev' ? 'auru.dev' : 'auru.space';
   const webhookUrl = `https://${safeHost}/api/telegram/webhook`;

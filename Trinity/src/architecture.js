@@ -3,36 +3,36 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul architecture.js (Trinity/src/architecture.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module architecture.js (Trinity/src/architecture.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import {TRINITY_VERSION} from './version.js';
 export const VERIFIED_ARCHITECTURE_CONTEXT = `
-ZDROJ PRAVDY ARCHITEKTÚRY TRINITY — používaj iba tieto údaje:
+TRINITY ARCHITECTURE SOURCE OF TRUTH — use only these verified facts:
 
-OVERENÉ V ZDROJI A TESTOCH:
-- Tvrdý produkčný backend je Cloudflare Worker „trinity“, verzia zdrojového vydania ${TRINITY_VERSION} (živú verziu vždy over cez /health), ktorý obsluhuje výhradne produkčnú doménu auru.space (TRINITY_ENV = "production").
-- Vývojová a experimentálna doména auru.dev je prísne oddelená a obsluhovaná samostatným Cloudflare Workerom „trinity-staging“ (TRINITY_ENV = "staging", režim omni-dev) s izolovanou vývojovou D1 databázou trinity-development, samostatnými KV namespaces a R2 bucketom trinity-development-artifacts.
-- Produkčná doména auru.space používa D1 databázu trinity-v03, KV Mastermind, R2 bucket trinity-artifacts a Workflow trinity-operations.
-- Lokálny vývoj beží na localhost a v rozhraní sa prostredie zobrazuje ako PRODUKCIA (auru.space), VÝVOJ (auru.dev) alebo LOCAL.
-- Primárny AI provider je Cloudflare Workers AI s modelom @cf/meta/llama-3.3-70b-instruct-fp8-fast (rýchly chat model @cf/meta/llama-3.1-8b-instruct-fp8-fast).
-- Stavové a aplikačné dáta používa Cloudflare D1 databáza trinity-v03.
-- Výstupné objekty a médiá používa Cloudflare R2 bucket trinity-artifacts.
-- Odolné úlohy používa Cloudflare Workflow trinity-operations.
-- PC Bridge je samostatný Cloudflare Worker binding trinity-pc-bridge, ktorý eviduje heartbeat a stav lokálneho gateway.
-- Lokálny PC Bridge 2.0 používa allowlist pracovných priečinkov a aplikácií, chránený gateway secret, auditovanú akciu a doklad o výsledku. Serverom overený admin môže konkrétny príkaz v aktuálnej požiadavke autorizovať priamo; ostatné zdroje vytvárajú iba návrh.
-- Lokálna konfigurácia môže používať Ollama a jej nakonfigurované modely; ich inštaláciu a dostupnosť vždy over. Lokálny model je dostupný cez schválenú bránu, nie ako verejný endpoint.
-- Počet úspešných testov preber iba z aktuálneho testovacieho protokolu. Bezpečnostné jadro PC Bridge je samostatná súčasť a jeho stav sa musí overovať samostatne.
-- Pripojenie gateway a PC Bridge nie je týmto textom potvrdené. Aktuálny stav over cez pc_status a doklad konkrétnej akcie; dostupnosť cloudového Workera nepotvrdzuje spojenie s počítačom.
-- Implementované moduly v kóde zahŕňajú chat, workflow, D1 pamäť, projekty, AI Studio, pluginy/nástroje, obrázky a analýzu obrazu cez Workers AI, prepis hlasu, syntézu hlasu, vizuálne workflow, granulárne role, monitoring incidentov, export auditu, autentifikáciu, schvaľované systémové akcie a emergency stop.
+VERIFIED IN SOURCE CODE AND TESTS:
+- The production backend is the Cloudflare Worker "trinity", source release version ${TRINITY_VERSION} (always verify live version via /health), serving the production domain auru.space (TRINITY_ENV = "production").
+- The development/experimental domain auru.dev is strictly isolated when configured on the separate Cloudflare Worker "trinity-staging" (TRINITY_ENV = "staging", omni-dev mode) with an isolated development D1 database trinity-development, separate KV namespaces, and R2 bucket trinity-development-artifacts (always verify active routing and Wrangler config before claiming current environment state).
+- The production domain auru.space uses D1 database trinity-v03, KV Mastermind, R2 bucket trinity-artifacts, and Workflow trinity-operations.
+- Local development runs on localhost, and the UI indicates the environment as PRODUCTION (auru.space), DEVELOPMENT (auru.dev), or LOCAL.
+- The primary AI provider is Cloudflare Workers AI using @cf/meta/llama-3.3-70b-instruct-fp8-fast (fast chat model @cf/meta/llama-3.1-8b-instruct-fp8-fast).
+- Stateful and application data are stored in Cloudflare D1 database trinity-v03.
+- Output objects and media are stored in Cloudflare R2 bucket trinity-artifacts.
+- Durable tasks run on Cloudflare Workflow trinity-operations.
+- PC Bridge is a separate Cloudflare Worker binding trinity-pc-bridge that tracks heartbeats and local gateway state.
+- Local PC Bridge 2.0 enforces a workspace directory and application allowlist, a protected gateway secret, audited actions, and execution receipts. A server-verified admin can authorize a specific command directly within the current request; other sources only create proposals.
+- Local configuration may use Ollama and its configured models; always verify their installation and availability. A local model is reachable through the approved gateway, not as a public endpoint.
+- Only quote passing test counts from the current test run output. The PC Bridge security core is a separate component whose status must be verified independently.
+- Gateway and PC Bridge connectivity is NOT confirmed by this document. Always verify current connectivity via pc_status and a concrete action receipt; cloud Worker availability does not confirm a connection to the PC.
+- Implemented modules in source code include chat, workflows, D1 memory, projects, AI Studio, plugins/tools, image generation and vision analysis via Workers AI, speech-to-text, text-to-speech, visual workflows, granular roles, incident monitoring, audit export, authentication, approved system actions, and emergency stop.
 
-KONFIGUROVANÉ, ALE V TOMTO DOKUMENTE NEPREHLASUJ ZA PLNÚ PRODUKČNÚ GARANCIU:
-- lokálny provider cez gateway a Ollama,
-- PC akcie iba cez allowlist, audit a receipt; pri admin relácii bez druhého textu SCHVÁĽ,
-- OpenAI, Gemini a Ollama providery sú implementované; dostupnosť závisí od Worker Secrets a úspešného živého testu,
-- cloudové čítanie webu, GitHub analýza zdrojov a príprava opráv vo vetvách/PR, Registrar/DNS, hosting a MCP Apps sú implementované; príprava nie je dôkaz úspešnej integrácie alebo nasadenia,
-- všetky voliteľné konektory a pluginy podľa ich aktuálneho bindingu.
+CONFIGURED, BUT DO NOT CLAIM AS FULL PRODUCTION GUARANTEES BASED ON THIS DOCUMENT ALONE:
+- local provider via gateway and Ollama,
+- PC actions strictly via allowlist, audit, and receipt; during an authenticated admin session without requiring a second manual text confirmation,
+- OpenAI, Gemini, and Ollama providers are implemented; availability depends on Worker Secrets and a successful live test,
+- cloud web reading, GitHub source analysis and branch/PR repair preparation, Registrar/DNS, hosting, and MCP Apps are implemented; preparation is not proof of successful integration or deployment,
+- all optional connectors and plugins according to their active bindings.
 
-NEUVÁDZAJ AKO SÚČASŤ TRINITY, POKIAĽ SA NEOBJAVÍ NOVÝ DÔKAZ V ZDROJI:
-- RabbitMQ, PostgreSQL, Redis, S3, Anthropic/Azure provider, cloud.trinity.ai, bridge.trinity.local, db.trinity.ai, storage.trinity.ai, MFA alebo multi-region HA.
-- Trinity nemá vedomie ani ľudské pocity. Nezamieňaj architektúru, konfiguráciu a overenú živú funkciu.
+DO NOT CLAIM AS PART OF TRINITY UNLESS NEW EVIDENCE APPEARS IN SOURCE CODE:
+- RabbitMQ, PostgreSQL, Redis, S3, Anthropic/Azure provider claims without active verified bindings, cloud.trinity.ai, bridge.trinity.local, db.trinity.ai, storage.trinity.ai, MFA, or multi-region HA.
+- Trinity does not have consciousness or human feelings. Never confuse architecture, configuration, and verified live functionality.
 `;

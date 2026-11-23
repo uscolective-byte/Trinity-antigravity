@@ -3,7 +3,7 @@
  * @subsystem LIVE_CHAT_STREAMING
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Okamžité NDJSON/SSE streamovanie odpovedí slovo po slove bez čakania na Workflow polling.
+ * @description Instant NDJSON/SSE token-by-token response streaming without waiting for Workflow polling.
  */
 
 import { buildConversationalPrompt } from './cognition.js';
@@ -78,7 +78,7 @@ async function* parseSseJsonLines(body) {
 }
 
 async function streamWorkersAI(env, model, messages, onDelta) {
-  if (!env?.AI?.run) throw new Error('Cloudflare Workers AI nie je pripojené.');
+  if (!env?.AI?.run) throw new Error('Cloudflare Workers AI binding is not connected.');
   const result = await env.AI.run(model, {
     messages,
     max_tokens: 2048,
@@ -91,7 +91,7 @@ async function streamWorkersAI(env, model, messages, onDelta) {
   if (result && typeof result.getReader === 'function') {
     let full = '';
     for await (const chunk of parseSseJsonLines(result)) {
-      if (chunk?.error) throw new Error('Cloudflare Workers AI prerušilo odpoveď.');
+      if (chunk?.error) throw new Error('Cloudflare Workers AI interrupted the response stream.');
       const token = typeof chunk?.response === 'string'
         ? chunk.response
         : (typeof chunk?.choices?.[0]?.delta?.content === 'string' ? chunk.choices[0].delta.content : '');
@@ -181,7 +181,7 @@ async function streamGemini(env, messages, onDelta) {
 async function streamAnthropic(env, messages, onDelta) {
   let { apiKey, model } = await getConfiguredAIProvider(env, 'anthropic').catch(() => ({}));
   if (!apiKey) apiKey = env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('Anthropic API nie je nakonfigurované.');
+  if (!apiKey) throw new Error('Anthropic API is not configured.');
   apiKey = sanitizeApiKey(apiKey);
   const cleanModel = model || env.ANTHROPIC_MODEL || 'claude-3-7-sonnet-20250219';
   const system = messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n\n');
@@ -290,7 +290,7 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
               : data.success===true;
             send({type:'context',session:sessionId,model:'deterministic-tool',memories:[],history:0});
             send({type:'tool',name:direct.name,status:verified?'completed':'failed'});
-            if(!verified)throw new Error(data.error||data.message||'Konektor nevrátil overiteľný výsledok.');
+            if(!verified)throw new Error(data.error||data.message||'Connector did not return a verifiable result.');
             const text=JSON.stringify(data,null,2);
             send({type:'delta',text});
             if(ctx?.waitUntil)ctx.waitUntil(persistStreamTurn(env,{jobId,sessionId,message,answer:text,provider:'internal',remember}));
@@ -398,7 +398,7 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
 
         const cleaned = cleanOutput(answer).trim();
         if (!cleaned) {
-          throw new Error('Model nevrátil žiadny text.');
+          throw new Error('Model returned no text.');
         }
 
         const checked = finalizeAgentResponse({text:cleaned,tool_log:[]},language);
@@ -407,7 +407,7 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
         if (ctx?.waitUntil) ctx.waitUntil(persistTask);
         else await persistTask;
       } catch (error) {
-        send({ type: 'error', error: error?.message || 'Chyba pri streamovaní odpovede.' });
+        send({ type: 'error', error: error?.message || 'Error while streaming response.' });
       } finally {
         controller.close();
       }

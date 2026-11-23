@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul studio-review.js (Trinity/src/studio-review.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module studio-review.js (Trinity/src/studio-review.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import { z } from 'zod';
 import { HttpError } from './security.js';
@@ -15,8 +15,8 @@ export const reviewRequestSchema = z.object({
 }).strict();
 
 /**
- * Hĺbková statická analýza HTML kódu generovaného v Trinity AI Studio.
- * Kontroluje prístupnosť (a11y), bezpečnosť (CSP/links), výkon (payload) a SEO.
+ * Deep static analysis of HTML code generated in Trinity AI Studio.
+ * Audits accessibility (a11y), security (CSP/links), performance (payload), and SEO.
  */
 export function auditHtmlQuality(html) {
   const issues = [];
@@ -25,42 +25,42 @@ export function auditHtmlQuality(html) {
   const lower = cleanHtml.toLowerCase();
 
   // 1. Accessibility & Document Structure
-  if (lower.includes('<!doctype html>')) passed.push('HTML5 doctype deklarovaný.');
-  else issues.push({ id: 'doctype_missing', severity: 'high', category: 'a11y', message: 'Chýba deklarácia <!doctype html>.' });
+  if (lower.includes('<!doctype html>')) passed.push('HTML5 doctype declared.');
+  else issues.push({ id: 'doctype_missing', severity: 'high', category: 'a11y', message: 'Missing <!doctype html> declaration.' });
 
-  if (/<html[^>]*\blang=["'][a-z]{2,5}["']/i.test(cleanHtml)) passed.push('Atribút lang na <html> je definovaný.');
-  else issues.push({ id: 'lang_missing', severity: 'medium', category: 'a11y', message: 'Chýba atribút lang na značke <html>.' });
+  if (/<html[^>]*\blang=["'][a-z]{2,5}["']/i.test(cleanHtml)) passed.push('Attribute lang on <html> is defined.');
+  else issues.push({ id: 'lang_missing', severity: 'medium', category: 'a11y', message: 'Missing lang attribute on the <html> tag.' });
 
-  if (/<title>[^<]+<\/title>/i.test(cleanHtml)) passed.push('Značka <title> je prítomná a neprázdna.');
-  else issues.push({ id: 'title_missing', severity: 'high', category: 'seo', message: 'Chýba alebo je prázdny tag <title>.' });
+  if (/<title>[^<]+<\/title>/i.test(cleanHtml)) passed.push('<title> tag is present and non-empty.');
+  else issues.push({ id: 'title_missing', severity: 'high', category: 'seo', message: 'Missing or empty <title> tag.' });
 
-  if (/<meta[^>]*name=["']viewport["'][^>]*content=/i.test(cleanHtml)) passed.push('Responzívny meta viewport je nakonfigurovaný.');
-  else issues.push({ id: 'viewport_missing', severity: 'high', category: 'performance', message: 'Chýba responzívny tag <meta name="viewport">.' });
+  if (/<meta[^>]*name=["']viewport["'][^>]*content=/i.test(cleanHtml)) passed.push('Responsive meta viewport is configured.');
+  else issues.push({ id: 'viewport_missing', severity: 'high', category: 'performance', message: 'Missing responsive <meta name="viewport"> tag.' });
 
   // Images without alt
   const imgMatches = cleanHtml.match(/<img\b(?![^>]*\balt=)[^>]*>/gi) || [];
-  if (imgMatches.length === 0) passed.push('Všetky obrázky majú definovaný alt atribút.');
-  else issues.push({ id: 'img_alt_missing', severity: 'medium', category: 'a11y', message: `Nájdených ${imgMatches.length} obrázkov bez atribútu alt.` });
+  if (imgMatches.length === 0) passed.push('All images define an alt attribute.');
+  else issues.push({ id: 'img_alt_missing', severity: 'medium', category: 'a11y', message: `Found ${imgMatches.length} image(s) without an alt attribute.` });
 
   // Heading hierarchy
-  if (/<h1\b/i.test(cleanHtml)) passed.push('Hlavný nadpis <h1> je prítomný.');
-  else issues.push({ id: 'h1_missing', severity: 'medium', category: 'seo', message: 'Na stránke chýba primárny nadpis <h1>.' });
+  if (/<h1\b/i.test(cleanHtml)) passed.push('Primary <h1> heading is present.');
+  else issues.push({ id: 'h1_missing', severity: 'medium', category: 'seo', message: 'Page is missing a primary <h1> heading.' });
 
   // 2. Security & Best Practices
-  if (/content-security-policy/i.test(cleanHtml)) passed.push('Content-Security-Policy (CSP) ochrana je aktívna.');
-  else issues.push({ id: 'csp_missing', severity: 'high', category: 'security', message: 'Chýba Content-Security-Policy (CSP) meta tag.' });
+  if (/content-security-policy/i.test(cleanHtml)) passed.push('Content-Security-Policy (CSP) protection is active.');
+  else issues.push({ id: 'csp_missing', severity: 'high', category: 'security', message: 'Missing Content-Security-Policy (CSP) meta tag.' });
 
   const targetBlankUnsafe = cleanHtml.match(/<a\b[^>]*\btarget=["']_blank["'](?![^>]*\brel=["'][^"']*noopener)[^>]*>/gi) || [];
-  if (targetBlankUnsafe.length === 0) passed.push('Odkazy s target="_blank" bezpečne používajú rel="noopener".');
-  else issues.push({ id: 'target_blank_unsafe', severity: 'medium', category: 'security', message: `Nájdených ${targetBlankUnsafe.length} odkazov s target="_blank" bez rel="noopener".` });
+  if (targetBlankUnsafe.length === 0) passed.push('Links with target="_blank" safely use rel="noopener".');
+  else issues.push({ id: 'target_blank_unsafe', severity: 'medium', category: 'security', message: `Found ${targetBlankUnsafe.length} link(s) with target="_blank" missing rel="noopener".` });
 
-  if (!cleanHtml.includes('http://')) passed.push('Všetky zdroje a odkazy používajú výhradne zabezpečený HTTPS protokol.');
-  else issues.push({ id: 'insecure_http', severity: 'medium', category: 'security', message: 'Boli nájdené nezabezpečené HTTP odkazy (Mixed Content riziko).' });
+  if (!cleanHtml.includes('http://')) passed.push('All resources and links exclusively use secure HTTPS.');
+  else issues.push({ id: 'insecure_http', severity: 'medium', category: 'security', message: 'Found insecure HTTP links (Mixed Content risk).' });
 
   // 3. Performance & Sizing
   const byteSize = Buffer.byteLength(cleanHtml, 'utf8');
-  if (byteSize < 120000) passed.push(`Optimalizovaná veľkosť HTML kódu (${(byteSize / 1024).toFixed(1)} kB < 120 kB).`);
-  else issues.push({ id: 'payload_too_large', severity: 'low', category: 'performance', message: `Veľký HTML dokument (${(byteSize / 1024).toFixed(1)} kB); zvážte kompresiu CSS.` });
+  if (byteSize < 120000) passed.push(`Optimized HTML payload size (${(byteSize / 1024).toFixed(1)} kB < 120 kB).`);
+  else issues.push({ id: 'payload_too_large', severity: 'low', category: 'performance', message: `Large HTML document (${(byteSize / 1024).toFixed(1)} kB); consider CSS compression.` });
 
   // 4. Score Calculation (0-100)
   const calcScore = (cat) => {
@@ -132,7 +132,7 @@ export function auditHtmlQuality(html) {
 }
 
 /**
- * Uloží výsledok auditu pre konkrétny projekt v D1
+ * Saves the audit result for a specific project in D1.
  */
 export async function recordStudioReview(env, projectId, version, review) {
   if (!env.DB) return review;

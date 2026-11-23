@@ -2,18 +2,18 @@
  * ════════════════════════════════════════════════════════════════════════════════
  * TRINITY GHOST CRYPTO · CLIENT-SIDE ZERO-KNOWLEDGE E2EE ENGINE
  * ════════════════════════════════════════════════════════════════════════════════
- * 
- * Všetka kryptografia prebieha výhradne v prehliadači používateľa (Web Crypto API).
- * Súkromné kľúče NIKDY neopustia zariadenie.
- * 
- * Kľúčové vlastnosti:
- * - ECDH (NIST P-256) pre výmenu kľúčov medzi účastníkmi
- * - 256-bit AES-GCM pre šifrovanie správ s 96-bitovým náhodným IV
- * - Bezpečnostné čísla (Safety Numbers) na detekciu MITM (ako Signal)
- * - Anti-forenzné prepisovanie pamäte (In-memory wiping / shredding)
+ *
+ * All cryptographic operations run exclusively in the user's browser (Web Crypto API).
+ * Private keys NEVER leave the device.
+ *
+ * Key properties:
+ * - ECDH (NIST P-256) for peer-to-peer key exchange
+ * - 256-bit AES-GCM for message encryption with a 96-bit random IV
+ * - Safety Numbers for MITM detection (Signal-style)
+ * - Anti-forensic in-memory wiping / shredding
  */
 
-const subtle = (typeof globalThis !== 'undefined' && globalThis.crypto?.subtle) 
+const subtle = (typeof globalThis !== 'undefined' && globalThis.crypto?.subtle)
   || (typeof window !== 'undefined' && window.crypto?.subtle)
   || null;
 
@@ -39,10 +39,10 @@ function base64ToBuffer(b64) {
 
 const GhostCrypto = {
   /**
-   * Vygeneruje nový lokálny efemérny pár kľúčov ECDH P-256.
+   * Generates a new local ephemeral ECDH P-256 key pair.
    */
   async generateIdentity() {
-    if (!subtle) throw new Error('Web Crypto API nie je dostupné.');
+    if (!subtle) throw new Error('Web Crypto API is not available.');
     const keyPair = await subtle.generateKey(
       { name: 'ECDH', namedCurve: 'P-256' },
       true,
@@ -62,16 +62,16 @@ const GhostCrypto = {
   },
 
   /**
-   * Importuje verejný kľúč partnera (buď JWK objekt/string alebo Base64 raw reťazec).
+   * Imports a peer's public key (either a JWK object/JSON string or a raw Base64 string).
    */
   async importPeerPublicKey(keyData) {
-    if (!subtle) throw new Error('Web Crypto API nie je dostupné.');
+    if (!subtle) throw new Error('Web Crypto API is not available.');
     let parsed = keyData;
     if (typeof keyData === 'string') {
       try {
         parsed = JSON.parse(keyData);
       } catch {
-        // Pokus o raw base64 import
+        // Attempt raw base64 import
         const rawBuffer = base64ToBuffer(keyData);
         return await subtle.importKey(
           'raw',
@@ -93,11 +93,11 @@ const GhostCrypto = {
   },
 
   /**
-   * Odvodí symetrický 256-bitový AES-GCM kľúč pomocou ECDH výmeny kľúčov.
-   * Tento kľúč je neextrahovateľný (extractable: false) pre maximálnu bezpečnosť pamäte.
+   * Derives a symmetric 256-bit AES-GCM key via ECDH key agreement.
+   * The derived key is non-extractable (extractable: false) for maximum memory safety.
    */
   async deriveSharedKey(myPrivateKey, peerPublicKey) {
-    if (!subtle) throw new Error('Web Crypto API nie je dostupné.');
+    if (!subtle) throw new Error('Web Crypto API is not available.');
     return await subtle.deriveKey(
       { name: 'ECDH', public: peerPublicKey },
       myPrivateKey,
@@ -108,12 +108,12 @@ const GhostCrypto = {
   },
 
   /**
-   * Odvodí symetrický 256-bitový AES-GCM kľúč pre miestnosť na základe Room ID.
-   * Slúži ako deterministický fallback šifrovania pre prípady, kedy partner
-   * ešte nezverejnil svoj ECDH kľúč.
+   * Derives a symmetric 256-bit AES-GCM room key from the Room ID.
+   * Serves as a deterministic fallback when the peer has not published
+   * an ECDH public key yet.
    */
   async deriveRoomKey(roomId) {
-    if (!subtle) throw new Error('Web Crypto API nie je dostupné.');
+    if (!subtle) throw new Error('Web Crypto API is not available.');
     const enc = new TextEncoder();
     const roomBytes = enc.encode('trinity_ghost_vault_room_key_v1:' + String(roomId));
     const hash = await subtle.digest('SHA-256', roomBytes);
@@ -127,11 +127,11 @@ const GhostCrypto = {
   },
 
   /**
-   * Zašifruje ľubovoľný reťazec alebo objekt pomocou AES-256-GCM.
-   * Vracia ciphertext a IV zakódované v Base64.
+   * Encrypts an arbitrary string or object using AES-256-GCM.
+   * Returns Base64-encoded ciphertext and IV.
    */
   async encrypt(sharedKey, plaintext) {
-    if (!subtle) throw new Error('Web Crypto API nie je dostupné.');
+    if (!subtle) throw new Error('Web Crypto API is not available.');
     const iv = globalThis.crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV
     const textToEncrypt = typeof plaintext === 'string' ? plaintext : JSON.stringify(plaintext);
     const encoded = new TextEncoder().encode(textToEncrypt);
@@ -149,11 +149,11 @@ const GhostCrypto = {
   },
 
   /**
-   * Dešifruje AES-256-GCM obálku.
-   * Vracia dešifrovaný text.
+   * Decrypts an AES-256-GCM envelope.
+   * Returns the decrypted plaintext string.
    */
   async decrypt(sharedKey, ciphertextBase64, ivBase64) {
-    if (!subtle) throw new Error('Web Crypto API nie je dostupné.');
+    if (!subtle) throw new Error('Web Crypto API is not available.');
     const ivBuffer = base64ToBuffer(ivBase64);
     const cipherBuffer = base64ToBuffer(ciphertextBase64);
 
@@ -167,11 +167,11 @@ const GhostCrypto = {
   },
 
   /**
-   * Vypočíta bezpečnostné čísla (Safety Numbers) a emoji odtlačok pre overenie neprítomnosti MITM útočníka.
-   * Rovnako ako v Signale: SHA-256 zo zotriedených verejných kľúčov oboch strán.
+   * Computes Safety Numbers and an emoji fingerprint to verify absence of a MITM attacker.
+   * Signal-compatible approach: SHA-256 over the sorted public keys of both peers.
    */
   async computeSafetyFingerprint(myPubJwk, peerPubJwk) {
-    if (!subtle) throw new Error('Web Crypto API nie je dostupné.');
+    if (!subtle) throw new Error('Web Crypto API is not available.');
     const keyA = `${myPubJwk.x}:${myPubJwk.y}`;
     const keyB = `${peerPubJwk.x}:${peerPubJwk.y}`;
     const combined = [keyA, keyB].sort().join('|');
@@ -179,7 +179,7 @@ const GhostCrypto = {
     const hashBuffer = await subtle.digest('SHA-256', new TextEncoder().encode(combined));
     const hashBytes = new Uint8Array(hashBuffer);
 
-    // 6 blokov po 5 číslic
+    // 6 blocks of 5 digits
     const digits = [];
     for (let i = 0; i < 6; i++) {
       const val = ((hashBytes[i * 4] << 24) | (hashBytes[i * 4 + 1] << 16) | (hashBytes[i * 4 + 2] << 8) | hashBytes[i * 4 + 3]) >>> 0;
@@ -188,7 +188,7 @@ const GhostCrypto = {
     }
     const safetyNumbers = digits.join(' ');
 
-    // Emoji odtlačok (4 emoji z palety 32 ikon)
+    // Emoji fingerprint (4 emoji from a 32-icon palette)
     const emojiPalette = ['🛡️', '⚡', '🔒', '💎', '🔥', '🛰️', '🪐', '⚓', '🔑', '🚀', '🔮', '🌊', '🌋', '🧭', '🧬', '⚛️', '🦅', '🐺', '🦁', '🐉', '🍀', '🌟', '❄️', '🎯', '👁️', '🎲', '🪙', '🏆', '🎩', '🎻', '🎷', '🎸'];
     const emoji = [
       emojiPalette[hashBytes[28] % emojiPalette.length],
@@ -205,7 +205,7 @@ const GhostCrypto = {
   },
 
   /**
-   * Bezpečné zničenie (shredding) citlivých objektov a reťazcov v pamäti.
+   * Securely wipes (shreds) sensitive objects and byte arrays in memory.
    */
   shred(target) {
     if (!target) return;

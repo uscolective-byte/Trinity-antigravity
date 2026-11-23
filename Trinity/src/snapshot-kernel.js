@@ -3,8 +3,8 @@
  * @subsystem ZERO_COLD_START_AND_TIERED_MEMORY
  * @author Basterix (Root Architect) & Antigravity
  * @license Sovereign Irrevocable Covenant
- * @description Modul snapshot-kernel.js v ekosystéme TRINITY OMNI-CORE v11.3 / v12.0.
- * Zabezpečuje Zero-Cold-Start snapshotting cez KV/Memory a vrstvenú L1/L2 pamäťovú hierarchiu.
+ * @description Module snapshot-kernel.js in the TRINITY OMNI-CORE v11.3 / v12.0 ecosystem.
+ * Provides Zero-Cold-Start snapshotting via KV/Memory and a tiered L1/L2 memory hierarchy.
  */
 
 export class EdgeSnapshotStore {
@@ -27,7 +27,7 @@ export class EdgeSnapshotStore {
       try {
         await this.kv.put(key, JSON.stringify(payload), { expirationTtl: ttlSeconds });
       } catch (err) {
-        console.warn(`[Snapshot Store] Nepodarilo sa zapísať snapshot do KV:`, err);
+        console.warn(`[Snapshot Store] Failed to write snapshot to KV:`, err);
       }
     }
     return payload;
@@ -37,7 +37,7 @@ export class EdgeSnapshotStore {
     const key = `snapshot:${scope}`;
     const start = Date.now();
 
-    // 1. Skús lokálnu in-memory L1 cache (< 1 ms)
+    // 1. Try local in-memory L1 cache (< 1 ms)
     const local = this.localCache.get(key);
     if (local && Date.now() < local.expires) {
       return {
@@ -49,7 +49,7 @@ export class EdgeSnapshotStore {
       };
     }
 
-    // 2. Skús Cloudflare KV L2 (< 5 ms)
+    // 2. Try Cloudflare KV L2 (< 5 ms)
     if (this.kv && typeof this.kv.get === 'function') {
       try {
         const raw = await this.kv.get(key);
@@ -96,12 +96,12 @@ export class TieredMemoryManager {
   }
 
   async get(key) {
-    // 1. Najprv L1 hľadanie
+    // 1. Check L1 first
     if (this.localStore.has(key)) {
       return { found: true, tier: 'L1_LOCAL', record: this.localStore.get(key) };
     }
 
-    // 2. Fallback na L2
+    // 2. Fall back to L2
     if (this.remoteStore && typeof this.remoteStore.get === 'function') {
       try {
         const raw = await this.remoteStore.get(key);

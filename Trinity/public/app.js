@@ -1,242 +1,60 @@
-// Trinity v12.0.0 — Sovereign Client & Multi-Model Architecture Console
-const API = '/api';
+'use strict';
+const $=id=>document.getElementById(id), labels={queued:'Queued',running:'Running',completed:'Completed',failed:'Failed',cancelled:'Cancelled'};
+let agents=[],catalog={plugins:[],skills:[],counts:{}},catalogTab='plugins',view='chat',session=localStorage.getItem('trinity-session-id')||crypto.randomUUID(),poll=null;
+localStorage.setItem('trinity-session-id',session);
 
-// ─── TAB NAVIGATION ───
-const tabHeadings = {
-  chat: { title: "Konzola & Multimodálny Asistent", sub: "Federácia: Antigravity, Gemini, Copilot Studio, Codex, GPT-4, Llama 3.3 a Ollama" },
-  architecture: { title: "Architektúra v12.0.0 OMNI-CORE", sub: "47 Cloudflare Workerov, Ring 0 Sovereign Lock, D1 & Base Sepolia" },
-  agents: { title: "Flotila Agentov", sub: "21 infraštruktúrnych agentov a 40 tímových Ops agentov" },
-  tools: { title: "Nástroje & Schopnosti", sub: "Katalóg 57+ exekučných nástrojov s deterministickým auditom v D1" },
-  database: { title: "D1 Databáza trinity-v03", sub: "170+ relačných tabuliek, trace logy, MMR ledger a sémantická pamäť" },
-  telemetry: { title: "Živá Telemetria & Traces", sub: "Monitorovanie zdravia Edge runtime, D1, PC Bridge Daemon a AI inferencie" },
-  charter: { title: "Identita & Zásady Trinity", sub: "Pravidlá komunikácie Basterixa: slovenčina, zákaz češtiny, Truth Policy 3.0" }
-};
+function el(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
+function notice(text){$('notice').textContent=text;$('notice').hidden=!text;}
 
-document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const tabName = btn.dataset.tab;
-    if (!tabName) return;
-
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-
-    btn.classList.add('active');
-    const pane = document.getElementById(`pane-${tabName}`);
-    if (pane) pane.classList.add('active');
-
-    // Update Topbar
-    const info = tabHeadings[tabName];
-    if (info) {
-      document.getElementById('tab-heading').textContent = info.title;
-      document.getElementById('tab-subheading').textContent = info.sub;
-    }
-  });
-});
-
-// ─── API HELPER ───
-async function api(path, opts = {}) {
-  const token = window.TRINITY_TOKEN || localStorage.getItem('trinity_token') || '';
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-Trinity-Token': token,
-    'X-Trinity-Trace-Id': crypto.randomUUID(),
-    ...opts.headers
-  };
-  const r = await fetch(path.startsWith('/api') || path.startsWith('/chat') ? path : API + path, {
-    ...opts,
-    headers
-  });
-  return r.json();
+function formatMarkdown(text){
+  if(!text)return '';
+  const d=document.createElement('div');
+  d.textContent=text;
+  let s=d.innerHTML;
+  s=s.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g,'<pre class="code-block"><code class="lang-$1">$2</code></pre>');
+  s=s.replace(/`([^`\n]+)`/g,'<code class="inline-code">$1</code>');
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  s=s.replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>');
+  s=s.replace(/^[ \t]*[\*\-][ \t]+(.+)$/gm,'<li>$1</li>');
+  s=s.replace(/(<li>[\s\S]*?<\/li>)/g,'<ul class="md-list">$1</ul>');
+  s=s.replace(/<\/ul>\s*<ul class="md-list">/g,'');
+  s=s.replace(/\n\n+/g,'<br><br>');
+  return s;
 }
 
-// ─── HEALTH & TELEMETRY CHECK ───
-async function checkHealth() {
-  const dot = document.getElementById('system-status-dot');
-  const statusEl = document.getElementById('status');
-  const workerMetric = document.getElementById('metric-worker');
-  const dbMetric = document.getElementById('metric-db');
-  const aiMetric = document.getElementById('metric-ai');
-
-  try {
-    const h = await api('/api/health');
-    const isOnline = h.status === 'ok' || h.status === 'online';
-    
-    if (statusEl) statusEl.textContent = `Online (v${h.version || '7.0.0'})`;
-    if (dot) {
-      dot.className = 'status-dot ' + (isOnline ? 'online' : 'offline');
-    }
-    if (workerMetric) workerMetric.textContent = `v${h.version || '7.0.0'} OK`;
-    if (dbMetric) dbMetric.textContent = h.db?.ok ? 'Connected OK' : 'Ready (D1)';
-    if (aiMetric) aiMetric.textContent = h.ai?.ok ? 'Active (Workers AI)' : 'Ready';
-
-    logLiveTrace('HEALTH_CHECK', `Systémový stav overený: status=${h.status}, runtime=Cloudflare Workers`);
-  } catch (err) {
-    if (statusEl) statusEl.textContent = 'Edge Connecting...';
-    if (dot) dot.className = 'status-dot';
-    if (dbMetric) dbMetric.textContent = 'D1 Active';
-    if (aiMetric) aiMetric.textContent = 'Workers AI Active';
-  }
-}
-
-// ─── CHAT HANDLING ───
-const taskForm = document.getElementById('task-form');
-const taskInput = document.getElementById('task');
-const sendBtn = document.getElementById('send');
-const conversation = document.getElementById('conversation');
-
-if (taskForm) {
-  taskForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const task = taskInput.value.trim();
-    if (!task) return;
-
-    const mode = document.getElementById('mode').value;
-    const agent = document.getElementById('agent').value;
-    const provider = document.getElementById('provider').value;
-
-    addMsg('user', task);
-    taskInput.value = '';
-    sendBtn.disabled = true;
-
-    try {
-      const traceId = crypto.randomUUID();
-      logLiveTrace('CHAT_REQ', `Požiadavka odoslaná na /chat [Agent: ${agent}, Mode: ${mode}]`);
-
-      const result = await api('/chat', {
-        method: 'POST',
-        body: JSON.stringify({ task, mode, agent, provider, sessionId: 'basterix-session' })
-      });
-
-      if (result.error) {
-        addMsg('assistant', '❌ ' + (result.message || result.error));
-        logLiveTrace('CHAT_ERR', `Chyba pri spracovaní: ${result.error}`);
-      } else {
-        const text = result.response || (typeof result === 'string' ? result : JSON.stringify(result));
-        addMsg('assistant', text, {
-          model: result.model,
-          fallback: result.fallbackUsed,
-          ms: result.latencyMs,
-          trace: result.trace_id || traceId
-        });
-        logLiveTrace('CHAT_RESP', `Odpoveď doručená [Model: ${result.model || 'Workers AI'}, Trvanie: ${result.latencyMs || 0}ms]`);
-      }
-    } catch (err) {
-      addMsg('assistant', '❌ Chyba spojenia s Workerom: ' + err.message);
-      logLiveTrace('CHAT_NET_ERR', err.message);
-    }
-
-    sendBtn.disabled = false;
-  });
-
-  // Enter to send, Shift+Enter for new line
-  if (taskInput) {
-    taskInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        taskForm.dispatchEvent(new Event('submit'));
-      }
-    });
-  }
-}
-
-// Quick Chip Prompts
-document.querySelectorAll('.chip-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    if (taskInput) {
-      taskInput.value = btn.dataset.prompt;
-      taskForm.dispatchEvent(new Event('submit'));
-    }
-  });
-});
-
-function addMsg(role, content, meta = {}) {
-  const div = document.createElement('div');
-  div.className = 'msg ' + role;
-
-  const textNode = document.createElement('div');
-  textNode.style.whiteSpace = 'pre-wrap';
-  textNode.textContent = content;
-  div.appendChild(textNode);
-
-  if (meta.tools && Array.isArray(meta.tools) && meta.tools.length > 0) {
-    const toolsContainer = document.createElement('div');
-    toolsContainer.style.marginTop = '8px';
-    toolsContainer.style.display = 'flex';
-    toolsContainer.style.flexWrap = 'wrap';
-    toolsContainer.style.gap = '6px';
-
-    for (const t of meta.tools) {
-      const badge = document.createElement('span');
-      badge.style.fontSize = '10px';
-      badge.style.padding = '2px 6px';
-      badge.style.borderRadius = '4px';
-      badge.style.background = 'rgba(56, 189, 248, 0.15)';
-      badge.style.color = '#38bdf8';
-      badge.style.border = '1px solid rgba(56, 189, 248, 0.3)';
-      badge.style.fontFamily = 'var(--font-mono)';
-      badge.textContent = `🛠️ ${t.name || t.tool || 'tool'}`;
-      toolsContainer.appendChild(badge);
-    }
-    div.appendChild(toolsContainer);
-  }
-
-  if (meta.model || meta.trace) {
-    const m = document.createElement('div');
-    m.style.fontSize = '11px';
-    m.style.color = 'var(--text-dim)';
-    m.style.marginTop = '6px';
-    m.style.fontFamily = 'var(--font-mono)';
-    const fallbackTxt = meta.fallback ? ' (⚡ Fallback)' : '';
-    m.textContent = `Federácia: ${meta.model || 'Sovereign Cascade'}${fallbackTxt} • ${meta.ms || 0}ms • trace: ${meta.trace ? meta.trace.slice(0, 8) : 'ok'}`;
-    div.appendChild(m);
-  }
-
-  conversation.appendChild(div);
-  conversation.scrollTop = conversation.scrollHeight;
-}
-
-// ─── LIVE TRACE LOGGER ───
-function logLiveTrace(tag, message) {
-  const container = document.getElementById('traces-log-container');
-  if (!container) return;
-
-  const row = document.createElement('div');
-  row.className = 'trace-row';
-  const time = new Date().toLocaleTimeString('sk-SK');
-  row.innerHTML = `<span class="trace-time">[${time}]</span> <span class="trace-tag ok">${tag}</span> ${escapeHtml(message)}`;
-  container.prepend(row);
-}
-
-function escapeHtml(str) {
-  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-// ─── REFRESH & BUTTON LISTENERS ───
-const btnRefreshStatus = document.getElementById('btn-refresh-status');
-if (btnRefreshStatus) btnRefreshStatus.addEventListener('click', checkHealth);
-
-const btnRefreshTraces = document.getElementById('btn-refresh-traces');
-if (btnRefreshTraces) btnRefreshTraces.addEventListener('click', () => {
-  logLiveTrace('SYNC', 'Traces manuálne obnovené.');
-});
-
-const btnPingTools = document.getElementById('btn-ping-tools');
-if (btnPingTools) {
-  btnPingTools.addEventListener('click', async () => {
-    btnPingTools.disabled = true;
-    btnPingTools.textContent = 'Testujem 57 nástrojov...';
-    try {
-      const res = await api('/api/health/models');
-      logLiveTrace('TOOLS_PING', 'Všetky modely a systémové tooly overené.');
-      alert('✅ Test dokončený: Všetky nástroje v registri sú pripravené na vykonanie.');
-    } catch {
-      logLiveTrace('TOOLS_PING', 'Lokálny register nástrojov: 57 nástrojov aktívnych.');
-      alert('ℹ️ Nástroje Trinity v7.0.0: 57 nástrojov v registri je pripravených.');
-    }
-    btnPingTools.disabled = false;
-    btnPingTools.textContent = 'Otestovať stav nástrojov';
-  });
-}
-
-// Initial check
-checkHealth();
+async function api(path,body){const r=await fetch('/api/ops'+path,{method:body===undefined?'GET':'POST',headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});const data=await r.json();if(!r.ok){if(r.status===401)lock();throw new Error(data.error||'Request failed.');}return data;}
+function lock(){clearTimeout(poll);$('workspace').hidden=true;$('login-panel').hidden=false;$('connection').textContent='Sign-in required';}
+async function configureGoogleLogin(){const config=await TrinityAuth.config();$('google-login').hidden=!config.google_enabled;$('google-login').onclick=()=>location.assign('/api/auth/google/start');$('login-form').hidden=!!config.google_required;$('legacy-login-note').hidden=!!config.google_required;const result=new URLSearchParams(location.search).get('auth');$('google-login-note').textContent=result==='pending'?'Profile is awaiting administrator approval.':result==='denied'?'Access to Trinity was not approved.':config.google_required&&!config.google_enabled?'Google OAuth is not configured yet; access key login is disabled.':'';if(result){const next=new URL(location.href);next.searchParams.delete('auth');history.replaceState(null,'',next.pathname+next.search+next.hash);}}
+function safe(fn){return async event=>{event?.preventDefault();notice('');try{await fn(event);}catch(e){notice(e.message);}};}
+async function start(){const s=await TrinityAuth.requestJSON('/api/ops/status');$('workspace').hidden=false;$('login-panel').hidden=true;$('connection').textContent='Signed in · Center ready';const pcEl=$('pc-bridge-status');if(pcEl){const on=!!s.pc_bridge?.connected;pcEl.textContent=on?'PC: Online':'PC: Offline';pcEl.className='badge '+(on?'ok':'subtle');pcEl.title=s.pc_bridge?.detail||(on?'Local PC gateway is connected':'Local PC gateway is unavailable');} $('users-nav').hidden=!['owner','admin'].includes(s.account?.role);$('completed-count').textContent=s.jobs.find(x=>x.status==='completed')?.count||0;$('active-count').textContent=s.jobs.filter(x=>['running','queued'].includes(x.status)).reduce((n,x)=>n+x.count,0);agents=await api('/agents');$('agent').replaceChildren(new Option('Trinity selects','auto'));for(const a of agents)$('agent').add(new Option(a.name,a.id));renderAgents();$('mcp-url').textContent=location.origin+'/mcp';$('memory-count').textContent=(s.memory?.notes||0)+(s.memory?.legacy||0);await loadSessions();}
+$('login-form').addEventListener('submit',safe(async()=>{await api('/login',{key:$('access-key').value});$('access-key').value='';await start();}));
+$('logout').onclick=safe(async()=>{await api('/logout',{});lock();});
+async function setView(name){view=name;document.querySelectorAll('.view').forEach(x=>x.hidden=x.id!=='view-'+name);document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===name));$('page-title').textContent={chat:'Communication',agents:'46-Agent Team',jobs:'Tasks & Outputs',memory:'Memory',services:'Connections',plugins:'Extensions',users:'User Accounts',selfwrite:'Self-write'}[name];if(name==='jobs')await loadJobs();if(name==='memory')await loadMemory();if(name==='plugins')await loadPlugins();if(name==='users')await loadUsers();if(name==='selfwrite')await loadChanges();}
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=safe(()=>setView(b.dataset.view)));
+function renderAgents(){const q=$('agent-search').value.toLocaleLowerCase();$('agent-grid').replaceChildren();for(const a of agents.filter(a=>(a.name+' '+a.cluster+' '+a.role).toLocaleLowerCase().includes(q))){const card=el('article',undefined,'panel');card.append(el('span',a.cluster,'meta'),el('h3',a.name),el('p',a.role),el('small',`${a.completed||0} completed steps · ${a.tools.length} tools`));const button=el('button','Assign task');button.onclick=safe(async()=>{await setView('chat');$('agent').value=a.id;$('task').focus();});card.append(el('br'),el('br'),button);$('agent-grid').append(card);}}
+$('agent-search').oninput=renderAgents;
+$('task-form').addEventListener('submit',safe(async()=>{const task=$('task').value.trim();if(!task)return;$('send').disabled=true;try{const job=await api('/jobs',{task,mode:$('mode').value,agent:$('agent').value,provider:$('provider').value,session_id:session,remember:$('remember-task').checked,idempotency_key:crypto.randomUUID()});const mine=el('div',undefined,'message user');mine.append(el('strong','You'),el('p',task));const answer=el('div',undefined,'message assistant');answer.append(el('strong','◈ Trinity'));const progress=el('div','Task queued.','progress'),text=el('div',undefined,'message-text');answer.append(progress,text);$('conversation').append(mine,answer);$('task').value='';localStorage.removeItem('trinity-draft');$('remember-task').checked=false;await watch(job.id,progress,text,answer);}finally{$('send').disabled=false;}}));
+async function watch(id,progress,text,box){const tick=async()=>{try{const j=await api('/jobs/'+id);progress.textContent=`${j.context_summary?'Memory: '+j.context_summary.memories.length+' records · ':''}${labels[j.status]||j.status} · ${j.steps.filter(s=>s.status==='completed').length}/${j.team.length} steps · ${j.steps.filter(s=>s.status==='running').map(s=>agents.find(a=>a.id===s.agent_id)?.name||s.agent_id).join(', ')}`;if(j.status==='completed'){text.innerHTML=formatMarkdown(j.result);box.append(processSummary(j));const a=el('a','Download full output ↓');a.href='/api/ops/jobs/'+id+'/artifact';box.append(a);await start();}else if(['failed','cancelled'].includes(j.status)){text.textContent=j.error||'Task was cancelled.';text.classList.add('failed');}else poll=setTimeout(tick,3500);}catch(e){notice(e.message);}};clearTimeout(poll);await tick();}
+async function loadJobs(){const rows=await api('/jobs');$('job-list').replaceChildren();if(!rows.length)$('job-list').append(el('p','No tasks yet.'));for(const j of rows){const b=el('button',undefined,'job-row');b.append(el('span',j.task),el('span',labels[j.status]||j.status,j.status==='failed'?'failed':''));b.onclick=safe(()=>showJob(j.id));$('job-list').append(b);}}
+async function showJob(id){const j=await api('/jobs/'+id),box=$('job-detail');box.replaceChildren(el('span',labels[j.status]||j.status,'meta'),el('h3',j.task),el('pre',j.result||j.error||'Work in progress…'));box.hidden=false;box.append(processSummary(j));const refresh=el('button','Refresh detail');refresh.onclick=safe(()=>showJob(id));box.append(refresh);if(j.artifact_key){const a=el('a',' Download output ↓');a.href='/api/ops/jobs/'+id+'/artifact';box.append(a);}if(['queued','running'].includes(j.status)){const cancel=el('button','Cancel task');cancel.onclick=safe(async()=>{await api('/jobs/'+id+'/cancel',{});await showJob(id);await loadJobs();});box.append(cancel);}for(const s of j.steps){const d=el('details');d.append(el('summary',`${agents.find(a=>a.id===s.agent_id)?.name||s.agent_id} · ${labels[s.status]} · ${s.model||''}`),el('pre',s.result||s.error||'Waiting for result.'),el('small',JSON.stringify(s.tool_log)));box.append(d);}box.scrollIntoView({behavior:'smooth',block:'start'});}
+$('refresh-jobs').onclick=safe(loadJobs);
+async function loadMemory(){const data=await api('/memory?q='+encodeURIComponent($('memory-query').value));$('memory-list').replaceChildren();for(const r of data.records){const card=el('article',undefined,'panel');card.append(el('span',r.source,'meta'),el('h3',r.key),el('pre',r.value));$('memory-list').append(card);}if(!data.records.length)$('memory-list').append(el('p','No matching records.'));}
+$('memory-search-form').onsubmit=safe(loadMemory);$('memory-form').onsubmit=safe(async()=>{await api('/memory',{key:$('memory-key').value,value:$('memory-value').value});$('memory-form').reset();await loadMemory();notice('Information saved.');});
+$('refresh-services').onclick=safe(async()=>{$('refresh-services').disabled=true;try{const rows=await api('/services');$('service-list').replaceChildren();for(const s of rows){const card=el('article',undefined,'panel');card.append(el('span',s.status==='reachable'?'REACHABLE':'NEEDS CHECK',s.status==='reachable'?'meta ok':'meta failed'),el('h3',s.name||s.binding),el('p',s.note||s.error||s.status),el('small',s.binding));$('service-list').append(card);}}finally{$('refresh-services').disabled=false;}});
+document.querySelectorAll('[data-test-provider]').forEach(b=>b.onclick=safe(async()=>{const p=b.dataset.testProvider;b.disabled=true;$('test-'+p).textContent='Waiting for live response…';try{const r=await api('/providers/test',{provider:p});$('test-'+p).textContent=`Verified: ${r.model}\n${r.response}`;}catch(e){$('test-'+p).textContent=e.message;throw e;}finally{b.disabled=false;}}));
+void TrinityAuth.start({configure:configureGoogleLogin,initialize:start,lock,notice});
+document.documentElement.dataset.theme=localStorage.getItem('trinity-theme')||'dark';
+$('theme').onclick=()=>{const theme=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=theme;localStorage.setItem('trinity-theme',theme);};
+$('task').value=localStorage.getItem('trinity-draft')||'';
+$('task').addEventListener('input',()=>localStorage.setItem('trinity-draft',$('task').value));
+$('task').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();$('task-form').requestSubmit();}});
+$('new-chat').onclick=safe(async()=>{session=crypto.randomUUID();localStorage.setItem('trinity-session-id',session);clearTimeout(poll);$('conversation').replaceChildren(el('div','New conversation. Long-term memory remains available.','message assistant'));await setView('chat');$('task').focus();});
+document.querySelectorAll('[data-prompt]').forEach(b=>b.onclick=safe(async()=>{const kind=b.dataset.prompt;if(kind==='memory'){await setView('memory');$('memory-key').value='profile/preferences';$('memory-value').focus();return;}const choices={plan:['Prepare a project plan with concrete steps and outcome verification. Project: ','planner','team'],code:['Design and write code for this application. Clearly distinguish proposals from executed tests. Application: ','backend','team'],research:['Search current information and cite sources for topic: ','researcher','single']};const [prompt,agent,mode]=choices[kind];$('task').value=prompt;$('agent').value=agent;$('mode').value=mode;if(kind==='research')$('provider').value='ollama';$('task').focus();}));
+async function loadSessions(){const rows=await api('/jobs');const seen=new Set();$('session-picker').replaceChildren(new Option('Current conversation',''));for(const row of rows){if(seen.has(row.session_id))continue;seen.add(row.session_id);$('session-picker').add(new Option(row.task.slice(0,65),row.session_id));}}
+async function loadUsers(){const response=await api('/users/pending'),list=$('pending-users');list.replaceChildren();if(!response.items.length){list.append(el('p','No profiles are awaiting approval.'));return;}for(const profile of response.items){const card=el('article',undefined,'panel'),title=el('h3',profile.display_name),email=el('p',profile.email),created=el('small','Requested access: '+profile.created_at),approve=el('button','Approve','primary'),reject=el('button','Reject');approve.onclick=safe(async()=>{await api('/users/'+encodeURIComponent(profile.email)+'/approve',{});await loadUsers();});reject.onclick=safe(async()=>{await api('/users/'+encodeURIComponent(profile.email)+'/reject',{});await loadUsers();});card.append(title,email,created,approve,reject);list.append(card);}}
+$('refresh-users').onclick=safe(loadUsers);
+$('session-picker').onchange=safe(async()=>{if(!$('session-picker').value)return;session=$('session-picker').value;localStorage.setItem('trinity-session-id',session);const rows=(await api('/jobs')).filter(j=>j.session_id===session).reverse();$('conversation').replaceChildren();for(const row of rows){const j=await api('/jobs/'+row.id);const mine=el('div',undefined,'message user');mine.append(el('strong','You'),el('p',j.task));const answer=el('div',undefined,'message assistant');const pText=el('div',undefined,'message-text');pText.innerHTML=formatMarkdown(j.result||j.error||labels[j.status]);answer.append(el('strong','◈ Trinity'),pText,processSummary(j));$('conversation').append(mine,answer);}});
+function processSummary(job){const d=el('details',undefined,'process');d.append(el('summary','Workflow · memory, team, and tools'));const memory=job.context_summary;d.append(el('p',memory?`Attached ${memory.conversations} previous replies and ${memory.memories.length} memory records.`:'Memory context has not been loaded yet.'));if(memory?.memories.length)d.append(el('small',memory.memories.map(m=>m.key).join(' · ')));const trail=el('div',undefined,'step-trail');for(const agent of job.team){const step=job.steps.find(s=>s.agent_id===agent);const item=el('div',undefined,'step '+(step?.status||'pending'));item.append(el('strong',agents.find(a=>a.id===agent)?.name||agent),el('span',labels[step?.status]||'Waiting for turn'));for(const tool of step?.tool_log||[])item.append(el('small',`${tool.tool} · ${tool.status==='completed'?'completed':'failed'}`));trail.append(item);}d.append(trail);return d;}
+async function loadPlugins(){catalog=await api('/catalog');renderCatalog();}
+function renderCatalog(){const query=($('catalog-search')?.value||'').toLocaleLowerCase('en').trim(),category=$('catalog-category')?.value||'all',pluginGrid=$('plugin-grid'),skillGrid=$('skill-grid');$('install-all-plugins').hidden=!catalog.can_manage;$('catalog-summary').textContent=`${catalog.counts.installed_plugins||0}/${catalog.counts.plugins||0} plugins installed · ${catalog.counts.enabled_plugins||0} enabled · ${catalog.counts.skills||0} skills`;const source=catalogTab==='plugins'?catalog.plugins:catalog.skills;const filtered=source.filter(item=>{const text=(`${item.name} ${item.description} ${(item.category||'')} ${(item.clusters||[]).join(' ')}`).toLocaleLowerCase('en');return(!query||text.includes(query))&&(category==='all'||(item.category||item.clusters?.[0])===category);});const target=catalogTab==='plugins'?pluginGrid:skillGrid;target.replaceChildren();target.hidden=false;(catalogTab==='plugins'?skillGrid:pluginGrid).hidden=true;$('plugins-tab').classList.toggle('active',catalogTab==='plugins');$('skills-tab').classList.toggle('active',catalogTab==='skills');$('catalog-empty').hidden=filtered.length>0;for(const item of filtered){const card=el('article',undefined,'panel '+(catalogTab==='plugins'?'plugin-card':'skill-card'));if(catalogTab==='plugins'){const state=item.installed?(item.enabled?'ENABLED':'DISABLED'):'NOT INSTALLED';card.append(el('span',item.icon||'✳','plugin-icon'),el('span',state,item.enabled?'meta ok':item.installed?'meta':'meta failed'),el('h3',item.name),el('p',item.description),el('small',`${item.dependency||'Trinity core'} · ${item.version||'1.0.0'}`));const actions=el('div',undefined,'plugin-actions');if(catalog.can_manage){if(!item.installed){const install=el('button','Install','primary');install.onclick=safe(async()=>{install.disabled=true;await api('/plugins/'+item.id+'/install',{});await loadPlugins();});actions.append(install);}else{const toggle=el('button',item.enabled?'Disable for agents':'Enable');toggle.disabled=!!item.required;toggle.onclick=safe(async()=>{await api('/plugins/'+item.id,{enabled:!item.enabled});await loadPlugins();});actions.append(toggle);}const test=el('button','Test core');test.disabled=!item.enabled;const stateText=el('p','Not verified in this view yet.','plugin-result');test.onclick=safe(async()=>{test.disabled=true;stateText.textContent='Verifying…';try{const r=await api('/plugins/'+item.id+'/test',{});stateText.textContent='✓ '+r.summary;stateText.className='plugin-result ok';}catch(e){stateText.textContent=e.message;stateText.className='plugin-result failed';}finally{test.disabled=false;}});actions.append(test);card.append(actions,stateText);}}else{card.append(el('span',item.clusters?.join(' · ')||'SKILL','meta'),el('h3',item.name),el('p',item.description));const details=el('details');details.append(el('summary','Procedure & verification'));details.append(el('p',(item.steps||[]).map((step,i)=>`${i+1}. ${step}`).join('\n')),el('small',(item.success_checks||[]).join(' · ')));card.append(details);}target.append(card);} }
+$('catalog-search').oninput=renderCatalog;$('catalog-category').onchange=renderCatalog;$('plugins-tab').onclick=safe(async()=>{catalogTab='plugins';renderCatalog();});$('skills-tab').onclick=safe(async()=>{catalogTab='skills';renderCatalog();});$('refresh-catalog').onclick=safe(loadPlugins);$('install-all-plugins').onclick=safe(async()=>{const button=$('install-all-plugins');button.disabled=true;$('catalog-status').textContent='Installing and enabling trusted catalog…';try{const result=await api('/plugins/install-all',{});$('catalog-status').textContent=`Done: ${result.installed} plugins installed and enabled.`;await loadPlugins();}finally{button.disabled=false;}});

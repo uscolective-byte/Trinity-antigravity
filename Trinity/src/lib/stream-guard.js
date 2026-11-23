@@ -1,10 +1,10 @@
 /**
  * Trinity Stream Guard
- * Sliding-window SSE filter pre zachytávanie tokenov, leakov a kľúčov
+ * Sliding-window SSE filter for catching tokens, leaks, and keys
  * @version 1.0.0
  */
 
-// Patterny pre senzitívne dáta
+// Patterns for sensitive data
 const SENSITIVE_PATTERNS = [
   /(?:sk-|pk-|Bearer\s)[a-zA-Z0-9_-]{20,}/gi,        // API keys
   /(?:ghp_|gho_|ghu_|ghs_|ghr_)[a-zA-Z0-9]{36}/gi,    // GitHub tokens
@@ -19,7 +19,7 @@ const SENSITIVE_PATTERNS = [
 const REDACTION_TEXT = "[REDACTED]";
 
 /**
- * Skontroluje text na senzitívne dáta
+ * Scans text for sensitive data
  */
 export function scanForLeaks(text) {
   if (!text || typeof text !== "string") return { hasLeak: false, cleaned: text, matches: [] };
@@ -36,7 +36,7 @@ export function scanForLeaks(text) {
 }
 
 /**
- * Stream Guard — filtruje SSE streamy v reálnom čase
+ * Stream Guard — filters SSE streams in real time
  */
 export class StreamGuard {
   constructor(options = {}) {
@@ -47,33 +47,33 @@ export class StreamGuard {
   }
 
   /**
-   * Spracuje chunk textu zo streamu
-   * @returns {string} - očistený text
+   * Processes a text chunk from the stream
+   * @returns {string} - sanitized text
    */
   processChunk(chunk) {
     this.buffer += chunk;
     this.totalScanned += chunk.length;
 
-    // Ak je buffer príliš krátky, počkaj na viac dát
+    // If the buffer is still too short, wait for more data
     if (this.buffer.length < this.windowSize) {
       return "";
     }
 
-    // Skontroluj buffer na leaky
+    // Scan the buffer for leaks
     const { hasLeak, cleaned, matches } = scanForLeaks(this.buffer);
     if (hasLeak) {
       this.leaksDetected += matches.length;
       console.warn(`[StreamGuard] Detected ${matches.length} sensitive pattern(s) in stream`);
     }
 
-    // Vráť očistený text a vyprázdni buffer
+    // Return sanitized text and clear the buffer
     const output = cleaned;
     this.buffer = "";
     return output;
   }
 
   /**
-   * Flush zvyšku bufferu na konci streamu
+   * Flushes the remainder of the buffer at the end of the stream
    */
   flush() {
     if (this.buffer.length === 0) return "";
@@ -85,7 +85,7 @@ export class StreamGuard {
   }
 
   /**
-   * Vytvorí filtrovaný ReadableStream z Response
+   * Creates a filtered ReadableStream from a Response
    */
   wrapStream(response) {
     const self = this;

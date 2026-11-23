@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul capability-status.js (Trinity/src/capability-status.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Capability status verification module (Trinity/src/capability-status.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import {getPCBridgeStatus} from './system-actions.js';
 
@@ -16,21 +16,21 @@ export function summarizeCapabilities(env, bridge, actions = [], now = Date.now(
       typeof receipt === 'object' && !Array.isArray(receipt) &&
       Object.keys(receipt).length > 0 && receipt.success !== false && (!tasks||tasks.includes(receipt.task)); } catch { return false; } })());
   const groups = [
-    {id:'reasoning',name:'Rozhovor a plánovanie',configured:!!env.AI,local:false},
-    {id:'memory',name:'Pamäť a projekty',configured:!!env.DB,local:false},
-    {id:'media',name:'Obrázky a médiá',configured:!!env.AI && !!env.ARTIFACTS,local:false},
-    {id:'files',name:'Čítanie a úprava súborov',configured:!!env.TRINITY_GATEWAY_KEY,local:true,actions:['read','write','edit','selfwrite']},
-    {id:'build',name:'Testy a zostavenie projektu',configured:!!env.TRINITY_GATEWAY_KEY,local:true,actions:['run'],tasks:['build','tests']},
-    {id:'scripts',name:'Node, Python a CMD skripty',configured:!!env.TRINITY_GATEWAY_KEY,local:true,actions:['run'],tasks:['script']},
-    {id:'deploy',name:'Nasadenie projektu',configured:!!env.TRINITY_GATEWAY_KEY,local:true,actions:['deploy']}
+    {id:'reasoning',name:'Conversation and planning',configured:!!env.AI,local:false},
+    {id:'memory',name:'Memory and projects',configured:!!env.DB,local:false},
+    {id:'media',name:'Images and media',configured:!!env.AI && !!env.ARTIFACTS,local:false},
+    {id:'files',name:'File reading and editing',configured:!!env.TRINITY_GATEWAY_KEY,local:true,actions:['read','write','edit','selfwrite']},
+    {id:'build',name:'Project tests and builds',configured:!!env.TRINITY_GATEWAY_KEY,local:true,actions:['run'],tasks:['build','tests']},
+    {id:'scripts',name:'Node, Python, and CMD scripts',configured:!!env.TRINITY_GATEWAY_KEY,local:true,actions:['run'],tasks:['script']},
+    {id:'deploy',name:'Project deployment',configured:!!env.TRINITY_GATEWAY_KEY,local:true,actions:['deploy']}
   ].map(group => {
     const verified = group.configured && group.local && bridge.connected === true && group.actions.some(action=>recent(action,group.tasks));
     return {...group,actions:undefined,tasks:undefined,status:!group.configured?'not-configured':group.local && !bridge.connected?'offline':verified?'verified':'not-verified',
-      execution_verified:!!verified,note:verified?'Existuje doklad vykonania za posledných 15 minút.':group.local?'Vyžaduje pripojenú miestnu bránu a doklad konkrétnej akcie.':'Nakonfigurované; úspech konkrétnej úlohy sa overuje jej výsledkom.'};
+      execution_verified:!!verified,note:verified?'Execution receipt verified within the last 15 minutes.':group.local?'Requires a connected local gateway and a receipt for the specific action.':'Configured; success of a specific task is verified by its execution result.'};
   });
   return {checked_at:new Date(now).toISOString(),verification_window_minutes:15,
     pc_connected:bridge.connected === true,groups,
-    note:'Zapnutý plugin ani heartbeat nepotvrdzuje vykonanie úlohy. Overenie skupiny nepotvrdzuje všetky jej operácie.'};
+    note:'An enabled plugin or heartbeat does not confirm task execution. Group verification does not confirm all operations within the group.'};
 }
 
 export async function capabilityStatus(env) {

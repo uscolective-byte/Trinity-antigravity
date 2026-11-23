@@ -365,13 +365,13 @@ async function readChatStream(response,onEvent){
 }
 async function sessions(){const rows=await api('/sessions');$('sessions').replaceChildren();for(const row of rows){const button=node('button',row.title.slice(0,45));button.onclick=safe(async()=>{session=row.session;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');});$('sessions').append(button);}}
 const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],commodities:['TRINITY COMMODITY DESK','Komodity & Trading','Analýza všetkých 22 svetových komodít, autonómne investovanie, nákup a predaj v portfóliu.'],wallet:['FINANČNÉ CENTRUM TRINITY','Peňaženka & Platobné Terminály','Skutočná správa zostatkov, platobné terminály na príjem a okamžité výbery peňazí.'],modules:['TRINITY OPEN-DATA','Open-Data Moduly','100% bezplatné živé API: počasie, Wikipédia, DoH DNSSEC, spot krypto, HN tech správy a Svetová banka.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.'],graph:['TRINITY GRAPH RAG','Pamäťový Graf','Vizuálne prepojenie dlhodobej pamäte, domén, projektov a transakcií v reálnom čase.'],omnidev:['TRINITY OMNI-DEV','Omni-Dev Studio (auru.dev)','Autonómne štúdio s ovládaním PC, dynamickými skillmi, editorom kódu a auditom.'],
-crypto:['TETRAKIS ($TTK) — PLATBY TRINITY','Tetrakis Wallet & Payments','Neväzobná peňaženka a overenie skutočného stavu TTK kontraktu.'],
+crypto:['TETRAKIS ($TTK) · BASE L2 SPACE','Tetrakis Space ($TTK)','Natívny Web3 priestor pre $TTK, overenie kontraktu na Base L2 a neväzobné platby.'],
 connect:['PREPOJENIA & SIETE TRINITY','Prepojenia & Siete','Jediné centrum pre všetky kanály: Telegram @wallet, Viber Pay, Paysafe, WhatsApp, Meta, LinkedIn, Webhooky a PC Bridge.'],
 ghost:['TRINITY GHOST VAULT','Ghost Vault (E2EE)','Nekompromisne šifrovaná komunikácia medzi účastníkmi s automatickou sebadeštrukciou správ.'],
 encrypted_shits:['ENCRYPTED_SHITS · SOVEREIGN E2EE','encrypted_shits','Nekompromisne šifrovaný sovereign messenger s kontaktmi a automatickou sebadeštrukciou správ.'],
 agentlab:['AI AGENT SANDBOX & LAB','AI Agent Lab (auru.dev)','Vytváranie, trénovanie, testovanie a spúšťanie autonómnych AI agentov.'],workflows:['VISUAL WORKFLOWS','Drag & Drop Workflows','Vizuálna orchestrácia procesov, exekúcie PC brány a automatizácie.']};
 function updateHeading(){const meta=viewMeta[currentView]||viewMeta.dashboard;$('page-kicker').textContent=meta[0];$('page-title').textContent=meta[1].includes(' ')?meta[1]:t(meta[1]);$('subtitle').textContent=t(meta[2]);}
-async function setView(name,updateHash=true){if(name&&name.startsWith('#'))name=name.slice(1);let cleanName=(name||'').split('?')[0];const queryStr=(name||'').includes('?')?name.slice(name.indexOf('?')):'';if(cleanName==='dashboard'&&state?.account?.role!=='owner'){cleanName='chat';name='chat';}let targetName=viewMeta[cleanName]?cleanName:'dashboard';currentView=targetName;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${targetName}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===targetName));updateHeading();if(updateHash)history.replaceState(null,'',`#${targetName}${queryStr}`);if(targetName==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(targetName==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();}if(targetName==='projects')await loadProjects();if(targetName==='domains'){await loadDomains();await loadDomainEnvironments();}if(targetName==='commodities')await loadCommodityDesk();if(targetName==='wallet')await loadWalletView();if(targetName==='crypto')await loadCryptoView();if(targetName==='modules')await loadModulesView();if(targetName==='documents')await loadTrinityDocuments();if(targetName==='graph')await loadGraphView();if(targetName==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(targetName==='omnidev'){await loadOmniDev();initOmniDevEvents();}if(targetName==='ghost'||targetName==='encrypted_shits')await loadEncryptedShitsView();
+async function setView(name,updateHash=true){if(name&&name.startsWith('#'))name=name.slice(1);let cleanName=(name||'').split('?')[0];const queryStr=(name||'').includes('?')?name.slice(name.indexOf('?')):'';if(cleanName==='dashboard'&&state?.account?.role!=='owner'){cleanName='chat';name='chat';}let targetName=viewMeta[cleanName]?cleanName:'dashboard';currentView=targetName;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${targetName}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===targetName));updateHeading();if(updateHash)history.replaceState(null,'',`#${targetName}${queryStr}`);if(targetName==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(targetName==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();void loadAiStudioBridge();}if(targetName==='projects')await loadProjects();if(targetName==='domains'){await loadDomains();await loadDomainEnvironments();}if(targetName==='commodities')await loadCommodityDesk();if(targetName==='wallet')await loadWalletView();if(targetName==='crypto')await loadCryptoView();if(targetName==='modules')await loadModulesView();if(targetName==='documents')await loadTrinityDocuments();if(targetName==='graph')await loadGraphView();if(targetName==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(targetName==='omnidev'){await loadOmniDev();initOmniDevEvents();}if(targetName==='ghost'||targetName==='encrypted_shits')await loadEncryptedShitsView();
 if(targetName==='agentlab'){await loadAgentLab();initAgentLabEvents();}if(targetName==='workflows'){await loadVisualWorkflows();initAgentLabEvents();}if(targetName==='chat')setTimeout(()=>$('message').focus(),0);}
 function renderDashboardActivity(listId,items){const list=$(listId);list.replaceChildren();for(const item of items){const row=node('div',undefined,'activity-item'),icon=node('div',item.status==='completed'?'✓':item.status==='failed'?'!':'·','activity-dot'),text=node('span');text.append(node('b',item.task),node('small',`${t(item.status)||item.status} · ${item.updated_at}`));row.append(icon,text);row.onclick=async()=>{session=item.session_id;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');};list.append(row);}if(!items.length)list.append(node('p',t('noChanges'),'skeleton'));}
 async function loadDashboard(){const data=await api('/dashboard'),admin=data.dashboard_mode==='admin';$('user-dashboard').hidden=admin;$('admin-dashboard').hidden=!admin;if($('metric-tasks'))$('metric-tasks').textContent=data.today_completed??0;if($('metric-memory'))$('metric-memory').textContent=data.memory_count??0;if($('metric-projects'))$('metric-projects').textContent=data.project_count??0;if($('metric-health'))$('metric-health').textContent=(data.available_services??0)+'/'+(data.total_services??0)+(data.pc_bridge?.connected?' · PC ✓':'');if(admin){const metrics=data.admin||{};$('admin-active-jobs').textContent=metrics.active_jobs??0;$('admin-failed-jobs').textContent=metrics.failed_today??0;$('admin-pending-users').textContent=metrics.pending_users??0;$('admin-services').textContent=data.available_services+'/'+data.total_services;$('admin-gateway-state').textContent=data.pc_bridge?.connected?'Cloud + PC brána pripojená':'Cloud aktívny · PC brána nepripojená';$('admin-system-state').textContent=metrics.emergency_stop?'NÚDZOVÉ ZASTAVENIE':'Systém beží';$('admin-system-state').className='admin-state '+(metrics.emergency_stop?'stopped':'running');renderDashboardActivity('admin-dashboard-activity',data.recent_jobs);return;}renderDashboardActivity('dashboard-activity',data.recent_jobs);}
@@ -2437,7 +2437,7 @@ $('term-sell-btn')?.addEventListener('click', safe(async () => {
 }));
 
 // ==========================================
-// MULTIMEDIA STUDIO · PRODUKČNÉ CENTRUM
+// MULTIMEDIA STUDIO · PRODUCTION CENTER
 // ==========================================
 function switchMultimediaTab(tabId) {
   document.querySelectorAll('#mm-subnav [data-mm-tab]').forEach(b => {
@@ -2731,7 +2731,7 @@ $('mm-pack-form')?.addEventListener('submit', safe(async e => {
 }));
 
 // ==========================================
-// 20 CLOUDFLARE DOMÉNY (SEED & OVERENIE)
+// 20 CLOUDFLARE DOMAINS (SEED & VERIFICATION)
 // ==========================================
 const handleSeed20Domains = safe(async () => {
   if (!confirm('Vytvoriť a obnoviť všetkých 20 Cloudflare štartovacích domén (vrátane DNS záznamov, SSL, produkčných prostredí a zápisu do Trinity Dokumentov)?')) return;
@@ -2753,7 +2753,7 @@ $('domain-seed-20-btn')?.addEventListener('click', handleSeed20Domains);
 $('domain-seed-20-bar-btn')?.addEventListener('click', handleSeed20Domains);
 
 // ==========================================
-// UNIVERZÁLNY OTVÁRAČ A PREHLIADAČ VÝSTUPOV
+// UNIVERSAL OUTPUT OPENER & VIEWER
 // ==========================================
 window.openTrinityViewer = function (url, title = 'Náhľad') {
   if (!url) return;
@@ -2908,7 +2908,7 @@ $('payout-dest-type')?.addEventListener('change', e => {
   if (cachedWalletData) updatePayoutTargetDefault(e.target.value, cachedWalletData.terminals);
 });
 
-// POS CHARGE FORM (Príjem peňazí)
+// POS CHARGE FORM (Receive Funds)
 $('wallet-charge-form')?.addEventListener('submit', safe(async e => {
   e.preventDefault();
   const btn = $('charge-submit-btn');
@@ -3033,7 +3033,7 @@ $('wallet-charge-form')?.addEventListener('submit', safe(async e => {
   }
 }));
 
-// PAYOUT FORM (Výber peňazí)
+// PAYOUT FORM (Withdraw Funds)
 $('wallet-payout-form')?.addEventListener('submit', safe(async e => {
   e.preventDefault();
   const btn = $('payout-submit-btn');
@@ -3063,7 +3063,7 @@ $('wallet-payout-form')?.addEventListener('submit', safe(async e => {
   }
 }));
 
-// CONFIG FORM (Uloženie terminálov)
+// CONFIG FORM (Save Terminals)
 $('wallet-config-form')?.addEventListener('submit', safe(async e => {
   e.preventDefault();
   await api('/wallet/terminal/config', {
@@ -4222,7 +4222,7 @@ $('audit-severity-select')?.addEventListener('change', () => {
 
 
 
-/* ===== Zbaliteľné sekcie, index nastavení a posun na koniec chatu ===== */
+/* ===== Collapsible sections, settings index, and scroll-to-bottom control ===== */
 function enhanceAccordions(){
   if (typeof document === 'undefined' || typeof document.querySelector !== 'function') return;
   const targets=[...document.querySelectorAll('#documents-view .docs-card, #settings-view section.panel[data-settings-section]')];
@@ -4304,7 +4304,7 @@ async function dispatchOmniAction(actionName, payload, rationale = 'Omni-Dev ope
   const actionId = data.action?.id;
   if (!actionId) throw new Error('Server nevrátil ID systémovej akcie.');
 
-  // Pollovanie výsledku (timeout 25 sekúnd)
+  // Poll for result (25-second timeout)
   const pollStart = Date.now();
   while (Date.now() - pollStart < 25000) {
     await new Promise(r => setTimeout(r, 600));
@@ -4896,7 +4896,7 @@ function initChatPlusMenu(){
     }
   });
 
-  // 1. Pridať súbor / dokument
+  // 1. Attach file / document
   $('plus-opt-file')?.addEventListener('click', () => {
     toggleMenu(false);
     const fi = $('file-doc-input');
@@ -4933,14 +4933,14 @@ function initChatPlusMenu(){
     }
   });
 
-  // 2. Pridať fotku / obrázok
+  // 2. Attach photo / image
   $('plus-opt-photo')?.addEventListener('click', () => {
     toggleMenu(false);
     const ii = $('image-input');
     if(ii){ ii.value = ''; ii.click(); }
   });
 
-  // 3. Pridať video
+  // 3. Attach video
   $('plus-opt-video')?.addEventListener('click', () => {
     toggleMenu(false);
     const vi = $('file-video-input');
@@ -4965,14 +4965,14 @@ function initChatPlusMenu(){
     notice(`Video záznam ${file.name} priložený.`, true);
   });
 
-  // 4. Pridať zvuk / audio
+  // 4. Attach sound / audio
   $('plus-opt-audio')?.addEventListener('click', () => {
     toggleMenu(false);
     const ai = $('audio-input');
     if(ai){ ai.value = ''; ai.click(); }
   });
 
-  // 5. Nástroje & Pluginy
+  // 5. Tools & Plugins
   $('plus-opt-tool-web')?.addEventListener('click', () => {
     toggleMenu(false);
     const msg = $('message');
@@ -5015,7 +5015,7 @@ function initChatPlusMenu(){
     notice('Režim PC Bridge aktivovaný.');
   });
 
-  // 6. Prepojenia & Integrácie (GitHub, Notion, Vercel, Gmail, Google, Meta, Domény, GDPR)
+  // 6. Connections & Integrations (GitHub, Notion, Vercel, Gmail, Google, Meta, Domains, GDPR)
   $('plus-opt-tool-github')?.addEventListener('click', () => {
     toggleMenu(false);
     const msg = $('message');
@@ -5181,7 +5181,7 @@ async function refreshTtkWallet() {
   const provider = window.ethereum;
   if (!provider) {
     if (box) box.style.display = 'none';
-    if (connectButton) connectButton.textContent = '🦊 Pripojiť Web3 Peňaženku';
+    if (connectButton) connectButton.textContent = 'Pripojiť peňaženku';
     ttkActiveAccount = null;
     ttkConnectedChainId = null;
     updateTtkPayButton();
@@ -5203,7 +5203,7 @@ async function refreshTtkWallet() {
     if (connectButton) connectButton.textContent = `✓ ${ttkActiveAccount.slice(0, 6)}…${ttkActiveAccount.slice(-4)}`;
   } else {
     if (box) box.style.display = 'none';
-    if (connectButton) connectButton.textContent = '🦊 Pripojiť Web3 Peňaženku';
+    if (connectButton) connectButton.textContent = 'Pripojiť peňaženku';
   }
 
   const payment = ttkRuntimeState?.payments;
@@ -5380,6 +5380,58 @@ async function loadCryptoView() {
       }
     });
   }
+
+  document.querySelectorAll('#crypto-view [data-ttk-action]').forEach(btn => {
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = 'true';
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.ttkAction;
+      if (action === 'connect') {
+        $('web3-connect-btn')?.click();
+      } else if (action === 'send') {
+        const card = $('ttk-send-card');
+        if (card && typeof card.scrollIntoView === 'function') card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        $('ttk-payment-amount')?.focus();
+      } else if (action === 'contract') {
+        const card = $('ttk-contract-card');
+        if (card && typeof card.scrollIntoView === 'function') card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  });
+
+  document.querySelectorAll('#crypto-view [data-ttk-amount]').forEach(chip => {
+    if (chip.dataset.bound) return;
+    chip.dataset.bound = 'true';
+    chip.addEventListener('click', () => {
+      const input = $('ttk-payment-amount');
+      if (input) {
+        input.value = chip.dataset.ttkAmount || '';
+        input.focus();
+      }
+    });
+  });
+
+  const copyContractBtn = $('ttk-copy-contract-btn');
+  if (copyContractBtn && !copyContractBtn.dataset.bound) {
+    copyContractBtn.dataset.bound = 'true';
+    copyContractBtn.addEventListener('click', async () => {
+      const addr = $('ttk-contract-address')?.textContent?.trim() || '';
+      if (!addr || !addr.startsWith('0x')) {
+        copyContractBtn.textContent = 'Kontrakt zatiaľ neoverený';
+        setTimeout(() => { copyContractBtn.textContent = 'Kopírovať adresu'; }, 2000);
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(addr);
+        copyContractBtn.textContent = '✓ Skopírované';
+        setTimeout(() => { copyContractBtn.textContent = 'Kopírovať adresu'; }, 2000);
+      } catch {
+        copyContractBtn.textContent = 'Nepodarilo sa skopírovať';
+        setTimeout(() => { copyContractBtn.textContent = 'Kopírovať adresu'; }, 2000);
+      }
+    });
+  }
+
   await refreshTtkWallet();
 }
 
@@ -5876,7 +5928,7 @@ function playEncChime() {
     }
     const now = encAudioCtx.currentTime;
 
-    // Harmonický príjemný zvonček (D5 587Hz -> A5 880Hz)
+    // Harmonic notification chime (D5 587Hz -> A5 880Hz)
     const osc = encAudioCtx.createOscillator();
     const gain = encAudioCtx.createGain();
 
@@ -5939,10 +5991,10 @@ function clearEncUnreadForContact(peerId) {
 }
 
 function triggerEncNotification(senderId, senderAlias, snippet = 'Nová šifrovaná správa') {
-  // 1. Zvuk
+  // 1. Sound
   playEncChime();
 
-  // 2. Počítadlo a blikanie
+  // 2. Counter and title flash
   const isCurrentActive = currentView === 'encrypted_shits' && encState.activeContact?.peer_id === senderId && !document.hidden;
   if (!isCurrentActive) {
     encUnreadCount++;
@@ -5972,7 +6024,7 @@ function triggerEncNotification(senderId, senderAlias, snippet = 'Nová šifrova
     } catch {}
   }
 
-  // 4. In-App Toast upozornenie
+  // 4. In-App Toast notification
   if (currentView !== 'encrypted_shits' || encState.activeContact?.peer_id !== senderId) {
     if (typeof notice === 'function') {
       notice(`💬 Nová správa od: ${senderAlias || senderId}`);
@@ -6020,10 +6072,10 @@ function startGlobalGhostPolling() {
         const sender = encState.contacts.find(c => c.peer_id === env.sender_id);
         const senderAlias = sender?.alias || env.sender_id;
 
-        // Oznámenie (zvuk, notifikácia na ploche, badge)
+        // Notification (sound, desktop alert, badge)
         triggerEncNotification(env.sender_id, senderAlias);
 
-        // Ak je otvorená relácia s týmto kontaktom, vykresli správu
+        // If a session with this contact is open, render the message
         if (currentView === 'encrypted_shits' && encState.activeContact?.peer_id === env.sender_id) {
           let decryptedText = '[Zašifrovaný obsah]';
           const cryptoEngine = (typeof window !== 'undefined' && window.GhostCrypto) || BuiltinGhostCrypto;
@@ -6090,7 +6142,7 @@ async function initEncIdentity() {
     try {
       encState.identity = await cryptoEngine.generateIdentity();
     } catch (err) {
-      console.error('Chyba generovania E2EE identity:', err);
+      console.error('Failed to generate E2EE identity:', err);
     }
   }
   if (!encState.myPeerId) {
@@ -6106,7 +6158,7 @@ async function loadEncryptedShitsView() {
   startGhostHeartbeat();
   startGlobalGhostPolling();
 
-  // Periodická obnova stavu a prítomnosti kontaktov (každých 20 sekúnd)
+  // Periodic refresh of contacts state and presence (every 20 seconds)
   if (!encState.contactsRefreshTimer) {
     encState.contactsRefreshTimer = setInterval(() => {
       if (currentView === 'encrypted_shits') {
@@ -6127,13 +6179,13 @@ async function loadEncryptedShitsView() {
     }, 20000);
   }
 
-  // Aktualizuj profil v ľavom paneli
+  // Update profile in left panel
   const avatarElem = $('enc-my-avatar');
   const nameElem = $('enc-my-name');
   if (avatarElem) avatarElem.textContent = (encState.myAlias || 'U').charAt(0).toUpperCase();
   if (nameElem) nameElem.textContent = encState.myAlias || encState.myPeerId;
 
-  // Zaregistruj seba do adresára kontaktov
+  // Register self in the contacts directory
   if (encState.identity?.pubJwk) {
     void fetch('/api/ghost/contacts/register', {
       method: 'POST',
@@ -6147,10 +6199,10 @@ async function loadEncryptedShitsView() {
     }).catch(() => {});
   }
 
-  // Načítaj kontakty podľa aktuálneho filtra
+  // Load contacts according to the current filter
   await loadEncContacts('', encState.filter);
 
-  // Kontrola či je v URL hash alebo search priama pozvánka napr. #encrypted_shits?peer=...&pub=...
+  // Check whether URL hash or search contains a direct invite, e.g. #encrypted_shits?peer=...&pub=...
   const loc = window.location || location;
   const hash = loc?.hash || '';
   const hashQuery = hash.includes('?') ? hash.split('?')[1] : '';
@@ -6193,7 +6245,7 @@ async function loadEncContacts(searchQuery = '', filterType = 'all') {
       renderEncContactsList(encState.contacts);
     }
   } catch (err) {
-    console.error('Chyba načítania kontaktov:', err);
+    console.error('Failed to load contacts:', err);
   }
 }
 
@@ -6321,12 +6373,12 @@ async function selectEncContact(contact) {
   encState.activeMessages.clear();
   clearEncUnreadForContact(contact.peer_id);
 
-  // Zvýrazni v zozname
+  // Highlight in the contacts list
   document.querySelectorAll('.enc-contact-item').forEach(el => {
     el.style.background = el.dataset.peerId === contact.peer_id ? '#1e293b' : 'transparent';
   });
 
-  // Aktualizuj hlavičku chatu
+  // Update chat header
   const avatarElem = $('enc-active-avatar');
   const nameElem = $('enc-active-name');
   const safetyElem = $('enc-active-safety');
@@ -6351,11 +6403,11 @@ async function selectEncContact(contact) {
     presenceText.style.color = presence.dotColor;
   }
 
-  // Odvoď deterministické Room ID medzi týmito dvoma účastníkmi
+  // Derive deterministic Room ID between the two participants
   const participants = [encState.myPeerId, contact.peer_id].sort();
   encState.activeRoomId = `dm__${participants[0]}__${participants[1]}`;
 
-  // Reset a povolenie vstupov
+  // Reset and enable composer inputs
   const inputBox = $('enc-input-box');
   const sendBtn = $('enc-send-button');
   if (inputBox) {
@@ -6365,7 +6417,7 @@ async function selectEncContact(contact) {
   }
   if (sendBtn) sendBtn.disabled = false;
 
-  // Odvoď zdieľaný kľúč ak má kontakt verejný kľúč
+  // Derive shared key if contact has a public key
   const cryptoEngine = (typeof window !== 'undefined' && window.GhostCrypto) || BuiltinGhostCrypto;
   encState.sharedKey = null;
   const feedback = $('enc-chat-feedback');
@@ -6383,7 +6435,7 @@ async function selectEncContact(contact) {
         feedback.style.color = '#34d399';
       }
     } catch (e) {
-      console.warn('E2EE kľúč partnera nebol platný JWK, odvodzujem kľúč miestnosti:', e);
+      console.warn('Partner E2EE key was not a valid JWK, deriving room key instead:', e);
       try {
         encState.sharedKey = await cryptoEngine.deriveRoomKey(encState.activeRoomId);
         if (safetyElem) safetyElem.textContent = '🔒 E2EE · AES-256-GCM (Chránený kanál)';
@@ -6392,7 +6444,7 @@ async function selectEncContact(contact) {
           feedback.style.color = '#38bdf8';
         }
       } catch (err2) {
-        console.error('Zlyhalo odvodenie kľúča miestnosti:', err2);
+        console.error('Failed to derive room key:', err2);
       }
     }
   } else if (cryptoEngine && encState.activeRoomId) {
@@ -6404,17 +6456,17 @@ async function selectEncContact(contact) {
         feedback.style.color = '#38bdf8';
       }
     } catch (e) {
-      console.error('Zlyhalo odvodenie kľúča miestnosti:', e);
+      console.error('Failed to derive room key:', e);
     }
   }
 
-  // Vyčisti kontajner správ
+  // Clear messages container
   const stream = $('enc-messages-stream');
   if (stream) {
     stream.innerHTML = `<div style="text-align:center;color:#64748b;font-size:12px;margin:auto;">Šifrovaná relácia otvorená s <b>${contact.alias || contact.peer_id}</b>.<br><small style="color:#475569;">Všetky správy sa po prečítaní zničia.</small></div>`;
   }
 
-  // Spusti polling správ pre túto miestnosť
+  // Start message polling for this room
   if (encState.pollingInterval) clearInterval(encState.pollingInterval);
   encState.pollingInterval = setInterval(pollEncInbox, 2000);
   void pollEncInbox();
@@ -6458,7 +6510,7 @@ function initEncEvents() {
   if (encEventsBound) return;
   encEventsBound = true;
 
-  // Filter záložky: Všetky vs. Registrované profily
+  // Filter tabs: All vs. Registered profiles
   $('enc-filter-all')?.addEventListener('click', () => {
     encState.filter = 'all';
     $('enc-filter-all')?.classList.add('active');
@@ -6497,13 +6549,13 @@ function initEncEvents() {
     void loadEncContacts($('enc-search-input')?.value || '', encState.filter);
   });
 
-  // Hľadanie kontaktov a registrovaných používateľov v reálnom čase
+  // Real-time search of contacts and registered users
   $('enc-search-input')?.addEventListener('input', (e) => {
     const q = (e.target.value || '').trim();
     void loadEncContacts(q, encState.filter);
   });
 
-  // Pridanie nového aliasu / chatu
+  // Add a new alias / chat
   $('enc-add-peer-btn')?.addEventListener('click', () => {
     const val = $('enc-custom-peer-input')?.value?.trim();
     if (!val) return;
@@ -6522,11 +6574,11 @@ function initEncEvents() {
     $('enc-custom-peer-input').value = '';
   });
 
-  // Zdieľanie pozvánky modál
+  // Share invite modal
   $('enc-open-share-btn')?.addEventListener('click', openEncShareModal);
   $('enc-close-share-modal-btn')?.addEventListener('click', closeEncShareModal);
 
-  // Systémové zdieľanie v mobile / PC (navigator.share)
+  // Native share on mobile / desktop (navigator.share)
   $('enc-native-share-btn')?.addEventListener('click', async () => {
     const inviteUrl = $('enc-share-link-input')?.value || `${window.location.origin}/#encrypted_shits?peer=${encodeURIComponent(encState.myPeerId)}`;
     const text = `Ahoj, pripájaj sa k môjmu šifrovanému chatu so sebazničením správ na Trinity. Kľúč: ${encState.myPeerId}`;
@@ -6539,7 +6591,7 @@ function initEncEvents() {
         });
         return;
       } catch (err) {
-        // Používateľ zrušil zdieľanie alebo nastala chyba
+        // User cancelled sharing or share failed
       }
     }
     await navigator.clipboard?.writeText(inviteUrl);
@@ -6547,7 +6599,7 @@ function initEncEvents() {
     else alert('Odkaz skopírovaný!');
   });
 
-  // Kopírovanie v modále
+  // Copy link inside modal
   $('enc-modal-copy-link-btn')?.addEventListener('click', () => {
     const linkInput = $('enc-share-link-input');
     if (!linkInput) return;
@@ -6559,7 +6611,7 @@ function initEncEvents() {
     });
   });
 
-  // Rýchle kopírovanie môjho pozývacieho linku
+  // Quick copy of my invite link
   $('enc-copy-my-link-btn')?.addEventListener('click', () => {
     const inviteUrl = `${window.location.origin}/#encrypted_shits?peer=${encodeURIComponent(encState.myPeerId)}&alias=${encodeURIComponent(encState.myAlias)}`;
     navigator.clipboard?.writeText(inviteUrl).then(() => {
@@ -6570,7 +6622,7 @@ function initEncEvents() {
     });
   });
 
-  // Odoslanie správy
+  // Send message
   const sendAction = async () => {
     const inputBox = $('enc-input-box');
     const text = inputBox?.value?.trim();
@@ -6591,11 +6643,11 @@ function initEncEvents() {
         feedback.style.color = '#e2e8f0';
       }
 
-      // Bezpečné odvodenie šifrovacieho kľúča
+      // Safe derivation of encryption key
       const cryptoEngine = (typeof window !== 'undefined' && window.GhostCrypto) || BuiltinGhostCrypto;
       let encryptionKey = encState.sharedKey;
       if (!encryptionKey && cryptoEngine) {
-        // Fallback: bezpečný room-derived AES-GCM kľúč
+        // Fallback: safe room-derived AES-GCM key
         encryptionKey = await cryptoEngine.deriveRoomKey(roomId);
       }
 
@@ -6634,7 +6686,7 @@ function initEncEvents() {
         return;
       }
 
-      // Vykreslenie odoslanej správy v pravej bubline
+      // Render sent message in right bubble
       renderEncBubble({
         id: data.envelope_id,
         sender_id: encState.myPeerId,
@@ -6657,7 +6709,7 @@ function initEncEvents() {
         }, 3000);
       }
     } catch (err) {
-      console.error('Chyba odoslania správy:', err);
+      console.error('Failed to send encrypted message:', err);
       if (feedback) {
         feedback.textContent = `❌ Šifrovanie zlyhalo: ${err.message || err}`;
         feedback.style.color = '#ef4444';
@@ -6674,7 +6726,7 @@ function initEncEvents() {
     }
   });
 
-  // Rýchle emoji tlačidlá
+  // Quick emoji buttons
   document.querySelectorAll('.enc-quick-emoji').forEach(btn => {
     btn.addEventListener('click', () => {
       const emoji = btn.dataset.emoji;
@@ -6711,7 +6763,7 @@ function initEncEvents() {
     if (typeof notice === 'function') notice('Konverzácia bola vaporizovaná.');
   });
 
-  // Otvorenie modálu Nastavení chatu
+  // Open Chat Settings modal
   $('enc-chat-settings-btn')?.addEventListener('click', () => {
     const modal = $('enc-settings-modal');
     if (!modal) return;
@@ -6722,7 +6774,7 @@ function initEncEvents() {
     modal.hidden = false;
   });
 
-  // Zatvorenie modálu Nastavení
+  // Close Settings modal
   $('enc-close-settings-modal-btn')?.addEventListener('click', () => {
     const modal = $('enc-settings-modal');
     if (modal) modal.hidden = true;
@@ -6732,7 +6784,7 @@ function initEncEvents() {
     if (modal) modal.hidden = true;
   });
 
-  // Uloženie zmeny aliasu
+  // Save alias change
   $('enc-settings-save-alias-btn')?.addEventListener('click', () => {
     const val = $('enc-settings-alias-input')?.value?.trim();
     if (!val) return;
@@ -6759,7 +6811,7 @@ function initEncEvents() {
     else alert('Zobrazované meno uložené.');
   });
 
-  // Rekeying (nový kľúčový pár)
+  // Rekeying (new key pair)
   $('enc-settings-rekey-btn')?.addEventListener('click', async () => {
     const cryptoEngine = (typeof window !== 'undefined' && window.GhostCrypto) || BuiltinGhostCrypto;
     if (!cryptoEngine) return;
@@ -6787,7 +6839,7 @@ function initEncEvents() {
     }
   });
 
-  // Blur textu správ (proti čítaniu cez rameno)
+  // Blur message text (shoulder-surfing protection)
   $('enc-settings-blur-toggle')?.addEventListener('change', (e) => {
     const shouldBlur = Boolean(e.target.checked);
     document.querySelectorAll('.enc-bubble-text').forEach(el => {
@@ -6796,7 +6848,7 @@ function initEncEvents() {
     });
   });
 
-  // ── NOTIFIKÁCIE & ZVUKOVÉ OVLÁDANIE ──
+  // ── NOTIFICATIONS & SOUND CONTROLS ──
   const notifBtn = $('enc-enable-notifications-btn');
   const updateNotifBtnState = () => {
     if (typeof Notification === 'undefined') {
@@ -6895,13 +6947,13 @@ async function pollEncInbox() {
 
       const cryptoEngine = (typeof window !== 'undefined' && window.GhostCrypto) || BuiltinGhostCrypto;
       if (cryptoEngine) {
-        // 1. Skús sharedKey (ak je k dispozícii)
+        // 1. Try sharedKey (if available)
         if (encState.sharedKey) {
           try {
             decryptedText = await cryptoEngine.decrypt(encState.sharedKey, env.ciphertext, env.iv);
           } catch {}
         }
-        // 2. Skús ephemeral_pubkey z obálky
+        // 2. Try ephemeral_pubkey from envelope
         if (decryptedText === '[Zašifrovaný obsah]' && env.ephemeral_pubkey && encState.identity?.privateKey) {
           try {
             const senderEphKeyObj = JSON.parse(env.ephemeral_pubkey);
@@ -6910,7 +6962,7 @@ async function pollEncInbox() {
             decryptedText = await cryptoEngine.decrypt(ephSharedKey, env.ciphertext, env.iv);
           } catch {}
         }
-        // 3. Skús room key (pre kanály bez predbežného ECDH)
+        // 3. Try room key (for channels without prior ECDH)
         if (decryptedText === '[Zašifrovaný obsah]') {
           try {
             const roomKey = await cryptoEngine.deriveRoomKey(env.room_id || encState.activeRoomId);
@@ -6931,7 +6983,7 @@ async function pollEncInbox() {
         burn_timer_seconds: env.burn_timer_seconds || 30
       });
 
-      // Ak je pre nás a má Burn-on-Read: okamžité zmazanie zo servera
+      // If addressed to us with Burn-on-Read: delete immediately from server
       if (!isMine && env.burn_on_read) {
         void fetch('/api/ghost/read', {
           method: 'POST',
@@ -6941,7 +6993,7 @@ async function pollEncInbox() {
       }
     }
   } catch (err) {
-    console.error('Chyba pollingu:', err);
+    console.error('Polling error:', err);
   }
 }
 
@@ -6996,7 +7048,7 @@ function renderEncBubble(msg) {
     </div>
   `;
 
-  // Odkrytie rozmazaného textu po kliknutí
+  // Reveal blurred text on hover
   const textEl = card.querySelector('.enc-bubble-text');
   if (textEl && isBlurred) {
     textEl.addEventListener('mouseenter', () => { textEl.style.filter = 'none'; });
@@ -7031,5 +7083,189 @@ function renderEncBubble(msg) {
   encState.activeMessages.set(msg.id, { elem: card, interval });
 }
 
+// ==========================================
+// GOOGLE AI STUDIO CO-CREATION BRIDGE UI
+// ==========================================
+let aiStudioSessionId = null;
 
+function setAiStudioModelOptions(models, recommendedModel) {
+  const select = $('ai-studio-model-select');
+  if (!select || !Array.isArray(models) || !models.length) return;
+  const previous = select.value;
+  select.replaceChildren();
+  const seen = new Set();
+  for (const item of models) {
+    const id = typeof item === 'string' ? item : (item?.id || item?.name || '').replace(/^models\//, '');
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    const label = typeof item === 'object' && item?.displayName && item.displayName !== id
+      ? `${id} · ${item.displayName}`
+      : id;
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = label;
+    select.append(opt);
+  }
+  if (!seen.size) return;
+  const preferred = (recommendedModel && seen.has(recommendedModel))
+    ? recommendedModel
+    : (previous && seen.has(previous) ? previous : [...seen][0]);
+  select.value = preferred;
+}
 
+async function loadAiStudioBridge() {
+  bindAiStudioBridgeEvents();
+  const statusBadge = $('ai-studio-status-badge');
+  const statusNote = $('ai-studio-status-note');
+  if (!statusBadge && !statusNote) return;
+
+  try {
+    const statusRes = await fetch('/api/assistant/ai-studio/status');
+    let statusData = null;
+    try { statusData = await statusRes.json(); } catch {}
+    if (!statusRes.ok || !statusData) {
+      if (statusBadge) statusBadge.textContent = `Nedostupný (HTTP ${statusRes.status})`;
+      if (statusNote) statusNote.textContent = statusData?.error || 'Google AI Studio most zatiaľ nie je aktívny alebo je nedostupný. Skontroluj konfiguráciu v Nastaveniach → Trezor.';
+      return;
+    }
+    if (statusData.configured) {
+      if (statusBadge) statusBadge.textContent = `Nakonfigurovaný · ${statusData.default_model || 'gemini'}`;
+      if (statusNote) statusNote.textContent = 'Google AI Studio most je nakonfigurovaný (stav bez živého testu). Zadaj úlohu pre spoločnú tvorbu Trinity + Google AI Studio.';
+    } else {
+      if (statusBadge) statusBadge.textContent = 'Vyžaduje API kľúč';
+      if (statusNote) statusNote.textContent = 'Google AI Studio zatiaľ nemá nakonfigurovaný API kľúč. Vlož kľúč v Nastaveniach → Trezor pod poskytovateľom „Google AI Studio (Gemini API)“ alebo „Google Gemini“.';
+      return;
+    }
+  } catch (err) {
+    if (statusBadge) statusBadge.textContent = 'Most nedostupný';
+    if (statusNote) statusNote.textContent = `Stav Google AI Studio mosta sa nepodarilo načítať: ${err?.message || 'chyba siete'}`;
+    return;
+  }
+
+  try {
+    const modelsRes = await fetch('/api/assistant/ai-studio/models');
+    let modelsData = null;
+    try { modelsData = await modelsRes.json(); } catch {}
+    if (modelsRes.ok && modelsData && Array.isArray(modelsData.models) && modelsData.models.length) {
+      setAiStudioModelOptions(modelsData.models, modelsData.recommended_model);
+    }
+  } catch (err) {
+    console.warn('Google AI Studio models discovery failed:', err);
+  }
+}
+
+function resetAiStudioSession() {
+  aiStudioSessionId = null;
+  const sessionBadge = $('ai-studio-session-badge');
+  if (sessionBadge) {
+    sessionBadge.textContent = 'Relácia: nová';
+    sessionBadge.hidden = true;
+  }
+  const resultBox = $('ai-studio-result-box');
+  if (resultBox) resultBox.hidden = true;
+  if ($('ai-studio-trinity-plan')) $('ai-studio-trinity-plan').textContent = '';
+  if ($('ai-studio-contribution')) $('ai-studio-contribution').textContent = '';
+  if ($('ai-studio-contribution-model')) $('ai-studio-contribution-model').textContent = '—';
+  if ($('ai-studio-final-reply')) $('ai-studio-final-reply').textContent = '';
+  if ($('ai-studio-status-note')) $('ai-studio-status-note').textContent = 'Spustená nová čistá relácia pre spoločnú tvorbu.';
+}
+
+async function submitAiStudioCoCreate(event) {
+  event?.preventDefault();
+  const taskInput = $('ai-studio-task-input');
+  const contextInput = $('ai-studio-context-input');
+  const modelSelect = $('ai-studio-model-select');
+  const modeSelect = $('ai-studio-mode-select');
+  const submitBtn = $('ai-studio-cocreate-btn');
+  const statusNote = $('ai-studio-status-note');
+  const resultBox = $('ai-studio-result-box');
+  const sessionBadge = $('ai-studio-session-badge');
+
+  const task = String(taskInput?.value || '').trim();
+  if (!task) {
+    if (statusNote) statusNote.textContent = 'Zadaj najprv úlohu alebo nápad pre spoločnú tvorbu.';
+    taskInput?.focus();
+    return;
+  }
+
+  const payload = {
+    task,
+    mode: modeSelect?.value || 'pair',
+    model: modelSelect?.value || undefined,
+    session_id: aiStudioSessionId || undefined,
+    context: String(contextInput?.value || '').trim() || undefined,
+    reply_language: 'sk'
+  };
+
+  if (submitBtn) submitBtn.disabled = true;
+  if (statusNote) statusNote.textContent = 'Trinity plánuje úlohu a spolupracuje s Google AI Studio…';
+
+  try {
+    const res = await fetch('/api/assistant/ai-studio/co-create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    let data = null;
+    try { data = await res.json(); } catch {}
+    if (res.status === 401) {
+      lockSession(data?.error);
+      return;
+    }
+    if (!res.ok || !data || data.ok === false) {
+      const msg = data?.error || `HTTP ${res.status}`;
+      if (statusNote) statusNote.textContent = `Spoločná tvorba sa nepodarila: ${msg}`;
+      return;
+    }
+
+    if (data.session_id) aiStudioSessionId = data.session_id;
+    if (sessionBadge && aiStudioSessionId) {
+      const shortSession = String(aiStudioSessionId).slice(0, 12);
+      sessionBadge.textContent = `Relácia: ${shortSession} · kolo ${data.turn || 1}`;
+      sessionBadge.hidden = false;
+    }
+    if ($('ai-studio-trinity-plan')) {
+      $('ai-studio-trinity-plan').textContent = data.trinity_plan || '—';
+    }
+    if ($('ai-studio-contribution')) {
+      $('ai-studio-contribution').textContent = data.ai_studio_contribution?.text || '—';
+    }
+    if ($('ai-studio-contribution-model')) {
+      $('ai-studio-contribution-model').textContent = data.ai_studio_contribution?.model || payload.model || 'gemini';
+    }
+    if ($('ai-studio-final-reply')) {
+      $('ai-studio-final-reply').textContent = data.final_reply || '—';
+    }
+    if (resultBox) resultBox.hidden = false;
+
+    const latency = data.ai_studio_contribution?.latency_ms;
+    const usedModel = data.ai_studio_contribution?.model || payload.model || 'Google AI Studio';
+    if (statusNote) {
+      statusNote.textContent = `Hotovo · ${usedModel}${latency ? ` (${latency} ms)` : ''} · kolo ${data.turn || 1}`;
+    }
+  } catch (err) {
+    if (statusNote) statusNote.textContent = `Spoločná tvorba zlyhala: ${err?.message || 'chyba siete'}`;
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+  }
+}
+
+function bindAiStudioBridgeEvents() {
+  const form = $('ai-studio-bridge-form');
+  if (form && !form.dataset.bound) {
+    form.dataset.bound = 'true';
+    form.addEventListener('submit', submitAiStudioCoCreate);
+  }
+  const refreshBtn = $('ai-studio-refresh-btn');
+  if (refreshBtn && !refreshBtn.dataset.bound) {
+    refreshBtn.dataset.bound = 'true';
+    refreshBtn.addEventListener('click', () => { void loadAiStudioBridge(); });
+  }
+  const resetBtn = $('ai-studio-reset-session-btn');
+  if (resetBtn && !resetBtn.dataset.bound) {
+    resetBtn.dataset.bound = 'true';
+    resetBtn.addEventListener('click', resetAiStudioSession);
+  }
+}
+
+bindAiStudioBridgeEvents();

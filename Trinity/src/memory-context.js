@@ -3,7 +3,7 @@
  * @subsystem MEMORY_AND_KNOWLEDGE_ENGINE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul memory-context.js (Trinity/src/memory-context.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module memory-context.js (Trinity/src/memory-context.js) in the TRINITY OMNI-CORE ecosystem.
  */
 const STOP_WORDS = new Set('prosim prosimta chcem potrebujem mozes mozem tento tato toto tieto tam teraz potom dalej nie nejde mam mas pre ako aby ked tak len este bude budu bolo dobre pozri sprav urob vysvetli povedz the and this that with from please help want need could would about'.split(' '));
 const folded = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('sk');

@@ -6,7 +6,8 @@ import {
   encodeTtkTransfer,
   parseTtkAmount,
   TTK_RUNTIME_KECCAK256,
-  TTK_TOKEN
+  TTK_TOKEN,
+  TTK_UTILITY_PILLARS
 } from '../src/crypto-value-engine.js';
 
 const artifact = JSON.parse(readFileSync(new URL('../../contracts/tetrakis/build/TetrakisToken.json', import.meta.url), 'utf8'));
@@ -21,10 +22,10 @@ test('TTK amount parser uses exact 18-decimal integer units', () => {
 });
 
 test('TTK amount parser rejects zero, malformed precision and values above supply', () => {
-  assert.throws(() => parseTtkAmount('0'), /väčšia ako nula|mimo povoleného rozsahu/);
-  assert.throws(() => parseTtkAmount('1.0000000000000000001'), /18 desatinnými miestami/);
-  assert.throws(() => parseTtkAmount('1000000001'), /celkovú zásobu/);
-  assert.throws(() => parseTtkAmount('-1'), /18 desatinnými miestami/);
+  assert.throws(() => parseTtkAmount('0'), /greater than zero|allowed range/);
+  assert.throws(() => parseTtkAmount('1.0000000000000000001'), /18 decimal places/);
+  assert.throws(() => parseTtkAmount('1000000001'), /total supply/);
+  assert.throws(() => parseTtkAmount('-1'), /18 decimal places/);
 });
 
 test('ERC-20 transfer calldata encodes the exact recipient and amount', () => {
@@ -34,7 +35,22 @@ test('ERC-20 transfer calldata encodes the exact recipient and amount', () => {
   assert.equal(data.length, 138);
   assert.ok(data.toLowerCase().includes(recipient.slice(2).toLowerCase()));
   assert.equal(BigInt(`0x${data.slice(-64)}`), units);
-  assert.throws(() => encodeTtkTransfer('0x0000000000000000000000000000000000000000', units), /platnú EVM adresu/);
+  assert.throws(() => encodeTtkTransfer('0x0000000000000000000000000000000000000000', units), /valid non-zero EVM address/);
+});
+
+test('TTK token metadata and status expose 4 native ecosystem utility pillars with zero TON branding', async () => {
+  assert.equal(TTK_TOKEN.logo, '/tetrakis-logo.png');
+  assert.equal(TTK_UTILITY_PILLARS.length, 4);
+  assert.deepEqual(
+    TTK_UTILITY_PILLARS.map((pillar) => pillar.id),
+    ['in_chat_payments', 'mini_apps_ai_studio', 'domains_handles_assets', 'creator_compute_space']
+  );
+
+  const status = await getTetrakisStatus({}, { fetchImpl: async () => { throw new Error('must not call RPC'); } });
+  assert.equal(status.logo, '/tetrakis-logo.png');
+  assert.equal(status.utility_pillars.length, 4);
+  assert.deepEqual(status.utility_pillars, TTK_UTILITY_PILLARS);
+  assert.doesNotMatch(JSON.stringify(status), /\bton\b|ton-style|ton space|tonkeeper|toncoin/i);
 });
 
 test('TTK payment stays disabled when deployment configuration is missing', async () => {

@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul copilot-options.js (Trinity/src/copilot-options.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module copilot-options.js (Trinity/src/copilot-options.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import {z} from 'zod';
 

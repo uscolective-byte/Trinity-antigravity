@@ -118,17 +118,17 @@ async function run() {
   console.log('\n--- 2. Text Processing & NLP Tools ---');
   await testBuiltin('Text', 'analyze_text', { text: 'Trinity Sovereign OS is an autonomous cognitive operating system built for total sovereignty and verification.' });
   await testBuiltin('Text', 'format_text', { text: 'trinity sovereign core os', mode: 'title' });
-  await testBuiltin('Text', 'extract_entities', { text: 'Kontaktujte Ivana na adrese support@auru.space alebo navštívte https://auru.space pre viac informácií.' });
-  await testBuiltin('Text', 'redact_sensitive', { text: 'Tajný kľúč je admin@auru.space a telefón +421911222333.', types: ['email', 'phone'] });
-  await testBuiltin('Text', 'html_to_text', { html: '<html><body><h1>Trinity OS</h1><p>Vítajte v <b>Sovereign Core</b>.</p></body></html>' });
-  await testBuiltin('Text', 'markdown_inspect', { markdown: '# Architektúra Trinity\n\n## Vrstva 1\n- D1 Sovereign Ledger\n- Local Gateway\n\n[Odkaz](https://auru.space)' });
-  await testBuiltin('Text', 'text_diff', { before: 'verzia: 11.0.0', after: 'verzia: 11.1.0' });
+  await testBuiltin('Text', 'extract_entities', { text: 'Contact Ivan at support@auru.space or visit https://auru.space for more information.' });
+  await testBuiltin('Text', 'redact_sensitive', { text: 'Secret contact is admin@auru.space and phone +421911222333.', types: ['email', 'phone'] });
+  await testBuiltin('Text', 'html_to_text', { html: '<html><body><h1>Trinity OS</h1><p>Welcome to <b>Sovereign Core</b>.</p></body></html>' });
+  await testBuiltin('Text', 'markdown_inspect', { markdown: '# Trinity Architecture\n\n## Layer 1\n- D1 Sovereign Ledger\n- Local Gateway\n\n[Link](https://auru.space)' });
+  await testBuiltin('Text', 'text_diff', { before: 'version: 11.0.0', after: 'version: 11.1.0' });
 
   // 3. DATA STRUCTURES & CODECS
   console.log('\n--- 3. Data Structures & Codecs ---');
   await testBuiltin('Data', 'json_tool', { operation: 'format', json: '{"service":"trinity","status":"active"}' });
-  await testBuiltin('Data', 'csv_inspect', { csv: 'id,meno,rola\n1,Ivan,Architect\n2,Trinity,Core' });
-  await testBuiltin('Data', 'csv_to_json', { csv: 'id,meno,rola\n1,Ivan,Architect\n2,Trinity,Core' });
+  await testBuiltin('Data', 'csv_inspect', { csv: 'id,name,role\n1,Ivan,Architect\n2,Trinity,Core' });
+  await testBuiltin('Data', 'csv_to_json', { csv: 'id,name,role\n1,Ivan,Architect\n2,Trinity,Core' });
   await testBuiltin('Data', 'list_cleaner', { items: ['  trinity  ', 'edge', '  trinity  ', '', 'gateway'], trim: true, remove_empty: true });
   await testBuiltin('Data', 'table_transform', { json: '[{"id":1,"val":50},{"id":2,"val":100},{"id":3,"val":25}]', operation: 'sort', field: 'val', direction: 'desc' });
   await testBuiltin('Data', 'base64_codec', { operation: 'encode', value: 'Sovereign Trinity Covenant 2026' });
@@ -149,7 +149,7 @@ async function run() {
   await testBuiltin('System', 'color_convert', { color: '#2563eb', to: 'rgb' });
   await testBuiltin('System', 'contrast_check', { foreground: '#ffffff', background: '#0f172a' });
   await testBuiltin('System', 'diagnostic_ping', { message: 'verification-ping-2026' });
-  await testBuiltin('System', 'plan_work', { task: 'Kompletná verifikácia autonómnych nástrojov Trinity' });
+  await testBuiltin('System', 'plan_work', { task: 'Complete verification of autonomous Trinity tools' });
 
   // 5. OPEN DATA APIS
   console.log('\n--- 5. Open Data & External APIs ---');
@@ -158,14 +158,14 @@ async function run() {
   await testBuiltin('OpenData', 'crypto_prices', { coins: ['bitcoin', 'ethereum'] });
   await testBuiltin('OpenData', 'tech_news', { limit: 3 });
   await testBuiltin('OpenData', 'macro_data', { country: 'SVK', indicator: 'gdp' });
-  await testBuiltin('OpenData', 'open_wikipedia', { query: 'Alan Turing', lang: 'sk' });
+  await testBuiltin('OpenData', 'open_wikipedia', { query: 'Alan Turing', lang: 'en' });
   await testBuiltin('OpenData', 'open_weather', { query: 'Bratislava' });
 
   // 6. SOVEREIGN LEDGER & TRUTH GUARD
   console.log('\n--- 6. Sovereign Ledger & Truth Guard ---');
   await testBuiltin('Sovereign', 'sovereign_ledger_v3', { action: 'architecture' });
   await testBuiltin('Sovereign', 'sovereign_lock_check', { action: 'charter_compliance' });
-  await testBuiltin('Sovereign', 'truth_guard_verify', { action: 'validate_response', response_text: 'Systém Trinity je plne pripravený a overený.' });
+  await testBuiltin('Sovereign', 'truth_guard_verify', { action: 'validate_response', response_text: 'Trinity system is ready and verified.' });
 
   // 7. OMNI-TOOLS CLOUDFLARE BINDINGS
   console.log('\n--- 7. Cloudflare Omni-Tools ---');
@@ -209,10 +209,10 @@ async function run() {
       return data.result;
     }
 
-    const noteRes = await callLocalMcp('add_note', { text: `Autonómny test nástroja ${new Date().toISOString()}` });
+    const noteRes = await callLocalMcp('add_note', { text: `Autonomous tool test ${new Date().toISOString()}` });
     record('LocalMCP', 'add_note', 'PASSED', noteRes);
 
-    const searchRes = await callLocalMcp('search_notes', { query: 'Autonómny test' });
+    const searchRes = await callLocalMcp('search_notes', { query: 'Autonomous tool test' });
     record('LocalMCP', 'search_notes', 'PASSED', searchRes);
 
     const listRes = await callLocalMcp('list_files', {});

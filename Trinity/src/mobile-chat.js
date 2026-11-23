@@ -3,18 +3,18 @@
  * @subsystem MOBILE_CHAT_EDGE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul mobile-chat.js (Trinity/src/mobile-chat.js) - Bezpečné a responzívne mobilné chatovacie rozhranie na Cloudflare Edge.
+ * @description Module mobile-chat.js (Trinity/src/mobile-chat.js) — Secure, responsive mobile chat interface on Cloudflare Edge.
  */
 
 import { TRINITY_VERSION } from './version.js';
 
 /**
- * Generátor HTML/CSS/JS pre responzívne mobilné rozhranie TRINITY OMNI-CORE.
- * Poskytuje zabezpečenú komunikáciu s edge endpointmi (/api/command, /api/launch, /api/status)
- * s ochranou proti DOM XSS (používa textContent namiesto innerHTML) a striktnou CSP.
+ * HTML/CSS/JS generator for the responsive TRINITY OMNI-CORE mobile interface.
+ * Provides secure communication with edge endpoints (/api/command, /api/launch, /api/status)
+ * with DOM XSS protection (uses textContent instead of innerHTML) and strict CSP.
  *
- * @param {object} env - Cloudflare Worker prostredie
- * @param {string} [host='auru.space'] - Hostname požiadavky
+ * @param {object} env - Cloudflare Worker environment
+ * @param {string} [host='auru.space'] - Request hostname
  * @returns {Response}
  */
 export function renderMobileChatUI(env = {}, host = 'auru.space') {
@@ -106,7 +106,7 @@ export function renderMobileChatUI(env = {}, host = 'auru.space') {
     const callerToken = document.getElementById('caller-token');
     const statusText = document.getElementById('system-status');
 
-    // Obnovenie uloženého tokenu z localStorage
+    // Restore saved token and caller identity from localStorage
     try {
       const savedToken = localStorage.getItem('trinity_mobile_token');
       if (savedToken && callerToken) callerToken.value = savedToken;
@@ -114,7 +114,7 @@ export function renderMobileChatUI(env = {}, host = 'auru.space') {
       if (savedCaller && callerId) callerId.value = savedCaller;
     } catch (_) {}
 
-    // Overenie online stavu cez /api/status
+    // Check online status via /api/status
     fetch('/api/status')
       .then(r => r.json())
       .then(d => {
@@ -129,7 +129,7 @@ export function renderMobileChatUI(env = {}, host = 'auru.space') {
         statusText.style.color = 'var(--danger)';
       });
 
-    // Bezpečné vytváranie DOM uzlov (ochrana proti DOM XSS)
+    // Safe DOM node creation (DOM XSS protection)
     function appendMessage(text, type, metaText = '', detailsJson = null) {
       const msg = document.createElement('div');
       msg.className = 'msg ' + (type === 'user' ? 'user' : 'bot');

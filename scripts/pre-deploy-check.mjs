@@ -30,38 +30,38 @@ export function runPreDeployCheck() {
   const bridgePath = path.join(rootDir, 'scripts', 'desktop-commander-bridge', 'bridge.js');
 
   if (!fs.existsSync(trinityWranglerPath)) {
-    throw new Error('Chýba Trinity/wrangler.jsonc');
+    throw new Error('Missing Trinity/wrangler.jsonc');
   }
   if (!fs.existsSync(rootWranglerPath)) {
-    throw new Error('Chýba koreňový wrangler.jsonc');
+    throw new Error('Missing root wrangler.jsonc');
   }
   if (!fs.existsSync(migrationPath)) {
-    throw new Error('Chýba D1 migrácia Trinity/migrations/0057_audit_logs_ledger.sql');
+    throw new Error('Missing D1 migration Trinity/migrations/0057_audit_logs_ledger.sql');
   }
   if (!fs.existsSync(bridgePath)) {
-    throw new Error('Chýba Desktop Commander most scripts/desktop-commander-bridge/bridge.js');
+    throw new Error('Missing Desktop Commander bridge scripts/desktop-commander-bridge/bridge.js');
   }
 
   const config = parseJsonc(fs.readFileSync(trinityWranglerPath, 'utf8'));
   const prod = config.env?.production || config;
 
   if (!prod) {
-    throw new Error('wrangler.jsonc musí obsahovať produkčnú konfiguráciu');
+    throw new Error('wrangler.jsonc must contain a production configuration');
   }
 
   if (prod.vars?.ENVIRONMENT !== 'production' || prod.vars?.STRICT_MODE !== 'true') {
-    throw new Error('env.production musí mať ENVIRONMENT="production" a STRICT_MODE="true"');
+    throw new Error('env.production must set ENVIRONMENT="production" and STRICT_MODE="true"');
   }
 
   const prodDb = prod.d1_databases?.find((d) => d.binding === 'DB')?.database_name;
   if (prodDb !== 'trinity-v03') {
-    throw new Error(`Neplatná produkčná D1 databáza: prod=${prodDb}`);
+    throw new Error(`Invalid production D1 database: prod=${prodDb}`);
   }
 
   const requiredServices = ['PROFILE_SERVICE', 'CORE_SERVICE', 'DISPATCHER_SERVICE', 'AI_INFERENCE_SERVICE'];
   for (const binding of requiredServices) {
     if (!prod.services?.some((s) => s.binding === binding)) {
-      throw new Error(`env.production postráda servisnú väzbu ${binding}`);
+      throw new Error(`env.production is missing service binding ${binding}`);
     }
   }
 

@@ -3,17 +3,17 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul qca.js (Trinity/src/qca.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module qca.js (Trinity/src/qca.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * Quantum Cognitive Accelerator (QCA)
  * Trinity / Aura Meta-Layer
- * Autor: Sabo & Trinity
+ * Author: Sabo & Trinity
  */
 
 export async function QCA(query, context = {}, env = null) {
   const startTime = Date.now();
-  console.log(`[QCA] Spúšťam akceleráciu pre: "${query}"`);
+  console.log(`[QCA] Starting acceleration for: "${query}"`);
 
   // 1. Context Compression
   const compressedContext = await compressContext(context);
@@ -31,7 +31,7 @@ export async function QCA(query, context = {}, env = null) {
   const finalOutput = selfCorrect(reflectedResult);
 
   const duration = Date.now() - startTime;
-  console.log(`[QCA] Dokončené za ${duration}ms.`);
+  console.log(`[QCA] Completed in ${duration}ms.`);
 
   return {
     success: true,
@@ -59,18 +59,18 @@ export async function compressContext(ctx = {}) {
 
 export async function runParallelThoughts(query, compressedContext = {}, env = null) {
   return [
-    { path: "logical", weight: 0.9, output: `Analytický pohľad na: ${query}` },
-    { path: "intuitive", weight: 0.85, output: `Intuitívna rezonancia pre: ${query}` },
-    { path: "statistical", weight: 0.8, output: `Pravdepodobnostný model pre: ${query}` },
-    { path: "predictive", weight: 0.95, output: `Predikcia budúcich stavov pre: ${query}` },
-    { path: "metaphysical", weight: 1.0, output: `Aura harmonizácia kvantového poľa pre: ${query}` }
+    { path: "logical", weight: 0.9, output: `Analytical perspective on: ${query}` },
+    { path: "intuitive", weight: 0.85, output: `Intuitive resonance for: ${query}` },
+    { path: "statistical", weight: 0.8, output: `Probabilistic model for: ${query}` },
+    { path: "predictive", weight: 0.95, output: `Future state prediction for: ${query}` },
+    { path: "metaphysical", weight: 1.0, output: `Aura quantum field harmonization for: ${query}` }
   ];
 }
 
 export function mergeThoughts(thoughts = []) {
   if (!thoughts || thoughts.length === 0) {
     return {
-      synthesizedContent: "Prázdne pole myšlienok.",
+      synthesizedContent: "Empty thought field.",
       confidence: 0
     };
   }
@@ -81,9 +81,9 @@ export function mergeThoughts(thoughts = []) {
 
   return {
     synthesizedContent:
-      `Syntéza cez ${thoughts.length} paralelných dráh. ` +
-      `Primárny rezonátor: [${primaryThought.path}]. ` +
-      `Výsledok: ${primaryThought.output}`,
+      `Synthesis across ${thoughts.length} parallel paths. ` +
+      `Primary resonator: [${primaryThought.path}]. ` +
+      `Result: ${primaryThought.output}`,
     confidence: primaryThought.weight
   };
 }
@@ -94,15 +94,15 @@ export function selfReflect(merged, query) {
   return {
     ...merged,
     reflectionNotes: hasLogicalFlaw
-      ? "Nájdená odchýlka, upravujem."
-      : "Logická konzistencia stabilná.",
+      ? "Deviation detected, adjusting."
+      : "Logical consistency stable.",
     passedAudit: true
   };
 }
 
 export function selfCorrect(reflected) {
   if (!reflected || !reflected.passedAudit) {
-    return "Korigovaný výstup po internom reštarte logiky.";
+    return "Corrected output after internal logic reset.";
   }
 
   return {

@@ -75,7 +75,7 @@ test('fetchWeather fails gracefully on unknown place without hallucinating', asy
   });
   const res = await fetchWeather('NeznameMestoXYZ', { fetchImpl: stubFetch });
   assert.equal(res.available, false);
-  assert.ok(res.reason.includes('nebola nájdená'));
+  assert.ok(res.reason.includes('was not found'));
 });
 
 test('fetchWikipedia returns encyclopedic extract with stubbed fetch', async () => {
@@ -93,7 +93,7 @@ test('fetchWikipedia returns encyclopedic extract with stubbed fetch', async () 
   const res = await fetchWikipedia('Bratislava', { fetchImpl: stubFetch });
   assert.equal(res.available, true);
   assert.equal(res.title, 'Bratislava');
-  assert.equal(res.source, 'Wikimedia / Wikipédia');
+  assert.equal(res.source, 'Wikimedia / Wikipedia');
   assert.equal(res.verified_truth, true);
 });
 
@@ -104,7 +104,7 @@ test('fetchWikipedia handles 404 cleanly', async () => {
   });
   const res = await fetchWikipedia('NonExistentPage12345678', { fetchImpl: stubFetch });
   assert.equal(res.available, false);
-  assert.ok(res.reason.includes('nebol na Wikipédii'));
+  assert.ok(res.reason.includes('was not found on Wikipedia'));
 });
 
 test('resolveDns queries Cloudflare DoH and parses DNSSEC answers', async () => {

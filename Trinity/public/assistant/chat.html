@@ -1,4 +1,4 @@
-<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#17212b"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"><link rel="stylesheet" href="/chat.css?v=16.0.0"><link rel="stylesheet" href="/builder.css?v=16.0.0"><link rel="stylesheet" href="/theme.css?v=16.0.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=16.0.0" defer></script><script src="/ghost-crypto.js?v=16.0.0" defer></script><link rel="stylesheet" href="/garage.css?v=16.0.0"><link rel="stylesheet" href="/mobile.css?v=16.0.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui">
+<!doctype html><html lang="sk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#17212b"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · AI Studio</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"><link rel="stylesheet" href="/chat.css?v=16.1.0"><link rel="stylesheet" href="/builder.css?v=16.1.0"><link rel="stylesheet" href="/theme.css?v=16.1.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=16.1.0" defer></script><script src="/ghost-crypto.js?v=16.1.0" defer></script><link rel="stylesheet" href="/garage.css?v=16.1.0"><link rel="stylesheet" href="/mobile.css?v=16.1.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui">
 <aside class="sidebar">
   <a href="#chat" class="brand" data-view-link="chat"><span class="brand-mark">T</span><span>Trinity<small>AI STUDIO</small></span></a>
   <div class="sidebar-quick-actions">
@@ -15,7 +15,7 @@
     <button data-view="wallet"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span><b>Platby &amp; Peňaženka</b></button>
     <button data-view="connect" id="connect-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span><b>Prepojenia &amp; Siete</b></button>
     <button data-view="encrypted_shits" id="encrypted-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm3 7a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></span><b>encrypted_shits</b><span id="enc-nav-badge" hidden style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:auto;box-shadow:0 0 8px rgba(239,68,68,0.6);">0</span></button>
-    <button data-view="crypto" id="crypto-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><polygon points="12 2 21 8.5 21 15.5 12 22 3 15.5 3 8.5 12 2"/></svg></span><b>Tetrakis ($TTK)</b></button>
+    <button data-view="crypto" id="crypto-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><polygon points="12 3 3 19 21 19"/><line x1="12" y1="3" x2="12" y2="19"/><line x1="12" y1="13" x2="3" y2="19"/><line x1="12" y1="13" x2="21" y2="19"/></svg></span><b>Tetrakis ($TTK)</b></button>
     <button data-view="documents"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><b>Dokumentácia</b></button>
     <button data-view="settings"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><b data-i18n="settings">Nastavenia &amp; Licencie</b></button>
   </nav>
@@ -69,7 +69,7 @@
 
       <div class="auth-divider"><span>alebo cez e-mail</span></div>
 
-      <!-- Formulár: Email + Heslo (Login aj Registrácia) -->
+      <!-- Form: Email + Password (Login & Registration) -->
       <form id="credentials-form" class="auth-form">
         <label id="auth-name-field" hidden>
           <span class="auth-label">Tvoje meno alebo prezývka</span>
@@ -272,7 +272,7 @@
           </div>
         </article>
 
-        <!-- Univerzálny Inbound Webhook -->
+        <!-- Universal Inbound Webhook -->
         <article class="panel connect-card">
           <div>
             <div class="connect-card-head">
@@ -289,7 +289,7 @@
           </div>
         </article>
 
-        <!-- MCP pre AI Asistentov -->
+        <!-- MCP for AI Assistants -->
         <article class="panel connect-card">
           <div>
             <div class="connect-card-head">
@@ -306,7 +306,7 @@
           </div>
         </article>
 
-        <!-- Lokálny PC Bridge -->
+        <!-- Local PC Bridge -->
         <article class="panel connect-card">
           <div>
             <div class="connect-card-head">
@@ -493,7 +493,7 @@
             <button type="button" id="enc-close-settings-modal-btn" style="background:transparent;border:none;color:#94a3b8;font-size:18px;cursor:pointer;padding:4px 8px;">✕</button>
           </div>
 
-          <!-- Section 1: Profil & Alias -->
+          <!-- Section 1: Profile & Alias -->
           <div style="margin-bottom:14px;background:#090d16;padding:12px 14px;border-radius:10px;border:1px solid #1e293b;">
             <div style="font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:6px;">👤 Moja identita a zobrazované meno</div>
             <div style="font-size:11px;color:#94a3b8;margin-bottom:8px;">Zobrazované meno (alias) vidia partneri pri chatovaní:</div>
@@ -504,7 +504,7 @@
             <div style="font-size:10px;color:#64748b;">Peer ID: <code id="enc-settings-peer-id" style="color:#38bdf8;">--</code></div>
           </div>
 
-          <!-- Section 2: Kryptografia & Rekeying -->
+          <!-- Section 2: Cryptography & Rekeying -->
           <div style="margin-bottom:14px;background:#090d16;padding:12px 14px;border-radius:10px;border:1px solid #1e293b;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
               <div style="font-size:12px;font-weight:700;color:#f8fafc;">🔐 Kľúče & Forward Secrecy</div>
@@ -516,7 +516,7 @@
             </button>
           </div>
 
-          <!-- Section 3: Súkromie & Ochrana obrazovky -->
+          <!-- Section 3: Privacy & Screen Protection -->
           <div style="margin-bottom:16px;background:#090d16;padding:12px 14px;border-radius:10px;border:1px solid #1e293b;">
             <div style="font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:10px;">🛡️ Ochrana súkromia & Zobrazenie</div>
             <label style="display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#cbd5e1;cursor:pointer;margin-bottom:8px;">
@@ -604,7 +604,7 @@
 
     <section id="omnidev-view" class="view omnidev-view" hidden>
       <div class="omni-split-container">
-        <!-- Ľavý panel: Chat & Pentad 2.0 Orchestrator -->
+        <!-- Left Panel: Chat & Pentad 2.0 Orchestrator -->
         <div class="omni-panel omni-left-chat">
           <div class="omni-panel-header">
             <span class="omni-badge">⚡ CHAT & PENTAD 2.0 ORCHESTRATOR</span>
@@ -633,7 +633,7 @@
           </div>
         </div>
 
-        <!-- Pravý panel: Omni-Workspace Canvas -->
+        <!-- Right Panel: Omni-Workspace Canvas -->
         <div class="omni-panel omni-right-canvas">
           <div class="omni-canvas-tabs">
             <button class="omni-tab-btn active" data-omni-tab="terminal">💻 Live PC Terminál & Súbory</button>
@@ -1157,6 +1157,79 @@
       <div class="studio-template-row" aria-label="Rýchle šablóny"><button type="button" data-studio-template="Vytvor profesionálnu landing page pre modernú technologickú službu s výrazným hero blokom, benefitmi, referenciami a CTA.">Landing page</button><button type="button" data-studio-template="Vytvor prehľadný analytický dashboard s bočnou navigáciou, KPI kartami, grafmi a tabuľkou aktivít.">Dashboard</button><button type="button" data-studio-template="Vytvor elegantné osobné portfólio s projektmi, profilom, zručnosťami a kontaktnou sekciou.">Portfólio</button><button type="button" data-studio-template="Vytvor moderný e-shop s produktovou mriežkou, filtrami, detailom produktu a košíkom bez odosielania dát.">E-shop</button><button type="button" data-studio-template="Vytvor čistú dokumentačnú stránku s navigáciou, vyhľadávaním, ukážkami kódu a responzívnym obsahom.">Dokumentácia</button></div>
       <div class="builder-shell"><aside class="builder-files"><div class="builder-label" data-i18n="studioProjects">PROJEKTY</div><div id="studio-project-list"></div><div class="builder-label" data-i18n="files">SÚBORY</div><div id="studio-file-list"><button class="file active">◇ index.html</button></div></aside><section class="preview-panel"><div class="preview-toolbar"><div class="preview-title"><b id="studio-project-name" data-i18n="untitled">Nový projekt</b><small id="studio-project-version">v0</small></div><div class="studio-view-tabs" role="tablist"><button type="button" id="studio-tab-preview" class="active" data-studio-tab="preview">Náhľad</button><button type="button" id="studio-tab-code" data-studio-tab="code">Kód</button><button type="button" id="studio-tab-quality" data-studio-tab="quality">Kvalita <span id="studio-quality-score">—</span></button></div><div class="preview-actions"><button type="button" id="studio-audit-btn" title="Spustiť serverový audit kvality" disabled>🔍 Audit</button><button type="button" id="studio-deploy-domain-btn" title="Nasadiť projekt na doménu" disabled>🚀 Nasadiť</button><button type="button" id="preview-refresh" title="Obnoviť náhľad">↻</button><button type="button" id="preview-desktop" class="active" aria-label="Desktop">▭</button><button type="button" id="preview-tablet" aria-label="Tablet">▯</button><button type="button" id="preview-mobile" aria-label="Mobil">▯</button><button type="button" id="studio-open-preview" title="Otvoriť náhľad" disabled>↗</button><a id="studio-export" href="#" hidden data-i18n="download">Stiahnuť HTML</a></div></div><div id="studio-workspace"><div id="studio-empty"><div class="empty-mark">✦</div><h2 data-i18n="emptyStudioTitle">Čo chceš vytvoriť?</h2><p data-i18n="emptyStudioText">Vyber šablónu alebo opíš vlastný nápad. Trinity vytvorí bezpečný samostatný HTML výstup.</p></div><iframe id="studio-preview" title="Website preview" sandbox="allow-scripts" hidden></iframe><section id="studio-code-panel" class="studio-inspector" hidden><div class="inspector-head"><div><b>index.html</b><small>Zdroj aktuálnej verzie</small></div><button type="button" id="studio-copy-code">Kopírovať kód</button></div><textarea id="studio-code" readonly spellcheck="false" aria-label="HTML source"></textarea></section><section id="studio-quality-panel" class="studio-inspector quality-panel" hidden><div class="quality-hero"><strong id="studio-quality-value">—</strong><div><b>Automatický Code Review & Testy</b><small>Statická analýza, Lighthouse metriky, bezpečnosť a generovanie Playwright testov.</small></div></div><div id="studio-lighthouse-scores" class="quality-scores-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0"><div class="quality-score-card" style="background:rgba(255,255,255,0.04);padding:8px;border-radius:8px;text-align:center"><span style="font-size:11px;color:var(--text-muted,#94a3b8);display:block">⚡ Výkon</span><b id="score-perf" style="font-size:16px;color:#38bdf8">—</b></div><div class="quality-score-card" style="background:rgba(255,255,255,0.04);padding:8px;border-radius:8px;text-align:center"><span style="font-size:11px;color:var(--text-muted,#94a3b8);display:block">♿ Prístupnosť</span><b id="score-a11y" style="font-size:16px;color:#4ade80">—</b></div><div class="quality-score-card" style="background:rgba(255,255,255,0.04);padding:8px;border-radius:8px;text-align:center"><span style="font-size:11px;color:var(--text-muted,#94a3b8);display:block">🛡️ Bezpečnosť</span><b id="score-sec" style="font-size:16px;color:#a78bfa">—</b></div><div class="quality-score-card" style="background:rgba(255,255,255,0.04);padding:8px;border-radius:8px;text-align:center"><span style="font-size:11px;color:var(--text-muted,#94a3b8);display:block">🔍 SEO</span><b id="score-seo" style="font-size:16px;color:#fbbf24">—</b></div></div><div id="studio-quality-list" class="quality-list"></div><div id="studio-generated-tests-wrap" style="margin-top:14px;border-top:1px solid var(--border-color,#334155);padding-top:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b>🧪 Automaticky vygenerované Playwright / DOM Testy</b><button type="button" id="studio-copy-tests" style="font-size:11px;padding:4px 8px">Kopírovať testy</button></div><textarea id="studio-generated-tests" readonly style="width:100%;height:130px;font-family:monospace;font-size:11px;background:#030712;color:#a5f3fc;border-radius:6px;border:1px solid #1e293b;padding:8px" placeholder="Testy sa vygenerujú automaticky pri kontrole kódu…"></textarea></div></section></div></section><aside class="builder-history"><div class="builder-label" data-i18n="versions">VERZIE</div><p class="history-help">Každá úprava vytvorí novú verziu.</p><div id="studio-versions"></div></aside></div>
       <form id="studio-form" class="studio-composer"><div class="studio-prompt-tools"><label>Model<select id="studio-provider"><option value="auto">Automaticky + záloha</option><option value="workers-ai">Cloudflare Workers AI</option><option value="gemini">Google Gemini</option><option value="openai">OpenAI</option><option value="anthropic">Anthropic Claude</option><option value="groq">Groq LPU</option><option value="deepseek">DeepSeek</option><option value="ollama">Ollama</option></select></label><label>Kvalita<select id="studio-quality-mode"><option value="fast">Rýchla</option><option value="balanced">Vyvážená</option><option value="high">Vysoká</option></select></label><label>Štýl<select id="studio-style"><option value="">Automaticky</option><option value="minimalistický a prémiový">Minimalistický</option><option value="výrazný editorial">Editorial</option><option value="technologický dark mode">Tech dark</option><option value="hravý a farebný">Hravý</option></select></label><label><input id="studio-accessible" type="checkbox" checked> Prístupnosť</label><label><input id="studio-responsive" type="checkbox" checked> Responzívny dizajn</label></div><div class="studio-prompt-main"><textarea id="studio-prompt" rows="2" maxlength="8000" required data-placeholder="studioPlaceholder" placeholder="Trinity, vytvor mi web…"></textarea><button id="studio-generate" class="primary" data-i18n="generate">Vytvoriť</button></div><small class="studio-shortcut">Ctrl/⌘ + Enter na vytvorenie · ďalší pokyn vytvorí novú verziu · nastavenia sa ukladajú v tomto prehliadači</small></form><div id="studio-status" role="status" aria-live="polite"></div>
+      <!-- Google AI Studio Co-Creation Bridge Panel -->
+      <section id="ai-studio-bridge-panel" class="panel ai-studio-bridge-card" aria-label="Google AI Studio Co-Creation">
+        <div class="ai-studio-bridge-head">
+          <div>
+            <span class="eyebrow">GOOGLE AI STUDIO BRIDGE · CO-CREATION</span>
+            <h2>Spoločná tvorba: Trinity + Google AI Studio</h2>
+          </div>
+          <div class="ai-studio-bridge-badges">
+            <span id="ai-studio-status-badge" class="detail-chip">Kontrolujem stav…</span>
+            <span id="ai-studio-session-badge" class="detail-chip" hidden>Relácia: nová</span>
+            <button type="button" id="ai-studio-refresh-btn">↻ Obnoviť stav</button>
+          </div>
+        </div>
+        <p class="settings-help">Trinity navrhne interný inžiniersky plán, zapojí Google AI Studio (Gemini API) a spojí výsledky do prehľadnej odpovede po slovensky. API kľúč sa nikdy nevkladá do prehliadača ani do Gitu — konfiguruje sa cez Trezor (<code>google_ai_studio</code> / <code>gemini</code>) alebo Cloudflare Secrets Store.</p>
+        <form id="ai-studio-bridge-form" class="ai-studio-bridge-form">
+          <div class="ai-studio-controls-grid">
+            <label>
+              <span>Model Google AI Studio</span>
+              <select id="ai-studio-model-select">
+                <option value="gemini-2.5-flash">gemini-2.5-flash (predvolený)</option>
+                <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+                <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
+              </select>
+            </label>
+            <label>
+              <span>Režim spolupráce</span>
+              <select id="ai-studio-mode-select">
+                <option value="pair">Pair (Spoločný návrh &amp; kód)</option>
+                <option value="brainstorm">Brainstorm (Nápady &amp; stratégia)</option>
+                <option value="review">Review (Technický audit &amp; kontrola)</option>
+                <option value="build_artifact">Build Artifact (Štruktúrovaný výstup)</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            <span>Zadanie pre spoločnú tvorbu</span>
+            <textarea id="ai-studio-task-input" rows="3" maxlength="8000" placeholder="Opíš, čo majú Trinity a Google AI Studio navrhnúť, skontrolovať alebo vytvoriť spolu…"></textarea>
+          </label>
+          <label>
+            <span>Voliteľný kontext / poznámky</span>
+            <textarea id="ai-studio-context-input" rows="2" maxlength="6000" placeholder="Napr. existujúci kód, obmedzenia, cieľová architektúra alebo požiadavky (voliteľné)"></textarea>
+          </label>
+          <div class="ai-studio-bridge-actions">
+            <button type="submit" id="ai-studio-cocreate-btn" class="primary">✦ Tvoriť spolu s Google AI Studio</button>
+            <button type="button" id="ai-studio-reset-session-btn">Nová relácia</button>
+          </div>
+        </form>
+        <p id="ai-studio-status-note" class="ai-studio-status-note" role="status" aria-live="polite">Stav Google AI Studio mosta sa načíta pri otvorení AI Studia alebo po kliknutí na Obnoviť stav.</p>
+        <div id="ai-studio-result-box" class="ai-studio-result-box" hidden>
+          <div class="ai-studio-result-grid">
+            <article class="ai-studio-result-section">
+              <div class="ai-studio-result-head">
+                <span>TRINITY PLÁN</span>
+              </div>
+              <div id="ai-studio-trinity-plan" class="ai-studio-result-body"></div>
+            </article>
+            <article class="ai-studio-result-section">
+              <div class="ai-studio-result-head">
+                <span>PRÍSPEVOK GOOGLE AI STUDIO</span>
+                <span id="ai-studio-contribution-model" class="detail-chip">—</span>
+              </div>
+              <div id="ai-studio-contribution" class="ai-studio-result-body"></div>
+            </article>
+          </div>
+          <article class="ai-studio-result-section synthesis">
+            <div class="ai-studio-result-head">
+              <span>SPOLOČNÁ SYNTÉZA (SLOVENSKY)</span>
+            </div>
+            <div id="ai-studio-final-reply" class="ai-studio-result-body"></div>
+          </article>
+        </div>
+      </section>
       <section class="workflow-builder" style="margin-top:20px"><div class="panel-head"><div><span class="eyebrow">VISUAL WORKFLOW</span><h2>Drag-and-drop automatizácia</h2></div><div class="workflow-save-row"><input id="workflow-name" maxlength="100" value="Nový workflow" aria-label="Názov workflow"><button id="workflow-save" type="button" class="primary">Uložiť workflow</button></div></div><div class="workflow-tools" aria-label="Workflow bloky"><button type="button" draggable="true" data-workflow-type="input">Vstup</button><button type="button" draggable="true" data-workflow-type="ai">AI krok</button><button type="button" draggable="true" data-workflow-type="tool">Nástroj</button><button type="button" draggable="true" data-workflow-type="approval">Schválenie</button><button type="button" draggable="true" data-workflow-type="output">Výstup</button><button id="workflow-clear" type="button">Vyčistiť</button></div><div id="workflow-canvas" class="workflow-canvas" aria-label="Workflow plocha"><p>Potiahni bloky sem. Poradie blokov vytvorí bezpečný tok.</p></div><div id="workflow-list" class="workflow-list"></div></section>
     </section>
     <section id="projects-view" class="view projects-view" hidden><div class="section-intro"><span class="eyebrow" data-i18n="workspace">PRACOVNÝ PRIESTOR</span><h1 data-i18n="projectsTitle">Projekty a rozpracované úlohy</h1><p data-i18n="projectsIntro">Prehľad uložený v spoločnej pamäti Trinity.</p></div><div id="project-list" class="project-grid"></div><section class="panel"><div class="panel-head"><h2 data-i18n="recentTasks">Posledné úlohy</h2></div><div id="task-list" class="task-list"></div></section></section>
@@ -1592,104 +1665,193 @@
     </section>
 
     <section id="crypto-view" class="view crypto-view" hidden>
-      <div class="section-intro">
-        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-          <img src="/tetrakis-logo.png" alt="Tetrakis TTK — Trinity Ecosystem" width="112" height="112" style="width:112px;height:112px;object-fit:cover;border-radius:16px">
-          <div>
-            <span class="eyebrow">TETRAKIS · PLATOBNÁ VRSTVA TRINITY</span>
-            <h1>💎 Tetrakis ($TTK) — Fuel for the Autonomous Edge</h1>
-            <p>Príbeh Trinity spája štyri motívy: suverenitu používateľa, výpočet na okraji siete, kryptografickú overiteľnosť a priame platby medzi peňaženkami. Je to vízia projektu, nie tvrdenie o garantovanej cene, výnose alebo úplnej decentralizácii.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="metric-grid domain-metrics tabular-metrics">
-        <article class="metric blue">
-          <span>CELKOVÁ ZÁSOBA ($TTK)</span>
-          <strong id="ttk-stat-supply">1 000 000 000 TTK</strong>
-          <small>Fixná ponuka (100% mincovníctva)</small>
-        </article>
-        <article class="metric teal">
-          <span>NASADENIE</span>
-          <strong id="ttk-stat-deployment">Neoverené</strong>
-          <small id="ttk-stat-network">Base · sieť sa overí pri konfigurácii</small>
-        </article>
-        <article class="metric gold">
-          <span>TRHOVÁ CENA</span>
-          <strong id="ttk-stat-price">Neznáma</strong>
-          <small>Nie je zistená overená živá cena</small>
-        </article>
-        <article class="metric purple">
-          <span>JERICHO NODE</span>
-          <strong id="ttk-stat-jericho">Online (Edge Node)</strong>
-          <small>jericho123.auru.space</small>
-        </article>
-      </div>
-
-      <div class="dashboard-grid admin-grid" style="grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; margin-top: 16px;">
-        <article class="panel" style="padding: 18px;">
-          <div class="panel-head">
-            <div><span class="eyebrow" style="color:#0ea5e9">KONTRAKT A ZÁSOBA</span><h3>📜 TTK na Base</h3></div>
+      <!-- TETRAKIS SPACE HERO CARD -->
+      <div class="ttk-space-hero">
+        <div class="ttk-space-topbar">
+          <span class="ttk-space-badge">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 3 3 19 21 19"/><line x1="12" y1="3" x2="12" y2="19"/><line x1="12" y1="13" x2="3" y2="19"/><line x1="12" y1="13" x2="21" y2="19"/></svg>
+            Tetrakis Space · $TTK
+          </span>
+          <div class="ttk-space-topbar-right">
             <a id="ttk-contract-explorer" href="#" target="_blank" rel="noopener" class="detail-chip" style="text-decoration:none;display:none">BaseScan ↗</a>
+            <button id="web3-connect-btn" class="ttk-space-connect-pill" type="button">Pripojiť peňaženku</button>
           </div>
-          <div style="font-size:13px; color:#cbd5e1; line-height:1.7; margin-top:12px;">
-            <p><b>Token:</b> Tetrakis ($TTK) · ERC-20 · 18 desatinných miest</p>
-            <p><b>Zásoba v zdrojovom kontrakte:</b> 1 000 000 000 TTK, raz vytvorených pri deployi; ďalšie mintovanie nie je možné.</p>
-            <p><b>Rozdelenie podľa zdroja:</b> 1 000 000 TTK founder adresa, 999 000 000 TTK treasury adresa. Treasury podiel je koncentrovaný; rozdelenie a kontrolu adresy treba vyriešiť pred nasadením.</p>
-            <p><b>Adresa kontraktu:</b> <code id="ttk-contract-address" style="word-break:break-all;background:#0f172a;padding:3px 6px;border-radius:4px;font-size:11px">Zatiaľ nie je overená</code></p>
-            <p><b>Trhová cena:</b> nezistená. Samotná zásoba ani kód cenu negarantujú.</p>
-          </div>
-        </article>
-
-        <article class="panel" style="padding: 18px;">
-          <div class="panel-head">
-            <div><span class="eyebrow" style="color:#f59e0b">LORE · ŠTYRI VRCHOLY</span><h3>🔺 Príbeh Tetrakis</h3></div>
-            <span class="detail-chip" style="background:rgba(245,158,11,0.15); color:#fbbf24;">Vízia projektu</span>
-          </div>
-          <div style="display:flex; flex-direction:column; gap:12px; margin-top:12px;">
-            <div style="padding:12px; background:#0f172a; border:1px solid #1e293b; border-radius:8px;">
-              <b style="color:#38bdf8;">Suverenita používateľa</b>
-              <p style="margin:6px 0 0; font-size:12px; color:#94a3b8;">Používateľ podpisuje každú platbu vlastnou peňaženkou; Trinity nedostáva jeho privátny kľúč.</p>
-            </div>
-            <div style="padding:12px; background:#0f172a; border:1px solid #1e293b; border-radius:8px;">
-              <b style="color:#a855f7;">Výpočet na hrane siete</b>
-              <p style="margin:6px 0 0; font-size:12px; color:#94a3b8;">Trinity používa Cloudflare Workers; tento príbehový motív neznamená, že celý systém je decentralizovaný.</p>
-            </div>
-            <div style="padding:12px; background:#0f172a; border:1px solid #1e293b; border-radius:8px;">
-              <b style="color:#eab308;">Kryptografia a platby</b>
-              <p style="margin:6px 0 0; font-size:12px; color:#94a3b8;">TTK má byť použiteľný na priame platby v ekosystéme; ceny služieb a automatické pripísanie služby sa ešte musia definovať.</p>
-            </div>
-          </div>
-        </article>
-      </div>
-
-      <div class="panel" style="margin-top:16px; padding:18px;">
-        <div class="panel-head">
-          <div><span class="eyebrow" style="color:#10b981">NEVÄZOBNÁ WEB3 PEŇAŽENKA</span><h3>🦊 Pripoj vlastnú peňaženku</h3></div>
-          <button id="web3-connect-btn" class="primary" type="button" style="display:inline-flex; align-items:center; gap:8px;">🦊 Pripojiť Web3 Peňaženku</button>
         </div>
-        <p style="color:#94a3b8; font-size:12px; margin-top:8px;">MetaMask alebo inú EIP-1193 peňaženku pripájaš ty. Trinity nikdy nežiada seed ani privátny kľúč. Pripojenie samo osebe neposiela transakciu.</p>
-        <div id="web3-wallet-status" style="margin-top:12px; padding:12px; background:#0f172a; border-radius:8px; font-size:13px; color:#cbd5e1; display:none;">
-          <p><b>Adresa peňaženky:</b> <code id="web3-user-address">-</code></p>
-          <p><b>Aktuálna sieť peňaženky:</b> <span id="web3-user-chain">Neznáma</span></p>
-          <p><b>Zostatok TTK:</b> <b id="web3-user-ttk" style="color:#38bdf8;">Nedostupný</b></p>
-          <p id="ttk-wallet-message" style="color:#94a3b8">Zostatok sa zobrazí po overení kontraktu na správnej sieti.</p>
+
+        <div class="ttk-space-emblem">
+          <img src="/tetrakis-logo.png" alt="Tetrakis ($TTK) — Trinity Ecosystem" width="148" height="84">
+        </div>
+
+        <span class="ttk-space-hero-kicker">TETRAKIS ($TTK) · NATÍVNY EKOSYSTÉMOVÝ PRIESTOR</span>
+        <strong id="web3-user-ttk" class="ttk-space-hero-balance">Nedostupný</strong>
+        <small id="ttk-wallet-message" class="ttk-space-hero-sub">Natívna mena ekosystému Trinity pre platby v chate, AI Studio mini-aplikácie, domény a neväzobný Tetrakis Space. Pripoj vlastnú EIP-1193 peňaženku (MetaMask / Coinbase / Rabby) — Trinity nikdy nežiada seed ani privátny kľúč.</small>
+
+        <!-- 4 CIRCULAR QUICK ACTION BUTTONS -->
+        <div class="ttk-space-actions-grid" role="group" aria-label="Rýchle akcie Tetrakis Space">
+          <button type="button" class="ttk-space-action-btn primary-circle" data-ttk-action="connect">
+            <span class="ttk-space-action-circle" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h5"/><circle cx="16" cy="12" r="1"/></svg></span>
+            <span class="ttk-space-action-label">Pripojiť</span>
+          </button>
+          <button type="button" class="ttk-space-action-btn" data-ttk-action="send">
+            <span class="ttk-space-action-circle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 19V5"/><polyline points="5 12 12 5 19 12"/></svg></span>
+            <span class="ttk-space-action-label">Odoslať</span>
+          </button>
+          <button type="button" class="ttk-space-action-btn" data-view="wallet">
+            <span class="ttk-space-action-circle" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
+            <span class="ttk-space-action-label">@wallet</span>
+          </button>
+          <button type="button" class="ttk-space-action-btn" data-ttk-action="contract">
+            <span class="ttk-space-action-circle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg></span>
+            <span class="ttk-space-action-label">Kontrakt</span>
+          </button>
+        </div>
+
+        <!-- CONNECTED WALLET STRIP (SHOWN WHEN EIP-1193 CONNECTED) -->
+        <div id="web3-wallet-status" class="ttk-space-connected-banner" style="display:none;">
+          <div class="ttk-space-connected-banner-grid">
+            <div><span style="color:var(--text-muted)">Adresa:</span> <code id="web3-user-address">-</code></div>
+            <div><span style="color:var(--text-muted)">Sieť:</span> <strong id="web3-user-chain">Neznáma</strong></div>
+          </div>
         </div>
       </div>
-    
-      <div class="panel" style="margin-top:16px; padding:18px;">
-        <div class="panel-head">
-          <div><span class="eyebrow" style="color:#10b981">PLATBA ZA SLUŽBY TRINITY</span><h3>💸 Odoslať TTK</h3></div>
+
+      <!-- TETRAKIS SPACE ASSETS & NETWORK STATUS LIST -->
+      <section class="ttk-space-list-card" aria-label="Token Tetrakis a stav siete">
+        <div class="ttk-space-list-head">
+          <span>AKTÍVUM &amp; SIEŤ</span>
+          <span>ERC-20 · BASE L2</span>
+        </div>
+        <div class="tg-asset-row">
+          <div class="tg-asset-left">
+            <span class="ttk-space-token-avatar"><img src="/tetrakis-logo.png" alt="Tetrakis TTK"></span>
+            <div class="tg-asset-meta">
+              <b>Tetrakis ($TTK)</b>
+              <small>Fixná ponuka · 18 desatinných miest · 0 % daň · žiadny ďalší mint</small>
+            </div>
+          </div>
+          <div class="tg-asset-right">
+            <strong id="ttk-stat-supply">1 000 000 000 TTK</strong>
+            <small>celková zásoba</small>
+          </div>
+        </div>
+        <div class="tg-asset-row">
+          <div class="tg-asset-left">
+            <span class="ttk-space-token-avatar net">L2</span>
+            <div class="tg-asset-meta">
+              <b>On-Chain Nasadenie</b>
+              <small id="ttk-stat-network">Base · sieť sa overí pri konfigurácii</small>
+            </div>
+          </div>
+          <div class="tg-asset-right">
+            <strong id="ttk-stat-deployment">Neoverené</strong>
+            <small>stav kontraktu</small>
+          </div>
+        </div>
+        <div class="tg-asset-row">
+          <div class="tg-asset-left">
+            <span class="ttk-space-token-avatar price">≈</span>
+            <div class="tg-asset-meta">
+              <b>Trhová cena</b>
+              <small>Nie je zistená overená živá trhová cena</small>
+            </div>
+          </div>
+          <div class="tg-asset-right">
+            <strong id="ttk-stat-price">Neznáma</strong>
+            <small>Truth Policy 2.1</small>
+          </div>
+        </div>
+        <div class="tg-asset-row">
+          <div class="tg-asset-left">
+            <span class="ttk-space-token-avatar node">●</span>
+            <div class="tg-asset-meta">
+              <b>Jericho Edge Node</b>
+              <small>jericho123.auru.space</small>
+            </div>
+          </div>
+          <div class="tg-asset-right">
+            <strong id="ttk-stat-jericho">Online (Edge Node)</strong>
+            <small>Cloudflare Edge</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- TETRAKIS DIRECT SEND CARD -->
+      <section id="ttk-send-card" class="ttk-space-send-card" aria-label="Odoslať Tetrakis TTK">
+        <div class="ttk-space-send-head">
+          <div>
+            <span class="eyebrow">PRIAMA ON-CHAIN PLATBA</span>
+            <h3>Odoslať $TTK</h3>
+          </div>
           <span id="ttk-payment-badge" class="detail-chip">Platby vypnuté</span>
         </div>
-        <form id="ttk-payment-form" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px;align-items:end">
-          <label><span>Suma TTK</span><input id="ttk-payment-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="napr. 25" maxlength="30" required></label>
+        <div class="quick-amount-chips" style="margin-bottom:12px">
+          <button type="button" class="chip-btn" data-ttk-amount="10">10 TTK</button>
+          <button type="button" class="chip-btn" data-ttk-amount="25">25 TTK</button>
+          <button type="button" class="chip-btn" data-ttk-amount="100">100 TTK</button>
+          <button type="button" class="chip-btn" data-ttk-amount="500">500 TTK</button>
+        </div>
+        <form id="ttk-payment-form" class="ttk-space-send-form">
+          <label>
+            <span>Suma v TTK</span>
+            <input id="ttk-payment-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="napr. 25" maxlength="30" required>
+          </label>
           <button id="ttk-pay-btn" class="primary" type="submit" disabled>🔒 Platby nie sú pripravené</button>
         </form>
-        <p id="ttk-payment-status" role="status" aria-live="polite" style="color:#94a3b8;font-size:12px;margin-top:12px">Platba sa povolí až po overení nasadeného TTK kontraktu a príjemcu. Suma sa zadáva priamo v TTK; Trinity netvrdí EUR/USD kurz.</p>
-        <p style="color:#94a3b8;font-size:12px">Platba iba odošle TTK do nakonfigurovanej peňaženky. Kým nebude prepojená s faktúrou a službou, sama neodomkne Trinity kredity. Transakciu musíš potvrdiť vo svojej peňaženke.</p>
-      </div>
+        <p id="ttk-payment-status" class="ttk-space-status-note" role="status" aria-live="polite">Platba sa povolí až po overení nasadeného TTK kontraktu a príjemcu. Suma sa zadáva priamo v TTK; Trinity netvrdí EUR/USD kurz.</p>
+        <p class="ttk-space-status-note">Platba iba odošle TTK do nakonfigurovanej peňaženky. Kým nebude prepojená s faktúrou a službou, sama neodomkne Trinity kredity. Transakciu musíš potvrdiť vo svojej peňaženke.</p>
+      </section>
 
+      <!-- TETRAKIS CONTRACT & TOKENOMICS CARD -->
+      <section id="ttk-contract-card" class="ttk-space-contract-card" aria-label="Smart kontrakt a tokenomika">
+        <div class="ttk-space-send-head" style="margin-bottom:4px">
+          <div>
+            <span class="eyebrow">SMART KONTRAKT &amp; TOKENOMIKA</span>
+            <h3>TetrakisToken · ERC-20</h3>
+          </div>
+          <button type="button" id="ttk-copy-contract-btn" class="secondary">Kopírovať adresu</button>
+        </div>
+        <div class="ttk-space-contract-address-row">
+          <code id="ttk-contract-address">Zatiaľ nie je overená</code>
+        </div>
+        <div class="ttk-space-contract-specs">
+          <div class="ttk-space-spec-box">
+            <span>ZÁSOBA PRI DEPLOYI</span>
+            <strong>1 000 000 000 TTK (bez ďalšieho mintu)</strong>
+          </div>
+          <div class="ttk-space-spec-box">
+            <span>FOUNDER / TREASURY</span>
+            <strong>1 000 000 TTK / 999 000 000 TTK</strong>
+          </div>
+          <div class="ttk-space-spec-box">
+            <span>STANDARD &amp; DECIMALS</span>
+            <strong>ERC-20 · 18 decimals · Base L2</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 NATIVE ECOSYSTEM UTILITY PILLARS OF TETRAKIS ($TTK) -->
+      <div class="ttk-space-pillars-head">
+        <span>4 EKOSYSTÉMOVÉ PILIERE TETRAKIS ($TTK)</span>
+        <span>NA ČO SLÚŽI $TTK V TRINITY</span>
+      </div>
+      <section class="ttk-space-pillars-grid" aria-label="Štyri ekosystémové piliere Tetrakis">
+        <article class="ttk-space-pillar-card">
+          <b><span class="ttk-space-pillar-dot"></span>Natívne platby v chate &amp; okamžité P2P prevody</b>
+          <p>Priame prevody medzi peňaženkami, sprepitné a platobné požiadavky priamo v Trinity Messengeri a <code>@wallet</code> bez opustenia rozhovoru.</p>
+        </article>
+        <article class="ttk-space-pillar-card">
+          <b><span class="ttk-space-pillar-dot"></span>Mini-aplikácie, AI Studio &amp; ekonomika botov</b>
+          <p>Natívna platobná mena pre webové aplikácie z Trinity AI Studia, AI agentov, zručnosti (skills), pluginy a mikroslužby v celom ekosystéme.</p>
+        </article>
+        <article class="ttk-space-pillar-card">
+          <b><span class="ttk-space-pillar-dot"></span>Domény, mená (@handle) &amp; digitálne aktíva</b>
+          <p>Úžitkový token pre ekosystémové používateľské mená (<code>@handle</code>), doménové služby, hosting a overiteľné digitálne aktíva či zberateľské predmety.</p>
+        </article>
+        <article class="ttk-space-pillar-card">
+          <b><span class="ttk-space-pillar-dot"></span>Ekonomika tvorcov, výpočtov &amp; neväzobný Tetrakis Space</b>
+          <p>Vlastná neväzobná peňaženka Tetrakis Space popri <code>@wallet</code> pre výplaty tvorcom, zúčtovanie edge výpočtov/úložiska a účasť v ekosystéme. Privátne kľúče nikdy neopúšťajú používateľa a stav kontraktu sa overuje len fail-closed (Truth Policy 2.1).</p>
+        </article>
+      </section>
     </section>
 
     <section id="wallet-view" class="view wallet-view" hidden>
@@ -1780,21 +1942,21 @@
         </div>
         <div class="tg-asset-row">
           <div class="tg-asset-left">
-            <span class="tg-asset-avatar ttk">TTK</span>
+            <span class="tg-asset-avatar ttk"><img src="/tetrakis-logo.png" alt="Tetrakis TTK"></span>
             <div class="tg-asset-meta">
-              <b>Tetrakis ($TTK)</b>
-              <small>Web3 token, on-chain kontrakt &amp; brána</small>
+              <b>Tetrakis Space ($TTK)</b>
+              <small>Natívny Web3 priestor · P2P platby v chate, AI Studio, domény &amp; Base L2 ERC-20</small>
             </div>
           </div>
           <div class="tg-asset-right">
-            <button type="button" class="secondary" data-view="crypto">Otvoriť →</button>
+            <button type="button" class="secondary" data-view="crypto">Otvoriť Space →</button>
           </div>
         </div>
       </section>
 
       <p class="tg-wallet-disclaimer">Trinity eviduje sandbox zostatok a vytvára platobné požiadavky. Externé bankové alebo blockchainové prevody musíš podpísať a vykonať v príslušnej peňaženke; samotný odkaz ani QR nie je potvrdená platba.</p>
 
-      <!-- PANE 1: POS PLATOBNÝ TERMINÁL NA PRÍJEM PLATIEB -->
+      <!-- PANE 1: POS PAYMENT TERMINAL FOR RECEIVING PAYMENTS -->
       <div id="wallet-pane-terminal" class="wallet-tab-pane">
         <div class="terminal-body-grid">
           <section class="panel domain-env-panel">
@@ -1825,7 +1987,7 @@
             </form>
           </section>
 
-          <!-- ŽIVÝ NÁHĽAD TERMINÁLU -->
+          <!-- LIVE TERMINAL PREVIEW -->
           <section class="panel domain-env-panel" id="terminal-display-box">
             <div class="panel-head">
               <div><span class="eyebrow">DISPLEJ TERMINÁLU</span><h2 id="tdisp-title">Pripravený na platbu</h2></div>
@@ -1838,7 +2000,7 @@
         </div>
       </div>
 
-      <!-- PANE 2: VÝBER PEŇAZÍ / PAYOUT -->
+      <!-- PANE 2: WITHDRAWAL / PAYOUT -->
       <div id="wallet-pane-payout" class="wallet-tab-pane" hidden>
         <section class="panel domain-env-panel">
           <div class="panel-head">
@@ -1861,7 +2023,7 @@
         </section>
       </div>
 
-      <!-- PANE 3: NASTAVENIE TERMINÁLOV & KRYPTO PEŇAŽENKA -->
+      <!-- PANE 3: TERMINAL CONFIGURATION & CRYPTO WALLET -->
       <div id="wallet-pane-config" class="wallet-tab-pane" hidden>
         <section class="panel domain-env-panel">
           <div class="panel-head">
@@ -1885,7 +2047,7 @@
         </section>
       </div>
 
-      <!-- PANE 4: POHYBY A VÝPISY -->
+      <!-- PANE 4: TRANSACTIONS & STATEMENTS -->
       <div id="wallet-pane-history" class="wallet-tab-pane" hidden>
         <section class="panel">
           <div class="panel-head">
@@ -1911,7 +2073,7 @@
       </div>
 
       <div class="dashboard-grid admin-grid" style="grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px;">
-        <!-- Modul 1: Open-Meteo -->
+        <!-- Module 1: Open-Meteo -->
         <article class="panel" style="padding: 16px;">
           <div class="panel-head">
             <div><span class="eyebrow" style="color:#0ea5e9">METEOROLÓGIA & POČASIE</span><h3>☀️ Open-Meteo & WMO</h3></div>
@@ -1925,7 +2087,7 @@
           <div id="module-weather-result" style="margin-top:12px;font-size:0.86rem;background:rgba(0,0,0,0.25);padding:10px;border-radius:6px;min-height:50px">Zadaj mesto a klikni na zistiť.</div>
         </article>
 
-        <!-- Modul 2: Wikipedia REST API -->
+        <!-- Module 2: Wikipedia REST API -->
         <article class="panel" style="padding: 16px;">
           <div class="panel-head">
             <div><span class="eyebrow" style="color:#10b981">ENCYKLOPÉDIA & FAKTY</span><h3>📖 Wikipédia Wikimedia API</h3></div>
@@ -1939,7 +2101,7 @@
           <div id="module-wiki-result" style="margin-top:12px;font-size:0.86rem;background:rgba(0,0,0,0.25);padding:10px;border-radius:6px;min-height:50px">Zadaj pojem a načítaj encyklopedický fakt.</div>
         </article>
 
-        <!-- Modul 3: Cloudflare 1.1.1.1 DoH -->
+        <!-- Module 3: Cloudflare 1.1.1.1 DoH -->
         <article class="panel" style="padding: 16px;">
           <div class="panel-head">
             <div><span class="eyebrow" style="color:#f59e0b">KRYPTOGRAFICKÝ DNS DOH</span><h3>🔒 Cloudflare 1.1.1.1 DoH</h3></div>
@@ -1954,7 +2116,7 @@
           <div id="module-dns-result" style="margin-top:12px;font-size:0.86rem;background:rgba(0,0,0,0.25);padding:10px;border-radius:6px;min-height:50px">Over stav a smerovanie akejkoľvek domény.</div>
         </article>
 
-        <!-- Modul 4: DefiLlama Spot Crypto & TVL -->
+        <!-- Module 4: DefiLlama Spot Crypto & TVL -->
         <article class="panel" style="padding: 16px;">
           <div class="panel-head">
             <div><span class="eyebrow" style="color:#8b5cf6">KRYPTOMENY & DEFI SPOT</span><h3>🪙 DefiLlama Open API</h3></div>
@@ -1967,7 +2129,7 @@
           <div id="module-crypto-result" style="margin-top:12px;font-size:0.86rem;background:rgba(0,0,0,0.25);padding:10px;border-radius:6px;min-height:50px">Klikni na načítanie reálnych kurzov z DefiLlama.</div>
         </article>
 
-        <!-- Modul 5: Hacker News API -->
+        <!-- Module 5: Hacker News API -->
         <article class="panel" style="padding: 16px;">
           <div class="panel-head">
             <div><span class="eyebrow" style="color:#ec4899">TECH SPRÁVY & INOVÁCIE</span><h3>📰 Hacker News Firebase API</h3></div>
@@ -1980,7 +2142,7 @@
           <div id="module-news-result" style="margin-top:12px;font-size:0.86rem;background:rgba(0,0,0,0.25);padding:10px;border-radius:6px;min-height:50px">Klikni na načítanie najnovších správ.</div>
         </article>
 
-        <!-- Modul 6: World Bank API -->
+        <!-- Module 6: World Bank API -->
         <article class="panel" style="padding: 16px;">
           <div class="panel-head">
             <div><span class="eyebrow" style="color:#06b6d4">MAKROEKONOMIKA</span><h3>🌍 Svetová Banka (World Bank)</h3></div>
@@ -2131,7 +2293,7 @@
 
       <div id="doc-pane-oath" class="doc-tab-pane" hidden>
 
-        <!-- LIST VLASTNÍCTVA (OWNER DEED) -->
+        <!-- OWNER DEED -->
         <article class="docs-card" id="doc-owner-deed" style="border: 2px solid rgba(56, 189, 248, 0.6); background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(15, 23, 42, 0.95)); padding: 24px; margin-bottom: 24px; border-radius: 12px;">
           <div class="panel-head" style="margin-bottom: 14px;">
             <div>
@@ -2260,14 +2422,38 @@
           </article>
 
           <article class="docs-card">
-            <span class="docs-badge" style="background:#eab308;color:#0b1220">KAPITOLA 6 · PLATBY & PEŇAŽENKA</span>
-            <h3>6. Prijímanie Platieb, SEPA & Krypto Terminály</h3>
-            <p>V sekcii <b>Platby & Peňaženka</b> spravuješ hotovosť, fakturáciu a krypto:</p>
+            <span class="docs-badge" style="background:#eab308;color:#0b1220">KAPITOLA 6 · PLATBY, @WALLET &amp; TETRAKIS SPACE</span>
+            <h3>6. Prijímanie Platieb, SEPA &amp; Tetrakis Space ($TTK)</h3>
+            <p>V sekciách <b>Platby &amp; Peňaženka (@wallet)</b> a <b>Tetrakis Space ($TTK)</b> spravuješ platby a natívnu ekonomiku ekosystému:</p>
             <ul class="docs-list">
-              <li><b>SEPA EPC QR Platby:</b> Okamžité vystavenie certifikovaného QR kódu pre slovenské a európske banky s automatickou sumou a variabilným symbolom.</li>
-              <li><b>Multi-Chain Krypto Prijímanie:</b> Prijímanie stabilných mincí USDC priamo na reťazcoch Polygon, Arbitrum, Ethereum, Solana a TON s automatickým overovaním zostatkov.</li>
+              <li><b>SEPA EPC QR &amp; POS Terminály:</b> Vystavenie SEPA QR kódov a platobných odkazov (Revolut Pro / PayPal) v sandbox evidencii <code>@wallet</code>.</li>
+              <li><b>Tetrakis Space ($TTK) na Base L2:</b> Neväzobný Web3 priestor pre 4 natívne ekosystémové roly — platby v chate a P2P prevody, AI Studio mini-aplikácie a botov, domény/mená (<code>@handle</code>) a ekonomiku tvorcov/výpočtov s fail-closed overením kontraktu (Truth Policy 2.1).</li>
             </ul>
-            <div class="docs-card-actions"><button type="button" data-view="wallet">Prejsť do Finančného centra →</button></div>
+            <div class="docs-card-actions">
+              <button type="button" data-view="wallet">Otvoriť @wallet →</button>
+              <button type="button" class="primary" data-view="crypto">Otvoriť Tetrakis Space →</button>
+            </div>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge" style="background:#38bdf8;color:#0b1220">KAPITOLA 7 · GOOGLE AI STUDIO BRIDGE</span>
+            <h3>7. Spoločná tvorba Trinity + Google AI Studio</h3>
+            <p>Priamy most do Google AI Studio (Gemini API) umožňuje spoločnú viackolovú tvorbu priamo v <b>AI Studiu</b>:</p>
+            <ul class="docs-list">
+              <li><b>API endpointy:</b> Stav mosta (<code>/api/assistant/ai-studio/status</code>), zoznam modelov (<code>/api/assistant/ai-studio/models</code>) a spoločná tvorba (<code>/api/assistant/ai-studio/co-create</code>).</li>
+              <li><b>Bezpečná správa kľúčov:</b> API kľúč sa ukladá iba do šifrovaného Trezora (<code>google_ai_studio</code> / <code>gemini</code>) alebo Cloudflare Secrets Store; nikdy nepatrí do Gitu ani prehliadača.</li>
+            </ul>
+            <div class="docs-card-actions"><button type="button" class="primary" data-view="studio">Otvoriť AI Studio Co-Creation →</button></div>
+          </article>
+
+          <article class="docs-card">
+            <span class="docs-badge" style="background:#a78bfa;color:#0b1220">KAPITOLA 8 · DVOJJAZYČNÁ ARCHITEKTÚRA</span>
+            <h3>8. Anglické inžinierske jadro · Slovenská komunikácia</h3>
+            <p>Trinity dôsledne oddeľuje internú technickú prácu od ľudskej komunikácie s majiteľom:</p>
+            <ul class="docs-list">
+              <li><b>Interná vrstva (100 % angličtina):</b> Zdrojový kód, komentáre, identifikátory, interné promptové inštrukcie agentov, schémy nástrojov a diagnostické logy pracujú v angličtine.</li>
+              <li><b>Používateľská komunikácia (slovenčina):</b> Odpovede v chate, ovládacie prvky a sprievodcovia komunikujú prirodzenou slovenčinou pri dodržaní Truth Policy 2.1.</li>
+            </ul>
           </article>
         </div>
       </div>
@@ -2622,7 +2808,7 @@
         </div>
       </div>
 
-      <!-- NEW TAB: NÁSTROJE & API EXPLORER (25+) -->
+      <!-- TAB: TOOLS & API EXPLORER (25+) -->
       <div id="doc-pane-tools" class="doc-tab-pane" hidden>
         <div class="docs-portal-grid">
           <article class="docs-card full-span-card" style="border: 2px solid rgba(56, 189, 248, 0.4); background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(15, 23, 42, 0.95)); padding: 24px; border-radius: 12px;">
@@ -2660,7 +2846,7 @@ Body:
             </div>
           </article>
 
-          <!-- 1. Domény & Hosting -->
+          <!-- 1. Domains & Hosting -->
           <article class="docs-card docs-tool-card">
             <span class="docs-badge" style="background:#a855f7;color:#fff">DOMÉNY &amp; CLOUDFLARE</span>
             <h3>1. <code>domain_env_provision</code> &amp; <code>domain_env_deploy</code></h3>
@@ -2674,7 +2860,7 @@ Body:
             </div>
           </article>
 
-          <!-- 2. Komodity & Trading -->
+          <!-- 2. Commodities & Trading -->
           <article class="docs-card docs-tool-card">
             <span class="docs-badge" style="background:#eab308;color:#0b1220">KOMODITY &amp; FINANCIE</span>
             <h3>2. <code>commodity_auto_invest</code> &amp; <code>commodity_analyze</code></h3>
@@ -2688,7 +2874,7 @@ Body:
             </div>
           </article>
 
-          <!-- 3. Živé UI a Samorozvoj -->
+          <!-- 3. Live UI & Self-Evolution -->
           <article class="docs-card docs-tool-card">
             <span class="docs-badge" style="background:#ec4899;color:#fff">UI EVOLUTION &amp; ŠTÝLY</span>
             <h3>3. <code>evolve_trinity_ui</code> &amp; <code>rollback_ui</code></h3>
@@ -2702,7 +2888,7 @@ Body:
             </div>
           </article>
 
-          <!-- 4. Sociálne siete & Omnichannel -->
+          <!-- 4. Social Networks & Omnichannel -->
           <article class="docs-card docs-tool-card">
             <span class="docs-badge" style="background:#10b981;color:#0b1220">OMNICHANNEL &amp; SOCIÁL</span>
             <h3>4. <code>meta_manage</code> &amp; Omnichannel Hub</h3>
@@ -2716,7 +2902,7 @@ Body:
             </div>
           </article>
 
-          <!-- 5. Dokumentácia & Archív -->
+          <!-- 5. Documentation & Archive -->
           <article class="docs-card docs-tool-card">
             <span class="docs-badge" style="background:#3b82f6;color:#fff">DOKUMENTY &amp; AUDIT</span>
             <h3>5. <code>create_trinity_document</code> &amp; <code>list_documents</code></h3>
@@ -2730,7 +2916,7 @@ Body:
             </div>
           </article>
 
-          <!-- 6. PC Bridge & Systémové akcie -->
+          <!-- 6. PC Bridge & System Actions -->
           <article class="docs-card docs-tool-card">
             <span class="docs-badge" style="background:#6366f1;color:#fff">WINDOWS PC DÉMON</span>
             <h3>6. <code>system_actions</code> &amp; <code>pc_bridge_execute</code></h3>
@@ -2746,78 +2932,76 @@ Body:
         </div>
       </div>
 
-      <!-- NEW TAB: TETRAKIS ($TTK) & WEB3 KRYPTO -->
+      <!-- TAB: TETRAKIS ($TTK) & NATIVE WEB3 SPACE -->
       <div id="doc-pane-crypto" class="doc-tab-pane" hidden>
         <div class="docs-portal-grid">
-          <article class="docs-card full-span-card" style="border: 2px solid rgba(245, 158, 11, 0.5); background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(15, 23, 42, 0.95)); padding: 24px; border-radius: 12px;">
+          <article class="docs-card full-span-card" style="border: 2px solid rgba(0, 152, 234, 0.45); background: linear-gradient(135deg, rgba(0, 152, 234, 0.1), rgba(15, 23, 42, 0.95)); padding: 24px; border-radius: 12px;">
             <div class="panel-head" style="margin-bottom: 14px;">
               <div>
-                <span class="docs-badge" style="background:#f59e0b;color:#0b1220;font-weight:700">TETRAKIS PROTOCOL · WEB3 &amp; MULTI-CHAIN TREASURY</span>
-                <h2 style="margin:8px 0 4px;color:#fbbf24">💎 Tetrakis ($TTK) ERC-20 &amp; Krypto Peňaženka</h2>
-                <small style="color:var(--text-muted, #94a3b8)">Kryptografická zmluva na Base sieti · Pevná ponuka 1,000,000,000 TTK · Telegram @wallet integrácia</small>
+                <span class="docs-badge" style="background:#0098ea;color:#ffffff;font-weight:700">TETRAKIS PROTOCOL · BASE L2 ERC-20 &amp; NATIVE SPACE</span>
+                <h2 style="margin:8px 0 4px;color:#38bdf8">Tetrakis ($TTK) — Natívny ekosystémový token &amp; Space</h2>
+                <small style="color:var(--text-muted, #94a3b8)">TetrakisToken.sol (OpenZeppelin ERC-20 v5.1.0, Solidity 0.8.24) · Base L2 (Chain ID 8453 / Sepolia 84532) · Pevná ponuka 1 000 000 000 TTK</small>
               </div>
-              <div style="display:flex;gap:8px">
-                <a class="primary" href="https://t.me/wallet" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:inline-flex;align-items:center;background:#f59e0b;color:#0b1220;font-weight:700;padding:6px 14px;border-radius:6px;">↗ Telegram @wallet</a>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button type="button" class="primary" data-view="crypto">Otvoriť Tetrakis Space →</button>
+                <button type="button" class="secondary" data-view="wallet">Otvoriť @wallet →</button>
               </div>
             </div>
             <p style="color:#e2e8f0;line-height:1.7;font-size:0.95rem;">
-              <b>Tetrakis ($TTK)</b> je natívny úžitkový a zúčtovací token ekosystému Trinity OMNI-CORE. Bol nasadený podľa štandardu <b>ERC-20 &amp; EIP-2612 (Permit)</b> na sieti <b>Base (ChainID: 8453)</b> a <b>Base Sepolia</b>. Inteligentná zmluva je navrhnutá s nulovým administratívnym mintingom, čo zaručuje absolútnu matematickú vzácnosť a nemennosť pravidiel.
+              <b>Tetrakis ($TTK)</b> je natívny úžitkový a platobný token ekosystému Trinity navrhnutý podľa štandardu <b>ERC-20</b> (<code>TetrakisToken.sol</code>, OpenZeppelin ERC-20 v5.1.0, Solidity <code>0.8.24</code>) pre sieť <b>Base L2 (Chain ID 8453)</b> a testovaciu sieť <b>Base Sepolia (84532)</b>. Podľa <b>Truth Policy 2.1</b> Trinity nikdy netvrdí neoverené nasadenie ani fiktívnu trhovú cenu — živý stav kontraktu sa dynamicky overuje cez <code>/api/assistant/crypto/tetrakis</code> a <code>scripts/verify-tetrakis.mjs</code> (fail-closed RPC + <code>keccak256</code> kontrola runtime bajtkódu).
             </p>
           </article>
 
           <article class="docs-card">
-            <span class="docs-badge" style="background:#f59e0b;color:#0b1220">TOKENOMIKA &amp; PRAVIDLÁ</span>
-            <h3>1. Tokenomika a Immutability Covenant</h3>
+            <span class="docs-badge" style="background:#0098ea;color:#ffffff">4 EKOSYSTÉMOVÉ ROLY $TTK</span>
+            <h3>1. Na čo slúži Tetrakis ($TTK) v ekosystéme Trinity</h3>
             <ul class="docs-list">
-              <li><b>Celková a maximálna ponuka:</b> Presne <code>1 000 000 000 TTK</code> (1 miliarda tokenov s 18 desatinnými miestami).</li>
-              <li><b>Nulový ďalší minting:</b> Smart kontrakt neobsahuje žiadnu funkciu <code>mint()</code> po inicializácii. Žiadna strana nemôže vytvoriť nové tokeny.</li>
-              <li><b>Žiadne skryté dane ani poplatky:</b> Prenos tokenu <code>transfer()</code> má nulovú daň (0 % buy/sell tax).</li>
-              <li><b>Žiadne čierne listiny (No Blacklist):</b> Kód neobsahuje žiadne blokovacie zoznamy používateľov.</li>
+              <li><b>Natívne platby v chate &amp; okamžité P2P prevody:</b> Priame prevody medzi peňaženkami, sprepitné a platobné požiadavky priamo v Trinity Messengeri a <code>@wallet</code> bez opustenia rozhovoru.</li>
+              <li><b>Mini-aplikácie, AI Studio &amp; ekonomika botov:</b> Natívna platobná mena pre webové aplikácie z Trinity AI Studia, AI agentov, zručnosti (skills), pluginy a mikroslužby.</li>
+              <li><b>Domény, mená (@handle) &amp; digitálne aktíva:</b> Úžitkový token pre ekosystémové používateľské mená (<code>@handle</code>), doménové služby, hosting a overiteľné digitálne aktíva či zberateľské predmety.</li>
+              <li><b>Ekonomika tvorcov, výpočtov &amp; neväzobný Tetrakis Space:</b> Vlastná neväzobná peňaženka Tetrakis Space popri <code>@wallet</code> pre výplaty tvorcom, zúčtovanie edge výpočtov/úložiska a účasť v ekosystéme; privátne kľúče nikdy neopúšťajú používateľa.</li>
             </ul>
           </article>
 
           <article class="docs-card">
-            <span class="docs-badge" style="background:#38bdf8;color:#0b1220">INTEGRÁCIE</span>
-            <h3>2. Telegram @wallet &amp; TON Jetton</h3>
+            <span class="docs-badge" style="background:#f59e0b;color:#0b1220">TOKENOMIKA &amp; INVARIANTY</span>
+            <h3>2. Tokenomika a Immutability Covenant</h3>
             <ul class="docs-list">
-              <li><b>Oficiálna peňaženka Telegramu:</b> Používatelia môžu platiť cez integrovanú peňaženku <code>@wallet</code> v Telegrame v menách <b>TON</b>, <b>USDT</b> a čoskoro cez most v <b>TTK</b>.</li>
-              <li><b>Prepojenie s @Antigravity_trinity_bot:</b> Príkazy <code>/wallet</code> a <code>/crypto</code> v botovi okamžite zobrazia tvoje prepojené adresy, zostatok a generujú platobný QR kód.</li>
-              <li><b>Automatická verifikácia platby:</b> Trinity dohliada na bloky cez RPC a po prijatí transakcie automaticky odomkne doménu, projekt alebo službu.</li>
+              <li><b>Celková a maximálna ponuka:</b> Presne <code>1 000 000 000 TTK</code> (1 miliarda tokenov s 18 desatinnými miestami, alokácia 1 000 000 TTK zakladateľ / 999 000 000 TTK treasury pri konštrukcii).</li>
+              <li><b>Nulový ďalší minting:</b> Smart kontrakt <code>TetrakisToken.sol</code> neobsahuje žiadnu funkciu <code>mint()</code> po nasadení; ponuka je navždy fixná.</li>
+              <li><b>0 % daň a žiadne blokovanie:</b> Štandardný ERC-20 prenos <code>transfer()</code> má 0 % poplatok kontraktu, bez pause a bez blacklistu.</li>
+              <li><b>Truth Policy 2.1:</b> Žiadna falošná trhová cena ani garantovaný výnos. Priamy prevod TTK sám automaticky neodomkne Trinity kredity ani domény, kým nebude explicitne prepojený s overenou faktúrou a službou.</li>
             </ul>
           </article>
 
           <article class="docs-card">
-            <span class="docs-badge" style="background:#10b981;color:#0b1220">MULTI-CHAIN</span>
-            <h3>3. Prijímanie Platieb na 5 Reťazcoch</h3>
+            <span class="docs-badge" style="background:#10b981;color:#0b1220">NEVÄZOBNÝ SPACE &amp; @WALLET</span>
+            <h3>3. Natívny Tetrakis Space &amp; Trinity @wallet</h3>
             <ul class="docs-list">
-              <li><b>Base (Coinbase L2):</b> Natívny domov Tetrakis ($TTK) a nízkonákladových mikrotransakcií.</li>
-              <li><b>Polygon &amp; Arbitrum:</b> Okamžité prijímanie stabilných mincí USDC a USDT s transakčnými poplatkami pod 0,01 €.</li>
-              <li><b>Ethereum Mainnet:</b> Inštitucionálne vyrovnanie a veľké zmluvné úschovy.</li>
-              <li><b>Solana (SPL):</b> Bleskové mikroplatby pre AI API volania s potvrdením do 400 ms.</li>
+              <li><b>Plynulé prepínanie:</b> Medzi <code>@wallet</code> (sandbox bilancia, POS terminály, SEPA EPC QR) a <b>Tetrakis Space</b> prepínaš jedným klikom priamo v aplikácii.</li>
+              <li><b>Klientske podpisovanie (EIP-1193):</b> Každú on-chain transakciu podpisuješ vo vlastnej peňaženke (MetaMask / Coinbase / Rabby). Trinity nedostáva seed frázu ani privátny kľúč.</li>
+              <li><b>Fail-closed platobná brána:</b> Odoslanie <code>$TTK</code> sa povolí až vtedy, keď <code>/api/assistant/crypto/tetrakis</code> potvrdí správny <code>chainId</code> (8453 / 84532), zhodný runtime <code>keccak256</code> bajtkód kontraktu a platného príjemcu.</li>
             </ul>
           </article>
 
           <article class="docs-card">
-            <span class="docs-badge" style="background:#6366f1;color:#fff">VÝVOJÁRSKY SNIPPET</span>
-            <h3>4. Smart Contract Verifikácia</h3>
-            <p>Adresa kontraktu na Base a overovacie volanie cez ethers.js / web3.js:</p>
+            <span class="docs-badge" style="background:#6366f1;color:#fff">VÝVOJÁRSKA VERIFIKÁCIA</span>
+            <h3>4. Fail-Closed Smart Contract Verifikácia</h3>
+            <p>Overenie stavu kontraktu cez Trinity API (<code>/api/assistant/crypto/tetrakis</code>), CLI skript <code>scripts/verify-tetrakis.mjs</code> alebo priame čítanie cez Base RPC:</p>
             <div class="docs-code-box">
               <button type="button" class="docs-copy-btn" data-copy-target="next">Kopírovať</button>
-              <pre class="docs-code-pre">// Tetrakis Smart Contract Reader (Base Sepolia / Mainnet)
-import { ethers } from "ethers";
+              <pre class="docs-code-pre">// Read-only Tetrakis ($TTK) verification via Trinity API & Base L2 RPC
+const status = await fetch("/api/assistant/crypto/tetrakis").then(r => r.json());
+console.log("Deployment:", status.deployment_status, "Payments enabled:", status.payments?.enabled);
 
-const provider = new ethers.JsonRpcProvider("https://mainnet.base.org");
-const TTK_ADDRESS = "0xTetrakisBaseTokenAddress...";
-const ABI = ["function totalSupply() view returns (uint256)", "function balanceOf(address) view returns (uint256)"];
-
-const contract = new ethers.Contract(TTK_ADDRESS, ABI, provider);
-console.log("Supply:", await contract.totalSupply());</pre>
+// Local CLI bytecode & RPC verification:
+// node scripts/verify-tetrakis.mjs</pre>
             </div>
           </article>
         </div>
       </div>
 
-      <!-- NEW TAB: OMNICHANNEL, SIETE & POSLOVIA -->
+      <!-- TAB: OMNICHANNEL, NETWORKS & MESSENGERS -->
       <div id="doc-pane-connectors" class="doc-tab-pane" hidden>
         <div class="docs-portal-grid">
           <article class="docs-card full-span-card" style="border: 2px solid rgba(139, 92, 246, 0.4); background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(15, 23, 42, 0.95)); padding: 24px; border-radius: 12px;">
@@ -2905,7 +3089,7 @@ console.log("Supply:", await contract.totalSupply());</pre>
             </div>
           </article>
 
-          <!-- Univerzálne Webhooky -->
+          <!-- Universal Webhooks -->
           <article class="docs-card full-span-card">
             <span class="docs-badge" style="background:#f59e0b;color:#0b1220">UNIVERZÁLNY INBOUND WEBHOOK</span>
             <h3>5. Integrácia s Make.com, n8n, Zapier, Stripe, GitHub a Discord</h3>
@@ -3123,6 +3307,7 @@ Payload príklad:
 <div class="provider-test-row"><button id="openrouter-provider-test" type="button">🪐 Živý test OpenRouter</button><pre id="openrouter-provider-result" class="provider-result" aria-live="polite">OpenRouter API: 100+ free a pro modelov.</pre></div><form id="gemini-provider-form" class="provider-form"><label><span>Overený Gemini kľúč</span><select id="gemini-secret" required></select></label><label><span>Model</span><select id="gemini-model" required></select></label><label class="provider-toggle"><input id="gemini-enabled" type="checkbox" checked> Používať v Trinity</label><label class="provider-toggle control-toggle"><input id="gemini-project-control" type="checkbox"> Riadenie projektu cez Gemini</label><small class="settings-help control-help">Gemini môže navrhovať čítanie, zápis, úpravy, spustenie a deploy. Každá meniaca akcia stále vyžaduje tvoje samostatné schválenie a doklad z PC brány.</small><button class="primary">Uložiť Gemini</button><button id="gemini-provider-test" type="button">Živý test Gemini</button></form><div id="gemini-operator-status" class="gemini-operator" aria-live="polite"><div><span>GEMINI OPERATOR</span><b>Čaká na konfiguráciu</b><small>Návrh → schválenie vlastníka → PC brána → doklad</small></div><button id="gemini-use-chat" type="button" disabled>Použiť Gemini v chate</button></div><pre id="gemini-provider-result" class="provider-result" aria-live="polite">Najprv vlož a over Gemini API kľúč v trezore nižšie.</pre></section>
         <section id="settings-secret-panel" class="panel admin-panel" data-settings-section="data" data-settings-keywords="trezor tajomstvá kľúče bezpečnosť šifrovanie slack discord notion telegram linear stripe"><div class="panel-head"><div><span class="eyebrow">ENCRYPTED VAULT</span><h2>Trezor API kľúčov a konektorov</h2></div><span class="detail-chip">IBA ADMIN</span></div><p class="settings-help">API kľúče a prístupové tokeny vkladaj iba sem. Hodnota sa zašifruje pomocou AES-GCM a už sa nezobrazí.</p><form id="secret-form" class="secret-form"><select id="secret-provider">
 <option value="gemini">Google Gemini</option>
+<option value="google_ai_studio">Google AI Studio (Gemini API)</option>
 <option value="openai">OpenAI / ChatGPT</option>
 <option value="anthropic">Anthropic Claude (3.5 / 3.7)</option>
 <option value="groq">Groq LPU (Ultra-Fast)</option>

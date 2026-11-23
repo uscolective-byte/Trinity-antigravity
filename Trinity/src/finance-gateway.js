@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul finance-gateway.js (Trinity/src/finance-gateway.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Finance transfer proposal, spending-cap enforcement, and hash-chained audit ledger (Trinity/src/finance-gateway.js).
  */
 import { z } from 'zod';
 import { HttpError, hash } from './security.js';
@@ -75,7 +75,7 @@ export async function proposeTransfer(env, ownerId, input) {
   const amountCents = Math.round(amountEur * 100);
   const requiresPush = amountEur > SPENDING_CAPS.MAX_SINGLE_TRANSACTION_EUR;
 
-  // Kontrola denného limitu
+  // Check daily spending limit
   let dailyTotalCents = 0;
   try {
     const today = new Date().toISOString().slice(0, 10);
@@ -87,12 +87,12 @@ export async function proposeTransfer(env, ownerId, input) {
 
   const dailyTotalEur = dailyTotalCents / 100;
   if ((dailyTotalEur + amountEur) > SPENDING_CAPS.MAX_DAILY_TOTAL_EUR) {
-    throw new HttpError(400, `Prevod by prekročil denný limit ${SPENDING_CAPS.MAX_DAILY_TOTAL_EUR} € (dnes už vyčerpané: ${dailyTotalEur.toFixed(2)} €, žiadané: ${amountEur.toFixed(2)} €).`);
+    throw new HttpError(400, `Transfer would exceed the daily limit of ${SPENDING_CAPS.MAX_DAILY_TOTAL_EUR} EUR (used today: ${dailyTotalEur.toFixed(2)} EUR, requested: ${amountEur.toFixed(2)} EUR).`);
   }
 
   const proposalId = `fin_${crypto.randomUUID().slice(0, 18)}`;
   const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 300_000; // 5 minút
+  const expiresAt = Date.now() + 300_000; // 5 minutes
 
   const signatureHash = await hash(`${proposalId}:${ownerId}:${amountCents}:${params.recipient}:${confirmationCode}:${expiresAt}`);
 
@@ -105,7 +105,7 @@ export async function proposeTransfer(env, ownerId, input) {
       params.note || '', requiresPush ? 1 : 0, confirmationCode, signatureHash, expiresAt
     ).run();
   } catch (err) {
-    throw new HttpError(500, `Zlyhalo uloženie finančného návrhu: ${err.message}`);
+    throw new HttpError(500, `Failed to store financial proposal: ${err.message}`);
   }
 
   return {
@@ -133,37 +133,37 @@ export async function confirmTransfer(env, ownerId, input) {
       'SELECT * FROM ops_finance_proposals WHERE id=? AND owner_id=?'
     ).bind(proposal_id, ownerId).first();
   } catch (err) {
-    throw new HttpError(500, `Chyba pri hľadaní návrhu: ${err.message}`);
+    throw new HttpError(500, `Error looking up financial proposal: ${err.message}`);
   }
 
   if (!proposal) {
-    throw new HttpError(404, `Finančný návrh s ID ${proposal_id} neexistuje.`);
+    throw new HttpError(404, `Financial proposal ${proposal_id} not found.`);
   }
 
   if (proposal.status !== 'pending') {
-    throw new HttpError(400, `Tento finančný návrh už bol spracovaný (stav: ${proposal.status}).`);
+    throw new HttpError(400, `Financial proposal has already been processed (status: ${proposal.status}).`);
   }
 
   if (Number(proposal.expires_at) < Date.now()) {
     try {
       await env.DB.prepare("UPDATE ops_finance_proposals SET status='expired' WHERE id=?").bind(proposal_id).run();
     } catch {}
-    throw new HttpError(400, 'Finančný návrh vypršal (platnosť 5 minút). Vytvor nový príkaz.');
+    throw new HttpError(400, 'Financial proposal expired (5-minute validity window). Create a new transfer order.');
   }
 
-  // Overenie potvrdzovacieho kódu / tokenu
+  // Verify confirmation code / token
   if (confirmation_token && confirmation_token !== proposal.confirmation_code) {
-    throw new HttpError(403, 'Neplatný potvrdzovací kód platby.');
+    throw new HttpError(403, 'Invalid payment confirmation code.');
   }
 
-  // Získanie posledného hashu v auditnom ledgeri pre kryptografické reťazenie (SHA-256 block chain)
+  // Fetch the latest hash in the audit ledger for cryptographic chaining (SHA-256 chain)
   let lastEntryHash = 'GENESIS_FINANCE_BLOCK_0000000000000000000000000000000000000000';
   try {
     const lastRow = await env.DB.prepare('SELECT entry_hash FROM ops_finance_audit_ledger ORDER BY timestamp DESC LIMIT 1').first();
     if (lastRow?.entry_hash) lastEntryHash = lastRow.entry_hash;
   } catch {}
 
-  // Overenie pripojenia poskytovateľa (Revolut API / PayPal API) v secret vault
+  // Verify provider credentials (Revolut API / PayPal API) in Secret Vault
   const providerSecret = await resolveProviderSecret(env, proposal.provider === 'paypal' ? 'paypal' : 'revolut');
   const providerConnected = Boolean(providerSecret);
 
@@ -171,7 +171,7 @@ export async function confirmTransfer(env, ownerId, input) {
   const ledgerId = `ledger_${crypto.randomUUID().slice(0, 18)}`;
   const timestamp = new Date().toISOString();
 
-  // Režim pravdy (Truth Policy 2.1): Ak nie je živé API pripojené, nesmie predstierať úspech!
+  // Truth Policy 2.1: If no live provider API credentials are configured, never fabricate completion!
   if (!providerConnected) {
     const receipt = {
       proposal_id,
@@ -180,7 +180,7 @@ export async function confirmTransfer(env, ownerId, input) {
       recipient: proposal.recipient,
       provider: proposal.provider,
       status: 'rejected_missing_provider_credentials',
-      reason: `Finančný prevod bol autorizovaný, ale poskytovateľ "${proposal.provider}" nemá nakonfigurovaný API kľúč v Secret Vault. Režim pravdy zabránil falošnej simulácii úspechu.`
+      reason: `Financial transfer was authorized, but provider "${proposal.provider}" has no API key configured in Secret Vault. Truth Policy prevented a simulated completion.`
     };
 
     const entryHash = await hash(`${ledgerId}:${proposal_id}:${proposal.amount_cents}:${proposal.recipient}:rejected:${lastEntryHash}:${timestamp}`);
@@ -199,7 +199,7 @@ export async function confirmTransfer(env, ownerId, input) {
       proposal_id,
       ledger_id: ledgerId,
       entry_hash: entryHash,
-      message_sk: receipt.reason
+      message_sk: `Finančný prevod bol autorizovaný, ale poskytovateľ "${proposal.provider}" nemá nakonfigurovaný API kľúč v Secret Vault. Režim pravdy zabránil falošnej simulácii úspechu.`
     };
   }
 

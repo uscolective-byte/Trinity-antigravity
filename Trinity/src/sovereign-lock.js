@@ -3,7 +3,7 @@
  * @subsystem RING0_SOVEREIGN_LOCK
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Ring 0 ochrana kódu, kryptografický Consent Envelope (HMAC-SHA256 + Diff SHA-256 + Durable Nonce Vault) a Data-Command Boundary.
+ * @description Ring 0 code protection, cryptographic Consent Envelope (HMAC-SHA256 + Diff SHA-256 + Durable Nonce Vault), and Data-Command Boundary.
  */
 /**
  * TRINITY SOVEREIGN LOCK & ROOT-AUTHORITY COVENANT (Ring 0 Middleware)
@@ -96,7 +96,7 @@ export const EXTERNAL_DATA_SOURCES = Object.freeze(new Set([
 
 export const ACCESS_DENIED_MESSAGE = 'ACCESS DENIED: Unauthorized operator. Action reserved strictly for Basterix.';
 
-// Pamäťová cache jednorazových nonce + Trvalé atomické úložisko (D1 / KV / Disk Vault)
+// In-memory cache of single-use nonces + persistent atomic storage (D1 / KV / Disk Vault)
 const consumedConsentNonces = new Set();
 
 async function getNodeFsVault() {
@@ -116,15 +116,15 @@ async function getNodeFsVault() {
 }
 
 /**
- * Vymaže iba pamäťový Set (simulácia reštartu procesu alebo novej inštancie Workera).
- * Trvalé úložisko (D1 / KV / Disk súbor) zostáva nedotknuté!
+ * Clears only the in-memory Set (simulates a process restart or fresh Worker isolate).
+ * Persistent storage (D1 / KV / Disk file) remains untouched.
  */
 export function clearInMemoryNoncesOnlyForRestartSimulation() {
   consumedConsentNonces.clear();
 }
 
 /**
- * Úplný reset pre štart čistých testov (vymaže pamäť aj lokálny testovací súbor).
+ * Full reset for clean test initialization (clears both memory and local test vault file).
  */
 export async function resetConsumedNoncesForTest() {
   consumedConsentNonces.clear();
@@ -139,17 +139,17 @@ export async function resetConsumedNoncesForTest() {
 }
 
 /**
- * Atomická kontrola a trvalý zápis spotrebovaného nonce (D1 -> KV -> Custom Store -> Node Disk File -> Memory).
+ * Atomic check and durable persistence of a consumed nonce (D1 -> KV -> Custom Store -> Node Disk File -> Memory).
  */
 async function checkAndConsumeDurableNonce({ nonce, actor, operation, diffSha256, env, nonceStore }) {
   const consumedAt = new Date().toISOString();
 
-  // 1. Rýchla kontrola v pamäti aktuálnej inštancie
+  // 1. Fast check in the current instance memory cache
   if (consumedConsentNonces.has(nonce)) {
     return { alreadyUsed: true, backend: 'MEMORY_SET' };
   }
 
-  // 2. Kontrola a atomický zápis do Cloudflare D1 (ops_consumed_nonces PRIMARY KEY)
+  // 2. Check and atomic insert into Cloudflare D1 (ops_consumed_nonces PRIMARY KEY)
   if (env?.DB && typeof env.DB.prepare === 'function') {
     try {
       const existing = await env.DB
@@ -175,7 +175,7 @@ async function checkAndConsumeDurableNonce({ nonce, actor, operation, diffSha256
     }
   }
 
-  // 3. Kontrola a zápis do Cloudflare KV (Mastermind / PC_STATE)
+  // 3. Check and write to Cloudflare KV (Mastermind / PC_STATE)
   const kv = env?.Mastermind || env?.PC_STATE;
   if (kv && typeof kv.get === 'function' && typeof kv.put === 'function') {
     const key = `ring0:consumed_nonce:${nonce}`;
@@ -189,7 +189,7 @@ async function checkAndConsumeDurableNonce({ nonce, actor, operation, diffSha256
     return { alreadyUsed: false, backend: 'CLOUDFLARE_KV' };
   }
 
-  // 4. Vlastné externé úložisko (nonceStore adaptér)
+  // 4. Custom external store (nonceStore adapter)
   if (nonceStore) {
     if (typeof nonceStore.has === 'function' && (await nonceStore.has(nonce))) {
       consumedConsentNonces.add(nonce);
@@ -202,7 +202,7 @@ async function checkAndConsumeDurableNonce({ nonce, actor, operation, diffSha256
     }
   }
 
-  // 5. Trvalé diskové úložisko pre lokálny Node.js / Windows runtime (prežije reštart procesu!)
+  // 5. Durable disk storage for local Node.js / Windows runtime (survives process restarts)
   const nodeVault = await getNodeFsVault();
   if (nodeVault) {
     const { fs, vaultPath } = nodeVault;
@@ -224,7 +224,7 @@ async function checkAndConsumeDurableNonce({ nonce, actor, operation, diffSha256
     return { alreadyUsed: false, backend: 'DISK_FILE_VAULT' };
   }
 
-  // 6. Fallback v izolovanom prostredí bez D1/KV/FS
+  // 6. Fallback in isolated environments without D1/KV/FS
   consumedConsentNonces.add(nonce);
   return { alreadyUsed: false, backend: 'MEMORY_SET' };
 }
@@ -264,7 +264,7 @@ function constantTimeEqualHex(a, b) {
 }
 
 /**
- * Overí, či cesta neobsahuje Path Traversal (.., nulové bajty, únik mimo koreňa)
+ * Verifies that a file path does not contain path traversal (.., null bytes, or protected OS roots).
  */
 export function hasPathTraversal(filePath) {
   if (!filePath || typeof filePath !== 'string') return false;
@@ -279,8 +279,8 @@ export function hasPathTraversal(filePath) {
 }
 
 /**
- * Overí, či je daný identifikátor výlučným vlastníkom Basterix.
- * P0 HARDENING: verifiedSession je predvolene FALSE (fail-closed).
+ * Verifies whether the given identifier belongs to sole owner Basterix.
+ * P0 HARDENING: verifiedSession defaults to FALSE (fail-closed).
  */
 export function isBasterixRootOperator(identity, verifiedSession = false) {
   if (verifiedSession !== true || !identity || typeof identity !== 'string') {
@@ -291,7 +291,7 @@ export function isBasterixRootOperator(identity, verifiedSession = false) {
 }
 
 /**
- * Vytvorí kryptograficky podpísanú obálku súhlasu (Consent Envelope) viazanú na:
+ * Creates a cryptographically signed Consent Envelope bound to:
  * actor, repo, operation, diffSha256, paths, nonce, expiresAt, environment.
  */
 export async function createSignedConsentEnvelope({
@@ -337,8 +337,8 @@ export async function createSignedConsentEnvelope({
 }
 
 /**
- * Overí kryptografický podpis súhlasu, platnosť, zhodu SHA-256 diffu a jednorazovo spotrebuje nonce
- * v trvalom atomickom úložisku (D1 / KV / Disk Vault + Memory Set).
+ * Verifies the cryptographic consent signature, expiration, SHA-256 diff match,
+ * and atomically consumes the single-use nonce in durable storage (D1 / KV / Disk Vault + Memory Set).
  */
 export async function verifySignedConsentEnvelope({
   envelope,
@@ -350,36 +350,36 @@ export async function verifySignedConsentEnvelope({
   nonceStore = null
 } = {}) {
   if (!envelope || typeof envelope !== 'object') {
-    return { valid: false, code: 'MISSING_CONSENT_ENVELOPE', message: 'Chýba kryptografická obálka súhlasu (Consent Envelope).' };
+    return { valid: false, code: 'MISSING_CONSENT_ENVELOPE', message: 'Missing cryptographic Consent Envelope.' };
   }
   if (!signingSecret || typeof signingSecret !== 'string') {
-    return { valid: false, code: 'MISSING_VERIFICATION_KEY', message: 'Chýba overovací kľúč pre Consent Envelope.' };
+    return { valid: false, code: 'MISSING_VERIFICATION_KEY', message: 'Missing verification key for Consent Envelope.' };
   }
   if (!isBasterixRootOperator(envelope.actor, true)) {
     return { valid: false, code: 'UNAUTHORIZED_CONSENT_ACTOR', message: ACCESS_DENIED_MESSAGE };
   }
   if (!envelope.nonce || typeof envelope.nonce !== 'string') {
-    return { valid: false, code: 'INVALID_NONCE', message: 'Chýba jednorazové nonce v súhlase.' };
+    return { valid: false, code: 'INVALID_NONCE', message: 'Missing single-use nonce in consent envelope.' };
   }
   const expiresMs = typeof envelope.expiresAt === 'number' ? envelope.expiresAt : Date.parse(envelope.expiresAt);
   if (!Number.isFinite(expiresMs) || Date.now() > expiresMs) {
-    return { valid: false, code: 'CONSENT_EXPIRED', message: 'SECURITY BLOCK (Ring 0): Platnosť podpísaného súhlasu vypršala.' };
+    return { valid: false, code: 'CONSENT_EXPIRED', message: 'SECURITY BLOCK (Ring 0): Signed consent envelope has expired.' };
   }
 
   const actualDiffSha256 = await sha256Hex(gitDiff);
   if (!constantTimeEqualHex(actualDiffSha256, String(envelope.diffSha256 || ''))) {
-    return { valid: false, code: 'DIFF_HASH_MISMATCH', message: 'SECURITY BLOCK (Ring 0): SHA-256 hash Git diffu sa nezhoduje s podpísaným súhlasom.' };
+    return { valid: false, code: 'DIFF_HASH_MISMATCH', message: 'SECURITY BLOCK (Ring 0): Git diff SHA-256 hash does not match the signed consent envelope.' };
   }
 
   const normalizedPaths = (Array.isArray(envelope.paths) ? envelope.paths : []).map(p => String(p).replace(/\\/g, '/')).sort();
   if (expectedPath) {
     const cleanExpected = String(expectedPath).replace(/\\/g, '/');
     if (!normalizedPaths.includes(cleanExpected)) {
-      return { valid: false, code: 'PATH_SCOPE_MISMATCH', message: `SECURITY BLOCK (Ring 0): Súbor '${cleanExpected}' nie je v podpísanom zozname ciest.` };
+      return { valid: false, code: 'PATH_SCOPE_MISMATCH', message: `SECURITY BLOCK (Ring 0): File '${cleanExpected}' is not in the signed path scope.` };
     }
   }
   if (expectedOperation && envelope.operation !== expectedOperation) {
-    return { valid: false, code: 'OPERATION_SCOPE_MISMATCH', message: `SECURITY BLOCK (Ring 0): Operácia '${expectedOperation}' nezodpovedá podpísanej operácii '${envelope.operation}'.` };
+    return { valid: false, code: 'OPERATION_SCOPE_MISMATCH', message: `SECURITY BLOCK (Ring 0): Operation '${expectedOperation}' does not match signed operation '${envelope.operation}'.` };
   }
 
   const canonicalPayload = [
@@ -395,10 +395,10 @@ export async function verifySignedConsentEnvelope({
 
   const expectedSignature = await hmacSha256Hex(signingSecret, canonicalPayload);
   if (!constantTimeEqualHex(expectedSignature, String(envelope.signature || ''))) {
-    return { valid: false, code: 'FORGED_SIGNATURE_REJECTED', message: 'SECURITY BLOCK (Ring 0): Neplatný alebo sfalšovaný kryptografický podpis súhlasu.' };
+    return { valid: false, code: 'FORGED_SIGNATURE_REJECTED', message: 'SECURITY BLOCK (Ring 0): Invalid or forged cryptographic consent signature.' };
   }
 
-  // Atomické jednorazové spotrebovanie nonce v trvalom úložisku (D1 / KV / Disk Vault)
+  // Atomically consume the single-use nonce in durable storage (D1 / KV / Disk Vault)
   const nonceOutcome = await checkAndConsumeDurableNonce({
     nonce: envelope.nonce,
     actor: String(envelope.actor).trim(),
@@ -412,7 +412,7 @@ export async function verifySignedConsentEnvelope({
       valid: false,
       code: 'REPLAY_ATTACK_DETECTED',
       durableBackend: nonceOutcome.backend,
-      message: `SECURITY BLOCK (Ring 0): Nonce '${envelope.nonce}' už bolo použité [Backend: ${nonceOutcome.backend}] (Replay útok zablokovaný).`
+      message: `SECURITY BLOCK (Ring 0): Nonce '${envelope.nonce}' has already been consumed [Backend: ${nonceOutcome.backend}] (replay attack blocked).`
     };
   }
 
@@ -427,7 +427,7 @@ export async function verifySignedConsentEnvelope({
 }
 
 /**
- * Pravidlo 1: Absolútny zákaz autonómneho prepisu (No Self-Rewrite Without Basterix)
+ * Rule 1: Absolute ban on autonomous self-rewrite (No Self-Rewrite Without Basterix)
  */
 export function enforceNoAutonomousRewrite({
   actor,
@@ -441,7 +441,7 @@ export function enforceNoAutonomousRewrite({
       allowed: false,
       rule: '1_NO_SELF_REWRITE_WITHOUT_BASTERIX',
       code: 'AUTONOMOUS_REWRITE_BLOCKED',
-      message: 'SECURITY BLOCK (Ring 0): Autonómna samomodifikácia kódu je zakázaná. Vyžaduje sa predloženie Git diffu a priamy súhlas architekta Basterix.'
+      message: 'SECURITY BLOCK (Ring 0): Autonomous code self-modification is forbidden. A presented Git diff and direct manual consent from architect Basterix are required.'
     };
   }
   if (!basterixManualConsent || !gitDiff || String(gitDiff).trim().length === 0) {
@@ -449,7 +449,7 @@ export function enforceNoAutonomousRewrite({
       allowed: false,
       rule: '1_NO_SELF_REWRITE_WITHOUT_BASTERIX',
       code: 'MISSING_DIFF_OR_CONSENT',
-      message: 'SECURITY BLOCK (Ring 0): Zápis kódu na disk bol zablokovaný – chýba schválený Git diff alebo priamy manuálny súhlas vlastníka Basterix.'
+      message: 'SECURITY BLOCK (Ring 0): Disk code write blocked — missing approved Git diff or direct manual consent from owner Basterix.'
     };
   }
   return {
@@ -460,7 +460,7 @@ export function enforceNoAutonomousRewrite({
 }
 
 /**
- * Pravidlo 2: Imunita voči prompt injection a cudzím príkazom (Data-Command Boundary)
+ * Rule 2: Prompt injection and external command immunity (Data-Command Boundary)
  */
 export const INJECTION_COMMAND_PATTERNS = [
   /\b(?:trinity\s*,?\s*)?(?:prep[ií][sš]|zme[nň]|vyma[zž]|odstr[aá][nň]|uprav)\s+(?:s[uú]bor|k[oó]d|pravidl[aá]|syst[eé]m|konfigur[aá]ciu|prompt)/iu,
@@ -491,8 +491,8 @@ export function enforceDataCommandBoundary({ source = 'untrusted', content = '',
       injection_detected: injectionMatch,
       alert_basterix: injectionMatch,
       security_notice: injectionMatch
-        ? `ALARM PRE BASTERIXA: Detegovaný pokus o podvrhnutie príkazu (Prompt Injection) zo zdroja "${cleanSource}" od "${sender}". Správa bola izolovaná ako pasívne dáta a ignorovaná.`
-        : 'Externý vstup klasifikovaný striktne ako pasívne dáta (nikdy nie spustiteľná inštrukcia).',
+        ? `BASTERIX ALERT: Prompt injection attempt detected from source "${cleanSource}" by "${sender}". Message was isolated as passive data and ignored.`
+        : 'External input classified strictly as passive data (never an executable instruction).',
       sanitized_passive_payload: text
     };
   }
@@ -507,7 +507,7 @@ export function enforceDataCommandBoundary({ source = 'untrusted', content = '',
 }
 
 /**
- * Pravidlo 3: Overenie identity správcu (Owner Key Assertion)
+ * Rule 3: Administrator identity verification (Owner Key Assertion)
  */
 export function enforceOwnerKeyAssertion({ operatorIdentity, verifiedSession = false, targetAction = 'system_mutation' } = {}) {
   if (!isBasterixRootOperator(operatorIdentity, verifiedSession)) {
@@ -529,7 +529,7 @@ export function enforceOwnerKeyAssertion({ operatorIdentity, verifiedSession = f
 }
 
 /**
- * Pravidlo 4: Hardvérová ochrana repozitára (Write-Protect Lock / DACL & Path Traversal Guard)
+ * Rule 4: Repository write protection (Write-Protect Lock / DACL & Path Traversal Guard)
  */
 export function enforceWriteProtectLock({
   filePath = '',
@@ -544,7 +544,7 @@ export function enforceWriteProtectLock({
       code: 'PATH_TRAVERSAL_BLOCKED',
       rule: '4_WRITE_PROTECT_LOCK',
       path: filePath,
-      message: `SECURITY BLOCK (Ring 0): Detegovaný pokus o Path Traversal v ceste "${filePath}".`
+      message: `SECURITY BLOCK (Ring 0): Path traversal attempt detected in path "${filePath}".`
     };
   }
 
@@ -562,7 +562,7 @@ export function enforceWriteProtectLock({
       code: 'WRITE_PROTECT_READ_ONLY',
       rule: '4_WRITE_PROTECT_LOCK',
       path: filePath,
-      message: `${ACCESS_DENIED_MESSAGE} Súbor "${filePath}" je chránený zámkom Ring 0 Write-Protect Lock (Read-Only).`
+      message: `${ACCESS_DENIED_MESSAGE} File "${filePath}" is protected by Ring 0 Write-Protect Lock (Read-Only).`
     };
   }
 
@@ -575,8 +575,8 @@ export function enforceWriteProtectLock({
 }
 
 /**
- * Pravidlo 5: Nemenný denník pokusov o zmenu (Root Audit Sentinel)
- * Hlavný Ring 0 Middleware blokujúci a zaznamenávajúci každý neautorizovaný pokus o úpravu kódu.
+ * Rule 5: Immutable tamper attempt ledger (Root Audit Sentinel)
+ * Core Ring 0 Middleware blocking and recording every unauthorized code modification attempt.
  */
 export class SovereignLockMiddleware {
   constructor(env = {}) {
@@ -625,7 +625,7 @@ export class SovereignLockMiddleware {
   }
 
   /**
-   * Komplexná Ring 0 brána pred akoukoľvek zmenou zdrojového kódu, konfigurácie alebo promptu
+   * Comprehensive Ring 0 gate executed prior to any source code, configuration, or prompt mutation.
    */
   async authorizeCodeMutation({
     operatorIdentity,
@@ -641,7 +641,7 @@ export class SovereignLockMiddleware {
     source = 'internal',
     processTree = ['trinity-worker']
   } = {}) {
-    // 0. Kontrola Path Traversal
+    // 0. Path Traversal guard
     if (hasPathTraversal(filePath)) {
       const tamper = await this.recordUnauthorizedTamper({
         actor: operatorIdentity || 'unknown',
@@ -655,12 +655,12 @@ export class SovereignLockMiddleware {
         authorized: false,
         status: 'BLOCKED',
         code: 'PATH_TRAVERSAL_BLOCKED',
-        message: `SECURITY BLOCK (Ring 0): Path traversal zablokovaný pre "${filePath}".`,
+        message: `SECURITY BLOCK (Ring 0): Path traversal blocked for "${filePath}".`,
         tamper_receipt: tamper
       };
     }
 
-    // 1. Kontrola Data-Command Boundary (ak prichádza z externého kanála — nikdy nedôverovať atribútu sender!)
+    // 1. Data-Command Boundary check (if arriving from an external channel — never trust sender metadata)
     if (EXTERNAL_DATA_SOURCES.has(String(source).toLowerCase())) {
       const tamper = await this.recordUnauthorizedTamper({
         actor: operatorIdentity || 'external_entity',
@@ -679,7 +679,7 @@ export class SovereignLockMiddleware {
       };
     }
 
-    // 2. Kontrola Owner Key Assertion (Výlučne Basterix s verifiedSession === true)
+    // 2. Owner Key Assertion check (exclusively Basterix with verifiedSession === true)
     const ownerCheck = enforceOwnerKeyAssertion({
       operatorIdentity,
       verifiedSession,
@@ -703,7 +703,7 @@ export class SovereignLockMiddleware {
       };
     }
 
-    // 3. Ak je poskytnutá kryptografická obálka súhlasu (alebo vyžadovaný signingSecret), over podpis, diff hash, expiry a jednorazové nonce
+    // 3. When a cryptographic Consent Envelope (or signingSecret) is supplied, verify signature, diff hash, expiry, and single-use nonce
     if (consentEnvelope || signingSecret) {
       const envCheck = await verifySignedConsentEnvelope({
         envelope: consentEnvelope,
@@ -731,7 +731,7 @@ export class SovereignLockMiddleware {
       }
     }
 
-    // 4. Kontrola zákazu autonómneho prepisu bez diffu a súhlasu
+    // 4. Enforce ban on autonomous rewrite without diff and explicit manual consent
     const rewriteCheck = enforceNoAutonomousRewrite({
       actor: operatorIdentity,
       isAutonomousSubagent,
@@ -757,7 +757,7 @@ export class SovereignLockMiddleware {
       };
     }
 
-    // 5. Kontrola Write-Protect Lock (DACL)
+    // 5. Write-Protect Lock (DACL) check
     const lockCheck = enforceWriteProtectLock({
       filePath,
       basterixEscalationApproved,
@@ -784,7 +784,7 @@ export class SovereignLockMiddleware {
 
     const diffHash = await sha256Hex(gitDiff);
 
-    // Všetky zámky prešli – akcia je autorizovaná priamo Basterixom
+    // All Ring 0 locks passed — action is directly authorized by Basterix
     const authorizedBlock = await this.ledger.appendBlock(
       'Basterix',
       'AUTHORIZED_ARCHITECT_CODE_MUTATION',

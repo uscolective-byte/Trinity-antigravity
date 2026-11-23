@@ -3,7 +3,7 @@
  * @subsystem CLOUD_AND_AI_INTEGRATIONS
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Integrácie Cloudflare Edge, GitHub API, Firecrawl (Markdown RAG scraper) a Firebase (Firestore + Hosting + D1 mirror).
+ * @description Integrations for Cloudflare Edge, GitHub API, Firecrawl (Markdown RAG scraper), Firebase (Firestore + Hosting + D1 mirror), OneDrive, Google Cloud, Local Bridge, and Vercel.
  */
 import {verifyCloudflareToken} from './cloudflare-token.js';
 import {resolveProviderSecret} from './secret-vault.js';
@@ -33,7 +33,7 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
         success: true,
         source: 'edge_bindings',
         verified: false,
-        message: 'Cloudflare runtime má len lokálne detegované bindingy. Bez API tokenu nie je overený prístup ku cloudovému účtu.',
+        message: 'Cloudflare runtime only detected local bindings. Without an API token, cloud account access is not verified.',
         data: internalState
       };
     }
@@ -53,7 +53,7 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
     if (!token) {
       return {
         success: false, zones: [], verified: false,
-        error: 'Zoznam Cloudflare DNS zón vyžaduje overený API token.',
+        error: 'Listing Cloudflare DNS zones requires a verified API token.',
         source: 'not_verified'
       };
     }
@@ -67,10 +67,10 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
   if (action === 'purge_cache') {
     const zoneId = params.zoneId;
     if (typeof zoneId !== 'string' || !/^[a-f0-9]{32}$/i.test(zoneId)) {
-      return {success:false,error:'Na vyčistenie Cloudflare cache je potrebné skutočné 32-znakové zone ID.'};
+      return {success:false,error:'Purging Cloudflare cache requires a valid 32-character zone ID.'};
     }
     if (!token) {
-      return {success:false,error:'Vyčistenie Cloudflare cache vyžaduje API token. Žiadna cache nebola vyčistená.'};
+      return {success:false,error:'Purging Cloudflare cache requires an API token. No cache was purged.'};
     }
     const resp = await fetch(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}/purge_cache`, {
       method: 'POST',
@@ -85,7 +85,7 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
     if (!token) {
       return {
         success:false,workers:[],verified:false,
-        error:'Zoznam Workerov vyžaduje overený Cloudflare API token.',
+        error:'Listing Workers requires a verified Cloudflare API token.',
         source:'not_verified'
       };
     }
@@ -99,11 +99,11 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
   if (action === 'create_dns_record') {
     const zoneId = params.zoneId;
     if (typeof zoneId !== 'string' || !/^[a-f0-9]{32}$/i.test(zoneId)) {
-      return { success: false, error: 'Vytvorenie DNS záznamu vyžaduje platné 32-znakové zone ID.' };
+      return { success: false, error: 'Creating a DNS record requires a valid 32-character zone ID.' };
     }
-    if (!token) return { success: false, error: 'Vytvorenie DNS záznamu vyžaduje Cloudflare API token.' };
+    if (!token) return { success: false, error: 'Creating a DNS record requires a Cloudflare API token.' };
     const { type, name, content, ttl = 1, proxied = true, priority } = params;
-    if (!type || !name || !content) return { success: false, error: 'Chýbajú povinné parametre DNS záznamu (type, name, content).' };
+    if (!type || !name || !content) return { success: false, error: 'Missing required DNS record parameters (type, name, content).' };
     const resp = await fetch(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}/dns_records`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -116,10 +116,10 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
   if (action === 'update_dns_record') {
     const { zoneId, recordId, type, name, content, ttl = 1, proxied = true, priority } = params;
     if (typeof zoneId !== 'string' || !/^[a-f0-9]{32}$/i.test(zoneId)) {
-      return { success: false, error: 'Úprava DNS záznamu vyžaduje platné 32-znakové zone ID.' };
+      return { success: false, error: 'Updating a DNS record requires a valid 32-character zone ID.' };
     }
-    if (!recordId) return { success: false, error: 'Chýba recordId pre úpravu DNS záznamu.' };
-    if (!token) return { success: false, error: 'Úprava DNS záznamu vyžaduje Cloudflare API token.' };
+    if (!recordId) return { success: false, error: 'Missing recordId for DNS record update.' };
+    if (!token) return { success: false, error: 'Updating a DNS record requires a Cloudflare API token.' };
     const resp = await fetch(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}/dns_records/${encodeURIComponent(recordId)}`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -139,10 +139,10 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
   if (action === 'delete_dns_record') {
     const { zoneId, recordId } = params;
     if (typeof zoneId !== 'string' || !/^[a-f0-9]{32}$/i.test(zoneId)) {
-      return { success: false, error: 'Zmazanie DNS záznamu vyžaduje platné 32-znakové zone ID.' };
+      return { success: false, error: 'Deleting a DNS record requires a valid 32-character zone ID.' };
     }
-    if (!recordId) return { success: false, error: 'Chýba recordId pre zmazanie DNS záznamu.' };
-    if (!token) return { success: false, error: 'Zmazanie DNS záznamu vyžaduje Cloudflare API token.' };
+    if (!recordId) return { success: false, error: 'Missing recordId for DNS record deletion.' };
+    if (!token) return { success: false, error: 'Deleting a DNS record requires a Cloudflare API token.' };
     const resp = await fetch(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}/dns_records/${encodeURIComponent(recordId)}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
@@ -151,7 +151,7 @@ export async function manageCloudflare(env, actor = 'trinity', action = 'status'
     return { success: resp.ok && d.success === true, deleted_id: recordId, result: d.result };
   }
 
-  return { success: false, error: `Neznáma Cloudflare akcia: ${action}` };
+  return { success: false, error: `Unknown Cloudflare action: ${action}` };
 }
 
 export async function manageGitHub(env, actor = 'trinity', action = 'status', params = {}) {
@@ -159,9 +159,9 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
   const repo = params.repo || env.TRINITY_GITHUB_REPO || 'uscolective-byte/Trinity-antigravity';
   const isMutation=['create_issue','update_issue','dispatch_workflow','create_or_update_file','write_file','create_pull_request'].includes(action);
   if(typeof repo!=='string'||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)||repo.includes('..'))
-    return {success:false,error:'Neplatný GitHub repozitár.'};
+    return {success:false,error:'Invalid GitHub repository.'};
   if(isMutation&&repo!=='uscolective-byte/Trinity-antigravity')
-    return {success:false,error:'Zápisy a workflow dispatch sú povolené iba v kanonickom repozitári Trinity.'};
+    return {success:false,error:'Writes and workflow dispatches are allowed only in the canonical Trinity repository.'};
   const headers = {
     Accept: 'application/vnd.github+json',
     'User-Agent': 'Trinity-AI-Agent-Hub/11.0',
@@ -234,11 +234,11 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
   }
 
   if (action === 'create_issue') {
-    if (!token) return { success: false, error: 'Vytváranie GitHub issue vyžaduje token v Trezore tajomstiev.' };
+    if (!token) return { success: false, error: 'Creating a GitHub issue requires a token in the Secret Vault.' };
     const title = params.title || 'Trinity Automated Report';
     const body = params.body || '';
     if (!body || body.trim() === title.trim() || body.trim().length < 30) {
-      return { success: false, error: 'Režim pravdy (Truth Policy): Telo issue nesmie byť prázdny alebo triviálny zástupný text (hollow stub).' };
+      return { success: false, error: 'Truth Policy: Issue body must not be empty or a trivial hollow stub.' };
     }
     const resp = await fetch(`https://api.github.com/repos/${repo}/issues`, {
       method: 'POST',
@@ -251,18 +251,18 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
     });
     const d = await resp.json().catch(() => ({}));
     return {success:resp.status===201&&Number.isInteger(d.number),issue:resp.status===201&&Number.isInteger(d.number)?d:null,
-      ...(!resp.ok?{error:`GitHub odmietol vytvorenie issue (HTTP ${resp.status}).`}:{})};
+      ...(!resp.ok?{error:`GitHub rejected issue creation (HTTP ${resp.status}).`}:{})};
   }
 
   if (action === 'update_issue') {
-    if (!token) return { success: false, error: 'Úprava GitHub issue vyžaduje token v Trezore tajomstiev.' };
+    if (!token) return { success: false, error: 'Updating a GitHub issue requires a token in the Secret Vault.' };
     const issueNumber = params.issue_number || params.number;
-    if (!Number.isInteger(issueNumber)||issueNumber<1) return { success: false, error: 'Neplatné číslo issue (issue_number).' };
+    if (!Number.isInteger(issueNumber)||issueNumber<1) return { success: false, error: 'Invalid issue number (issue_number).' };
     const payload = {};
     if (params.title) payload.title = params.title;
     if (params.body) {
       if (params.body.trim().length < 30) {
-        return { success: false, error: 'Režim pravdy (Truth Policy): Telo issue nesmie byť prázdny zástupný text.' };
+        return { success: false, error: 'Truth Policy: Issue body must not be an empty placeholder stub.' };
       }
       payload.body = params.body;
     }
@@ -275,24 +275,24 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
     });
     const d = await resp.json().catch(() => ({}));
     return {success:resp.ok&&d.number===issueNumber,issue:resp.ok&&d.number===issueNumber?d:null,
-      ...(!resp.ok?{error:`GitHub odmietol úpravu issue (HTTP ${resp.status}).`}:{})};
+      ...(!resp.ok?{error:`GitHub rejected issue update (HTTP ${resp.status}).`}:{})};
   }
 
   if (action === 'dispatch_workflow') {
-    if (!token) return { success: false, error: 'Spustenie GitHub Actions vyžaduje token v Trezore.' };
+    if (!token) return { success: false, error: 'Triggering GitHub Actions requires a token in the Secret Vault.' };
     const workflowId = params.workflowId || 'webpack.yml';
     const approvedWorkflows=new Set(['webpack.yml','integrations-check.yml','dependency-security.yml','codeql.yml','runner-smoke.yml']);
-    if(!approvedWorkflows.has(workflowId))return {success:false,error:'Workflow nie je na zozname bezpečných kontrolných úloh (deploy vyžaduje release gate).'};
+    if(!approvedWorkflows.has(workflowId))return {success:false,error:'Workflow is not on the approved check allowlist (deployments require a release gate).'};
     const ref=params.ref||'main';
     if(typeof ref!=='string'||!/^[-A-Za-z0-9_./]{1,160}$/.test(ref)||ref.includes('..')||ref.startsWith('/'))
-      return {success:false,error:'Neplatná Git referencia.'};
+      return {success:false,error:'Invalid Git ref.'};
     const resp = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/${workflowId}/dispatches`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ ref, inputs: params.inputs || {} })
     });
     return { success: resp.status===204, status: resp.status===204?'queued':'failed',
-      http_status:resp.status, message: resp.status===204?'GitHub prijal workflow dispatch; dokončenie testov treba overiť zvlášť.':'GitHub neprevzal workflow dispatch.' };
+      http_status:resp.status, message: resp.status===204?'GitHub accepted the workflow dispatch; test completion must be verified separately.':'GitHub rejected the workflow dispatch.' };
   }
 
     if (action === 'get_file' || action === 'read_file') {
@@ -301,7 +301,7 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
     try {
       const resp = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(ref)}`, { headers });
       if (!resp.ok) {
-        return { success: false, error: `GitHub HTTP ${resp.status} pri čítaní súboru ${filePath} v ${repo}` };
+        return { success: false, error: `GitHub HTTP ${resp.status} while reading file ${filePath} in ${repo}` };
       }
       const data = await resp.json();
       let content = '';
@@ -329,7 +329,7 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
     try {
       const resp = await fetch(`https://api.github.com/repos/${repo}/git/trees/${encodeURIComponent(ref)}?recursive=1`, { headers });
       if (!resp.ok) {
-        return { success: false, error: `GitHub HTTP ${resp.status} pri načítaní stromu repozitára ${repo}` };
+        return { success: false, error: `GitHub HTTP ${resp.status} while loading repository tree for ${repo}` };
       }
       const data = await resp.json();
       const files = Array.isArray(data.tree) ? data.tree.map(t => ({
@@ -351,9 +351,9 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
   }
 
   if (action === 'create_or_update_file' || action === 'write_file') {
-    if (!token) return { success: false, error: 'Zápis do GitHub repozitára vyžaduje token v Trezore.' };
+    if (!token) return { success: false, error: 'Writing to the GitHub repository requires a token in the Secret Vault.' };
     const filePath = params.path;
-    if (!filePath || typeof filePath !== 'string') return { success: false, error: 'Chýba cesta k súboru (path).' };
+    if (!filePath || typeof filePath !== 'string') return { success: false, error: 'Missing file path (path).' };
     const branch = params.branch || env.TRINITY_GITHUB_BRANCH || 'main';
     const message = params.message || `chore: automated update of ${filePath} from Trinity Sovereign AI`;
     const contentRaw = params.content ?? '';
@@ -379,28 +379,28 @@ export async function manageGitHub(env, actor = 'trinity', action = 'status', pa
       })
     });
     const d = await resp.json().catch(() => ({}));
-    return { success: resp.ok, repo, path: filePath, commit: d.commit, content: d.content, ...(resp.ok ? {} : { error: `GitHub HTTP ${resp.status}: ${d.message || 'Chyba zápisu súboru'}` }) };
+    return { success: resp.ok, repo, path: filePath, commit: d.commit, content: d.content, ...(resp.ok ? {} : { error: `GitHub HTTP ${resp.status}: ${d.message || 'File write failed'}` }) };
   }
 
   if (action === 'create_pull_request') {
-    if (!token) return { success: false, error: 'Vytvorenie GitHub Pull Requestu vyžaduje token v Trezore.' };
+    if (!token) return { success: false, error: 'Creating a GitHub Pull Request requires a token in the Secret Vault.' };
     const { title, head, base = env.TRINITY_GITHUB_BRANCH || 'main', body = '' } = params;
-    if (!title || !head) return { success: false, error: 'Chýba názov (title) alebo zdrojová vetva (head) pre Pull Request.' };
+    if (!title || !head) return { success: false, error: 'Missing title or head branch for Pull Request.' };
     const resp = await fetch(`https://api.github.com/repos/${repo}/pulls`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ title, head, base, body })
     });
     const d = await resp.json().catch(() => ({}));
-    return { success: resp.ok && Boolean(d.number), pull_request: d, ...(resp.ok ? {} : { error: `GitHub HTTP ${resp.status}: ${d.message || 'Chyba vytvorenia PR'}` }) };
+    return { success: resp.ok && Boolean(d.number), pull_request: d, ...(resp.ok ? {} : { error: `GitHub HTTP ${resp.status}: ${d.message || 'Pull Request creation failed'}` }) };
   }
 
-  return { success: false, error: `Neznáma GitHub akcia: ${action}` };
+  return { success: false, error: `Unknown GitHub action: ${action}` };
 }
 
 export async function scrapeWithFirecrawl(env, actor = 'trinity', options = {}) {
   const targetUrl = options.url;
-  if (!targetUrl) throw new Error('Parameter url je povinný.');
+  if (!targetUrl) throw new Error('Parameter url is required.');
   
   const token = await resolveProviderSecret(env, 'firecrawl');
   const mode = options.mode || 'scrape'; // 'scrape' | 'crawl' | 'map'
@@ -450,7 +450,7 @@ export async function scrapeWithFirecrawl(env, actor = 'trinity', options = {}) 
       signal: AbortSignal.timeout(15000),
       redirect: 'follow'
     });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status} pri sťahovaní stránky`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status} while fetching page`);
     const html = await resp.text();
 
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
@@ -532,7 +532,7 @@ export async function manageFirebase(env, actor = 'trinity', action = 'status', 
     const documentId = params.documentId || `doc_${Date.now()}`;
     const payload = params.data || {};
     if (![collection,documentId].every(part => typeof part === 'string' && /^[A-Za-z0-9_-]{1,150}$/.test(part))) {
-      return {success:false,error:'Neplatný názov kolekcie alebo dokumentu.'};
+      return {success:false,error:'Invalid collection or document name.'};
     }
     let mirroredInD1 = false;
     if (env.DB?.prepare) {
@@ -594,14 +594,14 @@ export async function manageFirebase(env, actor = 'trinity', action = 'status', 
       ...(firestoreHttpStatus === null ? {} : {firestore_http_status:firestoreHttpStatus}),
       status: !success?'failed':!firestoreWritten?'partial':'verified',
       ...(success ? {written_at:new Date().toISOString()} :
-        {error:'Nepotvrdený zápis: D1 mirror zlyhal a Firestore nevrátil úspech.'})
+        {error:'Unconfirmed write: D1 mirror failed and Firestore did not confirm success.'})
     };
   }
 
   if (action === 'get_document') {
     const collection = params.collection || 'trinity_state';
     const documentId = params.documentId;
-    if (!documentId) return { success: false, error: 'Chýba documentId.' };
+    if (!documentId) return { success: false, error: 'Missing documentId.' };
 
     if (env.DB?.prepare) {
       try {
@@ -615,13 +615,13 @@ export async function manageFirebase(env, actor = 'trinity', action = 'status', 
       } catch (_) {}
     }
 
-    return { success: false, error: 'Dokument nebol nájdený.' };
+    return { success: false, error: 'Document not found.' };
   }
 
   if (action === 'delete_document') {
     const collection = params.collection || 'trinity_state';
     const documentId = params.documentId;
-    if (!documentId) return { success: false, error: 'Chýba documentId.' };
+    if (!documentId) return { success: false, error: 'Missing documentId.' };
     let d1Deleted = false;
     if (env.DB?.prepare) {
       try {
@@ -646,7 +646,7 @@ export async function manageFirebase(env, actor = 'trinity', action = 'status', 
     return { success: d1Deleted || firestoreDeleted, deleted: true, d1_deleted: d1Deleted, firestore_deleted: firestoreDeleted, projectId, collection, documentId };
   }
 
-  return { success: false, error: `Neznáma Firebase akcia: ${action}` };
+  return { success: false, error: `Unknown Firebase action: ${action}` };
 }
 
 function encodeOneDrivePath(rawPath = '') {
@@ -671,7 +671,7 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
         connected: false,
         verified: false,
         profile,
-        message: 'Microsoft OneDrive poverenie zatiaľ nie je nakonfigurované. Token vlož v Trezore (poskytovateľ onedrive alebo microsoft).'
+        message: 'Microsoft OneDrive credential is not configured yet. Store a token in the Secret Vault (provider onedrive or microsoft).'
       };
     }
     try {
@@ -696,7 +696,7 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
         success: false,
         connected: false,
         verified: false,
-        error: `OneDrive Graph API odpovedalo HTTP ${resp.status}: ${data.error?.message || 'prístup zamietnutý'}`
+        error: `OneDrive Graph API returned HTTP ${resp.status}: ${data.error?.message || 'access denied'}`
       };
     } catch (err) {
       return { success: false, connected: false, verified: false, error: err.message };
@@ -704,7 +704,7 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
   }
 
   if (action === 'drive_info') {
-    if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    if (!token) return { success: false, error: 'Missing OneDrive token.' };
     const resp = await fetch('https://graph.microsoft.com/v1.0/me/drive', {
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
       signal: AbortSignal.timeout(15000)
@@ -713,12 +713,12 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
     return {
       success: resp.ok,
       drive: data,
-      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba čítania informácií o disku'}` })
+      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Failed to read drive info'}` })
     };
   }
 
   if (action === 'list_files') {
-    if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    if (!token) return { success: false, error: 'Missing OneDrive token.' };
     const cleanPath = encodeOneDrivePath(params.path);
     const folderPath = cleanPath ? `root:/${cleanPath}:/children` : 'root/children';
     const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/${folderPath}?$top=50`, {
@@ -737,14 +737,14 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
         last_modified: f.lastModifiedDateTime
       })),
       total: data.value?.length || 0,
-      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba výpisu priečinka'}` })
+      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Failed to list folder'}` })
     };
   }
 
   if (action === 'search_files') {
-    if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    if (!token) return { success: false, error: 'Missing OneDrive token.' };
     const query = String(params.query || params.name || '').trim();
-    if (!query) return { success: false, error: 'Chýba hľadaný výraz (query) pre OneDrive.' };
+    if (!query) return { success: false, error: 'Missing search query for OneDrive.' };
     const escaped = encodeURIComponent(query.replace(/'/g, "''"));
     const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root/search(q='${escaped}')?$top=50`, {
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
@@ -764,19 +764,19 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
         last_modified: f.lastModifiedDateTime
       })),
       total: data.value?.length || 0,
-      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba vyhľadávania'}` })
+      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Search failed'}` })
     };
   }
 
   if (action === 'get_file') {
-    if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    if (!token) return { success: false, error: 'Missing OneDrive token.' };
     const cleanPath = encodeOneDrivePath(params.path);
     const endpoint = params.itemId
       ? `https://graph.microsoft.com/v1.0/me/drive/items/${encodeURIComponent(params.itemId)}`
       : cleanPath
         ? `https://graph.microsoft.com/v1.0/me/drive/root:/${cleanPath}`
         : null;
-    if (!endpoint) return { success: false, error: 'Chýba itemId alebo path pre načítanie súboru v OneDrive.' };
+    if (!endpoint) return { success: false, error: 'Missing itemId or path for OneDrive file lookup.' };
     const resp = await fetch(endpoint, {
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
       signal: AbortSignal.timeout(15000)
@@ -785,26 +785,26 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
     return {
       success: resp.ok,
       item: data,
-      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba načítania súboru'}` })
+      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Failed to retrieve file metadata'}` })
     };
   }
 
   if (action === 'read_file') {
-    if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    if (!token) return { success: false, error: 'Missing OneDrive token.' };
     const cleanPath = encodeOneDrivePath(params.path);
     const endpoint = params.itemId
       ? `https://graph.microsoft.com/v1.0/me/drive/items/${encodeURIComponent(params.itemId)}/content`
       : cleanPath
         ? `https://graph.microsoft.com/v1.0/me/drive/root:/${cleanPath}:/content`
         : null;
-    if (!endpoint) return { success: false, error: 'Chýba itemId alebo path pre čítanie obsahu súboru v OneDrive.' };
+    if (!endpoint) return { success: false, error: 'Missing itemId or path for OneDrive file read.' };
     const resp = await fetch(endpoint, {
       headers: { Authorization: `Bearer ${token}` },
       signal: AbortSignal.timeout(15000)
     });
     if (!resp.ok) {
       const errData = await resp.json().catch(() => ({}));
-      return { success: false, error: `OneDrive HTTP ${resp.status}: ${errData.error?.message || 'Nepodarilo sa prečítať súbor'}` };
+      return { success: false, error: `OneDrive HTTP ${resp.status}: ${errData.error?.message || 'Failed to read file'}` };
     }
     const rawText = await resp.text();
     const maxChars = 200_000;
@@ -819,9 +819,9 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
   }
 
   if (action === 'upload_file') {
-    if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    if (!token) return { success: false, error: 'Missing OneDrive token.' };
     const cleanPath = encodeOneDrivePath(params.path);
-    if (!cleanPath) return { success: false, error: 'Chýba cieľová cesta (path) v OneDrive.' };
+    if (!cleanPath) return { success: false, error: 'Missing destination path in OneDrive.' };
     const content = typeof params.content === 'string' ? params.content : JSON.stringify(params.content || {});
     const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${cleanPath}:/content`, {
       method: 'PUT',
@@ -833,14 +833,14 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
     return {
       success: resp.ok,
       file: data,
-      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba nahrávania súboru'}` })
+      ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'File upload failed'}` })
     };
   }
 
   if (action === 'create_folder') {
-    if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    if (!token) return { success: false, error: 'Missing OneDrive token.' };
     const name = params.name;
-    if (!name || typeof name !== 'string') return { success: false, error: 'Chýba názov nového priečinka (name).' };
+    if (!name || typeof name !== 'string') return { success: false, error: 'Missing new folder name (name).' };
     const cleanPath = encodeOneDrivePath(params.path);
     const endpoint = cleanPath
       ? `https://graph.microsoft.com/v1.0/me/drive/root:/${cleanPath}:/children`
@@ -852,18 +852,18 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
       signal: AbortSignal.timeout(15000)
     });
     const data = await resp.json().catch(() => ({}));
-    return { success: resp.ok, folder: data, ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Chyba vytvorenia priečinka'}` }) };
+    return { success: resp.ok, folder: data, ...(resp.ok ? {} : { error: `OneDrive HTTP ${resp.status}: ${data.error?.message || 'Folder creation failed'}` }) };
   }
 
   if (action === 'delete_file' || action === 'delete_item') {
-    if (!token) return { success: false, error: 'Chýba OneDrive token.' };
+    if (!token) return { success: false, error: 'Missing OneDrive token.' };
     const cleanPath = encodeOneDrivePath(params.path);
     const endpoint = params.itemId
       ? `https://graph.microsoft.com/v1.0/me/drive/items/${encodeURIComponent(params.itemId)}`
       : cleanPath
         ? `https://graph.microsoft.com/v1.0/me/drive/root:/${cleanPath}`
         : null;
-    if (!endpoint) return { success: false, error: 'Chýba itemId alebo path pre zmazanie položky v OneDrive.' };
+    if (!endpoint) return { success: false, error: 'Missing itemId or path to delete item in OneDrive.' };
     const resp = await fetch(endpoint, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
@@ -872,42 +872,42 @@ export async function manageOneDrive(env, actor = 'trinity', action = 'status', 
     const ok = resp.ok || resp.status === 204;
     if (!ok) {
       const errData = await resp.json().catch(() => ({}));
-      return { success: false, deleted: false, status: resp.status, error: `OneDrive HTTP ${resp.status}: ${errData.error?.message || 'Chyba mazania položky'}` };
+      return { success: false, deleted: false, status: resp.status, error: `OneDrive HTTP ${resp.status}: ${errData.error?.message || 'Item deletion failed'}` };
     }
     return { success: true, deleted: true, status: resp.status };
   }
 
-  return { success: false, error: `Neznáma OneDrive akcia: ${action}` };
+  return { success: false, error: `Unknown OneDrive action: ${action}` };
 }
 
 export async function manageGoogleCloud(env, actor = 'trinity', action = 'status', params = {}) {
   if (action === 'status' || action === 'list_models') {
     const key = await resolveProviderSecret(env, 'gemini') || env.GEMINI_API_KEY;
-    if (!key) return {success:false,connected:false,verified:false,error:'Chýba Gemini API kľúč.'};
+    if (!key) return {success:false,connected:false,verified:false,error:'Missing Gemini API key.'};
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
       headers:{'x-goog-api-key':key},redirect:'manual',signal:AbortSignal.timeout(10000)
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !Array.isArray(data.models)) {
       const reasons={
-        API_KEY_INVALID:'Google označil kľúč Gemini za neplatný.',
-        API_KEY_EXPIRED:'Google označil kľúč Gemini za expirovaný.',
-        API_KEY_SERVICE_BLOCKED:'Obmedzenie kľúča nepovoľuje Gemini API.',
-        SERVICE_DISABLED:'Gemini API je v projekte vypnuté.',
-        BILLING_DISABLED:'Google hlási vypnutú fakturáciu projektu.',
-        CONSUMER_SUSPENDED:'Google pozastavil prístup projektu k API.'
+        API_KEY_INVALID:'Google marked the Gemini API key as invalid.',
+        API_KEY_EXPIRED:'Google marked the Gemini API key as expired.',
+        API_KEY_SERVICE_BLOCKED:'API key restrictions block the Gemini API.',
+        SERVICE_DISABLED:'Gemini API is disabled in the Google Cloud project.',
+        BILLING_DISABLED:'Google reports billing is disabled for the project.',
+        CONSUMER_SUSPENDED:'Google suspended project API access.'
       };
       const detail=Array.isArray(data.error?.details)?data.error.details.find(item=>
         item?.['@type']==='type.googleapis.com/google.rpc.ErrorInfo'&&Object.hasOwn(reasons,item.reason)):null;
       return {success:false,connected:false,verified:false,error:detail
         ? reasons[detail.reason]+' (HTTP '+response.status+').'
-        : 'Gemini API nevrátilo zoznam modelov (HTTP '+response.status+').'};
+        : 'Gemini API did not return a model list (HTTP '+response.status+').'};
     }
     const models=data.models.map(model=>model.name).filter(name=>typeof name==='string');
     return {success:true,connected:true,verified:true,source:'gemini_api',...(action==='list_models'?{models,total:models.length}:{})};
   }
 
-  return { success: false, error: `Neznáma Google Cloud akcia: ${action}` };
+  return { success: false, error: `Unknown Google Cloud action: ${action}` };
 }
 
 export async function manageLocalBridge(env, actor = 'trinity', action = 'status', params = {}) {
@@ -960,7 +960,7 @@ export async function manageLocalBridge(env, actor = 'trinity', action = 'status
     };
   }
 
-  return { success: false, error: `Neznáma Local Bridge akcia: ${action}` };
+  return { success: false, error: `Unknown Local Bridge action: ${action}` };
 }
 
 export async function manageVercel(env, actor = 'trinity', action = 'status', params = {}) {
@@ -983,7 +983,7 @@ export async function manageVercel(env, actor = 'trinity', action = 'status', pa
         connected: false,
         verified: false,
         source: 'unconfigured',
-        message: 'Vercel token zatiaľ nie je nakonfigurovaný. Vlož Vercel API token v Trezore (poskytovateľ vercel).'
+        message: 'Vercel token is not configured yet. Store a Vercel API token in the Secret Vault (provider vercel).'
       };
     }
     try {
@@ -1011,14 +1011,14 @@ export async function manageVercel(env, actor = 'trinity', action = 'status', pa
         success: false,
         connected: false,
         verified: false,
-        error: `Vercel API odpovedalo HTTP ${resp.status}: ${data.error?.message || 'prístup zamietnutý'}`
+        error: `Vercel API returned HTTP ${resp.status}: ${data.error?.message || 'access denied'}`
       };
     } catch (err) {
       return { success: false, connected: false, verified: false, error: err.message };
     }
   }
 
-  if (!token) return { success: false, error: 'Chýba Vercel token. Nastav ho v Trezore pod poskytovateľom vercel.' };
+  if (!token) return { success: false, error: 'Missing Vercel token. Configure it in the Secret Vault under provider vercel.' };
 
   if (action === 'list_projects') {
     const limit = Math.min(Math.max(Number(params.limit) || 20, 1), 100);
@@ -1037,7 +1037,7 @@ export async function manageVercel(env, actor = 'trinity', action = 'status', pa
         updated_at: p.updatedAt || null
       })),
       total: data.projects?.length || 0,
-      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Chyba načítania projektov'}` })
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Failed to list projects'}` })
     };
   }
 
@@ -1063,13 +1063,13 @@ export async function manageVercel(env, actor = 'trinity', action = 'status', pa
         created_at: d.created || d.createdAt || null
       })),
       total: data.deployments?.length || 0,
-      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Chyba načítania nasadení'}` })
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Failed to list deployments'}` })
     };
   }
 
   if (action === 'get_deployment') {
     const deploymentId = params.deploymentId || params.id;
-    if (!deploymentId) return { success: false, error: 'Chýba deploymentId pre zistenie detailu nasadenia.' };
+    if (!deploymentId) return { success: false, error: 'Missing deploymentId to inspect deployment details.' };
     const resp = await fetch(withTeam(`https://api.vercel.com/v13/deployments/${encodeURIComponent(deploymentId)}`), {
       headers,
       signal: AbortSignal.timeout(15000)
@@ -1085,7 +1085,7 @@ export async function manageVercel(env, actor = 'trinity', action = 'status', pa
         target: data.target || 'preview',
         created_at: data.createdAt || null
       } : null,
-      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Nasadenie sa nenašlo'}` })
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Deployment not found'}` })
     };
   }
 
@@ -1106,14 +1106,14 @@ export async function manageVercel(env, actor = 'trinity', action = 'status', pa
         git_branch: d.gitBranch || null
       })),
       total: rawDomains.length,
-      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Chyba načítania domén'}` })
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Failed to list domains'}` })
     };
   }
 
   if (action === 'add_domain') {
     const projectId = params.projectId || env?.VERCEL_PROJECT_ID;
     const domain = String(params.domain || params.name || '').trim().toLowerCase();
-    if (!projectId || !domain) return { success: false, error: 'Pre pridanie domény zadaj projectId aj domain.' };
+    if (!projectId || !domain) return { success: false, error: 'Provide both projectId and domain to add a domain.' };
     const resp = await fetch(withTeam(`https://api.vercel.com/v10/projects/${encodeURIComponent(projectId)}/domains`), {
       method: 'POST',
       headers: { ...headers, 'Content-Type': 'application/json' },
@@ -1124,13 +1124,13 @@ export async function manageVercel(env, actor = 'trinity', action = 'status', pa
     return {
       success: resp.ok,
       domain: resp.ok ? { name: data.name, verified: Boolean(data.verified), verification: data.verification || [] } : null,
-      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Chyba pridania domény'}` })
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Failed to add domain'}` })
     };
   }
 
   if (action === 'list_env') {
     const projectId = params.projectId || env?.VERCEL_PROJECT_ID;
-    if (!projectId) return { success: false, error: 'Chýba projectId pre výpis environment premenných.' };
+    if (!projectId) return { success: false, error: 'Missing projectId to list environment variables.' };
     const resp = await fetch(withTeam(`https://api.vercel.com/v9/projects/${encodeURIComponent(projectId)}/env`), {
       headers,
       signal: AbortSignal.timeout(15000)
@@ -1145,14 +1145,14 @@ export async function manageVercel(env, actor = 'trinity', action = 'status', pa
         target: e.target || []
       })),
       total: data.envs?.length || 0,
-      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Chyba čítania env premenných'}` })
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Failed to read environment variables'}` })
     };
   }
 
   if (action === 'redeploy') {
     const deploymentId = params.deploymentId || params.id;
     const name = params.name || params.projectName || 'trinity-sovereign-os';
-    if (!deploymentId) return { success: false, error: 'Chýba deploymentId pre opätovné nasadenie (redeploy).' };
+    if (!deploymentId) return { success: false, error: 'Missing deploymentId for redeploy.' };
     const resp = await fetch(withTeam('https://api.vercel.com/v13/deployments'), {
       method: 'POST',
       headers: { ...headers, 'Content-Type': 'application/json' },
@@ -1173,13 +1173,13 @@ export async function manageVercel(env, actor = 'trinity', action = 'status', pa
         ready_state: data.readyState || 'QUEUED',
         target: data.target || params.target || 'production'
       } : null,
-      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Redeploy zlyhal'}` })
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Redeploy failed'}` })
     };
   }
 
   if (action === 'cancel_deployment') {
     const deploymentId = params.deploymentId || params.id;
-    if (!deploymentId) return { success: false, error: 'Chýba deploymentId pre zrušenie nasadenia.' };
+    if (!deploymentId) return { success: false, error: 'Missing deploymentId to cancel deployment.' };
     const resp = await fetch(withTeam(`https://api.vercel.com/v12/deployments/${encodeURIComponent(deploymentId)}/cancel`), {
       method: 'PATCH',
       headers,
@@ -1191,11 +1191,11 @@ export async function manageVercel(env, actor = 'trinity', action = 'status', pa
       cancelled: resp.ok,
       deployment_id: deploymentId,
       ready_state: data.readyState || null,
-      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Zrušenie nasadenia zlyhalo'}` })
+      ...(resp.ok ? {} : { error: `Vercel HTTP ${resp.status}: ${data.error?.message || 'Deployment cancellation failed'}` })
     };
   }
 
-  return { success: false, error: `Neznáma Vercel akcia: ${action}` };
+  return { success: false, error: `Unknown Vercel action: ${action}` };
 }
 
 export async function listAllIntegrations(env) {
@@ -1218,7 +1218,7 @@ export async function listAllIntegrations(env) {
       status: cfToken ? 'configured' : 'edge-native-active',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'control', 'dns_manage', 'cache_purge', 'workers_list'],
-      description: 'Plná obojsmerná správa (Read & Write): Workers, D1 databáz, KV Mastermind, R2 archívu a DNS záznamov.'
+      description: 'Full bidirectional management (Read & Write): Workers, D1 databases, KV Mastermind, R2 storage, and DNS records.'
     },
     {
       id: 'vercel',
@@ -1227,7 +1227,7 @@ export async function listAllIntegrations(env) {
       status: vcToken ? 'configured' : 'ready',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'list_projects', 'list_deployments', 'list_domains', 'add_domain', 'redeploy', 'cancel_deployment'],
-      description: 'Plná obojsmerná správa (Read & Write): Vercel projekty, produkčné a preview nasadenia, domény a env premenné (bez čítania tajných hodnôt).'
+      description: 'Full bidirectional management (Read & Write): Vercel projects, production and preview deployments, domains, and environment variable metadata (without reading secret values).'
     },
     {
       id: 'github',
@@ -1236,7 +1236,7 @@ export async function listAllIntegrations(env) {
       status: ghToken ? 'configured' : 'public-read-ready',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'commit', 'pull_request', 'issues', 'workflow_dispatch'],
-      description: 'Plná obojsmerná správa (Read & Write): kanonický repozitár uscolective-byte/Trinity-antigravity, commit súborov, PR, issues a Actions.'
+      description: 'Full bidirectional management (Read & Write): canonical repository uscolective-byte/Trinity-antigravity, file commits, PRs, issues, and Actions.'
     },
     {
       id: 'onedrive',
@@ -1245,7 +1245,7 @@ export async function listAllIntegrations(env) {
       status: oneToken ? 'configured' : 'ready',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'upload', 'folder_create', 'delete'],
-      description: 'Plná obojsmerná správa (Read & Write): Úložisko Microsoft Graph, vytváranie priečinkov, upload a mazanie dokumentov.'
+      description: 'Full bidirectional management (Read & Write): Microsoft Graph storage, folder creation, file uploads, and document deletion.'
     },
     {
       id: 'google_cloud',
@@ -1254,7 +1254,16 @@ export async function listAllIntegrations(env) {
       status: (gcToken || env.GOOGLE_PROJECT_ID) ? 'configured' : 'ready',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'models', 'storage', 'vertex_ai'],
-      description: 'Plná obojsmerná správa (Read & Write): Projekt tangential-osprey-dl7cp: Gemini 3.8 Flash & Pro, Vertex AI, Cloud Storage a Workspace.'
+      description: 'Full bidirectional management (Read & Write): project tangential-osprey-dl7cp, Gemini models, Vertex AI, Cloud Storage, and Workspace.'
+    },
+    {
+      id: 'google_ai_studio',
+      name: 'Google AI Studio Bridge (Gemini API)',
+      category: 'AI & Co-Creation',
+      status: (env?.GOOGLE_AI_STUDIO_API_KEY || env?.GEMINI_API_KEY || typeof env?.TRINITY_MASTER_GOOGLE?.get === 'function' || gcToken) ? 'configured' : 'ready',
+      access_mode: 'read_write',
+      capabilities: ['models', 'generate', 'stream', 'co_create', 'sessions', 'mcp'],
+      description: 'Direct Google AI Studio (generativelanguage.googleapis.com/v1beta) bridge for model discovery, streaming generation, and multi-turn Trinity + AI Studio co-creation.'
     },
     {
       id: 'local_bridge',
@@ -1263,7 +1272,7 @@ export async function listAllIntegrations(env) {
       status: 'platform-connected',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'shell_exec', 'fs_read_write', 'system_telemetry'],
-      description: 'Lokálna stanica Sabo Ivan (Local-Desktop na porte 8795, Local-Gateway na porte 7789, obojsmerný PC Bridge 2.0).'
+      description: 'Local workstation node for Sabo Ivan (Local-Desktop on port 8795, Local-Gateway on port 7789, bidirectional PC Bridge 2.0).'
     },
     {
       id: 'firecrawl',
@@ -1272,7 +1281,7 @@ export async function listAllIntegrations(env) {
       status: fcToken ? 'configured' : 'edge-crawler-ready',
       access_mode: 'read_write',
       capabilities: ['read', 'crawl', 'map', 'markdown_extract'],
-      description: 'Hĺbkové extrahovanie webov, mapovanie URL a prevod do čistého Markdownu.'
+      description: 'Deep web extraction, URL mapping, and clean Markdown conversion.'
     },
     {
       id: 'firebase',
@@ -1281,7 +1290,7 @@ export async function listAllIntegrations(env) {
       status: fbToken ? 'configured' : 'ready',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'set_document', 'delete_document', 'mirror_d1'],
-      description: 'Plná obojsmerná správa (Read & Write): Firestore zápisy a mazanie, Hosting na trinity-morhfeus-20261001.web.app a D1 mirror.'
+      description: 'Full bidirectional management (Read & Write): Firestore writes and deletes, Hosting on trinity-morhfeus-20261001.web.app, and D1 mirror.'
     },
     {
       id: 'supabase',
@@ -1290,7 +1299,7 @@ export async function listAllIntegrations(env) {
       status: sbToken ? 'configured' : 'ready',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'query', 'vectors'],
-      description: 'Relačná PostgreSQL databáza s PostgREST API a vektorovým úložiskom.'
+      description: 'Relational PostgreSQL database with PostgREST API and vector storage.'
     },
     {
       id: 'meta_social',
@@ -1299,7 +1308,7 @@ export async function listAllIntegrations(env) {
       status: (env.META_ACCESS_TOKEN || env.FACEBOOK_ACCESS_TOKEN || env.META_APP_ID) ? 'configured' : 'ready',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'facebook_pages', 'instagram_business', 'whatsapp_messaging', 'post_draft', 'metrics'],
-      description: 'Oficiálny Meta Graph API konektor: správa Facebook stránok, Instagram profilov a WhatsApp komunikácie s Llama 3.3 modelom.'
+      description: 'Official Meta Graph API connector: manage Facebook Pages, Instagram Business profiles, and WhatsApp messaging with Llama 3.3.'
     },
     {
       id: 'linkedin',
@@ -1308,7 +1317,7 @@ export async function listAllIntegrations(env) {
       status: (env.LINKEDIN_TOKEN || env.LINKEDIN_CLIENT_ID) ? 'configured' : 'ready',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'profile_share', 'company_posts', 'prospect_queries', 'b2b_outreach'],
-      description: 'B2B distribúcia obsahu a akvizícia: publikovanie článkov, vyhľadávanie obchodných príležitostí cez prospect_queries a B2B komunikácia.'
+      description: 'B2B content distribution and acquisition: article publishing, business opportunity discovery via prospect_queries, and B2B outreach.'
     },
     {
       id: 'telegram',
@@ -1317,7 +1326,7 @@ export async function listAllIntegrations(env) {
       status: env.TELEGRAM_BOT_TOKEN ? 'configured' : 'ready',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'bot_chat', 'telegram_wallet', 'ton_transfers', 'hitl_approvals'],
-      description: 'Obojsmerný privátny chat, schvaľovanie HITL akcií a kryptomenové platby cez Telegram @wallet (TON/USDT).'
+      description: 'Bidirectional private chat, HITL action approvals, and crypto payments via external Telegram @wallet (TON/USDT).'
     },
     {
       id: 'viber',
@@ -1326,7 +1335,7 @@ export async function listAllIntegrations(env) {
       status: env.VIBER_AUTH_TOKEN ? 'configured' : 'ready',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'bot_chat', 'viber_pay', 'p2p_transfers', 'qr_checkout'],
-      description: 'Oficiálny Viber Chat API most a digitálna peňaženka Viber Pay pre peer-to-peer platby a automatické notifikácie.'
+      description: 'Official Viber Chat API bridge and Viber Pay digital wallet for peer-to-peer payments and automated notifications.'
     },
     {
       id: 'paysafe',
@@ -1335,7 +1344,7 @@ export async function listAllIntegrations(env) {
       status: (env.PAYSAFE_API_KEY && env.PAYSAFE_ACCOUNT_NUMBER) ? 'configured' : 'ready',
       access_mode: 'read_write',
       capabilities: ['read', 'write', 'paysafecard_voucher', 'mypaysafe_wallet', 'skrill_transfer', 'payment_handles'],
-      description: 'Pripojenie k Paysafe ekosystému: myPaysafe digitálna peňaženka, 16-miestne Paysafecard PIN poukážky a Skrill/Neteller platobné relácie.'
+      description: 'Connection to the Paysafe ecosystem: myPaysafe digital wallet, 16-digit Paysafecard PIN vouchers, and Skrill/Neteller payment sessions.'
     }
   ];
 }

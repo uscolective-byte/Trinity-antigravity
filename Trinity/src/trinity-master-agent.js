@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul trinity-master-agent.js (Trinity/src/trinity-master-agent.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Restricted Cloudflare Workers AI diagnostics advisor for TRINITY OMNI-CORE.
  */
 import {trinityMasterStatus} from './trinity-master-status.js';
 
@@ -12,13 +12,13 @@ import {trinityMasterStatus} from './trinity-master-status.js';
 export async function adviseTrinityMaster(env,input,pcBridge=null){
   const task=typeof input?.task==='string'?input.task.trim():'';
   if(!task||task.length>2000)
-    return {success:false,status:'invalid_request',error:'Úloha musí mať 1 až 2000 znakov.',execution_performed:false};
+    return {success:false,status:'invalid_request',error:'Task must be between 1 and 2000 characters.',execution_performed:false};
   // Reject credentials even when supplied by an authenticated admin.
   // These requests must never be forwarded to model inference.
   if(/(?:cfat_[A-Za-z0-9]{12,}|gh[pousr]_[A-Za-z0-9]{12,}|github_pat_[A-Za-z0-9_]{12,}|sk-(?:proj-)?[A-Za-z0-9_-]{12,}|AIza[A-Za-z0-9_-]{20,}|ya29\.[A-Za-z0-9_.-]{10,}|-----BEGIN PRIVATE KEY-----|(?:api[_-]?key|token)\s*[:=]\s*[A-Za-z0-9_-]{12,})/i.test(task))
-    return {success:false,status:'sensitive_input_rejected',error:'Do AI diagnostiky nevkladaj API kľúče ani iné poverenia.',execution_performed:false};
+    return {success:false,status:'sensitive_input_rejected',error:'Do not include API keys or other credentials in AI diagnostics input.',execution_performed:false};
   if(typeof env?.AI?.run!=='function')
-    return {success:false,status:'not_configured',error:'Cloudflare Workers AI binding nie je dostupný.',execution_performed:false};
+    return {success:false,status:'not_configured',error:'Cloudflare Workers AI binding is not available.',execution_performed:false};
   const diagnostics=trinityMasterStatus(env,pcBridge);
   const model=env.AI_MODEL||'@cf/meta/llama-3.3-70b-instruct-fp8-fast';
   const safeSnapshot={
@@ -29,13 +29,14 @@ export async function adviseTrinityMaster(env,input,pcBridge=null){
     deployment_environment:diagnostics.deployment_environment
   };
   const prompt=[
-    'Si TRINITY_MASTER, diagnostický pomocník pre Cloudflare Trinity AI orchestrator.',
-    'Poskytuj iba odporúčania a kroky overenia podľa dodaných metadát.',
-    'Žiadne skutočné deploy, zmeny súborov, vytvorenie účtu, OAuth prepojenie alebo opravu nesmieš tvrdiť ako vykonanú.',
-    'Configured a verified sú odlišné stavy. Chýbajúce dáta nesmieš doplniť odhadom.',
-    'Odpovedaj po slovensky, stručne a technicky presne. Nevypisuj ani nežiaduj tajomstvá.',
-    'K dispozícii nemáš Shell, PC, sieťové ani GitHub tools.',
-    'Diagnostika (iba metadata): '+JSON.stringify(safeSnapshot)
+    'You are TRINITY_MASTER, a read-only diagnostics advisor for the Cloudflare Trinity AI orchestrator.',
+    'Provide only recommendations and verification steps strictly grounded in the supplied metadata.',
+    'Never claim any real deployment, file edit, account creation, OAuth connection, or remediation as executed.',
+    'Configured and verified are distinct states. Never fill in missing data by guessing.',
+    'Be concise and technically accurate. Never print, invent, or request secrets.',
+    'You have no Shell, PC, network, or GitHub tools available.',
+    "COMMUNICATION LANGUAGE RULE: Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal 'tykanie' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language.",
+    'Diagnostics (metadata only): '+JSON.stringify(safeSnapshot)
   ].join('\n');
   try{
     const result=await env.AI.run(model,{
@@ -51,6 +52,6 @@ export async function adviseTrinityMaster(env,input,pcBridge=null){
       execution_performed:false,verified_action_receipt:null};
   }catch{
     return {success:false,status:'provider_error',model,
-      error:'Cloudflare Workers AI nevrátilo overiteľnú odpoveď.',execution_performed:false};
+      error:'Cloudflare Workers AI did not return a verifiable response.',execution_performed:false};
   }
 }

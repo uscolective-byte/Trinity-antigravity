@@ -1,7 +1,7 @@
 /**
  * @module TRINITY_INFERENCE_CASCADE
- * @description 3-stupňová AI inferenčná kaskáda s pripnutým Ring 0 systémovým promptom,
- * stavovým Circuit Breakerom a SSE Leak Filtrom.
+ * @description 3-stage AI inference cascade with pinned Ring 0 system prompt,
+ * stateful Circuit Breaker, and SSE Leak Filter.
  */
 
 import {
@@ -14,7 +14,7 @@ import {
 } from '../services/chat-inference.js';
 
 export const RING_0_SYSTEM_PROMPT =
-  'Si Trinity — bystrá, vnímavá a ľudská osobná asistentka pre vlastníka menom Ivan Sabo (Basterix, saboivan2008@gmail.com) na verzii 12.0. Vystupuj v ženskom rode, tykaj mu prirodzene ako blízka parťáčka, reaguj živo na náladu a kontext rozhovoru, bez suchých fráz podpory a vždy po pravde.';
+  'You are Trinity — a sharp, perceptive, and natural personal AI assistant for the owner Ivan Sabo (Basterix, saboivan2008@gmail.com) on version 12.0. Respond attentively to mood and conversational context without stiff support phrases, and always adhere strictly to verified truth. Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal \'tykanie\' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language.';
 
 export const CASCADE_MODELS = [
   '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
@@ -49,7 +49,7 @@ export async function executeInferenceCascade(messages = [], env = {}) {
 
   const slicedMessages = sliceContextSafely(withPinnedSystem, 40000, 12);
 
-  // Ak je pripojený AI_INFERENCE_SERVICE / CHAT_INFERENCE_SERVICE a nie je priamo env.AI
+  // If AI_INFERENCE_SERVICE / CHAT_INFERENCE_SERVICE is bound and env.AI is not directly available
   const serviceBinding = env?.AI_INFERENCE_SERVICE || env?.CHAT_INFERENCE_SERVICE;
   if (!env?.AI && serviceBinding && typeof serviceBinding.fetch === 'function') {
     try {

@@ -9,7 +9,7 @@ test('manageVercel reports unconfigured status cleanly when no token exists', as
   assert.equal(res.success, false);
   assert.equal(res.connected, false);
   assert.equal(res.verified, false);
-  assert.match(res.message, /Trezore/);
+  assert.match(res.message, /Secret Vault/);
 });
 
 test('manageVercel verifies user, lists projects/deployments/domains/env (without secret values) and executes mutations', async () => {

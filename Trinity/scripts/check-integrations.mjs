@@ -7,8 +7,8 @@ report.providers=[];for(const provider of ['workers-ai','ollama'])report.provide
 report.services=await api('/api/ops/services');
 const jobs=[];
 for(const task of [
- {agent:'memory-curator',provider:'workers-ai',task:'Kontrolný test. Použi nástroj search_memory s query trinity-center-verification. Potom stručne uveď obsah nájdeného záznamu a že si ho skutočne prečítal. Nevymýšľaj záznam.'},
- {agent:'researcher',provider:'ollama',task:'Kontrolný test webového nástroja. Použi web_search s query Cloudflare MCP createMcpHandler documentation. Potom uveď jediný nájdený odkaz na oficiálnu dokumentáciu. Nepíš návod.'}
+ {agent:'memory-curator',provider:'workers-ai',task:'Verification check. Call search_memory with query trinity-center-verification. Then briefly report the found record content and confirm you read it. Do not fabricate a record.'},
+ {agent:'researcher',provider:'ollama',task:'Web tool verification check. Call web_search with query Cloudflare MCP createMcpHandler documentation. Then report a single official documentation link found. Do not write a guide.'}
 ])jobs.push(await api('/api/ops/jobs',{...task,idempotency_key:crypto.randomUUID()}));
 for(let t=0;t<90;t++){
  report.integrationJobs=await Promise.all(jobs.map(j=>api('/api/ops/jobs/'+j.id)));

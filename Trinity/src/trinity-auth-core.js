@@ -3,7 +3,7 @@
  * @subsystem AUTH_GATE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Zjednotené autorizačné jadro (HMAC-SHA256 Worker Secrets + Windows OS SID + Google OAuth + Telecom HMAC) s fail-closed ochranou pre výlučného architekta Basterixa.
+ * @description Unified authorization core (HMAC-SHA256 Worker Secrets + Windows OS SID + Google OAuth + Telecom HMAC) with fail-closed protection for sole architect Basterix.
  */
 import { createHmac } from 'node:crypto';
 import { SovereignLedgerV3 } from './sovereign-core-v3.js';
@@ -14,15 +14,15 @@ export const UserRole = Object.freeze({
 });
 
 /**
- * Prísny formát skutočného Windows Security Identifier (SID) z autentifikovaného OS tokenu.
- * Nikdy sa nesmie syntetizovať z názvu používateľa ani premenných prostredia.
+ * Strict format for a real Windows Security Identifier (SID) obtained from an authenticated OS token.
+ * Must never be synthesized from a username or environment variables.
  */
 export const VALID_WINDOWS_SID_REGEX = /^S-1-5-21-\d+-\d+-\d+-\d+$/;
 
 /**
  * TRINITY ROOT REGISTRY
- * Fallback zoznam identít pre offline prostredie bez nastavených Worker secrets.
- * V produkcii je primárne overovanie cez env.IDENTITY_HMAC_KEY a env.ROOT_ID_HASHES.
+ * Fallback identity allowlist for offline environments without Worker secrets configured.
+ * In production, primary verification uses env.IDENTITY_HMAC_KEY and env.ROOT_ID_HASHES.
  */
 export const ROOT_REGISTRY = Object.freeze({
   architect_alias: 'Basterix',
@@ -41,33 +41,33 @@ export const ROOT_REGISTRY = Object.freeze({
 });
 
 /**
- * 20 Právnych licencií a doložiek legality (TRINITY LEGAL & COMPLIANCE FRAMEWORK)
+ * 20 Legal Licenses and Compliance Clauses (TRINITY LEGAL & COMPLIANCE FRAMEWORK)
  */
 export const SOVEREIGN_LEGAL_CHARTER_20 = Object.freeze([
-  { id: 1, code: 'SOVEREIGN_OWNERSHIP_LICENSE', title: 'Licencia výlučného zvrchovaného vlastníctva' },
-  { id: 2, code: 'DUAL_OPEN_CORE_PROPRIETARY', title: 'Dvojitá softvérová licencia Trinity Open-Core / Proprietary' },
-  { id: 3, code: 'STRICT_TRUTH_ASSERTION_CLAUSE', title: 'Doložka o absolútnej pravdivosti a absencii simulácie' },
-  { id: 4, code: 'FINANCIAL_PROXY_MANDATE', title: 'Mandátna zmluva o správe financií a zástupcovstve' },
-  { id: 5, code: 'EU_AI_ACT_EXEMPTION', title: 'Vyhlásenie o súlade a výnimke podľa EU AI Act (Article 2(6))' },
-  { id: 6, code: 'GDPR_DATA_CONTROLLER_ACCORD', title: 'Protokol o spracovaní osobných údajov (GDPR)' },
-  { id: 7, code: 'ZERO_THIRD_PARTY_TELEMETRY', title: 'Deklarácia nulovej telemetrie tretích strán' },
-  { id: 8, code: 'PERPETUAL_NON_CIRCUMVENTION', title: 'Zmluva o mlčanlivosti a neobchádzaní' },
-  { id: 9, code: 'CRYPTOGRAPHIC_AUDIT_TREATY', title: 'Zmluva o kryptografickom audite' },
-  { id: 10, code: 'THIRD_PARTY_LIABILITY_SHIELD', title: 'Doložka o obmedzení zodpovednosti voči tretím stranám' },
-  { id: 11, code: 'DIGITAL_IDENTITY_DECLARATION', title: 'Vyhlásenie o digitálnej identite a zastupovaní' },
-  { id: 12, code: 'HOST_COMPUTE_AUTHORIZATION', title: 'Dohoda o užívaní lokálneho hardvéru' },
-  { id: 13, code: 'AI_TRACEABILITY_COVENANT', title: 'Záväzok o auditovateľnosti kódu a nevratnosti logov' },
-  { id: 14, code: 'EULA_OPERATOR_BOUNDARY_TERMS', title: 'Licencia koncového operátora a vymedzenie hraníc' },
-  { id: 15, code: 'AI_GENERATED_IP_PROTECTION', title: 'Doložka o ochrane duševného vlastníctva (Work for Hire)' },
-  { id: 16, code: 'ANTI_MALWARE_SAFE_EXECUTION', title: 'Protokol o bezpečnom vykonávaní a prevencii škodlivého kódu' },
-  { id: 17, code: 'OPERATOR_INSPECTION_WARRANTY', title: 'Záruka 100 % otvorenosti voči reverznému inžinierstvu (Glass-Box)' },
-  { id: 18, code: 'MULTI_AGENT_DELEGATION_ACCORD', title: 'Dohoda o delegovanej zodpovednosti v Multi-Agent roly' },
-  { id: 19, code: 'EMERGENCY_KILLSWITCH_ACCORD', title: 'Protokol o bezpečnom núdzovom odstavení (< 100 ms)' },
-  { id: 20, code: 'PERPETUAL_SOVEREIGNTY_COVENANT', title: 'Večný neodvolateľný sľub zvrchovanosti' }
+  { id: 1, code: 'SOVEREIGN_OWNERSHIP_LICENSE', title: 'Exclusive Sovereign Ownership License' },
+  { id: 2, code: 'DUAL_OPEN_CORE_PROPRIETARY', title: 'Dual Software License: Trinity Open-Core / Proprietary' },
+  { id: 3, code: 'STRICT_TRUTH_ASSERTION_CLAUSE', title: 'Strict Truthfulness and No-Simulation Clause' },
+  { id: 4, code: 'FINANCIAL_PROXY_MANDATE', title: 'Financial Management and Proxy Mandate Agreement' },
+  { id: 5, code: 'EU_AI_ACT_EXEMPTION', title: 'EU AI Act Compliance and Exemption Declaration (Article 2(6))' },
+  { id: 6, code: 'GDPR_DATA_CONTROLLER_ACCORD', title: 'Personal Data Processing Protocol (GDPR)' },
+  { id: 7, code: 'ZERO_THIRD_PARTY_TELEMETRY', title: 'Zero Third-Party Telemetry Declaration' },
+  { id: 8, code: 'PERPETUAL_NON_CIRCUMVENTION', title: 'Non-Disclosure and Non-Circumvention Agreement' },
+  { id: 9, code: 'CRYPTOGRAPHIC_AUDIT_TREATY', title: 'Cryptographic Audit Treaty' },
+  { id: 10, code: 'THIRD_PARTY_LIABILITY_SHIELD', title: 'Third-Party Limitation of Liability Clause' },
+  { id: 11, code: 'DIGITAL_IDENTITY_DECLARATION', title: 'Digital Identity and Representation Declaration' },
+  { id: 12, code: 'HOST_COMPUTE_AUTHORIZATION', title: 'Local Host Hardware Compute Authorization Agreement' },
+  { id: 13, code: 'AI_TRACEABILITY_COVENANT', title: 'Code Auditability and Immutable Logging Covenant' },
+  { id: 14, code: 'EULA_OPERATOR_BOUNDARY_TERMS', title: 'End-User Operator License and Boundary Terms' },
+  { id: 15, code: 'AI_GENERATED_IP_PROTECTION', title: 'Intellectual Property Protection Clause (Work for Hire)' },
+  { id: 16, code: 'ANTI_MALWARE_SAFE_EXECUTION', title: 'Safe Execution and Anti-Malware Prevention Protocol' },
+  { id: 17, code: 'OPERATOR_INSPECTION_WARRANTY', title: '100% Operator Transparency and Inspection Warranty (Glass-Box)' },
+  { id: 18, code: 'MULTI_AGENT_DELEGATION_ACCORD', title: 'Multi-Agent Delegated Responsibility Accord' },
+  { id: 19, code: 'EMERGENCY_KILLSWITCH_ACCORD', title: 'Safe Emergency Shutdown Protocol (< 100 ms)' },
+  { id: 20, code: 'PERPETUAL_SOVEREIGNTY_COVENANT', title: 'Perpetual Irrevocable Sovereignty Covenant' }
 ]);
 
 /**
- * Normalizácia telefónneho čísla (odstránenie medzier, zátvoriek, pomlčiek).
+ * Normalizes a phone number by removing spaces, parentheses, and hyphens.
  */
 export function normalizePhone(phone) {
   if (!phone || typeof phone !== 'string') return '';
@@ -75,7 +75,7 @@ export function normalizePhone(phone) {
 }
 
 /**
- * Zjednotenie telefónneho čísla na kanonický tvar E.164 (+421...).
+ * Converts a phone number into canonical E.164 format (+421...).
  */
 export function toCanonicalPhone(phone) {
   const cleaned = normalizePhone(phone);
@@ -90,7 +90,7 @@ export function toCanonicalPhone(phone) {
 }
 
 /**
- * Vráti všetky akceptované varianty telefónneho čísla pre spätnú kompatibilitu.
+ * Returns all accepted phone number variants for backwards compatibility.
  */
 export function canonicalPhoneVariants(phone) {
   const cleaned = normalizePhone(phone);
@@ -113,8 +113,8 @@ export function normalizeEmail(email) {
 }
 
 /**
- * Kanonická normalizácia akejkoľvek identity pre HMAC výpočet:
- * malé písmená, orezanie, odstránenie medzier, konverzia čísel na +421...
+ * Canonical normalization of any identity value prior to HMAC computation:
+ * lowercase, trimmed, whitespace stripped, Slovak local numbers converted to +421...
  */
 export function toCanonicalIdentity(value) {
   let cleaned = String(value || '').trim().toLowerCase().replace(/\s+/g, '');
@@ -127,7 +127,7 @@ export function toCanonicalIdentity(value) {
 }
 
 /**
- * Asynchrónny výpočet HMAC-SHA256 cez štandardné Web Crypto API (Cloudflare Worker runtime).
+ * Asynchronous HMAC-SHA256 computation via Web Crypto API (Cloudflare Worker runtime).
  */
 export async function idHash(value, key) {
   if (!value || !key) return '';
@@ -144,7 +144,7 @@ export async function idHash(value, key) {
 }
 
 /**
- * Synchrónny výpočet HMAC-SHA256 cez node:crypto (Node.js & nodejs_compat).
+ * Synchronous HMAC-SHA256 computation via node:crypto (Node.js & nodejs_compat).
  */
 export function idHashSync(value, key) {
   if (!value || !key) return '';
@@ -153,9 +153,9 @@ export function idHashSync(value, key) {
 }
 
 /**
- * Bezpečné overenie, či je identita v zozname autorizovaných root identít.
- * Ak sú dostupné Worker Secrets (IDENTITY_HMAC_KEY a ROOT_ID_HASHES), porovnávajú sa výhradne HMAC hashe.
- * V opačnom prípade (offline unit testy bez tajomstiev) sa použije fallback zoznam.
+ * Securely verifies whether an identity belongs to the authorized root identity set.
+ * When Worker Secrets (IDENTITY_HMAC_KEY and ROOT_ID_HASHES) are available, comparisons use HMAC hashes exclusively.
+ * Otherwise (offline unit tests without secrets), falls back to the provided allowlist.
  */
 export function isAuthorizedRoot(candidate, env = {}, fallbackList = []) {
   if (!candidate) return false;
@@ -191,10 +191,10 @@ async function sha256Hex(input) {
 }
 
 /**
- * 1. Lokálna Windows inšpekcia (P0 Hardened — Zero Synthetic SID)
- * NIKDY nevytvára syntetický SID z USERNAME alebo USERPROFILE.
- * Vyžaduje autentický Windows SID (/^S-1-5-21-\d+-\d+-\d+-\d+$/) a explicitný príznak
- * osTokenVerified === true zo systémového prístupového tokenu WindowsIdentity::GetCurrent().
+ * 1. Local Windows session inspection (P0 Hardened — Zero Synthetic SID)
+ * NEVER synthesizes a SID from USERNAME or USERPROFILE.
+ * Requires an authentic Windows SID (/^S-1-5-21-\d+-\d+-\d+-\d+$/) and an explicit
+ * osTokenVerified === true flag from WindowsIdentity::GetCurrent().
  */
 export function inspectWindowsSession(sessionEnv = {}, env = {}) {
   const rawUser = String(
@@ -243,19 +243,19 @@ export function inspectWindowsSession(sessionEnv = {}, env = {}) {
 }
 
 /**
- * 2. Univerzálny overovač prichádzajúcich požiadaviek (Omnichannel — Fail-Closed)
- * P0 BEZPEČNOSTNÉ PRAVIDLO:
- * Samotný textový reťazec (email, telefónne číslo alebo windowsUser) NIKDY nestačí na udelenie BASTERIX_ROOT!
- * Každý kanál vyžaduje kryptograficky alebo serverovo overený dôkaz (2FA):
- *  - Google účet: vyžaduje `verifiedGoogleToken === true` (overený OAuth2 / JWT token)
- *  - Telefón / WhatsApp: vyžaduje `verifiedWebhookSignature === true` (overený HMAC podpis brány)
- *  - Windows relácia: vyžaduje `osTokenVerified === true` + skutočný Windows SID (`S-1-5-21-...`)
+ * 2. Universal incoming request verifier (Omnichannel — Fail-Closed)
+ * P0 SECURITY RULE:
+ * A plain text identifier (email, phone number, or windowsUser) NEVER suffices to grant BASTERIX_ROOT.
+ * Every channel requires cryptographically or server-verified proof (2FA):
+ *  - Google account: requires `verifiedGoogleToken === true` (verified OAuth2 / JWT token)
+ *  - Phone / WhatsApp: requires `verifiedWebhookSignature === true` (verified gateway HMAC signature)
+ *  - Windows session: requires `osTokenVerified === true` + genuine Windows SID (`S-1-5-21-...`)
  */
 export function verifyTrinityIdentity(context = {}, env = {}) {
   const timestamp = new Date().toISOString();
   const effectiveEnv = env || context.env || (typeof process !== 'undefined' ? process.env : {});
 
-  // A. Kontrola podľa Google účtu
+  // A. Verification by Google account
   const email = normalizeEmail(context.email);
   if (email) {
     if (!isAuthorizedRoot(email, effectiveEnv, ROOT_REGISTRY.google_accounts)) {
@@ -297,7 +297,7 @@ export function verifyTrinityIdentity(context = {}, env = {}) {
     };
   }
 
-  // B. Kontrola podľa telefónneho čísla (WhatsApp / SMS brána)
+  // B. Verification by phone number (WhatsApp / SMS gateway)
   const phone = normalizePhone(context.phone);
   if (phone) {
     const canonicalPhone = toCanonicalPhone(phone);
@@ -341,7 +341,7 @@ export function verifyTrinityIdentity(context = {}, env = {}) {
     };
   }
 
-  // C. Kontrola podľa explicitne zadaného lokálneho Windows používateľa
+  // C. Verification by explicitly provided local Windows user
   const winUser = String(context.windowsUser || '').toLowerCase().trim();
   if (winUser) {
     if (!isAuthorizedRoot(winUser, effectiveEnv, ROOT_REGISTRY.windows_users)) {
@@ -386,7 +386,7 @@ export function verifyTrinityIdentity(context = {}, env = {}) {
     };
   }
 
-  // D. Ak nie je zadaný externý identifikátor, over aktívnu Windows reláciu zo systémového tokenu
+  // D. If no external identifier was provided, verify the active Windows session from the OS token
   if (context.checkLocalWindows !== false && context.windowsSession) {
     const localWin = inspectWindowsSession(context.windowsSession, effectiveEnv);
     if (localWin.authenticated) {
@@ -405,7 +405,7 @@ export function verifyTrinityIdentity(context = {}, env = {}) {
     }
   }
 
-  // E. Žiadna zhoda alebo neoverený vstup -> Zákaz prístupu (GUEST_USER Hard-Lock)
+  // E. No match or unverified input -> Access Denied (GUEST_USER Hard-Lock)
   return {
     isRoot: false,
     role: UserRole.GUEST_USER,
@@ -420,16 +420,16 @@ export function verifyTrinityIdentity(context = {}, env = {}) {
 }
 
 /**
- * Asynchrónna verzia verifyTrinityIdentity podporujúca priame čítanie Worker secrets.
+ * Asynchronous wrapper around verifyTrinityIdentity supporting Worker secrets.
  */
 export async function verifyTrinityIdentityAsync(context = {}, env = {}) {
   return verifyTrinityIdentity(context, env);
 }
 
 /**
- * 3. Hlavná exekučná brána (Execution Interceptor)
- * Keď je operátor overený Basterix: koná okamžite a bez otázok.
- * Pre kohokoľvek iného (vrátane neoverených textových identít): vyhodí chybu a zapíše incident do Sovereign Ledgeru.
+ * 3. Privileged Execution Gate (Execution Interceptor)
+ * When the operator is cryptographically verified as Basterix: executes immediately without pushback.
+ * For anyone else (including unverified plaintext identities): throws 403 and logs the incident to Sovereign Ledger.
  */
 export async function executePrivileged(context = {}, actionMetadata = {}, actionCallback, options = {}) {
   const env = options.env || context.env || {};
@@ -468,7 +468,7 @@ export async function executePrivileged(context = {}, actionMetadata = {}, actio
   }
 
   const err = new Error(
-    `ACCESS DENIED: Identita '${auth.identifier}' cez kanál '${auth.channel}' (${securityIncident.reason}) nie je autorizovaný administrátor. Modifikovať systém a spúšťať príkazy môže výlučne kryptograficky overený Basterix.`
+    `ACCESS DENIED: Identity '${auth.identifier}' via channel '${auth.channel}' (${securityIncident.reason}) is not an authorized administrator. Only cryptographically verified Basterix may modify the system or execute privileged commands.`
   );
   err.status = 403;
   err.securityIncident = securityIncident;
@@ -476,7 +476,7 @@ export async function executePrivileged(context = {}, actionMetadata = {}, actio
 }
 
 /**
- * Validácia súladu s 20 právnymi doložkami SOVEREIGN_CHARTER.md
+ * Validates compliance against the 20 legal clauses of SOVEREIGN_CHARTER.md.
  */
 export async function validateSovereignCharterCompliance(systemState = {}) {
   const violations = [];

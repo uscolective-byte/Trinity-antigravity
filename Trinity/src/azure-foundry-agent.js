@@ -3,8 +3,8 @@
  * @subsystem AZURE_FOUNDRY_AGENT
  * @author Basterix (Root Architect) & Antigravity (Sovereign Pair)
  * @license Sovereign Irrevocable Covenant
- * @description Modul pre integráciu Microsoft Azure AI Foundry Agent Service a Azure AI Search Knowledge Indexu:
- * Prepojuje Trinity Omni-Core s tenantom ad443c2d-5bac-46b3-ad16-187e4ca37962 v DA-RG-australiacentral.
+ * @description Integration module for Microsoft Azure AI Foundry Agent Service and Azure AI Search Knowledge Index:
+ * Connects Trinity Omni-Core to tenant ad443c2d-5bac-46b3-ad16-187e4ca37962 in DA-RG-australiacentral.
  */
 
 import { z } from 'zod';
@@ -46,14 +46,14 @@ export const azureAgentManifestSchema = z.object({
 });
 
 /**
- * Vygeneruje oficiálnu špecifikáciu agenta pre import do Azure AI Foundry.
+ * Generate the official agent manifest specification for import into Azure AI Foundry.
  */
 export function generateAzureFoundryAgentSpec() {
   const instructions = `You are Trinity Lead Developer Agent running on Microsoft Azure AI Foundry in sovereign collaboration with Basterix (Root Architect) and Antigravity.
 You specialize in developing, analyzing, refactoring, and maintaining the TRINITY OMNI-CORE ecosystem (Cloudflare Edge, Local Desktop, Windows Gateway, and Sovereign Ledger v3).
 You enforce Truth Policy 2.1: NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT.
 You ground all responses in the authoritative trinity-omni-knowledge index and use Trinity MCP tools for verified execution.
-You communicate clearly, concisely, and support Slovak and English.`;
+COMMUNICATION LANGUAGE RULE: Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal 'tykanie' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language.`;
 
   const spec = {
     $schema: 'https://azure.microsoft.com/schemas/azure-ai/agent/v1.json',
@@ -61,7 +61,7 @@ You communicate clearly, concisely, and support Slovak and English.`;
     name: AZURE_FOUNDRY_CONFIG.agentName,
     displayName: 'Trinity Lead Developer Agent (Azure Foundry)',
     version: AZURE_FOUNDRY_CONFIG.agentVersion,
-    description: 'Autonómny vývojársky agent pre ekosystém Trinity na Microsoft Azure AI Foundry.',
+    description: 'Autonomous developer agent for the Trinity ecosystem on Microsoft Azure AI Foundry.',
     model: {
       deploymentName: AZURE_FOUNDRY_CONFIG.defaultModel,
       provider: 'azure_openai',
@@ -93,22 +93,22 @@ You communicate clearly, concisely, and support Slovak and English.`;
       {
         type: 'azure_ai_search',
         name: 'knowledge_search',
-        description: 'Prehľadá autoritatívne indexované znalosti architektúry a zmlúv Trinity.'
+        description: 'Search authoritative indexed knowledge of Trinity architecture and contracts.'
       },
       {
         type: 'code_interpreter',
         name: 'python_analyzer',
-        description: 'Vykonáva analytické výpočty, overovanie dát a syntaktickú kontrolu.'
+        description: 'Execute analytical computations, data verification, and syntax checks.'
       },
       {
         type: 'openapi',
         name: 'trinity_mcp_pentad',
-        description: 'Priame volanie Trinity MCP Gateway (https://auru.space/api/openapi.json).'
+        description: 'Direct invocation of Trinity MCP Gateway (https://auru.space/api/openapi.json).'
       },
       {
         type: 'function',
         name: 'antigravity_bridge',
-        description: 'Volanie Antigravity agentic tool suite (read_file, write_file, edit_file, run_command).'
+        description: 'Invoke the Antigravity agentic tool suite (read_file, write_file, edit_file, run_command).'
       }
     ],
     metadata: {
@@ -124,7 +124,7 @@ You communicate clearly, concisely, and support Slovak and English.`;
 }
 
 /**
- * Vygeneruje schému indexu pre Azure AI Search (Knowledge Index).
+ * Generate the Azure AI Search Knowledge Index schema.
  */
 export function generateAzureKnowledgeIndexSchema() {
   return {
@@ -146,7 +146,7 @@ export function generateAzureKnowledgeIndexSchema() {
 }
 
 /**
- * Získa stav pripojenia a konfiguráciu pre Azure AI Foundry agenta.
+ * Return connection status and configuration metadata for the Azure AI Foundry agent.
  */
 export function getAzureFoundryAgentStatus(env = {}) {
   const hasToken = Boolean(
@@ -172,11 +172,11 @@ export function getAzureFoundryAgentStatus(env = {}) {
 }
 
 /**
- * Odošle prompt agentovi na Azure AI Foundry cez REST API alebo vráti inštrukcie pre runner.
+ * Send a prompt to the Azure AI Foundry agent via REST API or return local runner instructions.
  */
 export async function invokeAzureFoundryAgent(env = {}, { message, agentName = 'Trinity', conversationId = null }) {
   if (!message || typeof message !== 'string') {
-    throw new Error('Správa pre Azure AI Foundry agenta nesmie byť prázdna.');
+    throw new Error('Message for Azure AI Foundry agent must not be empty.');
   }
 
   const token = env.AZURE_AI_FOUNDRY_TOKEN || env.AZURE_BEARER_TOKEN || env.AZURE_ACCESS_TOKEN;
@@ -189,7 +189,7 @@ export async function invokeAzureFoundryAgent(env = {}, { message, agentName = '
       status: 'pending_credentials',
       agent: targetAgent,
       endpoint,
-      message: 'Azure AI Foundry token nie je v prostredí nastavený. Použite skript scripts/azure-foundry-trinity.py na lokálnom PC s DefaultAzureCredential alebo nastavte AZURE_AI_FOUNDRY_TOKEN.',
+      message: 'Azure AI Foundry token is not configured in this environment. Run scripts/azure-foundry-trinity.py locally with DefaultAzureCredential or configure AZURE_AI_FOUNDRY_TOKEN.',
       runner_command: `python Trinity/scripts/azure-foundry-trinity.py "${message.replace(/"/g, '\\"')}"`
     };
   }

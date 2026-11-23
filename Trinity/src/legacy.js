@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul legacy.js (Trinity/src/legacy.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module legacy.js (Trinity/src/legacy.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import {DurableObject} from "cloudflare:workers";
 import {NeuralBrainAgent} from "./neural_brain.js";

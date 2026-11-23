@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul commodities-engine.js (Trinity/src/commodities-engine.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Commodity market analytics, paper-trading desk, and banking bridge module (Trinity/src/commodities-engine.js).
  */
 import { z } from 'zod';
 import { HttpError } from './security.js';
@@ -69,17 +69,17 @@ export const COMMODITY_SECTORS = [
 ];
 
 export const COMMODITY_SECTOR_LABELS = {
-  precious_metals: 'Vzácne a drahé kovy',
-  energy: 'Energetické komodity',
-  industrial_metals: 'Priemyselné a batériové kovy',
-  agriculture: 'Poľnohospodárske komodity a potraviny',
-  strategic_digital: 'Strategické a uhlíkové komodity'
+  precious_metals: 'Precious Metals',
+  energy: 'Energy Commodities',
+  industrial_metals: 'Industrial & Battery Metals',
+  agriculture: 'Agriculture & Soft Commodities',
+  strategic_digital: 'Strategic & Carbon Commodities'
 };
 
 export const ALL_COMMODITIES = [
   {
     symbol: 'XAU-EUR',
-    name: 'Zlato (Gold Spot)',
+    name: 'Gold Spot',
     sector: 'precious_metals',
     unit: 't oz',
     base_price: 2645.00,
@@ -89,11 +89,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 61.4,
     volatility_atr_pct: 1.15,
     macd_signal: 'bullish',
-    fundamental_drivers: 'Silný dopyt centrálnych bánk, geopolitické zaistenie a ochrana pred infláciou.'
+    fundamental_drivers: 'Strong central bank demand, geopolitical hedging, and inflation protection.'
   },
   {
     symbol: 'XAG-EUR',
-    name: 'Striebro (Silver Spot)',
+    name: 'Silver Spot',
     sector: 'precious_metals',
     unit: 't oz',
     base_price: 31.80,
@@ -103,11 +103,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 64.2,
     volatility_atr_pct: 2.10,
     macd_signal: 'bullish',
-    fundamental_drivers: 'Rastúci priemyselný dopyt vo fotovoltike a elektronike spolu so štrukturálnym deficitom ponuky.'
+    fundamental_drivers: 'Rising industrial demand in solar photovoltaics and electronics paired with a structural supply deficit.'
   },
   {
     symbol: 'XPT-EUR',
-    name: 'Platina (Platinum)',
+    name: 'Platinum',
     sector: 'precious_metals',
     unit: 't oz',
     base_price: 945.00,
@@ -117,11 +117,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 53.8,
     volatility_atr_pct: 1.65,
     macd_signal: 'bullish',
-    fundamental_drivers: 'Podhodnotený pomer voči zlatu, využitie vo vodíkových palivových článkoch a katalyzátoroch.'
+    fundamental_drivers: 'Undervalued ratio relative to gold with adoption in hydrogen fuel cells and catalytic converters.'
   },
   {
     symbol: 'XPD-EUR',
-    name: 'Paládium (Palladium)',
+    name: 'Palladium',
     sector: 'precious_metals',
     unit: 't oz',
     base_price: 990.00,
@@ -131,11 +131,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 41.2,
     volatility_atr_pct: 2.85,
     macd_signal: 'bearish',
-    fundamental_drivers: 'Prechod automobilového priemyslu na elektromobily tlmí dlhodobý dopyt po benzínových katalyzátoroch.'
+    fundamental_drivers: 'Automotive transition to electric vehicles dampens long-term demand for gasoline catalytic converters.'
   },
   {
     symbol: 'BRENT-EUR',
-    name: 'Ropa Brent (Crude Oil Brent)',
+    name: 'Crude Oil Brent',
     sector: 'energy',
     unit: 'bbl',
     base_price: 71.40,
@@ -145,11 +145,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 52.1,
     volatility_atr_pct: 2.25,
     macd_signal: 'neutral',
-    fundamental_drivers: 'Produkčné kvóty OPEC+ vyvažujú mierne spomalenie priemyselného dopytu.'
+    fundamental_drivers: 'OPEC+ production quotas balance a mild slowdown in global industrial demand.'
   },
   {
     symbol: 'WTI-EUR',
-    name: 'Ropa WTI (West Texas Intermediate)',
+    name: 'Crude Oil WTI (West Texas Intermediate)',
     sector: 'energy',
     unit: 'bbl',
     base_price: 68.20,
@@ -159,11 +159,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 50.8,
     volatility_atr_pct: 2.35,
     macd_signal: 'neutral',
-    fundamental_drivers: 'Stav zásob v USA (EIA) a sezónny dopyt rafinérií držia cenu v rovnovážnom pásme.'
+    fundamental_drivers: 'US EIA inventory levels and seasonal refinery demand hold prices in a balanced range.'
   },
   {
     symbol: 'NGAS-EUR',
-    name: 'Zemný plyn (Natural Gas Henry Hub)',
+    name: 'Natural Gas (Henry Hub)',
     sector: 'energy',
     unit: 'MMBtu',
     base_price: 2.85,
@@ -173,11 +173,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 59.5,
     volatility_atr_pct: 3.60,
     macd_signal: 'bullish',
-    fundamental_drivers: 'Rastúci export LNG a vyšší odber elektrární pre dátové centrá a vykurovaciu sezónu.'
+    fundamental_drivers: 'Growing LNG exports and higher power plant demand from data centers and heating season.'
   },
   {
     symbol: 'TTF-EUR',
-    name: 'Európsky plyn TTF (Dutch TTF Gas)',
+    name: 'European Gas TTF (Dutch TTF Gas)',
     sector: 'energy',
     unit: 'MWh',
     base_price: 39.60,
@@ -187,11 +187,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 48.6,
     volatility_atr_pct: 2.90,
     macd_signal: 'neutral',
-    fundamental_drivers: 'Vysoká naplnenosť európskych zásobníkov stabilizuje krátkodobé výkyvy cien.'
+    fundamental_drivers: 'High European gas storage fill levels stabilize short-term price swings.'
   },
   {
     symbol: 'URAN-EUR',
-    name: 'Urán U3O8 (Uranium Spot)',
+    name: 'Uranium U3O8 (Spot)',
     sector: 'energy',
     unit: 'lb',
     base_price: 76.50,
@@ -201,11 +201,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 63.0,
     volatility_atr_pct: 1.95,
     macd_signal: 'bullish',
-    fundamental_drivers: 'Globálna renesancia jadrovej energetiky a dlhodobé kontrakty pre AI dátové centrá.'
+    fundamental_drivers: 'Global nuclear power renaissance and long-term baseload supply contracts for AI data centers.'
   },
   {
     symbol: 'COPPER-EUR',
-    name: 'Meď (High Grade Copper)',
+    name: 'High Grade Copper',
     sector: 'industrial_metals',
     unit: 'mt',
     base_price: 8940.00,
@@ -215,11 +215,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 60.8,
     volatility_atr_pct: 1.55,
     macd_signal: 'bullish',
-    fundamental_drivers: 'Kľúčový kov pre elektrifikáciu sietí, obnoviteľné zdroje, elektromobily a AI infraštruktúru.'
+    fundamental_drivers: 'Essential metal for grid electrification, renewables, EVs, and AI data center infrastructure.'
   },
   {
     symbol: 'ALUM-EUR',
-    name: 'Hliník (Primary Aluminum)',
+    name: 'Primary Aluminum',
     sector: 'industrial_metals',
     unit: 'mt',
     base_price: 2410.00,
@@ -229,11 +229,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 55.2,
     volatility_atr_pct: 1.40,
     macd_signal: 'bullish',
-    fundamental_drivers: 'Energeticky náročná výroba obmedzuje novú ponuku pri stabilnom dopyte v doprave a obaloch.'
+    fundamental_drivers: 'Energy-intensive smelting limits new supply amid steady transport and packaging demand.'
   },
   {
     symbol: 'LITH-EUR',
-    name: 'Lítium (Lithium Carbonate)',
+    name: 'Lithium Carbonate',
     sector: 'industrial_metals',
     unit: 'mt',
     base_price: 10450.00,
@@ -243,11 +243,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 57.4,
     volatility_atr_pct: 2.60,
     macd_signal: 'bullish',
-    fundamental_drivers: 'Odraz z cyklického dna po obmedzení ťažby u vysokonákladových producentov a raste úložísk energie.'
+    fundamental_drivers: 'Rebound from cyclical lows following high-cost mine curtailments and grid energy storage growth.'
   },
   {
     symbol: 'NICKEL-EUR',
-    name: 'Nikel (LME Nickel)',
+    name: 'LME Nickel',
     sector: 'industrial_metals',
     unit: 'mt',
     base_price: 15200.00,
@@ -257,11 +257,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 43.5,
     volatility_atr_pct: 2.15,
     macd_signal: 'bearish',
-    fundamental_drivers: 'Prebytok ponuky z Indonézie vytvára tlak na marže producentov.'
+    fundamental_drivers: 'Surplus supply from Indonesia pressures producer margins.'
   },
   {
     symbol: 'ZINC-EUR',
-    name: 'Zinok (SHG Zinc)',
+    name: 'SHG Zinc',
     sector: 'industrial_metals',
     unit: 'mt',
     base_price: 2860.00,
@@ -271,11 +271,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 51.9,
     volatility_atr_pct: 1.50,
     macd_signal: 'neutral',
-    fundamental_drivers: 'Vyrovnaný dopyt v galvanizácii ocele a infraštruktúrnych projektoch.'
+    fundamental_drivers: 'Balanced demand across steel galvanization and infrastructure projects.'
   },
   {
     symbol: 'WHEAT-EUR',
-    name: 'Pšenica (Milling Wheat)',
+    name: 'Milling Wheat',
     sector: 'agriculture',
     unit: 'bu',
     base_price: 5.45,
@@ -285,11 +285,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 58.1,
     volatility_atr_pct: 1.90,
     macd_signal: 'bullish',
-    fundamental_drivers: 'Klimatické riziká v hlavných exportných regiónoch podporujú cenu obilnín.'
+    fundamental_drivers: 'Weather risks across key export regions support grain pricing.'
   },
   {
     symbol: 'CORN-EUR',
-    name: 'Kukurica (Yellow Corn)',
+    name: 'Yellow Corn',
     sector: 'agriculture',
     unit: 'bu',
     base_price: 4.18,
@@ -299,11 +299,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 52.4,
     volatility_atr_pct: 1.60,
     macd_signal: 'neutral',
-    fundamental_drivers: 'Stabilný dopyt po krmivách a bioetanole pri priaznivých globálnych zásobách.'
+    fundamental_drivers: 'Steady feed and bioethanol demand alongside healthy global inventories.'
   },
   {
     symbol: 'SOY-EUR',
-    name: 'Sója (Soybeans)',
+    name: 'Soybeans',
     sector: 'agriculture',
     unit: 'bu',
     base_price: 9.85,
@@ -313,11 +313,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 44.8,
     volatility_atr_pct: 1.70,
     macd_signal: 'bearish',
-    fundamental_drivers: 'Silná úroda v Južnej Amerike zvyšuje globálne exportné zásoby.'
+    fundamental_drivers: 'Strong South American harvests increase global export stocks.'
   },
   {
     symbol: 'COFFEE-EUR',
-    name: 'Káva Arabica (Coffee C)',
+    name: 'Arabica Coffee (Coffee C)',
     sector: 'agriculture',
     unit: 'lb',
     base_price: 2.58,
@@ -327,11 +327,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 62.7,
     volatility_atr_pct: 2.20,
     macd_signal: 'bullish',
-    fundamental_drivers: 'Sucho v Brazílii a Vietname znižuje očakávanú úrodu pri neelastickom svetovom dopyte.'
+    fundamental_drivers: 'Drought in Brazil and Vietnam lowers expected yields against inelastic global demand.'
   },
   {
     symbol: 'COCOA-EUR',
-    name: 'Kakao (Cocoa Futures)',
+    name: 'Cocoa Futures',
     sector: 'agriculture',
     unit: 'mt',
     base_price: 7350.00,
@@ -341,11 +341,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 38.9,
     volatility_atr_pct: 3.80,
     macd_signal: 'bearish',
-    fundamental_drivers: 'Po extrémnom cenovom vrchole dochádza k vyberaniu ziskov a postupnej obnove produkcie v západnej Afrike.'
+    fundamental_drivers: 'Profit-taking and gradual West African production recovery following an extreme price peak.'
   },
   {
     symbol: 'SUGAR-EUR',
-    name: 'Cukor (Raw Sugar #11)',
+    name: 'Raw Sugar #11',
     sector: 'agriculture',
     unit: 'lb',
     base_price: 0.21,
@@ -355,11 +355,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 54.0,
     volatility_atr_pct: 1.85,
     macd_signal: 'neutral',
-    fundamental_drivers: 'Pomer spracovania cukrovej trstiny na cukor vs. etanol v Brazílii drží trh v rovnováhe.'
+    fundamental_drivers: 'Brazilian sugarcane allocation between sugar and ethanol keeps the market balanced.'
   },
   {
     symbol: 'EUA-EUR',
-    name: 'Emisné povolenky CO₂ (EU Carbon Permits)',
+    name: 'EU Carbon Permits (CO2 EUA)',
     sector: 'strategic_digital',
     unit: 'tCO2',
     base_price: 66.80,
@@ -369,11 +369,11 @@ export const ALL_COMMODITIES = [
     rsi_14: 58.6,
     volatility_atr_pct: 2.05,
     macd_signal: 'bullish',
-    fundamental_drivers: 'Postupné znižovanie stropu emisných kvót v EÚ (Fit for 55) vytvára dlhodobý štrukturálny nedostatok.'
+    fundamental_drivers: 'Progressive tightening of the EU emissions cap (Fit for 55) creates structural scarcity.'
   },
   {
     symbol: 'BTC-EUR',
-    name: 'Bitcoin (Digitálna rezervná komodita)',
+    name: 'Bitcoin (Digital Reserve Commodity)',
     sector: 'strategic_digital',
     unit: 'BTC',
     base_price: 63400.00,
@@ -383,7 +383,7 @@ export const ALL_COMMODITIES = [
     rsi_14: 63.5,
     volatility_atr_pct: 3.10,
     macd_signal: 'bullish',
-    fundamental_drivers: 'Pevne obmedzená ponuka 21M mincí po halvingu a inštitucionálna akumulácia cez spotové ETF.'
+    fundamental_drivers: 'Hard-capped 21M supply post-halving and institutional accumulation via spot ETFs.'
   }
 ];
 
@@ -457,19 +457,19 @@ function computeTechnicalProfile(commodity, livePrice, strategy = 'balanced') {
   score = Math.max(5, Math.min(98, Math.round(score)));
 
   let signal = 'HOLD';
-  let signal_label = 'Držať / Čakať';
+  let signal_label = 'Hold / Wait';
   if (score >= 78) {
     signal = 'STRONG_BUY';
-    signal_label = 'Silný nákup (Strong Buy)';
+    signal_label = 'Strong Buy';
   } else if (score >= 62) {
     signal = 'BUY';
-    signal_label = 'Kúpiť / Akumulovať (Buy)';
+    signal_label = 'Buy / Accumulate';
   } else if (score <= 32) {
     signal = 'STRONG_SELL';
-    signal_label = 'Silný predaj (Strong Sell)';
+    signal_label = 'Strong Sell';
   } else if (score <= 44) {
     signal = 'SELL';
-    signal_label = 'Predať / Vybrať zisk (Sell)';
+    signal_label = 'Sell / Take Profit';
   }
 
   const rewardRisk = Number(((takeProfit - price) / Math.max(0.01, price - stopLoss)).toFixed(2));
@@ -505,10 +505,10 @@ function computeTechnicalProfile(commodity, livePrice, strategy = 'balanced') {
 
 export async function ensureCommodityPortfolio(env, ownerId) {
   const existing = await listPortfolios(env, ownerId);
-  let target = existing.find(p => /komodit|trinity/i.test(p.name)) || existing[0];
+  let target = existing.find(p => /komodit|commodit|trinity/i.test(p.name)) || existing[0];
   if (!target) {
     target = await createPortfolio(env, ownerId, {
-      name: 'Trinity Komoditné & Investičné Portfólio',
+      name: 'Trinity Commodity & Investment Portfolio',
       base_currency: 'EUR',
       starting_cash: 25000,
       max_position_pct: 25,
@@ -591,10 +591,10 @@ export async function configureBankConnection(env, actor, rawInput) {
 
   let liveProbeStatus = hasToken ? 'api_token_configured' : (cleanIban ? 'sepa_iban_verified' : 'configured');
   let liveProbeNote = hasToken
-    ? `Živý API kľúč pre ${providerMeta?.name || input.provider} je uložený a pripravený na priame príkazy.`
+    ? `Live API key for ${providerMeta?.name || input.provider} is stored and ready for direct orders.`
     : cleanIban
-    ? `SEPA IBAN ${cleanIban} (${cleanBic}) je aktívny pre okamžité SEPA platobné príkazy a QR vyrovnanie.`
-    : `Konektor ${providerMeta?.name || input.provider} je zaregistrovaný.`;
+    ? `SEPA IBAN ${cleanIban} (${cleanBic}) is active for SEPA payment orders and QR settlement.`
+    : `Connector ${providerMeta?.name || input.provider} is registered.`;
 
   if (hasToken && input.provider === 'revolut_business') {
     try {
@@ -605,12 +605,12 @@ export async function configureBankConnection(env, actor, rawInput) {
       });
       if (r.ok) {
         liveProbeStatus = 'live_api_verified';
-        liveProbeNote = 'Revolut Business API odpovedalo HTTP 200 (živé bankové spojenie aktívne).';
+        liveProbeNote = 'Revolut Business API responded HTTP 200 (live banking connection active).';
       }
     } catch {}
   } else if (hasToken && input.provider === 'alpaca_broker') {
     liveProbeStatus = 'live_broker_ready';
-    liveProbeNote = 'Alpaca Markets REST v2 konektor je pripravený na priame burzové príkazy.';
+    liveProbeNote = 'Alpaca Markets REST v2 connector is ready for direct brokerage orders.';
   }
 
   const existing = await readBankConnections(env);
@@ -762,10 +762,10 @@ export async function analyzeCommodities(env, actor, rawInput = {}) {
     : 50;
 
   const marketRegime = avgScore >= 60
-    ? 'Komoditná expanzia & pro-rastový trend (Bullish Expansion)'
+    ? 'Bullish Commodity Expansion'
     : avgScore <= 42
-    ? 'Defenzívna rotácia & korekcia (Defensive Rotation)'
-    : 'Selektívny trh – príležitosti vo vzácnych a strategických kovoch';
+    ? 'Defensive Rotation & Correction'
+    : 'Selective Market — opportunities in precious and strategic metals';
 
   const sectorBreakdown = Object.entries(COMMODITY_SECTOR_LABELS).map(([sectorKey, label]) => {
     const sectorItems = analyzed.filter(i => i.sector === sectorKey);
@@ -783,12 +783,12 @@ export async function analyzeCommodities(env, actor, rawInput = {}) {
 
   if (input.record_document && analyzed.length) {
     await recordStepDocument(env, {
-      title: `Komoditná analýza trhu (${input.sector === 'all' ? 'Všetkých 22 komodít' : input.sector})`,
+      title: `Commodity Market Analysis (${input.sector === 'all' ? 'All 22 Commodities' : input.sector})`,
       category: 'commerce',
       step_name: 'commodity_analyze',
       actor: actor?.email || 'Trinity Commodity Analyst',
-      summary: `Režim trhu: ${marketRegime}. Top nákupné signály: ${topBuys.map(x => `${x.symbol} (${x.score}/100)`).join(', ') || 'žiadne'}.`,
-      content: analyzed.map(x => `- **${x.name} (${x.symbol})**: ${x.price_eur} EUR/${x.unit} | Signál: **${x.signal_label}** (${x.score}/100) | 7d: ${x.change_7d_pct}% | RSI: ${x.rsi_14} | Stop-Loss: ${x.stop_loss_eur} EUR | Take-Profit: ${x.take_profit_eur} EUR\n  - *Téza*: ${x.fundamental_drivers}`).join('\n'),
+      summary: `Market regime: ${marketRegime}. Top buy signals: ${topBuys.map(x => `${x.symbol} (${x.score}/100)`).join(', ') || 'none'}.`,
+      content: analyzed.map(x => `- **${x.name} (${x.symbol})**: ${x.price_eur} EUR/${x.unit} | Signal: **${x.signal_label}** (${x.score}/100) | 7d: ${x.change_7d_pct}% | RSI: ${x.rsi_14} | Stop-Loss: ${x.stop_loss_eur} EUR | Take-Profit: ${x.take_profit_eur} EUR\n  - *Thesis*: ${x.fundamental_drivers}`).join('\n'),
       tags: ['commodities', 'analysis', input.strategy]
     });
   }
@@ -829,11 +829,11 @@ export async function getCommodityDeskOverview(env, actor, { strategy = 'balance
       ...pos,
       name: intel?.name || pos.symbol,
       sector: intel?.sector || pos.asset_type,
-      sector_label: intel?.sector_label || 'Komodita',
-      unit: intel?.unit || 'ks',
+      sector_label: intel?.sector_label || 'Commodity',
+      unit: intel?.unit || 'units',
       pnl_pct: pnlPct,
       signal: intel?.signal || 'HOLD',
-      signal_label: intel?.signal_label || 'Držať',
+      signal_label: intel?.signal_label || 'Hold',
       score: intel?.score || 50,
       take_profit_eur: intel?.take_profit_eur || null,
       stop_loss_eur: intel?.stop_loss_eur || null
@@ -858,7 +858,7 @@ export async function getCommodityDeskOverview(env, actor, { strategy = 'balance
       strategy,
       cycles_run: 0,
       last_cycle_at: null,
-      last_cycle_summary: 'Komoditný & Bankový Desk je pripravený na priame príkazy, predaj a investovanie.'
+      last_cycle_summary: 'Commodity & Banking Desk is ready for paper orders, analytics, and portfolio management.'
     }
   };
 }
@@ -881,7 +881,7 @@ export async function executeCommodityTrade(env, actor, rawInput) {
   if (input.side === 'sell' && input.sell_all) {
     const heldPos = (portfolioBundle.summary.positions || []).find(p => p.symbol === normalizedSym);
     if (!heldPos || heldPos.quantity <= 0) {
-      throw new HttpError(409, `V portfóliu nemáš otvorenú pozíciu pre komoditu ${normalizedSym}.`);
+      throw new HttpError(409, `No open portfolio position found for commodity ${normalizedSym}.`);
     }
     finalQuantity = heldPos.quantity;
   } else if (!finalQuantity && input.amount_eur) {
@@ -889,7 +889,7 @@ export async function executeCommodityTrade(env, actor, rawInput) {
   }
 
   if (!finalQuantity || finalQuantity <= 0) {
-    throw new HttpError(400, 'Zadaj platné množstvo (quantity), sumu v EUR (amount_eur) alebo sell_all: true.');
+    throw new HttpError(400, 'Provide a valid quantity, EUR amount (amount_eur), or sell_all: true.');
   }
 
   await setQuote(env, ownerId, {
@@ -900,8 +900,8 @@ export async function executeCommodityTrade(env, actor, rawInput) {
   });
 
   const thesisText = input.thesis || (intel
-    ? `${input.side === 'buy' ? 'Nákup' : 'Predaj'} komodity ${intel.name} (${normalizedSym}) pri cene ${executionPrice} EUR/${intel.unit}. Signál: ${intel.signal_label} (${intel.score}/100).`
-    : `${input.side === 'buy' ? 'Nákup' : 'Predaj'} komodity ${normalizedSym} pri cene ${executionPrice} EUR.`);
+    ? `${input.side === 'buy' ? 'Buy' : 'Sell'} commodity ${intel.name} (${normalizedSym}) at ${executionPrice} EUR/${intel.unit}. Signal: ${intel.signal_label} (${intel.score}/100).`
+    : `${input.side === 'buy' ? 'Buy' : 'Sell'} commodity ${normalizedSym} at ${executionPrice} EUR.`);
 
   const updatedPortfolio = await recordTrade(env, ownerId, portfolioId, {
     symbol: normalizedSym,
@@ -947,21 +947,21 @@ export async function executeCommodityTrade(env, actor, rawInput) {
   const executionMode = 'portfolio_engine';
 
   const doc = await recordStepDocument(env, {
-    title: `Simulovaný komoditný obchod: ${input.side === 'buy' ? 'NÁKUP' : 'PREDAJ'} ${normalizedSym} (${notionalEur} EUR)`,
+    title: `Paper Commodity Trade: ${input.side.toUpperCase()} ${normalizedSym} (${notionalEur} EUR)`,
     category: 'commerce',
     step_name: `commodity_${input.side}`,
     actor: actor?.email || 'Trinity Commodity Trader',
-    summary: `${input.side === 'buy' ? 'Simulovaný nákup' : 'Simulovaný predaj'} ${finalQuantity} ${intel?.unit || 'ks'} komodity ${intel?.name || normalizedSym} za ${executionPrice} EUR (spolu ${notionalEur} EUR).`,
+    summary: `Paper ${input.side} of ${finalQuantity} ${intel?.unit || 'units'} of ${intel?.name || normalizedSym} at ${executionPrice} EUR (total ${notionalEur} EUR).`,
     content: [
-      `### Detail simulovaného obchodu a platobných podkladov`,
-      `- **Komodita:** ${intel?.name || normalizedSym} (\`${normalizedSym}\`)`,
-      `- **Operácia:** ${input.side === 'buy' ? 'Nákup (BUY / Investícia)' : 'Predaj (SELL / Realizácia)'}`,
-      `- **Množstvo:** ${finalQuantity} ${intel?.unit || 'ks'}`,
-      `- **Cena použitá pri simulácii:** ${executionPrice} EUR`,
-      `- **Celkový objem obchodu:** ${notionalEur} EUR`,
-      `- **Platobné podklady:** ${primaryBank ? `${primaryBank.provider_name} (${primaryBank.iban || primaryBank.account_name}) — ${bankSettlement.status}` : 'Pripoj IBAN / Bankové API v záložke Bankové napojenie'}`,
-      `- **Investičná téza:** ${thesisText}`,
-      `- **Nový stav portfólia:** Hodnota (Equity): **${updatedPortfolio.summary.equity} EUR** | Voľná hotovosť: **${updatedPortfolio.summary.cash} EUR** | Realizovaný PnL: **${updatedPortfolio.summary.realized_pnl} EUR**`
+      `### Paper Trade & Settlement Details`,
+      `- **Commodity:** ${intel?.name || normalizedSym} (\`${normalizedSym}\`)`,
+      `- **Operation:** ${input.side === 'buy' ? 'BUY (Allocation)' : 'SELL (Realization)'}`,
+      `- **Quantity:** ${finalQuantity} ${intel?.unit || 'units'}`,
+      `- **Simulated Price:** ${executionPrice} EUR`,
+      `- **Notional Volume:** ${notionalEur} EUR`,
+      `- **Payment Instructions:** ${primaryBank ? `${primaryBank.provider_name} (${primaryBank.iban || primaryBank.account_name}) — ${bankSettlement.status}` : 'Connect IBAN / Bank API in the Banking tab'}`,
+      `- **Investment Thesis:** ${thesisText}`,
+      `- **Updated Portfolio:** Equity: **${updatedPortfolio.summary.equity} EUR** | Available Cash: **${updatedPortfolio.summary.cash} EUR** | Realized PnL: **${updatedPortfolio.summary.realized_pnl} EUR**`
     ].join('\n'),
     tags: ['commodity', input.side, normalizedSym]
   });
@@ -1002,7 +1002,7 @@ export async function runAutonomousCommodityDesk(env, actor, rawInput = {}) {
             side: 'sell',
             sell_all: true,
             price: pos.last_price,
-            thesis: `Autonómny predaj Trinity (${input.strategy}): Signál ${pos.signal} / zisk ${pos.pnl_pct}% – uzamknutie výsledku a uvoľnenie kapitálu.`
+            thesis: `Autonomous Trinity sell (${input.strategy}): Signal ${pos.signal} / gain ${pos.pnl_pct}% — locking in result and freeing capital.`
           });
           executedTrades.push(sellRes.trade);
         } catch {}
@@ -1031,7 +1031,7 @@ export async function runAutonomousCommodityDesk(env, actor, rawInput = {}) {
           side: 'buy',
           amount_eur: allocEur,
           price: candidate.price_eur,
-          thesis: `Autonómna investícia Trinity (${input.strategy}): Skóre ${candidate.score}/100 (${candidate.signal_label}), sektor ${candidate.sector_label}. Stop-Loss ${candidate.stop_loss_eur} EUR, Take-Profit ${candidate.take_profit_eur} EUR. ${candidate.fundamental_drivers}`
+          thesis: `Autonomous Trinity allocation (${input.strategy}): Score ${candidate.score}/100 (${candidate.signal_label}), sector ${candidate.sector_label}. Stop-Loss ${candidate.stop_loss_eur} EUR, Take-Profit ${candidate.take_profit_eur} EUR. ${candidate.fundamental_drivers}`
         });
         executedTrades.push(buyRes.trade);
       } catch {}
@@ -1046,26 +1046,26 @@ export async function runAutonomousCommodityDesk(env, actor, rawInput = {}) {
     cycles_run: Number(prevState?.cycles_run || 0) + 1,
     last_cycle_at: new Date().toISOString(),
     last_cycle_trades: executedTrades.length,
-    last_cycle_summary: `Vykonaných ${executedTrades.length} autonómnych komoditných obchodov (${executedTrades.map(t => `${t.side.toUpperCase()} ${t.symbol} (${t.notional_eur} EUR)`).join(', ') || 'žiadne nové obchody'}). Hodnota portfólia: ${finalBundle.summary.equity} EUR.`
+    last_cycle_summary: `Executed ${executedTrades.length} autonomous paper commodity trades (${executedTrades.map(t => `${t.side.toUpperCase()} ${t.symbol} (${t.notional_eur} EUR)`).join(', ') || 'no new trades'}). Portfolio equity: ${finalBundle.summary.equity} EUR.`
   });
 
   const doc = await recordStepDocument(env, {
-    title: `Autonómny komoditný investičný cyklus (${input.strategy.toUpperCase()}) – ${executedTrades.length} obchodov`,
+    title: `Autonomous Commodity Paper Cycle (${input.strategy.toUpperCase()}) – ${executedTrades.length} trades`,
     category: 'commerce',
     step_name: 'commodity_auto_invest',
     actor: actor?.email || 'Trinity Autonomous Commodity Desk',
     summary: nextState.last_cycle_summary,
     content: [
-      `### Súhrn autonómneho komoditného cyklu Trinity`,
-      `- **Stratégia:** \`${input.strategy}\``,
-      `- **Režim trhu:** ${overview.market.market_regime} (priemerné skóre ${overview.market.average_market_score}/100)`,
-      `- **Vykonané obchody (${executedTrades.length}):**`,
+      `### Trinity Autonomous Commodity Cycle Summary`,
+      `- **Strategy:** \`${input.strategy}\``,
+      `- **Market Regime:** ${overview.market.market_regime} (average score ${overview.market.average_market_score}/100)`,
+      `- **Executed Paper Trades (${executedTrades.length}):**`,
       ...(executedTrades.length
-        ? executedTrades.map(t => `  - **${t.side.toUpperCase()} ${t.name} (\`${t.symbol}\`)**: ${t.quantity} j. @ ${t.price_eur} EUR = **${t.notional_eur} EUR** — *${t.thesis}*`)
-        : ['  - Žiadne nové obchody v tomto cykle.']),
-      `- **Aktuálna hodnota portfólia (Equity):** **${finalBundle.summary.equity} EUR**`,
-      `- **Voľná hotovosť (Cash):** **${finalBundle.summary.cash} EUR**`,
-      `- **Hodnota komoditných pozícií:** **${finalBundle.summary.market_value} EUR**`
+        ? executedTrades.map(t => `  - **${t.side.toUpperCase()} ${t.name} (\`${t.symbol}\`)**: ${t.quantity} u. @ ${t.price_eur} EUR = **${t.notional_eur} EUR** — *${t.thesis}*`)
+        : ['  - No new trades in this cycle.']),
+      `- **Current Portfolio Equity:** **${finalBundle.summary.equity} EUR**`,
+      `- **Available Cash:** **${finalBundle.summary.cash} EUR**`,
+      `- **Open Commodity Positions Value:** **${finalBundle.summary.market_value} EUR**`
     ].join('\n'),
     tags: ['commodities', 'autonomous-investing', input.strategy]
   });
@@ -1095,7 +1095,7 @@ export async function getCommodityChart(env, symbol = 'XAU-EUR', timeframe = '1D
       unit: commodity?.unit || 'oz',
       timeframe,
       available: false,
-      reason: series?.reason || 'Reálne trhové dáta nie sú pre túto komoditu dostupné z verejného overeného zdroja.',
+      reason: series?.reason || 'Live market data is unavailable for this commodity from a verified public source.',
       candles: [],
       sparkline: []
     };

@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul preview-mode.js (Trinity/src/preview-mode.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Preview mode guard (Trinity/src/preview-mode.js) in the TRINITY OMNI-CORE ecosystem.
  */
 // A build-only Preview verifies packaging, not integrations or production access.
 export function isBuildOnlyPreview(env) {
@@ -29,6 +29,6 @@ export function buildOnlyPreviewResponse(request, env, {version, agents}) {
   }
   return Response.json({
     ...evidence,
-    error: 'Tento náhľad overuje iba zostavenie. Prihlásenie, MCP, dáta a vykonávanie úloh sú vypnuté.'
+    error: 'This preview verifies the build only. Login, MCP, data access, and task execution are disabled.'
   }, options(503));
 }

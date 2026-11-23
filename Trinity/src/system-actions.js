@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul system-actions.js (Trinity/src/system-actions.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Approved PC/system action queue, local gateway authentication, and receipt lifecycle for TRINITY OMNI-CORE.
  */
 ﻿import {z} from 'zod';
 import {hash,equal,HttpError} from './security.js';
@@ -18,7 +18,7 @@ export const SYSTEM_CAPABILITIES=Object.freeze([
   {id:'share',     approval:true,  risk:'critical'},
   {id:'upload',    approval:true,  risk:'critical'},
   {id:'upgrade',   approval:true,  risk:'critical'},
-  // ── NextGen PC akcie ──
+  // -- NextGen PC actions --
   {id:'screenshot', approval:false, risk:'read'},
   {id:'open_app',   approval:true,  risk:'change'},
   {id:'open_url',   approval:false, risk:'read'},
@@ -97,14 +97,14 @@ export async function listSystemActions(env){return (await env.DB.prepare('SELEC
 
 export async function approveSystemAction(env,id,approvedBy='user'){
   const now=Date.now();const row=await env.DB.prepare("UPDATE ops_system_actions SET status='approved',approved_by=?,approved_at=?,updated_at=datetime('now') WHERE id=? AND status='proposed' AND expires_at>? RETURNING *").bind(approvedBy,now,id,now).first();
-  if(!row){const current=await getSystemAction(env,id);throw new HttpError(current?409:404,current?`Akcia je v stave ${current.status}.`:'Akcia neexistuje.');}
+  if(!row){const current=await getSystemAction(env,id);throw new HttpError(current?409:404,current?`Action is in state ${current.status}.`:'Action not found.');}
   await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('system_action_approved',?)").bind(JSON.stringify({id,action:row.action,approved_by:approvedBy})).run();
   const parsed=parseRow(row);await mirrorBridge(env,parsed);return parsed;
 }
 
 export async function rejectSystemAction(env,id,rejectedBy='user'){
   const row=await env.DB.prepare("UPDATE ops_system_actions SET status='rejected',approved_by=?,updated_at=datetime('now') WHERE id=? AND status IN ('proposed','approved') RETURNING *").bind(rejectedBy,id).first();
-  if(!row)throw new HttpError(409,'Akciu už nemožno odmietnuť.');const parsed=parseRow(row);await mirrorBridge(env,parsed);return parsed;
+  if(!row)throw new HttpError(409,'Action can no longer be rejected.');const parsed=parseRow(row);await mirrorBridge(env,parsed);return parsed;
 }
 
 export async function claimSystemAction(env,gatewayInfo){
@@ -112,7 +112,7 @@ export async function claimSystemAction(env,gatewayInfo){
   const targetUser = typeof gatewayInfo === 'object' && gatewayInfo !== null ? gatewayInfo.userEmail : null;
   const isOwner = typeof gatewayInfo === 'object' && gatewayInfo !== null ? gatewayInfo.isOwner : false;
   const now=Date.now(),lease=now+90_000;
-  const expired=await env.DB.prepare(`UPDATE ops_system_actions SET status='failed',error='Platnosť systémovej akcie vypršala pred dokončením.',lease_until=NULL,completed_at=?,updated_at=datetime('now')
+  const expired=await env.DB.prepare(`UPDATE ops_system_actions SET status='failed',error='System action expired before completion.',lease_until=NULL,completed_at=?,updated_at=datetime('now')
     WHERE expires_at<=? AND status IN ('proposed','approved','claimed') RETURNING *`).bind(now,now).all();
   for(const item of expired.results||[])await mirrorBridge(env,parseRow(item));
 
@@ -141,10 +141,10 @@ export async function claimSystemAction(env,gatewayInfo){
 
 export async function finishSystemAction(env,id,gatewayId,input){
   const data=z.object({status:z.enum(['completed','failed']),receipt:z.record(z.string(),z.unknown()).optional(),error:z.string().max(4000).optional()}).strict().parse(input);
-  if(data.status==='completed'&&!data.receipt)throw new HttpError(400,'Dokončenie vyžaduje potvrdenie.');
+  if(data.status==='completed'&&!data.receipt)throw new HttpError(400,'Completion requires an execution receipt.');
   const row=await env.DB.prepare(`UPDATE ops_system_actions SET status=?,receipt_json=?,error=?,lease_until=NULL,completed_at=?,updated_at=datetime('now')
     WHERE id=? AND status='claimed' AND claimed_by=? RETURNING *`).bind(data.status,data.receipt?JSON.stringify(data.receipt):null,data.error||null,Date.now(),id,gatewayId).first();
-  if(!row)throw new HttpError(409,'Akcia nie je pridelená tejto lokálnej bráne.');
+  if(!row)throw new HttpError(409,'Action is not assigned to this local gateway.');
   await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('system_action_finished',?)").bind(JSON.stringify({id,action:row.action,status:data.status,gateway:gatewayId})).run();
   const parsed=parseRow(row);await mirrorBridge(env,parsed);return parsed;
 }
@@ -154,12 +154,12 @@ export async function deviceGatewayLayout(db){
   const columns=new Set(results.map(column=>column.name));
   if(['gateway_id','token_prefix','last_seen_at'].every(name=>columns.has(name))) return 'current';
   if(['id','last_seen','updated_at'].every(name=>columns.has(name))) return 'legacy';
-  throw new HttpError(503,'Schéma registra zariadení nie je podporovaná.');
+  throw new HttpError(503,'Device gateway registry schema is not supported.');
 }
 
 export async function authenticateGateway(request,env){
   const token=request.headers.get('Authorization')?.replace(/^Bearer\s+/i,'')||request.headers.get('X-Trinity-Gateway');
-  if(typeof token!=='string'||token.length<24)throw new HttpError(401,'Lokálna brána nie je autorizovaná.');
+  if(typeof token!=='string'||token.length<24)throw new HttpError(401,'Local gateway is not authorized.');
 
   // 1. Root gateway key (Owner: saboivan2008@gmail.com)
   if(typeof env.TRINITY_GATEWAY_KEY==='string'&&env.TRINITY_GATEWAY_KEY.length>=16&&await equal(token,env.TRINITY_GATEWAY_KEY)){
@@ -192,7 +192,7 @@ export async function authenticateGateway(request,env){
     } catch {}
   }
 
-  throw new HttpError(401,'Lokálna brána nie je autorizovaná.');
+  throw new HttpError(401,'Local gateway is not authorized.');
 }
 
 export function actionEvidence(action){

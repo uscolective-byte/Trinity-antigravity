@@ -113,7 +113,7 @@ test('Finance Gateway: Propose transfer rejects amount exceeding daily limit', a
 
   await assert.rejects(
     proposeTransfer(env, ownerId, {amount_eur: 30.00, recipient: '@test'}),
-    /prekročil denný limit 200/
+    /exceed the daily limit of 200/
   );
 });
 

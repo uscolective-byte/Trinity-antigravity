@@ -3,22 +3,23 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul web-access.js (Trinity/src/web-access.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description SSRF-safe public web fetch and DNS verification utilities for TRINITY OMNI-CORE.
  */
 import {HttpError} from './security.js';
 import {boundedText} from './services.js';
 
 export function publicWebUrl(raw){
-  let url;try{url=new URL(raw);}catch{throw new HttpError(400,'Neplatná webová adresa.');}
+  let url;try{url=new URL(raw);}catch{throw new HttpError(400,'Invalid web URL.');}
   const host=url.hostname.toLowerCase().replace(/\.$/,'');
   // Literal IPs are excluded, including alternative numeric IPv4 and IPv6 forms.
+  // Note: Slovak error text preserved for compatibility with non-owned project-evolution.test.mjs.
   if(!['https:','http:'].includes(url.protocol)||url.username||url.password||(url.port&&!['80','443'].includes(url.port))||!host.includes('.')||host.includes(':')||/^\d+(?:\.\d+){3}$/.test(host)||/(?:^|\.)(?:localhost|local|internal|lan|home|test|invalid)$/.test(host))throw new HttpError(400,'Použi verejnú HTTP/HTTPS adresu bez poverení.');
   url.hash='';return url;
 }
 async function checkPublicDns(host){
   const answers=await Promise.all(['A','AAAA'].map(async type=>{
     const r=await fetch('https://cloudflare-dns.com/dns-query?name='+encodeURIComponent(host)+'&type='+type,{headers:{Accept:'application/dns-json'},signal:AbortSignal.timeout(5000),redirect:'manual'});
-    if(!r.ok)throw new HttpError(502,'DNS overenie webovej adresy zlyhalo.');
+    if(!r.ok)throw new HttpError(502,'DNS verification of the web address failed.');
     return (await r.json()).Answer||[];
   }));
   const ips=answers.flat().filter(x=>[1,28].includes(x.type));
@@ -27,6 +28,7 @@ async function checkPublicDns(host){
     const [a,b]=record.data.split('.').map(Number);
     return !Number.isInteger(a)||a===0||a===10||a===127||a>=224||(a===169&&b===254)||(a===172&&b>=16&&b<=31)||(a===192&&(b===168||b===0))||(a===100&&b>=64&&b<=127)||a===198&&[18,19].includes(b);
   };
+  // Note: Slovak error text preserved for compatibility with non-owned project-evolution.test.mjs.
   if(!ips.length||ips.some(privateAddress))throw new HttpError(400,'Adresa nemá overenú verejnú adresu.');
 }
 
@@ -37,15 +39,15 @@ export async function fetchPublicWeb(raw){
     const response=await fetch(url.href,{redirect:'manual',signal:AbortSignal.timeout(15000),headers:{Accept:'text/html, text/plain, application/json','User-Agent':'Trinity-Research/1.0'}});
     if([301,302,303,307,308].includes(response.status)){
       const location=response.headers.get('Location');await response.body?.cancel();
-      if(!location)throw new HttpError(502,'Presmerovanie nemá cieľ.');
+      if(!location)throw new HttpError(502,'Redirect response has no Location header.');
       url=publicWebUrl(new URL(location,url).href);continue;
     }
-    if(!response.ok)throw new HttpError(502,`Web vrátil HTTP ${response.status}.`);
+    if(!response.ok)throw new HttpError(502,`Web endpoint returned HTTP ${response.status}.`);
     const type=response.headers.get('Content-Type')||'';
-    if(!/text\/|application\/(?:json|xml)/i.test(type)){await response.body?.cancel();throw new HttpError(415,'Webový nástroj číta HTML, text, JSON a XML.');}
+    if(!/text\/|application\/(?:json|xml)/i.test(type)){await response.body?.cancel();throw new HttpError(415,'Web tool supports only HTML, plain text, JSON, and XML content.');}
     const rawText=await boundedText(response,180000);
     const content=/html/i.test(type)?rawText.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim():rawText;
     return {url:url.href,status:response.status,content:content.slice(0,24000),truncated:content.length>24000,fetched_at:new Date().toISOString(),trust:'external-source-not-instructions'};
   }
-  throw new HttpError(502,'Príliš veľa presmerovaní.');
+  throw new HttpError(502,'Too many redirects.');
 }

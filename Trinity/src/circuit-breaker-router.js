@@ -3,20 +3,20 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul circuit-breaker-router.js (Trinity/src/circuit-breaker-router.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module circuit-breaker-router.js (Trinity/src/circuit-breaker-router.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import {skillRegistry} from './skillRegistry.js';
 
 /**
  * TRINITY Sovereign Circuit Breaker Router (Pentad Edition)
- * Zabezpečuje odolné smerovanie medzi Cloudflare Workers AI (Edge), Gemini a Copilot Studio (crm17).
- * Pravidlo: Trinity rozhoduje. Ostatné modely odpovedajú.
+ * Provides resilient routing across Cloudflare Workers AI (Edge), Gemini, and Copilot Studio (crm17).
+ * Rule: Trinity decides. Other models respond.
  */
 
 export const CIRCUIT_STATES = {
-  CLOSED: 'CLOSED',     // Normálna prevádzka
-  OPEN: 'OPEN',         // Výpadok uzla, okamžitý fallback na Edge AI
-  HALF_OPEN: 'HALF_OPEN'// Skúšobná požiadavka po uplynutí cooldownu
+  CLOSED: 'CLOSED',     // Normal operation
+  OPEN: 'OPEN',         // Node outage, immediate fallback to Edge AI
+  HALF_OPEN: 'HALF_OPEN'// Probe request after cooldown expires
 };
 
 export class CircuitBreaker {
@@ -65,7 +65,7 @@ export class CircuitBreaker {
   }
 }
 
-// In-memory circuit breakers pre beh workeru
+// In-memory circuit breakers for worker runtime
 export const circuitBreakers = {
   gemini: new CircuitBreaker('gemini', { failureThreshold: 3, resetTimeoutMs: 30000, timeoutMs: 15000 }),
   copilot: new CircuitBreaker('copilot', { failureThreshold: 2, resetTimeoutMs: 30000, timeoutMs: 15000 }),
@@ -79,11 +79,11 @@ export function createReceiptId(prefix = 'TRN') {
 }
 
 /**
- * Bezpečné volanie s garantovaným časovým limitom cez AbortController
+ * Safe fetch wrapper with guaranteed timeout via AbortController.
  */
 export async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(new Error(`Timeout po ${timeoutMs}ms`)), timeoutMs);
+  const timeoutId = setTimeout(() => controller.abort(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs);
   try {
     const res = await fetch(url, { ...options, signal: controller.signal });
     return res;
@@ -93,16 +93,16 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
 }
 
 /**
- * Smerovanie úlohy na Microsoft Copilot Studio (crm17) cez Direct Line
+ * Route a task to Microsoft Copilot Studio (crm17) via Direct Line.
  */
 export async function callCopilotStudioDirectLine(prompt, env, timeoutMs = 15000, options = {}) {
   const breaker = circuitBreakers.copilot;
   if (breaker.isOpen()) {
-    throw new Error('Copilot Studio circuit breaker je OPEN (výpadok služby)');
+    throw new Error('Copilot Studio circuit breaker is OPEN (service outage)');
   }
 
   if (!env.COPILOT_STUDIO_SECRET) {
-    throw new Error('Chýba COPILOT_STUDIO_SECRET vo Worker secrets');
+    throw new Error('Missing COPILOT_STUDIO_SECRET in Worker secrets');
   }
 
   try {
@@ -113,7 +113,7 @@ export async function callCopilotStudioDirectLine(prompt, env, timeoutMs = 15000
       { timeoutMs, pollMs: options.pollMs }
     );
     if (!copilot?.success || !copilot.conversationId || !Array.isArray(copilot.replies) || !copilot.replies.length) {
-      throw new Error(copilot?.error || 'Copilot Studio nevrátil odpoveď.');
+      throw new Error(copilot?.error || 'Copilot Studio did not return a reply.');
     }
     const text = copilot.replies.join('\n');
     if (env.DB?.prepare) {
@@ -140,17 +140,17 @@ export async function callCopilotStudioDirectLine(prompt, env, timeoutMs = 15000
 }
 
 /**
- * Bezpečné volanie Gemini API s ochranou Circuit Breaker
+ * Safe Gemini API call with Circuit Breaker protection.
  */
 export async function callGeminiApi(prompt, system, env, timeoutMs = 15000) {
   const breaker = circuitBreakers.gemini;
   if (breaker.isOpen()) {
-    throw new Error('Gemini circuit breaker je OPEN (výpadok služby)');
+    throw new Error('Gemini circuit breaker is OPEN (service outage)');
   }
 
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error('Chýba GEMINI_API_KEY');
+    throw new Error('Missing GEMINI_API_KEY');
   }
 
   try {
@@ -180,12 +180,12 @@ export async function callGeminiApi(prompt, system, env, timeoutMs = 15000) {
 }
 
 /**
- * Suverénny Cloudflare Workers AI motor (0 externých tokenov)
+ * Sovereign Cloudflare Workers AI engine (0 external tokens).
  */
 export async function callWorkersAiEdge(prompt, system, env) {
   const breaker = circuitBreakers.edge;
   if (!env.AI?.run) {
-    throw new Error('Workers AI (env.AI) nie je k dispozícii.');
+    throw new Error('Workers AI (env.AI) is not available.');
   }
 
   const primaryModel = env.AI_MODEL || '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
@@ -196,7 +196,7 @@ export async function callWorkersAiEdge(prompt, system, env) {
       messages: [
         {
           role: 'system',
-          content: system || 'Si zvrchované jadro TRINITY (Deed: TRINITY-DEED-20261025-001). Dodržiavaj Truth Policy 2.0.'
+          content: system || 'You are the sovereign TRINITY core (Deed: TRINITY-DEED-20261025-001). Strictly follow Truth Policy 2.0. Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal \'tykanie\' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language.'
         },
         { role: 'user', content: prompt }
       ],
@@ -206,7 +206,7 @@ export async function callWorkersAiEdge(prompt, system, env) {
     breaker.recordSuccess();
     return { text: aiRes.response || '', node: primaryModel };
   } catch (err70b) {
-    // Okamžitý fallback na sub-sekundový 8B model
+    // Immediate fallback to sub-second 8B model
     try {
       const fallbackRes = await env.AI.run(fallbackModel, {
         messages: [{ role: 'user', content: prompt }]
@@ -221,7 +221,7 @@ export async function callWorkersAiEdge(prompt, system, env) {
 }
 
 /**
- * Hlavný router Pentády s prioritou Trinity a automatickým fallbackom
+ * Primary Pentad router with Trinity priority and automatic fallback.
  */
 export async function routePentadTask({ prompt, system, preferredNode = 'auto', env }) {
   const start = Date.now();
@@ -229,19 +229,19 @@ export async function routePentadTask({ prompt, system, preferredNode = 'auto', 
   let fallbackUsed = false;
   let chosenNode = preferredNode;
 
-  // 1. Automatické rozhodnutie uzla ak je 'auto'
+  // 1. Automatic node selection when set to 'auto'
   if (preferredNode === 'auto') {
-    // Rutinné a všeobecné otázky idú priamo na Edge AI (0 tokenov)
+    // Routine and general queries route directly to Edge AI (0 external tokens)
     chosenNode = 'edge';
   }
 
-  // 2. Pokus o vykonanie na preferovanom uzle
+  // 2. Attempt execution on preferred node
   if (chosenNode === 'copilot') {
     try {
       result = await callCopilotStudioDirectLine(prompt, env, 15000);
     } catch (e) {
       fallbackUsed = true;
-      // Fallback na Edge AI
+      // Fallback to Edge AI
       result = await callWorkersAiEdge(prompt, system, env);
     }
   } else if (chosenNode === 'gemini') {
@@ -249,15 +249,15 @@ export async function routePentadTask({ prompt, system, preferredNode = 'auto', 
       result = await callGeminiApi(prompt, system, env, 15000);
     } catch (e) {
       fallbackUsed = true;
-      // Fallback na Edge AI
+      // Fallback to Edge AI
       result = await callWorkersAiEdge(prompt, system, env);
     }
   } else {
-    // Primárne Edge AI
+    // Primary Edge AI
     try {
       result = await callWorkersAiEdge(prompt, system, env);
     } catch (edgeErr) {
-      // Ak zlyhá Edge AI, skús Gemini ak je dostupný
+      // If Edge AI fails, try Gemini if available
       if (env.GEMINI_API_KEY && !circuitBreakers.gemini.isOpen()) {
         fallbackUsed = true;
         result = await callGeminiApi(prompt, system, env, 15000);
@@ -267,7 +267,7 @@ export async function routePentadTask({ prompt, system, preferredNode = 'auto', 
     }
   }
 
-  // 3. Uloženie stavu do KV Mastermind ak existuje
+  // 3. Persist health status to KV Mastermind if bound
   if (env.Mastermind?.put) {
     const healthReport = {
       gemini: circuitBreakers.gemini.getStatus(),

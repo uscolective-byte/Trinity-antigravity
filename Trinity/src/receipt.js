@@ -3,9 +3,9 @@
  * @subsystem UNIFIED_RECEIPT_ENGINE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Jednotná receipt architektúra pre Trinity:
+ * @description Unified receipt architecture for Trinity:
  * OpenTelemetry + Cloudflare Audit + Git Commit Evidence + Sovereign Ledger.
- * Každá akcia = Receipt = Overiteľný dôkaz.
+ * Every action = Receipt = Verifiable proof.
  */
 
 import { z } from 'zod';
@@ -89,7 +89,7 @@ export const ResonanceReceiptExtensionSchema = z.object({
 }).strict();
 
 /**
- * Vytvorí overiteľný SHA-256 hash pre evidenciu.
+ * Creates a verifiable SHA-256 hash for evidence records.
  */
 export function hashPayload(payload) {
   const serialized = typeof payload === 'string' ? payload : JSON.stringify(payload);
@@ -97,7 +97,7 @@ export function hashPayload(payload) {
 }
 
 /**
- * Fabrika na vytváranie štandardizovaného Receiptu.
+ * Factory for building a schema-validated standardized Receipt.
  */
 export function buildReceipt({
   tool,
@@ -137,10 +137,10 @@ export function buildReceipt({
 }
 
 /**
- * Implementačné kritérium 1:
- * Trinity vytvorí testovací súbor, vypočíta jeho hash, nezávisle overí jeho obsah
- * a uloží podpísaný/autentizovaný receipt do Sovereign Ledgeru.
- * Až po splnení všetkých overení vracia SUCCESS.
+ * Implementation Criterion 1:
+ * Trinity creates a target file, computes its SHA-256 hash, independently verifies its contents,
+ * and appends a hash-chained receipt to the local Sovereign Ledger.
+ * Returns SUCCESS only after all verification steps pass.
  */
 export async function executeVerifiedFileCreation({
   targetDir,
@@ -165,14 +165,14 @@ export async function executeVerifiedFileCreation({
   // symlink planted at the target. A subsequent read-back verifies the bytes.
   fs.writeFileSync(fullPath, content, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
 
-  // 2. Nezávislé prečítanie a výpočet SHA-256 hashu
+  // 2. Independent read-back and SHA-256 hash computation
   const readBack = fs.readFileSync(fullPath, 'utf8');
   if (readBack !== content) {
-    throw new Error('VERIFICATION_FAILED: Obsah súboru sa po zápise nezhoduje.');
+    throw new Error('VERIFICATION_FAILED: File content mismatch after write.');
   }
   const afterHash = hashPayload(readBack);
 
-  // 3. Vytvorenie hashového ledger záznamu (nie digitálneho podpisu)
+  // 3. Build hash-chained ledger proof record (not a cryptographic asymmetric signature)
   const completedAt = new Date().toISOString();
   const proofHash = createHash('sha256')
     .update(`${startedAt}|${fileName}|${afterHash}|${actor.id}`)
@@ -185,7 +185,7 @@ export async function executeVerifiedFileCreation({
     chainHash: `sha256:${proofHash}`
   };
 
-  // 4. Zostavenie a validácia Receiptu
+  // 4. Assemble and validate Receipt
   const receipt = buildReceipt({
     tool: 'write_file',
     action: 'create_verified',
@@ -199,7 +199,7 @@ export async function executeVerifiedFileCreation({
       {
         type: 'file',
         id: fileName,
-        description: 'Autentizovaný a nezávisle overený súbor',
+        description: 'Authenticated and independently verified file',
         afterHash,
         uri: `file://${fullPath.replace(/\\/g, '/')}`
       }
@@ -209,7 +209,7 @@ export async function executeVerifiedFileCreation({
     completedAt
   });
 
-  // 5. Zápis do lokálneho Sovereign Ledgeru
+  // 5. Append to local Sovereign Ledger
   const ledgerPath = path.join(targetDir, 'sovereign-receipt-ledger.jsonl');
   fs.appendFileSync(ledgerPath, JSON.stringify(receipt) + '\n', 'utf8');
 

@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul voice-agent.js (Trinity/src/voice-agent.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module voice-agent.js (Trinity/src/voice-agent.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import { HttpError } from './security.js';
 import { queryGraphContext } from './graph-memory.js';
@@ -12,7 +12,7 @@ import { callModel } from './services.js';
 export async function handleVoiceDialogue(env, user, { audioBytes, audioMime = 'audio/webm', textPrompt = '' } = {}) {
   let userQuery = (textPrompt || '').trim();
 
-  // 1. Ak prišlo audio, prepíšeme ho cez Cloudflare Whisper Large v3 Turbo
+  // 1. If audio was provided, transcribe it via Cloudflare Whisper Large v3 Turbo
   if (audioBytes && audioBytes.length > 0 && env.AI) {
     try {
       const sttModel = env.STT_MODEL || '@cf/openai/whisper-large-v3-turbo';
@@ -24,27 +24,27 @@ export async function handleVoiceDialogue(env, user, { audioBytes, audioMime = '
       }
     } catch (sttErr) {
       if (!userQuery) {
-        throw new HttpError(502, `Hlasový prepis zlyhal: ${sttErr.message}`);
+        throw new HttpError(502, `Voice transcription failed: ${sttErr.message}`);
       }
     }
   }
 
   if (!userQuery) {
-    throw new HttpError(400, 'Nebol poskytnutý žiadny hlasový ani textový vstup.');
+    throw new HttpError(400, 'No voice or text input was provided.');
   }
 
-  // 2. Kontextové obohatenie pamäťovým grafom (Graph RAG)
+  // 2. Context enrichment via memory graph (Graph RAG)
   let graphContext = { matched_nodes: [], relationships: [] };
   try {
     graphContext = await queryGraphContext(env, userQuery, 2, 5);
   } catch {}
 
   const graphSummary = graphContext.matched_nodes.length > 0
-    ? `\nSúvislosti z pamäťového grafu:\n` + graphContext.matched_nodes.map(n => `- ${n.type.toUpperCase()}: ${n.label}`).join('\n')
+    ? `\nRelevant context from memory graph:\n` + graphContext.matched_nodes.map(n => `- ${n.type.toUpperCase()}: ${n.label}`).join('\n')
     : '';
 
-  // 3. Generovanie odpovede cez Trinity AI
-  const systemPrompt = `Si osobná asistentka Trinity pre používateľa Ivana Saba (Basterix). Hovoríš cez handsfree hlasové rozhranie. Odpovedaj prirodzene, stručne a výstižne (1-3 vety vhodné na počúvanie), po slovensky. Nepoužívaj zložité tabuľky ani markdown odrážky, ktoré sa zle čítajú nahlas.${graphSummary}`;
+  // 3. Response generation via Trinity AI
+  const systemPrompt = `You are Trinity, the personal voice assistant for Ivan Sabo (Basterix), communicating through a hands-free voice interface. Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal 'tykanie' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language. Keep replies natural, concise, and clear for spoken audio (1-3 sentences). Avoid complex tables or markdown bullet lists that read poorly aloud.${graphSummary}`;
 
   let replyText = 'Rozumiem, požiadavka bola prijatá.';
   try {
@@ -57,7 +57,7 @@ export async function handleVoiceDialogue(env, user, { audioBytes, audioMime = '
     replyText = `Počula som: "${userQuery}". Momentálne spracovávam akciu.`;
   }
 
-  // 4. Syntéza hlasu (TTS) cez MeloTTS alebo návrat textu pre browser SpeechSynthesis
+  // 4. Speech synthesis (TTS) via MeloTTS or return text for browser SpeechSynthesis
   let audioBase64 = null;
   if (env.AI && env.TTS_MODEL) {
     try {
@@ -69,7 +69,7 @@ export async function handleVoiceDialogue(env, user, { audioBytes, audioMime = '
     } catch {}
   }
 
-  // 5. Zápis do ops_events
+  // 5. Record event to ops_events
   if (env.DB) {
     await env.DB.prepare("INSERT INTO ops_events(action, details) VALUES('voice_dialogue_turn', ?)")
       .bind(JSON.stringify({ query: userQuery, user: user?.email || 'admin', has_audio: Boolean(audioBase64) }))

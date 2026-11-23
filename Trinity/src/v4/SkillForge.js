@@ -3,11 +3,11 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul SkillForge.js (Trinity/src/v4/SkillForge.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module SkillForge.js (Trinity/src/v4/SkillForge.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * Trinity SkillForge v10.4
- * Autonómna syntéza, registrácia, overovanie a exekúcia nových schopností Trinity.
+ * Autonomous synthesis, registration, verification, and execution of new Trinity capabilities.
  */
 
 export class SkillForge {
@@ -36,7 +36,7 @@ export class SkillForge {
   }
 
   /**
-   * Vykuje novú zručnosť na základe požiadavky z QCE-Fusion.
+   * Forges a new skill based on a specification from QCE-Fusion.
    */
   async forgeSkillFromQCE(skillSpec, { cycleId, genome }) {
     await this.init();
@@ -44,7 +44,7 @@ export class SkillForge {
 
     const forgedSkill = {
       name: skillName,
-      task: skillSpec?.task || 'Syntetizovaná úloha',
+      task: skillSpec?.task || 'Synthesized task',
       archetype: skillSpec?.archetype || 'creator',
       generation: genome?.generation || 1,
       cycleId,
@@ -52,7 +52,7 @@ export class SkillForge {
       handler: (params) => {
         return {
           status: 'completed',
-          synthesizedResponse: `Zručnosť [${skillName}] úspešne spracovala požiadavku: ${JSON.stringify(params)}`,
+          synthesizedResponse: `Skill [${skillName}] successfully processed request: ${JSON.stringify(params)}`,
           archetypeEffect: skillSpec?.archetype || 'creator'
         };
       }
@@ -76,13 +76,13 @@ export class SkillForge {
   }
 
   /**
-   * Vykoná zručnosť z runtime registru.
+   * Executes a skill from the runtime registry.
    */
   async execute(skillName, params = {}) {
     await this.init();
     const skill = this.runtimeRegistry.get(skillName);
     if (!skill) {
-      return { success: false, error: `Zručnosť "${skillName}" nie je v registri SkillForge.` };
+      return { success: false, error: `Skill "${skillName}" is not registered in SkillForge.` };
     }
 
     try {

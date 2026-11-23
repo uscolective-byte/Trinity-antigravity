@@ -3,10 +3,10 @@
  * @subsystem ANTIGRAVITY_BRIDGE
  * @author Basterix (Root Architect) & Antigravity (Sovereign Pair)
  * @license Sovereign Irrevocable Covenant
- * @description Antigravity Agentic Tool Suite pre TRINITY OMNI-CORE:
- * Poskytuje natívne rozhranie a schopnosti Antigravity (read_file, write_file, edit_file,
- * run_command, manage_task, invoke_subagent, search_marketplace) priamo v ekosystéme Trinity,
- * s plnou kryptografickou verifikáciou podľa Truth Policy 2.1 a zápisom do Sovereign Ledgeru.
+ * @description Antigravity Agentic Tool Suite for TRINITY OMNI-CORE:
+ * Provides native Antigravity tool interfaces (read_file, write_file, edit_file,
+ * run_command, manage_task, invoke_subagent, search_marketplace) directly inside Trinity,
+ * with cryptographic verification under Truth Policy 2.1 and Sovereign Ledger auditing.
  */
 
 import fs from 'node:fs';
@@ -21,17 +21,18 @@ const BLOCKED_SEGMENTS = new Set(['.git', '.credentials', '.wrangler', 'node_mod
 const BLOCKED_NAMES = [/^\.env(?:\..+)?$/i, /\.dpapi$/i, /\.(?:pem|pfx|p12|key)$/i, /^(?:id_rsa|id_ed25519)$/i];
 
 /**
- * Bezpečne overí a normalizuje cestu k súboru voči zadanému koreňovému adresáru.
+ * Safely validate and normalize a file path against the specified workspace root.
  */
 export function sanitizeSafePath(workspaceRoot, targetPath) {
   if (!targetPath || typeof targetPath !== 'string' || targetPath.includes('\0')) {
-    throw new Error('Cesta k súboru je neplatná.');
+    throw new Error('File path is invalid.');
   }
 
   const normalized = targetPath.replaceAll('\\', '/');
   const segments = normalized.split('/').filter(Boolean);
 
   if (segments.some(seg => seg === '..' || BLOCKED_SEGMENTS.has(seg.toLowerCase()) || BLOCKED_NAMES.some(r => r.test(seg)))) {
+    // Slovak error text preserved for compatibility with non-owned antigravity-gemini-suite.test.mjs.
     throw new Error(`Cesta '${targetPath}' je chránená alebo smeruje mimo povoleného priestoru.`);
   }
 
@@ -46,7 +47,7 @@ export function sanitizeSafePath(workspaceRoot, targetPath) {
       root = parentRoot;
       relative = parentRelative;
     } else {
-      throw new Error(`Cesta '${targetPath}' sa nachádza mimo pracovného priestoru Trinity.`);
+      throw new Error(`Path '${targetPath}' is outside the allowed Trinity workspace.`);
     }
   }
 
@@ -54,18 +55,18 @@ export function sanitizeSafePath(workspaceRoot, targetPath) {
 }
 
 /**
- * 1. read_file: Čítanie obsahu súboru s voliteľným riadkovým rozsahom a byte offsetom.
+ * 1. read_file: Read file content with optional line range slicing or byte offset.
  */
 export function antigravityReadFile(workspaceRoot, { Path: filePath, StartLine, EndLine, ByteOffset }) {
   const safePath = sanitizeSafePath(workspaceRoot, filePath);
 
   if (!fs.existsSync(safePath)) {
-    throw new Error(`Súbor '${filePath}' neexistuje.`);
+    throw new Error(`File '${filePath}' does not exist.`);
   }
 
   const stat = fs.statSync(safePath);
   if (stat.isDirectory()) {
-    throw new Error(`Cesta '${filePath}' je adresár, nie súbor.`);
+    throw new Error(`Path '${filePath}' is a directory, not a file.`);
   }
 
   const content = fs.readFileSync(safePath, 'utf8');
@@ -104,13 +105,14 @@ export function antigravityReadFile(workspaceRoot, { Path: filePath, StartLine, 
 }
 
 /**
- * 2. write_file: Vytvorenie alebo doplnenie súboru s výpočtom hashu a zápisom dokladu.
+ * 2. write_file: Create or append to a file with SHA-256 hash evidence.
  */
 export function antigravityWriteFile(workspaceRoot, { Path: filePath, Content: content, Append = false, Overwrite = false, ArtifactMetadata = null }) {
   const safePath = sanitizeSafePath(workspaceRoot, filePath);
   const exists = fs.existsSync(safePath);
 
   if (exists && !Overwrite && !Append) {
+    // Slovak error text preserved for compatibility with non-owned antigravity-gemini-suite.test.mjs.
     throw new Error(`Súbor '${filePath}' už existuje. Použi Overwrite: true alebo Append: true.`);
   }
 
@@ -145,20 +147,20 @@ export function antigravityWriteFile(workspaceRoot, { Path: filePath, Content: c
 }
 
 /**
- * 3. edit_file: Presné nahradenie cieľového reťazca (Target -> Replacement).
+ * 3. edit_file: Exact string replacement (Target -> Replacement).
  */
 export function antigravityEditFile(workspaceRoot, { Path: filePath, Target: target, Replacement: replacement, ArtifactMetadata = null }) {
   const safePath = sanitizeSafePath(workspaceRoot, filePath);
 
   if (!fs.existsSync(safePath)) {
-    throw new Error(`Súbor '${filePath}' neexistuje.`);
+    throw new Error(`File '${filePath}' does not exist.`);
   }
 
   const currentContent = fs.readFileSync(safePath, 'utf8');
   const beforeHash = createHash('sha256').update(currentContent, 'utf8').digest('hex');
 
   if (!currentContent.includes(target)) {
-    throw new Error(`Target text nebol nájdený v súbore '${filePath}'. Uisti sa, že sa zhoduje vrátane bielych znakov.`);
+    throw new Error(`Target text was not found in file '${filePath}'. Ensure exact whitespace matching.`);
   }
 
   const updatedContent = currentContent.replaceAll(target, replacement);
@@ -185,14 +187,14 @@ export function antigravityEditFile(workspaceRoot, { Path: filePath, Target: tar
 }
 
 /**
- * 4. run_command: Spustenie príkazu s timeoutom a zachytením výstupu.
+ * 4. run_command: Execute a shell command with timeout and captured stdout/stderr.
  */
 export function antigravityRunCommand(workspaceRoot, { CommandLine: commandLine, WaitMsBeforeAsync = 5000, toolSummary = 'Command Execution', IsDaemon = false }) {
   if (!commandLine || typeof commandLine !== 'string' || !commandLine.trim()) {
-    throw new Error('Príkazový riadok nesmie byť prázdny.');
+    throw new Error('Command line must not be empty.');
   }
 
-  // Bezpečnostná kontrola deštruktívnych príkazov
+  // Safety check for destructive command patterns
   const blockedPatterns = [
     /\brm\s+-rf\s+\/+/i,
     /\bformat\s+[a-z]:/i,
@@ -204,6 +206,7 @@ export function antigravityRunCommand(workspaceRoot, { CommandLine: commandLine,
 
   for (const pattern of blockedPatterns) {
     if (pattern.test(commandLine)) {
+      // Slovak error text preserved for compatibility with non-owned antigravity-gemini-suite.test.mjs.
       throw new Error(`Príkaz porušuje bezpečnostné pravidlá TRINITY: ${commandLine}`);
     }
   }
@@ -257,7 +260,7 @@ export function antigravityRunCommand(workspaceRoot, { CommandLine: commandLine,
 }
 
 /**
- * 5. manage_task: Správa asynchrónnych úloh a procesov.
+ * 5. manage_task: Manage asynchronous tasks and background processes.
  */
 export function antigravityManageTask({ Action: action, TaskId: taskId, Input: input }) {
   if (action === 'list') {
@@ -265,7 +268,7 @@ export function antigravityManageTask({ Action: action, TaskId: taskId, Input: i
       status: 'success',
       action: 'list',
       tasks: [],
-      message: 'Aktuálne nie sú spustené žiadne visiace úlohy.'
+      message: 'No pending background tasks are currently running.'
     };
   }
 
@@ -274,7 +277,7 @@ export function antigravityManageTask({ Action: action, TaskId: taskId, Input: i
       status: 'success',
       taskId,
       state: 'completed',
-      message: `Úloha ${taskId} bola úspešne dokončená.`
+      message: `Task ${taskId} completed successfully.`
     };
   }
 
@@ -283,7 +286,7 @@ export function antigravityManageTask({ Action: action, TaskId: taskId, Input: i
       status: 'success',
       taskId,
       terminated: true,
-      message: `Úloha ${taskId} bola bezpečne ukončená.`
+      message: `Task ${taskId} was safely terminated.`
     };
   }
 
@@ -296,13 +299,13 @@ export function antigravityManageTask({ Action: action, TaskId: taskId, Input: i
 }
 
 /**
- * 6. search_marketplace: Vyhľadávanie pluginov, skillov a modulov.
+ * 6. search_marketplace: Search built-in plugins, skills, and modules.
  */
 export function antigravitySearchMarketplace({ queries = [], kind = 'all', limit = 10 }) {
   const results = [];
   const queryLowerList = queries.map(q => String(q).toLowerCase());
 
-  // Hľadanie v zabudovaných zručnostiach Trinity
+  // Search built-in Trinity skills
   for (const skill of SKILLS) {
     const text = `${skill.id} ${skill.name} ${skill.description}`.toLowerCase();
     const matched = queryLowerList.length === 0 || queryLowerList.some(q => text.includes(q));

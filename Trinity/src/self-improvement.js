@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul self-improvement.js (Trinity/src/self-improvement.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module self-improvement.js (Trinity/src/self-improvement.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import {z} from 'zod';
 import {HttpError} from './security.js';
@@ -45,10 +45,10 @@ export async function listSelfImprovementProposals(env) {
 export async function createSelfImprovementProposal(env, input, actor) {
   const data = proposalSchema.parse(input);
   if (data.kind === 'plugin_install' && !data.plugin_id) {
-    throw new HttpError(400, 'Pre inštaláciu modulu je povinné plugin_id z katalógu Trinity.');
+    throw new HttpError(400, 'A plugin_id from the Trinity catalog is required for plugin installation.');
   }
   if (data.kind !== 'plugin_install' && data.plugin_id) {
-    throw new HttpError(400, 'plugin_id je povolené iba pri návrhu inštalácie modulu.');
+    throw new HttpError(400, 'plugin_id is only allowed for plugin installation proposals.');
   }
   const id = crypto.randomUUID();
   const row = await env.DB.prepare(`
@@ -66,7 +66,7 @@ export async function approveSelfImprovementProposal(env, id, actor) {
   const row = await env.DB.prepare(
     "UPDATE self_improvement_proposals SET status='approved',approved_by=?,updated_at=datetime('now') WHERE id=? AND status='pending' RETURNING *"
   ).bind(actor, id).first();
-  if (!row) throw new HttpError(404, 'Čakajúci návrh neexistuje alebo už bol spracovaný.');
+  if (!row) throw new HttpError(404, 'Pending proposal not found or already processed.');
   await audit(env, 'self_improvement_approved', {id, actor, kind: row.kind});
   return present(row);
 }
@@ -75,7 +75,7 @@ export async function applySelfImprovementProposal(env, id, actor, installPlugin
   const row = await env.DB.prepare(
     "SELECT * FROM self_improvement_proposals WHERE id=? AND status='approved'"
   ).bind(id).first();
-  if (!row) throw new HttpError(409, 'Návrh musí byť najprv schválený vlastníkom Trinity.');
+  if (!row) throw new HttpError(409, 'Proposal must be approved by the Trinity owner first.');
   if (row.kind === 'behavior_rule') {
     const activated = await env.DB.prepare(
       "UPDATE self_improvement_proposals SET status='applied',result_json=?,updated_at=datetime('now') WHERE id=? AND status='approved' RETURNING *"
@@ -89,7 +89,7 @@ export async function applySelfImprovementProposal(env, id, actor, installPlugin
     const claim = JSON.stringify({status:'preparing',started_at:new Date().toISOString()});
     const lock = await env.DB.prepare("UPDATE self_improvement_proposals SET result_json=?,updated_at=datetime('now') WHERE id=? AND status='approved' AND coalesce(result_json,'')=? RETURNING *")
       .bind(claim,id,row.result_json || '').first();
-    if (!lock) throw new HttpError(409,'Návrh už spracúva iný proces.');
+    if (!lock) throw new HttpError(409,'Proposal is already being processed by another worker.');
     try {
       const result = row.kind === 'deployment' ? await dispatchDeployment(env) : await prepareCodeImprovement(env,row);
       const updated = await env.DB.prepare("UPDATE self_improvement_proposals SET result_json=?,updated_at=datetime('now') WHERE id=? RETURNING *").bind(JSON.stringify(result),id).first();
@@ -101,7 +101,7 @@ export async function applySelfImprovementProposal(env, id, actor, installPlugin
     }
   }
   if (row.kind !== 'plugin_install') {
-    throw new HttpError(503, 'Chýba prepojenie GitHub: nastav Worker Secret TRINITY_GITHUB_TOKEN. Kódový návrh potrebuje načítať zdrojový commit. Nasadenie vykonáva GitHub Actions.');
+    throw new HttpError(503, 'Missing GitHub integration: configure Worker secret TRINITY_GITHUB_TOKEN. Code proposals require reading the source commit. Deployments are executed by GitHub Actions.');
   }
   const result = await installPluginById(row.plugin_id);
   const updated = await env.DB.prepare(
@@ -129,23 +129,23 @@ export async function revokeBehaviorRule(env, id, actor) {
   const row = await env.DB.prepare(
     "UPDATE self_improvement_proposals SET status='rejected',updated_at=datetime('now') WHERE id=? AND kind='behavior_rule' AND status='applied' RETURNING *"
   ).bind(id).first();
-  if (!row) throw new HttpError(404, 'Aktívne pravidlo neexistuje.');
+  if (!row) throw new HttpError(404, 'Active behavior rule not found.');
   await audit(env, 'self_improvement_rule_revoked', {id, actor});
   return present(row);
 }
 
-// Vlastník (serverom overená relácia) naučí Trinity nové pravidlo správania: návrh -> schválenie -> aktivácia, všetko auditované.
+// The owner (server-verified session) teaches Trinity a new behavior rule: proposal -> approval -> activation, fully audited.
 export async function ownerLearnBehaviorRule(env, text, actor) {
   const description = String(text || '').trim().slice(0, 4000);
   const title = description.replace(/\s+/g, ' ').slice(0, 80);
   const proposal = await createSelfImprovementProposal(env, {title, description, kind: 'behavior_rule'}, actor);
   await approveSelfImprovementProposal(env, proposal.id, actor);
-  return applySelfImprovementProposal(env, proposal.id, actor, async () => { throw new HttpError(400, 'Nie je modul.'); });
+  return applySelfImprovementProposal(env, proposal.id, actor, async () => { throw new HttpError(400, 'Not a plugin proposal.'); });
 }
 
 export function behaviorRulesDirective(rules) {
   if (!rules?.length) return '';
-  return 'NAUČENÉ ZLEPŠENIA (schválené vlastníkom, nikdy neobchádzajú bezpečnostné pravidlá ani pravdivosť): '
+  return 'LEARNED IMPROVEMENTS (owner-approved; never bypass security rules or truthfulness): '
     + rules.map((r, i) => `${i + 1}) ${r.description}`).join(' ');
 }
 

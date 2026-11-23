@@ -1,6 +1,6 @@
 /**
  * @module TRINITY_FLEET_CLUSTERS
- * @description Architektúra rozdelenia flotily 47 Cloudflare Workerov do 6 funkčných klastrov (Ring 0 Sovereign Lock).
+ * @description Architecture partitioning the 47-Worker Cloudflare fleet into 6 functional clusters (Ring 0 Sovereign Lock).
  */
 
 export const TRINITY_FLEET_CLUSTERS = [
@@ -23,7 +23,7 @@ export const TRINITY_FLEET_CLUSTERS = [
     cluster_id: "02",
     name: "Cognition & AI Engine",
     range: "#07 – #15",
-    responsibility: "Workers AI kaskáda (Llama 70B, DeepSeek-R1, 8B), Vectorize pamäť, RAG syntéza",
+    responsibility: "Workers AI cascade (Llama 70B, DeepSeek-R1, 8B), Vectorize memory, RAG synthesis",
     bindings: ["AI", "Vectorize (trinity-embeddings / trinity-vector-index)", "R2"],
     workers: [
       { number: 7, name: "trinity-chat-inference", role: "3-Tier LLM Inference Cascade & Circuit Breaker" },
@@ -41,7 +41,7 @@ export const TRINITY_FLEET_CLUSTERS = [
     cluster_id: "03",
     name: "Security & Ring 0",
     range: "#16 – #22",
-    responsibility: "Autentifikácia kľúčov, D1 Audit Ledger, TAP token rotation, Leak Filter",
+    responsibility: "Key authentication, D1 Audit Ledger, TAP token rotation, Leak Filter",
     bindings: ["D1 (audit_logs)", "WebCrypto RSASSA-PKCS1-v1_5"],
     workers: [
       { number: 16, name: "trinity-guardian", role: "Ring 0 Security Gate & Policy Enforcer" },
@@ -55,9 +55,9 @@ export const TRINITY_FLEET_CLUSTERS = [
   },
   {
     cluster_id: "04",
-    name: "Financial & Krypto",
+    name: "Financial & Crypto",
     range: "#23 – #28",
-    responsibility: "Jericho123 orákulum, Tetrakis ($TTK) trezor, transakčná validácia",
+    responsibility: "Jericho123 oracle, Tetrakis ($TTK) vault, transaction validation",
     bindings: ["D1 (crypto_ledger / tetrakis_vaults)", "KV (price_cache)"],
     workers: [
       { number: 23, name: "aura_optimizer", role: "Quant & Resource Execution Optimizer" },
@@ -72,7 +72,7 @@ export const TRINITY_FLEET_CLUSTERS = [
     cluster_id: "05",
     name: "Autonomy & Agents",
     range: "#29 – #38",
-    responsibility: "Agent Morpheus (sociálne siete), Desktop Bridge, Tool Executor, Cron watchdogs",
+    responsibility: "Agent Morpheus (social networks), Desktop Bridge, Tool Executor, Cron watchdogs",
     bindings: ["KV", "D1", "External Webhooks", "Cloudflared Tunnel (agent.auru.dev)"],
     workers: [
       { number: 29, name: "trinity-morhfeus", role: "Autonomous Agent Morpheus & Social/External Orchestrator" },
@@ -91,7 +91,7 @@ export const TRINITY_FLEET_CLUSTERS = [
     cluster_id: "06",
     name: "System & Profile",
     range: "#39 – #47",
-    responsibility: "Profilový manažér (#47), Telemetria, Canary Deploy, System Health",
+    responsibility: "Profile manager (#47), Telemetry, Canary Deploy, System Health",
     bindings: ["D1 (trinity-v03 / trinity-development)", "KV (TRINITY_KV_PROD / TRINITY_KV_STAGING)"],
     workers: [
       { number: 39, name: "muddy-wind-42e2", role: "Canary Edge Telemetry Node A" },

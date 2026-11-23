@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul mobile-assets.js (Trinity/src/mobile-assets.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module mobile-assets.js (Trinity/src/mobile-assets.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import css from '../public/assistant/mobile.css';
 import script from '../public/assistant/mobile-device.js.txt';

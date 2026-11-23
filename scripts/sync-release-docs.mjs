@@ -3,7 +3,7 @@
  * @subsystem AUTOMATION_AND_OPS_SCRIPTS
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul sync-release-docs.mjs (scripts/sync-release-docs.mjs) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module sync-release-docs.mjs (scripts/sync-release-docs.mjs) in the TRINITY OMNI-CORE ecosystem.
  */
 import {readFileSync,writeFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';

@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul quantum_pipeline.js (Trinity/src/quantum_pipeline.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module quantum_pipeline.js (Trinity/src/quantum_pipeline.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * Trinity Quantum-Metaphysical Pipeline Orchestrator
@@ -79,13 +79,13 @@ export async function processTeleologicalPrompt(
   }
 
   const contextPrefix = activeInvariants.length
-    ? `Aktívne teleologické invarianty:\n${activeInvariants.join("\n")}\n\n`
+    ? `Active teleological invariants:\n${activeInvariants.join("\n")}\n\n`
     : "";
 
   const defaultModel = env.AI_MODEL || "@cf/meta/llama-3.3-70b-instruct";
 
   const runAi = async (systemPrompt, userText) => {
-    if (!env.AI?.run) throw new Error("Workers AI nie je dostupné.");
+    if (!env.AI?.run) throw new Error("Workers AI is not available.");
     const res = await env.AI.run(defaultModel, {
       messages: [
         { role: "system", content: systemPrompt },
@@ -102,11 +102,11 @@ export async function processTeleologicalPrompt(
   try {
     const [t, a] = await Promise.all([
       runAi(
-        `${contextPrefix}Si Téza systému Trinity. Konštruuj priame, efektívne riešenie úlohy.`,
+        `${contextPrefix}You are the Thesis of the Trinity system. Construct a direct, effective solution to the task.`,
         userPrompt
       ),
       runAi(
-        `${contextPrefix}Si Antitéza systému Trinity. Nájdi logické klamy, riziká a zlyhania v predpokladoch dopytu.`,
+        `${contextPrefix}You are the Antithesis of the Trinity system. Identify logical fallacies, risks, and flaws in the query's assumptions.`,
         userPrompt
       )
     ]);
@@ -115,7 +115,7 @@ export async function processTeleologicalPrompt(
   } catch (e) {
     errors.push(`AI generation (thesis/antithesis) failed: ${e.message}`);
     return {
-      manifestedText: "Chyba pri generovaní tézy alebo antitézy.",
+      manifestedText: "Error generating thesis or antithesis.",
       dominantDimension: "none",
       coherenceScore: 0,
       destructiveInterferenceCount: 0,
@@ -124,7 +124,7 @@ export async function processTeleologicalPrompt(
     };
   }
 
-  // 3️⃣ Vytvorenie stavovej superpozície
+  // 3️⃣ Build state superposition
   const states = [
     {
       dimension: "thesis",
@@ -144,8 +144,8 @@ export async function processTeleologicalPrompt(
   let synthesisText = '';
   try {
     synthesisText = await runAi(
-      `${contextPrefix}Si Syntéza systému Trinity. Zjednoť Tézu a Antitézu do definitívnej pravdy.`,
-      `TÉZA:\n${states[0].content}\n\nANTITÉZA:\n${states[1].content}`
+      `${contextPrefix}You are the Synthesis of the Trinity system. Unify the thesis and antithesis into a definitive truth.`,
+      `THESIS:\n${states[0].content}\n\nANTITHESIS:\n${states[1].content}`
     );
   } catch (e) {
     errors.push(`AI generation (synthesis) failed: ${e.message}`);
@@ -165,7 +165,7 @@ export async function processTeleologicalPrompt(
     exists: true
   });
 
-  // 6️⃣ Telemetria
+  // 6️⃣ Telemetry
   console.log("[Pipeline] userPrompt:", userPrompt);
   console.log("[Pipeline] activeInvariants:", activeInvariants.length);
   console.log("[Pipeline] dominantDimension:", collapse.dominantDimension);
@@ -173,7 +173,7 @@ export async function processTeleologicalPrompt(
   console.log("[Pipeline] bridgeVerified:", bridgeVerified);
   if (errors.length) console.error("[Pipeline] errors:", errors);
 
-  // 7️⃣ Výstup
+  // 7️⃣ Output
   return {
     manifestedText: collapse.manifestedText,
     dominantDimension: collapse.dominantDimension,

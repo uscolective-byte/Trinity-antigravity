@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul trinity2.js (Trinity/src/trinity2.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module trinity2.js (Trinity/src/trinity2.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import {z} from 'zod';
 import {HttpError} from './security.js';
@@ -28,9 +28,9 @@ export async function rolePermissions(env,role){
 }
 
 export async function requireCapability(env,user,capability){
-  if(!TRINITY2_CAPABILITIES.includes(capability))throw new HttpError(500,'Neznáme oprávnenie Trinity.');
+  if(!TRINITY2_CAPABILITIES.includes(capability))throw new HttpError(500,'Unknown Trinity capability.');
   const permission=(await rolePermissions(env,user.role)).find(item=>item.capability===capability);
-  if(!permission?.allowed)throw new HttpError(403,'Táto rola nemá oprávnenie na požadovanú schopnosť.');
+  if(!permission?.allowed)throw new HttpError(403,'This role is not authorized for the requested capability.');
 }
 
 export async function updateRolePermission(env,{role,capability,allowed,updatedBy}){
@@ -43,26 +43,26 @@ export async function updateRolePermission(env,{role,capability,allowed,updatedB
   return {role,permissions:await rolePermissions(env,role)};
 }
 
-const dataUrl=(kind,max)=>z.string().max(max).refine(value=>new RegExp(`^data:${kind}\\/[a-z0-9.+-]+;base64,`,'i').test(value),'Neplatný dátový formát.');
+const dataUrl=(kind,max)=>z.string().max(max).refine(value=>new RegExp(`^data:${kind}\\/[a-z0-9.+-]+;base64,`,'i').test(value),'Invalid data URL format.');
 const bytesFromDataUrl=value=>Uint8Array.from(Buffer.from(value.slice(value.indexOf(',')+1),'base64'));
 const modelText=result=>extractModelText(result)||result?.description||result?.text||result?.result||'';
 
 export async function analyzeImage(env,input){
-  if(!env.AI)throw new HttpError(503,'Workers AI nie je dostupné.');
-  const parsed=z.object({image:dataUrl('image',8_000_000),prompt:z.string().trim().min(1).max(2000).default('Podrobne opíš obrázok a dôležité súvislosti.')}).strict().parse(input);
+  if(!env.AI)throw new HttpError(503,'Workers AI is not available.');
+  const parsed=z.object({image:dataUrl('image',8_000_000),prompt:z.string().trim().min(1).max(2000).default('Describe the image and its key context in detail.')}).strict().parse(input);
   const model=env.VISION_MODEL||'@cf/meta/llama-3.2-11b-vision-instruct';
-  const result=await env.AI.run(model,{messages:[{role:'system',content:'Analyzuj iba poskytnutý obrázok. Jasne odlíš pozorovanie od odhadu.'},{role:'user',content:parsed.prompt}],image:parsed.image});
-  const text=modelText(result).trim();if(!text)throw new HttpError(502,'Model obrazu vrátil prázdnu odpoveď.');
+  const result=await env.AI.run(model,{messages:[{role:'system',content:'Analyze only the provided image. Clearly distinguish direct observations from inferences.'},{role:'user',content:parsed.prompt}],image:parsed.image});
+  const text=modelText(result).trim();if(!text)throw new HttpError(502,'Vision model returned an empty response.');
   return {text,model,verified_at:new Date().toISOString()};
 }
 
 export async function transcribeAudio(env,input){
-  if(!env.AI)throw new HttpError(503,'Workers AI nie je dostupné.');
+  if(!env.AI)throw new HttpError(503,'Workers AI is not available.');
   const parsed=z.object({audio:dataUrl('audio',12_000_000),language:z.string().trim().max(20).optional()}).strict().parse(input);
-  const bytes=bytesFromDataUrl(parsed.audio);if(bytes.length>8_000_000)throw new HttpError(413,'Zvukový súbor je príliš veľký.');
+  const bytes=bytesFromDataUrl(parsed.audio);if(bytes.length>8_000_000)throw new HttpError(413,'Audio file is too large.');
   const model=env.STT_MODEL||'@cf/openai/whisper-large-v3-turbo';
   const result=await env.AI.run(model,{audio:[...bytes],language:parsed.language});
-  const text=(result?.text||result?.transcription||modelText(result)).trim();if(!text)throw new HttpError(502,'Prepis hlasu je prázdny.');
+  const text=(result?.text||result?.transcription||modelText(result)).trim();if(!text)throw new HttpError(502,'Audio transcription is empty.');
   return {text,model,word_count:Array.isArray(result?.word_count)?result.word_count:undefined,verified_at:new Date().toISOString()};
 }
 
@@ -72,11 +72,11 @@ async function audioBytes(result){
   if(result instanceof Uint8Array)return result;
   if(result?.audio instanceof Uint8Array)return result.audio;
   if(typeof result?.audio==='string')return Uint8Array.from(Buffer.from(result.audio,'base64'));
-  throw new HttpError(502,'Hlasový model nevrátil zvuk.');
+  throw new HttpError(502,'Speech synthesis model did not return audio data.');
 }
 
 export async function synthesizeSpeech(env,input){
-  if(!env.AI||!env.ARTIFACTS)throw new HttpError(503,'Hlasový výstup nie je dostupný.');
+  if(!env.AI||!env.ARTIFACTS)throw new HttpError(503,'Speech output is not available.');
   const parsed=z.object({text:z.string().trim().min(1).max(5000),language:z.string().trim().regex(/^[a-z]{2}(?:-[A-Z]{2})?$/).default('sk')}).strict().parse(input);
   const model=env.TTS_MODEL||'@cf/myshell-ai/melotts';
   const result=await env.AI.run(model,{prompt:parsed.text,lang:parsed.language.slice(0,2)}),bytes=await audioBytes(result);
@@ -89,7 +89,7 @@ export async function listVisualWorkflows(env,ownerId){const rows=await env.DB.p
 export async function saveVisualWorkflow(env,ownerId,input){const parsed=z.object({id:z.string().uuid().optional(),name:z.string().trim().min(2).max(100),status:z.enum(['draft','active','archived']).default('draft'),definition:workflowDefinition}).strict().parse(input),id=parsed.id||crypto.randomUUID();await env.DB.prepare(`INSERT INTO ops_visual_workflows(id,owner_id,name,definition_json,status) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,definition_json=excluded.definition_json,status=excluded.status,updated_at=datetime('now') WHERE owner_id=excluded.owner_id`).bind(id,ownerId,parsed.name,JSON.stringify(parsed.definition),parsed.status).run();return {id,name:parsed.name,status:parsed.status,definition:parsed.definition};}
 
 export async function listIncidents(env){const rows=await env.DB.prepare('SELECT id,fingerprint,severity,status,title,details_json,created_at,updated_at,resolved_at FROM ops_incidents ORDER BY created_at DESC LIMIT 100').all();return (rows.results||[]).map(row=>({...row,details:JSON.parse(row.details_json),details_json:undefined}));}
-export async function resolveIncident(env,id,by){const row=await env.DB.prepare("UPDATE ops_incidents SET status='resolved',resolved_at=datetime('now'),updated_at=datetime('now') WHERE id=? RETURNING id,status,resolved_at").bind(id).first();if(!row)throw new HttpError(404,'Incident neexistuje.');await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('incident_resolved',?)").bind(JSON.stringify({id,by})).run();return row;}
+export async function resolveIncident(env,id,by){const row=await env.DB.prepare("UPDATE ops_incidents SET status='resolved',resolved_at=datetime('now'),updated_at=datetime('now') WHERE id=? RETURNING id,status,resolved_at").bind(id).first();if(!row)throw new HttpError(404,'Incident not found.');await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('incident_resolved',?)").bind(JSON.stringify({id,by})).run();return row;}
 
 export async function recordHealthIncident(env,summary){
   if(summary.healthy)return;
@@ -97,7 +97,7 @@ export async function recordHealthIncident(env,summary){
   const existing=await env.DB.prepare("SELECT id FROM ops_incidents WHERE fingerprint=? AND status='open' LIMIT 1").bind(fingerprint).first();
   const id=existing?.id||crypto.randomUUID(),severity=summary.reachable===0?'critical':'warning';
   if(existing)await env.DB.prepare("UPDATE ops_incidents SET severity=?,details_json=?,updated_at=datetime('now') WHERE id=?").bind(severity,JSON.stringify(summary),id).run();
-  else await env.DB.prepare('INSERT INTO ops_incidents(id,fingerprint,severity,title,details_json) VALUES(?,?,?,?,?)').bind(id,fingerprint,severity,'Kontrola služieb Trinity zistila problém',JSON.stringify(summary)).run();
+  else await env.DB.prepare('INSERT INTO ops_incidents(id,fingerprint,severity,title,details_json) VALUES(?,?,?,?,?)').bind(id,fingerprint,severity,'Trinity service health check detected an issue',JSON.stringify(summary)).run();
   if(env.TRINITY_ALERT_WEBHOOK){try{await fetch(env.TRINITY_ALERT_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'trinity_incident',id,severity,summary}),signal:AbortSignal.timeout(10000)});}catch(error){console.error(JSON.stringify({event:'alert_webhook_failed',message:error instanceof Error?error.message:String(error)}));}}
 }
 

@@ -3,14 +3,14 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul universal-ecosystem.js (Trinity/src/universal-ecosystem.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module universal-ecosystem.js (Trinity/src/universal-ecosystem.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * Trinity Universal Ecosystem Engine
- * Poskytuje nekonečný (on-demand syntetizovaný) ekosystém pre:
- * 1️⃣ Aplikácie (Web Studio, REST API, interaktívne nástroje a dashboardy)
- * 2️⃣ Pluginy (Modulárne balíky schopností s izolovaným behom a závislosťami)
- * 3️⃣ Skilly (Vykonateľné operačné procedúry s validáciou, timeoutom a auditom)
+ * Provides an infinite (on-demand synthesized) ecosystem for:
+ * 1️⃣ Applications (Web Studio, REST APIs, interactive tools, and dashboards)
+ * 2️⃣ Plugins (Modular capability bundles with isolated execution and dependencies)
+ * 3️⃣ Skills (Executable operational procedures with validation, timeouts, and auditing)
  */
 
 import {skillRegistry, skills} from './skillRegistry.js';
@@ -19,25 +19,25 @@ import {EXTENDED_SKILLS, EXTENDED_PLUGINS} from './extended-catalog.js';
 import {FREE_MODULES_CATALOG, fetchWeather, fetchWikipedia, resolveDns, fetchCryptoMarkets, fetchTechNews, fetchWorldBankIndicator} from './free-modules.js';
 
 export const UNIVERSAL_DOMAINS = [
-  {id: 'software-dev', name: 'Softvérový vývoj', icon: '</>', description: 'Full-stack vývoj, API, refaktoring, databázy a CI/CD pipeline.'},
-  {id: 'cloud-devops', name: 'Cloud & DevOps', icon: '☁', description: 'Cloudflare Workers, D1, R2, KV, Kubernetes, Terraform a monitorovanie.'},
-  {id: 'cybersecurity', name: 'Kybernetická bezpečnosť', icon: '🛡', description: 'Audit zraniteľností, model hrozieb, šifrovanie, sanitizácia a zero-trust.'},
-  {id: 'ai-agents', name: 'Autonómni AI agenti', icon: '🤖', description: 'Multi-agent koordinácia, nástroje, plánovanie úloh a pamäťový kontext.'},
-  {id: 'data-science', name: 'Dátová veda & ML', icon: '📊', description: 'Štatistika, vizualizácia, čistenie dát, predikčné modely a ETL procesy.'},
-  {id: 'fintech', name: 'Finančné inžinierstvo', icon: '💳', description: 'Rozpočtovanie, cashflow, papierové portfólio, riziko a kalkulácia nákladov.'},
-  {id: 'ecommerce', name: 'E-commerce & Obchod', icon: '🛍', description: 'Katalógy produktov, konverzie, zákaznícky servis a objednávkové toky.'},
-  {id: 'biotech-health', name: 'Bioinformatika & Zdravie', icon: '🧬', description: 'Biomedicínske rešerše, analýza sekvencií a štruktúr, klinické štúdie.'},
-  {id: 'iot-automation', name: 'Smart Home & IoT', icon: '⚡', description: 'Automatizácia zariadení, senzory, telemetria a PC Bridge operácie.'},
-  {id: 'media-design', name: 'Médiá & UI/UX Dizajn', icon: '🎨', description: 'Tvorba grafiky, responzívny dizajn, typografia a prístupnosť WCAG.'},
-  {id: 'legal-compliance', name: 'Právo & Compliance', icon: '⚖', description: 'GDPR, ochrana osobných údajov, licenčné zmluvy a regulačné audity.'},
-  {id: 'education-edtech', name: 'Vzdelávanie & EdTech', icon: '🎓', description: 'Interaktívne kurzy, tvorba testov, sumarizácia učiva a doučovanie.'},
-  {id: 'marketing-seo', name: 'Marketing & SEO', icon: '📈', description: 'SEO audit, copywrite, analýza kľúčových slov a obsahové stratégie.'},
-  {id: 'nlp-translation', name: 'Spracovanie jazyka & Preklad', icon: '🌐', description: 'Viacjazyčná lokalizácia, sumarizácia a extrakcia kľúčových entít.'},
-  {id: 'system-architecture', name: 'Systémová architektúra', icon: '🏛', description: 'Distribuované systémy, mikroslužby, event-driven toky a odolnosť.'},
-  {id: 'entertainment-gaming', name: 'Hry & Interaktívna zábava', icon: '🎮', description: 'Textové RPG adventúry, kvízy, herná mechanika, interaktívne príbehy a hádanky.'},
-  {id: 'lifestyle-wellness', name: 'Životný štýl & Osobný rozvoj', icon: '🌱', description: 'Sledovanie návykov, time management, nutričné plánovanie a denné rituály.'},
-  {id: 'creative-arts', name: 'Umenie, Hudba & Kreativita', icon: '🎭', description: 'Kreatívne písanie, texty piesní, scenáristika, hudobná teória a audio koncepty.'},
-  {id: 'science-discovery', name: 'Prírodné vedy & Výskum', icon: '🔬', description: 'Periodická tabuľka, fyzikálne konštanty, biochemické modely a vedecké výpočty.'}
+  {id: 'software-dev', name: 'Software Development', icon: '</>', description: 'Full-stack development, APIs, refactoring, databases, and CI/CD pipelines.'},
+  {id: 'cloud-devops', name: 'Cloud & DevOps', icon: '☁', description: 'Cloudflare Workers, D1, R2, KV, Kubernetes, Terraform, and monitoring.'},
+  {id: 'cybersecurity', name: 'Cybersecurity', icon: '🛡', description: 'Vulnerability audits, threat modeling, encryption, sanitization, and zero-trust.'},
+  {id: 'ai-agents', name: 'Autonomous AI Agents', icon: '🤖', description: 'Multi-agent coordination, tools, task planning, and memory context.'},
+  {id: 'data-science', name: 'Data Science & ML', icon: '📊', description: 'Statistics, visualization, data cleaning, predictive models, and ETL pipelines.'},
+  {id: 'fintech', name: 'Financial Engineering', icon: '💳', description: 'Budgeting, cashflow, paper portfolios, risk modeling, and cost analysis.'},
+  {id: 'ecommerce', name: 'E-commerce & Commerce', icon: '🛍', description: 'Product catalogs, conversions, customer service, and order flows.'},
+  {id: 'biotech-health', name: 'Bioinformatics & Health', icon: '🧬', description: 'Biomedical research, sequence and structure analysis, and clinical studies.'},
+  {id: 'iot-automation', name: 'Smart Home & IoT', icon: '⚡', description: 'Device automation, sensors, telemetry, and PC Bridge operations.'},
+  {id: 'media-design', name: 'Media & UI/UX Design', icon: '🎨', description: 'Graphic design, responsive layouts, typography, and WCAG accessibility.'},
+  {id: 'legal-compliance', name: 'Legal & Compliance', icon: '⚖', description: 'GDPR, personal data protection, license agreements, and regulatory audits.'},
+  {id: 'education-edtech', name: 'Education & EdTech', icon: '🎓', description: 'Interactive courses, test creation, study summarization, and tutoring.'},
+  {id: 'marketing-seo', name: 'Marketing & SEO', icon: '📈', description: 'SEO audits, copywriting, keyword analysis, and content strategies.'},
+  {id: 'nlp-translation', name: 'Language Processing & Translation', icon: '🌐', description: 'Multilingual localization, summarization, and key entity extraction.'},
+  {id: 'system-architecture', name: 'System Architecture', icon: '🏛', description: 'Distributed systems, microservices, event-driven flows, and resilience.'},
+  {id: 'entertainment-gaming', name: 'Games & Interactive Entertainment', icon: '🎮', description: 'Text RPG adventures, quizzes, game mechanics, interactive stories, and riddles.'},
+  {id: 'lifestyle-wellness', name: 'Lifestyle & Personal Growth', icon: '🌱', description: 'Habit tracking, time management, nutrition planning, and daily routines.'},
+  {id: 'creative-arts', name: 'Arts, Music & Creativity', icon: '🎭', description: 'Creative writing, lyrics, screenwriting, music theory, and audio concepts.'},
+  {id: 'science-discovery', name: 'Natural Sciences & Research', icon: '🔬', description: 'Periodic table, physical constants, biochemical models, and scientific calculations.'}
 ];
 
 export const APPLICATION_TEMPLATES = [
@@ -75,7 +75,7 @@ class UniversalEcosystem {
   }
 
   _loadPredefinedCatalog() {
-    // Inicializácia základných aplikácií z predlôh
+    // Initialize baseline applications from predefined templates
     for (const app of APPLICATION_TEMPLATES) {
       this._synthesizedApps.set(app.templateId, {
         id: app.templateId,
@@ -90,11 +90,11 @@ class UniversalEcosystem {
   }
 
   /**
-   * Dynamicky vytvorí a zaregistruje nový skill v Trinity
+   * Dynamically creates and registers a new skill in Trinity.
    */
   synthesizeSkill(name, domain = 'software-dev', handlerOrOptions = {}) {
     if (!name || typeof name !== 'string') {
-      throw new Error('Názov skillu musí byť neprázdny reťazec.');
+      throw new Error('Skill name must be a non-empty string.');
     }
     const skillId = `skill_${name.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`;
     const domainMeta = UNIVERSAL_DOMAINS.find(d => d.id === domain) || UNIVERSAL_DOMAINS[0];
@@ -108,7 +108,7 @@ class UniversalEcosystem {
             executedAt: new Date().toISOString(),
             status: 'success',
             input,
-            message: `Skill '${name}' v doméne '${domainMeta.name}' bol úspešne vykonaný.`
+            message: `Skill '${name}' in domain '${domainMeta.name}' executed successfully.`
           };
         };
 
@@ -123,7 +123,7 @@ class UniversalEcosystem {
       createdAt: new Date().toISOString()
     };
 
-    // Zaregistrovanie do hlavného SkillRegistry
+    // Register in the main SkillRegistry
     skillRegistry.register(skillId, handler, meta);
     this._synthesizedSkills.set(skillId, { handler, meta });
 
@@ -131,16 +131,16 @@ class UniversalEcosystem {
   }
 
   /**
-   * Dynamicky vytvorí a zaregistruje nový plugin
+   * Dynamically creates and registers a new plugin.
    */
   synthesizePlugin(name, domain = 'software-dev', skillNames = []) {
     if (!name || typeof name !== 'string') {
-      throw new Error('Názov pluginu musí byť neprázdny reťazec.');
+      throw new Error('Plugin name must be a non-empty string.');
     }
     const pluginId = `plugin_${name.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`;
     const domainMeta = UNIVERSAL_DOMAINS.find(d => d.id === domain) || UNIVERSAL_DOMAINS[0];
 
-    // Zabezpečí, že skilly priradené k pluginu existujú, prípadne ich vytvorí
+    // Ensure all skills assigned to the plugin exist, synthesizing any missing ones
     const registeredSkillIds = [];
     for (const sName of skillNames) {
       const sId = `skill_${sName.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`;
@@ -155,7 +155,7 @@ class UniversalEcosystem {
       name,
       domain: domainMeta.id,
       category: domainMeta.id,
-      description: `Univerzálny dynamický plugin pre doménu ${domainMeta.name}.`,
+      description: `Universal dynamic plugin for domain ${domainMeta.name}.`,
       icon: domainMeta.icon,
       version: '1.0.0',
       skills: registeredSkillIds,
@@ -171,11 +171,11 @@ class UniversalEcosystem {
   }
 
   /**
-   * Dynamicky vytvorí novú aplikáciu (alebo projekt v AI Studio / API Builder)
+   * Dynamically creates a new application definition (or AI Studio / API Builder project).
    */
   synthesizeApp(name, domain = 'software-dev', options = {}) {
     if (!name || typeof name !== 'string') {
-      throw new Error('Názov aplikácie musí byť neprázdny reťazec.');
+      throw new Error('Application name must be a non-empty string.');
     }
     const appId = `app_${name.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`;
     const domainMeta = UNIVERSAL_DOMAINS.find(d => d.id === domain) || UNIVERSAL_DOMAINS[0];
@@ -187,10 +187,10 @@ class UniversalEcosystem {
       domainName: domainMeta.name,
       type: options.type || 'web-app',
       version: '1.0.0',
-      prompt: options.prompt || `Vytvor aplikáciu ${name} pre oblasť ${domainMeta.name}`,
+      prompt: options.prompt || `Create application ${name} for domain ${domainMeta.name}`,
       status: 'ready',
       synthesized: true,
-      features: options.features || ['Responzívne rozhranie', 'Audit logovanie', 'Offline cache'],
+      features: options.features || ['Responsive interface', 'Audit logging', 'Offline cache'],
       createdAt: new Date().toISOString()
     };
 
@@ -199,11 +199,11 @@ class UniversalEcosystem {
   }
 
   /**
-   * Vyhľadávanie naprieč celým ekosystémom aplikácií, pluginov a skillov
+   * Searches across the entire ecosystem of applications, plugins, and skills.
    */
   searchCatalog(query = '', options = {}) {
     const q = (query || '').toLowerCase().trim();
-    const typeFilter = options.type; // 'app', 'plugin', 'skill' alebo null pre všetko
+    const typeFilter = options.type; // 'app', 'plugin', 'skill', or null for all
     const domainFilter = options.domain;
 
     const results = {
@@ -249,7 +249,7 @@ class UniversalEcosystem {
   }
 
   /**
-   * Vráti celkové štatistiky dostupného a generatívneho ekosystému
+   * Returns overall statistics for the available and generative ecosystem.
    */
   getStats() {
     const appsCount = this._synthesizedApps.size;
@@ -258,7 +258,7 @@ class UniversalEcosystem {
     const extendedSkillsCount = EXTENDED_SKILLS.length;
     const extendedPluginsCount = EXTENDED_PLUGINS.length;
 
-    // Počet možných deterministických a generatívnych kombinácií domén x skillov x pluginov x app šablón
+    // Number of deterministic and generative combinations across domains, skills, plugins, and app templates
     const virtualCombinations = UNIVERSAL_DOMAINS.length * 100000;
 
     return {

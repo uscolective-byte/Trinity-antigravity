@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul agent-sandbox.js (Trinity/src/agent-sandbox.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Custom AI agent sandbox and domain provisioning module (Trinity/src/agent-sandbox.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import { z } from 'zod';
 import { HttpError } from './security.js';
@@ -12,7 +12,7 @@ import { callModel } from './services.js';
 import { createTrinityDocument } from './trinity-documents.js';
 
 export const customAgentSchema = z.object({
-  id: z.string().trim().min(2).max(64).regex(/^[a-z0-9_-]+$/i, 'ID agenta musí obsahovať len alfanumerické znaky a pomlčky.'),
+  id: z.string().trim().min(2).max(64).regex(/^[a-z0-9_-]+$/i, 'Agent ID may only contain alphanumeric characters, underscores, and hyphens.'),
   name: z.string().trim().min(2).max(100),
   description: z.string().trim().max(500).default(''),
   role: z.string().trim().min(2).max(100).default('Autonomous Assistant'),
@@ -31,7 +31,7 @@ export const agentExecutionSchema = z.object({
 }).strict();
 
 export const domainProvisionSchema = z.object({
-  domain_name: z.string().trim().min(3).max(253).toLowerCase().regex(/^[a-z0-9.-]+\.[a-z]{2,}$/, 'Neplatný formát domény.'),
+  domain_name: z.string().trim().min(3).max(253).toLowerCase().regex(/^[a-z0-9.-]+\.[a-z]{2,}$/, 'Invalid domain name format.'),
   agent_id: z.string().trim().min(2).max(64),
   target_worker: z.string().trim().default('trinity-development'),
   enable_waf: z.boolean().default(true),
@@ -94,7 +94,7 @@ export async function listCustomAgents(env, ownerId = 'admin') {
           name: 'Trinity Core Orchestrator',
           role: 'Master Orchestrator',
           model: env.AI_MODEL || '@cf/openai/gpt-oss-120b',
-          system_prompt: 'Si Trinity, autonómna AI asistentka Ivana Sabo (Basterix).',
+          system_prompt: 'You are Trinity, the autonomous AI assistant of Ivan Sabo (Basterix). Always reply to the user in Slovak unless requested otherwise.',
           autonomous_mode: true,
           tools: ['search', 'calc', 'weather', 'crypto', 'dns'],
           domain_binding: 'auru.dev'
@@ -124,10 +124,10 @@ export async function listCustomAgents(env, ownerId = 'admin') {
 export async function createOrUpdateCustomAgent(env, ownerId = 'admin', input) {
   await ensureAgentSandboxTables(env);
   const data = customAgentSchema.parse(input);
-  if (!env.DB) throw new HttpError(500, 'Databáza Trinity nie je dostupná.');
+  if (!env.DB) throw new HttpError(500, 'Trinity database is unavailable.');
 
   const existing = await env.DB.prepare('SELECT owner_id FROM ops_custom_agents WHERE id = ?').bind(data.id).first();
-  if (existing && existing.owner_id !== ownerId) throw new HttpError(409, 'ID agenta už patrí inému vlastníkovi.');
+  if (existing && existing.owner_id !== ownerId) throw new HttpError(409, 'Agent ID already belongs to another owner.');
 
   await env.DB.prepare(`
     INSERT INTO ops_custom_agents (id, owner_id, name, description, role, model, system_prompt, temperature, tools_json, autonomous_mode, domain_binding, updated_at)
@@ -161,7 +161,7 @@ export async function createOrUpdateCustomAgent(env, ownerId = 'admin', input) {
     title: `AI Agent Sandbox: ${data.name} (${data.id})`,
     category: 'architecture',
     step_name: 'agent_sandbox_save',
-    summary: `Uložený autonómny agent s modelom ${data.model} a ${data.tools.length} pripojenými nástrojmi.`,
+    summary: `Saved autonomous agent using model ${data.model} with ${data.tools.length} connected tools.`,
     tags: ['sandbox', 'agent', 'custom_agent', data.id]
   }).catch(() => null);
 
@@ -177,7 +177,7 @@ export async function executeCustomAgent(env, ownerId = 'admin', input) {
   if (env.DB) {
     agentRow = await env.DB.prepare('SELECT * FROM ops_custom_agents WHERE id = ? AND owner_id = ?').bind(parsed.agent_id, ownerId).first();
   }
-  if (!agentRow) throw new HttpError(404, 'Agent neexistuje alebo nepatrí prihlásenému vlastníkovi.');
+  if (!agentRow) throw new HttpError(404, 'Agent does not exist or does not belong to the authenticated owner.');
 
   const agent = {
     id: agentRow.id,
@@ -195,7 +195,7 @@ export async function executeCustomAgent(env, ownerId = 'admin', input) {
   steps.push({
     step: 1,
     phase: 'intent_analysis',
-    detail: `Analyzujem zadanie pre agenta [${agent.name}]: "${parsed.input.slice(0, 100)}..."`,
+    detail: `Analyzing task for agent [${agent.name}]: "${parsed.input.slice(0, 100)}..."`,
     timestamp: new Date().toISOString()
   });
 
@@ -230,8 +230,8 @@ export async function executeCustomAgent(env, ownerId = 'admin', input) {
 
   // Step 3: Neural Model Inference
   const messages = [
-    { role: 'system', content: `${agent.system_prompt}\n\nTvoja rola: ${agent.role}. Konaj autonómne v mene majiteľa Basterix (Ivan Sabo).` },
-    ...(Object.keys(toolOutputs).length ? [{ role: 'system', content: `Dostupné výsledky nástrojov:\n${JSON.stringify(toolOutputs, null, 2)}` }] : []),
+    { role: 'system', content: `${agent.system_prompt}\n\nYour role: ${agent.role}. Act autonomously on behalf of owner Basterix (Ivan Sabo). Reply to the user in Slovak unless requested otherwise.` },
+    ...(Object.keys(toolOutputs).length ? [{ role: 'system', content: `Available tool outputs:\n${JSON.stringify(toolOutputs, null, 2)}` }] : []),
     { role: 'user', content: parsed.input }
   ];
 
@@ -240,7 +240,7 @@ export async function executeCustomAgent(env, ownerId = 'admin', input) {
   try {
     const modelRes = await callModel(env, 'workers-ai', messages);
     rawOutput = modelRes.text || '';
-    if (!rawOutput) modelError = 'Model nevrátil textový výsledok.';
+    if (!rawOutput) modelError = 'Model did not return a text response.';
   } catch (error) {
     modelError = error instanceof Error ? error.message : String(error);
   }
@@ -333,10 +333,10 @@ export async function provisionAgentDomain(env, ownerId = 'admin', input) {
   }
 
   await createTrinityDocument(env, ownerId, {
-    title: `Nová doména priradená agentovi: ${data.domain_name}`,
+    title: `New domain bound to agent: ${data.domain_name}`,
     category: 'domains',
     step_name: 'agent_domain_provision',
-    summary: `Doména ${data.domain_name} bola zaregistrovaná a prepojená s AI agentom [${data.agent_id}]. DNS záznamy, SSL a WAF pravidlá boli nastavené.`,
+    summary: `Domain ${data.domain_name} has been registered and bound to AI agent [${data.agent_id}]. DNS records, SSL, and WAF rules have been configured.`,
     tags: ['cloudflare', 'domain', 'agent_sandbox', data.domain_name]
   }).catch(() => null);
 

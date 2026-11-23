@@ -21,7 +21,7 @@ test('ordinary prose and answer envelopes are preserved',()=>{
 });
 test('live regression: prose wrapped call and invented tool result are rejected',()=>{
   const source='Použijem nástroj calculate.\n'+JSON.stringify(expected)+'\nVýsledok nástroja calculate je: 42';
-  assert.throws(()=>parseModelAction(source),/zmiešané s prózou/);
+  assert.throws(()=>parseModelAction(source),/mixed with prose/);
 });
 test('malformed calls cannot masquerade as an answer or run partial arguments',()=>{
   for(const source of [
@@ -33,7 +33,7 @@ test('malformed calls cannot masquerade as an answer or run partial arguments',(
     {tool:'calculate;delete',arguments:{}},
     {type:'function',parameters:{}},
     {tool_calls:[expected,expected]}
-  ])assert.throws(()=>parseModelAction(source),/Neplatné volanie/);
+  ])assert.throws(()=>parseModelAction(source),/Invalid tool call/);
 });
 
 test('native OpenAI and Gemini calls survive the provider text adapter',()=>{

@@ -410,8 +410,8 @@ test('CopilotPluginRegistry spravuje vstavané aj vlastné pluginy', () => {
   assert.ok(plugins.some(p => p.id === 'powerplatform-connector'));
   assert.ok(plugins.some(p => p.id === 'data-analytics'));
 
-  // Nemožno vypnúť povinný plugin
-  assert.throws(() => copilotPluginRegistry.disable('core-copilot'), /nie je možné vypnúť/);
+  // Cannot disable a required plugin
+  assert.throws(() => copilotPluginRegistry.disable('core-copilot'), /cannot be disabled/);
 
   // Vypnutie a zapnutie voliteľného pluginu
   copilotPluginRegistry.disable('web-researcher');

@@ -3,10 +3,10 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul copilot-agent.js (Trinity/src/copilot-agent.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description TrinityCopilotAgent main runtime with skill registry, plugin governance, caching, and circuit breaker for TRINITY OMNI-CORE.
  */
 /**
- * TrinityCopilotAgent - Hlavný agent s podporou skill-registry a pluginov
+ * TrinityCopilotAgent - Primary Copilot agent with skill-registry and plugin support.
  */
 
 import {skills, skillRegistry} from './skillRegistry.js';
@@ -21,14 +21,14 @@ export async function TrinityCopilotAgent(query, env = {}, options = {}) {
   // Session IDs supplied by clients are not globally unique identities.
   const storageSessionId=sessionId&&options.userId?`copilot:v2:${await digestText(JSON.stringify([options.userId,sessionId]))}`:null;
 
-  // 1️⃣ Validácia vstupu
+  // 1. Input validation
   skills.validateInput(query, options);
 
-  // Bezpečnostná sanitizácia (odstránenie XSS, maskovanie citlivých údajov)
+  // Security sanitization (strip XSS vectors, redact sensitive credentials)
   const sanitizedQuery = skills.securitySanitise.sanitizeHtml(query);
   const cleanQuery = skills.securitySanitise.redactSensitive(sanitizedQuery);
 
-  // Rate-limiting kontrola
+  // Rate-limiting check
   const rateLimitKey = options.userId ? `copilot:user:${options.userId}` : 'copilot:global';
   try {
     await skills.rateLimiter(rateLimitKey, env, {
@@ -36,12 +36,12 @@ export async function TrinityCopilotAgent(query, env = {}, options = {}) {
       windowSeconds: options.rateWindow || 60
     });
   } catch (rateErr) {
-    await skills.logAudit(env, 'warn', `Rate limit prekročený pre ${rateLimitKey}`, { query: cleanQuery });
+    await skills.logAudit(env, 'warn', `Rate limit exceeded for ${rateLimitKey}`, { query: cleanQuery });
     skills.recordMetrics(env, 'copilot.rate_limited', 1);
     throw rateErr;
   }
 
-  // 2️⃣ Cache (ak nie je výslovne vypnutá)
+  // 2. Response cache (unless explicitly disabled)
   let cacheKey = null;
   if (!options.noCache && options.userId && !sessionId && !options.skill &&
       !options.usePowerPlatform && !(env.POWER_PLATFORM_URL && env.BOT_ID && !options.useTrinityAI)) {
@@ -50,7 +50,7 @@ export async function TrinityCopilotAgent(query, env = {}, options = {}) {
     
     const cached = await skills.cacheGet(cacheKey, env);
     if (cached) {
-      await skills.logAudit(env, 'info', `Cache zásah pre dotaz: "${cleanQuery.slice(0, 50)}"`, { cached: true });
+      await skills.logAudit(env, 'info', `Cache hit for query: "${cleanQuery.slice(0, 50)}"`, { cached: true });
       skills.recordMetrics(env, 'copilot.cache_hit', 1);
       return {
         ...cached,
@@ -62,27 +62,27 @@ export async function TrinityCopilotAgent(query, env = {}, options = {}) {
     }
   }
 
-  // Načítanie dialógového kontextu (ak je zadané sessionId)
+  // Load dialogue context (when sessionId is provided)
   let history = [];
   if (storageSessionId) {
     history = await skills.dialogManagement.getContext(storageSessionId, env);
   }
 
-  // 3️⃣ Volanie s retry a circuit-breakerom
+  // 3. Upstream invocation with retry and circuit breaker
   let rawResult;
   let provider = 'trinity-core';
 
   try {
     rawResult = await skills.circuitBreaker.execute('copilot-upstream', async () => {
       return await skills.withRetry(async () => {
-        // A) Ak je explicitne zvolené alebo nakonfigurované volanie Power Platform / Copilot Studio
+        // A) Explicitly requested or configured Power Platform / Copilot Studio call
         if (options.usePowerPlatform || (env.POWER_PLATFORM_URL && env.BOT_ID && !options.useTrinityAI)) {
           provider = 'power-platform';
           const platformResp = await skills.callPowerPlatform(cleanQuery, env, options);
           return platformResp;
         }
 
-        // B) Ak je v options požiadavka na konkrétny skill (napr. web_search, analyze_text, calculate alebo syntetizovaný skill)
+        // B) Explicit skill invocation via options (e.g., web_search, analyze_text, calculate, or synthesized skill)
         if (options.skill) {
           assertCopilotSkillEnabled(options.skill);
           const targetSkill = skillRegistry.get(options.skill) || skills[options.skill];
@@ -90,18 +90,19 @@ export async function TrinityCopilotAgent(query, env = {}, options = {}) {
             provider = `skill:${options.skill}`;
             return await targetSkill(cleanQuery, env, options);
           }
-          throw new Error(`Skill '${options.skill}' nebol nájdený v registry.`);
+          throw new Error(`Skill '${options.skill}' was not found in the registry.`);
         }
 
-        // C) Ak je dostupný AI model (Cloudflare Workers AI, Gemini alebo OpenAI)
+        // C) Available AI model provider (Cloudflare Workers AI, Gemini, OpenAI, or Ollama)
         if (options.aiProvider || env.AI || env.GEMINI_API_KEY || env.OPENAI_API_KEY || env.OLLAMA_API_KEY || env.OLLAMA_SECRET) {
           provider = 'trinity-ai';
           const aiProvider = options.aiProvider || (env.AI ? 'workers-ai' : env.GEMINI_API_KEY ? 'gemini' : env.OPENAI_API_KEY ? 'openai' : 'ollama');
           const messages = [
             {
               role: 'system',
-              content: 'Si Trinity Copilot – vysoko inteligentná, spoľahlivá a auditovateľná AI asistentka. ' +
-                       'Odpovedaj vecne, presne a zrozumiteľne v slovenčine (alebo v jazyku používateľa).'
+              content: 'You are Trinity Copilot — a highly capable, reliable, and auditable AI assistant. ' +
+                       'Respond concisely, accurately, and clearly. ' +
+                       "COMMUNICATION LANGUAGE RULE: Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal 'tykanie' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language."
             },
             ...history.map(item => ({ role: item.role, content: item.content })),
             { role: 'user', content: cleanQuery }
@@ -111,15 +112,15 @@ export async function TrinityCopilotAgent(query, env = {}, options = {}) {
           return modelResponse.text;
         }
 
-        // D) Predvolená deterministická odpoveď Trinity Copilota
+        // D) Default deterministic unconfigured response
         provider = 'unconfigured';
-        return 'AI poskytovateľ nie je nakonfigurovaný. Skontroluj konfiguráciu integrácií; vykonanie úlohy zatiaľ nie je potvrdené.';
+        return 'AI provider is not configured. Check integration configuration; task execution has not been verified yet.';
       // Skills and connector calls may have side effects; never retry them automatically.
       }, [], options.skill || options.usePowerPlatform || (env.POWER_PLATFORM_URL && env.BOT_ID && !options.useTrinityAI) ? 0 : options.retries ?? 3, options.backoff ?? 400);
     }, env, { threshold: options.circuitThreshold || 5, cooldownMs: options.circuitCooldown || 30000 });
   } catch (error) {
     skills.recordMetrics(env, 'copilot.error', 1);
-    await skills.logAudit(env, 'error', `TrinityCopilotAgent zlyhal pre dotaz: "${cleanQuery.slice(0, 50)}": ${error.message}`, {
+    await skills.logAudit(env, 'error', `TrinityCopilotAgent failed for query: "${cleanQuery.slice(0, 50)}": ${error.message}`, {
       error: error.message,
       requestId
     });
@@ -132,7 +133,7 @@ export async function TrinityCopilotAgent(query, env = {}, options = {}) {
     }
   }
 
-  // 4️⃣ Formátovanie bohatého výstupu (Rich-response formatting)
+  // 4. Rich-response formatting
   let formattedResult;
   if (rawResult && typeof rawResult === 'object' && rawResult.type && rawResult.content) {
     formattedResult = rawResult;
@@ -152,12 +153,12 @@ export async function TrinityCopilotAgent(query, env = {}, options = {}) {
     duration_ms: durationMs
   };
 
-  // 5️⃣ Uloženie do cache
+  // 5. Store result in cache
   if (cacheKey && !options.noCache && provider==='trinity-ai' && finalResponse.type !== 'error') {
     await skills.cachePut(cacheKey, finalResponse, env, options.cacheTtl || 120);
   }
 
-  // Uloženie kontextu do histórie dialógu
+  // Persist turn into dialogue history
   if (storageSessionId) {
     const userText = cleanQuery;
     const assistantText = typeof finalResponse.content === 'string' ? finalResponse.content : JSON.stringify(finalResponse.content);
@@ -167,7 +168,7 @@ export async function TrinityCopilotAgent(query, env = {}, options = {}) {
     ], env);
   }
 
-  // 6️⃣ Audit & Metriky
+  // 6. Audit & Metrics
   await skills.logAudit(
     env,
     'info',

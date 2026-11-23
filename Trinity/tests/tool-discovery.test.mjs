@@ -24,16 +24,16 @@ test('discovery finds Slovak descriptions, deduplicates and bounds results', () 
 });
 
 test('catalog searches operational labels while returning the original callable IDs', () => {
-  const result=describeAvailableTools(['commodity_trade','terminal_payout'],{}, {}, {query:'simulovany obchod'});
+  const result=describeAvailableTools(['commodity_trade','terminal_payout'],{}, {}, {query:'simulated commodity trade'});
   assert.equal(result.total,1);
   assert.equal(result.tools[0].name,'commodity_trade');
-  assert.equal(result.tools[0].display_name,'Zapísať simulovaný obchod s komoditou');
+  assert.equal(result.tools[0].display_name,'Record simulated commodity trade');
 });
 test('discovery rejects malformed input and instructions retain request boundaries', () => {
   for(const input of [null,[],{name:1},{query:'x'.repeat(201)},{enable:true}]) assert.throws(()=>describeAvailableTools([],{}, {},input));
   const text=discoveryInstructions(['read','read']);
   assert.match(text,/describe_tools/);
-  assert.match(text,/schvaľovanie/);
+  assert.match(text,/approval/);
   assert.equal(text.endsWith('read.'),true);
 });
 
@@ -73,7 +73,7 @@ test('CSV export writes a downloadable R2 artifact with safe, structured cells',
   assert.equal(result.rows,2);
   assert.match(result.download_url,/download=1$/);
   assert.equal(saved.content,'\uFEFF"Meno","Cena"\r\n"Žofia, a.s.","12"\r\n"\'=1+1","-5"\r\n');
-  await assert.rejects(runTool(env,'orchestrator','export_csv',{...args,rows:[['short']]}),/rovnaký počet/);
+  await assert.rejects(runTool(env,'orchestrator','export_csv',{...args,rows:[['short']]}),/same number of cells/);
   assert.equal(requiresWorkflowFallback('Exportuj tieto údaje do CSV.'),true);
 });
 
@@ -108,7 +108,7 @@ test('private cloud tools are callable for owners and check real provider config
    assert.equal(requiresWorkflowFallback(message),true);
    await assert.rejects(runTool({},'orchestrator',name,{}),/overeného správcu/);
    if(name==='google_drive_verify'){
-     await assert.rejects(runAgent({},'orchestrator',message,'','fast',1000,'sk',true),/servisný účet/);
+     await assert.rejects(runAgent({},'orchestrator',message,'','fast',1000,'sk',true),/service account/);
    }else{
      const result=await runAgent({},'orchestrator',message,'','fast',1000,'sk',true);
      assert.equal(result.tool_log[0].tool,name);
@@ -122,7 +122,7 @@ test('live owner status tests surface provider diagnostics and hide the account 
  const owner=await handleLiveChatStream({},null,{...request,ownerMode:true});
  const events=(await owner.text()).trim().split('\n').map(JSON.parse);
  assert.ok(events.some(event=>event.type==='tool'&&event.name==='onedrive_manage'&&event.status==='failed'));
- assert.match(events.at(-1).error,/poverenie zatiaľ nie je nakonfigurované/);
+ assert.match(events.at(-1).error,/credential is not configured yet/);
  const visitor=await handleLiveChatStream({},null,request);
  assert.equal(JSON.parse((await visitor.text()).trim()).type,'fallback_job');
 });
@@ -153,8 +153,8 @@ test('owner PC tasks receive native search descriptions and exact search argumen
  await runAgent(env,'backend','Nájdi definíciu funkcie na PC.','','workers-ai',1000,'sk',true);
  assert.match(firstPrompt,/pc_search_text: Vyhľadá text/);
  assert.match(firstPrompt,/pc_find_files: Nájde skutočné súbory/);
- assert.match(firstPrompt,/Argument textu je pattern/);
- assert.doesNotMatch(discoveryInstructions(['calculate']),/Argument textu je pattern/);
+ assert.match(firstPrompt,/The text argument is pattern/);
+ assert.doesNotMatch(discoveryInstructions(['calculate']),/The text argument is pattern/);
 });
 
 

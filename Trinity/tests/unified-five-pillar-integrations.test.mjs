@@ -184,7 +184,7 @@ test('Gemini status reports a recognized provider reason without echoing private
   }),{status:400}));
   const result=await manageGoogleCloud({GEMINI_API_KEY:'fixture-key'});
   assert.equal(result.verified,false);
-  assert.match(result.error,/neplatný.*HTTP 400/);
+  assert.match(result.error,/invalid.*HTTP 400/i);
   assert.doesNotMatch(JSON.stringify(result),/private-provider|fixture-key/);
 });
 

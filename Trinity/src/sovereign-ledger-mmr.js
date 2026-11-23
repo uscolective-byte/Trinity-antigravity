@@ -1,6 +1,6 @@
 /**
  * TRINITY OMNI-CORE - Sovereign Ledger MMR (Merkle Mountain Range) Engine
- * Kryptograficky zreťazený nemenný auditný ledger s MMR vrcholmi a verifikáciou integrity.
+ * Cryptographically chained immutable audit ledger with MMR peaks and integrity verification.
  */
 
 export async function sha256Hex(message) {
@@ -44,7 +44,7 @@ export class SovereignLedgerEngine {
       await this.db.prepare(LEDGER_SCHEMA_SQL).run();
       this._tableInitialized = true;
     } catch {
-      // Ak D1 nepodporuje multiline batch alebo už tabuľka existuje
+      // Fallback if D1 does not support multiline batch execution or table already exists
       try {
         await this.db
           .prepare(
@@ -62,7 +62,7 @@ export class SovereignLedgerEngine {
           .run();
         this._tableInitialized = true;
       } catch (_) {
-        // Ignorujeme, ak tabuľka už existuje alebo D1 je read-only
+        // Ignore if table already exists or D1 is read-only
       }
     }
   }
@@ -131,7 +131,7 @@ export class SovereignLedgerEngine {
           .bind(nextBlockId, timestamp, actor, operation, prevHash, currentHash, payloadStr)
           .run();
       } catch (err) {
-        // Skúsime inicializovať schému a zopakovať
+        // Attempt schema initialization and retry insert
         try {
           await this.ensureSchema();
           await this.db
@@ -142,7 +142,7 @@ export class SovereignLedgerEngine {
             .bind(nextBlockId, timestamp, actor, operation, prevHash, currentHash, payloadStr)
             .run();
         } catch (retryErr) {
-          console.error('[SOVEREIGN LEDGER] Zlyhal zápis do D1:', retryErr.message);
+          console.error('[SOVEREIGN LEDGER] D1 write failed:', retryErr.message);
         }
       }
     }
@@ -181,7 +181,7 @@ export class SovereignLedgerEngine {
           return {
             valid: true,
             chainLength: 0,
-            message: `Žiadne bloky v D1 databáze (${err.message})`
+            message: `No blocks found in D1 database (${err.message})`
           };
         }
       }
@@ -201,7 +201,7 @@ export class SovereignLedgerEngine {
       return {
         valid: true,
         chainLength: 0,
-        message: 'Reťazec je prázdny, integrita platná (genesis).'
+        message: 'Chain is empty; integrity valid (genesis).'
       };
     }
 
@@ -212,14 +212,14 @@ export class SovereignLedgerEngine {
       const blockId = Number(block.block_id);
 
       if (i === 0) {
-        // Prvý blok musí nadväzovať na GENESIS alebo svoj declared prev_hash
+        // First block must link from GENESIS or its declared previous_hash
         expectedPrevHash = block.previous_hash;
       } else {
         if (block.previous_hash !== expectedPrevHash) {
           return {
             valid: false,
             brokenAtIndex: blockId,
-            error: `Narušenie zreťazenia: previous_hash [${block.previous_hash}] sa nezhoduje s hash predchádzajúceho bloku [${expectedPrevHash}].`
+            error: `Chain link violation: previous_hash [${block.previous_hash}] does not match previous block hash [${expectedPrevHash}].`
           };
         }
       }
@@ -233,7 +233,7 @@ export class SovereignLedgerEngine {
         return {
           valid: false,
           brokenAtIndex: blockId,
-          error: `Neplatný kontrolný súčet bloku ${blockId}: očakávaný [${recalculatedHash}], nájdený [${block.current_hash}].`
+          error: `Invalid checksum for block ${blockId}: expected [${recalculatedHash}], found [${block.current_hash}].`
         };
       }
 

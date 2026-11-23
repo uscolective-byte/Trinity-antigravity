@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul banking-commodity-advanced.js (Trinity/src/banking-commodity-advanced.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Advanced commodity price alerts, SEPA EPC QR invoicing, and aggregated net worth module (Trinity/src/banking-commodity-advanced.js).
  */
 import { z } from 'zod';
 import { HttpError } from './security.js';
@@ -46,7 +46,7 @@ export function calculateSupportResistance(commodity) {
 export async function createPriceAlert(env, actor = 'admin', input) {
   const parsed = priceAlertSchema.parse(input);
   const comm = ALL_COMMODITIES.find(c => c.symbol.toLowerCase() === parsed.symbol.toLowerCase());
-  if (!comm) throw new HttpError(404, `Komodita so symbolom ${parsed.symbol} nebola nájdená.`);
+  if (!comm) throw new HttpError(404, `Commodity with symbol ${parsed.symbol} not found.`);
 
   const { support, resistance } = calculateSupportResistance(comm);
   const alertId = `alt-p-${crypto.randomUUID()}`;
@@ -108,16 +108,16 @@ export async function checkPriceAlerts(env, { notify = true } = {}) {
 
     if (alt.condition === 'above' && price >= alt.target_price) {
       isBreached = true;
-      reason = `Cena ${comm.symbol} vystúpila nad cieľovú hladinu: ${price} € >= ${alt.target_price} €`;
+      reason = `${comm.symbol} price rose above target level: ${price} EUR >= ${alt.target_price} EUR`;
     } else if (alt.condition === 'below' && price <= alt.target_price) {
       isBreached = true;
-      reason = `Cena ${comm.symbol} klesla pod cieľovú hladinu: ${price} € <= ${alt.target_price} €`;
+      reason = `${comm.symbol} price dropped below target level: ${price} EUR <= ${alt.target_price} EUR`;
     } else if (alt.condition === 'cross_support' && alt.support_level && price <= alt.support_level) {
       isBreached = true;
-      reason = `Cena ${comm.symbol} preťala úroveň podpory (Support): ${price} € <= ${alt.support_level} €`;
+      reason = `${comm.symbol} price crossed below support level: ${price} EUR <= ${alt.support_level} EUR`;
     } else if (alt.condition === 'cross_resistance' && alt.resistance_level && price >= alt.resistance_level) {
       isBreached = true;
-      reason = `Cena ${comm.symbol} prerazila rezistenciu (Resistance): ${price} € >= ${alt.resistance_level} €`;
+      reason = `${comm.symbol} price broke above resistance level: ${price} EUR >= ${alt.resistance_level} EUR`;
     }
 
     if (isBreached) {
@@ -129,7 +129,7 @@ export async function checkPriceAlerts(env, { notify = true } = {}) {
       `).bind(price, alt.id).run().catch(() => {});
 
       if (notify) {
-        const msg = `🔔 <b>CENOVÝ SMART ALERT: ${comm.name} (${comm.symbol})</b>\n\n${reason}\nAktuálna spot cena: <b>${price} EUR</b>\n\n<i>Trinity Commodity Desk Watchdog</i>`;
+        const msg = `🔔 <b>SMART PRICE ALERT: ${comm.name} (${comm.symbol})</b>\n\n${reason}\nCurrent spot price: <b>${price} EUR</b>\n\n<i>Trinity Commodity Desk Watchdog</i>`;
         await sendTelegramAlert(env, msg).catch(() => {});
       }
     }
@@ -281,9 +281,9 @@ export async function generateInvoiceWithSepaQr(env, actor = 'admin', input) {
 
   // Document step in Trinity Documents
   await recordStepDocument(env, {
-    title: `Vygenerovaná SEPA Faktúra: ${invoiceNumber}`,
+    title: `Generated SEPA Invoice: ${invoiceNumber}`,
     category: 'wallet',
-    description: `Vystavená faktúra pre ${parsed.client_name} na sumu ${parsed.amount_eur} EUR so SEPA EPC QR kódom.`,
+    description: `Issued invoice for ${parsed.client_name} for ${parsed.amount_eur} EUR with SEPA EPC QR code.`,
     details: { invoice_id: invoiceId, invoice_number: invoiceNumber, amount: parsed.amount_eur, variable_symbol: variableSymbol }
   }).catch(() => {});
 
@@ -344,11 +344,11 @@ export async function getAggregatedNetWorth(env, actor = 'admin') {
 
   // Historical points for sparkline/chart
   const history = [
-    { date: '1. okt 2026', net_worth: totalNetWorth * 0.88 },
-    { date: '7. okt 2026', net_worth: totalNetWorth * 0.91 },
-    { date: '14. okt 2026', net_worth: totalNetWorth * 0.95 },
-    { date: '21. okt 2026', net_worth: totalNetWorth * 0.98 },
-    { date: 'Dnes', net_worth: totalNetWorth }
+    { date: '1 Oct 2026', net_worth: totalNetWorth * 0.88 },
+    { date: '7 Oct 2026', net_worth: totalNetWorth * 0.91 },
+    { date: '14 Oct 2026', net_worth: totalNetWorth * 0.95 },
+    { date: '21 Oct 2026', net_worth: totalNetWorth * 0.98 },
+    { date: 'Today', net_worth: totalNetWorth }
   ];
 
   return {

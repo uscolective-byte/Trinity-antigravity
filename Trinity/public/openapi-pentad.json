@@ -3,7 +3,7 @@
   "info": {
     "title": "TRINITY Sovereign Pentad MCP Gateway",
     "version": "11.0.0",
-    "description": "Jednotný Model Context Protocol (MCP) a REST router prepájajúci Cloudflare Sovereign Core (Trinity), Antigravity IDE, Google Gemini, Microsoft Copilot Studio (crm17) a ChatGPT/Codex.",
+    "description": "Unified Model Context Protocol (MCP) and REST router connecting Cloudflare Sovereign Core (Trinity), Antigravity IDE, Google Gemini, Microsoft Copilot Studio (crm17), and ChatGPT/Codex.",
     "contact": {
       "name": "Sabo Ivan / Basterix",
       "email": "saboivan2008@gmail.com",
@@ -32,7 +32,7 @@
     "/mcp": {
       "post": {
         "operationId": "callMcpJsonRpc",
-        "summary": "Štandardný JSON-RPC 2.0 vstup pre MCP klientov (Antigravity, Gemini CLI, Claude, Copilot)",
+        "summary": "Standard JSON-RPC 2.0 entry point for MCP clients (Antigravity, Gemini CLI, Claude, Copilot)",
         "requestBody": {
           "required": true,
           "content": {
@@ -45,7 +45,7 @@
         },
         "responses": {
           "200": {
-            "description": "JSON-RPC 2.0 odpoveď obsahujúca výsledok MCP nástroja",
+            "description": "JSON-RPC 2.0 response containing the MCP tool execution result",
             "content": {
               "application/json": {
                 "schema": {
@@ -55,7 +55,7 @@
             }
           },
           "401": {
-            "description": "Neautorizovaný prístup (chýba alebo neplatný Bearer token)"
+            "description": "Unauthorized access (missing or invalid Bearer token)"
           }
         }
       }
@@ -63,8 +63,8 @@
     "/api/mcp/invoke": {
       "post": {
         "operationId": "invokePentadTool",
-        "summary": "REST Action Wrapper pre Microsoft Copilot Studio Custom Connector a ChatGPT Custom Actions",
-        "description": "Umožňuje systémom, ktoré nepodporujú natívny JSON-RPC, vyvolať ľubovoľný nástroj z flotily Trinity cez jednoduchý REST POST.",
+        "summary": "REST Action Wrapper for Microsoft Copilot Studio Custom Connector and ChatGPT Custom Actions",
+        "description": "Enables systems that do not support native JSON-RPC to invoke any tool from the Trinity fleet via a simple REST POST.",
         "requestBody": {
           "required": true,
           "content": {
@@ -77,7 +77,7 @@
         },
         "responses": {
           "200": {
-            "description": "Úspešné vykonanie nástroja s auditným dokladom receipt_id",
+            "description": "Successful tool execution with audit proof receipt_id",
             "content": {
               "application/json": {
                 "schema": {
@@ -87,10 +87,10 @@
             }
           },
           "400": {
-            "description": "Neplatné argumenty alebo chýbajúci názov nástroja"
+            "description": "Invalid arguments or missing tool name"
           },
           "401": {
-            "description": "Neautorizovaný prístup"
+            "description": "Unauthorized access"
           }
         }
       }
@@ -98,11 +98,11 @@
     "/health": {
       "get": {
         "operationId": "getEcosystemHealth",
-        "summary": "Stav zdravia a pripravenosti flotily 29 služieb Trinity",
+        "summary": "Health and readiness status of the 29-service Trinity fleet",
         "security": [],
         "responses": {
           "200": {
-            "description": "Zdravie ekosystému, verzia a stav prepojení",
+            "description": "Ecosystem health, version, and binding readiness status",
             "content": {
               "application/json": {
                 "schema": {
@@ -127,7 +127,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT/DPAPI",
-        "description": "Chránený token Trinity MCP Hubu"
+        "description": "Protected bearer token for Trinity MCP Hub"
       }
     },
     "schemas": {
@@ -169,7 +169,7 @@
         "properties": {
           "tool": {
             "type": "string",
-            "description": "Názov nástroja z Pentad katalógu",
+            "description": "Tool name from the Pentad allowlisted catalog",
             "enum": [
               "trinity_status",
               "pc_status",
@@ -184,7 +184,7 @@
           },
           "arguments": {
             "type": "object",
-            "description": "Parametre vyvolávaného nástroja",
+            "description": "Arguments passed to the invoked tool",
             "example": {}
           }
         }

@@ -55,7 +55,8 @@ test('disabled planning plugin cannot execute',async()=>{
 });
 
 test('communication requires one manageable step and distinguishes connectivity from authorization',()=>{
-  assert.match(COMMUNICATION_STYLE,/jeden konkrétny krok/);
+  assert.match(COMMUNICATION_STYLE,/one concrete step/i);
   assert.match(COMMUNICATION_STYLE,/HTTP 200/);
-  assert.match(COMMUNICATION_STYLE,/neopakuj/i);
+  assert.match(COMMUNICATION_STYLE,/do not repeat/i);
+  assert.match(COMMUNICATION_STYLE,/Always reply to the user in natural, idiomatic Slovak/);
 });

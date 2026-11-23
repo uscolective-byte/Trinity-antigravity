@@ -3,11 +3,11 @@
  * @subsystem MEMORY_AND_KNOWLEDGE_ENGINE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul teleological_memory.js (Trinity/src/teleological_memory.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module teleological_memory.js (Trinity/src/teleological_memory.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * Teleological Memory Engine
- * Bezpečné a robustné vyhľadávanie teleologických invariantov a existenčných cieľov Trinity.
+ * Safe and robust retrieval of Trinity's teleological invariants and foundational objectives.
  */
 
 export class TeleologicalMemoryEngine {
@@ -23,7 +23,7 @@ export class TeleologicalMemoryEngine {
   }
 
   /**
-   * Vypočíta aktuálnu koherenciu záznamu s ohľadom na časový rozpad (entropiu) a harmonickú rezonanciu.
+   * Computes current record coherence accounting for time decay (entropy) and harmonic resonance.
    * @param {{gravitationalWeight?: number, entropyRate?: number, createdAt?: number, lastManifestedAt?: number}} rec
    * @param {number} now
    * @returns {number}
@@ -33,13 +33,13 @@ export class TeleologicalMemoryEngine {
     const entropy = Math.max(0, Math.min(Number(rec?.entropyRate ?? 0.05), 1.0));
     const lastTime = Number(rec?.lastManifestedAt || rec?.createdAt || now);
     const elapsedDays = Math.max(0, (now - lastTime) / (1000 * 60 * 60 * 24));
-    // Exponenciálny rozpad vážený harmonickou rezonanciou
+    // Exponential decay weighted by harmonic resonance
     const decay = Math.exp(-entropy * elapsedDays);
     return Number((weight * decay).toFixed(4));
   }
 
   /**
-   * Posilní záznam v pamäti aktualizáciou času posledného prejavenia.
+   * Reinforces a memory record by updating its last-manifested timestamp.
    * @param {string} id
    * @param {number} now
    */
@@ -51,12 +51,12 @@ export class TeleologicalMemoryEngine {
         .bind(now, id)
         .run();
     } catch (_) {
-      // Ignorovať ak tabuľka neexistuje
+      // Ignore if the table does not exist
     }
   }
 
   /**
-   * Vyvolá relevantné teleologické stavy na základe dopytu a koherenčného prahu.
+   * Recalls relevant teleological states based on intent and coherence threshold.
    * @param {string} currentIntent
    * @param {string} [sessionId]
    * @param {number} [coherenceThreshold]
@@ -65,14 +65,14 @@ export class TeleologicalMemoryEngine {
   async recallTeleologicalState(currentIntent, sessionId = "default", coherenceThreshold = 0.15) {
     const relevant = [];
 
-    // Základné invarianty systému Trinity (garantovaný základ)
+    // Foundational Trinity system invariants (guaranteed baseline)
     const baseInvariants = [
-      'Invariant 1 (Identita): Trinity je zjednotená AI asistentka, ktorej hlavným architektom je Sabo Ivan (Basterix).',
-      'Invariant 2 (Pravdivosť): Dôkazy predchádzajú domnienkam, faktická overiteľnosť má prednosť pred konfabuláciou.',
-      'Invariant 3 (Telos): Účelom Trinity je praktická realizácia zámeru, bezpečnosť systému a zmysluplná tvorivosť.'
+      'Invariant 1 (Identity): Trinity is a unified AI assistant whose chief architect is Sabo Ivan (Basterix).',
+      'Invariant 2 (Truthfulness): Evidence precedes assumptions; factual verifiability takes precedence over confabulation.',
+      'Invariant 3 (Telos): Trinity\'s purpose is practical execution of intent, system security, and meaningful creativity.'
     ];
 
-    // 1️⃣ Pokus o vektorové vyhľadanie cez Vectorize a AI embeddings (ak sú nakonfigurované)
+    // 1️⃣ Attempt vector search via Vectorize and AI embeddings (when configured)
     if (this.vectorize && this.ai?.run && typeof currentIntent === 'string' && currentIntent.trim()) {
       try {
         const embeddingRes = await this.ai.run("@cf/baai/bge-base-en-v1.5", {
@@ -129,11 +129,11 @@ export class TeleologicalMemoryEngine {
           }
         }
       } catch (_) {
-        // Plynulý fallback na relačnú pamäť
+        // Graceful fallback to relational memory
       }
     }
 
-    // 2️⃣ Doplňujúce vyhľadanie v existujúcej relačnej pamäti Trinity (ops_memory)
+    // 2️⃣ Supplemental lookup in existing relational Trinity memory (ops_memory)
     if (this.db) {
       try {
         const query = "SELECT key, value FROM ops_memory WHERE key LIKE 'profil/%' OR key LIKE 'invariant/%' OR key LIKE 'telos/%' ORDER BY updated_at DESC LIMIT 5";
@@ -148,19 +148,19 @@ export class TeleologicalMemoryEngine {
       } catch (_) {}
     }
 
-    // Spojenie invariantov a deduplikácia
+    // Merge invariants and deduplicate
     const finalSet = new Set([...baseInvariants, ...relevant]);
     return Array.from(finalSet);
   }
 
   /**
-   * Bezpečne pridá teleologický záznam s validáciou parametrov.
+   * Safely adds a teleological record with parameter validation.
    * @param {string} purpose
    * @param {string} content
    * @param {string} [sessionId]
    * @param {number} [weight]
    * @param {number} [entropy]
-   * @returns {Promise<string>} ID záznamu
+   * @returns {Promise<string>} Record ID
    */
   async addMemory(
     purpose,
@@ -169,7 +169,7 @@ export class TeleologicalMemoryEngine {
     weight = 0.5,
     entropy = 0.05
   ) {
-    // Validácia rozsahov
+    // Range validation
     if (typeof weight !== 'number' || weight < 0 || weight > 1) {
       throw new Error("weight must be in [0,1]");
     }
@@ -180,7 +180,7 @@ export class TeleologicalMemoryEngine {
     const recordId = crypto.randomUUID();
     const now = Date.now();
 
-    // 1️⃣ Vectorize upsert (ak je dostupný)
+    // 1️⃣ Vectorize upsert (when available)
     if (this.vectorize && this.ai?.run) {
       try {
         const embeddingRes = await this.ai.run("@cf/baai/bge-base-en-v1.5", {
@@ -195,7 +195,7 @@ export class TeleologicalMemoryEngine {
       } catch (_) {}
     }
 
-    // 2️⃣ D1 INSERT s plnou parametrizáciou
+    // 2️⃣ Parameterized D1 INSERT
     if (this.db) {
       const sql = `
         INSERT INTO ontological_memory (
@@ -214,7 +214,7 @@ export class TeleologicalMemoryEngine {
           .bind(recordId, purpose, content, weight, entropy, now, now)
           .run();
       } catch (err) {
-        // Fallback do ops_memory ak schéma ešte neobsahuje tabuľku ontological_memory
+        // Fallback to ops_memory if the schema does not yet contain ontological_memory
         try {
           await this.db
             .prepare("INSERT INTO ops_memory (key, value) VALUES (?, ?)")

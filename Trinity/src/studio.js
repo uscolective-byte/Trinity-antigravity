@@ -3,7 +3,7 @@
  * @subsystem OMNIDEV_STUDIO_ENGINE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description OmniDev Studio generátor webových projektov s integrovanou AST diagnostikou (diagnoseOmniDevStackTrace) a R2/D1 verziovaním.
+ * @description OmniDev Studio web project generator with integrated AST diagnostics (diagnoseOmniDevStackTrace) and R2/D1 versioning.
  */
 import {diagnoseOmniDevStackTrace} from './omnidev-diagnostics.js';
 import {upsertCommerceProduct, commerceAccounts} from './revolut.js';
@@ -17,7 +17,7 @@ const STUDIO_PROVIDERS=['ollama','gemini','openai','anthropic','groq','deepseek'
 export async function studioCapabilities(env){
   const providers=await Promise.all(STUDIO_PROVIDERS.map(async id=>({id,configured:!!(await resolveProviderSecret(env,id)),verified:false})));
   providers.unshift({id:'workers-ai',configured:!!(env.AI||env.CHAT_INFERENCE_SERVICE),verified:false});
-  return {providers,storage:{projects:!!env.DB,artifacts:!!env.ARTIFACTS},tools:['web','html-export','quality-audit','version-history','photo','music','video','presentation','creative-pack'],note:'Konfigurácia nepotvrdzuje úspešné volanie modelu. Multimediálne nástroje môžu používať lokálnu syntézu.'};
+  return {providers,storage:{projects:!!env.DB,artifacts:!!env.ARTIFACTS},tools:['web','html-export','quality-audit','version-history','photo','music','video','presentation','creative-pack'],note:'Configuration does not confirm a successful model call. Multimedia tools may use local synthesis.'};
 }
 
 export async function configuredStudioProviders(env,options={}){
@@ -37,7 +37,7 @@ export function extractHtml(text){
   const fenced=raw.match(/```(?:html)?\s*([\s\S]*?)```/i);
   let html=(fenced?fenced[1]:raw).trim().replace(/^```(?:html)?\s*/i,'').replace(/\s*```$/,'');
   const start=html.search(/<!doctype html>|<html[\s>]/i);
-  if(start<0)throw new Error('Generátor nevrátil úplnú HTML stránku.');
+  if(start<0)throw new Error('Generator did not return a complete HTML page.');
   html=html.slice(start);
   let end=html.toLowerCase().lastIndexOf('</html>');
   if(end>=0){
@@ -46,17 +46,18 @@ export function extractHtml(text){
     if(!/<\/body>/i.test(html))html+='\n</body>';
     html+='\n</html>';
   }else{
-    throw new Error('Generátor nevrátil úplnú HTML stránku.');
+    throw new Error('Generator did not return a complete HTML page.');
   }
   if(!/^\s*<!doctype html>/i.test(html))html='<!doctype html>\n'+html;
-  if(Buffer.byteLength(html)>180000)throw new Error('Vygenerovaná stránka je príliš veľká.');
+  if(Buffer.byteLength(html)>180000)throw new Error('Generated page is too large.');
   if(!/<head[\s>]/i.test(html))html=html.replace(/<html([^>]*)>/i,'<html$1><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>');
   if(!/content-security-policy/i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1>'+CSP);
   return html;
 }
-function nameFromPrompt(prompt){return prompt.replace(/^(vytvor|sprav|create|build)\s+(mi\s+)?/i,'').split(/[.!?\n]/)[0].trim().slice(0,60)||'Nový web';}
+function nameFromPrompt(prompt){return prompt.replace(/^(vytvor|sprav|create|build)\s+(mi\s+)?/i,'').split(/[.!?\n]/)[0].trim().slice(0,60)||'New Web Project';}
 export function studioGenerationPlan(provider='auto',quality='balanced',env={}){
-  const qualityPlans={fast:{maxTokens:3600,directive:'Uprednostni čistú menšiu stránku a rýchle vytvorenie.'},balanced:{maxTokens:6000,directive:'Vyváž vizuálnu kvalitu, funkčnosť a veľkosť kódu.'},high:{maxTokens:8000,directive:'Venuj zvýšenú pozornosť detailom, stavom komponentov, prístupnosti a responzivite.'}};
+  // Note: fast.directive matches existing unit.test.mjs contract.
+  const qualityPlans={fast:{maxTokens:3600,directive:'Uprednostni čistú menšiu stránku a rýchle vytvorenie.'},balanced:{maxTokens:6000,directive:'Balance visual quality, functionality, and code size.'},high:{maxTokens:8000,directive:'Pay extra attention to detail, component states, accessibility, and responsiveness.'}};
   const selected=qualityPlans[quality]||qualityPlans.balanced,automatic=env.OLLAMA_SECRET?['ollama','workers-ai']:['workers-ai'];
   const providers=provider==='auto'?automatic:[provider,'workers-ai',...automatic];
   return {...selected,providers:[...new Set(providers)]};
@@ -64,8 +65,8 @@ export function studioGenerationPlan(provider='auto',quality='balanced',env={}){
 async function generate(env,prompt,current='',options={}){
   const plan=studioGenerationPlan(options.provider,options.quality,env);
   const uniqueProviders=await configuredStudioProviders(env,options);
-  const system=`Si Trinity Web Studio. Vráť iba jeden kompletný dokument <!doctype html>...</html>, bez markdownu a bez vysvetlenia. Vytvor profesionálny responzívny web so slovenským textom, prístupnou typografiou a výrazným vizuálnym smerom. CSS a voliteľný JavaScript musia byť inline. Nepoužívaj externé knižnice, iframe, formuláre odosielajúce dáta, fetch, externé skripty ani tajomstvá. ${plan.directive}`;
-  const user=current?('Uprav tento existujúci web podľa pokynu. Zachovaj funkčné časti.\nPOKYN: '+prompt+'\nAKTUÁLNY HTML:\n'+current.slice(0,90000)):prompt;
+  const system=`You are Trinity Web Studio. Return only one complete <!doctype html>...</html> document, with no markdown fences and no explanation. Create a professional responsive website with accessible typography and a strong visual direction. CSS and optional JavaScript must be inline. Do not use external libraries, iframes, data-submitting forms, fetch, external scripts, or secrets. COMMUNICATION LANGUAGE RULE: Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal 'tykanie' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language. ${plan.directive}`;
+  const user=current?('Update this existing website according to the instruction. Preserve working sections.\nINSTRUCTION: '+prompt+'\nCURRENT HTML:\n'+current.slice(0,90000)):prompt;
   const messages=[{role:'system',content:system},{role:'user',content:user}];
   let lastError;
   for(const provider of uniqueProviders){
@@ -74,13 +75,13 @@ async function generate(env,prompt,current='',options={}){
     catch(error){lastError=error;}
   }
   const diag=diagnoseOmniDevStackTrace(String(lastError?.message||lastError||'Studio generation failed'),{filePath:'Trinity/src/studio.js'});
-  throw new HttpError(502,`Trinity nedokázala vytvoriť platný náhľad (${diag.category}). Skús pokyn spresniť.`);
+  throw new HttpError(502,`Trinity could not generate a valid preview (${diag.category}). Please refine the prompt.`);
 }
 const rowOut=row=>({...row,version:Number(row.version)});
 export async function listStudioProjects(env,owner){return (await env.DB.prepare('SELECT id,name,status,version,substr(prompt,1,300) AS prompt,created_at,updated_at FROM ops_studio_projects WHERE owner_id=? ORDER BY updated_at DESC LIMIT 40').bind(owner).all()).results.map(rowOut);}
 export async function getStudioProject(env,owner,id){
-  const row=await env.DB.prepare('SELECT * FROM ops_studio_projects WHERE id=? AND owner_id=?').bind(id,owner).first();if(!row)throw new HttpError(404,'Studio projekt neexistuje.');
-  const object=await env.ARTIFACTS.get(row.html_key);if(!object)throw new HttpError(404,'Náhľad projektu chýba.');
+  const row=await env.DB.prepare('SELECT * FROM ops_studio_projects WHERE id=? AND owner_id=?').bind(id,owner).first();if(!row)throw new HttpError(404,'Studio project not found.');
+  const object=await env.ARTIFACTS.get(row.html_key);if(!object)throw new HttpError(404,'Project preview is missing.');
   const versions=(await env.DB.prepare('SELECT version,prompt,model,created_at FROM ops_studio_versions WHERE project_id=? ORDER BY version DESC LIMIT 20').bind(id).all()).results;
   const html=await object.text();
   const latest_review=auditHtmlQuality(html);
@@ -118,7 +119,7 @@ export async function createStudioCheckoutOffer(env, owner, projectId, options =
   const priceEur = Number(options.priceEur || 150);
   const cents = Math.round(priceEur * 100);
   const offerId = 'web-' + projectId.slice(0, 8);
-  const offerTitle = options.title || ('Tvorba webu: ' + project.name);
+  const offerTitle = options.title || ('Web Development: ' + project.name);
   const provider = options.provider === 'paypal' ? 'paypal' : 'revolut-pro';
   
   await upsertCommerceProduct(env, owner, {
@@ -126,7 +127,7 @@ export async function createStudioCheckoutOffer(env, owner, projectId, options =
     product: {
       id: offerId,
       name: offerTitle,
-      description: 'Dodanie a nasadenie webového projektu "' + project.name + '" (verzia ' + project.version + ') od Trinity AI Studio.',
+      description: 'Delivery and deployment of web project "' + project.name + '" (version ' + project.version + ') by Trinity AI Studio.',
       amount_cents: cents,
       currency: 'EUR',
       payment_url: provider === 'paypal' ? accounts.paypal_url : accounts.revolut_url

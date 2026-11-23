@@ -3,14 +3,14 @@
  * @subsystem MEMORY_AND_KNOWLEDGE_ENGINE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul memorySkill.js (Trinity/src/memorySkill.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module memorySkill.js (Trinity/src/memorySkill.js) in the TRINITY OMNI-CORE ecosystem.
  */
 // src/memorySkill.js
 
 export const memorySkills = {
   /**
-   * Uloží nový príkaz natrvalo do Cloudflare D1 databázy
-   * Formát v čete: !skill analyzuj = Sprav hĺbkový audit kódu a vypíš 3 riziká.
+   * Persists a new custom command permanently in the Cloudflare D1 database.
+   * Chat syntax: !skill analyze = Run a deep code audit and list 3 risks.
    */
   async learnFromChat(rawText, env) {
     if (!rawText || typeof rawText !== 'string') return null;
@@ -23,14 +23,14 @@ export const memorySkills = {
     const instructions = match[2].trim();
 
     if (!instructions) {
-      throw new Error('Pokyn príkazu nesmie byť prázdny.');
+      throw new Error('Command instructions must not be empty.');
     }
     if (['skill', 'zoznam', 'zlepsenie'].includes(cmdName)) {
-      throw new Error(`Názov !${cmdName} je vyhradený pre zabudovaný príkaz. Zvoľ iný názov.`);
+      throw new Error(`Command name !${cmdName} is reserved for a built-in command. Choose another name.`);
     }
 
     if (!env?.DB) {
-      throw new Error('D1 databáza nie je k dispozícii pre uloženie príkazu.');
+      throw new Error('D1 database is not available to save the command.');
     }
 
     const write = await env.DB.prepare(
@@ -44,10 +44,10 @@ export const memorySkills = {
       .run();
 
     if (write?.success === false) {
-      throw new Error('Príkaz sa nepodarilo uložiť do D1 databázy.');
+      throw new Error('Failed to save the command to the D1 database.');
     }
 
-    // Vyčistíme cache zoznamu príkazov
+    // Invalidate the cached command list
     const cache = env.CACHE || env.Mastermind || null;
     if (cache && typeof cache.delete === 'function') {
       try {
@@ -61,19 +61,19 @@ export const memorySkills = {
       'SELECT instructions FROM trinity_commands WHERE cmd_name = ?'
     ).bind(cmdName).first();
     if (stored?.instructions !== instructions) {
-      throw new Error('Uloženie príkazu sa nepodarilo overiť v D1 databáze. Skontroluj jeho aktuálny obsah.');
+      throw new Error('Failed to verify persisted command in the D1 database. Check its current contents.');
     }
 
     return {
       learned: true,
       command: `!${cmdName}`,
       instructions,
-      message: `✅ Príkaz !${cmdName} bol natrvalo zapísaný do D1 databázy Trinity.`
+      message: `✅ Command !${cmdName} has been permanently saved to Trinity's D1 database.`
     };
   },
 
   /**
-   * Načíta všetky naučené príkazy z D1 (s rýchlou KV cache)
+   * Loads all learned commands from D1 (with fast KV cache).
    */
   async getAllCommands(env) {
     if (!env?.DB) return [];
@@ -104,7 +104,7 @@ export const memorySkills = {
   },
 
   /**
-   * Skontroluje, či správa v čete nevolá už naučený príkaz (napr. "!analyzuj tento text")
+   * Checks whether a chat message invokes a previously learned command (e.g., "!analyze this text").
    */
   async resolveCustomCommand(rawText, env) {
     if (!rawText || typeof rawText !== 'string' || !rawText.startsWith("!")) return null;
@@ -119,8 +119,8 @@ export const memorySkills = {
         type: "list",
         commands: list,
         message: list.length > 0
-          ? `Zoznam naučených príkazov Trinity (${list.length}):\n` + list.map(c => `• !${c.cmd_name}: ${c.instructions}`).join('\n')
-          : "Zatiaľ nie sú uložené žiadne vlastné príkazy. Nový príkaz vytvoríš napríklad: !skill test = Skontroluj stav systému."
+          ? `Trinity learned commands list (${list.length}):\n` + list.map(c => `• !${c.cmd_name}: ${c.instructions}`).join('\n')
+          : "No custom commands are saved yet. Create one using e.g.: !skill test = Check system status."
       };
     }
 
@@ -138,7 +138,7 @@ export const memorySkills = {
       type: "execute",
       command: `!${cmdName}`,
       instructions: row.instructions,
-      expandedPrompt: `Vykonaj uložený postup [${cmdName}]: ${row.instructions}\n\nVstup od používateľa: ${userArgs || "(žiadny dodatočný vstup)"}`
+      expandedPrompt: `Execute stored procedure [${cmdName}]: ${row.instructions}\n\nUser input: ${userArgs || "(no additional input)"}`
     };
   }
 };

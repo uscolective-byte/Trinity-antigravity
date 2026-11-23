@@ -3,8 +3,8 @@
  * @subsystem ENTANGLEMENT_SYNC
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul entanglement-sync.js (Trinity/src/entanglement-sync.js).
- * Zabezpečuje stavové zrkadlenie bez pollingu (Event-driven / SSE / Webhook).
+ * @description Module entanglement-sync.js (Trinity/src/entanglement-sync.js).
+ * Provides polling-free state mirroring (Event-driven / SSE / Webhook).
  */
 
 import { EventEmitter } from 'node:events';
@@ -19,9 +19,9 @@ export class EntanglementBridge extends EventEmitter {
   }
 
   /**
-   * Publikuje stavovú zmenu (Entanglement State Change).
-   * @param {string} eventName - Názov udalosti (napr. 'state-change', 'intent-collapse')
-   * @param {object} payload - Údaje o stave
+   * Publishes a state change event (Entanglement State Change).
+   * @param {string} eventName - Event name (e.g., 'state-change', 'intent-collapse')
+   * @param {object} payload - State payload
    */
   emitStateChange(eventName, payload = {}) {
     const event = {
@@ -37,7 +37,7 @@ export class EntanglementBridge extends EventEmitter {
       this.history.shift();
     }
 
-    // Lokálna okamžitá odozva (EventBus)
+    // Local immediate dispatch (EventBus)
     this.emit(eventName, event);
     this.emit('*', event);
 
@@ -45,8 +45,8 @@ export class EntanglementBridge extends EventEmitter {
   }
 
   /**
-   * Zaregistruje SSE / Webhook odberateľa pre streamovanie v reálnom čase.
-   * @param {Function} peerWriter - Funkcia odosielajúca dáta klientovi (napr. SSE stream controller)
+   * Registers an SSE / Webhook subscriber for real-time streaming.
+   * @param {Function} peerWriter - Function sending data to the client (e.g., an SSE stream controller)
    */
   registerPeer(peerWriter) {
     this.peers.add(peerWriter);
@@ -56,7 +56,7 @@ export class EntanglementBridge extends EventEmitter {
   }
 
   /**
-   * Rozošle udalosť všetkým pripojeným peerom (Edge Worker -> Local Bridge).
+   * Broadcasts an event to all connected peers (Edge Worker -> Local Bridge).
    * @param {object} event
    */
   broadcastToPeers(event) {
@@ -71,5 +71,5 @@ export class EntanglementBridge extends EventEmitter {
   }
 }
 
-// Globálna inštancia pre Trinity prostredie
+// Global instance for the Trinity runtime
 export const globalEntanglementBridge = new EntanglementBridge();

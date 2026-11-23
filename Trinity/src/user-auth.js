@@ -3,8 +3,8 @@
  * @subsystem USER_CREDENTIALS_AND_PROFILE_AUTH
  * @author Basterix (Root Architect) & Antigravity
  * @license Sovereign Irrevocable Covenant
- * @description Bezpečná správa prihlasovacích údajov (Email + Heslo via Web Crypto PBKDF2-SHA256, 100 000 iterácií),
- * registrácia, prihlásenie, profile provision a profilové atribúty pre TRINITY OMNI-CORE.
+ * @description Secure credential management (email + password via Web Crypto PBKDF2-SHA256, 100,000 iterations),
+ * registration, login, profile provisioning, and profile attributes for TRINITY OMNI-CORE.
  */
 
 import { z } from 'zod';
@@ -12,24 +12,24 @@ import { timingSafeEqual } from 'node:crypto';
 import { HttpError, issueSession, isOwnerEmail, isAdminEmail } from './security.js';
 
 export const registerSchema = z.object({
-  email: z.string().trim().email('Neplatný formát e-mailovej adresy.').max(120),
+  email: z.string().trim().email('Invalid email address format.').max(120),
   password: z.string()
-    .min(8, 'Heslo musí mať aspoň 8 znakov.')
-    .max(128, 'Heslo nesmie presiahnuť 128 znakov.')
-    .refine((p) => /[A-Za-z]/.test(p) && /[0-9]/.test(p), 'Heslo musí obsahovať písmená aj čísla.'),
-  display_name: z.string().trim().min(2, 'Meno musí mať aspoň 2 znaky.').max(60).optional()
+    .min(8, 'Password must be at least 8 characters long.')
+    .max(128, 'Password must not exceed 128 characters.')
+    .refine((p) => /[A-Za-z]/.test(p) && /[0-9]/.test(p), 'Password must contain both letters and numbers.'),
+  display_name: z.string().trim().min(2, 'Display name must be at least 2 characters long.').max(60).optional()
 }).strict();
 
 export const loginSchema = z.object({
-  email: z.string().trim().email('Neplatný formát e-mailovej adresy.').max(120),
-  password: z.string().min(1, 'Zadaj heslo.').max(128)
+  email: z.string().trim().email('Invalid email address format.').max(120),
+  password: z.string().min(1, 'Password is required.').max(128)
 }).strict();
 
 const PBKDF2_ITERATIONS = 100000;
 const KEY_LENGTH_BITS = 256;
 
 /**
- * Bezpečne zahashuje heslo pomocou Web Crypto PBKDF2 (HMAC-SHA256) a náhodnej 16-bajtovej soli.
+ * Securely hashes a password using Web Crypto PBKDF2 (HMAC-SHA256) and a random 16-byte salt.
  */
 export async function hashPassword(password, saltHex = null) {
   const salt = saltHex
@@ -62,7 +62,7 @@ export async function hashPassword(password, saltHex = null) {
 }
 
 /**
- * Overí heslo v konštantnom čase voči uloženému hashu a soli.
+ * Verifies a password in constant time against the stored hash and salt.
  */
 export async function verifyPassword(password, storedHashHex, storedSaltHex) {
   if (!password || !storedHashHex || !storedSaltHex) return false;
@@ -79,18 +79,18 @@ export async function verifyPassword(password, storedHashHex, storedSaltHex) {
 
 const passwordChangeSchema = z.object({
   current_password: loginSchema.shape.password,
-  new_password: registerSchema.shape.password.refine(password => password.length >= 12, 'Nové heslo musí mať aspoň 12 znakov.')
+  new_password: registerSchema.shape.password.refine(password => password.length >= 12, 'New password must be at least 12 characters long.')
 }).strict();
 
 export async function changeOwnPassword(env, email, currentSessionHash, input) {
   const { current_password, new_password } = passwordChangeSchema.parse(input);
-  if (!email || !currentSessionHash) throw new HttpError(401, 'Prihlás sa do Trinity.');
-  if (current_password === new_password) throw new HttpError(400, 'Použi iné heslo.');
+  if (!email || !currentSessionHash) throw new HttpError(401, 'Sign in to Trinity.');
+  if (current_password === new_password) throw new HttpError(400, 'Please choose a different password.');
   const user = await env.DB.prepare(
     "SELECT password_hash,password_salt FROM ops_users WHERE email=? AND status='active'"
   ).bind(email).first();
   if (!await verifyPassword(current_password, user?.password_hash, user?.password_salt)) {
-    throw new HttpError(403, 'Aktuálne heslo nie je správne.');
+    throw new HttpError(403, 'Current password is incorrect.');
   }
 
   const { hashHex, saltHex } = await hashPassword(new_password);
@@ -102,11 +102,11 @@ export async function changeOwnPassword(env, email, currentSessionHash, input) {
       'DELETE FROM ops_sessions WHERE lower(email)=? AND token_hash<>? AND EXISTS(SELECT 1 FROM ops_users WHERE email=? AND password_hash=?)'
     ).bind(email, currentSessionHash, email, hashHex)
   ]);
-  if (changed.meta?.changes !== 1) throw new HttpError(409, 'Účet sa medzitým zmenil. Skús to znovu.');
+  if (changed.meta?.changes !== 1) throw new HttpError(409, 'Account changed concurrently. Please try again.');
 }
 
 /**
- * Sanitizuje a vráti objekt používateľského profilu pre frontend/API.
+ * Sanitizes and returns the user profile object for frontend/API responses.
  */
 export function sanitizeUserProfile(user, isOwner = false) {
   if (!user) return null;
@@ -123,23 +123,23 @@ export function sanitizeUserProfile(user, isOwner = false) {
 }
 
 /**
- * Zaregistruje nového používateľa (Email + Heslo).
- * Ak je e-mail v zozname TRINITY_OWNER_EMAILS, automaticky získa rolu 'owner'/'admin' a status 'active'.
+ * Registers a new user with email and password credentials.
+ * Privileged owner/admin emails are rejected from public registration and require verified provisioning.
  */
 export async function registerWithCredentials(request, env, input) {
   const data = registerSchema.parse(input);
   const emailNorm = data.email.toLowerCase();
   
   if (!env?.DB?.prepare) {
-    throw new HttpError(503, 'Databáza používateľov nie je pripojená.');
+    throw new HttpError(503, 'User database is not connected.');
   }
 
   if (isOwnerEmail(env,emailNorm) || isAdminEmail(env,emailNorm)) {
-    throw new HttpError(403, 'Správcovský účet vyžaduje overené zriadenie prístupu.');
+    throw new HttpError(403, 'Privileged account requires verified access provisioning.');
   }
   const existing = await env.DB.prepare('SELECT email FROM ops_users WHERE email=?').bind(emailNorm).first();
   if (existing) {
-    throw new HttpError(409, 'Používateľ s týmto e-mailom už existuje. Použi existujúci spôsob prihlásenia.');
+    throw new HttpError(409, 'A user with this email already exists. Please use an existing sign-in method.');
   }
 
   const { hashHex, saltHex } = await hashPassword(data.password);
@@ -155,13 +155,13 @@ export async function registerWithCredentials(request, env, input) {
 
   const user = await env.DB.prepare('SELECT * FROM ops_users WHERE email=?').bind(emailNorm).first();
 
-  // Zaloguj do audit logu
+  // Record audit log entry
   await env.DB.prepare("INSERT INTO ops_events(action, details) VALUES('user_registered', ?)")
     .bind(JSON.stringify({ email: emailNorm, role, status, at: Date.now() }))
     .run()
     .catch(() => {});
 
-  // Vytvor session cookie
+  // Issue session cookie
   const sessionRes = await issueSession(env, undefined, emailNorm, request);
   const cookie = sessionRes.headers.get('Set-Cookie');
 
@@ -172,14 +172,14 @@ export async function registerWithCredentials(request, env, input) {
 }
 
 /**
- * Prihlási používateľa (Email + Heslo) a vráti session cookie a profil.
+ * Authenticates a user with email and password and returns a session cookie and profile.
  */
 export async function loginWithCredentials(request, env, input) {
   const data = loginSchema.parse(input);
   const emailNorm = data.email.toLowerCase();
 
   if (!env?.DB?.prepare) {
-    throw new HttpError(503, 'Databáza používateľov nie je pripojená.');
+    throw new HttpError(503, 'User database is not connected.');
   }
 
   const user = await env.DB.prepare('SELECT * FROM ops_users WHERE email=?')
@@ -187,19 +187,19 @@ export async function loginWithCredentials(request, env, input) {
     .first();
 
   if (!user || !user.password_hash || !user.password_salt) {
-    throw new HttpError(401, 'Nesprávny e-mail alebo heslo.');
+    throw new HttpError(401, 'Invalid email or password.');
   }
 
   const match = await verifyPassword(data.password, user.password_hash, user.password_salt);
   if (!match) {
-    throw new HttpError(401, 'Nesprávny e-mail alebo heslo.');
+    throw new HttpError(401, 'Invalid email or password.');
   }
 
   if (user.status === 'blocked' || user.status === 'rejected') {
-    throw new HttpError(403, 'Tento účet bol zablokovaný alebo pozastavený.');
+    throw new HttpError(403, 'This account has been blocked or suspended.');
   }
 
-  // Aktualizuj last_login_at
+  // Update last_login_at timestamp
   await env.DB.prepare("UPDATE ops_users SET last_login_at=datetime('now'), updated_at=datetime('now') WHERE email=?")
     .bind(emailNorm)
     .run()
@@ -207,7 +207,7 @@ export async function loginWithCredentials(request, env, input) {
 
   const isOwner = isOwnerEmail(env, emailNorm);
 
-  // Zaloguj udalosť
+  // Record audit log event
   await env.DB.prepare("INSERT INTO ops_events(action, details) VALUES('user_logged_in', ?)")
     .bind(JSON.stringify({ email: emailNorm, at: Date.now() }))
     .run()
@@ -223,7 +223,7 @@ export async function loginWithCredentials(request, env, input) {
 }
 
 /**
- * Získa profil prihláseného používateľa.
+ * Retrieves the profile of the authenticated user.
  */
 export async function getUserProfile(env, email) {
   if (!email || !env?.DB?.prepare) return null;
@@ -234,10 +234,10 @@ export async function getUserProfile(env, email) {
 }
 
 /**
- * Aktualizuje profilové údaje (display_name, avatar_url).
+ * Updates user profile attributes (display_name, avatar_url).
  */
 export async function updateUserProfile(env, email, updates = {}) {
-  if (!email || !env?.DB?.prepare) throw new HttpError(401, 'Neautorizovaný prístup.');
+  if (!email || !env?.DB?.prepare) throw new HttpError(401, 'Unauthorized access.');
   const emailNorm = email.toLowerCase();
   const schema = z.object({
     display_name: z.string().trim().min(2).max(60).optional(),

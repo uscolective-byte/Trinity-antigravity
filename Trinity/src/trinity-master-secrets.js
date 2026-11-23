@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul trinity-master-secrets.js (Trinity/src/trinity-master-secrets.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module trinity-master-secrets.js (Trinity/src/trinity-master-secrets.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * TRINITY_MASTER — named, least-privilege Secrets Store integration.

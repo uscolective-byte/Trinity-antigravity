@@ -4,7 +4,7 @@ import {configuredBridgeToken,registeredBridgeTunnelUrl} from '../../packages/co
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul services.js (Trinity/src/services.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module services.js (Trinity/src/services.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import {createSystemAction,getSystemAction} from './system-actions.js';
 import {getConfiguredAIProvider,sanitizeApiKey} from './ai-providers.js';
@@ -146,7 +146,7 @@ export function extractGeminiInteractionText(result){
 }
 export function deduplicateRepeatedParagraphs(text) {
   if (typeof text !== 'string' || !text.trim()) return text;
-  // Rozdelenie na odstavce (dva a viac nových riadkov)
+  // Split into paragraphs (two or more newlines)
   const paragraphs = text.split(/\n{2,}/);
   if (paragraphs.length <= 1) return text;
   
@@ -166,9 +166,9 @@ export function deduplicateRepeatedParagraphs(text) {
 export function stripInternalToolsDump(text) {
   if (typeof text !== 'string') return '';
   return text
-    // Odstránenie celého bloku číslovaného zoznamu nástrojov (napr. 1. knowledge_search: ... až po koniec zoznamu)
+    // Strip numbered internal tool-list blocks (e.g. "1. knowledge_search: ..." through end of list)
     .replace(/(?:Môj zoznam nástrojov|Zoznam nástrojov|Dostupné nástroje)[^\n]*\n+(?:\s*\d+\.\s+[a-z0-9_-]+:[^\n]*\n*)+/gi, '')
-    // Odstránenie vety o interných JSON volaniach
+    // Strip sentences referencing internal JSON tool-call conventions
     .replace(/Môj zoznam nástrojov je interný[^\n]*/gi, '')
     .replace(/Nie je možné, aby ste si mali prístup k zoznamu nástrojov[^\n]*/gi, '')
     .replace(/Nástroje sú určené výhradne na interné volania[^\n]*/gi, '')

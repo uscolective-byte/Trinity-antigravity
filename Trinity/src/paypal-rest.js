@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul paypal-rest.js (Trinity/src/paypal-rest.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description PayPal REST API v2 live checkout, order creation, and capture module (Trinity/src/paypal-rest.js).
  */
 /**
  * PayPal REST API v2 Live Engine for Trinity
@@ -59,7 +59,7 @@ export async function resolvePayPalCredentials(env) {
 export async function getPayPalAccessToken(env) {
   const { clientId, clientSecret } = await resolvePayPalCredentials(env);
   if (!clientId || !clientSecret) {
-    throw new HttpError(503, 'PayPal REST API nie je nakonfigurované. Zadaj PAYPAL_CLIENT_ID a PAYPAL_CLIENT_SECRET do backendových Secrets.');
+    throw new HttpError(503, 'PayPal REST API is not configured. Configure PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET in backend Secrets.');
   }
 
   const baseUrl = getPayPalBaseUrl(env);
@@ -76,7 +76,7 @@ export async function getPayPalAccessToken(env) {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new HttpError(response.status, `PayPal autentifikácia zlyhala: ${errorText.slice(0, 200)}`);
+    throw new HttpError(response.status, `PayPal authentication failed: ${errorText.slice(0, 200)}`);
   }
 
   const data = await response.json();
@@ -95,7 +95,7 @@ export async function createPayPalOrder(env, { amountEur, description, reference
   }
 
   if (!Number.isFinite(amount) || amount <= 0) {
-    throw new HttpError(400, 'Neplatná suma v EUR.');
+    throw new HttpError(400, 'Invalid EUR amount.');
   }
 
   const token = await getPayPalAccessToken(env);
@@ -134,7 +134,7 @@ export async function createPayPalOrder(env, { amountEur, description, reference
 
   if (!response.ok) {
     const err = await response.text();
-    throw new HttpError(response.status, `Vytvorenie PayPal objednávky zlyhalo: ${err.slice(0, 200)}`);
+    throw new HttpError(response.status, `PayPal order creation failed: ${err.slice(0, 200)}`);
   }
 
   const order = await response.json();
@@ -155,7 +155,7 @@ export async function createPayPalOrder(env, { amountEur, description, reference
 
 export async function capturePayPalOrder(env, orderId) {
   if (!orderId || typeof orderId !== 'string') {
-    throw new HttpError(400, 'Zadaj platné PayPal Order ID.');
+    throw new HttpError(400, 'Provide a valid PayPal Order ID.');
   }
 
   const token = await getPayPalAccessToken(env);
@@ -171,7 +171,7 @@ export async function capturePayPalOrder(env, orderId) {
 
   if (!response.ok) {
     const err = await response.text();
-    throw new HttpError(response.status, `Zachytenie PayPal platby zlyhalo: ${err.slice(0, 200)}`);
+    throw new HttpError(response.status, `PayPal payment capture failed: ${err.slice(0, 200)}`);
   }
 
   const data = await response.json();
@@ -212,7 +212,7 @@ export async function capturePayPalOrder(env, orderId) {
 
 export async function getPayPalOrderStatus(env, orderId) {
   if (!orderId || typeof orderId !== 'string') {
-    throw new HttpError(400, 'Zadaj platné PayPal Order ID.');
+    throw new HttpError(400, 'Provide a valid PayPal Order ID.');
   }
 
   const token = await getPayPalAccessToken(env);
@@ -227,7 +227,7 @@ export async function getPayPalOrderStatus(env, orderId) {
   });
 
   if (!response.ok) {
-    throw new HttpError(response.status, `Kontrola PayPal objednávky zlyhala.`);
+    throw new HttpError(response.status, 'Failed to check PayPal order status.');
   }
 
   const order = await response.json();
@@ -283,7 +283,7 @@ export async function handlePayPalCheckoutApi(request, env) {
       });
     } catch (err) {
       const status = err.status || 500;
-      return Response.json({ error: err.message || 'Chyba pri vytváraní PayPal objednávky' }, {
+      return Response.json({ error: err.message || 'Error creating PayPal order.' }, {
         status,
         headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
       });
@@ -303,7 +303,7 @@ export async function handlePayPalCheckoutApi(request, env) {
       });
     } catch (err) {
       const status = err.status || 500;
-      return Response.json({ error: err.message || 'Chyba pri spracovaní PayPal platby' }, {
+      return Response.json({ error: err.message || 'Error processing PayPal payment.' }, {
         status,
         headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
       });
@@ -323,7 +323,7 @@ export async function handlePayPalCheckoutApi(request, env) {
       });
     } catch (err) {
       const status = err.status || 500;
-      return Response.json({ error: err.message || 'Chyba pri kontrole PayPal objednávky' }, {
+      return Response.json({ error: err.message || 'Error checking PayPal order status.' }, {
         status,
         headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
       });
@@ -338,13 +338,13 @@ export async function handlePayPalCheckoutApi(request, env) {
     if (!webhookId || !clientId || !clientSecret) {
       return Response.json({
         ok: false,
-        error: 'PAYPAL_WEBHOOK_ID alebo PayPal API kredenciály nie sú nakonfigurované.'
+        error: 'PAYPAL_WEBHOOK_ID or PayPal API credentials are not configured.'
       }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
     }
     const rawBody = await request.text();
     let webhookEvent = {};
     try { webhookEvent = JSON.parse(rawBody); } catch {
-      return Response.json({ ok: false, error: 'Neplatný JSON payload.' }, { status: 400 });
+      return Response.json({ ok: false, error: 'Invalid JSON payload.' }, { status: 400 });
     }
     const accessToken = await getPayPalAccessToken(env);
     const verifyRes = await fetch(`${getPayPalBaseUrl(env)}/v1/notifications/verify-webhook-signature`, {
@@ -366,7 +366,7 @@ export async function handlePayPalCheckoutApi(request, env) {
     });
     const verifyData = await verifyRes.json().catch(() => ({}));
     if (!verifyRes.ok || verifyData?.verification_status !== 'SUCCESS') {
-      return Response.json({ ok: false, verified: false, error: 'Overenie podpisu PayPal webhooku zlyhalo.' }, { status: 401 });
+      return Response.json({ ok: false, verified: false, error: 'PayPal webhook signature verification failed.' }, { status: 401 });
     }
     const receiptId = `ppwh_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
     if (env?.DB) {

@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul integration-readiness.js (Trinity/src/integration-readiness.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module integration-readiness.js (Trinity/src/integration-readiness.js) in the TRINITY OMNI-CORE ecosystem.
  */
 // Configuration inspection only: never a claim that a provider call succeeded.
 export function integrationReadiness(_input,env={}) {

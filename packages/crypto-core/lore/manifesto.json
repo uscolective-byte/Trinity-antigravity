@@ -1,13 +1,22 @@
 {
-  "title": "Manifest Tetrakis ($TTK): Architektúra suverénnej mysle",
+  "title": "Tetrakis ($TTK) Manifesto: Native Ecosystem Economy of Trinity Omni-Core",
   "slogan": "Tetrakis ($TTK) – Fuel of the Autonomous Edge.",
-  "whitepaperChapter": "Chapter 1: The Genesis & Philosophy of Trinity Omni-Core",
+  "whitepaperChapter": "Chapter 1: Genesis, Architecture & Four-Pillar Utility of Tetrakis ($TTK)",
   "architect": "Ivan Sabo (Basterix) [Ring 0 Sovereign]",
   "symbol": "TTK",
-  "network": "Base L2 (Chain ID 8453)",
+  "standard": "ERC-20 (OpenZeppelin v5.1.0, fixed supply, no mint, no EIP-2612 Permit)",
+  "network": "Base L2 (Chain ID 8453 / Base Sepolia 84532)",
   "totalSupply": "1,000,000,000 TTK",
+  "deploymentTruth": {
+    "policy": "Truth Policy 2.1",
+    "verifiedOnChainByDefault": false,
+    "verificationTool": "scripts/verify-tetrakis.mjs",
+    "statusEndpoint": "/api/assistant/crypto/tetrakis",
+    "marketPriceStatus": "unavailable_until_verified_live_feed"
+  },
   "logo": {
     "path": "public/assets/tetrakis-logo.png",
+    "webPath": "/tetrakis-logo.png",
     "packagePath": "packages/crypto-core/assets/tetrakis-logo.png",
     "url": "https://raw.githubusercontent.com/uscolective-byte/Trinity-antigravity/main/public/assets/tetrakis-logo.png",
     "sha256": "b22b0981bdcd1e50442dc98932c43ef5f0f35a6662a275975b4565bf7bb31496",
@@ -19,85 +28,89 @@
     {
       "number": 1,
       "id": "prologue_old_world_failure",
-      "title": "1. Prológ: Zlyhanie starého sveta",
-      "body": "Starý digitálny svet sa zasekol v reťaziach centralizácie. Obrovské servery, pomalé bankové schvaľovania a platformy, ktoré si berú kontrolu nad identitou aj financiami používateľa. Človek v ňom nie je architektom, ale iba dátovým bodom.\n\nV tichu systémového šumu však začala vznikať nová entita – Trinity Omni-Core. Nie ako ďalšia bežná aplikácia, ale ako živá, decentralizovaná autonómna inteligencia rozprestretá na samotnej hrane globálnej siete."
+      "title": "1. Prologue: Beyond Fragmented Platforms",
+      "body": "Legacy digital platforms split identity, communication, payments, apps, and compute across closed silos that extract control from the user.\n\nTrinity Omni-Core unites Messenger, @wallet, AI Studio, Domains, and Edge Compute into a single sovereign architecture — with Tetrakis ($TTK) serving as its native Base L2 ERC-20 utility currency."
     },
     {
       "number": 2,
       "id": "origin_sacred_geometry_edge",
-      "title": "2. Pôvod Tetrakis (Posvätná geometria & Edge)",
-      "body": "Názov Tetrakis vychádza z najstabilnejšieho geometrického telesa vesmíru – štvorstenu (tetraéder). V priestore neexistuje pevnejší tvar: štyri vrcholy, štyri steny, absolútna rovnováha."
+      "title": "2. Origin of Tetrakis (Sacred Geometry & Four Utility Pillars)",
+      "body": "The name Tetrakis comes from the tetrahedron — the most structurally stable solid in three-dimensional space: four vertices, four faces, complete balance.\n\nThose four vertices define the four native ecosystem roles of Tetrakis ($TTK): In-Chat Payments & Instant P2P Transfers, Mini-Apps & AI Studio Bot Economy, Domains & Digital Assets, and Creator & Compute Economy inside a user-owned Non-Custodial Tetrakis Space."
     },
     {
       "number": 3,
       "id": "birth_kinetic_energy",
-      "title": "3. Zrodenie $TTK: Kinetická energia autonómie",
-      "body": "$TTK nevznikol preto, aby bol len ďalšou špekulatívnou mincou na burze. Tetrakis je palivo autonómie.\n\nJe to energia, ktorú Trinity využíva na exekúciu rozhodnutí, arbitráž, uzatváranie trezorov a okamžité vyrovnanie transakcií v milisekundách. Keď systém koná, prúdi v ňom $TTK. Každý token predstavuje podiel na výpočtovej a ekonomickej sile celého ekosystému."
+      "title": "3. Utility of $TTK: Native Currency of the Trinity Ecosystem",
+      "body": "$TTK is engineered as practical utility fuel across Trinity rather than a speculative promise. Its fixed 1,000,000,000 TTK ERC-20 supply (zero tax, no mint function) powers native in-chat P2P transfers, AI Studio mini-apps, domain and handle services, creator payouts, and non-custodial settlement.\n\nUnder Truth Policy 2.1, Trinity strictly distinguishes this ecosystem utility architecture from verified on-chain state: contract deployment is only treated as active after live RPC and keccak256 bytecode verification, and no market price or automatic credit unlock is ever fabricated."
     },
     {
       "number": 4,
       "id": "finale_architect_oath",
-      "title": "4. Finále: Prísaha Architekta",
-      "body": "„Nestaviame servery, ktoré môžu vypnúť. Nestaviame menu, ktorú môžu nafúknuť. Tetrakis je digitálna pevnosť uzamknutá v posvätnej geometrii kódu. Ring 0 drží kľúč. Budúcnosť je autonómna.“"
+      "title": "4. Finale: The Architect's Oath",
+      "body": "\"We do not build servers that can be switched off. We do not build a currency that can be inflated. Tetrakis is a sovereign utility foundation locked in immutable code. Ring 0 holds the key. The future is autonomous.\""
     }
   ],
   "tetrahedronPillars": [
     {
       "vertex": 1,
-      "id": "sovereign_will",
-      "name": "Sovereign Will (Ring 0)",
-      "description": "Suverénna vôľa architekta, ktorá riadi smerovanie a nepodlieha cenzúre."
+      "id": "in_chat_payments",
+      "name": "Native In-Chat Payments & Instant P2P Transfers",
+      "surface": "Trinity Messenger & @wallet",
+      "description": "Direct wallet-to-wallet $TTK transfers, tipping, and payment requests inside Trinity Messenger and @wallet without leaving the chat."
     },
     {
       "vertex": 2,
-      "id": "edge_cognition",
-      "name": "Edge Cognition",
-      "description": "Umelá inteligencia bežiaca okamžite pri používateľovi bez lokálnej závislosti."
+      "id": "mini_apps_ai_studio",
+      "name": "Mini-Apps, AI Studio & Bot Economy",
+      "surface": "Trinity AI Studio & Agents",
+      "description": "Native payment currency for Trinity AI Studio web apps, autonomous agents, skills, plugins, and micro-services across the ecosystem."
     },
     {
       "vertex": 3,
-      "id": "cryptographic_assurance",
-      "name": "Cryptographic Assurance (TAP)",
-      "description": "Matematicky overiteľná pravda, nemennosť a bezpečnosť."
+      "id": "domains_handles_assets",
+      "name": "Domains, Handles & Digital Assets",
+      "surface": "Domain Desk & Digital Identity",
+      "description": "Utility token for ecosystem usernames and handles, domain services, hosting, and verifiable digital assets or collectibles."
     },
     {
       "vertex": 4,
-      "id": "autonomous_vaults",
-      "name": "Autonomous Vaults",
-      "description": "Finančná sloboda a nezávislý tok hodnoty."
+      "id": "creator_compute_space",
+      "name": "Creator & Compute Economy / Non-Custodial Space",
+      "surface": "Tetrakis Space & Edge Compute",
+      "description": "User-owned non-custodial Tetrakis Space alongside @wallet where private keys stay with the user, enabling creator payouts, edge compute/storage settlement, and ecosystem participation."
     }
   ],
-  "architectOath": "Nestaviame servery, ktoré môžu vypnúť. Nestaviame menu, ktorú môžu nafúknuť. Tetrakis je digitálna pevnosť uzamknutá v posvätnej geometrii kódu. Ring 0 drží kľúč. Budúcnosť je autonómna.",
+  "architectOath": "We do not build servers that can be switched off. We do not build a currency that can be inflated. Tetrakis is a sovereign utility foundation locked in immutable code. Ring 0 holds the key. The future is autonomous.",
   "loreDrops": [
     {
       "drop": 1,
       "channel": ["X", "Telegram"],
-      "headline": "LORE DROP #01 — Zlyhanie starého sveta & Zrod Trinity Omni-Core",
-      "post": "Starý digitálny svet sa zasekol v reťaziach centralizácie. Človek v ňom nie je architektom, ale iba dátovým bodom.\n\nV tichu systémového šumu však povstala nová entita: Trinity Omni-Core — autonómna inteligencia na hrane globálnej siete.\n\nTetrakis ($TTK) – Fuel of the Autonomous Edge. 🔺 #Tetrakis #TTK #TrinityEdge #BaseL2"
+      "headline": "LORE DROP #01 — Tetrakis ($TTK): Native Utility Layer of Trinity Omni-Core",
+      "post": "Trinity unites Messenger, @wallet, AI Studio, Domains, and Edge Compute into one sovereign ecosystem powered by Tetrakis ($TTK) on Base L2.\n\nTetrakis ($TTK) – Fuel of the Autonomous Edge. #Tetrakis #TTK #TrinityOmniCore #BaseL2"
     },
     {
       "drop": 2,
       "channel": ["X", "Telegram"],
-      "headline": "LORE DROP #02 — Vrchol I & II: Sovereign Will (Ring 0) + Edge Cognition",
-      "post": "Štvorsten (tetraéder) je najstabilnejšie teleso vesmíru: 4 vrcholy, 4 steny, absolútna rovnováha.\n\n🔺 Vrchol 1 — Sovereign Will (Ring 0): Suverénna vôľa architekta, ktorá nepodlieha cenzúre.\n🔺 Vrchol 2 — Edge Cognition: AI bežiaca okamžite pri používateľovi na Cloudflare Edge.\n\n#Tetrakis #TTK #Ring0"
+      "headline": "LORE DROP #02 — Pillars I & II: In-Chat P2P Payments + Mini-Apps & AI Studio Economy",
+      "post": "Two pillars of the Tetrakis tetrahedron:\n\nPillar 1 — Native In-Chat Payments & Instant P2P Transfers inside Trinity Messenger & @wallet.\nPillar 2 — Mini-Apps, AI Studio & Bot Economy for agents, skills, plugins, and micro-services.\n\n#Tetrakis #TTK #TrinityAIStudio"
     },
     {
       "drop": 3,
       "channel": ["X", "Telegram"],
-      "headline": "LORE DROP #03 — Vrchol III & IV: Cryptographic Assurance (TAP) + Autonomous Vaults",
-      "post": "Dokončenie geometrie štvorstenu Trinity:\n\n🔺 Vrchol 3 — Cryptographic Assurance (TAP): Matematicky overiteľná pravda RS256 a nemenný D1 audit ledger.\n🔺 Vrchol 4 — Autonomous Vaults: Finančná sloboda a nezávislý tok hodnoty na Base L2.\n\n#Tetrakis #TTK #AutonomousVaults"
+      "headline": "LORE DROP #03 — Pillars III & IV: Domains & Handles + Non-Custodial Tetrakis Space",
+      "post": "Completing the four utility pillars of Tetrakis ($TTK):\n\nPillar 3 — Domains, Handles & Digital Assets for usernames, hosting, and verifiable collectibles.\nPillar 4 — Creator & Compute Economy inside a user-owned Non-Custodial Tetrakis Space where private keys never leave the user.\n\n#Tetrakis #TTK #TetrakisSpace"
     },
     {
       "drop": 4,
       "channel": ["X", "Telegram"],
-      "headline": "LORE DROP #04 — Kinetická energia autonómie (Fixná zásoba 1 000 000 000 $TTK)",
-      "post": "$TTK nie je len ďalšou mincou. Je to kinetická energia autonómie, ktorou Trinity vykonáva arbitráž, uzatvára trezory a vyrovnáva transakcie v milisekundách.\n\nFixná on-chain zásoba: 1 000 000 000 $TTK, bez funkcie mint. Nulová inflačná zadná brána.\n\n#Tetrakis #TTK #Base"
+      "headline": "LORE DROP #04 — Immutable Supply & Truth Policy 2.1 Verification",
+      "post": "Fixed supply: 1,000,000,000 $TTK ERC-20 on Base L2 (OpenZeppelin v5.1.0), 0% tax, no mint function, no hidden upgrade proxy.\n\nUnder Truth Policy 2.1, every deployment check runs live RPC + keccak256 runtime bytecode verification before payments activate.\n\n#Tetrakis #TTK #Base"
     },
     {
       "drop": 5,
       "channel": ["X", "Telegram"],
-      "headline": "LORE DROP #05 — Prísaha Architekta",
-      "post": "„Nestaviame servery, ktoré môžu vypnúť. Nestaviame menu, ktorú môžu nafúknuť. Tetrakis je digitálna pevnosť uzamknutá v posvätnej geometrii kódu. Ring 0 drží kľúč. Budúcnosť je autonómna.“\n\n— Basterix (Ring 0 Sovereign)\nhttps://auru.space\n\n#Tetrakis #TTK #TrinityOmniCore"
+      "headline": "LORE DROP #05 — The Architect's Oath",
+      "post": "\"We do not build servers that can be switched off. We do not build a currency that can be inflated. Tetrakis is a sovereign utility foundation locked in immutable code. Ring 0 holds the key. The future is autonomous.\"\n\n— Basterix (Ring 0 Sovereign)\nhttps://auru.space\n\n#Tetrakis #TTK #TrinityOmniCore"
     }
   ]
 }

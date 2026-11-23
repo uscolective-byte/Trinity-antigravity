@@ -47,7 +47,7 @@ Z koreňa repozitára spusti `powershell -ExecutionPolicy Bypass -File scripts/i
 ```powershell
 npm.cmd run dev
 npm.cmd test
-npm.cmd run build:development
+npm.cmd run build
 ```
 
 `npm test` zahŕňa produkčný dry-run build a testy; neznamená nasadenie.
@@ -78,14 +78,18 @@ presné URL použité prihlasovacím vstupom; `/api/auth/google/start` používa
 `/auth/google/callback`. `GOOGLE_ENABLED=true` nenahrádza klientsky secret
 ani overenie prihlásenia.
 
-`GOOGLE_CLIENT_ID` a `GOOGLE_CLIENT_SECRET` nastav osobitne pre každý Worker;
-napríklad `npx.cmd wrangler secret put GOOGLE_CLIENT_SECRET --env development`
-pre vývoj a rovnaký príkaz s `--env=""` pre produkciu. Hodnoty neukladaj do Gitu.
-`GOOGLE_REDIRECT_URI` už rozlišuje prostredia vo `wrangler.jsonc`.
+`GOOGLE_CLIENT_ID` a `GOOGLE_CLIENT_SECRET` nastav bezpečne pre produkčný Worker `trinity`,
+napríklad cez `npx.cmd wrangler secret put GOOGLE_CLIENT_SECRET --env=""`. Hodnoty nikdy neukladaj do Gitu.
 Google-only režim zapni až po overení klienta, návratu a admin allowlistu.
 `GET /api/auth/config` zobrazuje aktuálny režim; implementácia OAuth sama
 nepotvrdzuje jeho aktiváciu. Google login neposkytuje automaticky prístup
 k Workspace, Drive ani Google Cloud; tie potrebujú samostatné oprávnenia.
+
+## Google AI Studio Bridge, Tetrakis Space & Dvojjazyčná architektúra
+
+- **Google AI Studio Bridge (`Trinity/src/google-ai-studio-bridge.js`):** Priame napojenie na `https://generativelanguage.googleapis.com/v1beta` cez hlavičku `x-goog-api-key` (nikdy cez `?key=` v URL). Podporuje endpointy `/api/assistant/ai-studio/status` (iba metadáta bez čítania tajomstiev), `/models`, `/verify` (iba admin), `/generate`, `/co-create` a `/sessions`, agentný nástroj `google_ai_studio` a MCP nástroje `google_ai_studio_status`, `google_ai_studio_models`, `google_ai_studio_cocreate`. Kľúč sa berie z 3 vrstiev: Worker secrets (`GOOGLE_AI_STUDIO_API_KEY` / `GEMINI_API_KEY`), Cloudflare Secrets Store (`.get()`) alebo šifrovaný D1 Trezor (`google_ai_studio` / `gemini`).
+- **Tetrakis (`$TTK`) Native Space (`GET /api/assistant/crypto/tetrakis`):** Natívny neväzobný Web3 priestor v Trinity popri `@wallet` s logom `/tetrakis-logo.png`, Base L2 ERC-20 kontraktom (`1 000 000 000 TTK`, 0 % tax, bez ďalšieho mintu) a 4 ekosystémovými piliermi (in-chat platby & P2P, Mini-Apps/AI Studio/bot ekonomika, domény/handly/digitálne aktíva, tvorcovia/compute & neväzobný Space). Truth Policy 2.1: bez overeného kontraktu na sieti ostávajú platby vypnuté a trhová cena `null`.
+- **Dual-Language Architecture:** Všetok zdrojový kód, komentáre, JSDoc, interné logy, schémy nástrojov a interné ko-kreačné inštrukcie pracujú v **angličtine (English)**; smerom k používateľom a majiteľovi Trinity komunikuje prirodzenou **slovenčinou (Slovak)**.
 
 ## Dokumentácia
 
@@ -94,14 +98,14 @@ k Workspace, Drive ani Google Cloud; tie potrebujú samostatné oprávnenia.
 - [Neporušiteľný Režim Pravdy a Prísaha Trinity](../Dokumentacia/NEPORUSITELNY-REZIM-PRAVDY-A-PRISAHA.md) – kompletné znenie novej prísahy, Desatora pravdivosti a architektonických brán.
 - [Architektúra 7 vrstiev OMNI-CORE](../ARCHITECTURE.md) – Kernel, Orchestration, Memory, Sovereign Ledger v3, Execution, TruthGuard a Interface.
 - [API Referencia (Edge & Port 7788)](../API_REFERENCE.md) – REST/RPC/MCP endpointy na `auru.space`, `auru.dev` a lokálnom System Bridge (`127.0.0.1:7788`).
-- [Kompletná systémová špecifikácia Trinity 2026](docs/TRINITY_SOVEREIGN_SYSTEM_SPEC_2026.md) – architektúra triády, 29 viazaných služieb, Truth Policy 2.0, modely a nástroje.
+- [Kompletná systémová špecifikácia Trinity 2026](docs/TRINITY_SOVEREIGN_SYSTEM_SPEC_2026.md) – architektúra triády, 29 viazaných služieb, Truth Policy 2.1, modely a nástroje.
 - [Používanie nástrojov a pravidlá správania](docs/TRINITY_NASTROJE_A_POUZIVANIE.md) – príručka pre prácu s Puppeteer prehliadačom, GitHubom a doménami.
 - [Postup jedného repozitára pre obe domény](docs/SINGLE_REPOSITORY.md) – konfigurácia a overenie nasadenia.
 
 ## Nasadenie
 
 Použi [postup pre obe produkčné domény](docs/SINGLE_REPOSITORY.md). Pred novým kódom
-aplikuj migrácie príslušnej databázy. Nasadenie označ celým commit SHA a over
+aplikuj migrácie databázy `trinity-v03`. Nasadenie označ celým commit SHA a over
 cez `scripts/verify-deployment.mjs`; výsledok musí sedieť na doméne, verzii,
 prostredí, repozitári, vetve a commit tagu.
 
@@ -117,28 +121,12 @@ PC Bridge potrebuje bežiaci lokálny gateway, autorizáciu a potvrdenie vykonan
 [desktop](../Local-Desktop/README.md) obsahujú ich spúšťacie postupy.
 Existencia modulu ani HTTP 200 nie sú potvrdením externej akcie.
 
+## Chat, poverenia a Interný komunikačný Worker
 
-## Chat a poverenia — aktualizácia 24. 10. 2026
+Automatický režim používa rýchly Workers AI model pre bežný rozhovor; úlohy a opravy spracuje cloudový plánovač. Lokálna inferencia sa vyberá výslovne, aby bežný chat nečakal na offline PC.
 
-Automatický režim používa rýchly Workers AI model pre bežný rozhovor; úlohy a opravy spracuje cloudový plánovač. Lokálna inferencia sa vyberá výslovne, aby bežný chat nečakal na offline PC. Prijatie správy sa zobrazí hneď; modelová odpoveď vzniká až po dokončení úlohy. Sieťové požiadavky majú časový limit; pri nedokončenej úlohe zostane viditeľné jej ID.
+Secrets sa neaktualizujú podľa veku automaticky. `wrangler secret list` vracia iba názvy, nie hodnoty. Kľúče pre inferenciu sú `GOOGLE_AI_STUDIO_API_KEY`, `GEMINI_API_KEY`, `OPENAI_API_KEY` a `OLLAMA_API_KEY`; Workers AI používa binding `AI` a Cloudflare Secrets Store používa `OLLAMA_SECRET` (overiteľné cez `node Trinity/scripts/secrets-store-doctor.mjs`). Rotáciu vykonaj interaktívne cez `npx.cmd wrangler secret put NAZOV --env=""`. Hodnoty nikdy nedávaj do README, histórie príkazov ani Gitu.
 
-Secrets sa neaktualizujú podľa veku automaticky. `wrangler secret list` vracia iba názvy, nie hodnoty. Produkcia a development majú samostatné secrets. Kľúče pre inference sú `GEMINI_API_KEY`, `OPENAI_API_KEY` a `OLLAMA_API_KEY`; Workers AI používa binding `AI`. Prítomnosť názvu nepotvrdzuje platnosť kľúča, kredit ani úspešné generovanie. Nikdy nekopíruj produkčné oprávnenia do developmentu len na odstránenie chyby.
+Rýchle generovanie obsluhuje `trinity-chat-inference` cez privátny binding `CHAT_INFERENCE_SERVICE` (bez verejných routes); pri výpadku bindingu sa použije pôvodný Workers AI binding. Nasadenie produkčného Workera beží cez `npm.cmd run deploy` (alebo automaticky cez GitHub Actions `Trinity self-deploy` na vetve `main`).
 
-Rotáciu vykonaj iba s platnou novou hodnotou cez interaktívny `npx.cmd wrangler secret put NAZOV --env development`, over vývoj a potom samostatne nastav produkciu s `--env=""`. Hodnoty nedávaj do README, príkazovej histórie ani Gitu. Nemeň bez migračného postupu `TRINITY_VAULT_KEY` (šifrované údaje) alebo `TRINITY_SESSION_SECRET` (existujúce relácie). Lokálne súbory s API kľúčmi sú ignorované.
-
-
-## Interný komunikačný Worker
-
-Rýchle generovanie obsluhuje `trinity-chat-inference` v produkcii a samostatný `trinity-chat-inference-development` vo vývoji. Hlavná aplikácia ich volá cez privátny binding `CHAT_INFERENCE_SERVICE`; pomocník nemá verejné routes, workers.dev ani preview URL. Má iba Workers AI, bez databázy, kľúčov k externým modelom alebo práva vykonávať nástroje. Pri výpadku bindingu sa použije pôvodný Workers AI binding.
-
-Krátky rozhovor používa skrátené pokyny a rozpočet najviac 600 výstupných tokenov. Presné jednoduché výpočty a aktuálny čas vykonáva hlavná Trinity priamo cez `calculate` a `current_time`. Ďalšie nástroje zostávajú viazané na nainštalované pluginy a serverové oprávnenia. Workflow retry, auditné doklady a artefakty zostávajú zachované.
-
-Nasadenie: najprv `npx.cmd wrangler deploy --config wrangler.chat.jsonc --env development --tag COMMIT`, potom hlavná aplikácia `npm.cmd run deploy:development -- --tag COMMIT`. Po overení rovnaký postup pre produkciu s `--env=""` a `npm.cmd run deploy`. Inštaláciu lokálnych výpočtových a textových nástrojov vykoná z koreňa `node scripts/enable-chat-tools.mjs development --apply`, následne osobitne `production --apply`. Bez `--apply` skript iba vypíše plán.
-
-Overenie skutočnej inferencie bez čítania lokálnych prihlasovacích súborov: `node scripts/check-chat-inference-live.mjs development` z koreňa. Použije krátkodobý Wrangler remote preview viazaný na localhost a ukončí iba svoj vlastný proces; žiadne tokeny nevypisuje. Tento test nie je potvrdením úspešného prihlásenia používateľa v prehliadači.
-
-Chat už nevytvára overené Google identity alebo administrátorské oprávnenia z e-mailu v správe. PayPal/Revolut pokyny nie sú potvrdením pripojenia banky. Text prísahy nevystavuje falošný doklad o uložení. Skutočnú konfiguráciu spravujú existujúce autorizované formuláre a OAuth callback.
-
-Modely sú nastavené na `@cf/meta/llama-3.1-8b-instruct-fp8-fast` pre rýchly rozhovor a `@cf/meta/llama-3.3-70b-instruct-fp8-fast` pre komplexné úlohy alebo zálohu rýchleho modelu. Starý `@cf/meta/llama-3.1-8b-instruct` bol v oficiálnom changelogu uvedený na vyradenie 30. 5. 2026: https://developers.cloudflare.com/changelog/post/2026-05-08-planned-model-deprecations/ . Katalóg: https://developers.cloudflare.com/workers-ai/models/llama-3.3-70b-instruct-fp8-fast/ .
-
-Ak je remote preview chránené Cloudflare Access, kontrolný skript bez Access oprávnenia skončí ako neoverený test. Ochranu nevypínaj; úspešný build ani test s náhradnou AI službou nedokazuje živú odpoveď poskytovateľa.
+Modely sú nastavené na `@cf/meta/llama-3.1-8b-instruct-fp8-fast` pre rýchly rozhovor a `@cf/meta/llama-3.3-70b-instruct-fp8-fast` pre komplexné úlohy alebo zálohu rýchleho modelu. Ak je preview chránené Cloudflare Access, kontrolný skript bez Access oprávnenia skončí ako neoverený test — ochranu nevypínaj.

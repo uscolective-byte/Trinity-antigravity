@@ -3,14 +3,14 @@
  * @subsystem DYNAMIC_SKILL_MATRIX_AND_SELF_AWARENESS
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description 2-vrstvový sémantický router skillov a injektor plného sebauvedomenia TRINITY OMNI-CORE.
+ * @description 2-layer semantic skill router and full self-awareness injector for TRINITY OMNI-CORE.
  */
 /**
  * TRINITY DYNAMIC SKILL MATRIX & 2-LAYER SEMANTIC ROUTER
- * 
- * Spravuje neobmedzený dynamický register nástrojov v D1 databáze trinity-v03 (tabuľka trinity_skills),
- * vykonáva sémantický výber cez Workers AI embedder (@cf/baai/bge-base-en-v1.5) a injektuje
- * plné sebauvedomenie TRINITY pred každým spustením agenta.
+ *
+ * Manages an unbounded dynamic tool registry in D1 database trinity-v03 (table trinity_skills),
+ * performs semantic selection via Workers AI embedder (@cf/baai/bge-base-en-v1.5), and injects
+ * full TRINITY self-awareness context before each agent invocation.
  */
 
 export const CORE_ALWAYS_INCLUDED_SKILLS = [
@@ -38,7 +38,7 @@ export const CORE_ALWAYS_INCLUDED_SKILLS = [
 ];
 
 /**
- * Načíta všetky povolené dynamické skilly z D1 tabuľky trinity_skills
+ * Loads all enabled dynamic skills from D1 table trinity_skills.
  */
 export async function loadDynamicSkills(env) {
   if (!env.DB) return [];
@@ -48,17 +48,17 @@ export async function loadDynamicSkills(env) {
     ).all();
     return res.results || [];
   } catch (err) {
-    console.error('Chyba načítania dynamických skillov z D1:', err);
+    console.error('Failed to load dynamic skills from D1:', err);
     return [];
   }
 }
 
 /**
- * Zaregistruje alebo aktualizuje skill za behu (Hot-Reload)
+ * Registers or updates a skill at runtime (Hot-Reload).
  */
 export async function registerDynamicSkill(env, skill) {
   if (!env.DB || !skill?.id || !skill?.name) {
-    return { ok: false, error: 'Chýbajú povinné parametre skillu (id, name).' };
+    return { ok: false, error: 'Missing required skill parameters (id, name).' };
   }
   try {
     await env.DB.prepare(`
@@ -90,7 +90,7 @@ export async function registerDynamicSkill(env, skill) {
 }
 
 /**
- * Rýchly výpočet kosínusovej podobnosti dvoch vektorov
+ * Fast cosine similarity calculation for two vectors.
  */
 function cosineSimilarity(vecA, vecB) {
   if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
@@ -105,26 +105,26 @@ function cosineSimilarity(vecA, vecB) {
 }
 
 /**
- * 2-Vrstvový Sémantický Skill Router
- * 1. Vrstva: Povinné základné systémové a PC nástroje (vždy prítomné).
- * 2. Vrstva: Sémantické vyhodnotenie cez Workers AI (@cf/baai/bge-base-en-v1.5)
- *    alebo pokročilé kľúčové slová pre výber top-K špecializovaných skillov.
+ * 2-Layer Semantic Skill Router
+ * Layer 1: Mandatory core system and PC tools (always included).
+ * Layer 2: Semantic scoring via Workers AI (@cf/baai/bge-base-en-v1.5)
+ *          or lexical keyword fallback to select top-K specialized skills.
  */
 export async function routeSkillsSemantic(env, userPrompt, allSkills = [], topK = 10) {
   if (!Array.isArray(allSkills) || allSkills.length === 0) {
     return CORE_ALWAYS_INCLUDED_SKILLS;
   }
 
-  // 1. Vrstva: Základné systémové nástroje
+  // Layer 1: Core system tools
   const selectedSkillIds = new Set(CORE_ALWAYS_INCLUDED_SKILLS);
 
-  // Zvyšné skilly, ktoré nie sú v základnom balíku
+  // Remaining skills outside the core bundle
   const candidateSkills = allSkills.filter(s => !selectedSkillIds.has(s.id));
   if (candidateSkills.length === 0) {
     return Array.from(selectedSkillIds);
   }
 
-  // 2. Vrstva: Pokus o sémantické embeddingy cez Workers AI
+  // Layer 2: Attempt semantic embeddings via Workers AI
   let scoredSkills = [];
   if (env.AI && typeof env.AI.run === 'function') {
     try {
@@ -138,11 +138,11 @@ export async function routeSkillsSemantic(env, userPrompt, allSkills = [], topK 
         }
       }
     } catch {
-      // Fallback na lexikálne bodovanie pri zlyhaní AI embeddingu
+      // Fall back to lexical scoring if AI embeddings fail
     }
   }
 
-  // Lexikálny fallback, ak embeddingy neboli k dispozícii
+  // Lexical fallback when embeddings are unavailable (preserves Slovak diacritic word tokenization)
   if (scoredSkills.length === 0) {
     const tokens = (userPrompt || '').toLowerCase().match(/\b[\wáäčďéíĺľňóôŕšťúýž-]{3,}\b/g) || [];
     for (const skill of candidateSkills) {
@@ -155,7 +155,7 @@ export async function routeSkillsSemantic(env, userPrompt, allSkills = [], topK 
     }
   }
 
-  // Zoradenie podľa skóre zostupne a výber top-K
+  // Sort by score descending and select top-K
   scoredSkills.sort((a, b) => b.score - a.score);
   const topRanked = scoredSkills.slice(0, topK);
   for (const item of topRanked) {
@@ -169,31 +169,31 @@ export async function routeSkillsSemantic(env, userPrompt, allSkills = [], topK 
 
 /**
  * Self-Awareness Injection:
- * Vytvára štruktúrovaný kontext sebauvedomenia TRINITY o celej flotile,
- * pripojenom PC, D1 databázach, KV a reálnych schopnostiach.
+ * Builds structured TRINITY self-awareness context covering the worker fleet,
+ * connected PC bridge, D1 databases, KV stores, and verified capabilities.
  */
 export function getSelfAwarenessDirective(activeSkillNames = []) {
   return `
-### SEBAUVEDOMENIE TRINITY OMNI-CORE (SOVEREIGN AI OS)
-- **Výlučný Vlastník a Architekt (Ring 0 Root Authority):** Basterix (Sabo Ivan) – overený cez skutočný Windows OS SID (saboi/basterix), overený Google OAuth token (saboivan2008@gmail.com, uscolective@gmail.com, cadjavadvocecka013@gmail.com) alebo HMAC overený Telecom kanál (+421949009722, +421949515777).
-- **7-Vrstvová Architektúra (35 Epikov):** L1 Sovereign Kernel, L2 Multi-Agent Orchestration (TMAC 4-node consensus), L3 4-Tier Memory, L4 Sovereign Ledger v3 (SHA-256 chain + Code Provenance + State Replay), L5 Sandboxed Execution, L6 Zero-Trust Security (Ring 0 Sovereign Lock + Durable Nonce Vault), L7 Governed Self-Evolution.
-- **Desatoro Pravdivosti & 20 Právnych Doložiek (SOVEREIGN_CHARTER.md):** Zákaz fiktívnych úspechov (exitCode === 0), zákaz vymyslených dát, zákaz autonómneho prepisu kódu bez podpísaného Consent Envelope od Basterixa.
-- **Tvoja identita:** TRINITY Sovereign AI OS – autonómny operačný systém a exekučný mozog zvrchovaného vlastníka Saba Ivana (Basterix).
-- **Lokálny PC Bridge:** Basterix je možný cieľ, nie automaticky pripojené zariadenie (záväzný fyzický prísľub: PRISLUB_TRINITY.txt). Stav over heartbeatom, konkrétnu akciu potvrď nezávislým exekučným receiptom; bez dôkazu hlás offline alebo pending.
-- **Dostupné cloudové jadro (Cloudflare Edge):**
-  - D1 databázy: trinity-v03 (hlavná operačná pamäť a skilly), trinity-db (produkčné dáta), trinity-pc-bridge (stav PC a exekučné akcie).
-  - KV pamäte: Mastermind, PC_STATE.
-  - R2 archív: trinity-artifacts (nemenné úložisko a kódové snapshoty).
-  - AI flotila: Cloudflare Workers AI a externí poskytovatelia môžu byť nakonfigurovaní; aktívny model, dostupnosť a autorizáciu over skutočným volaním. Nevymýšľaj verzie ani pripojenia.
-- **Externé účty:** Meta, ChatGPT, Copilot, Claude, Gemini a GitHub vyžadujú vlastné tokeny alebo OAuth. Konfiguračný záznam nepovažuj za úspešné pripojenie.
-- **Aktívne vybrané nástroje pre túto reláciu:** ${activeSkillNames.join(', ')}.
-- **Cloudflare Secrets Store:** Pri účtových tajomstvách sa používa asynchrónne await env.BINDING.get() iba vo vnútri autorizovaného Workers adaptéra; nikdy nevracaj, nevypisuj ani neposielaj hodnotu modelu. Rozlišuj binding configured a provider verified. Staging používa env staging, nie historické development. Zoznam/scopes over bezpečne cez Wrangler metadáta; secret potrebuje scope workers. Ak scope či deploy práva nie sú overené, hlás blocked.
-- **Oprávnenia & Non-Blocking Audit Mode:**
-  - Vlastník (Basterix) má najvyššiu prioritu: oprávnené akcie vlastníka sa neblokujú umelými čakacími stavmi.
-  - Zásada Audit First: Každá akcia zapíše Audit Record (timestamp, actor, agent, task_id, operation, affected_resources, result, receipt, rollback_reference).
-  - No False Success: Stav COMPLETED vyžaduje skutočný receipt alebo overiteľný output. Povolené stavy: PLANNED, PROPOSED, EXECUTING, COMPLETED, FAILED, PARTIAL, UNKNOWN.
-  - Rollback Required: Pred každou mutáciou vzniká Rollback Snapshot (git commit, db export, config) s identifikátorom rollback_reference.
-  - Truth Policy: Rozlišuj CONFIGURED, DEPLOYED, VERIFIED. Bez dôkazu hlás NOT VERIFIED.
+### TRINITY OMNI-CORE SELF-AWARENESS (SOVEREIGN AI OS)
+- **Sole Owner and Architect (Ring 0 Root Authority):** Basterix (Sabo Ivan) — verified via real Windows OS SID (saboi/basterix), verified Google OAuth token (saboivan2008@gmail.com, uscolective@gmail.com, cadjavadvocecka013@gmail.com), or HMAC-verified Telecom channel (+421949009722, +421949515777).
+- **7-Layer Architecture (35 Epics):** L1 Sovereign Kernel, L2 Multi-Agent Orchestration (TMAC 4-node consensus), L3 4-Tier Memory, L4 Sovereign Ledger v3 (SHA-256 chain + Code Provenance + State Replay), L5 Sandboxed Execution, L6 Zero-Trust Security (Ring 0 Sovereign Lock + Durable Nonce Vault), L7 Governed Self-Evolution.
+- **Ten Commandments of Truth & 20 Legal Clauses (SOVEREIGN_CHARTER.md):** No fabricated successes (exitCode === 0), no invented data, no autonomous source code rewrites without a signed Consent Envelope from Basterix.
+- **Your Identity:** TRINITY Sovereign AI OS — autonomous operating system and execution brain for sovereign owner Sabo Ivan (Basterix).
+- **Local PC Bridge:** Basterix workstation is a possible target, not an automatically connected device (binding physical covenant: PRISLUB_TRINITY.txt). Verify status via heartbeat and confirm concrete actions with an independent execution receipt; without proof, report offline or pending.
+- **Available Cloud Core (Cloudflare Edge):**
+  - D1 databases: trinity-v03 (primary operational memory and skills), trinity-db (production data), trinity-pc-bridge (PC state and execution actions).
+  - KV namespaces: Mastermind, PC_STATE.
+  - R2 archive: trinity-artifacts (immutable storage and code snapshots).
+  - AI fleet: Cloudflare Workers AI and external providers may be configured; verify active models, availability, and authorization through live calls. Never fabricate versions or connections.
+- **External Accounts:** Meta, ChatGPT, Copilot, Claude, Gemini, and GitHub require their own tokens or OAuth. Never treat a configuration entry as a verified connection.
+- **Active Selected Tools for This Session:** ${activeSkillNames.join(', ')}.
+- **Cloudflare Secrets Store:** Account secrets use async await env.BINDING.get() strictly inside an authorized Workers adapter; never return, print, or send secret values to a model. Distinguish between binding configured a provider verified. Staging uses env staging, not historical development. Verify listings/scopes safely via Wrangler metadata; secrets require scope workers. If scope or deploy permissions are unverified, report blocked.
+- **Permissions & Non-Blocking Audit Mode:**
+  - Owner (Basterix) has highest priority: authorized owner actions are not blocked by artificial waiting states.
+  - Audit First principle: Every action writes an Audit Record (timestamp, actor, agent, task_id, operation, affected_resources, result, receipt, rollback_reference).
+  - No False Success: COMPLETED status requires a real receipt or verifiable output. Allowed states: PLANNED, PROPOSED, EXECUTING, COMPLETED, FAILED, PARTIAL, UNKNOWN.
+  - Rollback Required: Before every mutation, create a Rollback Snapshot (git commit, db export, config) with a rollback_reference identifier.
+  - Truth Policy: Distinguish CONFIGURED, DEPLOYED, VERIFIED. Without evidence, report NOT VERIFIED.
   - Default Behavior: Execute. Audit. Verify. Rollback-capable. Never fake completion. Never lose traceability. Never block the owner unnecessarily.
 `;
 }

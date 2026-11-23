@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul assistant-bridge.js (Trinity/src/assistant-bridge.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Account-scoped notes bridge for external assistants (ChatGPT, Copilot) in TRINITY OMNI-CORE.
  */
 import {z} from 'zod';
 import {authenticateApiKey} from './api-keys.js';
@@ -26,7 +26,7 @@ export async function handleAssistantBridge(request,env){
   const isStatus=path==='/api/assistant-bridge/status'&&request.method==='GET';
   const isList=path==='/api/assistant-bridge/notes'&&request.method==='GET';
   const isWrite=path==='/api/assistant-bridge/notes'&&request.method==='POST';
-  if(!isStatus&&!isList&&!isWrite)throw new HttpError(404,'Neznáma metóda Trinity Assistant Bridge.');
+  if(!isStatus&&!isList&&!isWrite)throw new HttpError(404,'Unknown Trinity Assistant Bridge endpoint or method.');
 
   const client=await authenticateApiKey(request,env,isWrite?'assistant:write':'assistant:read');
   const owner=client.owner_id;
@@ -36,12 +36,12 @@ export async function handleAssistantBridge(request,env){
     data_scope:'api-key-owner',
     capabilities:['status','list_notes','upsert_note'],
     accounts_linked:false,
-    note:'Prístup k API nie je potvrdením OAuth pripojenia ani automatickej synchronizácie histórie chatov.'
+    note:'API access does not verify an OAuth connection or automatic chat history synchronization.'
   });
 
   if(isList){
     const cursor=url.searchParams.get('cursor')||'';
-    if(cursor&&!z.string().uuid().safeParse(cursor).success)throw new HttpError(400,'Neplatný cursor.');
+    if(cursor&&!z.string().uuid().safeParse(cursor).success)throw new HttpError(400,'Invalid cursor.');
     const rows=(await env.DB.prepare('SELECT id,text,revision,source,updated_at FROM ops_assistant_bridge_notes WHERE owner_id=? AND id>? ORDER BY id LIMIT 51')
       .bind(owner,cursor).all()).results||[];
     const notes=rows.slice(0,50);

@@ -145,7 +145,7 @@ for(const status of [301,302,303,307,308])test('workerd never follows a credenti
  const response=await mf.dispatchFetch('https://trinity.test/'+mode);
  const body=await response.text();
  assert.equal(response.status,502,body);
- assert.match(JSON.parse(body).error,/presmerovanie/i);
+ assert.match(JSON.parse(body).error,/redirect/i);
  assert.equal(calls.length-beforeCalls,1);
  for(const sensitive of [token,secret,code,redirectBody,redirectLocation])assert.equal(body.includes(sensitive),false);
  assert.equal(await db.prepare('SELECT count(*) AS n FROM meta_connections WHERE owner_id=?').bind(mode+'@fixture.test').first('n'),0);
@@ -156,7 +156,7 @@ test('workerd also rejects a redirect after token exchange without storing an ac
  const response=await mf.dispatchFetch('https://trinity.test/redirect-profile');
  const body=await response.text();
  assert.equal(response.status,502,body);
- assert.match(JSON.parse(body).error,/presmerovanie/i);
+ assert.match(JSON.parse(body).error,/redirect/i);
  assert.equal(calls.length-beforeCalls,2);
  assert.equal(calls.some(call=>call.host==='must-not-be-called.invalid'),false);
  for(const sensitive of [token,secret,code,redirectBody,redirectLocation])assert.equal(body.includes(sensitive),false);
@@ -170,7 +170,7 @@ for(const [stage,expectedCalls] of [['token_exchange',1],['profile',2],['permiss
   const body=await response.text();
   assert.equal(response.status,diagnostic.http,body);
   const result=JSON.parse(body);
-  assert.deepEqual(result,{error:'Meta odmietla požiadavku; skontroluj prihlásenie a oprávnenia. [stage='+stage+'; http=400'+diagnostic.details+']'});
+  assert.deepEqual(result,{error:'Meta rejected the request; verify login and permissions. [stage='+stage+'; http=400'+diagnostic.details+']'});
   for(const sensitive of [token,secret,code,redirectLocation,redirectBody,'UNTRUSTED_','error_data','fbtrace_id'])assert.equal(body.includes(sensitive),false);
   assert.equal(calls.length-beforeCalls,expectedCalls,'no request may continue after its provider stage failed');
   for(const table of ['meta_connections','ops_secret_vault']){

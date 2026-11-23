@@ -3,18 +3,19 @@
  * @subsystem CONFIG_AND_ENV_VAULT
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Zjednotený správca konfigurácie, premenných prostredia a tajomstiev pre TRINITY OMNI-CORE.
- * Umožňuje bezpečné čítanie kľúčov v poradí:
- * 1. Cloudflare Secrets Store / Worker env bindings (produkcia/staging)
- * 2. D1 SQL Trezor tajomstiev (ops_secret_vault)
- * 3. Lokálne premenné prostredia (.env / process.env) pri lokálnom vývoji
+ * @description Unified configuration, environment variable, and secret resolver for TRINITY OMNI-CORE.
+ * Safely resolves provider keys in priority order:
+ * 1. Cloudflare Secrets Store / Worker env bindings (production/staging)
+ * 2. D1 SQL encrypted secret vault (ops_secret_vault)
+ * 3. Local environment variables (.env / process.env) during local development
  */
 
 import { readTrinityMasterSecret } from './trinity-master-secrets.js';
 import { sanitizeApiKey } from './ai-providers.js';
 
 export const PROVIDER_ENV_KEYS = Object.freeze({
-  gemini: ['GEMINI_API_KEY', 'apigoogle'],
+  gemini: ['GOOGLE_AI_STUDIO_API_KEY', 'GEMINI_API_KEY', 'apigoogle'],
+  google_ai_studio: ['GOOGLE_AI_STUDIO_API_KEY', 'GEMINI_API_KEY', 'apigoogle'],
   openai: ['OPENAI_API_KEY'],
   anthropic: ['ANTHROPIC_API_KEY'],
   deepseek: ['DEEPSEEK_API_KEY'],
@@ -31,19 +32,20 @@ export const PROVIDER_ENV_KEYS = Object.freeze({
 });
 
 /**
- * Získa hodnotu tajomstva pre daného poskytovateľa z najvyššej dostupnej vrstvy.
- * @param {object} env - Cloudflare Worker env alebo globálny kontext
- * @param {string} provider - Názov poskytovateľa (gemini, openai, cloudflare, atď.)
- * @returns {Promise<string|null>} Hodnota kľúča alebo null
+ * Resolves a provider secret from the highest-priority available layer.
+ * @param {object} env - Cloudflare Worker env or global runtime context
+ * @param {string} provider - Provider identifier (gemini, google_ai_studio, openai, cloudflare, etc.)
+ * @returns {Promise<string|null>} Resolved key value or null
  */
 export async function getProviderSecret(env = {}, provider) {
   const normProvider = String(provider || '').toLowerCase().trim();
+  const masterProvider = normProvider === 'google_ai_studio' ? 'gemini' : normProvider;
 
-  // 1. Priorita: Cloudflare Secrets Store (asynchrónny .get())
-  const masterSecret = await readTrinityMasterSecret(env, normProvider);
+  // 1. Priority: Cloudflare Secrets Store (asynchronous .get())
+  const masterSecret = await readTrinityMasterSecret(env, masterProvider);
   if (masterSecret) return masterSecret;
 
-  // 2. Priorita: Worker env bindings / process.env
+  // 2. Priority: Worker env bindings / process.env
   const keyNames = PROVIDER_ENV_KEYS[normProvider] || [];
   for (const key of keyNames) {
     const val = env[key] || (typeof process !== 'undefined' ? process.env?.[key] : null);
@@ -59,7 +61,7 @@ export async function getProviderSecret(env = {}, provider) {
     }
   }
 
-  // 3. Priorita: D1 SQL ops_secret_vault (šifrovaný trezor)
+  // 3. Priority: D1 SQL ops_secret_vault (encrypted vault)
   if (env?.DB?.prepare && typeof env.TRINITY_VAULT_KEY === 'string') {
     try {
       const row = await env.DB.prepare(
@@ -67,7 +69,7 @@ export async function getProviderSecret(env = {}, provider) {
       ).bind(normProvider).first();
 
       if (row) {
-        // Dynamický import pre predídenie cyklickým závislostiam
+        // Dynamic import to avoid circular module dependencies
         const { getSecretMaterial } = await import('./secret-vault.js');
         const mat = await getSecretMaterial(env, { ownerId: row.owner_id, id: row.id, provider: normProvider });
         if (mat?.secret) return mat.secret;
@@ -79,7 +81,7 @@ export async function getProviderSecret(env = {}, provider) {
 }
 
 /**
- * Získa kompletný prehľad o stave všetkých poskytovateľov v prostredí bez vyzradenia tajomstiev.
+ * Returns a metadata-only configuration overview for all providers without exposing or reading secret values.
  */
 export function getEnvironmentOverview(env = {}) {
   const providers = {};

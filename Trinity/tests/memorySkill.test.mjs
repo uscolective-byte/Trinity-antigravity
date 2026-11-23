@@ -76,7 +76,7 @@ test('memorySkills: learnFromChat ukladá príkaz do D1 a invaliduje cache', asy
   assert.equal(res.learned, true);
   assert.equal(res.command, '!analyzuj');
   assert.equal(res.instructions, 'Sprav hĺbkový audit kódu a vypíš 3 riziká.');
-  assert.ok(res.message.includes('✅ Príkaz !analyzuj bol natrvalo zapísaný'));
+  assert.ok(res.message.includes('✅ Command !analyzuj has been permanently saved'));
 
   // Overenie v D1
   const stored = env.DB.store.get('analyzuj');
@@ -122,8 +122,8 @@ test('memorySkills: resolveCustomCommand rozoznáva !zoznam a vlastné príkazy'
   assert.ok(execRes);
   assert.equal(execRes.type, 'execute');
   assert.equal(execRes.command, '!scan');
-  assert.ok(execRes.expandedPrompt.includes('Vykonaj uložený postup [scan]: Vyhľadaj bezpečnostné zraniteľnosti.'));
-  assert.ok(execRes.expandedPrompt.includes('Vstup od používateľa: index.js --strict'));
+  assert.ok(execRes.expandedPrompt.includes('Execute stored procedure [scan]: Vyhľadaj bezpečnostné zraniteľnosti.'));
+  assert.ok(execRes.expandedPrompt.includes('User input: index.js --strict'));
 
   // 3. Neznámy príkaz
   const unknownRes = await memorySkills.resolveCustomCommand('!neexistuje', env);
@@ -139,12 +139,12 @@ test('memorySkills: integrácia do runAgent (učenie v čete a volanie !zoznam)'
 
   // Test učenia priamo cez runAgent
   const agentLearnRes = await runAgent(env, 'orchestrator', '!skill rychly_plan = Vytvor 3-bodový plán implementácie.');
-  assert.ok(agentLearnRes.text.includes('✅ Príkaz !rychly_plan bol natrvalo zapísaný'));
+  assert.ok(agentLearnRes.text.includes('✅ Command !rychly_plan has been permanently saved'));
   assert.equal(agentLearnRes.model, 'deterministic-memory');
 
   // Test !zoznam priamo cez runAgent
   const agentListRes = await runAgent(env, 'orchestrator', '!zoznam');
-  assert.ok(agentListRes.text.includes('Zoznam naučených príkazov Trinity'));
+  assert.ok(agentListRes.text.includes('Trinity learned commands list'));
   assert.ok(agentListRes.text.includes('!rychly_plan'));
   assert.equal(agentListRes.model, 'deterministic-memory');
 });
@@ -168,7 +168,7 @@ test('learning cannot report success when D1 rejects the write', async () => {
     if (sql.includes('INSERT INTO trinity_commands')) statement.run = async () => ({success: false});
     return statement;
   };
-  await assert.rejects(memorySkills.learnFromChat('!skill plan = Vytvor plán.', env), /nepodarilo|overiť/);
+  await assert.rejects(memorySkills.learnFromChat('!skill plan = Vytvor plán.', env), /Failed to save|verify/);
   assert.equal(env.DB.store.size, 0);
 });
 
@@ -181,7 +181,7 @@ test('learning requires an independent matching D1 readback, not only an acknowl
       if (sql.includes('SELECT instructions FROM trinity_commands')) statement.first = async () => persisted;
       return statement;
     };
-    await assert.rejects(memorySkills.learnFromChat('!skill plan = Vytvor plán.', env), /overiť/);
+    await assert.rejects(memorySkills.learnFromChat('!skill plan = Vytvor plán.', env), /Failed to verify/);
   }
 });
 
@@ -202,7 +202,7 @@ test('empty learned instructions cannot overwrite an existing command or invalid
   await memorySkills.getAllCommands(env);
   const cached=env.CACHE.cacheStore.get('trinity:learned_commands');
   for(const suffix of ['',' ','\t\n  ']){
-    await assert.rejects(memorySkills.learnFromChat('!skill plan ='+suffix,env),/prázdn|pokyn/i);
+    await assert.rejects(memorySkills.learnFromChat('!skill plan ='+suffix,env),/must not be empty/i);
     assert.equal(env.DB.store.get('plan').instructions,'Zachovaj tento plán.');
     assert.equal(env.CACHE.cacheStore.get('trinity:learned_commands'),cached);
   }
@@ -212,7 +212,7 @@ test('builtin command names are rejected before database access',async()=>{
   let writes=0;
   const env={DB:{prepare(){writes++;throw Error('Unexpected DB access');}}};
   for(const name of ['zoznam','ZLEPSENIE','skill']){
-    await assert.rejects(memorySkills.learnFromChat(`!skill ${name} = Vlastný pokyn.`,env),/vyhraden/i);
+    await assert.rejects(memorySkills.learnFromChat(`!skill ${name} = Vlastný pokyn.`,env),/reserved/i);
   }
   assert.equal(writes,0);
 });
@@ -220,6 +220,6 @@ test('builtin command names are rejected before database access',async()=>{
 test('runAgent rejects blank learning requests without model inference or successful receipt',async()=>{
   const env=createMockMemoryDB();
   env.AI={run(){throw Error('No model call expected');}};
-  await assert.rejects(runAgent(env,'orchestrator','!skill plan ='),/Pokyn príkazu nesmie byť prázdny/);
+  await assert.rejects(runAgent(env,'orchestrator','!skill plan ='),/Command instructions must not be empty/);
   assert.equal(env.DB.store.size,0);
 });

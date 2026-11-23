@@ -24,13 +24,13 @@ const input={id:'shared-agent',name:'Shared agent',system_prompt:'Act truthfully
 test('custom agent id cannot be overwritten by another owner',async()=>{
   const state={existingOwner:'owner-a'};
   const env={DB:{prepare(sql){return statement(sql,state);}}};
-  await assert.rejects(createOrUpdateCustomAgent(env,'owner-b',input),/inému vlastníkovi/);
+  await assert.rejects(createOrUpdateCustomAgent(env,'owner-b',input),/another owner/);
 });
 
 test('agent execution lookup is scoped to the authenticated owner and fails closed',async()=>{
   const state={agent:null};
   const env={DB:{prepare(sql){return statement(sql,state);}}};
-  await assert.rejects(executeCustomAgent(env,'owner-b',{agent_id:'shared-agent',input:'run'}),/nepatrí/);
+  await assert.rejects(executeCustomAgent(env,'owner-b',{agent_id:'shared-agent',input:'run'}),/does not belong/);
   assert.deepEqual(state.executionLookup,['shared-agent','owner-b']);
 });
 

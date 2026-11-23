@@ -1436,16 +1436,16 @@
 
 
 /* ==========================================================================
-   ZEN MINIMALIST UI - ČISTÝ, JEDNODUCHÝ A POKOJNÝ DIZAJN (ODSTRÁNENIE PREPLNENIA)
+   ZEN MINIMALIST UI - CLEAN, SIMPLE AND CALM DESIGN (REDUCED VISUAL CLUTTER)
    ========================================================================== */
 
-/* Globálne upokojenie vizuálu */
+/* Global visual calm */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   letter-spacing: -0.01em;
 }
 
-/* Sidebar - minimalistický a priestranný */
+/* Sidebar - minimalist and spacious */
 .sidebar {
   width: 236px !important;
   background: #090e17 !important;
@@ -1541,7 +1541,7 @@ body {
   margin: 4px 0 8px !important;
 }
 
-/* Header - ľahký a vzdušný */
+/* Header - light and airy */
 main {
   margin-left: 236px !important;
   width: calc(100% - 236px) !important;
@@ -1586,7 +1586,7 @@ header {
   color: #94a3b8 !important;
 }
 
-/* Chat Welcome View - úplne čistý a pokojný */
+/* Chat Welcome View - clean and calm */
 #welcome {
   max-width: 580px !important;
   margin: 60px auto 30px !important;
@@ -1651,7 +1651,7 @@ header {
   transform: translateY(-1px) !important;
 }
 
-/* Chat Messages - čisté a vzdušné */
+/* Chat Messages - clean and airy */
 #messages {
   max-width: 820px !important;
 }
@@ -1681,7 +1681,7 @@ header {
   color: #f8fafc !important;
 }
 
-/* Chat Composer - plávajúca moderná kapsula */
+/* Chat Composer - floating modern capsule */
 .composer-wrap {
   max-width: 860px !important;
   padding: 8px 24px 20px !important;
@@ -1767,7 +1767,7 @@ button.primary:hover {
   margin-top: 8px !important;
 }
 
-/* Dashboard & Panels - čisté, vzdušné karty */
+/* Dashboard & Panels - clean, airy cards */
 .panel {
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
   background: rgba(15, 23, 42, 0.6) !important;
@@ -1789,7 +1789,7 @@ button.primary:hover {
   color: #64748b !important;
 }
 
-/* Hero karty - decentné */
+/* Hero cards - subtle styling */
 .hero-card {
   min-height: auto !important;
   padding: 24px 30px !important;
@@ -1809,7 +1809,7 @@ button.primary:hover {
   color: #94a3b8 !important;
 }
 
-/* Metriky - moderné a čisté bez krikľavých hrubých čiar */
+/* Metrics - modern and clean without heavy accent borders */
 .metric {
   padding: 16px 20px !important;
   border-radius: 14px !important;
@@ -1841,7 +1841,7 @@ button.primary:hover {
   color: #94a3b8 !important;
 }
 
-/* Akčné mriežky - moderné jemné tlačidlá */
+/* Action grids - modern subtle buttons */
 .action-grid button,
 .admin-action-grid button,
 .admin-action-grid a {

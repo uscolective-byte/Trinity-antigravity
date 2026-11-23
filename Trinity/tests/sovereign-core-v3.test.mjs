@@ -85,7 +85,7 @@ test('a rejected ledger write does not issue a durable receipt',async()=>{
   const ledger=new SovereignLedgerV3({DB:{prepare(){return {
     first:async()=>null,bind(){return this;},run:async()=>({success:false})
   };}}});
-  await assert.rejects(ledger.appendBlock('test','test_write',{}),/nebol potvrdený/);
+  await assert.rejects(ledger.appendBlock('test','test_write',{}),/was not confirmed/);
   assert.equal(ledger.inMemoryBlocks.length,0);
 });
 
@@ -255,7 +255,7 @@ test('ZeroTrustSecurityCore: Enforces identity, role boundaries, and blocks leak
     tokenRole: 'standard'
   });
   assert.equal(blockedFinance.allowed, false);
-  assert.ok(blockedFinance.reason.includes('vlastníka'));
+  assert.ok(blockedFinance.reason.includes('owner role'));
 
   const blockedLeak = ZeroTrustSecurityCore.evaluateCall({
     actor: 'owner',
@@ -264,6 +264,6 @@ test('ZeroTrustSecurityCore: Enforces identity, role boundaries, and blocks leak
     tokenRole: 'owner'
   });
   assert.equal(blockedLeak.allowed, false);
-  assert.ok(blockedLeak.reason.includes('kľúča'));
+  assert.ok(blockedLeak.reason.includes('sensitive key'));
 });
 

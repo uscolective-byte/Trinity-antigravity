@@ -18,38 +18,38 @@ async function main() {
   }
 
   if (!token) {
-    console.error('❌ Chýba Telegram Bot Token.');
-    console.error('Použitie:');
-    console.error('  1. Vytvor súbor: .credentials/telegram_token.txt s novým tokenom a spusti: node scripts/setup-telegram-bot.mjs');
-    console.error('  2. Alebo priamo: node scripts/setup-telegram-bot.mjs <TVOJ_NOVY_TOKEN>');
+    console.error('❌ Missing Telegram Bot Token.');
+    console.error('Usage:');
+    console.error('  1. Create file: .credentials/telegram_token.txt with the new token and run: node scripts/setup-telegram-bot.mjs');
+    console.error('  2. Or pass directly: node scripts/setup-telegram-bot.mjs <YOUR_NEW_TOKEN>');
     process.exit(1);
   }
 
   // 1. Verify token with Telegram API
-  console.log('1. Overujem nový token s Telegram API (getMe)...');
+  console.log('1. Verifying new token with Telegram API (getMe)...');
   const meRes = await fetch(`https://api.telegram.org/bot${token}/getMe`);
   const me = await meRes.json();
   if (!me.ok) {
-    console.error('❌ Telegram odmietol token:', me.description);
+    console.error('❌ Telegram rejected the token:', me.description);
     process.exit(1);
   }
-  console.log(`✅ Token je platný pre bota: ${me.result.first_name} (@${me.result.username})`);
+  console.log(`✅ Token is valid for bot: ${me.result.first_name} (@${me.result.username})`);
 
   // 2. Upload secret to Cloudflare Worker
-  console.log('2. Ukladám TELEGRAM_BOT_TOKEN do produkčných Cloudflare Secrets...');
+  console.log('2. Uploading TELEGRAM_BOT_TOKEN to production Cloudflare Secrets...');
   const proc = spawnSync('npx', ['wrangler', 'secret', 'put', 'TELEGRAM_BOT_TOKEN', '--env=""'], {
     input: token,
     encoding: 'utf8',
     shell: true
   });
   if (proc.status !== 0) {
-    console.error('❌ Zlyhalo uloženie tajomstva do Wrangleru:', proc.stderr || proc.stdout);
+    console.error('❌ Failed to store secret via Wrangler:', proc.stderr || proc.stdout);
     process.exit(1);
   }
-  console.log('✅ Tajomstvo TELEGRAM_BOT_TOKEN úspešne nahraté do Cloudflare Worker "trinity".');
+  console.log('✅ Secret TELEGRAM_BOT_TOKEN uploaded to Cloudflare Worker "trinity".');
 
   // 3. Register Webhook
-  console.log('3. Registrujem webhook na https://auru.space/api/telegram/webhook...');
+  console.log('3. Registering webhook at https://auru.space/api/telegram/webhook...');
   const whRes = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -62,13 +62,13 @@ async function main() {
   });
   const wh = await whRes.json();
   if (!wh.ok) {
-    console.error('❌ Registrácia webhooku zlyhala:', wh.description);
+    console.error('❌ Webhook registration failed:', wh.description);
     process.exit(1);
   }
-  console.log('✅ Webhook úspešne nastavený s kryptografickým secret tokenom.');
+  console.log('✅ Webhook configured with cryptographic secret token.');
 
   // 4. Send test message to owner
-  console.log(`4. Posielam overovaciu správu majiteľovi (Chat ID: ${OWNER_CHAT_ID})...`);
+  console.log(`4. Sending verification message to owner (Chat ID: ${OWNER_CHAT_ID})...`);
   const sendRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -79,22 +79,22 @@ async function main() {
   });
   const send = await sendRes.json();
   if (send.ok) {
-    console.log(`✅ Správa doručená! (message_id: ${send.result.message_id})`);
+    console.log(`✅ Message delivered! (message_id: ${send.result.message_id})`);
   } else {
-    console.warn('⚠️ Nepodarilo sa odoslať uvítaciu správu (možno bot ešte nebol spustený používateľom cez /start v Telegrame).');
+    console.warn('⚠️ Could not send welcome message (the user may not have started the bot with /start in Telegram yet).');
   }
 
   // 5. Clean up local token file if present
   if (fs.existsSync(credPath)) {
     fs.unlinkSync(credPath);
-    console.log('🧹 Lokálny súbor .credentials/telegram_token.txt bol bezpečne vymazaný.');
+    console.log('🧹 Local file .credentials/telegram_token.txt has been securely removed.');
   }
 
   console.log('---------------------------------------------');
-  console.log('🎉 Hotovo! Nový bot je 100 % funkčný a zabezpečený.');
+  console.log('🎉 Done! The new bot is operational and secured.');
 }
 
 main().catch(err => {
-  console.error('Kritická chyba:', err);
+  console.error('Critical error:', err);
   process.exit(1);
 });

@@ -34,7 +34,7 @@ test('Gemini status does not treat a binding as verified authentication',async()
 test('Secrets Store outages or invalid credentials fail closed',async()=>{
   const env={DB:fakeDB,GEMINI_MODEL:'gemini-test-only',
     TRINITY_MASTER_GOOGLE:{get:async()=>{throw new Error('synthetic-private-secret');}}};
-  await assert.rejects(()=>getConfiguredAIProvider(env,'gemini'),/nemá dostupný platný API kľúč/);
+  await assert.rejects(()=>getConfiguredAIProvider(env,'gemini'),/does not have a valid API key/);
   const invalid={...env,TRINITY_MASTER_GOOGLE:{get:async()=> 'not-a-gemini-token'}};
-  await assert.rejects(()=>getConfiguredAIProvider(invalid,'gemini'),/nemá dostupný platný API kľúč/);
+  await assert.rejects(()=>getConfiguredAIProvider(invalid,'gemini'),/does not have a valid API key/);
 });

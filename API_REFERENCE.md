@@ -1,21 +1,22 @@
 # TRINITY OMNI-CORE — API REFERENCE
 
-**Verzia:** `11.0.0`  
-**Autorita:** Basterix (Sole Owner & Chief Architect)
+**Version:** `11.1.0`  
+**Authority:** Basterix (Sole Owner & Chief Architect)  
+**Dual-Language Architecture:** English internal engineering layer / Slovak user communication layer.
 
 ---
 
-## 1. Cloudflare Edge Endpoints (`https://auru.space` & `https://auru.dev`)
+## 1. Cloudflare Edge Endpoints (`https://auru.space` & `https://auru.dev` — Unified Production Worker `trinity`)
 
 ### `GET /api/status`
-Verejný stavový endpoint vracajúci živý stav jadra TRINITY OMNI-CORE, autoritu vlastníka Basterix, pripojené Cloudflare bindingy a stav integrácií.
+Public status endpoint returning the live TRINITY OMNI-CORE status, owner authority metadata, bound Cloudflare resources, and integration metadata (zero secret values).
 - **Response (`200 OK`):**
 ```json
 {
   "status": "ONLINE",
   "service": "TRINITY OMNI-CORE",
-  "version": "11.0.0",
-  "environment": "staging | production",
+  "version": "11.1.0",
+  "environment": "production",
   "host": "auru.dev | auru.space",
   "mode": "omni-dev | production",
   "root_authority": {
@@ -43,16 +44,29 @@ Verejný stavový endpoint vracajúci živý stav jadra TRINITY OMNI-CORE, autor
 ```
 
 ### `GET /health` & `GET /api/health`
-Kontrola životnosti Workera, verzie, zdrojového repozitára (`uscolective-byte/Trinity-antigravity`) a `truth_mode: "evidence-required"`.
+Worker liveness, runtime version (`11.1.0`), canonical source (`uscolective-byte/Trinity-antigravity@main`), deployment commit tag, and `truth_mode: "evidence-required"`.
 
 ### `GET /ready`
-Hĺbková kontrola pripravenosti D1 databázy, tabuliek a naviazaných služieb.
+Deep readiness verification of Cloudflare D1 `trinity-v03`, schema tables, and cache bindings.
+
+### Google AI Studio Bridge (`/api/assistant/ai-studio/*`)
+All endpoints require an authenticated session (`401` when unauthenticated) and resolve credentials server-side via Worker secrets (`GOOGLE_AI_STUDIO_API_KEY` / `GEMINI_API_KEY`), Cloudflare Secrets Store (`.get()`), or encrypted AES-GCM D1 Vault (`google_ai_studio` / `gemini`), always sending `x-goog-api-key` header only (never `?key=`).
+
+- **`GET /api/assistant/ai-studio/status`** — Metadata-only bridge configuration status (`live_verified: false`, `secret_values_accessed: false`, never reads secret values).
+- **`GET /api/assistant/ai-studio/models`** — Discovers available Gemini models from `generativelanguage.googleapis.com/v1beta/models`.
+- **`POST /api/assistant/ai-studio/verify`** — Admin-only (`403` for ordinary users) live probe verifying model listing and minimal `generateContent` execution.
+- **`POST /api/assistant/ai-studio/generate`** — Direct text/JSON generation or SSE streaming (`stream: true`) with 404 model fallback and fail-closed auth/quota errors.
+- **`POST /api/assistant/ai-studio/co-create`** — Multi-turn collaborative co-creation between Trinity and Google AI Studio (`{ task, mode, session_id?, model?, context?, artifact?, reply_language? }`), using English internal reasoning prompts and Slovak user synthesis by default, persisting bounded session turns in D1/KV.
+- **`GET /api/assistant/ai-studio/sessions`** & **`GET /api/assistant/ai-studio/sessions/:id`** — Retrieve persisted co-creation sessions.
+
+### Tetrakis (`$TTK`) Native Space (`GET /api/assistant/crypto/tetrakis`)
+Returns fail-closed Base L2 ERC-20 contract verification status (`1,000,000,000 TTK` fixed supply, `market_price: null` under Truth Policy 2.1) and the 4 native ecosystem utility pillars (in-chat P2P payments, Mini-Apps/AI Studio/bot economy, domains/handles/digital assets, creator/compute economy & non-custodial Space).
 
 ### `POST /mcp`
-JSON-RPC 2.0 endpoint pre Model Context Protocol (MCP) klientov.
+JSON-RPC 2.0 endpoint for Model Context Protocol (MCP) clients, including `google_ai_studio_status`, `google_ai_studio_models`, and `google_ai_studio_cocreate`.
 
 ### `POST /api/mcp/invoke`
-REST brána pre volanie registrovaných nástrojov Trinity s automatickým vystavením auditného dokladu `receipt_id`.
+REST gateway for invoking registered Trinity tools (including `google_ai_studio`) with automatic Truth Policy 2.1 `receipt_id`.
 
 ---
 

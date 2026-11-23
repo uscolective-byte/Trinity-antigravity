@@ -8,12 +8,12 @@ const session=crypto.randomUUID();
 const job=await api('/api/assistant/chat',{message:'Odpovedz jednou krátkou vetou po slovensky: lokálne PC prepojenie funguje.',session,language:'sk',engine:'local',remember:false,allow_files:false});
 let completedJob;
 for(let i=0;i<150;i++){await new Promise(resolve=>setTimeout(resolve,1500));const current=await api('/api/ops/jobs/'+job.id);if(['completed','failed'].includes(current.status)){completedJob=current;break;}}
-if(!completedJob||completedJob.status!=='completed')throw new Error(completedJob?.error||'Lokálny model nedokončil test.');
-const desktop=await api('/api/system/actions',{action:'run',payload:{task:'desktop-control',operation:'launch',app:'calculator'},rationale:'Živý test povoleného ovládania počítača'});
+if(!completedJob||completedJob.status!=='completed')throw new Error(completedJob?.error||'Local model did not complete the test.');
+const desktop=await api('/api/system/actions',{action:'run',payload:{task:'desktop-control',operation:'launch',app:'calculator'},rationale:'Live test of allowed desktop control'});
 await api(`/api/system/actions/${desktop.action.id}/approve`,{confirmation:desktop.action.id});
 let completedDesktop;
 for(let i=0;i<40;i++){await new Promise(resolve=>setTimeout(resolve,750));const current=await api(`/api/system/actions/${desktop.action.id}`);if(['completed','failed'].includes(current.action.status)){completedDesktop=current.action;break;}}
-if(!completedDesktop||completedDesktop.status!=='completed')throw new Error(completedDesktop?.error||'Desktop test sa nedokončil.');
-if(completedDesktop.receipt?.desktop?.opened!==true)throw new Error('Desktop akcia nemá potvrdené otvorené okno.');
+if(!completedDesktop||completedDesktop.status!=='completed')throw new Error(completedDesktop?.error||'Desktop test did not complete.');
+if(completedDesktop.receipt?.desktop?.opened!==true)throw new Error('Desktop action does not have a confirmed opened window.');
 const result={checked_at:new Date().toISOString(),worker_version:(await api('/health')).version,gateway:'connected',local_job_id:job.id,local_job_status:completedJob.status,local_model:completedJob.steps?.at(-1)?.model||null,local_response:completedJob.result?.slice(0,500),desktop_action_id:desktop.action.id,desktop_status:completedDesktop.status,desktop_receipt:completedDesktop.receipt};
 writeFileSync(new URL('../verification/pc-bridge-live.json',import.meta.url),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result,null,2));

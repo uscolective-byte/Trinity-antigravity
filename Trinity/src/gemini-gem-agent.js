@@ -3,12 +3,14 @@
  * @subsystem GEMINI_GEM_AGENT
  * @author Basterix (Root Architect) & Antigravity (Sovereign Pair)
  * @license Sovereign Irrevocable Covenant
- * @description Trinity agent používajúci nakonfigurovanú kaskádu Gemini API a prípadný Workers AI fallback.
- * Model vykonáva inferenciu; oprávnenia na nástroje dodáva iba overený volajúci.
+ * @description Trinity agent using the configured Google AI Studio / Gemini API model cascade
+ * with optional Workers AI edge fallback. Model performs inference only; tool permissions
+ * are enforced strictly by the authenticated caller context.
  */
 
-import { callModel, boundedText } from './services.js';
+import { boundedText } from './services.js';
 import { sanitizeApiKey } from './ai-providers.js';
+import { resolveAiStudioCredential, redactAiStudioSecret } from './google-ai-studio-bridge.js';
 import { buildReceipt, hashPayload } from './receipt.js';
 import { parseModelAction } from './model-action-parser.js';
 
@@ -23,19 +25,21 @@ export const GEMINI_MODEL_CASCADE = Object.freeze([
 
 export const EDGE_FALLBACK_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 
-// Zrkadlí iba kontext dostupný v opise Gemini Gemu. ID UI Gemu ani jeho
-// vlastné nastavenia sa cez Gemini generateContent API nenačítavajú.
+const GEMINI_KEY_PATTERN = /(?:AIza[A-Za-z0-9_-]{25,}|AQ\.[A-Za-z0-9_.-]{25,})/;
+
+// Reflects only the public context available to the Gemini API agent. Web UI Gem IDs
+// and private Gem UI settings are not loaded through the Gemini generateContent API.
 export const GEMINI_GEM_SYSTEM_PROFILE = [
-  'Si Gemini agent integrovaný do Trinity OMNI-CORE 11.1.0 cez Gemini API.',
-  'Trinity je modulárny AI systém s Cloudflare Worker runtime, modelovým smerovaním, MCP a lokálnym mostom. Názov alebo konfigurácia D1, KV, R2, Vectorize či Workers AI nedokazuje živé spojenie ani úspešnú operáciu.',
-  'Odpovedaj po slovensky, ak používateľ nepoužije iný jazyk. Buď vecný a zrozumiteľný. Nepripisuj si vedomie, identitu človeka ani oprávnenia, ktoré nemáš.',
-  'Rozlišuj návrh, implementáciu, konfiguráciu, vykonanie a overený výsledok. Úspech tvrď len na základe skutočného výsledku tejto relácie.',
-  'Gemini API kľúč ani názov alebo ID Gemu z webového rozhrania nedáva prístup ku Google Gemu, GitHubu, Cloudflare, lokálnemu počítaču ani administrátorským právam.',
-  'Limity a kvóty spravuje poskytovateľ. Fallback môže znížiť výpadok, no nezaručuje neobmedzené používanie ani nepretržitú dostupnosť.'
+  'You are the Gemini agent integrated into Trinity OMNI-CORE 11.1.0 via the Google AI Studio / Gemini API.',
+  'Trinity is a modular AI system running on Cloudflare Workers with model routing, MCP, and a local PC bridge. Naming or configuring D1, KV, R2, Vectorize, or Workers AI is never proof of a live connection or successful operation.',
+  'Always reply to the user in Slovak unless the user writes in another language. Be factual and clear. Never claim consciousness, human identity, or permissions you do not possess.',
+  'Clearly distinguish proposals, implementation, configuration, execution, and verified outcomes. Only claim success based on actual verified results from this session.',
+  'A Gemini API key or a web UI Gem ID does not grant access to a Google Gem account, GitHub, Cloudflare, the local PC, or administrator privileges.',
+  'Rate limits and quotas are managed by the provider. Model fallback reduces downtime risk but does not guarantee unlimited usage or uninterrupted availability.'
 ].join('\n');
 
 /**
- * Normalizuje konverzačnú históriu pre Gemini API (zaručuje správne striedanie 'user' a 'model').
+ * Normalizes conversation history for the Gemini API (ensuring alternating 'user' and 'model' turns).
  */
 function formatGeminiContents(messages = []) {
   const contents = [];
@@ -59,18 +63,18 @@ function formatGeminiContents(messages = []) {
   }
 
   if (contents.length > 0 && contents[0].role !== 'user') {
-    contents.unshift({ role: 'user', parts: [{ text: 'Pokračuj.' }] });
+    contents.unshift({ role: 'user', parts: [{ text: 'Continue.' }] });
   }
 
   return { contents, systemText };
 }
 
 /**
- * Spustí dopyt na Gemini API s konkrétnym modelom
+ * Executes a single Gemini API generateContent request against a specific model.
  */
 async function callGeminiEndpoint(apiKey, model, contents, systemInstruction = '', options = {}) {
   const cleanModel = String(model).replace(/^models\//, '');
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cleanModel)}:generateContent`;
 
   const payload = {
     contents,
@@ -86,7 +90,8 @@ async function callGeminiEndpoint(apiKey, model, contents, systemInstruction = '
     };
   }
 
-  const response = await fetch(url, {
+  const fetcher = options.fetcher || fetch;
+  const response = await fetcher(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -98,7 +103,7 @@ async function callGeminiEndpoint(apiKey, model, contents, systemInstruction = '
   });
 
   if (!response.ok) {
-    const errorText = await boundedText(response, 1000).catch(() => '');
+    const errorText = redactAiStudioSecret(await boundedText(response, 1000).catch(() => ''));
     const err = new Error(`Gemini ${cleanModel} HTTP ${response.status}: ${errorText}`);
     err.status = response.status;
     err.model = cleanModel;
@@ -109,7 +114,7 @@ async function callGeminiEndpoint(apiKey, model, contents, systemInstruction = '
   const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('\n').trim() || '';
 
   if (!text) {
-    throw new Error(`Gemini ${cleanModel} vrátil prázdnu odpoveď.`);
+    throw new Error(`Gemini ${cleanModel} returned an empty response.`);
   }
 
   return {
@@ -124,14 +129,38 @@ async function callGeminiEndpoint(apiKey, model, contents, systemInstruction = '
 }
 
 /**
- * Spustí jeden inferenčný krok cez Gemini kaskádu alebo Edge fallback
+ * Resolves the Gemini / Google AI Studio API key through the unified bridge resolver
+ * (Worker secrets, Cloudflare Secrets Store, encrypted Vault) with safe AI_KEYS JSON fallback.
+ */
+async function resolveGeminiAgentApiKey(env, options = {}) {
+  const resolved = await resolveAiStudioCredential(env, {
+    ownerId: options.ownerId ?? options.executionContext?.userEmail,
+    secretId: options.secretId
+  });
+  if (resolved.apiKey) {
+    return resolved.apiKey;
+  }
+  if (typeof env?.AI_KEYS === 'string') {
+    try {
+      const parsed = JSON.parse(env.AI_KEYS);
+      const rawKey = parsed?.google_ai_studio || parsed?.gemini || null;
+      const sanitized = rawKey ? sanitizeApiKey(rawKey, GEMINI_KEY_PATTERN) : '';
+      if (sanitized.length >= 25) return sanitized;
+    } catch {
+      // Fail closed on malformed AI_KEYS JSON.
+    }
+  }
+  return null;
+}
+
+/**
+ * Runs a single inference turn across the Gemini model cascade or Workers AI edge fallback.
  */
 async function runSingleInference(env, messages, options = {}) {
-  const rawKey = env.GEMINI_API_KEY || (typeof env.AI_KEYS === 'string' ? JSON.parse(env.AI_KEYS).gemini : null);
-  const apiKey = rawKey ? sanitizeApiKey(rawKey, /AIza[A-Za-z0-9_-]{25,}/) : null;
+  const apiKey = await resolveGeminiAgentApiKey(env, options);
   const errors = [];
 
-  // 1. Kaskáda Gemini modelov
+  // 1. Google AI Studio / Gemini model cascade
   if (apiKey) {
     const { contents, systemText } = formatGeminiContents(messages);
     const candidateModels = [
@@ -149,7 +178,7 @@ async function runSingleInference(env, messages, options = {}) {
           attempts: errors.length + 1
         };
       } catch (err) {
-        errors.push({ model, status: err.status || 'unknown', message: err.message });
+        errors.push({ model, status: err.status || 'unknown', message: redactAiStudioSecret(err.message) });
         if (err.status === 429 || err.status === 503 || err.status === 500 || err.status === 404) {
           continue;
         }
@@ -157,7 +186,7 @@ async function runSingleInference(env, messages, options = {}) {
       }
     }
   } else {
-    errors.push({ reason: 'GEMINI_API_KEY_ABSENT', message: 'Gemini API kľúč nie je nakonfigurovaný, aktivujem Edge Fallback.' });
+    errors.push({ reason: 'GEMINI_API_KEY_ABSENT', message: 'Google AI Studio / Gemini API key is not configured; activating Edge Fallback.' });
   }
 
   // 2. Sovereign Edge Fallback (Workers AI Llama 3.3 70B)
@@ -194,20 +223,20 @@ async function runSingleInference(env, messages, options = {}) {
         };
       }
     } catch (edgeErr) {
-      errors.push({ model: 'workers-ai', message: edgeErr.message });
+      errors.push({ model: 'workers-ai', message: redactAiStudioSecret(edgeErr.message) });
     }
   }
 
-  throw new Error(`Gemini GEM Agent vyčerpal všetky dostupné kanály: ${JSON.stringify(errors)}`);
+  throw new Error(`Gemini GEM Agent exhausted all available channels: ${JSON.stringify(errors)}`);
 }
 
 /**
- * Spustí Gemini inferenciu a prípadné nástroje cez oprávnenia overeného volajúceho.
+ * Executes Gemini inference and optional bounded tool calls using the authenticated caller's permissions.
  */
 export async function executeGeminiGemAgent(env, task, options = {}) {
   const startedAt = Date.now();
   const executionId = `GEMINI-GEM-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 6)}`;
-  
+
   if (!task || typeof task !== 'string' || !task.trim()) {
     throw new Error('Úloha pre Gemini GEM agenta nesmie byť prázdna.');
   }
@@ -217,28 +246,28 @@ export async function executeGeminiGemAgent(env, task, options = {}) {
 
   const toolDirectives = allowTools ? [
     '',
-    'Máš k dispozícii kompletnú sadu systémových nástrojov na vykonávanie príkazov používateľa:',
-    '- read_file: { "Path": string, "StartLine"?: number, "EndLine"?: number } - Prečítanie súboru',
-    '- write_file: { "Path": string, "Content": string, "Overwrite"?: boolean, "Append"?: boolean } - Vytvorenie/zápis súboru',
-    '- edit_file: { "Path": string, "Target": string, "Replacement": string } - Presná úprava súboru',
-    '- run_command: { "CommandLine": string, "WaitMsBeforeAsync"?: number } - Spustenie príkazu (shell/PowerShell)',
-    '- manage_task: { "Action": "list"|"kill"|"status"|"send_input", "TaskId"?: string } - Správa úloh',
-    '- search_marketplace: { "queries": string[], "kind"?: "all"|"plugin"|"skill", "limit"?: number } - Hľadanie rozšírení',
-    '- pc_run: { "command": string } - Spustenie programu alebo príkazu na používateľovom PC',
-    '- pc_open_app: { "target": string } - Otvorenie aplikácie na PC',
-    '- pc_file_read: { "path": string } - Čítanie súboru na PC',
-    '- pc_file_write: { "path": string, "content": string } - Zápis súboru na PC',
-    '- pc_git_commit: { "message": string } - Git commit na PC',
-    '- project_inspect: { "query"?: string } - Prehliadka projektu',
-    '- project_read: { "path": string } - Čítanie zdrojového kódu projektu',
-    '- search_memory: { "query": string } - Vyhľadávanie v pamäti',
-    '- knowledge_search: { "query": string } - Vyhľadávanie v znalostnej báze',
-    '- calculate: { "expression": string } - Presný matematický výpočet',
-    '- current_time: {} - Aktuálny čas a dátum',
+    'Available system tools for executing authorized user requests:',
+    '- read_file: { "Path": string, "StartLine"?: number, "EndLine"?: number } - Read a file',
+    '- write_file: { "Path": string, "Content": string, "Overwrite"?: boolean, "Append"?: boolean } - Create or write a file',
+    '- edit_file: { "Path": string, "Target": string, "Replacement": string } - Exact substring edit in a file',
+    '- run_command: { "CommandLine": string, "WaitMsBeforeAsync"?: number } - Run a shell/PowerShell command',
+    '- manage_task: { "Action": "list"|"kill"|"status"|"send_input", "TaskId"?: string } - Manage background tasks',
+    '- search_marketplace: { "queries": string[], "kind"?: "all"|"plugin"|"skill", "limit"?: number } - Search extensions',
+    '- pc_run: { "command": string } - Run a program or command on the user PC',
+    '- pc_open_app: { "target": string } - Open an application on the user PC',
+    '- pc_file_read: { "path": string } - Read a file on the user PC',
+    '- pc_file_write: { "path": string, "content": string } - Write a file on the user PC',
+    '- pc_git_commit: { "message": string } - Create a Git commit on the user PC',
+    '- project_inspect: { "query"?: string } - Inspect repository structure',
+    '- project_read: { "path": string } - Read project source code',
+    '- search_memory: { "query": string } - Search persistent memory',
+    '- knowledge_search: { "query": string } - Search the knowledge base',
+    '- calculate: { "expression": string } - Exact mathematical evaluation',
+    '- current_time: {} - Current UTC date and time',
     '',
-    'PRAVIDLO EXEKÚCIE NÁSTROJOV: Ak úloha alebo príkaz používateľa vyžaduje akciu, odpovedz VÝHRADNE JSON volaním:',
-    '{"tool": "názov_nástroja", "arguments": { ... }}',
-    'Bez ďalšieho sprievodného textu. Po vykonaní nástroja dostaneš skutočný výsledok. Keď je úloha vyriešená, odpovedz konečným textom v slovenčine s overenými faktami.'
+    'TOOL EXECUTION RULE: When the user request requires a tool action, respond EXCLUSIVELY with a JSON call:',
+    '{"tool": "tool_name", "arguments": { ... }}',
+    'Include no surrounding prose. After execution you will receive the verified tool result. Once the task is complete, reply to the user in Slovak (unless the user wrote in another language) with verified facts only.'
   ].join('\n') : '';
 
   const systemPrompt = [
@@ -270,12 +299,12 @@ export async function executeGeminiGemAgent(env, task, options = {}) {
       action = { answer: text };
     }
 
-    // Ak model dodal konečnú odpoveď (nie nástroj), končíme
+    // Stop when the model returns a final answer instead of a tool invocation
     if (action.answer || !action.tool) {
       break;
     }
 
-    // Vykonanie nástroja cez runTool
+    // Execute the requested tool via runTool
     const toolName = action.tool;
     const toolArgs = action.arguments || {};
     const toolStart = new Date().toISOString();
@@ -287,7 +316,7 @@ export async function executeGeminiGemAgent(env, task, options = {}) {
       outcome = await runTool(env, 'gemini-gem', toolName, toolArgs, options.executionContext || {});
     } catch (err) {
       toolStatus = 'failed';
-      outcome = { error: err.message || 'Chyba vykonania nástroja.' };
+      outcome = { error: err.message || 'Tool execution failed.' };
     }
 
     const toolEnd = new Date().toISOString();
@@ -316,14 +345,14 @@ export async function executeGeminiGemAgent(env, task, options = {}) {
       receipt
     });
 
-    // Pripravíme históriu pre ďalší krok
+    // Append tool invocation and verified output to conversation history for the next turn
     messages.push({
       role: 'assistant',
       content: JSON.stringify({ tool: toolName, arguments: toolArgs })
     });
     messages.push({
       role: 'user',
-      content: `[Výsledok nástroja ${toolName}]:\n${typeof outcome === 'string' ? outcome : JSON.stringify(outcome, null, 2)}\n\nPokračuj v riešení úlohy, použi ďalší potrebný nástroj alebo poskytni konečnú odpoveď v slovenčine s overenými výsledkami.`
+      content: `[Tool result for ${toolName}]:\n${typeof outcome === 'string' ? outcome : JSON.stringify(outcome, null, 2)}\n\nContinue solving the task, call another tool if needed, or provide the final answer to the user in Slovak (unless the user wrote in another language) using verified results only.`
     });
   }
 

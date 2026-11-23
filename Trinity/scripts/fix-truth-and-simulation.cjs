@@ -19,19 +19,19 @@ engine = engine.replace(
 // Update github direct response in engine.js
 const oldGithubDirect = `    const outcome=await runTool(env,agent,'github_manage',{action:'status'});
     const receipt={tool:'github_manage',status:'completed',effect:'read',receipt_id:\`gh:\${Date.now()}\`,verified_at:new Date().toISOString()};
-    const text=\`🐙 **GitHub Integrácia (\\\`\${outcome.repo}\\\`):**\\n\\n- Repozitár: [\${outcome.repo}](https://github.com/\${outcome.repo})\\n- Predvolená vetva: \\\`\${outcome.details?.default_branch||'main'}\\\`\\n- Otvorené issues: \\\`\${outcome.details?.open_issues||0}\\\`\\n- Autentifikovaný prístup: \\\`\${outcome.authenticated?'Áno (Token v trezore)':'Verejné čítanie (Bezpečný režim)'}\\\`\\n\\nTrinity dokáže kontrolovať commity, issues, prispôsobovať vetvy a spúšťať GitHub Actions.\`;
+    const text=\`🐙 **GitHub Integration (\\\`\${outcome.repo}\\\`):**\\n\\n- Repository: [\${outcome.repo}](https://github.com/\${outcome.repo})\\n- Default branch: \\\`\${outcome.details?.default_branch||'main'}\\\`\\n- Open issues: \\\`\${outcome.details?.open_issues||0}\\\`\\n- Authenticated access: \\\`\${outcome.authenticated?'Yes (Vault token)':'Public read-only (Safe mode)'}\\\`\\n\\nTrinity can inspect commits, issues, manage branches, and trigger GitHub Actions.\`;
     return {text,model:'trinity-github-ops',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};`;
 
 const newGithubDirect = `    const outcome=await runTool(env,agent,'github_manage',{action:'status'});
     const repoAntigravity = env.TRINITY_GITHUB_REPO || 'uscolective-byte/Trinity-antigravity';
-    const text=\`🐙 **Overené GitHub Repozitáre (Pravdivý stav bez simulácií):**\\n\\n\`+
-      \`- **Hlavné zjednotené repo:** [\${repoAntigravity}](https://github.com/\${repoAntigravity})\\n\`+
-      \`- **Zrkadlené repo:** [uscolective-byte/trinity-morhfeus](https://github.com/uscolective-byte/trinity-morhfeus)\\n\`+
-      \`- **Predvolená vetva:** \\\`\${outcome.details?.default_branch||'main'}\\\`\\n\`+
-      \`- **Hlavná konfigurácia:** \\\`Trinity/wrangler.jsonc\\\` (projekt nepoužíva wrangler.toml)\\n\`+
-      \`- **Moduly:** \\\`Trinity\\\` (zjednotené jadro), \\\`Jericho-Worker\\\`, \\\`Knowledge-Worker\\\`, \\\`Integrations-Worker\\\`, \\\`Capacity-Worker\\\`, \\\`PC-Bridge-Worker\\\`\\n\`+
-      \`- **Autentifikovaný prístup:** \\\`\${outcome.authenticated?'Áno (Token v trezore)':'Verejné čítanie (Bezpečný režim)'}\\\`\\n\\n\`+
-      \`Všetky súbory a commity sú 100% zosúladené medzi oboma repozitármi na vetve \\\`main\\\`. Žiadne vymyslené repozitáre (ako Morpheus-Trinity) ani simulované súbory (ako wrangler.toml či utils.js) neexistujú.\`;
+    const text=\`🐙 **Verified GitHub Repositories (Truthful status without simulation):**\\n\\n\`+
+      \`- **Primary unified repo:** [\${repoAntigravity}](https://github.com/\${repoAntigravity})\\n\`+
+      \`- **Mirror repo:** [uscolective-byte/trinity-morhfeus](https://github.com/uscolective-byte/trinity-morhfeus)\\n\`+
+      \`- **Default branch:** \\\`\${outcome.details?.default_branch||'main'}\\\`\\n\`+
+      \`- **Primary config:** \\\`Trinity/wrangler.jsonc\\\` (project does not use wrangler.toml)\\n\`+
+      \`- **Modules:** \\\`Trinity\\\` (unified core), \\\`Jericho-Worker\\\`, \\\`Knowledge-Worker\\\`, \\\`Integrations-Worker\\\`, \\\`Capacity-Worker\\\`, \\\`PC-Bridge-Worker\\\`\\n\`+
+      \`- **Authenticated access:** \\\`\${outcome.authenticated?'Yes (Vault token)':'Public read-only (Safe mode)'}\\\`\\n\\n\`+
+      \`All files and commits are synchronized on branch \\\`main\\\`. Non-existent repositories (such as Morpheus-Trinity) or simulated files (such as wrangler.toml or utils.js) do not exist.\`;
     const receipt={tool:'github_manage',status:'completed',effect:'read',receipt_id:\`gh:\${Date.now()}\`,verified_at:new Date().toISOString()};
     return {text,model:'trinity-github-ops',provider:'internal',agent_id:id,tool_log:[receipt],truth:truthStatus(text,[receipt]),duration_ms:Date.now()-started};`;
 
@@ -39,8 +39,8 @@ engine = engine.replace(oldGithubDirect, newGithubDirect);
 
 // Add strict anti-hallucination directive in system prompt
 engine = engine.replace(
-  "NIKDY nesimuluj ani nevymýšľaj: výsledky, vykonané akcie, overenia, dáta, ceny, zostatky ani prístup k PC.",
-  "NIKDY nesimuluj ani nevymýšľaj: výsledky, vykonané akcie, overenia, dáta, ceny, zostatky ani prístup k PC. NIKDY nevymýšľaj neexistujúce repozitáre (napr. Morpheus-Trinity neexistuje), neexistujúce súbory (ako wrangler.toml, trinity.js, utils.js) ani štruktúru kódu. Skutočné repozitáre sú 'uscolective-byte/Trinity-antigravity' (hlavné zjednotené repo) a 'uscolective-byte/trinity-morhfeus'. Hlavná konfigurácia je Trinity/wrangler.jsonc. Pri každej otázke na repozitár, kód, súbory alebo vetvy VŽDY použi nástroj github_manage na overenie skutočného stavu."
+  "NEVER simulate or fabricate: results, executed actions, verifications, data, prices, balances, or PC access.",
+  "NEVER simulate or fabricate: results, executed actions, verifications, data, prices, balances, or PC access. NEVER invent non-existent repositories (e.g., Morpheus-Trinity does not exist), non-existent files (such as wrangler.toml, trinity.js, utils.js), or code structure. The real repositories are 'uscolective-byte/Trinity-antigravity' (primary unified repo) and 'uscolective-byte/trinity-morhfeus'. The primary configuration is Trinity/wrangler.jsonc. For any question about the repository, code, files, or branches, ALWAYS use the github_manage tool to verify the actual state."
 );
 
 fs.writeFileSync(enginePath, engine, 'utf8');
@@ -51,14 +51,14 @@ const fcPath = path.join(__dirname, '../src/fast-chat.js');
 let fc = fs.readFileSync(fcPath, 'utf8');
 
 fc = fc.replace(
-  "Nevymýšľaj výsledky, prístup k PC, zdroje, vykonané akcie ani finančné údaje.",
-  "Nevymýšľaj výsledky, prístup k PC, zdroje, vykonané akcie, štruktúru repozitára ani finančné údaje. Repozitáre sú uscolective-byte/Trinity-antigravity a uscolective-byte/trinity-morhfeus (žiadny Morpheus-Trinity ani wrangler.toml neexistuje)."
+  "Never fabricate results, PC access, sources, executed actions, or financial data.",
+  "Never fabricate results, PC access, sources, executed actions, repository structure, or financial data. Real repositories are uscolective-byte/Trinity-antigravity and uscolective-byte/trinity-morhfeus (Morpheus-Trinity and wrangler.toml do not exist)."
 );
 
 if (!fc.includes("github_manage")) {
   fc = fc.replace(
-    "pri pamäti search_memory,",
-    "pri pamäti search_memory, pri repozitári alebo kóde github_manage,"
+    "for memory search_memory,",
+    "for memory search_memory, for repository or code github_manage,"
   );
 }
 

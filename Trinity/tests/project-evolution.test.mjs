@@ -39,7 +39,7 @@ test('patch applies only once to supplied files and preserves literal replacemen
 });
 test('inspection pins tree to resolved commit and rejects a truncated tree',async()=>{
  const original=globalThis.fetch,calls=[];try{globalThis.fetch=async url=>{calls.push(url);return Response.json(url.includes('/git/ref/')?{object:{sha:'a'.repeat(40)}}:{sha:'b'.repeat(40),truncated:true,tree:[]});};
- await assert.rejects(()=>inspectProject({TRINITY_GITHUB_TOKEN:'test-token'}),/neúplný/);assert.match(calls[1],new RegExp('trees/'+'a'.repeat(40)));}finally{globalThis.fetch=original;}
+ await assert.rejects(()=>inspectProject({TRINITY_GITHUB_TOKEN:'test-token'}),/incomplete \(truncated\)/);assert.match(calls[1],new RegExp('trees/'+'a'.repeat(40)));}finally{globalThis.fetch=original;}
 });
 test('repeated proposal returns existing PR without generating or overwriting code',async()=>{
  const original=globalThis.fetch;try{globalThis.fetch=async()=>Response.json([{number:7,html_url:'https://github.com/example/pull/7',head:{sha:'abc'}}]);

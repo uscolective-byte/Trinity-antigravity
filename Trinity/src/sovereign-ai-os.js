@@ -3,13 +3,13 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul sovereign-ai-os.js (Trinity/src/sovereign-ai-os.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Sovereign AI Operating System core runtime module (Trinity/src/sovereign-ai-os.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * TRINITY 12.0 SOVEREIGN AI OPERATING SYSTEM CORE RUNTIME
- * Zjednocujúce jadro AI OS:
+ * Unified AI OS Kernel:
  * 1. Policy Engine & Compliance
- * 2. Resource Scheduler (KTO + KEDY/KDE)
+ * 2. Resource Scheduler (WHO + WHEN/WHERE)
  * 3. Multi-Level Knowledge Graph (Entity -> Observation -> Evidence -> Decision)
  * 4. Self-Healing Engine (TRINITY_HEALER: detect -> classify -> RCA -> repair)
  * 5. Sovereign Skills Catalog (Architecture, Audit, Engineering)
@@ -42,34 +42,34 @@ export class TrinityHealer {
     const errorMsg = String(error?.message || error || 'Unknown error');
     let classification = 'unknown_runtime_error';
     let severity = 'warning';
-    let rootCause = 'Neznáma výnimka pri behu úlohy.';
-    let recommendedRepair = 'Zopakovať úlohu s exponenciálnym backoffom.';
+    let rootCause = 'Unknown runtime exception during task execution.';
+    let recommendedRepair = 'Retry task with exponential backoff.';
 
     if (/undefined.*bind|bind.*undefined|D1_ERROR/i.test(errorMsg)) {
       classification = 'd1_undefined_bind_violation';
       severity = 'critical';
-      rootCause = 'Porušenie Invariantu I1: undefined hodnota bola poslaná do D1 bind().';
-      recommendedRepair = 'Použiť funkciu sanitizeD1(val) pre všetky parametre D1 prepared statements.';
+      rootCause = 'Invariant I1 violation: an undefined value was passed to D1 bind().';
+      recommendedRepair = 'Wrap all D1 prepared statement parameters with sanitizeD1(val).';
     } else if (/timeout|timed out|abort/i.test(errorMsg)) {
       classification = 'execution_timeout_exhausted';
       severity = 'warning';
-      rootCause = 'Úloha prekročila stanovený časový limit operácie.';
-      recommendedRepair = 'Presunúť výpočet do samostatného workflowu alebo zvýšiť limit na uzle vyššieho tieru.';
+      rootCause = 'Task exceeded the configured operation timeout limit.';
+      recommendedRepair = 'Offload execution to a dedicated workflow or increase the timeout on a higher-tier node.';
     } else if (/circuit.*open|circuit-open/i.test(errorMsg)) {
       classification = 'circuit_breaker_active';
       severity = 'warning';
-      rootCause = 'Poskytovateľ je v stave cooldown kvôli predchádzajúcim zlyhaniam.';
-      recommendedRepair = 'Použiť lokálny AI fallback (@cf/meta/llama-3.3-70b) a počkať na polootvorenú sondu.';
+      rootCause = 'Provider is currently in cooldown due to prior failures.';
+      recommendedRepair = 'Use the local AI fallback (@cf/meta/llama-3.3-70b) and wait for the half-open probe.';
     } else if (/dependency|offline|unhealthy/i.test(errorMsg)) {
       classification = 'agent_dependency_unhealthy';
       severity = 'critical';
-      rootCause = 'Kritická závislosť agenta je nedostupná alebo má zastavený heartbeat.';
-      recommendedRepair = 'Aktivovať fallback smerovanie na TRINITY_CORE a reštartovať závislý mikroslužbový worker.';
+      rootCause = 'A critical agent dependency is unavailable or has a stalled heartbeat.';
+      recommendedRepair = 'Activate fallback routing to TRINITY_CORE and restart the dependent microservice worker.';
     } else if (/receipt|evidence|proof/i.test(errorMsg)) {
       classification = 'truth_policy_receipt_missing';
       severity = 'critical';
-      rootCause = 'Porušenie Invariantu I2: Stav completed bez verifikovaného dokladu (receipt_id).';
-      recommendedRepair = 'Nevydávať stav completed pre neúspešné volania a priradiť kryptografický doklad o úspechu.';
+      rootCause = 'Invariant I2 violation: completed status reported without a verified receipt (receipt_id).';
+      recommendedRepair = 'Never emit completed status for failed calls and attach a cryptographic execution receipt.';
     }
 
     return {
@@ -89,17 +89,17 @@ export class TrinityHealer {
   async diagnoseAndRecover({ jobId, error, task, source = 'system', receiptId = null }) {
     const incident = this.detectIncident({ jobId, error, task, source });
 
-    // 1. Záznam do Knowledge Graph (Entita & Pozorovanie)
+    // 1. Record into Knowledge Graph (Entity & Observation)
     if (this.env?.DB?.prepare) {
       await recordKnowledgeGraphNode(this.env, {
         entityType: 'incident',
         entityName: `incident_${incident.classification}`,
-        observation: `[${incident.severity.toUpperCase()}] ${incident.rootCause} Odporúčanie: ${incident.recommendedRepair}`,
+        observation: `[${incident.severity.toUpperCase()}] ${incident.rootCause} Recommendation: ${incident.recommendedRepair}`,
         receiptId: receiptId || `inc_rcpt_${incident.incidentId}`,
         source: 'TRINITY_HEALER'
       }).catch(() => null);
 
-      // 2. Záznam rozhodnutia (Decision)
+      // 2. Record decision entry
       const decisionId = `dec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       await this.env.DB.prepare(`
         INSERT INTO kg_decisions (id, rationale, action, actor_agent_id, outcome, timestamp)
@@ -116,7 +116,7 @@ export class TrinityHealer {
       incident.decisionId = decisionId;
     }
 
-    // 3. Publikovanie udalosti na Sovereign Event Bus
+    // 3. Publish event onto Sovereign Event Bus
     await publishSovereignEvent(this.env, {
       topic: 'incident.diagnosed',
       aggregate_type: 'incident',
@@ -147,16 +147,16 @@ export class SovereignScheduler {
     preferredTier = 'edge',
     estimatedLoad = 0.2
   }) {
-    // 1. KTO: Nájdenie optimálneho agenta podľa schopností a zdravia závislostí
+    // 1. WHO: Select optimal agent by capabilities and dependency health
     const agentDecision = await findBestAgentForCapabilities(this.env, requiredCapabilities);
 
-    // 2. KEDY a KDE: Nájdenie optimálneho infraštruktúrneho uzla podľa tieru a vyťaženia
+    // 2. WHEN & WHERE: Select optimal infrastructure node by tier and load
     const resourceDecision = await findBestResource(this.env, {
       required_tier: preferredTier,
       max_queue_depth: 50
     });
 
-    // 3. Zámok úlohy (Leasing) pre vybraného agenta
+    // 3. Task lease lock for the selected agent
     let lease = null;
     if (agentDecision.agent_id) {
       lease = await acquireLease(this.env, {
@@ -166,7 +166,7 @@ export class SovereignScheduler {
       }).catch(err => ({ error: err.message }));
     }
 
-    // 4. Emisia udalosti na Sovereign Event Bus
+    // 4. Emit event onto Sovereign Event Bus
     await publishSovereignEvent(this.env, {
       topic: 'scheduler.task_dispatched',
       aggregate_type: 'task',
@@ -192,7 +192,7 @@ export class SovereignScheduler {
 }
 
 /**
- * 3. Knowledge Graph Engine: Sémantické dopytovanie znalostí
+ * 3. Knowledge Graph Engine: Semantic knowledge querying
  */
 export class KnowledgeGraphEngine {
   constructor(env) {
@@ -362,7 +362,7 @@ export const sovereignSkills = {
   }
 };
 
-// Automatická registrácia všetkých Sovereign Skills do SkillRegistry
+// Automatically register all Sovereign Skills into SkillRegistry
 for (const [name, fn] of Object.entries(sovereignSkills)) {
   const category = name.split('.')[0];
   skillRegistry.register(name, fn, { category, sovereign: true });

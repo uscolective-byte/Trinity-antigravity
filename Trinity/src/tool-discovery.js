@@ -1,28 +1,28 @@
 import {toJSONSchema} from 'zod';
 
 const operationLabels = {
-  portfolio_summary: 'Prehľad simulovaného portfólia',
-  commodity_desk: 'Prehľad komoditných dát a simulovaného portfólia',
-  commodity_trade: 'Zapísať simulovaný obchod s komoditou',
-  commodity_auto_invest: 'Spustiť simulovaný komoditný cyklus',
-  terminal_charge: 'Pripraviť podklady na prijatie platby',
-  terminal_payout: 'Pripraviť inštrukcie na ručné odoslanie platby',
-  finance_propose_transfer: 'Uložiť návrh prevodu',
-  finance_confirm_transfer: 'Overiť návrh prevodu a dostupnosť odoslania',
-  finance_audit_ledger: 'Prečítať interný audit finančných návrhov',
-  domain_sell: 'Zaevidovať predaj domény v Trinity',
-  domain_lease: 'Zaevidovať prenájom domény v Trinity',
-  domain_env_provision: 'Pripraviť konfiguráciu doménových prostredí v Trinity',
-  domain_env_deploy: 'Publikovať HTML na trase prostredia Trinity',
-  ecosystem_synthesize: 'Zaregistrovať definíciu rozšírenia v katalógu',
-  quantum_parallel: 'Ohodnotiť zadané textové vetvy',
-  quantum_fusion: 'Zlúčiť dodané výstupy podľa váh',
-  quantum_deliberate: 'Porovnať pohľady a zhrnúť výsledok',
-  quantum_accelerate: 'Spracovať zadanie cez kognitívny modul',
-  network_dns: 'Vyhľadať DNS záznam cez Cloudflare DoH',
-  google_cloud_manage: 'Overiť Google Cloud alebo vypísať modely',
-  pc_git_commit: 'Vyžiadať Git commit cez PC bránu',
-  fleet_status: 'Skontrolovať dostupnosť služieb flotily'
+  portfolio_summary: 'Simulated portfolio overview',
+  commodity_desk: 'Commodity market data and simulated portfolio overview',
+  commodity_trade: 'Record simulated commodity trade',
+  commodity_auto_invest: 'Run simulated commodity investment cycle',
+  terminal_charge: 'Prepare payment intake details',
+  terminal_payout: 'Prepare manual payment payout instructions',
+  finance_propose_transfer: 'Save transfer proposal',
+  finance_confirm_transfer: 'Verify transfer proposal and payout availability',
+  finance_audit_ledger: 'Read internal financial proposal audit ledger',
+  domain_sell: 'Record domain sale in Trinity',
+  domain_lease: 'Record domain lease in Trinity',
+  domain_env_provision: 'Prepare domain environment configuration in Trinity',
+  domain_env_deploy: 'Publish HTML to a Trinity environment route',
+  ecosystem_synthesize: 'Register extension definition in catalog',
+  quantum_parallel: 'Evaluate provided text branches',
+  quantum_fusion: 'Fuse supplied outputs by weights',
+  quantum_deliberate: 'Compare perspectives and synthesize result',
+  quantum_accelerate: 'Process prompt through cognitive module',
+  network_dns: 'Query DNS record via Cloudflare DoH',
+  google_cloud_manage: 'Verify Google Cloud or list models',
+  pc_git_commit: 'Request Git commit via PC gateway',
+  fleet_status: 'Check fleet service availability'
 };
 
 // Discovery describes only the request's already-authorized tool set.
@@ -49,9 +49,9 @@ export function describeAvailableTools(activeTools, schemas, help, input = {}) {
 
 export function discoveryInstructions(activeTools) {
   const workspaceGuide=[
-    activeTools.includes('pc_find_files')?'Na nájdenie názvov súborov použi pc_find_files, napríklad {"path":"Trinity/src","glob":"**/*.js","limit":50}.':null,
-    activeTools.includes('pc_search_text')?'Na hľadanie definície alebo textu v kóde použi pc_search_text, napríklad {"path":"Trinity/src","pattern":"nazovFunkcie","glob":"**/*","regex":false}. Argument textu je pattern; argument priečinka je path. Bez výslovnej požiadavky na príponu používaj glob **/*; príponu súboru neodhaduj. Ak filter nevybral žiadne súbory, rozšír ho a pokračuj automaticky v zadanom priečinku.':null,
-    activeTools.includes('pc_find_files')?'Priečinok prehliadaj pomocou pc_find_files; čítanie pc_file_read a read_file vyžaduje konkrétny súbor. Názvy nástrojov neodhaduj; pri neistote si najprv vyžiadaj presnú schému cez describe_tools.':null
+    activeTools.includes('pc_find_files')?'To find file names, use pc_find_files, for example {"path":"Trinity/src","glob":"**/*.js","limit":50}.':null,
+    activeTools.includes('pc_search_text')?'To search for a definition or text in code, use pc_search_text, for example {"path":"Trinity/src","pattern":"functionName","glob":"**/*","regex":false}. The text argument is pattern; the directory argument is path. Unless an extension is explicitly requested, use glob **/*; do not guess file extensions. If a filter selects no files, broaden it and continue automatically within the specified directory.':null,
+    activeTools.includes('pc_find_files')?'Browse directories using pc_find_files; pc_file_read and read_file require a specific file path. Do not guess tool names; when unsure, request the exact schema via describe_tools first.':null
   ].filter(Boolean).join(' ');
-  return `Nástroj describe_tools je interný katalóg: {"tool":"describe_tools","arguments":{"query":"hľadaná schopnosť"}} alebo {"tool":"describe_tools","arguments":{"name":"presný_názov"}}. Ak si nie si istá argumentmi alebo nevidíš vhodný nástroj v stručnom prehľade, najprv použi describe_tools a potom skutočný nástroj. Bezpečné čítacie nástroje používaj automaticky podľa úlohy, používateľ nemusí poznať ich názov. ${workspaceGuide} Katalóg nepridáva oprávnenia ani pripojenie k službe. Pri platbe, nákupe, mazaní a citlivom zápise dodrž existujúce schvaľovanie a rozsah zadania. Finálne uveď vykonané kroky a neoverené alebo čakajúce výsledky podľa dokladov. Všetky povolené názvy pre túto požiadavku: ${[...new Set(activeTools)].join(', ')}.`;
+  return `The describe_tools tool is an internal catalog: {"tool":"describe_tools","arguments":{"query":"desired capability"}} or {"tool":"describe_tools","arguments":{"name":"exact_name"}}. If you are unsure about arguments or do not see a suitable tool in the short overview, call describe_tools first and then invoke the actual tool. Use safe read-only tools automatically as needed for the task; the user does not need to know their names. ${workspaceGuide} The catalog does not grant permissions or service connectivity. For payments, purchases, deletions, and sensitive writes, respect existing approval requirements and request scope. Finally, report completed steps and unverified or pending outcomes strictly according to receipts. All authorized tool names for this request: ${[...new Set(activeTools)].join(', ')}.`;
 }

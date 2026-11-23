@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul media.js (Trinity/src/media.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module media.js (Trinity/src/media.js) in the TRINITY OMNI-CORE ecosystem.
  */
 export function mediaStatus(env) {
   return {
@@ -14,6 +14,6 @@ export function mediaStatus(env) {
     video: {status:env.ARTIFACTS?'verified':'not_configured',provider:env.VIDEO_PROVIDER||'Trinity Sovereign WebM Video Studio + AI Video Generation',output:'private R2 native video stream (video/webm) + interactive studio'},
     music: {status:env.ARTIFACTS?'configured':'not_configured',provider:'Trinity Polyphonic PCM WAV Synthesizer',output:'private R2 .wav audio artifact'},
     presentations: {status:env.ARTIFACTS?'configured':'not_configured',provider:'Trinity 16:9 Slide Deck & PDF Engine',output:'private R2 HTML5 Slide Deck + PDF'},
-    truth:'Status označuje konfiguráciu a implementáciu, nie iba deklaráciu schopnosti.'
+    truth:'Status indicates configuration and implementation state, not merely a capability declaration.'
   };
 }

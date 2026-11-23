@@ -5,7 +5,7 @@ import {pcRunPayload} from './pc-run-payload.js';
  * @subsystem MCP_PROTOCOL_BRIDGE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul mcp.js (Trinity/src/mcp.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module mcp.js (Trinity/src/mcp.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import {registerAppResource,registerAppTool,RESOURCE_MIME_TYPE} from '@modelcontextprotocol/ext-apps/server';
 import controlAppHtml from '../dist-mcp/control.html';
@@ -34,6 +34,7 @@ import {runEvolutionCycle} from './evolution.js';
 import {sharedNotesInput,syncSharedNotes} from './shared-notes.js';
 import {recordLedgerEntry,queryLedger} from './os-registry.js';
 import {getAzureFoundryAgentStatus,invokeAzureFoundryAgent} from './azure-foundry-agent.js';
+import {getAiStudioBridgeStatus,listAiStudioModels,coCreateWithAiStudio} from './google-ai-studio-bridge.js';
 
 const result=data=>({content:[{type:'text',text:JSON.stringify(data,null,2)}]});
 
@@ -120,7 +121,7 @@ export function handleMcp(request,env,ctx,access={}){
         return result({error:`Neznámy cieľový agent: ${target}`});
       });
 
-    // ── Pôvodné nástroje ──
+    // ── Core tools ──
     server.registerTool('list_agents',{description:`Zoznam ${AGENTS.length} špecialistov Trinity.`,inputSchema:{}},
       async()=>result(AGENTS));
 
@@ -145,7 +146,7 @@ export function handleMcp(request,env,ctx,access={}){
     server.registerTool('check_services',{description:'Skutočná dostupnosť pripojených služieb.',inputSchema:{}},
       async()=>result(await serviceStatus(env)));
 
-    // ── Ohraničené vývojárske nástroje pre autorizovaných MCP klientov ──
+    // ── Bounded developer tools for authorized MCP clients ──
     server.registerTool('get_source_file',{description:'Prečíta zdrojový súbor Trinity projektu cez ohraničenú PC bránu.',
       inputSchema:{path:z.string().min(1).max(500)}},
       async({path})=>{
@@ -295,7 +296,7 @@ export function handleMcp(request,env,ctx,access={}){
         return result({id:action.id,status:action.status,approval_required:true,note:`SCHVÁĽ ${action.id}`});
       });
 
-    // ── Trinity Copilot & Univerzálny Ekosystém nástroje ──
+    // ── Trinity Copilot & Universal Ecosystem tools ──
     server.registerTool('copilot_chat',{description:'Vykoná inteligentný dotaz cez Trinity Copilot Agenta s podporou skillov, pluginov a hĺbkovej analýzy.',
       inputSchema:{query:z.string().min(1).max(12000),session_id:z.string().uuid().optional(),agent:z.string().optional()}},
       async({query,session_id,agent})=>result(await TrinityCopilotAgent(query,env,{sessionId:session_id,agentName:agent})));
@@ -329,9 +330,20 @@ export function handleMcp(request,env,ctx,access={}){
     server.registerTool('azure_foundry_agent_status',{description:'Zistí stav a konfiguráciu integrácie Microsoft Azure AI Foundry agenta Trinity.',inputSchema:{}},
       async()=>result(getAzureFoundryAgentStatus(env)));
 
-    server.registerTool('azure_foundry_agent_invoke',{description:'Odošle požiadavku agentovi Trinity na Microsoft Azure AI Foundry.',
+    server.registerTool('azure_foundry_agent_invoke',{description:'Send a request to the Trinity agent on Microsoft Azure AI Foundry.',
       inputSchema:{message:z.string().min(1).max(12000),agent:z.string().optional(),conversation_id:z.string().optional()}},
       async({message,agent,conversation_id})=>result(await invokeAzureFoundryAgent(env,{message,agentName:agent,conversationId:conversation_id})));
+
+    server.registerTool('google_ai_studio_status',{description:'Return metadata-only configuration status for the Google AI Studio Bridge without accessing secret values.',inputSchema:{}},
+      async()=>result(await getAiStudioBridgeStatus(env)));
+
+    server.registerTool('google_ai_studio_models',{description:'List available Gemini models from Google AI Studio using server-side credentials.',
+      inputSchema:{page_size:z.number().int().min(1).max(1000).optional()}},
+      async({page_size})=>result(await listAiStudioModels(env,{pageSize:page_size})));
+
+    server.registerTool('google_ai_studio_cocreate',{description:'Run multi-turn collaborative co-creation between Trinity and Google AI Studio (English internals, Slovak user synthesis by default).',
+      inputSchema:{task:z.string().min(1).max(8000),mode:z.enum(['pair','brainstorm','review','build_artifact']).optional(),session_id:z.string().max(120).optional(),model:z.string().max(120).optional(),context:z.string().max(12000).optional(),artifact:z.string().max(50000).optional(),reply_language:z.enum(['sk','en','auto']).optional()}},
+      async(input)=>result(await coCreateWithAiStudio(env,input)));
 
     return server;
   },{route:'/mcp'})(request,env,ctx);

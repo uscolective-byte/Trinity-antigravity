@@ -1,5 +1,5 @@
 'use strict';
-// Shared by the assistant and operations centre. No credentials are persisted here.
+// Shared by the assistant and operations center. No credentials are persisted here.
 globalThis.TrinityAuth=Object.freeze({
   async requestJSON(path,options={}){
     let response,data;
@@ -7,15 +7,15 @@ globalThis.TrinityAuth=Object.freeze({
       response=await fetch(path,{...options,signal:AbortSignal.timeout(10000),credentials:'same-origin'});
       data=await response.json();
     }catch(error){
-      if(error.name==='TimeoutError'||error.name==='AbortError')throw new Error('Pripojenie trvá príliš dlho. Skús stránku obnoviť.');
-      throw new Error('Server nevrátil platnú odpoveď. Skontroluj pripojenie a skús to znova.');
+      if(error.name==='TimeoutError'||error.name==='AbortError')throw new Error('Connection timed out. Please refresh the page.');
+      throw new Error('Server did not return a valid response. Check your connection and try again.');
     }
-    if(!response.ok)throw Object.assign(new Error(typeof data?.error==='string'?data.error:`Požiadavka zlyhala (HTTP ${response.status}).`),{status:response.status});
+    if(!response.ok)throw Object.assign(new Error(typeof data?.error==='string'?data.error:`Request failed (HTTP ${response.status}).`),{status:response.status});
     return data;
   },
   async config(){
     const config=await this.requestJSON('/api/auth/config');
-    if(typeof config?.google_enabled!=='boolean'||typeof config?.google_required!=='boolean')throw new Error('Konfigurácia prihlásenia nie je dostupná. Skús stránku obnoviť.');
+    if(typeof config?.google_enabled!=='boolean'||typeof config?.google_required!=='boolean')throw new Error('Login configuration is unavailable. Please refresh the page.');
     return config;
   },
   async start({configure,initialize,lock,notice}){

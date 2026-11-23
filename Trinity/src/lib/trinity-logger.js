@@ -1,8 +1,8 @@
 /**
- * Trinity Logger — Štruktúrované JSON logovanie s korelačnými ID
+ * Trinity Logger — Structured JSON logging with correlation IDs
  * 
- * Prechádza cez service bindingy s trace_id a session_id.
- * Persistuje do D1 (trinity_trace_log) a voliteľne do KV.
+ * Propagates across service bindings with trace_id and session_id.
+ * Persists to D1 (trinity_trace_log) and optionally to KV.
  * 
  * @version 1.0.0
  * @author Trinity Team
@@ -11,14 +11,14 @@
 // === TRACE ID GENERATION ===
 
 /**
- * Generuje unikátne trace ID vo formáte UUID v4
+ * Generates a unique trace ID in UUID v4 format
  */
 export function generateTraceId() {
   return crypto.randomUUID();
 }
 
 /**
- * Generuje skrátené trace ID pre header propagation
+ * Generates a shortened trace ID for header propagation
  */
 export function shortTraceId() {
   return generateTraceId().split('-')[0];
@@ -51,7 +51,7 @@ export class TrinityLogger {
   }
 
   /**
-   * Vytvorí nový trace kontext pre request
+   * Creates a new trace context for a request
    */
   startTrace(options = {}) {
     const traceId = options.traceId || generateTraceId();
@@ -66,7 +66,7 @@ export class TrinityLogger {
       spans: [],
       
       /**
-       * Začne nový span v rámci trace
+       * Starts a new span within the trace
        */
       startSpan(source, targetType, eventType) {
         const span = {
@@ -84,7 +84,7 @@ export class TrinityLogger {
       },
       
       /**
-       * Ukončí span
+       * Ends a span
        */
       endSpan(span, status = 'ok') {
         span.endTime = Date.now();
@@ -93,7 +93,7 @@ export class TrinityLogger {
       },
       
       /**
-       * Vráti celkovú duráciu trace
+       * Returns the total duration of the trace
        */
       totalDuration() {
         return Date.now() - this.startTime;
@@ -102,7 +102,7 @@ export class TrinityLogger {
   }
 
   /**
-   * Hlavná logovacia metóda
+   * Primary logging method
    */
   async log(level, source, eventType, message, data = {}, trace = null) {
     if (!this.enabled) return;
@@ -128,7 +128,7 @@ export class TrinityLogger {
       created_at: new Date().toISOString()
     };
 
-    // Console output (pre Workers Tail)
+    // Console output (for Workers Tail)
     const consoleMsg = `[${level.toUpperCase()}] ${source} → ${eventType}: ${message}`;
     if (level === 'error' || level === 'fatal') {
       console.error(consoleMsg, JSON.stringify(logEntry));
@@ -170,12 +170,12 @@ export class TrinityLogger {
   }
 
   /**
-   * Sanitize payload — odstráni senzitívne dáta, skráti
+   * Sanitizes payload — removes sensitive data and truncates
    */
   _sanitizePayload(data) {
     const sanitized = { ...data };
     
-    // Odstrániť senzitívne polia
+    // Redact sensitive fields
     const sensitive = ['password', 'token', 'apiKey', 'secret', 'authorization'];
     for (const key of Object.keys(sanitized)) {
       if (sensitive.some(s => key.toLowerCase().includes(s))) {
@@ -201,7 +201,7 @@ export class TrinityLogger {
 // === TRACE PROPAGATION HELPERS ===
 
 /**
- * Extrahuje trace ID z prichádzajúceho requestu (header alebo body)
+ * Extracts trace IDs from an incoming request (headers or body)
  */
 export function extractTraceFromRequest(request) {
   const headers = request.headers;
@@ -213,7 +213,7 @@ export function extractTraceFromRequest(request) {
 }
 
 /**
- * Pridá trace ID do response headers pre propagáciu
+ * Adds trace IDs to response headers for propagation
  */
 export function injectTraceIntoResponse(response, trace) {
   if (!trace) return response;
@@ -228,7 +228,7 @@ export function injectTraceIntoResponse(response, trace) {
 }
 
 /**
- * Pridá trace ID do fetch headers pre service binding volania
+ * Adds trace IDs to fetch headers for service binding calls
  */
 export function injectTraceIntoFetch(init, trace) {
   if (!trace) return init;
@@ -242,7 +242,7 @@ export function injectTraceIntoFetch(init, trace) {
 // === MIDDLEWARE WRAPPER ===
 
 /**
- * Middleware pre Worker fetch handler — automaticky vytvorí trace
+ * Middleware for a Worker fetch handler — automatically creates a trace
  */
 export function withTracing(handler) {
   return async (request, env, ctx) => {
@@ -289,7 +289,7 @@ export function withTracing(handler) {
 // === SERVICE BINDING WRAPPER ===
 
 /**
- * Wrapper pre service binding volania — automaticky loguje a propaguje trace
+ * Wrapper for service binding calls — automatically logs and propagates trace context
  */
 export async function callService(serviceBinding, path, options, trace, logger, sourceName, targetName) {
   const span = trace?.startSpan(sourceName, targetName, 'service.call');

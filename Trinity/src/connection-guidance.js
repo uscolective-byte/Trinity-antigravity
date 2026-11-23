@@ -3,14 +3,15 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul connection-guidance.js (Trinity/src/connection-guidance.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Informational connection guidance for PayPal, Revolut/IBAN, and Google OAuth in TRINITY OMNI-CORE.
  */
 import {googleOAuthConfigured} from './google-auth.js';
 
 // Informational only. A prompt cannot prove an external identity or authorize a role grant.
+// User-facing replies remain in Slovak per Trinity's dual-language communication rule.
 export function connectionGuidance(env,task){
  const text=String(task||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
- const request=/\b(prepoj|pripoj|napoj|nastav|spoj|pridaj|pridavam|aktivuj|prihlasenie|login)\b/.test(text);
+ const request=/\b(prepoj|pripoj|napoj|nastav|spoj|pridaj|pridavam|aktivuj|prihlasenie|login|connect|link|setup|configure|activate)\b/.test(text);
  if(!request)return null;
  if(/\b(paypal|paypay)\b/.test(text))return {service:'paypal',text:'PayPal zatiaľ nemá v tejto požiadavke overené prepojenie. V Platby & Peňaženka nastav vlastný účet a platobný odkaz. Uloženie e-mailu ani vytvorenie odkazu nepotvrdzuje vlastníctvo účtu, prijatie platby alebo vykonanie výberu. Žiadne nastavenie ani platba sa touto odpoveďou nemení.'};
  if(/\b(revolut|iban)\b/.test(text))return {service:'revolut',text:'Revolut ani bankový účet zatiaľ nemá v tejto požiadavke overené prepojenie. V Platby & Peňaženka zadaj vlastný IBAN a meno príjemcu; platobný odkaz alebo SEPA QR je iba platobná inštrukcia. Platný kontrolný súčet IBAN-u nepotvrdzuje vlastníka, zostatok ani pohyb peňazí. Žiadne nastavenie ani prevod sa touto odpoveďou nemení.'};

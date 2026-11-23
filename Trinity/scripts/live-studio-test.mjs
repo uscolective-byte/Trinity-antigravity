@@ -6,7 +6,7 @@ const base=(process.env.TRINITY_URL||'https://auru.dev').replace(/\/$/,'');
 const response=await fetch(base+'/api/assistant/studio/projects',{
   method:'POST',
   headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},
-  body:JSON.stringify({name:'Trinity Studio Live Test',prompt:'Vytvor moderný jednostránkový web pre kreatívne štúdio Morhfeus. Použi tmavomodrú, fialovú a koralovú, výrazný úvod, tri služby a kontaktnú výzvu bez formulára.'}),
+  body:JSON.stringify({name:'Trinity Studio Live Test',prompt:'Create a modern single-page website for creative studio Morhfeus. Use dark blue, violet, and coral accents, a bold hero introduction, three services, and a contact call-to-action without a form.'}),
   signal:AbortSignal.timeout(140000)
 });
 const text=await response.text();let data={};try{data=JSON.parse(text);}catch{}

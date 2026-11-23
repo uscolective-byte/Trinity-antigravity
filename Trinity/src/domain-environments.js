@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul domain-environments.js (Trinity/src/domain-environments.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module domain-environments.js (Trinity/src/domain-environments.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import { z } from 'zod';
 import { HttpError } from './security.js';

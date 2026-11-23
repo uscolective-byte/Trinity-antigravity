@@ -1,6 +1,6 @@
 /**
  * TRINITY OMNI-CORE - Sovereign Ledger Audit Middleware & Endpoint Handlers
- * Automatický audit požiadaviek, overovanie reťaze blokov a čítanie ledgeru.
+ * Automatic request auditing, block-chain integrity verification, and ledger querying.
  */
 
 import { SovereignLedgerEngine } from './sovereign-ledger-mmr.js';
@@ -53,7 +53,7 @@ export function extractActorFromRequest(request) {
 export async function recordRequestAudit({ request, response, env, ctx, pathname, method, durationMs, errorMessage = null }) {
   const db = resolveLedgerDatabase(env);
   if (!db) {
-    console.warn('[LEDGER AUDIT] Žiadna D1 väzba (DB / TRINITY_D1) nie je dostupná, preskakujem automatický zápis.');
+    console.warn('[LEDGER AUDIT] No D1 binding (DB / TRINITY_D1) is available; skipping automatic audit write.');
     return null;
   }
 
@@ -79,7 +79,7 @@ export async function recordRequestAudit({ request, response, env, ctx, pathname
     operation,
     payload
   }).catch((err) => {
-    console.error('[LEDGER AUDIT ERROR] Zlyhal automatický zápis do Sovereign Ledgeru:', err.message);
+    console.error('[LEDGER AUDIT ERROR] Automatic write to Sovereign Ledger failed:', err.message);
     return null;
   });
 
@@ -97,7 +97,7 @@ export async function handleAuditLedgerRoutes(request, env, url) {
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'D1 databáza pre Sovereign Ledger nie je v prostredí naviazaná.'
+        error: 'D1 database for Sovereign Ledger is not bound in this environment.'
       }),
       { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
@@ -140,7 +140,7 @@ export async function handleAuditLedgerRoutes(request, env, url) {
         try {
           parsedPayload = JSON.parse(row.payload);
         } catch (_) {
-          // Zachováme pôvodný reťazec, ak payload nie je validný JSON
+          // Preserve raw string if payload is not valid JSON
         }
         return {
           blockId: row.block_id,
@@ -166,7 +166,7 @@ export async function handleAuditLedgerRoutes(request, env, url) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: `Nepodarilo sa načítať bloky zo Sovereign Ledgeru: ${err.message}`
+          error: `Failed to read blocks from Sovereign Ledger: ${err.message}`
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
@@ -182,7 +182,7 @@ export async function handleAuditLedgerRoutes(request, env, url) {
 
       if (!operation) {
         return new Response(
-          JSON.stringify({ success: false, error: 'Parameter "operation" je povinný.' }),
+          JSON.stringify({ success: false, error: 'Parameter "operation" is required.' }),
           { status: 400, headers: { 'Content-Type': 'application/json' } }
         );
       }
@@ -199,7 +199,7 @@ export async function handleAuditLedgerRoutes(request, env, url) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: `Zápis do Sovereign Ledgeru zlyhal: ${err.message}`
+          error: `Write to Sovereign Ledger failed: ${err.message}`
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );

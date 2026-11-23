@@ -3,9 +3,9 @@
  * @subsystem DUAL_ENGINE_ORCHESTRATOR
  * @author Basterix (Root Architect) & Antigravity (Sovereign Pair)
  * @license Sovereign Irrevocable Covenant
- * @description Zvrchovaný orchestrátor pre duálne kognitívne spojenie Claude (Anthropic) ↔ Google (Gemini/GCP).
- * Poskytuje krížovú deliberáciu (Gemini analýza/plán + Claude hĺbková syntéza/kód),
- * paralelný konsenzus a recipročný fallback podľa Truth Policy 2.1.
+ * @description Sovereign orchestrator for dual cognitive deliberation between Claude (Anthropic) and Google (Gemini/GCP).
+ * Provides staged cross-deliberation (Gemini analysis/plan + Claude deep synthesis/code),
+ * parallel consensus, and reciprocal fallback under Truth Policy 2.1.
  */
 
 import { executeClaudeAgent } from './claude-agent.js';
@@ -18,20 +18,20 @@ export const DUAL_ENGINE_ROLES = Object.freeze({
 });
 
 /**
- * Krížová deliberácia medzi Google Gemini a Anthropic Claude.
- * Fáza 1: Google Gemini pripraví počiatočnú analýzu, štruktúru a kľúčové hypotézy.
- * Fáza 2: Claude zreviduje výstup Gemini, overí hraničné prípady, logiku a vytvorí finálnu syntézu.
- * Recipročný fallback: ak jeden z motorov nie je dostupný, druhý dokončí úlohu samostatne.
+ * Cross-deliberation between Google Gemini and Anthropic Claude.
+ * Stage 1: Google Gemini produces initial analysis, structure, and key hypotheses.
+ * Stage 2: Claude reviews Gemini's output, verifies edge cases and logic, and creates the final synthesis.
+ * Reciprocal fallback: if one engine is unavailable, the other completes the task independently.
  *
- * @param {object} env - Cloudflare Worker environment (Secrets Store, D1, KV, atď.)
- * @param {string} task - Zadanie alebo otázka pre duálny kognitívny tandem
+ * @param {object} env - Cloudflare Worker environment (Secrets Store, D1, KV, etc.)
+ * @param {string} task - Task or question for the dual cognitive tandem
  * @param {object} [options]
  * @param {string} [options.mode='deliberate'] - 'deliberate' | 'parallel' | 'claude_only' | 'gemini_only'
  * @param {string} [options.geminiModel]
  * @param {string} [options.claudeModel]
  * @param {string} [options.systemPrompt]
  * @param {number} [options.maxTokens]
- * @returns {Promise<object>} Výsledok deliberácie s receiptom oboch modelov
+ * @returns {Promise<object>} Deliberation result with unified receipt from both models
  */
 export async function dualEngineDeliberate(env, task, options = {}) {
   const mode = options.mode || 'deliberate';
@@ -44,7 +44,7 @@ export async function dualEngineDeliberate(env, task, options = {}) {
     return executeGeminiGemAgent(env, task, options);
   }
 
-  // 1. Režim deliberácie (Staged Collaborative Deliberation)
+  // 1. Deliberation mode (Staged Collaborative Deliberation)
   if (mode === 'deliberate') {
     let geminiStage = null;
     let geminiError = null;
@@ -53,14 +53,14 @@ export async function dualEngineDeliberate(env, task, options = {}) {
       geminiStage = await executeGeminiGemAgent(env, task, {
         model: options.geminiModel,
         systemPrompt: (options.systemPrompt ? options.systemPrompt + '\n\n' : '') +
-          'Si analytická fáza kognitívneho tandemu TRINITY (Google Gemini). Analyzuj zadanie, identifikuj kľúčové požiadavky, štruktúru riešenia a technické špecifiká. Tvoj výstup bude následne syntetizovať a implementovať Claude.',
+          'You are the analytical stage of the TRINITY cognitive tandem (Google Gemini). Analyze the task, identify key requirements, solution structure, and technical specifics. Your output will then be synthesized and implemented by Claude. Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal \'tykanie\' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language.',
         maxTokens: options.maxTokens || 4096
       });
     } catch (err) {
       geminiError = err;
     }
 
-    // Ak Gemini zlyhalo, Claude prevezme celú úlohu
+    // If Gemini failed, Claude takes over the entire task
     if (!geminiStage || !geminiStage.success) {
       const claudeResult = await executeClaudeAgent(env, task, {
         model: options.claudeModel,
@@ -71,20 +71,20 @@ export async function dualEngineDeliberate(env, task, options = {}) {
         ...claudeResult,
         mode: 'deliberate_fallback_to_claude',
         gemini_status: geminiError ? geminiError.message : 'unreachable',
-        deliberation_summary: 'Gemini fáza bola nedostupná; úloha bola kompletne spracovaná motorom Claude.'
+        deliberation_summary: 'Gemini stage was unavailable; the task was completed entirely by Claude.'
       };
     }
 
-    // Fáza 2: Claude reviduje a syntetizuje návrh od Gemini
+    // Stage 2: Claude reviews and synthesizes Gemini's proposal
     const claudeTask = [
-      `### PÔVODNÉ ZADANIE:`,
+      `### ORIGINAL TASK:`,
       task,
       '',
-      `### POČIATOČNÁ ANALÝZA A NÁVRH OD GOOGLE GEMINI:`,
+      `### INITIAL ANALYSIS AND PROPOSAL FROM GOOGLE GEMINI:`,
       geminiStage.text,
       '',
-      `### INŠTRUKCIE PRE CLAUDE:`,
-      `Reviduj vyššie uvedenú analýzu od Google Gemini. Vylepši architektúru, doplň chýbajúce detaily, oprav prípadné nepresnosti a poskytni definitívne, vysoko kvalitné a priamo použiteľné riešenie.`
+      `### INSTRUCTIONS FOR CLAUDE:`,
+      `Review the Google Gemini analysis above. Improve the architecture, fill in missing details, fix any inaccuracies, and deliver a definitive, high-quality, directly usable solution.`
     ].join('\n');
 
     let claudeStage = null;
@@ -94,25 +94,25 @@ export async function dualEngineDeliberate(env, task, options = {}) {
       claudeStage = await executeClaudeAgent(env, claudeTask, {
         model: options.claudeModel,
         systemPrompt: (options.systemPrompt ? options.systemPrompt + '\n\n' : '') +
-          'Si syntetická a kódovacia fáza kognitívneho tandemu TRINITY (Anthropic Claude). Tvojou úlohou je prevziať analýzu od Google Gemini a vytvoriť definitívny, prvotriedny výstup.',
+          'You are the synthesis and coding stage of the TRINITY cognitive tandem (Anthropic Claude). Your role is to take the analysis from Google Gemini and produce a definitive, first-class output. Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal \'tykanie\' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language.',
         maxTokens: options.maxTokens || 4096,
-        allowFallback: false // Chceme vedieť skutočný stav Claude
+        allowFallback: false // Preserve real Claude failure state without silent fallback
       });
     } catch (err) {
       claudeError = err;
     }
 
-    // Ak Claude zlyhal, vrátime aspoň Gemini výsledok
+    // If Claude failed, return the verified Gemini analysis
     if (!claudeStage || !claudeStage.success) {
       return {
         ...geminiStage,
         mode: 'deliberate_fallback_to_gemini',
         claude_status: claudeError ? claudeError.message : 'unreachable',
-        deliberation_summary: 'Claude fáza bola nedostupná; výstup obsahuje kompletnú analýzu Google Gemini.'
+        deliberation_summary: 'Claude stage was unavailable; output contains the complete Google Gemini analysis.'
       };
     }
 
-    // Obe fázy úspešné - vytvoríme spoločný receipt a zjednotený výsledok
+    // Both stages succeeded — create unified receipt and combined result
     const durationMs = Date.now() - startedAt;
     const deliberationPayload = {
       taskHash: hashPayload(task),
@@ -136,19 +136,19 @@ export async function dualEngineDeliberate(env, task, options = {}) {
         {
           type: 'api',
           id: 'deliberate_task_payload',
-          description: 'Pôvodné zadanie pre duálny motor',
+          description: 'Original task payload for dual engine',
           afterHash: hashPayload(task)
         },
         {
           type: 'api',
           id: 'deliberate_gemini_analysis',
-          description: 'Google Gemini počiatočná analýza',
+          description: 'Google Gemini initial analysis',
           afterHash: hashPayload(geminiText)
         },
         {
           type: 'api',
           id: 'deliberate_claude_synthesis',
-          description: 'Anthropic Claude syntéza a kód',
+          description: 'Anthropic Claude synthesis and code',
           afterHash: hashPayload(claudeText)
         }
       ],
@@ -180,7 +180,7 @@ export async function dualEngineDeliberate(env, task, options = {}) {
     };
   }
 
-  // 2. Režim paralelného konsenzu (Parallel Multi-Engine Evaluation)
+  // 2. Parallel consensus mode (Parallel Multi-Engine Evaluation)
   if (mode === 'parallel') {
     const [geminiSettled, claudeSettled] = await Promise.allSettled([
       executeGeminiGemAgent(env, task, {
@@ -200,7 +200,7 @@ export async function dualEngineDeliberate(env, task, options = {}) {
     const claudeResult = claudeSettled.status === 'fulfilled' ? claudeSettled.value : null;
 
     if (!geminiResult && !claudeResult) {
-      throw new Error(`Oba kognitívne motory (Gemini aj Claude) zlyhali: G=${geminiSettled.reason?.message}, C=${claudeSettled.reason?.message}`);
+      throw new Error(`Both cognitive engines (Gemini and Claude) failed: G=${geminiSettled.reason?.message}, C=${claudeSettled.reason?.message}`);
     }
 
     const durationMs = Date.now() - startedAt;
@@ -215,13 +215,13 @@ export async function dualEngineDeliberate(env, task, options = {}) {
         {
           type: 'api',
           id: 'parallel_task_payload',
-          description: 'Úloha pre paralelný konsenzus',
+          description: 'Task payload for parallel consensus',
           afterHash: hashPayload(task)
         },
         {
           type: 'api',
           id: 'parallel_result_payload',
-          description: 'Výsledok paralelnej inferencie',
+          description: 'Parallel inference result payload',
           afterHash: hashPayload(claudeResult?.text || geminiResult?.text || '')
         }
       ],
@@ -241,5 +241,5 @@ export async function dualEngineDeliberate(env, task, options = {}) {
     };
   }
 
-  throw new Error(`Neznámy režim duálneho motora: ${mode}`);
+  throw new Error(`Unknown dual-engine mode: ${mode}`);
 }

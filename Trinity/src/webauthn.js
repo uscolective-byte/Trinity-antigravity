@@ -3,7 +3,7 @@
  * @subsystem AUTH_AND_SECURITY_GATE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul webauthn.js (Trinity/src/webauthn.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Passkey / WebAuthn biometric authentication and credential management module (Trinity/src/webauthn.js) in the TRINITY OMNI-CORE ecosystem.
  */
 // src/webauthn.js: Passkey / Biometric WebAuthn Authentication & Credential Management
 
@@ -48,7 +48,7 @@ export function getRelyingPartyId(request) {
 }
 
 /**
- * 1. Generovanie registračných možností (WebAuthn create challenge)
+ * 1. Generate WebAuthn registration options (create challenge)
  */
 export async function generateRegistrationOptions(request, env, userEmail) {
   // SECURITY HOLD: existing implementation did not verify authenticator attestation/assertion.
@@ -106,14 +106,14 @@ export async function generateRegistrationOptions(request, env, userEmail) {
 }
 
 /**
- * 2. Overenie a uloženie nového Passkey (WebAuthn registration verification)
+ * 2. Verify and store a new Passkey (WebAuthn registration verification)
  */
 export async function verifyRegistrationResponse(request, env, body, currentUserEmail = null) {
   // SECURITY HOLD: existing implementation did not verify authenticator attestation/assertion.
   // Fail closed until a standards-compliant WebAuthn verifier is integrated and tested.
   throw new HttpError(503, 'PASSKEY_VERIFICATION_UNAVAILABLE: Unverified credential registration is disabled.');
   if (!body || !body.id || !body.response) {
-    throw new HttpError(400, 'Neplatný payload registrácie Passkey.');
+    throw new HttpError(400, 'Invalid Passkey registration payload.');
   }
 
   const { id: credentialId, response, friendlyName, userEmail } = body;
@@ -125,11 +125,11 @@ export async function verifyRegistrationResponse(request, env, body, currentUser
     const rawClientData = base64UrlDecode(response.clientDataJSON);
     clientData = JSON.parse(textDecoder.decode(rawClientData));
   } catch (err) {
-    throw new HttpError(400, 'Neplatný clientDataJSON.');
+    throw new HttpError(400, 'Invalid clientDataJSON.');
   }
 
   if (clientData.type !== 'webauthn.create') {
-    throw new HttpError(400, 'Nesprávny typ WebAuthn operácie.');
+    throw new HttpError(400, 'Invalid WebAuthn operation type.');
   }
 
   // Verify challenge
@@ -139,7 +139,7 @@ export async function verifyRegistrationResponse(request, env, body, currentUser
   ).bind(challengeHash, 'registration', Date.now()).first();
 
   if (!challengeRow) {
-    throw new HttpError(401, 'Registračná výzva (challenge) vypršala alebo je neplatná.');
+    throw new HttpError(401, 'Registration challenge has expired or is invalid.');
   }
 
   const passkeyId = crypto.randomUUID();
@@ -167,7 +167,7 @@ export async function verifyRegistrationResponse(request, env, body, currentUser
 
   return {
     ok: true,
-    message: 'Passkey bol úspešne zaregistrovaný pre biometrické prihlásenie.',
+    message: 'Passkey was successfully registered for biometric sign-in.',
     passkey: {
       id: passkeyId,
       credential_id: credentialId,
@@ -178,7 +178,7 @@ export async function verifyRegistrationResponse(request, env, body, currentUser
 }
 
 /**
- * 3. Generovanie autentifikačných možností (WebAuthn get challenge)
+ * 3. Generate WebAuthn authentication options (get challenge)
  */
 export async function generateAuthenticationOptions(request, env, userEmail = null) {
   // SECURITY HOLD: existing implementation did not verify authenticator attestation/assertion.
@@ -219,14 +219,14 @@ export async function generateAuthenticationOptions(request, env, userEmail = nu
 }
 
 /**
- * 4. Overenie biometrického prihlásenia a vydanie Trinity relácie
+ * 4. Verify biometric sign-in assertion and issue a Trinity session
  */
 export async function verifyAuthenticationResponse(request, env, body) {
   // SECURITY HOLD: existing implementation did not verify authenticator attestation/assertion.
   // Fail closed until a standards-compliant WebAuthn verifier is integrated and tested.
   throw new HttpError(503, 'PASSKEY_VERIFICATION_UNAVAILABLE: Unverified passkey assertion cannot issue a session.');
   if (!body || !body.id || !body.response) {
-    throw new HttpError(400, 'Neplatný payload biometrického prihlásenia.');
+    throw new HttpError(400, 'Invalid biometric sign-in payload.');
   }
 
   const { id: credentialId, response } = body;
@@ -237,11 +237,11 @@ export async function verifyAuthenticationResponse(request, env, body) {
     const rawClientData = base64UrlDecode(response.clientDataJSON);
     clientData = JSON.parse(textDecoder.decode(rawClientData));
   } catch {
-    throw new HttpError(400, 'Neplatný clientDataJSON.');
+    throw new HttpError(400, 'Invalid clientDataJSON.');
   }
 
   if (clientData.type !== 'webauthn.get') {
-    throw new HttpError(400, 'Nesprávny typ WebAuthn operácie.');
+    throw new HttpError(400, 'Invalid WebAuthn operation type.');
   }
 
   // Verify challenge
@@ -251,7 +251,7 @@ export async function verifyAuthenticationResponse(request, env, body) {
   ).bind(challengeHash, 'authentication', Date.now()).first();
 
   if (!challengeRow) {
-    throw new HttpError(401, 'Autentifikačná výzva (challenge) vypršala alebo už bola použitá.');
+    throw new HttpError(401, 'Authentication challenge has expired or has already been used.');
   }
 
   // Find passkey in DB
@@ -260,7 +260,7 @@ export async function verifyAuthenticationResponse(request, env, body) {
   ).bind(credentialId).first();
 
   if (!passkey) {
-    throw new HttpError(401, 'Biometrický kľúč (Passkey) nie je registrovaný v systéme.');
+    throw new HttpError(401, 'Biometric Passkey is not registered in the system.');
   }
 
   // Update counter and last_used_at
@@ -299,7 +299,7 @@ export async function verifyAuthenticationResponse(request, env, body) {
   return new Response(
     JSON.stringify({
       ok: true,
-      message: 'Biometrické prihlásenie cez Passkey úspešné.',
+      message: 'Biometric Passkey sign-in succeeded.',
       user: {
         email: passkey.user_email,
         role,
@@ -314,7 +314,7 @@ export async function verifyAuthenticationResponse(request, env, body) {
 }
 
 /**
- * 5. Zoznam Passkey kľúčov používateľa
+ * 5. List registered Passkey credentials for a user
  */
 export async function listUserPasskeys(env, userEmail) {
   const email = String(userEmail || env.TRINITY_OWNER_EMAIL || '').trim().toLowerCase();
@@ -338,7 +338,7 @@ export async function listUserPasskeys(env, userEmail) {
 }
 
 /**
- * 6. Zmazanie Passkey kľúča
+ * 6. Delete a user Passkey credential
  */
 export async function deleteUserPasskey(env, userEmail, passkeyId) {
   const email = String(userEmail || env.TRINITY_OWNER_EMAIL || '').trim().toLowerCase();
@@ -347,7 +347,7 @@ export async function deleteUserPasskey(env, userEmail, passkeyId) {
     .first();
 
   if (!row) {
-    throw new HttpError(404, 'Passkey kľúč nebol nájdený.');
+    throw new HttpError(404, 'Passkey credential not found.');
   }
 
   await env.DB.prepare('DELETE FROM user_passkeys WHERE id = ?').bind(passkeyId).run();
@@ -356,5 +356,5 @@ export async function deleteUserPasskey(env, userEmail, passkeyId) {
     JSON.stringify({ id: passkeyId, email, friendly_name: row.friendly_name, at: Date.now() })
   ).run();
 
-  return { ok: true, message: 'Passkey bol úspešne odstránený.' };
+  return { ok: true, message: 'Passkey was successfully removed.' };
 }

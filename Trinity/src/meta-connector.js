@@ -3,7 +3,7 @@
  * @subsystem EXTERNAL_CONNECTORS
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul meta-connector.js (Trinity/src/meta-connector.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Read-only Meta OAuth 2.0 connector with session-bound state and encrypted vault storage for TRINITY OMNI-CORE.
  */
 import {HttpError,hash,readJSON,checkOrigin,authenticate} from './security.js';
 import {storeSecret,getSecretMaterial} from './secret-vault.js';
@@ -13,17 +13,17 @@ const CALLBACK='/api/assistant/connectors/meta/callback';
 const BASE='/api/assistant/connectors/meta';
 const fail=(status,message)=>{throw new HttpError(status,message);};
 function ownerSession(request,user){
- if(!user||!['owner','admin'].includes(user.role))fail(403,'Prepojenie Meta môže spravovať iba overený správca.');
+ if(!user||!['owner','admin'].includes(user.role))fail(403,'Only a verified administrator can manage the Meta connection.');
  const session=request.headers.get('Cookie')?.match(/(?:^|;\s*)trinity_session=([a-f0-9]{64})(?:;|$)/)?.[1];
- if(!session)fail(401,'Pre Meta sa prihlás do Trinity v tomto prehliadači.');
+ if(!session)fail(401,'Sign in to Trinity in this browser before connecting Meta.');
  return session;
 }
 function configuration(env,origin){
  const missing=['META_APP_ID','META_APP_SECRET','META_GRAPH_VERSION','TRINITY_VAULT_KEY'].filter(key=>!env[key]);
  if(missing.length)return {missing};
- if(!/^\d+$/.test(env.META_APP_ID)||!/^v\d+\.\d+$/.test(env.META_GRAPH_VERSION))fail(503,'Neplatná konfigurácia Meta aplikácie alebo verzie API.');
+ if(!/^\d+$/.test(env.META_APP_ID)||!/^v\d+\.\d+$/.test(env.META_GRAPH_VERSION))fail(503,'Invalid Meta app ID or Graph API version configuration.');
  const redirect=new URL(env.META_REDIRECT_URI||CALLBACK,origin);
- if(redirect.origin!==origin||redirect.protocol!=='https:'||redirect.pathname!==CALLBACK||redirect.search||redirect.hash)fail(503,'Meta callback musí používať HTTPS a rovnakú doménu Trinity.');
+ if(redirect.origin!==origin||redirect.protocol!=='https:'||redirect.pathname!==CALLBACK||redirect.search||redirect.hash)fail(503,'Meta callback must use HTTPS on the same Trinity domain.');
  return {missing:[],appId:env.META_APP_ID,secret:env.META_APP_SECRET,version:env.META_GRAPH_VERSION,redirect:redirect.href};
 }
 const configDigest=config=>hash(config.appId+':'+config.version+':'+config.redirect);
@@ -38,18 +38,18 @@ async function savedConnectionMatches(config,storedHash){
 async function providerJSON(fetcher,url,options={},stage='provider_request'){
  let response;
  // Workers supports manual/follow only. Never forward credentials across redirects.
- try{response=await fetcher(url,{...options,redirect:'manual',signal:AbortSignal.timeout(15000)});}catch{fail(502,'Meta je momentálne nedostupná.');}
+ try{response=await fetcher(url,{...options,redirect:'manual',signal:AbortSignal.timeout(15000)});}catch{fail(502,'Meta is currently unavailable.');}
  if(response.type==='opaqueredirect'||response.status>=300&&response.status<400){
   try{await response.body?.cancel();}catch{}
-  fail(502,'Meta vrátila nepovolené presmerovanie.');
+  fail(502,'Meta returned a disallowed redirect.');
  }
  let data;try{
   const reader=response.body?.getReader();if(!reader)throw Error('empty');
   let size=0,text='';const decoder=new TextDecoder();
   while(true){const chunk=await reader.read();if(chunk.done)break;size+=chunk.value.byteLength;if(size>1000000){await reader.cancel();throw Error('large');}text+=decoder.decode(chunk.value,{stream:true});}
   data=JSON.parse(text+decoder.decode());
- }catch{fail(502,'Meta nevrátila platnú obmedzenú JSON odpoveď.');}
- if(!data||typeof data!=='object'||Array.isArray(data))fail(502,'Meta nevrátila objekt JSON.');
+ }catch{fail(502,'Meta did not return a valid bounded JSON response.');}
+ if(!data||typeof data!=='object'||Array.isArray(data))fail(502,'Meta did not return a JSON object.');
  if(!response.ok||data.error){
   // Only static stages and bounded numeric codes may leave this boundary.
   // Provider messages, URLs, bodies and traces can contain credentials.
@@ -57,24 +57,24 @@ async function providerJSON(fetcher,url,options={},stage='provider_request'){
   for(const [label,value] of [['code',data.error?.code],['subcode',data.error?.error_subcode]]){
    if(Number.isSafeInteger(value)&&value>=0&&value<=2147483647)details.push(label+'='+value);
   }
-  fail(response.status===401||data.error?.code===190?401:502,'Meta odmietla požiadavku; skontroluj prihlásenie a oprávnenia. ['+details.join('; ')+']');
+  fail(response.status===401||data.error?.code===190?401:502,'Meta rejected the request; verify login and permissions. ['+details.join('; ')+']');
  }
  return data;
 }
 async function identityProbe(config,token,fetcher){
  const get=(endpoint,fields,stage)=>providerJSON(fetcher,'https://graph.facebook.com/'+config.version+'/'+endpoint+(fields?'?'+new URLSearchParams(fields):''),{headers:{Authorization:'Bearer '+token}},stage);
  const profile=await get('me',{fields:'id,name'},'profile');
- if(!/^\d+$/.test(profile.id||'')||typeof profile.name!=='string'||!profile.name.trim())fail(502,'Meta nepotvrdila identitu účtu.');
+ if(!/^\d+$/.test(profile.id||'')||typeof profile.name!=='string'||!profile.name.trim())fail(502,'Meta did not verify the account identity.');
  const permissions=await get('me/permissions',undefined,'permissions');
- if(!Array.isArray(permissions.data))fail(502,'Meta nepotvrdila oprávnenia účtu.');
+ if(!Array.isArray(permissions.data))fail(502,'Meta did not verify account permissions.');
  const scopes=permissions.data.filter(item=>item.status==='granted'&&typeof item.permission==='string').map(item=>item.permission);
- if(META_READ_SCOPES.some(scope=>!scopes.includes(scope)))fail(403,'Neboli udelené potrebné oprávnenia na čítanie účtu a stránok.');
+ if(META_READ_SCOPES.some(scope=>!scopes.includes(scope)))fail(403,'Required read permissions for the account and pages were not granted.');
  const result=await get('me/accounts',{fields:'id,name,instagram_business_account{id,username}',limit:'50'},'pages');
- if(!Array.isArray(result.data))fail(502,'Meta nepotvrdila zoznam stránok.');
+ if(!Array.isArray(result.data))fail(502,'Meta did not verify the list of pages.');
  const pages=result.data.map(page=>{
-  if(!/^\d+$/.test(page.id||'')||typeof page.name!=='string')fail(502,'Meta vrátila neplatnú stránku.');
+  if(!/^\d+$/.test(page.id||'')||typeof page.name!=='string')fail(502,'Meta returned an invalid page entry.');
   const ig=page.instagram_business_account;
-  if(ig&&(!/^\d+$/.test(ig.id||'')||typeof ig.username!=='string'))fail(502,'Meta vrátila neplatný Instagram účet.');
+  if(ig&&(!/^\d+$/.test(ig.id||'')||typeof ig.username!=='string'))fail(502,'Meta returned an invalid Instagram account.');
   return {id:page.id,name:page.name.slice(0,200),instagram:ig?{id:ig.id,username:ig.username.slice(0,100)}:null};
  });
  return {account_id:profile.id,account_name:profile.name.slice(0,200),scopes:[...new Set(scopes)].sort(),pages,pages_truncated:Boolean(result.paging?.next)};
@@ -94,7 +94,7 @@ export async function metaStatus(env,ownerId,origin){
  return row?present(row):{status:'not_connected',publishing_enabled:false,requested_scopes:META_READ_SCOPES};
 }
 export async function beginMetaConnection(env,{ownerId,session,origin}){
- const config=configuration(env,origin);if(config.missing.length)fail(503,'Meta ešte nie je nastavená: '+config.missing.join(', '));
+ const config=configuration(env,origin);if(config.missing.length)fail(503,'Meta is not configured yet: '+config.missing.join(', '));
  const state=Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('hex');
  await env.DB.prepare('DELETE FROM meta_oauth_transactions WHERE expires_at<=?').bind(Date.now()).run();
  await env.DB.prepare('INSERT INTO meta_oauth_transactions(state_hash,owner_id,session_hash,redirect_uri,config_hash,expires_at) VALUES(?,?,?,?,?,?)')
@@ -104,16 +104,16 @@ export async function beginMetaConnection(env,{ownerId,session,origin}){
  return {status:'authorization_required',authorization_url:target.href,publishing_enabled:false};
 }
 export async function completeMetaConnection(env,{ownerId,session,origin,code,state},fetcher=fetch){
- if(typeof state!=='string'||!/^[a-f0-9]{64}$/.test(state)||typeof code!=='string'||!code||code.length>4096)fail(400,'Neplatná odpoveď prihlásenia Meta.');
- const config=configuration(env,origin);if(config.missing.length)fail(503,'Meta konfigurácia nie je dokončená.');
+ if(typeof state!=='string'||!/^[a-f0-9]{64}$/.test(state)||typeof code!=='string'||!code||code.length>4096)fail(400,'Invalid Meta login callback response.');
+ const config=configuration(env,origin);if(config.missing.length)fail(503,'Meta configuration is incomplete.');
  // Atomic consumption blocks replay/concurrent redemption. Bound to actor and browser session.
  const transaction=await env.DB.prepare('DELETE FROM meta_oauth_transactions WHERE state_hash=? AND owner_id=? AND session_hash=? AND expires_at>? RETURNING *')
  .bind(await hash(state),ownerId,await hash(session),Date.now()).first();
- if(!transaction||transaction.redirect_uri!==config.redirect||transaction.config_hash!==await configDigest(config))fail(400,'Prihlásenie Meta vypršalo alebo patrí inej relácii. Začni ho znova.');
+ if(!transaction||transaction.redirect_uri!==config.redirect||transaction.config_hash!==await configDigest(config))fail(400,'Meta login expired or belongs to another session. Please start again.');
  const exchange=new URL('https://graph.facebook.com/'+config.version+'/oauth/access_token');
  exchange.search=new URLSearchParams({client_id:config.appId,client_secret:config.secret,redirect_uri:transaction.redirect_uri,code}).toString();
  const tokens=await providerJSON(fetcher,exchange.href,{method:'GET',cache:'no-store'},'token_exchange');
- if(typeof tokens.access_token!=='string'||tokens.access_token.length<8||tokens.access_token.length>4096)fail(502,'Meta nevrátila platné poverenie.');
+ if(typeof tokens.access_token!=='string'||tokens.access_token.length<8||tokens.access_token.length>4096)fail(502,'Meta did not return a valid credential.');
  const evidence=await identityProbe(config,tokens.access_token,fetcher);
  const stored=await storeSecret(env,ownerId,{provider:'custom',name:'meta-read-only-'+crypto.randomUUID(),secret:tokens.access_token});
  const lifetime=Number(tokens.expires_in);
@@ -123,26 +123,26 @@ export async function completeMetaConnection(env,{ownerId,session,origin,code,st
  return {...await metaStatus(env,ownerId,origin),pages_truncated:evidence.pages_truncated};
 }
 export async function refreshMetaConnection(env,{ownerId,origin},fetcher=fetch){
- const config=configuration(env,origin);if(config.missing.length)fail(503,'Meta konfigurácia nie je dokončená.');
+ const config=configuration(env,origin);if(config.missing.length)fail(503,'Meta configuration is incomplete.');
  const row=await env.DB.prepare('SELECT * FROM meta_connections WHERE owner_id=?').bind(ownerId).first();
- if(!row)fail(404,'Účet Meta ešte nie je pripojený.');
- if(!await savedConnectionMatches(config,row.config_hash))fail(401,'Meta aplikácia sa zmenila. Prihlás účet znova.');
- if(row.expires_at&&row.expires_at<=Date.now())fail(401,'Poverenie Meta vypršalo. Prihlás účet znova.');
+ if(!row)fail(404,'Meta account is not connected yet.');
+ if(!await savedConnectionMatches(config,row.config_hash))fail(401,'Meta app configuration changed. Please sign in again.');
+ if(row.expires_at&&row.expires_at<=Date.now())fail(401,'Meta credential has expired. Please sign in again.');
  let evidence;
  try{const stored=await getSecretMaterial(env,{ownerId,id:row.secret_id,provider:'custom'});evidence=await identityProbe(config,stored.secret,fetcher);}
  catch(error){
   const changed=await env.DB.prepare('UPDATE meta_connections SET status=? WHERE owner_id=? AND secret_id=? AND account_id=?').bind([401,403,404].includes(error.status)?'reauthorization_required':'verification_failed',ownerId,row.secret_id,row.account_id).run();
-  if(changed.meta?.changes!==1)fail(409,'Pripojenie sa počas overenia zmenilo. Obnov jeho stav.');
+  if(changed.meta?.changes!==1)fail(409,'Connection changed during verification. Refresh its status.');
   throw error;
  }
  if(evidence.account_id!==row.account_id){
   const changed=await env.DB.prepare("UPDATE meta_connections SET status='reauthorization_required' WHERE owner_id=? AND secret_id=? AND account_id=?").bind(ownerId,row.secret_id,row.account_id).run();
-  if(changed.meta?.changes!==1)fail(409,'Pripojenie sa počas overenia zmenilo. Obnov jeho stav.');
-  fail(409,'Overený účet nezodpovedá uloženému pripojeniu.');
+  if(changed.meta?.changes!==1)fail(409,'Connection changed during verification. Refresh its status.');
+  fail(409,'Verified account does not match the saved connection.');
  }
  const changed=await env.DB.prepare("UPDATE meta_connections SET account_name=?,scopes_json=?,pages_json=?,verified_at=?,status='connected_read_only' WHERE owner_id=? AND secret_id=? AND account_id=?")
  .bind(evidence.account_name,JSON.stringify(evidence.scopes),JSON.stringify(evidence.pages),Date.now(),ownerId,row.secret_id,row.account_id).run();
- if(changed.meta?.changes!==1)fail(409,'Pripojenie sa počas overenia zmenilo. Obnov jeho stav.');
+ if(changed.meta?.changes!==1)fail(409,'Connection changed during verification. Refresh its status.');
  return {...await metaStatus(env,ownerId,origin),pages_truncated:evidence.pages_truncated};
 }
 export async function handleMetaConnection(request,env,user,fetcher=fetch){
@@ -158,6 +158,6 @@ export async function handleMetaConnection(request,env,user,fetcher=fetch){
  else if(request.method==='POST'&&url.pathname===BASE+'/start')result=await beginMetaConnection(env,context);
  else if(request.method==='POST'&&url.pathname===BASE+'/complete'){const {code,state}=await readJSON(request,10000);result=await completeMetaConnection(env,{...context,code,state},fetcher);}
  else if(request.method==='POST'&&url.pathname===BASE+'/verify')result=await refreshMetaConnection(env,context,fetcher);
- else fail(404,'Meta operácia nie je podporovaná.');
+ else fail(404,'Meta operation is not supported.');
  return Response.json(result,{headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 }

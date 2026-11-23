@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul infrastructure.js (Trinity/src/infrastructure.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Cloudflare API helper, infrastructure status reporting, and Studio project hosting for TRINITY OMNI-CORE.
  */
 import {z} from 'zod';
 import {HttpError} from './security.js';
@@ -12,16 +12,16 @@ import {getStudioProject} from './studio.js';
 export const cloudflareToken=env=>env.CLOUDFLARE_API_TOKEN||env.CF_API_TOKEN||env.CLOUDFLARE_TOKEN;
 export const cloudflareAccount=env=>env.CF_ACCOUNT_ID||env.CLOUDFLARE_ACCOUNT_ID;
 export async function cloudflareRequest(env,path,method='GET',body){
-  if(!cloudflareToken(env)||!cloudflareAccount(env))throw new HttpError(503,'Chýba Cloudflare API token alebo account ID vo Worker Secrets.');
+  if(!cloudflareToken(env)||!cloudflareAccount(env))throw new HttpError(503,'Missing Cloudflare API token or account ID in Worker Secrets.');
   const multipart=body instanceof FormData;
   const r=await fetch('https://api.cloudflare.com/client/v4'+path,{method,headers:{Authorization:`Bearer ${cloudflareToken(env)}`,...(multipart?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:multipart?body:JSON.stringify(body),signal:AbortSignal.timeout(20000),redirect:'manual'});
-  let data;try{data=JSON.parse(await boundedText(r,1000000));}catch{throw new HttpError(502,'Cloudflare nevrátil platnú API odpoveď.');}
+  let data;try{data=JSON.parse(await boundedText(r,1000000));}catch{throw new HttpError(502,'Cloudflare did not return a valid API response.');}
   if(!r.ok||!data.success)throw new HttpError(502,`Cloudflare API HTTP ${r.status}: ${data.errors?.[0]?.code||'request_failed'}`);
   return data;
 }
 export function infrastructureStatus(env){
   const cf=Boolean(cloudflareToken(env)&&cloudflareAccount(env));
-  return {account_id:cloudflareAccount(env)||null,account_owner:'Cloudflare účet vlastníka Trinity; Trinity vykonáva delegované operácie.',registrar:{configured:cf,requires:['Registrar Write','platobný profil','kontakt registranta','súhlas s registračnými podmienkami'],purchase_policy:'konkrétna doména + potvrdený cenový limit'},hosting:{configured:cf,provider:'Cloudflare Workers',default_visibility:'private',requires:['Workers Scripts Write','R2 + Studio projekt']},evolution:{configured:Boolean(env.TRINITY_GITHUB_TOKEN||env.GITHUB_TOKEN),automatic_proposals:env.TRINITY_AUTO_IMPROVE==='true',flow:'zdroj → vetva → PR → testy → zlúčenie → CI deploy'},web:{cloud_fetch:true,pc_required:false,limits:'čas, veľkosť odpovede a kvóty poskytovateľa'},mcp:{endpoint:'/mcp',source_inspection:true}};
+  return {account_id:cloudflareAccount(env)||null,account_owner:'Cloudflare account owned by Trinity owner; Trinity executes delegated operations.',registrar:{configured:cf,requires:['Registrar Write','payment profile','registrant contact','agreement to registrar terms'],purchase_policy:'specific domain + confirmed price limit'},hosting:{configured:cf,provider:'Cloudflare Workers',default_visibility:'private',requires:['Workers Scripts Write','R2 + Studio project']},evolution:{configured:Boolean(env.TRINITY_GITHUB_TOKEN||env.GITHUB_TOKEN),automatic_proposals:env.TRINITY_AUTO_IMPROVE==='true',flow:'source -> branch -> PR -> tests -> merge -> CI deploy'},web:{cloud_fetch:true,pc_required:false,limits:'timeout, response size, and provider quotas'},mcp:{endpoint:'/mcp',source_inspection:true}};
 }
 export const hostingInput=z.object({project_id:z.string().uuid(),publish:z.boolean().default(false)}).strict();
 export async function hostStudioProject(env,input){
@@ -30,7 +30,7 @@ export async function hostStudioProject(env,input){
   // isolated from Trinity sessions; keys never appear in an URL or a receipt.
   const id=crypto.randomUUID(),name='trinity-site-'+id.slice(0,18);
   const key=data.publish?null:env.TRINITY_HOSTING_ACCESS_KEY;
-  if(!data.publish&&(!key||key.length<32))throw new HttpError(503,'Pre súkromný hosting nastav Worker Secret TRINITY_HOSTING_ACCESS_KEY (aspoň 32 znakov).');
+  if(!data.publish&&(!key||key.length<32))throw new HttpError(503,'Private hosting requires Worker Secret TRINITY_HOSTING_ACCESS_KEY (at least 32 characters).');
   const digest=key?Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(key))).toString('hex'):null;
   const source=`const html=${JSON.stringify(project.html)}; const digest=${JSON.stringify(digest)};
 export default {async fetch(request){
@@ -51,7 +51,7 @@ return new Response(html,{headers:{'Content-Type':'text/html; charset=utf-8','X-
   if(key&&receipt.status==='verified'){
     const denied=await fetch(receipt.url,{signal:AbortSignal.timeout(10000),redirect:'manual'});
     await denied.body?.cancel();
-    if(denied.status!==401)throw new HttpError(502,'Súkromný hosting neprešiel kontrolou prístupu.');
+    if(denied.status!==401)throw new HttpError(502,'Private hosting failed the access control check.');
   }
   } catch(error) {receipt.status='verification_pending';receipt.verification_error=error.message;}
   await env.DB.prepare("INSERT INTO ops_memory(key,value,source) VALUES(?,?,'hosting')").bind('hosting/'+id,JSON.stringify(receipt)).run();

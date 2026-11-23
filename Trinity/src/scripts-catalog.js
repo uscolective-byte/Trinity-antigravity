@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Katalóg overených skriptov a bežných konektorov pre UI Nastavenia a pamäť Trinity.
+ * @description Catalog of verified repository scripts and common connectors for Settings UI and Trinity memory.
  */
 
 export const TRINITY_SCRIPTS_CATALOG = [
@@ -43,6 +43,7 @@ export const COMMON_CONNECTORS_CATALOG = [
   { id: 'firecrawl', provider: 'firecrawl', name: 'Firecrawl Scraper', icon: '🕸️', category: 'Cloud & Dáta', description: 'Hĺbkový web scraping a crawling stránok do čistého Markdownu (fc-...).', placeholder: 'fc-...', docsUrl: 'https://www.firecrawl.dev/app/api-keys', docsLabel: 'Firecrawl Keys ↗', mode: 'vault' },
   { id: 'openai', provider: 'openai', name: 'OpenAI / ChatGPT', icon: '🟢', category: 'AI & MCP', description: 'Modely GPT-4.1, GPT-4o a Codex pre chat a AI Studio.', placeholder: 'sk-...', docsUrl: 'https://platform.openai.com/api-keys', docsLabel: 'OpenAI Keys ↗', mode: 'vault' },
   { id: 'gemini', provider: 'gemini', name: 'Google Gemini', icon: '✨', category: 'AI & MCP', description: 'Modely Gemini Flash/Pro z Google AI Studio (AIza...).', placeholder: 'AIza...', docsUrl: 'https://aistudio.google.com/app/apikey', docsLabel: 'AI Studio ↗', mode: 'vault' },
+  { id: 'google_ai_studio', provider: 'google_ai_studio', name: 'Google AI Studio Bridge', icon: '✦', category: 'AI & MCP', description: 'Priamy most do Google AI Studio (Gemini API) pre spoločnú tvorbu s Trinity, objavovanie modelov a streaming.', placeholder: 'AIza...', docsUrl: 'https://aistudio.google.com/app/apikey', docsLabel: 'Google AI Studio ↗', mode: 'vault' },
   { id: 'anthropic', provider: 'anthropic', name: 'Anthropic Claude', icon: '🟣', category: 'AI & MCP', description: 'Claude Sonnet / Haiku pre komplexné kódovanie a analýzy.', placeholder: 'sk-ant-...', docsUrl: 'https://console.anthropic.com/settings/keys', docsLabel: 'Anthropic Keys ↗', mode: 'vault' },
   { id: 'groq', provider: 'groq', name: 'Groq LPU', icon: '⚡', category: 'AI & MCP', description: 'Ultra-rýchla Llama/Mixtral inferencia (gsk_...).', placeholder: 'gsk_...', docsUrl: 'https://console.groq.com/keys', docsLabel: 'Groq Console ↗', mode: 'vault' },
   { id: 'deepseek', provider: 'deepseek', name: 'DeepSeek AI', icon: '🐳', category: 'AI & MCP', description: 'DeepSeek Reasoner R1 a DeepSeek Chat API.', placeholder: 'sk-...', docsUrl: 'https://platform.deepseek.com/api_keys', docsLabel: 'DeepSeek Keys ↗', mode: 'vault' },

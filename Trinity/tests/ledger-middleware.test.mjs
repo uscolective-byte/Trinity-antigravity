@@ -118,7 +118,7 @@ test('SovereignLedgerEngine: Appends cryptographic blocks, verifies integrity an
   mockDb.rows[1].current_hash = 'badbeef'.repeat(9) + 'bad';
   const failedVerification = await engine.verifyChainIntegrity();
   assert.equal(failedVerification.valid, false);
-  assert.match(failedVerification.error, /Neplatný kontrolný súčet bloku/);
+  assert.match(failedVerification.error, /Invalid checksum for block/);
 });
 
 test('handleAuditLedgerRoutes: Handles GET verify, GET list, and POST append', async () => {

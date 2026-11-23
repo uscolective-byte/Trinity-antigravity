@@ -119,7 +119,7 @@ serveStdio(() => {
   // Core status and system inspection tools
   server.registerTool('trinity_status', { description: 'Read verified Trinity readiness and plugin status.', inputSchema: {} }, forward('trinity_status'));
   server.registerTool('get_capability_status', { description: 'Read current capability configuration, connectivity and execution evidence without secrets.', inputSchema: {} }, forward('get_capability_status'));
-  server.registerTool('diagnostic_ping', { description: 'Vykoná bezpečný diagnostický ping pre overenie prepojenia Tool Registry, Agent Runtime a Tool Executor.', inputSchema: { idempotency_key: z.string().optional(), message: z.string().optional() } }, forward('diagnostic_ping'));
+  server.registerTool('diagnostic_ping', { description: 'Runs a safe diagnostic ping to verify Tool Registry, Agent Runtime, and Tool Executor connectivity.', inputSchema: { idempotency_key: z.string().optional(), message: z.string().optional() } }, forward('diagnostic_ping'));
   server.registerTool('infrastructure_status', { description: 'Read infrastructure health and resource binding status.', inputSchema: {} }, forward('infrastructure_status'));
   server.registerTool('check_services', { description: 'Check actual service-binding reachability.', inputSchema: {} }, forward('check_services'));
   server.registerTool('trinity_control_panel', { description: 'Read Trinity system configuration and control panel state.', inputSchema: {} }, forward('trinity_control_panel'));

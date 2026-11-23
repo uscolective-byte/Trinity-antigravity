@@ -218,7 +218,7 @@ test('live chat receives active behavior rules alongside real self-improvement c
     }},
     AI:{async run(_model,{messages}){
       const system=messages[0].content;
-      assert.match(system,/návrh opravy zdrojov/);
+      assert.match(system,/source-code fix proposals/);
       assert.match(system,/Na začiatku stručne zhrň stav/);
       return {response:'Viem pripraviť návrh opravy.'};
     }}

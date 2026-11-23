@@ -3,15 +3,15 @@
  * @subsystem QUANTUM_ROUTER
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul quantum-router.js (Trinity/src/quantum-router.js).
- * Implementuje superpozíciu zámerov a pozorovateľský kolaps podľa špecifikácie 3-6-9.
+ * @description Module quantum-router.js (Trinity/src/quantum-router.js).
+ * Implements intent superposition and observer collapse under the 3-6-9 specification.
  */
 
 /**
  * @typedef {Object} IntentState
- * @property {string} agent - Identifikátor kandidátnej cesty spracovania
- * @property {number} score - Pravdepodobnostná amplitúda / skóre zámeru
- * @property {string} [rationale] - Dôvod priradenia amplitúdy
+ * @property {string} agent - Identifier of the candidate execution path
+ * @property {number} score - Probability amplitude / intent score
+ * @property {string} [rationale] - Rationale for amplitude assignment
  */
 
 /**
@@ -20,11 +20,11 @@
 
 export class QuantumRouter {
   /**
-   * Zostaví vstupnú vlnovú funkciu zámeru ψ = ∑ c_i |agent_i⟩ pred pozorovaním.
-   * @param {string} userInput - Vstupný text používateľa
-   * @param {object} [context] - Kontext relácie a pozorovateľa
-   * @param {object} [config] - Konfiguračné váhy z resonance.json
-   * @returns {IntentWaveFunction} Vlnová funkcia superpozície
+   * Builds the input intent wave function ψ = ∑ c_i |agent_i⟩ prior to observation.
+   * @param {string} userInput - User input text
+   * @param {object} [context] - Session and observer context
+   * @param {object} [config] - Weight configuration from resonance.json
+   * @returns {IntentWaveFunction} Superposition wave function
    */
   static buildWaveFunction(userInput, context = {}, config = {}) {
     const raw = String(userInput || '').trim().toLowerCase();
@@ -49,26 +49,26 @@ export class QuantumRouter {
       return candidates;
     }
 
-    // Posun amplitúd podľa rezonancie vstupných atribútov
+    // Shift amplitudes based on resonance of input attributes (Slovak + English)
     for (const c of candidates) {
-      if (c.agent === 'coder' && /kód|funkci|oprav|implementuj|build|script|skript|pr|vetv|git|css|html|ts|js|worker/i.test(raw)) {
+      if (c.agent === 'coder' && /kód|code|funkci|function|oprav|fix|implementuj|implement|build|script|skript|pr|vetv|git|css|html|ts|js|worker/i.test(raw)) {
         c.score += 0.55;
       }
-      if (c.agent === 'planner' && /plán|architekt|rozpad|postup|stratégi|krok|fáz|road/i.test(raw)) {
+      if (c.agent === 'planner' && /plán|plan|architekt|architect|rozpad|postup|stratégi|strategy|krok|step|fáz|phase|road/i.test(raw)) {
         c.score += 0.50;
       }
-      if (c.agent === 'auditor' && /test|over|skontroluj|verify|analýz|log|výsledok|dôkaz|chyb/i.test(raw)) {
+      if (c.agent === 'auditor' && /test|over|skontroluj|verify|audit|analýz|analy|log|výsledok|result|dôkaz|proof|chyb|error|bug/i.test(raw)) {
         c.score += 0.52;
       }
-      if (c.agent === 'sentinel' && /bezpečnos|token|kľúč|secret|heslo|access|auth|lock|d1|kv/i.test(raw)) {
+      if (c.agent === 'sentinel' && /bezpečnos|security|token|kľúč|key|secret|heslo|password|access|auth|lock|d1|kv/i.test(raw)) {
         c.score += 0.60;
       }
-      if (c.agent === 'chat' && (raw.length < 40 || /ahoj|dobrý|pomoc|kto si|ďakujem/i.test(raw))) {
+      if (c.agent === 'chat' && (raw.length < 40 || /ahoj|dobrý|pomoc|kto si|ďakujem|hello|hi|help|who are you|thanks/i.test(raw))) {
         c.score += 0.45;
       }
     }
 
-    // Normalizácia pravdepodobností: ∑ score = 1.0
+    // Normalize probabilities: ∑ score = 1.0
     const total = candidates.reduce((acc, cur) => acc + cur.score, 0) || 1.0;
     return candidates.map(c => ({
       agent: c.agent,
@@ -77,10 +77,10 @@ export class QuantumRouter {
   }
 
   /**
-   * Kolaps vlnovej funkcie (Pozorovateľský efekt).
-   * Po prijatí vstupu vyberá najpravdepodobnejšiu a najvhodnejšiu cestu.
-   * @param {IntentWaveFunction} psi - Vstupná vlnová funkcia
-   * @returns {IntentState} Kolabovaný stav zámeru
+   * Collapses the wave function (Observer Effect).
+   * Selects the highest-probability, most appropriate execution path for the input.
+   * @param {IntentWaveFunction} psi - Input wave function
+   * @returns {IntentState} Collapsed intent state
    */
   static collapseIntent(psi) {
     if (!Array.isArray(psi) || psi.length === 0) {
@@ -91,7 +91,7 @@ export class QuantumRouter {
   }
 
   /**
-   * Kompletné kvantové smerovanie zámeru.
+   * Full quantum intent routing.
    * @param {string} userInput
    * @param {object} [context]
    * @param {object} [config]

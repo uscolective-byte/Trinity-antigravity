@@ -35,33 +35,33 @@ test('PayPal REST: masks client id securely in diagnostics', () => {
 test('PayPal REST: createPayPalOrder rejects non-positive or invalid amounts', async () => {
   await assert.rejects(
     async () => createPayPalOrder({}, { amountEur: -10 }),
-    /Neplatná suma v EUR/
+    /Invalid EUR amount/
   );
   await assert.rejects(
     async () => createPayPalOrder({}, { amountEur: 0 }),
-    /Neplatná suma v EUR/
+    /Invalid EUR amount/
   );
   await assert.rejects(
     async () => createPayPalOrder({}, { amountEur: 'abc' }),
-    /Neplatná suma v EUR/
+    /Invalid EUR amount/
   );
 });
 
 test('PayPal REST: createPayPalOrder fails closed when credentials missing', async () => {
   await assert.rejects(
     async () => createPayPalOrder({}, { amountEur: 50 }),
-    /PayPal REST API nie je nakonfigurované/
+    /PayPal REST API is not configured/
   );
 });
 
 test('PayPal REST: capturePayPalOrder validates orderId and fails closed', async () => {
   await assert.rejects(
     async () => capturePayPalOrder({}, null),
-    /Zadaj platné PayPal Order ID/
+    /Provide a valid PayPal Order ID/
   );
   await assert.rejects(
     async () => capturePayPalOrder({}, ''),
-    /Zadaj platné PayPal Order ID/
+    /Provide a valid PayPal Order ID/
   );
 });
 
@@ -96,7 +96,7 @@ test('PayPal REST: handlePayPalCheckoutApi provides setup and handles invalid re
   const orderRes = await handlePayPalCheckoutApi(orderReq, env);
   assert.equal(orderRes.status, 400);
   const orderData = await orderRes.json();
-  assert.match(orderData.error, /Neplatná suma v EUR/);
+  assert.match(orderData.error, /Invalid EUR amount/);
 
   // POST /api/orders/:orderID/capture fails closed without valid credentials
   const capReq = new Request('https://auru.space/api/orders/ORDER123/capture', {
@@ -105,7 +105,7 @@ test('PayPal REST: handlePayPalCheckoutApi provides setup and handles invalid re
   const capRes = await handlePayPalCheckoutApi(capReq, env);
   assert.equal(capRes.status, 503);
   const capData = await capRes.json();
-  assert.match(capData.error, /PayPal REST API nie je nakonfigurované/);
+  assert.match(capData.error, /PayPal REST API is not configured/);
 
   // Unrelated path returns null
   const otherReq = new Request('https://auru.space/api/other', { method: 'GET' });

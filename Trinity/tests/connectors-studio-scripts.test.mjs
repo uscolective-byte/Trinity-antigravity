@@ -153,7 +153,7 @@ test('Trinity conversation prompts & greetings use warm natural human tone witho
   const engine = readFileSync(resolve(trinityDir, 'src/engine.js'), 'utf8');
   const fastChat = readFileSync(resolve(trinityDir, 'src/fast-chat.js'), 'utf8');
 
-  assert.ok(cognition.includes('Všímaj si náladu, tón a zámer v správe'), 'cognition.js should guide emotional & contextual responsiveness');
+  assert.ok(cognition.includes('Pay attention to mood, tone, and intent in the message'), 'cognition.js should guide emotional & contextual responsiveness');
   assert.ok(!cognition.includes('Dobrý deň, Sabo. Čo chcete'), 'cognition.js must not contradict tykanie with vykanie examples');
   assert.ok(!engine.includes('vtipkovania a zbytočných úvodov'), 'engine.js system prompt must allow natural warmth and wit');
   assert.ok(fastChat.includes('parťáčka'), 'fast-chat.js should use natural conversational persona');

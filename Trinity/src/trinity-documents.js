@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul trinity-documents.js (Trinity/src/trinity-documents.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module trinity-documents.js (Trinity/src/trinity-documents.js) in the TRINITY OMNI-CORE ecosystem.
  */
 import { z } from 'zod';
 import { HttpError } from './security.js';
@@ -90,8 +90,8 @@ Dozorný orgán: Úrad na ochranu osobných údajov Slovenskej republiky (https:
     "category": "architecture",
     "step_name": "omni_core_manual",
     "actor": "Trinity Sovereign Core",
-    "summary": "Kompletná príručka a technická encyklopédia Trinity 11.1 OMNI-CORE: 7-vrstvová architektúra, 29 Cloudflare Workerov, Omni-Dev Studio, Meta AI, Google Cloud, Truth Policy 2.1 a katalóg 112+ nástrojov.",
-    "content": "# Kompletná Oficiálna Dokumentácia a Technická Encyklopédia TRINITY 11.1 (OMNI-CORE)\n\n**Verzia systému:** Trinity 11.1.0 OMNI-CORE  \n**Dátum vydania:** 1. novembra 2026  \n**Zvrchovaný tvorca a vlastník:** Ivan Sabo (alias **Basterix**), saboivan2008@gmail.com  \n**Produkčná zóna:** https://auru.space · **Staging zóna:** https://auru.dev  \n**Režim pravdivosti:** Truth Policy 2.1.0 (evidence-required, nulové simulácie)\n\n---\n\n## 1. Úvod a Poslanie\nTrinity 11.1 je zvrchovaný autonómny operačný systém navrhnutý na Cloudflare Edge infraštruktúre pre plnohodnotné kódovanie, generovanie webov, správu hostiteľského PC a autonómne riadenie sociálnych sietí.\n\n## 2. 7-Vrstvová Architektúra\n1. **Sovereign Lock & TruthGuard (Ring 0):** Merkle chain, nonces, ochrana proti klamaniu.\n2. **Dátové úložiská:** D1 trinity-v03, KV Mastermind, R2 trinity-artifacts, Durable Objects.\n3. **Flotila 29 Workerov:** 10 AURA špecialistov, 8 Trinity Core, 8 RPC služieb, 3 pomocné služby.\n4. **Host PC Bridge:** PowerShell, CMD, Node, Python, WinRT OCR, Screenshot, Súbory.\n5. **112+ Exekučných nástrojov:** meta_manage, pc_*, domain_*, wallet_*, calculate.\n6. **Kognícia a Pentad 2.0:** Workers AI Llama 3.3 70B, Gemini 3.8 Flash, GPT-4.1-mini.\n7. **Zvrchované UI:** Omni-Dev Studio, Chat, AI Studio, Domény, Peňaženka, Dokumentácia.\n\n## 3. Desatoro Pravdivosti\n1. Žiadne vymýšľanie dát ani halucinácie úspechu.\n2. Každá vykonaná akcia musí mať overiteľný receipt.\n3. Fail-Closed pri akejkoľvek chybe.\n4. Guarded Rollout s overením pred nasadením.",
+    "summary": "Kompletná príručka a technická encyklopédia Trinity 11.1 OMNI-CORE: 7-vrstvová architektúra, 29 Cloudflare Workerov, Omni-Dev Studio, Meta AI, Google AI Studio Bridge, Tetrakis Space ($TTK), Truth Policy 2.1 a katalóg 112+ nástrojov.",
+    "content": "# Kompletná Oficiálna Dokumentácia a Technická Encyklopédia TRINITY 11.1 (OMNI-CORE)\n\n**Verzia systému:** Trinity 11.1.0 OMNI-CORE  \n**Dátum vydania:** 1. novembra 2026  \n**Zvrchovaný tvorca a vlastník:** Ivan Sabo (alias **Basterix**), saboivan2008@gmail.com  \n**Jednotná produkcia:** https://auru.space & https://auru.dev (Worker `trinity`)  \n**Režim pravdivosti:** Truth Policy 2.1.0 (evidence-required, nulové simulácie)\n\n---\n\n## 1. Úvod a Poslanie\nTrinity 11.1 je zvrchovaný autonómny operačný systém navrhnutý na Cloudflare Edge infraštruktúre pre plnohodnotné kódovanie, generovanie webov, správu hostiteľského PC a autonómne riadenie sociálnych sietí.\n\n## 2. 7-Vrstvová Architektúra\n1. **Sovereign Lock & TruthGuard (Ring 0):** Merkle chain, nonces, ochrana proti klamaniu.\n2. **Dátové úložiská:** D1 trinity-v03, KV Mastermind, R2 trinity-artifacts, Durable Objects.\n3. **Flotila 29 Workerov:** 10 AURA špecialistov, 8 Trinity Core, 8 RPC služieb, 3 pomocné služby.\n4. **Host PC Bridge:** PowerShell, CMD, Node, Python, WinRT OCR, Screenshot, Súbory.\n5. **112+ Exekučných nástrojov:** google_ai_studio, vercel_manage, meta_manage, pc_*, domain_*, wallet_*, calculate.\n6. **Kognícia a Google AI Studio Bridge:** Workers AI Llama 3.3 70B, Google AI Studio (Gemini API), GPT-4.1-mini.\n7. **Zvrchované UI:** Messenger, `@wallet`, Tetrakis Space (`$TTK`), Omni-Dev Studio, AI Studio, Domény, Dokumentácia.\n\n## 3. Desatoro Pravdivosti\n1. Žiadne vymýšľanie dát ani halucinácie úspechu.\n2. Každá vykonaná akcia musí mať overiteľný receipt.\n3. Fail-Closed pri akejkoľvek chybe.\n4. Guarded Rollout s overením pred nasadením.",
     "tags": [
       "dokumentacia",
       "architektura",
@@ -174,8 +174,8 @@ Dozorný orgán: Úrad na ochranu osobných údajov Slovenskej republiky (https:
     "category": "architecture",
     "step_name": "status_report",
     "actor": "Trinity Sovereign Core",
-    "summary": "Kompletný auditný prehľad produkčného a staging stavu: vyriešenie P0/P1 bezpečnostných bodov, live testovanie Windows PC Bridge cez WhatsApp a stav Cloudflare Edge.",
-    "content": "# Aktuálny Stav Trinity Sovereign OS (11.1.0 OMNI-CORE)\n\n**Dátum auditu:** 1. novembra 2026  \n**Produkcia:** auru.space (trinity Worker, D1 trinity-v03, KV Mastermind)  \n**Staging:** auru.dev (trinity-staging Worker)  \n**Host PC Daemon:** Basterix (win32, PID overený, PRISLUB overený)\n\n## Stav Bezpečnostných Opatrení\n- Odstránené 4 kritické zraniteľnosti (overovanie Google/OS tokenov, odstránenie falošného SID).\n- Durable Nonce Vault v tabuľke ops_consumed_nonces s ochranou proti replay útokom.\n- Všetkých 177 zdrojových súborov štandardizovaných pod JSDoc autoritou Basterix.\n- Úspešný End-to-End test cez https://auru.space/api/bridge s receiptom v D1 ledger blok #5.",
+    "summary": "Kompletný auditný prehľad jednotnej produkcie: vyriešenie P0/P1 bezpečnostných bodov, live testovanie Windows PC Bridge a stav Cloudflare Edge.",
+    "content": "# Aktuálny Stav Trinity Sovereign OS (11.1.0 OMNI-CORE)\n\n**Dátum auditu:** 1. novembra 2026  \n**Jednotná produkcia:** auru.space & auru.dev (Worker `trinity`, D1 `trinity-v03`, KV `Mastermind`)  \n**Host PC Daemon:** Basterix (win32, PID overený, PRISLUB overený)\n\n## Stav Bezpečnostných Opatrení\n- Odstránené 4 kritické zraniteľnosti (overovanie Google/OS tokenov, odstránenie falošného SID).\n- Durable Nonce Vault v tabuľke ops_consumed_nonces s ochranou proti replay útokom.\n- Všetkých 177 zdrojových súborov štandardizovaných pod JSDoc autoritou Basterix.\n- Úspešný End-to-End test cez https://auru.space/api/bridge s receiptom v D1 ledger blok #5.",
     "tags": [
       "stav",
       "audit",
@@ -276,6 +276,51 @@ Dozorný orgán: Úrad na ochranu osobných údajov Slovenskej republiky (https:
   "created_at": "2026-11-03T15:00:00.000Z",
   "export_md_url": "/api/assistant/documents/trinity-jednotna-receipt-architektura/export?format=md",
   "export_pdf_url": "/api/assistant/documents/trinity-jednotna-receipt-architektura/export?format=pdf"
+},
+{
+  "id": "trinity-tetrakis-space-guide",
+  "title": "Tetrakis ($TTK) Native Space & 4 ekosystémové piliere",
+  "category": "architecture",
+  "step_name": "tetrakis_space_guide",
+  "actor": "Trinity Sovereign Core",
+  "summary": "Architektúra neväzobného Tetrakis Space ($TTK) vedľa @wallet: Base L2 ERC-20 kontrakt (1 000 000 000 TTK, /tetrakis-logo.png), 4 natívne ekosystémové roly a fail-closed Truth Policy 2.1.",
+  "content": "# Tetrakis ($TTK) Native Space — Ekosystémová príručka\n\n**Token:** Tetrakis (`$TTK`) · ERC-20 (`TetrakisToken.sol`, OpenZeppelin v5.1.0, Base L2)  \n**Zásoba:** Fixných `1 000 000 000 TTK` (0 % tax, bez ďalšieho mintu)  \n**Endpoint stavu:** `GET /api/assistant/crypto/tetrakis` · **Overenie:** `node scripts/verify-tetrakis.mjs`\n\n## 4 natívne ekosystémové roly Tetrakis ($TTK)\n1. **Natívne platby v chate a okamžité P2P prevody:** Priame prevody medzi peňaženkami, prepitné a platobné požiadavky priamo v Trinity Messengeri a `@wallet`.\n2. **Ekonomika Mini-Apps, AI Studia a botov:** Natívne platidlo pre webové aplikácie generované v AI Studiu, agentov, skilly, pluginy a mikroslužby.\n3. **Domény, mená (`@handle`) a digitálne aktíva:** Úžitkový token pre ekosystémové používateľské mená/handly, doménové a hostingové služby a overiteľné digitálne aktíva/zberateľské položky.\n4. **Ekonomika tvorcov, výpočtov a neväzobný Tetrakis Space:** Neväzobná peňaženka pod plnou kontrolou používateľa (privátne kľúče nikdy neopúšťajú používateľa) popri `@wallet`, odmeny tvorcov a zúčtovanie edge výpočtov/úložiska.\n\n## Truth Policy 2.1\n- Trinity zobrazuje iba on-chain overený stav kontraktu na sieti. Kým nie je nasadený kontrakt a príjemca overený, platby ostávajú vypnuté (`payments.enabled: false`) a trhová cena zostáva `null`.",
+  "tags": ["tetrakis", "ttk", "wallet", "base-l2", "truth-policy"],
+  "receipt_id": "docs:tetrakis-space:v1",
+  "auto_generated": false,
+  "created_at": "2026-11-22T15:00:00.000Z",
+  "export_md_url": "/api/assistant/documents/trinity-tetrakis-space-guide/export?format=md",
+  "export_pdf_url": "/api/assistant/documents/trinity-tetrakis-space-guide/export?format=pdf"
+},
+{
+  "id": "trinity-google-ai-studio-bridge",
+  "title": "Google AI Studio Bridge — API, MCP & spoločná tvorba",
+  "category": "manual_doc",
+  "step_name": "google_ai_studio_bridge_guide",
+  "actor": "Trinity Sovereign Core",
+  "summary": "Dokumentácia mosta Google AI Studio (Gemini API v1beta): endpointy /api/assistant/ai-studio/*, 3-vrstvové bezpečné načítanie kľúča, MCP nástroje google_ai_studio_* a viackolová ko-kreácia.",
+  "content": "# Google AI Studio Bridge (`Trinity/src/google-ai-studio-bridge.js`)\n\n**Upstream API:** `https://generativelanguage.googleapis.com/v1beta` (autorizácia výhradne hlavičkou `x-goog-api-key`, nikdy cez `?key=` v URL)\n\n## REST Endpointy\n- `GET /api/assistant/ai-studio/status` — iba metadáta konfigurácie (`live_verified: false`, `secret_values_accessed: false`).\n- `GET /api/assistant/ai-studio/models` — načítanie dostupných Gemini modelov.\n- `POST /api/assistant/ai-studio/verify` — administrátorské overenie živého spojenia.\n- `POST /api/assistant/ai-studio/generate` — priame generovanie alebo SSE streaming (`stream: true`).\n- `POST /api/assistant/ai-studio/co-create` — viackolová spoločná tvorba Trinity ↔ Google AI Studio (anglické interné plánovanie + slovenská používateľská syntéza).\n- `GET /api/assistant/ai-studio/sessions` a `GET /api/assistant/ai-studio/sessions/:id` — história relácií v D1/KV.\n\n## Nástroje a bezpečnosť\n- Agentný nástroj: `google_ai_studio` · MCP nástroje: `google_ai_studio_status`, `google_ai_studio_models`, `google_ai_studio_cocreate`.\n- 3-vrstvové načítanie kľúča: Worker secrets (`GOOGLE_AI_STUDIO_API_KEY` / `GEMINI_API_KEY`) → Cloudflare Secrets Store (`.get()`) → AES-GCM šifrovaný D1 Trezor (`google_ai_studio` / `gemini`).",
+  "tags": ["google-ai-studio", "gemini", "bridge", "co-creation", "mcp"],
+  "receipt_id": "docs:google-ai-studio-bridge:v1",
+  "auto_generated": false,
+  "created_at": "2026-11-22T15:00:00.000Z",
+  "export_md_url": "/api/assistant/documents/trinity-google-ai-studio-bridge/export?format=md",
+  "export_pdf_url": "/api/assistant/documents/trinity-google-ai-studio-bridge/export?format=pdf"
+},
+{
+  "id": "trinity-language-architecture",
+  "title": "Dvojjazyčná architektúra Trinity (English Internals / Slovak Communication)",
+  "category": "architecture",
+  "step_name": "dual_language_architecture",
+  "actor": "Trinity Sovereign Core",
+  "summary": "Architektonické pravidlo rozdelenia jazykov: 100 % anglické inžinierske jadro (kód, komentáre, schémy, interné prompty) a prirodzená slovenská komunikácia smerom k používateľom.",
+  "content": "# Dual-Language Architecture (English Internals / Slovak User Communication)\n\n1. **Engineering & Internal Layer (100% English):** All source code, JSDoc, comments, identifiers, developer logs, internal agent/tool reasoning prompts, tool schemas, and technical architecture operate in clean English.\n2. **User Communication Layer (Slovak):** Trinity communicates with the owner (Ivan Sabo / Basterix) and users in natural, idiomatic Slovak (feminine grammatical gender, informal tykanie for the owner) unless the user explicitly writes in another language.\n3. **Inviolable Truth & Oath Integrity:** `PRISLUB_TRINITY.txt`, `TRINITY_LOYALTY_OATH`, `TRUTH_POLICY`, and Truth Policy 2.1 evidence enforcement remain intact.",
+  "tags": ["dual-language", "english", "slovak", "architecture"],
+  "receipt_id": "docs:dual-language:v1",
+  "auto_generated": false,
+  "created_at": "2026-11-22T15:00:00.000Z",
+  "export_md_url": "/api/assistant/documents/trinity-language-architecture/export?format=md",
+  "export_pdf_url": "/api/assistant/documents/trinity-language-architecture/export?format=pdf"
 }
 ];
 
@@ -517,7 +562,7 @@ export async function listTrinityDocuments(env, { category, search, limit = 50 }
 export async function getTrinityDocument(env, id) {
   const items = await readDocsIndex(env);
   const found = items.find(item => item.id === id);
-  if (!found) throw new HttpError(404, 'Trinity dokument nebol nájdený.');
+  if (!found) throw new HttpError(404, 'Trinity document not found.');
   return found;
 }
 

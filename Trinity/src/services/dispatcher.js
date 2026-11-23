@@ -1,6 +1,6 @@
 /**
  * Trinity Service Dispatcher
- * Klient pre volanie Service Bindingov
+ * Client for calling Service Bindings
  * @version 1.0.0
  */
 
@@ -36,7 +36,7 @@ export class Dispatcher {
   }
 
   /**
-   * Volá service binding s trace propagation
+   * Calls a service binding with trace propagation
    */
   async call(bindingName, path, options = {}) {
     const binding = this.env[bindingName];
@@ -74,7 +74,7 @@ export class Dispatcher {
   }
 
   /**
-   * Vykoná nástroj z tool registry
+   * Executes a tool from the tool registry
    */
   async executeTool(toolId, input = {}, runId = null, step = 0) {
     let ownedRun = null;
@@ -154,7 +154,7 @@ export class Dispatcher {
   }
 
   /**
-   * Spustí pipeline nástrojov
+   * Executes a tool pipeline
    */
   async executePipeline(steps, initialInput = {}) {
     const runId = await this.lifecycle._createRun('Tool pipeline', initialInput, steps.length);

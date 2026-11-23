@@ -39,6 +39,20 @@ Tieto údaje sa generujú zo zdrojov a konfigurácie. Aktuálne nasadenie over c
 | Spotify | Ovládanie hudby z rozhrania Trinity. | Spusť prehrávanie vo vlastnej relácii a over, že funguje v prehliadači. |
 | Modely a externé služby | Pripojenia závisia od konfigurácie konkrétneho poskytovateľa. | Urob autorizovanú skúšobnú požiadavku cez Trinity a skontroluj výsledok. |
 | Firebase Hosting | Samostatná prezentácia pripravená v repozitári. | Over vydanú verziu na adrese hostingu po nasadení. |
+| Google AI Studio Bridge | Priamy most do `generativelanguage.googleapis.com/v1beta` (`/api/assistant/ai-studio/status`, `/models`, `/verify`, `/generate`, `/co-create`, `/sessions`), nástroj `google_ai_studio` a MCP nástroje `google_ai_studio_*`. | Ulož kľúč cez šifrovaný Trezor (`google_ai_studio` / `gemini`), Worker secret alebo Cloudflare Secrets Store a over cez `POST /api/assistant/ai-studio/verify`. |
+| Tetrakis (`$TTK`) Native Space | Neväzobný Web3 priestor pre Base L2 ERC-20 (`1 000 000 000 TTK`, `/tetrakis-logo.png`, Truth Policy 2.1 fail-closed overenie) a 4 natívne ekosystémové roly popri `@wallet`. | Over stav kontraktu cez `GET /api/assistant/crypto/tetrakis` alebo `node scripts/verify-tetrakis.mjs`. |
+
+## Tetrakis (`$TTK`) — 4 natívne ekosystémové roly
+
+1. **Natívne platby v chate a okamžité P2P prevody** — priame prevody medzi peňaženkami, prepitné a platobné požiadavky v Trinity Messengeri a `@wallet`.
+2. **Ekonomika Mini-Apps, AI Studia a botov** — natívne platidlo pre weby a aplikácie generované v AI Studiu, agentov, skilly, pluginy a mikroslužby.
+3. **Domény, mená (`@handle`) a digitálne aktíva** — využitie pre ekosystémové používateľské mená/handly, doménové a hostingové služby a overiteľné digitálne aktíva/zberateľské položky.
+4. **Ekonomika tvorcov, výpočtov a neväzobný Tetrakis Space** — vlastná peňaženka pod kontrolou používateľa (privátne kľúče nikdy neopúšťajú používateľa), odmeny tvorcov a zúčtovanie edge výpočtov/úložiska. *(Truth Policy 2.1: overený on-chain stav kontraktu sa vždy odlišuje od vízie ekosystému; Trinity nikdy nevymýšľa trhovú cenu ani neoverený deploy.)*
+
+## Dvojjazyčná architektúra (Dual-Language Architecture)
+
+- **Inžinierska a interná vrstva (100 % angličtina / English):** zdrojový kód, komentáre, JSDoc, identifikátory, interné logy, interné inštrukcie agentov, schémy nástrojov a technická dokumentácia.
+- **Používateľská komunikácia (slovenčina / Slovak):** konverzačné odpovede Trinity, pozdravy, notifikácie a používateľské rozhranie komunikujú prirodzenou slovenčinou (pokiaľ používateľ nenapíše v inom jazyku).
 
 ## Vývoj a nasadenie
 

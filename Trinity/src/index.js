@@ -13,7 +13,7 @@ import {
  * @subsystem EDGE_KERNEL_AND_HTTP_ROUTER
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Hlavný Cloudflare Edge Worker router pre domény auru.space (production) a auru.dev (staging / omni-dev), MCP bránu, D1/KV/R2 bindingy a Ring 0 autorizáciu.
+ * @description Primary Cloudflare Edge Worker router for unified production domains auru.space and auru.dev, MCP gateway, D1/KV/R2 bindings, and Ring 0 authorization.
  */
 import {revolutProStatus,configureRevolutPro,handleRevolutProPublic,paypalStatus,configurePaypal,commerceStatus,configureCommerceAccounts,upsertCommerceProduct,deleteCommerceProduct,handleCommercePublic} from './revolut.js';
 import {paypalDiagnostics,createPayPalOrder,capturePayPalOrder,getPayPalOrderStatus,handlePayPalCheckoutApi} from './paypal-rest.js';
@@ -23,6 +23,7 @@ import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,genera
 import {createTrinityDocument,listTrinityDocuments,getTrinityDocument,deleteTrinityDocument,exportTrinityDocument} from './trinity-documents.js';
 import {analyzeCommodities,getCommodityDeskOverview,executeCommodityTrade,runAutonomousCommodityDesk,listBankConnections,configureBankConnection,deleteBankConnection,syncLiveMarketFeeds,getCommodityChart} from './commodities-engine.js';
 import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,manageOneDrive,manageGoogleCloud,manageLocalBridge,listAllIntegrations} from './external-integrations.js';
+import {getAiStudioBridgeStatus,listAiStudioModels,verifyAiStudioConnection,generateAiStudioContent,coCreateWithAiStudio,getAiStudioSession,listAiStudioSessions} from './google-ai-studio-bridge.js';
 import {trinityMasterStatus} from './trinity-master-status.js';
 import {adviseTrinityMaster} from './trinity-master-agent.js';
 import {scanForImprovements} from './maintenance-scan.js';
@@ -1498,6 +1499,65 @@ async function route(request,env,ctx){
     if(data.project_id)await recordStudioReview(env,data.project_id,data.version,result).catch(()=>{});
     return json(result);
   }
+  if(path==='/api/assistant/ai-studio/status'&&request.method==='GET'){
+    return json(await getAiStudioBridgeStatus(env,ownerId));
+  }
+  if(path==='/api/assistant/ai-studio/models'&&request.method==='GET'){
+    await rateLimit(env,`ai-studio-models:${user.id}`,20,300);
+    const pageSize=Math.max(1,Math.min(1000,Number(url.searchParams.get('pageSize')||200)||200));
+    const res=await listAiStudioModels(env,{ownerId,pageSize});
+    return json(res,res.ok?200:(res.http_status||503));
+  }
+  if(path==='/api/assistant/ai-studio/verify'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`ai-studio-verify:${user.id}`,10,300);
+    const body=z.object({model:z.string().max(120).optional()}).strict().parse(await readJSON(request,4000).catch(()=>({})));
+    const res=await verifyAiStudioConnection(env,{ownerId,model:body.model});
+    return json(res,res.ok?200:(res.http_status||503));
+  }
+  if(path==='/api/assistant/ai-studio/generate'&&request.method==='POST'){
+    await rateLimit(env,`ai-studio-generate:${user.id}`,20,300);
+    const body=z.object({
+      prompt:z.string().max(24000).optional(),
+      messages:z.array(z.object({role:z.enum(['system','user','assistant','model']),content:z.string().max(24000)}).strict()).max(40).optional(),
+      model:z.string().max(120).optional(),
+      systemInstruction:z.string().max(12000).optional(),
+      temperature:z.number().min(0).max(2).optional(),
+      maxOutputTokens:z.number().int().min(1).max(65536).optional(),
+      topP:z.number().min(0).max(1).optional(),
+      responseMimeType:z.enum(['text/plain','application/json']).optional(),
+      responseSchema:z.record(z.string(),z.unknown()).optional(),
+      stream:z.boolean().optional()
+    }).strict().parse(await readJSON(request,60000));
+    const res=await generateAiStudioContent(env,{...body,ownerId});
+    if(body.stream&&res.ok&&res.streamResponse)return res.streamResponse;
+    return json(res,res.ok?200:(res.http_status||503));
+  }
+  if(path==='/api/assistant/ai-studio/co-create'&&request.method==='POST'){
+    await rateLimit(env,`ai-studio-cocreate:${user.id}`,15,300);
+    const body=z.object({
+      session_id:z.string().max(120).optional(),
+      task:z.string().trim().min(1).max(12000),
+      mode:z.enum(['pair','brainstorm','review','build_artifact']).optional(),
+      model:z.string().max(120).optional(),
+      context:z.string().max(16000).optional(),
+      artifact:z.string().max(50000).optional(),
+      reply_language:z.enum(['sk','en','auto']).optional(),
+      allow_edge_fallback:z.boolean().optional()
+    }).strict().parse(await readJSON(request,80000));
+    const res=await coCreateWithAiStudio(env,{...body,ownerId});
+    return json(res,res.ok?200:(res.http_status||503));
+  }
+  if(path==='/api/assistant/ai-studio/sessions'&&request.method==='GET'){
+    const limit=Math.max(1,Math.min(50,Number(url.searchParams.get('limit')||20)||20));
+    return json(await listAiStudioSessions(env,limit));
+  }
+  const aiStudioSessionRoute=path.match(/^\/api\/assistant\/ai-studio\/sessions\/([A-Za-z0-9_.:-]{1,120})$/);
+  if(aiStudioSessionRoute&&request.method==='GET'){
+    const session=await getAiStudioSession(env,decodeURIComponent(aiStudioSessionRoute[1]));
+    if(!session)throw new HttpError(404,'Google AI Studio co-creation session not found.');
+    return json(session);
+  }
   if(path==='/api/assistant/multimedia'&&request.method==='GET'){
     return json(await listMultimediaCreations(env,{kind:url.searchParams.get('kind')||'',limit:Number(url.searchParams.get('limit')||40)}));
   }
@@ -1823,10 +1883,19 @@ async function route(request,env,ctx){
     const secretEntry=(provider,credentialName)=>secrets.find(item=>item.provider===provider&&(!credentialName||item.name===credentialName))||null;
     const secretStatus=provider=>secretEntry(provider)?.status||'not-configured';
     const metaConnected=Boolean(env.META_ACCESS_TOKEN||env.FACEBOOK_ACCESS_TOKEN||secretEntry('meta'));
+    const googleAiStudioConfigured=Boolean(
+      (typeof env.GOOGLE_AI_STUDIO_API_KEY==='string'&&env.GOOGLE_AI_STUDIO_API_KEY.trim())
+      ||(typeof env.GOOGLE_AI_STUDIO_API_KEY?.get==='function')
+      ||(typeof env.GEMINI_API_KEY==='string'&&env.GEMINI_API_KEY.trim())
+      ||(typeof env.GEMINI_API_KEY?.get==='function')
+      ||(typeof env.TRINITY_MASTER_GOOGLE?.get==='function')
+      ||secretEntry('google_ai_studio')
+      ||secretEntry('gemini')
+    );
     const resolveConnectorStatus=connector=>{
       if(connector.credential_name)return secretEntry(connector.provider,connector.credential_name)?.status||'not-configured';
       if(connector.provider==='openai')return env.OPENAI_API_KEY?'configured':secretStatus('openai');
-      if(connector.provider==='gemini')return env.GEMINI_API_KEY?'configured':secretStatus('gemini');
+      if(connector.provider==='gemini'||connector.provider==='google_ai_studio')return googleAiStudioConfigured?'configured':secretStatus(connector.provider);
       if(connector.provider==='anthropic')return env.ANTHROPIC_API_KEY?'configured':secretStatus('anthropic');
       if(connector.provider==='groq')return env.GROQ_API_KEY?'configured':secretStatus('groq');
       if(connector.provider==='deepseek')return env.DEEPSEEK_API_KEY?'configured':secretStatus('deepseek');
@@ -1841,7 +1910,7 @@ async function route(request,env,ctx){
       const sec=secretEntry(c.provider,c.credential_name);
       return {...c,status:resolveConnectorStatus(c),secret_id:sec?.id||null,secret_hint:sec?.secret_hint||null,secret_name:sec?.name||null};
     });
-    return json({plugins,truth_policy_version:TRUTH_POLICY_VERSION,version:TRINITY_VERSION,model:env.AI_MODEL||'@cf/openai/gpt-oss-120b',image_model:env.IMAGE_MODEL||'@cf/black-forest-labs/flux-1-schnell',permissions:{manage_api_keys:['admin','owner'].includes(user.role),manage_secrets:['admin','owner'].includes(user.role),manage_users:user.role==='owner',manage_trading:['admin','owner'].includes(user.role),use_local_ai:['admin','owner'].includes(user.role),manage_domains:['admin','owner'].includes(user.role)},storage:{database:'Cloudflare D1',cache:'Workers KV · Mastermind',artifacts:'Cloudflare R2 · trinity-artifacts',strategy:'indexed-relational + cache + object archive',scalable:true,memory_records:memory.count||0},counts:{api_projects:apis.count||0,active_api_keys:keys.count||0,paper_portfolios:portfolios.count||0,tools:Object.keys(TOOL_HELP).length,scripts:TRINITY_SCRIPTS_CATALOG.length,connectors:connectors_catalog.length},internet:{web_search:plugins.some(p=>p.id==='web'&&p.enabled),mode:'outbound-only',always_on_gateway:pcBridge.connected===true},pc_bridge:pcBridge,connectors_catalog,integrations:[{id:'mcp',name:'MCP most',provider:'mcp_server',status:plugins.some(p=>p.id==='mcp'&&p.enabled)?'ready':'disabled'},{id:'api',name:'Trinity API',status:'ready'},{id:'web',name:'Webový výskum',status:plugins.some(p=>p.id==='web'&&p.enabled)?'ready':'disabled'},{id:'cloudflare',name:'Cloudflare',provider:'cloudflare',status:secretStatus('cloudflare')},{id:'openai',name:'OpenAI / ChatGPT API',provider:'openai',status:env.OPENAI_API_KEY?'configured':secretStatus('openai')},{id:'ollama',name:'Ollama Cloud',status:env.OLLAMA_SECRET||env.OLLAMA_API_KEY?'configured':'not-configured'},{id:'gemini',name:'Google Gemini',provider:'gemini',status:env.GEMINI_API_KEY?'configured':secretStatus('gemini')},{id:'anthropic',name:'Anthropic Claude',provider:'anthropic',status:env.ANTHROPIC_API_KEY?'configured':secretStatus('anthropic')},{id:'google',name:'Google OAuth',provider:'google_cloud',status:googleOAuthConfigured(env)?'configured':secretStatus('google_cloud')},{id:'github',name:'GitHub',provider:'github',status:secretStatus('github')},{id:'slack',name:'Slack',provider:'slack',status:secretStatus('slack')},{id:'discord',name:'Discord',provider:'discord',status:secretStatus('discord')},{id:'telegram',name:'Telegram Bot',provider:'telegram',status:env.TELEGRAM_BOT_TOKEN?'configured':secretStatus('telegram')},{id:'notion',name:'Notion',provider:'notion',status:secretStatus('notion')},{id:'linear',name:'Linear',provider:'linear',status:secretStatus('linear')},{id:'stripe',name:'Stripe',provider:'stripe',status:secretStatus('stripe')},{id:'meta',name:'Meta (FB & Instagram)',provider:'meta',status:metaConnected?'configured':'not-configured'},{id:'antigravity-mcp',name:'Google Antigravity · Trinity MCP',status:plugins.some(item=>item.id==='mcp'&&item.enabled)?'available':'disabled'},{id:'vscode-mcp',name:'Visual Studio Code · Trinity MCP',status:plugins.some(item=>item.id==='mcp'&&item.enabled)?'available':'disabled'},{id:'revolut-pro',name:'Revolut Pro platby',provider:'revolut',status:commerce.revolut?.configured||commerce.accounts?.revolut_url?'configured':'not-configured'},{id:'paypal',name:'PayPal platby',provider:'paypal',status:commerce.paypal?.configured||commerce.accounts?.paypal_url?'configured':'not-configured'}]});
+    return json({plugins,truth_policy_version:TRUTH_POLICY_VERSION,version:TRINITY_VERSION,model:env.AI_MODEL||'@cf/openai/gpt-oss-120b',image_model:env.IMAGE_MODEL||'@cf/black-forest-labs/flux-1-schnell',permissions:{manage_api_keys:['admin','owner'].includes(user.role),manage_secrets:['admin','owner'].includes(user.role),manage_users:user.role==='owner',manage_trading:['admin','owner'].includes(user.role),use_local_ai:['admin','owner'].includes(user.role),manage_domains:['admin','owner'].includes(user.role)},storage:{database:'Cloudflare D1',cache:'Workers KV · Mastermind',artifacts:'Cloudflare R2 · trinity-artifacts',strategy:'indexed-relational + cache + object archive',scalable:true,memory_records:memory.count||0},counts:{api_projects:apis.count||0,active_api_keys:keys.count||0,paper_portfolios:portfolios.count||0,tools:Object.keys(TOOL_HELP).length,scripts:TRINITY_SCRIPTS_CATALOG.length,connectors:connectors_catalog.length},internet:{web_search:plugins.some(p=>p.id==='web'&&p.enabled),mode:'outbound-only',always_on_gateway:pcBridge.connected===true},pc_bridge:pcBridge,connectors_catalog,integrations:[{id:'mcp',name:'MCP most',provider:'mcp_server',status:plugins.some(p=>p.id==='mcp'&&p.enabled)?'ready':'disabled'},{id:'api',name:'Trinity API',status:'ready'},{id:'web',name:'Webový výskum',status:plugins.some(p=>p.id==='web'&&p.enabled)?'ready':'disabled'},{id:'cloudflare',name:'Cloudflare',provider:'cloudflare',status:secretStatus('cloudflare')},{id:'openai',name:'OpenAI / ChatGPT API',provider:'openai',status:env.OPENAI_API_KEY?'configured':secretStatus('openai')},{id:'ollama',name:'Ollama Cloud',status:env.OLLAMA_SECRET||env.OLLAMA_API_KEY?'configured':'not-configured'},{id:'gemini',name:'Google Gemini',provider:'gemini',status:googleAiStudioConfigured?'configured':secretStatus('gemini')},{id:'google-ai-studio',name:'Google AI Studio Bridge',provider:'google_ai_studio',status:googleAiStudioConfigured?'configured':'not-configured'},{id:'anthropic',name:'Anthropic Claude',provider:'anthropic',status:env.ANTHROPIC_API_KEY?'configured':secretStatus('anthropic')},{id:'google',name:'Google OAuth',provider:'google_cloud',status:googleOAuthConfigured(env)?'configured':secretStatus('google_cloud')},{id:'github',name:'GitHub',provider:'github',status:secretStatus('github')},{id:'slack',name:'Slack',provider:'slack',status:secretStatus('slack')},{id:'discord',name:'Discord',provider:'discord',status:secretStatus('discord')},{id:'telegram',name:'Telegram Bot',provider:'telegram',status:env.TELEGRAM_BOT_TOKEN?'configured':secretStatus('telegram')},{id:'notion',name:'Notion',provider:'notion',status:secretStatus('notion')},{id:'linear',name:'Linear',provider:'linear',status:secretStatus('linear')},{id:'stripe',name:'Stripe',provider:'stripe',status:secretStatus('stripe')},{id:'meta',name:'Meta (FB & Instagram)',provider:'meta',status:metaConnected?'configured':'not-configured'},{id:'antigravity-mcp',name:'Google Antigravity · Trinity MCP',status:plugins.some(item=>item.id==='mcp'&&item.enabled)?'available':'disabled'},{id:'vscode-mcp',name:'Visual Studio Code · Trinity MCP',status:plugins.some(item=>item.id==='mcp'&&item.enabled)?'available':'disabled'},{id:'revolut-pro',name:'Revolut Pro platby',provider:'revolut',status:commerce.revolut?.configured||commerce.accounts?.revolut_url?'configured':'not-configured'},{id:'paypal',name:'PayPal platby',provider:'paypal',status:commerce.paypal?.configured||commerce.accounts?.paypal_url?'configured':'not-configured'}]});
   }
   if(path==='/api/assistant/scripts-and-tools'&&request.method==='GET'){
     const plugins=await listPlugins(env);
@@ -2672,7 +2741,7 @@ export default {
     let caughtError = null;
 
     try {
-      // 1. Priame spravovanie a verifikácia Sovereign Ledgeru
+      // 1. Direct Sovereign Ledger administration and verification
       if (pathname.startsWith('/api/audit-ledger')) {
         const ledgerResponse = await handleAuditLedgerRoutes(request, env, url);
         if (ledgerResponse) {
@@ -2681,7 +2750,7 @@ export default {
           response = secure(json({ error: `Nepodporovaný endpoint alebo metóda pre audit-ledger: ${method} ${pathname}` }, 404));
         }
       } else {
-        // 2. Delegovanie na hlavný aplikačný router Trinity
+        // 2. Delegate to the primary Trinity application router
         response = secure(await route(request, env, ctx));
       }
     } catch (err) {
@@ -2701,7 +2770,7 @@ export default {
       );
     }
 
-    // 3. Automatický audit kľúčových a mutačných operácií cez SovereignLedgerEngine
+    // 3. Automatic audit of core and mutating operations via SovereignLedgerEngine
     if (shouldAuditRequest(pathname, method) || caughtError) {
       const durationMs = Date.now() - startedAt;
       await recordRequestAudit({
@@ -2716,7 +2785,7 @@ export default {
       });
     }
 
-    // 4. Pridanie diagnostických hlavičiek pre sledovanie auditu
+    // 4. Attach diagnostic headers for audit tracing
     const finalHeaders = new Headers(response.headers);
     finalHeaders.set('X-Trinity-Audit-Tracked', shouldAuditRequest(pathname, method) ? 'true' : 'false');
     finalHeaders.set('X-Trinity-Response-Time-Ms', String(Date.now() - startedAt));

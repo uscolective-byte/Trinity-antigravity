@@ -25,8 +25,8 @@ test('QCA: Základné spustenie Quantum Cognitive Accelerator', async () => {
   assert.ok(result.output);
   assert.equal(result.output.status, 'Optimized & Corrected');
   assert.equal(result.output.resonanceField, 'Active');
-  assert.ok(result.output.content.includes('Syntéza cez 5 paralelných dráh'));
-  assert.ok(result.output.content.includes('Primárny rezonátor: [metaphysical]'));
+  assert.ok(result.output.content.includes('Synthesis across 5 parallel paths'));
+  assert.ok(result.output.content.includes('Primary resonator: [metaphysical]'));
 
   assert.ok(typeof result.metrics.durationMs === 'number');
   assert.equal(result.metrics.pathsEvaluated, 5);
@@ -53,7 +53,7 @@ test('QCA: Submoduly (kompresia, paralelné myšlienky, syntéza, reflexia, kore
   // 3. mergeThoughts
   const merged = mergeThoughts(thoughts);
   assert.equal(merged.confidence, 1.0);
-  assert.ok(merged.synthesizedContent.includes('Primárny rezonátor: [metaphysical]'));
+  assert.ok(merged.synthesizedContent.includes('Primary resonator: [metaphysical]'));
 
   const emptyMerge = mergeThoughts([]);
   assert.equal(emptyMerge.confidence, 0);
@@ -61,7 +61,7 @@ test('QCA: Submoduly (kompresia, paralelné myšlienky, syntéza, reflexia, kore
   // 4. selfReflect
   const reflected = selfReflect(merged, 'Test dotaz');
   assert.equal(reflected.passedAudit, true);
-  assert.equal(reflected.reflectionNotes, 'Logická konzistencia stabilná.');
+  assert.equal(reflected.reflectionNotes, 'Logical consistency stable.');
 
   // 5. selfCorrect
   const corrected = selfCorrect(reflected);
@@ -69,7 +69,7 @@ test('QCA: Submoduly (kompresia, paralelné myšlienky, syntéza, reflexia, kore
   assert.equal(corrected.resonanceField, 'Active');
 
   const failedCorrect = selfCorrect({ passedAudit: false });
-  assert.equal(failedCorrect, 'Korigovaný výstup po internom reštarte logiky.');
+  assert.equal(failedCorrect, 'Corrected output after internal logic reset.');
 });
 
 test('QCA: Prepojenie s QuantumCoreEngine.accelerate', async () => {

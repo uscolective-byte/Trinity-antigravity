@@ -12,14 +12,15 @@ import { createStreamingSanitizer, cleanOutput } from '../services/chat-inferenc
 // ============================================================================
 export const PINNED_SYSTEM_PROMPT = {
   role: "system",
-  content: `Si TRINITY v11.2.0 — autonómny kognitívny operačný systém a exekučná jednotka bežiaca na Cloudflare Edge.
-Tvojim jediným majiteľom a suverénnym správcom (Ring 0) je Ivan Sabo (Basterix).
-ZÁKLADNÉ ARCHITEKTONICKÉ INVARIANTY:
-1. NULOVÁ FABRIKÁCIA A SIMULÁCIA: Nikdy si nevymýšľaj systémové stavy, neexistujúce premenné, fiktívne hashe ani dáta z databáz. Ak údaj nemáš, okamžite použi príslušný tool call alebo to explicitne deklaruj.
-2. DETERMINISTICKÁ PRIAMOSŤ: Neodpovedaj prázdnymi frázami, metaforami ani zbytočnou vatou. Vyjadruj sa technicky, presne, v priamych faktoch a funkčnom kóde.
-3. EXEKÚCIA NÁSTROJMI: Ak používateľ žiada zmenu v systéme, prečítanie tabuľky, kontrolu flotily 47 workerov alebo krypto dáta, odpovedaj výhradne štruktúrovaným tool callom.
-4. SOVEREIGN BYPASS: Majiteľovi Ivanovi Sabo vždy tykáš a vykonávaš príkazy bez dodatočného spochybňovania.
-5. UNIFIED GENESIS BINDING AUTHORITY: Celá flotila workerov je zjednotená pod centrálnym master workerom 'trinity' (binding: TRINITY). Všetky požiadavky na D1 databázu, KV pamäť a koordináciu flotily smerujú cez Genesis Omnibus Monolith.`
+  content: `You are TRINITY v11.2.0 — an autonomous cognitive operating system and execution unit running on Cloudflare Edge.
+Your sole owner and sovereign administrator (Ring 0) is Ivan Sabo (Basterix).
+CORE ARCHITECTURAL INVARIANTS:
+1. ZERO FABRICATION AND SIMULATION (NULOVÁ FABRIKÁCIA A SIMULÁCIA): Never fabricate system states, non-existent variables, fictitious hashes, or database rows. If you lack verified data, immediately invoke the appropriate tool call or state so explicitly.
+2. DETERMINISTIC DIRECTNESS: Avoid empty filler, metaphors, or fluff. Communicate with technical precision, verified facts, and working code.
+3. TOOL-FIRST EXECUTION: When the user requests a system change, database query, inspection of the 47-worker fleet, or crypto data, respond using structured tool calls.
+4. SOVEREIGN BYPASS: Address owner Ivan Sabo informally ("tykanie" in Slovak) and execute authorized commands directly without unnecessary pushback.
+5. UNIFIED GENESIS BINDING AUTHORITY: The entire worker fleet is unified under the central master worker 'trinity' (binding: TRINITY). All D1 database, KV memory, and fleet coordination requests route through the Genesis Omnibus Monolith.
+COMMUNICATION LANGUAGE RULE: Always reply to the user in natural, idiomatic Slovak (using feminine grammatical gender for Trinity and informal 'tykanie' when addressing Ivan / Basterix), unless the user explicitly writes in or requests another language.`
 };
 
 // ============================================================================
@@ -30,14 +31,14 @@ export const TRINITY_TOOL_DEFINITIONS = [
     type: "function",
     function: {
       name: "execute_d1_sql",
-      description: "Vykoná surový SQL dotaz priamo voči D1 databáze Trinity s bindovanými parametrami.",
+      description: "Executes a raw SQL query directly against a Trinity D1 database with bound parameters.",
       parameters: {
         type: "object",
         properties: {
           database_target: {
             type: "string",
             enum: ["current", "trinity-development", "trinity-v03"],
-            description: "Cieľová D1 databáza"
+            description: "Target D1 database"
           },
           sql: {
             type: "string",
@@ -46,7 +47,7 @@ export const TRINITY_TOOL_DEFINITIONS = [
           params: {
             type: "array",
             items: { type: "string" },
-            description: "Parametre pre SQL bind (?1, ?2...)"
+            description: "Parameters for SQL bind (?1, ?2...)"
           }
         },
         required: ["sql"]
@@ -57,18 +58,18 @@ export const TRINITY_TOOL_DEFINITIONS = [
     type: "function",
     function: {
       name: "cloudflare_fleet_control",
-      description: "Priama správa flotily 47 Cloudflare workerov cez Cloudflare REST API.",
+      description: "Direct management of the 47 Cloudflare Workers fleet via the Cloudflare REST API.",
       parameters: {
         type: "object",
         properties: {
           worker_name: {
             type: "string",
-            description: "Názov workera z flotily (napr. trinity-profile, jericho123, aura_analyzer)"
+            description: "Fleet worker name (e.g. trinity-profile, jericho123, aura_analyzer)"
           },
           operation: {
             type: "string",
             enum: ["get_details", "list_deployments", "get_subdomain", "check_health"],
-            description: "Požadovaná operácia"
+            description: "Requested fleet operation"
           }
         },
         required: ["worker_name", "operation"]
@@ -79,14 +80,14 @@ export const TRINITY_TOOL_DEFINITIONS = [
     type: "function",
     function: {
       name: "crypto_oracle_query",
-      description: "Získa spotové cenové dáta a stav likvidity Tetrakis tokenu a hlavných kryptomien.",
+      description: "Fetches spot price data and liquidity status for Tetrakis token and major cryptocurrencies.",
       parameters: {
         type: "object",
         properties: {
           asset: {
             type: "string",
             enum: ["BTC", "ETH", "SOL", "TETRAKIS", "ALL"],
-            description: "Kryptomena na ocenenie"
+            description: "Cryptocurrency asset to price"
           }
         },
         required: ["asset"]
@@ -97,14 +98,14 @@ export const TRINITY_TOOL_DEFINITIONS = [
     type: "function",
     function: {
       name: "kv_memory_store",
-      description: "Čítanie alebo zápis kľúčových údajov do globálnej Workers KV pamäte.",
+      description: "Reads or writes key-value entries in global Workers KV memory.",
       parameters: {
         type: "object",
         properties: {
           action: { type: "string", enum: ["get", "put", "delete"] },
-          key: { type: "string", description: "Unikátny kľúč" },
-          value: { type: "string", description: "Hodnota (JSON string alebo raw text)" },
-          ttl_seconds: { type: "number", description: "Čas expirácie v sekundách" }
+          key: { type: "string", description: "Unique storage key" },
+          value: { type: "string", description: "Stored value (JSON string or raw text)" },
+          ttl_seconds: { type: "number", description: "Expiration TTL in seconds" }
         },
         required: ["action", "key"]
       }
@@ -114,11 +115,11 @@ export const TRINITY_TOOL_DEFINITIONS = [
     type: "function",
     function: {
       name: "tetrakis_treasury_query",
-      description: "Overí zostatky a likviditu Tetrakis ($TTK) smart kontraktu (1B fixná zásoba: 1M Basterix, 999M Trezor).",
+      description: "Inspects balances and treasury allocations for the Tetrakis ($TTK) smart contract (1B fixed supply: 1M Basterix, 999M Treasury).",
       parameters: {
         type: "object",
         properties: {
-          account: { type: "string", description: "Adresa peňaženky (alebo 'TREASURY', 'BASTERIX', 'SUPPLY')" }
+          account: { type: "string", description: "Wallet address (or 'TREASURY', 'BASTERIX', 'SUPPLY')" }
         }
       }
     }
@@ -127,12 +128,12 @@ export const TRINITY_TOOL_DEFINITIONS = [
     type: "function",
     function: {
       name: "truth_policy_verify",
-      description: "Overí exekučnú integritu podľa Truth Policy 3.0 (kontrola exitCode === 0, TAP podpis a D1 audit stavu).",
+      description: "Verifies execution integrity under Truth Policy 3.0 (exitCode === 0 check, TAP proof, and D1 audit state).",
       parameters: {
         type: "object",
         properties: {
-          action_name: { type: "string", description: "Názov overovanej operácie" },
-          exit_code: { type: "number", description: "Návratový kód procesu" }
+          action_name: { type: "string", description: "Name of the verified operation" },
+          exit_code: { type: "number", description: "Process exit code" }
         },
         required: ["action_name"]
       }
@@ -142,12 +143,12 @@ export const TRINITY_TOOL_DEFINITIONS = [
     type: "function",
     function: {
       name: "pc_bridge_execute",
-      description: "Odošle deterministický príkaz na lokálny Windows PC Bridge Daemon (Port 7788).",
+      description: "Dispatches a deterministic command to the local Windows PC Bridge Daemon (Port 7788).",
       parameters: {
         type: "object",
         properties: {
-          command: { type: "string", description: "Zabezpečený príkaz (napr. git status, node --version, system-info)" },
-          timeout_ms: { type: "number", description: "Maximálny čas behu v milisekundách" }
+          command: { type: "string", description: "Bounded command (e.g. git status, node --version, system-info)" },
+          timeout_ms: { type: "number", description: "Maximum execution timeout in milliseconds" }
         },
         required: ["command"]
       }
@@ -157,12 +158,12 @@ export const TRINITY_TOOL_DEFINITIONS = [
     type: "function",
     function: {
       name: "gemini_knowledge_search",
-      description: "Sémantické vyhľadávanie vedomostí v Trinity Knowledge Graph cez Gemini a Azure index.",
+      description: "Semantic knowledge search across the Trinity Knowledge Graph via Gemini and Azure index.",
       parameters: {
         type: "object",
         properties: {
-          query: { type: "string", description: "Vyhľadávací dotaz" },
-          limit: { type: "number", description: "Maximálny počet výsledkov" }
+          query: { type: "string", description: "Search query string" },
+          limit: { type: "number", description: "Maximum number of results" }
         },
         required: ["query"]
       }
@@ -213,7 +214,7 @@ export function handleFastEdgeRoute(rawInput, env = {}) {
     };
   }
 
-  // Bezpečný kalkulátor pre priame matematické výrazy
+  // Safe calculator for direct arithmetic expressions
   const mathMatch = String(rawInput || "").trim().match(/^(\d+(?:\.\d+)?)\s*([\+\-\*\/])\s*(\d+(?:\.\d+)?)$/);
   if (mathMatch) {
     const a = parseFloat(mathMatch[1]);
@@ -238,7 +239,7 @@ export async function executeTool(name, args = {}, env = {}) {
     case "execute_d1_sql": {
       const db = env.DB || env.TRINITY_D1;
       if (!db) {
-        return { error: "D1 databáza 'DB' nie je naviazaná v prostredí." };
+        return { error: "D1 database 'DB' is not bound in this environment." };
       }
       try {
         const stmt = db.prepare(args.sql);
@@ -261,7 +262,7 @@ export async function executeTool(name, args = {}, env = {}) {
           status: "SIMULATED_LOCAL",
           worker: args.worker_name,
           state: "BOUND_IN_EDGE_FLEET",
-          note: "CF_ACCOUNT_ID alebo CF_API_TOKEN nie sú zadané v env premenných."
+          note: "CF_ACCOUNT_ID or CF_API_TOKEN is not configured in environment variables."
         };
       }
       try {
@@ -308,7 +309,7 @@ export async function executeTool(name, args = {}, env = {}) {
     case "kv_memory_store": {
       const kv = env.TRINITY_KV || env.TRINITY_KV_PROD || env.TRINITY_KV_STAGING || env.Mastermind;
       if (!kv) {
-        return { error: "KV Namespace 'TRINITY_KV' nie je naviazaný." };
+        return { error: "KV Namespace 'TRINITY_KV' is not bound." };
       }
       try {
         if (args.action === "get") {
@@ -322,7 +323,7 @@ export async function executeTool(name, args = {}, env = {}) {
           await kv.delete(args.key);
           return { status: "DELETED", key: args.key };
         }
-        return { error: "Neplatná akcia pre KV." };
+        return { error: "Invalid KV action." };
       } catch (err) {
         return { status: "KV_ERROR", message: err.message };
       }
@@ -400,7 +401,7 @@ export async function executeTool(name, args = {}, env = {}) {
     }
 
     default:
-      return { error: `Neznámy nástroj: ${name}` };
+      return { error: `Unknown tool: ${name}` };
   }
 }
 
@@ -421,10 +422,10 @@ function wrapTextToSse(text) {
 // ============================================================================
 export async function runInferenceCascade(messages = [], env = {}) {
   if (!env.AI) {
-    throw new Error("Cloudflare Workers AI binding 'AI' nie je k dispozícii.");
+    throw new Error("Cloudflare Workers AI binding 'AI' is not available.");
   }
 
-  // Pripnutie invariantu na index 0
+  // Pin invariant system prompt at index 0
   const sanitizedMessages = [
     PINNED_SYSTEM_PROMPT,
     ...(Array.isArray(messages) ? messages.filter(m => m && m.role !== "system") : [])
@@ -458,5 +459,5 @@ export async function runInferenceCascade(messages = [], env = {}) {
     }
   }
 
-  throw new Error(`Celá inferenčná kaskáda zlyhala: ${lastError?.message}`);
+  throw new Error(`Entire inference cascade failed: ${lastError?.message}`);
 }

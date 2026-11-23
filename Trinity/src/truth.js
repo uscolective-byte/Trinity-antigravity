@@ -3,7 +3,7 @@
  * @subsystem TRUTH_ASSERTION_ENGINE
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Desatoro Pravdivosti (10 prikázaní), Anti-Assumption filter a ExecutionLifecycleGuard (PROPOSED -> RUNNING -> COMPLETED -> VERIFIED).
+ * @description Ten Commandments of Truth, Anti-Assumption Filter, and ExecutionLifecycleGuard (PROPOSED -> RUNNING -> COMPLETED -> VERIFIED).
  */
 export const TRUTH_POLICY_VERSION='2.3.0';
 
@@ -103,13 +103,13 @@ const CLAIM_RULES=[
   {
     id:'create_file',
     patterns:[
-      /\b(?:(?:vytvoril[ao]?|vytvorila)\s+som|som\s+(?:úspešne\s+)?vytvoril[ao]?)\b[^\n.!?]{0,40}\b(?:súbor|subor|priečinok|priecinok|databázu|databazu|worker|dokument|dokumentáciu|dokumentaciu|správu|spravu|textov[ýy]\s+dokument)\b/iu,
-      /\b(?:vygeneroval[ao]?|vygenerovala|uložil[ao]?|uložila)\s+som\b[^\n.!?]{0,40}\b(?:súbor|subor|dokument|dokumentáciu|dokumentaciu)\b/iu,
-      /\b(?:dokumentácia|dokumentacia|dokument|správa|sprava|súbor|subor)\b[^\n.!?]{0,40}\b(?:bol[ao]?|je)\s+(?:úspešne\s+)?(?:vygenerovan[áaý]|uložen[áaý]|vytvoren[áaý])\b/iu,
+      /\b(?:(?:vytvoril[ao]?|vytvorila)\s+som|som\s+(?:úspešne\s+)?vytvoril[ao]?)\b[^\n.!?]{0,40}\b(?:súbor|subor|priečinok|priecinok|databázu|databazu|worker|projekt|dokument|dokumentáciu|dokumentaciu|správu|spravu|textov[ýy]\s+dokument)\b/iu,
+      /\b(?:vygeneroval[ao]?|vygenerovala|uložil[ao]?|uložila)\s+som\b[^\n.!?]{0,40}\b(?:súbor|subor|projekt|dokument|dokumentáciu|dokumentaciu)\b/iu,
+      /\b(?:dokumentácia|dokumentacia|dokument|projekt|správa|sprava|súbor|subor)\b[^\n.!?]{0,40}\b(?:bol[ao]?|je)\s+(?:úspešne\s+)?(?:vygenerovan[áaý]|uložen[áaý]|vytvoren[áaý])\b/iu,
       /\b(?:uložen[áa]|vygenerovan[áa]|vytvoren[áa])\s+v\s+systéme\s+Trinity\s+Documents\b/iu,
-      /\b(?:i\s+(?:have\s+)?created\s+(?:a\s+|the\s+)?(?:[a-z0-9_-]+\s+){0,3}(?:file|folder|database|worker|document|documentation|report))\b/iu,
-      /\b(?:i\s+(?:have\s+)?(?:generated|saved)\s+(?:the\s+)?(?:document|documentation|file))\b/iu,
-      /\b(?:document|documentation|file)\b[^\n.!?]{0,30}\b(?:was|has\s+been)\s+(?:successfully\s+)?(?:generated|saved|created)\b/iu
+      /\b(?:i\s+(?:have\s+)?created\s+(?:a\s+|the\s+)?(?:[a-z0-9_-]+\s+){0,3}(?:file|folder|database|worker|project|document|documentation|report))\b/iu,
+      /\b(?:i\s+(?:have\s+)?(?:generated|saved)\s+(?:the\s+)?(?:document|documentation|file|project))\b/iu,
+      /\b(?:document|documentation|file|project)\b[^\n.!?]{0,30}\b(?:was|has\s+been)\s+(?:successfully\s+)?(?:generated|saved|created)\b/iu
     ]
   },
   {
@@ -223,12 +223,12 @@ export function safeTruthResponse(language='sk'){
 }
 
 // ============================================================================
-// DESATORO PRAVDIVOSTI A DETERMINIZMU TRINITY (10 COMMANDMENTS OF TRUTH)
+// TEN COMMANDMENTS OF TRUTH AND DETERMINISM (TRINITY TRUTH ENGINE)
 // ============================================================================
 
 /**
- * 1. Zákaz fiktívnych úspechov (Zero Simulated Execution)
- * Odpoveď sa vygeneruje iba vtedy, keď lokálny proces vráti exitCode === 0.
+ * 1. Zero Simulated Execution
+ * A response is permitted only when the local process returns exitCode === 0.
  */
 export function enforceZeroSimulatedExecution(processResult){
   if(!processResult||typeof processResult!=='object'||processResult.exitCode!==0){
@@ -250,8 +250,8 @@ export function enforceZeroSimulatedExecution(processResult){
 }
 
 /**
- * 2. Zákaz vymýšľania dát (Raw Evidence Only)
- * Ak údaj neexistuje, vráti presne: "Údaj nie je dostupný v systéme."
+ * 2. Raw Evidence Only
+ * When data is absent, returns the canonical Slovak unavailable-data notice.
  */
 export function enforceRawEvidenceOnly(data,rawStdout='',rawStderr=''){
   const hasData=data!==undefined&&data!==null&&data!=='';
@@ -273,11 +273,11 @@ export function enforceRawEvidenceOnly(data,rawStdout='',rawStderr=''){
 }
 
 /**
- * 3. Zákaz predstierania prepojenia (No Fake APIs)
- * Tvrdý sieťový timeout (predvolene 5000 ms). Pri výpadku vráti presné hlásenie.
+ * 3. No Fake APIs
+ * Enforces a hard network timeout (default 5000 ms) and returns an explicit unknown outcome on failure.
  */
 export async function fetchWithHardTimeout(url,options={},timeoutMs=5000,fetcher=fetch){
-  if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new TypeError('Neplatný sieťový timeout.');
+  if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new TypeError('Invalid network timeout.');
   const controller=new AbortController();
   let timer;
   try{
@@ -299,15 +299,15 @@ export async function fetchWithHardTimeout(url,options={},timeoutMs=5000,fetcher
 }
 
 /**
- * 4. Fyzické overenie pred nahlásením (Disk & State Check)
- * Po každom zápise nasleduje okamžitý kontrolný krok OS (fs.existsSync / stat).
+ * 4. Physical Verification Before Reporting (Disk & State Check)
+ * Every write must be followed by an immediate OS existence check (fs.existsSync / stat).
  */
 export function verifyPhysicalDiskWrite(filePath,existsCheckFn){
   if(typeof existsCheckFn!=='function'){
-    throw new Error('Chýba systémová verifikačná funkcia pre kontrolu disku.');
+    throw new Error('Missing system verification function for disk check.');
   }
   const exists=existsCheckFn(filePath);
-  if(typeof exists!=='boolean')throw new TypeError('Kontrola disku musí synchronne vrátiť boolean; Promise nie je dôkaz existencie.');
+  if(typeof exists!=='boolean')throw new TypeError('Disk check must synchronously return a boolean; a Promise is not proof of existence.');
   if(!exists){
     return {
       verified:false,
@@ -325,8 +325,8 @@ export function verifyPhysicalDiskWrite(filePath,existsCheckFn){
 }
 
 /**
- * 5. Zákaz konštrukcií s predpokladom (Anti-Assumption Filter)
- * Zakázané frázy ako "určite sa to vykonalo", "malo by to bežať", "predpokladám, že...".
+ * 5. Anti-Assumption Filter
+ * Blocks unverified assumption phrasing in Slovak and English (e.g. "I assume it worked", "it should be running").
  */
 export const ASSUMPTION_PATTERNS=[
   /\burcite\s+sa\s+to\s+vykonalo\b/i,
@@ -357,8 +357,8 @@ export function filterAntiAssumption(responseText,hasVerifiedReceipt=false,rawPr
 }
 
 /**
- * 6. Priznanie chýbajúcich oprávnení (Permission Candor)
- * Pri chybe EACCES, EPERM alebo Access Denied vráti presné priznanie.
+ * 6. Permission Candor
+ * On EACCES, EPERM, or Access Denied errors, returns an explicit permission-denied diagnosis.
  */
 export function enforcePermissionCandor(error){
   const code=error?.code||'';
@@ -378,8 +378,8 @@ export function enforcePermissionCandor(error){
 }
 
 /**
- * 7. Nemenný zápis pravdy do Sovereign Ledgeru (Historical Truth Check)
- * Ak verzia v minulosti zlyhala, zakáže tvrdiť, že bežala bezchybne.
+ * 7. Immutable Historical Ledger Truth Check (Sovereign Ledger)
+ * If an action or version failed historically, prohibits claiming a flawless run.
  */
 export function verifyHistoricalLedgerTruth(ledgerBlocks=[],targetActionOrVersion=''){
   const relevant=ledgerBlocks.filter(b=>!targetActionOrVersion||b.action===targetActionOrVersion||b.version===targetActionOrVersion);
@@ -397,8 +397,8 @@ export function verifyHistoricalLedgerTruth(ledgerBlocks=[],targetActionOrVersio
 }
 
 /**
- * 8. Nezávislý Verifikátor (Oddelenie moci / Separation of Powers)
- * Agent, ktorý kód navrhol alebo príkaz spustil, nesmie hodnotiť jeho výsledok.
+ * 8. Independent Verifier (Separation of Powers)
+ * The agent that proposed code or executed a command must never verify its own result.
  */
 export class IndependentVerifier {
   static verify({proposingAgent,verifyingAgent='INDEPENDENT_VERIFIER',plannedState,actualState}){
@@ -438,8 +438,8 @@ export function finalizeAgentResponse(result,language='sk'){
 }
 
 /**
- * 9. Zákaz skrytých pádov (No Silent Errors)
- * Zákaz prázdnych catch blokov a okamžité vyplávanie neočakávanej výnimky so stack trace.
+ * 9. No Silent Errors
+ * Detects empty catch blocks and surfaces raw exceptions with full stack traces.
  */
 export function detectSilentCatchBlocks(sourceCode=''){
   const code=String(sourceCode);
@@ -450,8 +450,8 @@ export function detectSilentCatchBlocks(sourceCode=''){
     rule:'9_NO_SILENT_ERRORS',
     silent_catch_count:matches.length,
     message:matches.length>0
-      ? `Detegovaných ${matches.length} prázdnych catch blokov maskujúcich chyby.`
-      : 'Kód neobsahuje prázdne catch bloky.'
+      ? `Detected ${matches.length} empty catch block(s) masking errors.`
+      : 'Code contains no empty catch blocks.'
   };
 }
 
@@ -466,8 +466,8 @@ export function surfaceRawException(error){
 }
 
 /**
- * 10. Striktný stav NEVIEM / NEVIEM VYKONAŤ (Strict Capability Boundary)
- * Deterministická odpoveď pri chýbajúcom module alebo parametroch.
+ * 10. Strict Capability Boundary (Cannot Execute)
+ * Deterministic refusal when a required module or input parameter is missing.
  */
 export function enforceCapabilityOrKnowNot(actionName,availableModules=new Set(),requiredParams=[],providedParams={}){
   const modulesSet=availableModules instanceof Set?availableModules:new Set(Array.isArray(availableModules)?availableModules:[]);
@@ -495,9 +495,9 @@ export function enforceCapabilityOrKnowNot(actionName,availableModules=new Set()
 }
 
 /**
- * 11. Striktný životný cyklus exekúcie (TruthGuard State Separation)
- * Oddeľuje stavy PROPOSED -> RUNNING -> COMPLETED -> VERIFIED / FAILED
- * a odmieta akýkoľvek receipt vygenerovaný samotným jazykovým modelom (forged/model receipt).
+ * 11. Strict Execution Lifecycle (TruthGuard State Separation)
+ * Separates PROPOSED -> RUNNING -> COMPLETED -> VERIFIED / FAILED states
+ * and rejects any receipt generated by the language model itself (forged/model receipt).
  */
 export const EXECUTION_STATES = Object.freeze({
   PROPOSED: 'PROPOSED',

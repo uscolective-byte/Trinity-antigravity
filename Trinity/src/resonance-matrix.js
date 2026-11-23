@@ -3,7 +3,7 @@
  * @subsystem QUANTUM_RESONANCE_MATRIX
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul resonance-matrix.js (Kmitočtový Protokol 3-6-9 pre Trinity).
+ * @description Module resonance-matrix.js (3-6-9 Frequency Protocol for Trinity).
  */
 
 import { QuantumRouter } from './quantum-router.js';
@@ -12,35 +12,35 @@ import { hash } from './security.js';
 import { SovereignLedgerV3 } from './sovereign-core-v3.js';
 
 export const RESONANCE_FREQUENCIES = Object.freeze({
-  THESIS_INPUT: 3,        // Vrstva 3: Téza / Zachytenie zámeru a kontextu
-  ANTITHESIS_FILTER: 6,   // Vrstva 6: Antitéza / Bezpečnosť, filtrovanie a transformácia
-  SYNTHESIS_MANIFEST: 9   // Vrstva 9: Syntéza / Výsledok, dôkazy, Ledger a perzistencia
+  THESIS_INPUT: 3,        // Layer 3: Thesis / Intent and context capture
+  ANTITHESIS_FILTER: 6,   // Layer 6: Antithesis / Security, filtering, and transformation
+  SYNTHESIS_MANIFEST: 9   // Layer 9: Synthesis / Result, evidence, Ledger, and persistence
 });
 
 /**
  * @typedef {Object} ThesisNode
  * @property {number} layer - 3
- * @property {string} userInput - Pôvodný vstup
- * @property {object} context - Kontext relácie
- * @property {string} timestamp - ISO čas
- * @property {import('./quantum-router.js').IntentWaveFunction} wavefunction - Superpozícia zámerov ψ
- * @property {import('./quantum-router.js').IntentState} collapsed - Kolabovaný zámer
+ * @property {string} userInput - Original input
+ * @property {object} context - Session context
+ * @property {string} timestamp - ISO timestamp
+ * @property {import('./quantum-router.js').IntentWaveFunction} wavefunction - Superposition of intents ψ
+ * @property {import('./quantum-router.js').IntentState} collapsed - Collapsed intent
  */
 
 /**
  * @typedef {Object} TransformationNode
- * @property {string} checkName - Názov uzla (guardianCheck, safetyCheck, capabilityCheck, memorySearch, toolSelection, routingDecision)
- * @property {boolean} passed - Výsledok kontroly
- * @property {string} detail - Podrobnosti overenia
+ * @property {string} checkName - Node name (guardianCheck, safetyCheck, capabilityCheck, memorySearch, toolSelection, routingDecision)
+ * @property {boolean} passed - Verification result
+ * @property {string} detail - Verification details
  */
 
 /**
  * @typedef {Object} SynthesisNode
  * @property {number} layer - 9
- * @property {any} response - Finálny výsledok / generovaný text
- * @property {object} evidence - Dôkaz o vykonaní (exitCode, receipt, hash)
- * @property {object} ledgerRecord - Záznam do Sovereign Ledgeru
- * @property {object} memoryUpdate - Stav aktualizácie pamäte
+ * @property {any} response - Final result / generated text
+ * @property {object} evidence - Execution evidence (exitCode, receipt, hash)
+ * @property {object} ledgerRecord - Sovereign Ledger record
+ * @property {object} memoryUpdate - Memory synchronization status
  */
 
 /**
@@ -52,7 +52,7 @@ export const RESONANCE_FREQUENCIES = Object.freeze({
 
 export class ResonanceMatrix369 {
   /**
-   * VRSTVA 3 — TÉZA: Zachytenie čistého energetického zámeru a kontextu
+   * LAYER 3 — THESIS: Capture pure energetic intent and context
    * @param {string} userInput
    * @param {object} [context]
    * @param {object} [config]
@@ -61,7 +61,7 @@ export class ResonanceMatrix369 {
   static captureThesis(userInput, context = {}, config = {}) {
     const routingResult = QuantumRouter.route(userInput, context, config);
     
-    // Oznámenie cez Entanglement Bridge (event-driven bez pollingu)
+    // Notify via Entanglement Bridge (event-driven without polling)
     globalEntanglementBridge.emitStateChange('intent-collapse', {
       agent: routingResult.collapsedAgent,
       confidence: routingResult.confidence
@@ -78,7 +78,7 @@ export class ResonanceMatrix369 {
   }
 
   /**
-   * VRSTVA 6 — ANTITÉZA: Transformačné filtračné uzly
+   * LAYER 6 — ANTITHESIS: Transformation filtering nodes
    * [guardianCheck, safetyCheck, capabilityCheck, memorySearch, toolSelection, routingDecision]
    * @param {ThesisNode} thesis
    * @param {object} [env]
@@ -86,7 +86,7 @@ export class ResonanceMatrix369 {
    */
   static evaluateTransformation(thesis, env = {}) {
     if (!thesis || thesis.layer !== 3) {
-      throw new Error('RESONANCE_INVALID_PHASE: Vrstva 6 vyžaduje platnú Tézu z Vrstvy 3.');
+      throw new Error('RESONANCE_INVALID_PHASE: Layer 6 requires a valid Thesis from Layer 3.');
     }
 
     const targetAgent = thesis.collapsed.agent;
@@ -97,32 +97,32 @@ export class ResonanceMatrix369 {
       {
         checkName: 'guardianCheck',
         passed: true,
-        detail: 'Fail-closed Ring 0 invarianty overené a neporušené.'
+        detail: 'Fail-closed Ring 0 invariants verified and intact.'
       },
       {
         checkName: 'safetyCheck',
         passed: true,
-        detail: isSentinelActive ? 'Sentinel aktívne monitoruje bezpečnostný koridor.' : 'Štandardný bezpečnostný filter: PASSED.'
+        detail: isSentinelActive ? 'Sentinel is actively monitoring the security corridor.' : 'Standard security filter: PASSED.'
       },
       {
         checkName: 'capabilityCheck',
         passed: true,
-        detail: `Agent [${targetAgent}] má autorizované požadované spôsobilosti.`
+        detail: `Agent [${targetAgent}] holds authorized required capabilities.`
       },
       {
         checkName: 'memorySearch',
         passed: true,
-        detail: 'LTM & STM kontext overený bez pamäťových kolízií.'
+        detail: 'LTM & STM context verified without memory collisions.'
       },
       {
         checkName: 'toolSelection',
         passed: true,
-        detail: `Vybraná exekučná sada nástrojov pre rolu: ${targetAgent}.`
+        detail: `Selected execution toolset for role: ${targetAgent}.`
       },
       {
         checkName: 'routingDecision',
         passed: true,
-        detail: `Deterministická trasa potvrdená s pravdepodobnosťou ${(thesis.collapsed.score * 100).toFixed(1)}%.`
+        detail: `Deterministic route confirmed with probability ${(thesis.collapsed.score * 100).toFixed(1)}%.`
       }
     ];
 
@@ -136,7 +136,7 @@ export class ResonanceMatrix369 {
   }
 
   /**
-   * VRSTVA 9 — SYNTÉZA: Manifestácia, dôkazy, Ledger a perzistencia
+   * LAYER 9 — SYNTHESIS: Manifestation, evidence, Ledger, and persistence
    * @param {ThesisNode} thesis
    * @param {TransformationNode[]} transformation
    * @param {any} executionResult
@@ -146,7 +146,7 @@ export class ResonanceMatrix369 {
   static async manifestSynthesis(thesis, transformation, executionResult, db = null) {
     const allPassed = transformation && transformation.every(t => t.passed);
     if (!allPassed) {
-      throw new Error('RESONANCE_TRANSFORMATION_REJECTED: Transformácia vo Vrstve 6 neprešla.');
+      throw new Error('RESONANCE_TRANSFORMATION_REJECTED: Layer 6 transformation failed.');
     }
 
     const payload = JSON.stringify({
@@ -205,7 +205,7 @@ export class ResonanceMatrix369 {
   }
 
   /**
-   * Vykoná kompletnú rezonančnú maticu (Téza -> Antitéza -> Syntéza)
+   * Executes the complete resonance matrix (Thesis -> Antithesis -> Synthesis)
    * @param {string} userInput
    * @param {object} [context]
    * @param {object} [env]
@@ -223,7 +223,7 @@ export class ResonanceMatrix369 {
     };
   }
 
-  // Spätná kompatibilita pre existujúce volania
+  // Backward compatibility for legacy callers
   static collapseIntentWavefunction(userIntentText, context = {}) {
     const t = this.captureThesis(userIntentText, context);
     return {
@@ -241,7 +241,7 @@ export class ResonanceMatrix369 {
 
   static async evaluateAntithesisFilter(collapsedState, env = {}) {
     if (!collapsedState || (collapsedState.frequency !== 3 && collapsedState.layer !== 3)) {
-      throw new Error('RESONANCE_INVALID_PHASE: Fáza 6 vyžaduje platný výstup z Fázy 3.');
+      throw new Error('RESONANCE_INVALID_PHASE: Phase 6 requires a valid output from Phase 3.');
     }
     const fakeThesis = {
       layer: 3,
@@ -257,7 +257,7 @@ export class ResonanceMatrix369 {
       filterStatus: 'PASSED',
       checks: Object.fromEntries(tChain.map(c => [c.checkName, c.passed])),
       guardianHarmonics: {
-        resonanceRatio: '6/3 (Oktawa harmonie)',
+        resonanceRatio: '6/3 (Octave of harmony)',
         failClosedEnforced: true,
         sentinelMonitored: true
       },

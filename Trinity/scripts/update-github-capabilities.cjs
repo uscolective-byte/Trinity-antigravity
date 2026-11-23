@@ -17,7 +17,7 @@ const newGithubActions = `  if (action === 'get_file' || action === 'read_file')
     try {
       const resp = await fetch(\`https://api.github.com/repos/\${repo}/contents/\${filePath.split('/').map(encodeURIComponent).join('/')}?ref=\${encodeURIComponent(ref)}\`, { headers });
       if (!resp.ok) {
-        return { success: false, error: \`GitHub HTTP \${resp.status} pri čítaní súboru \${filePath} v \${repo}\` };
+        return { success: false, error: \`GitHub HTTP \${resp.status} reading file \${filePath} in \${repo}\` };
       }
       const data = await resp.json();
       let content = '';
@@ -45,7 +45,7 @@ const newGithubActions = `  if (action === 'get_file' || action === 'read_file')
     try {
       const resp = await fetch(\`https://api.github.com/repos/\${repo}/git/trees/\${encodeURIComponent(ref)}?recursive=1\`, { headers });
       if (!resp.ok) {
-        return { success: false, error: \`GitHub HTTP \${resp.status} pri načítaní stromu repozitára \${repo}\` };
+        return { success: false, error: \`GitHub HTTP \${resp.status} loading repository tree for \${repo}\` };
       }
       const data = await resp.json();
       const files = Array.isArray(data.tree) ? data.tree.map(t => ({
@@ -69,8 +69,8 @@ const newGithubActions = `  if (action === 'get_file' || action === 'read_file')
 
 if (!ext.includes("action === 'get_file'")) {
   ext = ext.replace(
-    "return { success: false, error: `Neznáma GitHub akcia: ${action}` };",
-    newGithubActions + "\n  return { success: false, error: `Neznáma GitHub akcia: ${action}` };"
+    "return { success: false, error: `Unknown GitHub action: ${action}` };",
+    newGithubActions + "\n  return { success: false, error: `Unknown GitHub action: ${action}` };"
   );
 }
 
@@ -93,8 +93,8 @@ tools = tools.replace(
 );
 
 tools = tools.replace(
-  "github_manage:'Prepojenie a správa GitHub repozitára (uscolective-byte/trinity-morhfeus), commits, issues, PR a spúšťanie GitHub Actions: {action:status|repo_info|list_commits|list_issues|create_issue|dispatch_workflow, repo?:string, limit?:number, title?:string, body?:string, workflowId?:string, ref?:string}',",
-  "github_manage:'Prepojenie a správa GitHub repozitára (uscolective-byte/Trinity-antigravity, uscolective-byte/trinity-morhfeus), čítanie súborov, stromu projektu, commits, issues, PR a spúšťanie GitHub Actions: {action:status|repo_info|list_commits|list_issues|get_file|read_file|list_files|list_tree|create_issue|dispatch_workflow, repo?:string, path?:string, ref?:string, limit?:number}',"
+  "github_manage:'Connect and manage GitHub repository (uscolective-byte/trinity-morhfeus), commits, issues, PRs, and GitHub Actions: {action:status|repo_info|list_commits|list_issues|create_issue|dispatch_workflow, repo?:string, limit?:number, title?:string, body?:string, workflowId?:string, ref?:string}',",
+  "github_manage:'Connect and manage GitHub repositories (uscolective-byte/Trinity-antigravity, uscolective-byte/trinity-morhfeus), read files, inspect repository tree, commits, issues, PRs, and GitHub Actions: {action:status|repo_info|list_commits|list_issues|get_file|read_file|list_files|list_tree|create_issue|dispatch_workflow, repo?:string, path?:string, ref?:string, limit?:number}',"
 );
 
 fs.writeFileSync(toolsPath, tools, 'utf8');

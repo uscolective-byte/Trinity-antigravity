@@ -115,14 +115,14 @@ test('Agent Registry: registerAgent binds sanitized parameters and maps capabili
 test('Agent Registry: rejects unknown capabilities before writing the agent', async () => {
   let writes=0;
   const env={DB:{prepare:sql=>({bind:()=>({first:async()=>null,run:async()=>{writes++;}})})}};
-  await assert.rejects(registerAgent(env,{agent_id:'AGENT_X',name:'Agent X',capabilities:['memory.unknown']}),/Neznáma capability/);
+  await assert.rejects(registerAgent(env,{agent_id:'AGENT_X',name:'Agent X',capabilities:['memory.unknown']}),/Unknown capability/);
   assert.equal(writes,0);
 });
 
 test('Agent Registry: another owner cannot replace an existing global agent id', async () => {
   let writes=0;
   const env={DB:{prepare:sql=>({bind:()=>({first:async()=>sql.includes('SELECT owner FROM agents')?{owner:'owner-a'}:null,run:async()=>{writes++;}})})}};
-  await assert.rejects(registerAgent(env,{agent_id:'AGENT_X',name:'Agent X',owner:'owner-b'}),/inému vlastníkovi/);
+  await assert.rejects(registerAgent(env,{agent_id:'AGENT_X',name:'Agent X',owner:'owner-b'}),/another owner/);
   assert.equal(writes,0);
 });
 
@@ -207,7 +207,7 @@ test('Agent Leasing: acquireLease and releaseLease manage task exclusivity', asy
   // 2. Reject another agent claiming active lease
   await assert.rejects(async () => {
     await acquireLease(mockEnv, { agent_id: 'AGENT_B', job_id: 'job-999', lease_seconds: 60 });
-  }, /aktívny lease/);
+  }, /active lease/);
 
   // 3. Release lease
   const rel = await releaseLease(mockEnv, 'job-999');
@@ -298,7 +298,7 @@ test('Capability Scheduler: falls back gracefully when dependencies are unhealth
   const result = await findBestAgentForCapabilities(mockEnv, ['tools.execute']);
   assert.equal(result.agent_id, null);
   assert.equal(result.strategy, 'dependency_blocked');
-  assert.match(result.warning, /PC_BRIDGE je nezdravá/);
+  assert.match(result.warning, /PC_BRIDGE is unhealthy/);
 });
 
 test('Capability Scheduler: missing registry or match never assigns an incapable fallback', async () => {

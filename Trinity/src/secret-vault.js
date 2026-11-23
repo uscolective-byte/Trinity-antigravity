@@ -3,7 +3,7 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul secret-vault.js (Trinity/src/secret-vault.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Encrypted D1 secret vault, provider credential verification, and server-side secret resolution for TRINITY OMNI-CORE.
  */
 import {verifyCloudflareToken} from './cloudflare-token.js';
 import {readTrinityMasterSecret} from './trinity-master-secrets.js';
@@ -12,11 +12,11 @@ import {HttpError} from './security.js';
 
 export const secretInputSchema=z.object({
   provider:z.enum([
-    'github','cloudflare','gemini','google_cloud','onedrive','local_bridge','openai','firecrawl','firebase','supabase','vercel','telegram','slack','discord','notion','linear','stripe','wordpress','resend','webhook','mcp_server','meta','dataverse','microsoft','powerplatform','custom','groq','deepseek','anthropic','claude','mistral','openrouter','revolut','paypal'
+    'github','cloudflare','gemini','google_ai_studio','google_cloud','onedrive','local_bridge','openai','firecrawl','firebase','supabase','vercel','telegram','slack','discord','notion','linear','stripe','wordpress','resend','webhook','mcp_server','meta','dataverse','microsoft','powerplatform','custom','groq','deepseek','anthropic','claude','mistral','openrouter','revolut','paypal'
   ]),
   name:z.string().trim().min(2).max(80),
   secret:z.string().trim().min(8).max(65536)
-}).strict().refine(data=>data.provider==='mcp_server'||data.secret.length<=4096,{path:['secret'],message:'Tajomstvo prekročilo limit.'});
+}).strict().refine(data=>data.provider==='mcp_server'||data.secret.length<=4096,{path:['secret'],message:'Secret exceeds maximum allowed length.'});
 
 const encode=value=>Buffer.from(value).toString('base64url');
 const decode=value=>new Uint8Array(Buffer.from(value,'base64url'));
@@ -102,15 +102,15 @@ export async function verifyFirebase(secret,{fetcher=fetch}={}){
   // An API key can identify a Google Cloud project, but it is not proof of
   // Firestore read or write authorization. Never append secrets to URLs.
   if(typeof projectId!=='string'||!/^[a-z][a-z0-9-]{4,80}$/.test(projectId))
-    throw new Error('Firebase project_id má neplatný formát.');
+    throw new Error('Firebase project_id has an invalid format.');
   if(typeof token!=='string'||!/^ya29\.[a-zA-Z0-9_.-]{5,}$/.test(token))
-    throw new Error('Firebase prístup nie je overený. Vyžaduje sa platný OAuth access token; API key ani service-account JSON samy nedokazujú autorizáciu Firestore.');
+    throw new Error('Firebase access is not verified. A valid OAuth access token is required; an API key or service-account JSON alone does not prove Firestore authorization.');
   const url=`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents?pageSize=1`;
   const response=await fetcher(url,{
     headers:{Authorization:`Bearer ${token}`},
     signal:AbortSignal.timeout(15000),redirect:'manual'
   });
-  if(!response.ok)throw new Error(`Firebase odmietol Firestore prístup (HTTP ${response.status}).`);
+  if(!response.ok)throw new Error(`Firebase rejected Firestore access (HTTP ${response.status}).`);
   return {connected:true,project_id:projectId,status:'verified',permission_verified:'read'};
 }
 export async function verifyOpenAICompatible(url,secret,provider,{fetcher=fetch}={}){
@@ -118,12 +118,12 @@ export async function verifyOpenAICompatible(url,secret,provider,{fetcher=fetch}
   try {
     response=await fetcher(url,{headers:{Authorization:`Bearer ${secret}`},signal:AbortSignal.timeout(10000),redirect:'manual'});
   } catch {
-    throw new Error(`${provider.toUpperCase()} pripojenie sa nepodarilo overiť. Token zostáva neoverený.`);
+    throw new Error(`${provider.toUpperCase()} connection could not be verified. Token remains unverified.`);
   }
-  if(!response.ok)throw new Error(`${provider.toUpperCase()} overenie zlyhalo (HTTP ${response.status}).`);
+  if(!response.ok)throw new Error(`${provider.toUpperCase()} verification failed (HTTP ${response.status}).`);
   const data=await response.json().catch(()=>null);
   if(!data||!Array.isArray(data.data))
-    throw new Error(`${provider.toUpperCase()} vrátil neplatný modelový katalóg.`);
+    throw new Error(`${provider.toUpperCase()} returned an invalid model catalog.`);
   const models=data.data.filter(item=>typeof item?.id==='string').map(item=>item.id).slice(0,30);
   return {connected:true,provider,models,status:'verified',permission_verified:'models:read'};
 }
@@ -134,10 +134,10 @@ export async function verifyAnthropic(secret,{fetcher=fetch}={}){
       headers:{'x-api-key':secret,'anthropic-version':'2023-06-01'},
       signal:AbortSignal.timeout(10000),redirect:'manual'
     });
-  }catch{throw new Error('Anthropic pripojenie sa nepodarilo overiť.');}
-  if(!response.ok)throw new Error(`Anthropic odmietol overenie (HTTP ${response.status}).`);
+  }catch{throw new Error('Anthropic connection could not be verified.');}
+  if(!response.ok)throw new Error(`Anthropic rejected verification (HTTP ${response.status}).`);
   const data=await response.json().catch(()=>null);
-  if(!data||!Array.isArray(data.data))throw new Error('Anthropic nevrátil platný katalóg modelov.');
+  if(!data||!Array.isArray(data.data))throw new Error('Anthropic did not return a valid model catalog.');
   const models=data.data.filter(item=>typeof item?.id==='string').map(item=>item.id);
   return {connected:true,provider:'anthropic',models,status:'verified',permission_verified:'models:read'};
 }
@@ -146,16 +146,16 @@ export async function verifyTelegramBot(secret,{fetcher=fetch}={}){
   // Telegram Bot API embeds the bot token in the URL path. Keep the URL
   // strictly internal and never include raw provider error bodies in replies.
   if(typeof secret!=='string'||!/^\d{5,15}:[A-Za-z0-9_-]{20,}$/.test(secret))
-    throw new Error('Telegram Bot token má neplatný formát.');
+    throw new Error('Telegram Bot token has an invalid format.');
   let response;
   try{
     response=await fetcher(`https://api.telegram.org/bot${secret}/getMe`,{
       signal:AbortSignal.timeout(12000),redirect:'manual'
     });
-  }catch{throw new Error('Telegram Bot API je nedostupné; poverenie zostáva neoverené.');}
+  }catch{throw new Error('Telegram Bot API is unavailable; credential remains unverified.');}
   const data=await response.json().catch(()=>null);
   if(!response.ok||data?.ok!==true||!Number.isSafeInteger(data.result?.id)||data.result.id<1)
-    throw new Error(`Telegram bot nebol overený (HTTP ${response.status}).`);
+    throw new Error(`Telegram bot could not be verified (HTTP ${response.status}).`);
   return {connected:true,provider:'telegram',bot_id:data.result.id,
     bot_username:typeof data.result.username==='string'?data.result.username:null,
     status:'verified',permission_verified:'bot:getMe',webhook_verified:false};
@@ -572,7 +572,8 @@ export async function resolveProviderSecret(env,provider){
     cloudflare:[env?.CF_API_TOKEN,env?.CLOUDFLARE_API_TOKEN,env?.TRINITY_CF_TOKEN,env?.cloudflare],
     github:[env?.TRINITY_GITHUB_TOKEN,env?.GITHUB_TOKEN,env?.GITHUBE_API_KEY,env?.trinitygithube_key,env?.github],
     onedrive:[env?.ONEDRIVE_TOKEN,env?.MICROSOFT_GRAPH_TOKEN,env?.MS_GRAPH_TOKEN,env?.MICROSOFT_TOKEN,env?.onedrive,env?.microsoft],
-    google_cloud:[env?.GOOGLE_CLOUD_TOKEN,env?.GCP_ACCESS_TOKEN,env?.GOOGLE_PROJECT_TOKEN,env?.GEMINI_API_KEY,env?.apigoogle,env?.TRINITY_MASTER_GOOGLE],
+    google_cloud:[env?.GOOGLE_CLOUD_TOKEN,env?.GCP_ACCESS_TOKEN,env?.GOOGLE_PROJECT_TOKEN,env?.GOOGLE_AI_STUDIO_API_KEY,env?.GEMINI_API_KEY,env?.apigoogle,env?.TRINITY_MASTER_GOOGLE],
+    google_ai_studio:[env?.GOOGLE_AI_STUDIO_API_KEY,env?.GEMINI_API_KEY,env?.apigoogle,env?.TRINITY_MASTER_GOOGLE],
     firecrawl:[env?.FIRECRAWL_API_KEY,env?.TRINITY_FIRECRAWL_KEY,env?.firecrawl],
     firebase:[env?.FIREBASE_API_KEY,env?.FIREBASE_SERVICE_ACCOUNT,env?.TRINITY_FIREBASE_KEY],
     supabase:[env?.SUPABASE_KEY,env?.SUPABASE_SERVICE_ROLE_KEY],
@@ -585,7 +586,7 @@ export async function resolveProviderSecret(env,provider){
     paypal:[env?.PAYPAL_CLIENT_SECRET,env?.PAYPAL_API_KEY,env?.paypal],
     ollama:[env?.OLLAMA_API_KEY,env?.OLLAMA_SECRET,env?.ollama],
     openai:[env?.OPENAI_API_KEY,env?.OPENAI_KEY,env?.OPENAI_SECRET,env?.openai,env?.TRINITY_MASTER_OPENAI],
-    gemini:[env?.GEMINI_API_KEY,env?.apigoogle,env?.TRINITY_MASTER_GOOGLE,env?.gemini],
+    gemini:[env?.GOOGLE_AI_STUDIO_API_KEY,env?.GEMINI_API_KEY,env?.apigoogle,env?.TRINITY_MASTER_GOOGLE,env?.gemini],
     copilot:[env?.COPILOT_API_TOKEN,env?.TRINITY_MASTER_COPILOT,env?.copilot],
     groq:[env?.GROQ_API_KEY,env?.groq],
     deepseek:[env?.DEEPSEEK_API_KEY,env?.deepseek],
@@ -609,7 +610,7 @@ export async function resolveProviderSecret(env,provider){
   // shared chat worker and must never be surfaced as routine provider credentials.
   // Account-level Secrets Store is opt-in and staging-only initially.
   // This resolver is not exposed as an arbitrary read-secret API.
-  const masterSecret=await readTrinityMasterSecret(env,provider);
+  const masterSecret=await readTrinityMasterSecret(env,provider==='google_ai_studio'?'gemini':provider);
   if(masterSecret)return masterSecret;
   if(env?.DB?.prepare&&typeof env.TRINITY_VAULT_KEY==='string'){
     try{
@@ -621,7 +622,10 @@ export async function resolveProviderSecret(env,provider){
         row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE (provider='microsoft' OR (provider='custom' AND (lower(name) LIKE '%onedrive%' OR lower(name) LIKE '%graph%'))) AND status!='revoked' ORDER BY updated_at DESC LIMIT 1").first();
       }
       if(!row&&provider==='google_cloud'){
-        row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE (provider='gemini' OR (provider='custom' AND (lower(name) LIKE '%gcp%' OR lower(name) LIKE '%google%'))) AND status!='revoked' ORDER BY updated_at DESC LIMIT 1").first();
+        row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE (provider IN ('gemini','google_ai_studio') OR (provider='custom' AND (lower(name) LIKE '%gcp%' OR lower(name) LIKE '%google%'))) AND status!='revoked' ORDER BY updated_at DESC LIMIT 1").first();
+      }
+      if(!row&&provider==='google_ai_studio'){
+        row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE (provider='gemini' OR (provider='custom' AND (lower(name) LIKE '%ai studio%' OR lower(name) LIKE '%aistudio%' OR lower(name) LIKE '%gemini%'))) AND status!='revoked' ORDER BY CASE WHEN status='verified' THEN 0 ELSE 1 END, updated_at DESC LIMIT 1").first();
       }
       if(!row&&(provider==='anthropic'||provider==='claude')){
         row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE (provider='anthropic' OR provider='claude' OR (provider='custom' AND (lower(name) LIKE '%claude%' OR lower(name) LIKE '%anthropic%'))) AND status!='revoked' ORDER BY updated_at DESC LIMIT 1").first();
@@ -630,7 +634,7 @@ export async function resolveProviderSecret(env,provider){
         row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider='custom' AND status!='revoked' AND lower(name) LIKE '%ollama%' ORDER BY updated_at DESC LIMIT 1").first();
       }
       if(!row&&provider==='gemini'){
-        row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider='custom' AND status!='revoked' AND lower(name) LIKE '%gemini%' ORDER BY updated_at DESC LIMIT 1").first();
+        row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE (provider='google_ai_studio' OR (provider='custom' AND lower(name) LIKE '%gemini%')) AND status!='revoked' ORDER BY CASE WHEN status='verified' THEN 0 ELSE 1 END, updated_at DESC LIMIT 1").first();
       }
       if(!row&&provider==='openai'){
         row=await env.DB.prepare("SELECT * FROM ops_secret_vault WHERE provider='custom' AND status!='revoked' AND (lower(name) LIKE '%openai%' OR lower(name) LIKE '%chatgpt%') ORDER BY updated_at DESC LIMIT 1").first();
@@ -671,7 +675,7 @@ export async function verifySecret(env,ownerId,id){
       :row.provider==='firecrawl'?await verifyFirecrawl(secret)
       :row.provider==='firebase'?await verifyFirebase(secret)
       :(row.provider==='dataverse'||row.provider==='microsoft'||row.provider==='powerplatform')?await verifyDataverse(secret)
-      :row.provider==='gemini'?await verifyGemini(secret)
+      :(row.provider==='gemini'||row.provider==='google_ai_studio')?await verifyGemini(secret)
       :row.provider==='groq'?await verifyOpenAICompatible('https://api.groq.com/openai/v1/models',secret,'groq')
       :row.provider==='deepseek'?await verifyOpenAICompatible('https://api.deepseek.com/models',secret,'deepseek')
       :(row.provider==='anthropic'||row.provider==='claude')?await verifyAnthropic(secret)

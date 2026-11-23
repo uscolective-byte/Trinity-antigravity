@@ -3,12 +3,12 @@
  * @subsystem CORE_RUNTIME
  * @author Basterix (Root Architect)
  * @license Sovereign Irrevocable Covenant
- * @description Modul MetaBrain.js (Trinity/src/v4/MetaBrain.js) v ekosystéme TRINITY OMNI-CORE.
+ * @description Module MetaBrain.js (Trinity/src/v4/MetaBrain.js) in the TRINITY OMNI-CORE ecosystem.
  */
 /**
  * Trinity MetaBrain v10.4
- * Kognitívna percepcia, metafyzická interpretácia a archetypálny aparát.
- * Archetypy: Creator (tvorba), Ruler (štruktúra), Sage (múdrosť), Magician (transformácia), Rebel (disrupcia).
+ * Cognitive perception, metaphysical interpretation, and archetypal apparatus.
+ * Archetypes: Creator (creation), Ruler (structure), Sage (wisdom), Magician (transformation), Rebel (disruption).
  */
 
 export class MetaBrain {
@@ -17,20 +17,20 @@ export class MetaBrain {
   }
 
   /**
-   * Analyzuje vstup a kontext cez prizmu archetypov a histórie.
+   * Analyzes input and context through the lens of archetypes and history.
    * @param {{input: any, activeArchetypes: Record<string, number>, etmSnapshot?: Array<any>}} param0
    */
   async perceive({ input, activeArchetypes = {}, etmSnapshot = [] }) {
     const rawText = typeof input === 'string' ? input : (input.query || input.prompt || input.task || JSON.stringify(input));
     const lower = String(rawText).toLowerCase();
 
-    // Detekcia kľúčových vektorov zámeru
+    // Detect core intent vectors (bilingual Slovak + English user-input matching)
     const isCreative = /vytvor|navrhni|vymysli|kreativ|inovac|nova|napady|create|design|innovat/.test(lower);
     const isAnalytical = /analyzuj|spocitaj|zisti|over|metrik|data|analy|audit|verify/.test(lower);
     const isAction = /spusti|otvor|vykonaj|uloz|zapis|nastav|run|exec|write|deploy/.test(lower);
     const isSystem = /system|stav|pamat|mozog|bridge|status|health|memory/.test(lower);
 
-    // Dominantný archetyp na základe váh a kľúčových slov
+    // Dominant archetype based on weights and keywords
     let dominantArchetype = 'creator';
     let maxWeight = activeArchetypes.creator || 0.2;
 
@@ -47,7 +47,7 @@ export class MetaBrain {
       maxWeight = activeArchetypes.magician;
     }
 
-    // Odhad kognitívnej rezonancie
+    // Estimate cognitive resonance
     const cognitiveResonance = Number(((maxWeight * 0.7) + (etmSnapshot.length > 0 ? 0.3 : 0.1)).toFixed(3));
 
     return {

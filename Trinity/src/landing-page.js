@@ -3,7 +3,7 @@
  * @subsystem PUBLIC_LANDING_PAGE
  * @author Basterix (Root Architect)
  * @license TRINITY-COMMERCIAL-2.0 / Sovereign Open-Core
- * @description Verejná prezentačná stránka Trinity AI Studio v modernom Linear / Claude Obsidian dizajne s prehľadom licencií, politík a anti-spam ochrany.
+ * @description Public showcase landing page for Trinity AI Studio in a modern Linear / Claude Obsidian design with license tiers, policies, and anti-spam shield overview.
  */
 import { LICENSE_TIERS, POLICY_VERSION } from './compliance-shield.js';
 

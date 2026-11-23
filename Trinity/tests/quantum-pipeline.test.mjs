@@ -63,9 +63,9 @@ test('processTeleologicalPrompt: end-to-end telemetry and execution', async () =
       run: async (model, input) => {
         aiCalls++;
         const sys = input.messages[0].content;
-        if (sys.includes('Téza')) return { response: 'Téza: Priama implementácia.' };
-        if (sys.includes('Antitéza')) return { response: 'Antitéza: Možné riziká a limity.' };
-        if (sys.includes('Syntéza')) return { response: 'Syntéza: Bezpečná a otestovaná implementácia.' };
+        if (sys.includes('Thesis')) return { response: 'Téza: Priama implementácia.' };
+        if (sys.includes('Antithesis')) return { response: 'Antitéza: Možné riziká a limity.' };
+        if (sys.includes('Synthesis')) return { response: 'Syntéza: Bezpečná a otestovaná implementácia.' };
         return { response: 'Definitívna pravda' };
       }
     },
@@ -142,8 +142,8 @@ test('Quantum Skills and quantum_deliberate tool execute correctly', async () =>
     AI: {
       run: async (_model, input) => {
         const sys = input.messages[0].content;
-        if (sys.includes('Téza')) return { response: 'Téza: Vybudovať kvantové jadro.' };
-        if (sys.includes('Antitéza')) return { response: 'Antitéza: Overiť koherenciu a empirické fakty.' };
+        if (sys.includes('Thesis')) return { response: 'Téza: Vybudovať kvantové jadro.' };
+        if (sys.includes('Antithesis')) return { response: 'Antitéza: Overiť koherenciu a empirické fakty.' };
         return { response: 'Syntéza: Kvantový mozog úspešne integrovaný.' };
       }
     },
