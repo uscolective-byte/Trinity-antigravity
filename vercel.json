@@ -48,5 +48,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "buildCommand": "",
-  "installCommand": ""
+  "installCommand": "",
+  "git": {
+    "deploymentEnabled": false
+  }
 }
