@@ -42,6 +42,9 @@ jobs:
           fi
           rg --version
 
+      - name: Check production deployment approval policy
+        run: node --test tests/production-deploy-workflow.test.mjs
+
       - name: Run Full Test Suite
         run: npm test
 
