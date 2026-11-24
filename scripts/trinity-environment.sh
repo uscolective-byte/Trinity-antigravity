@@ -4,7 +4,10 @@ TASK_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$TASK_ROOT"
 case "${1:-check}" in
   setup)
-    npm run setup
+    # Codespaces/devcontainer bootstrap: the root package has no `setup` script.
+    # Install dependencies without triggering any deployment or credential flows.
+    npm ci
+    npm --prefix Trinity ci
     ;;
   check)
     npm run check
