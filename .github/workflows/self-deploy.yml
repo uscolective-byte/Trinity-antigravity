@@ -6,14 +6,14 @@ on:
   workflow_dispatch:
     inputs:
       deploy_production:
-        description: 'Deploy to production after the development health check and Sovereign Lock verification'
+        description: 'Explicitly deploy the reviewed main commit to production'
         type: boolean
-        required: false
-        default: true
-      basterix_approval_signature:
-        description: 'Optional HMAC-SHA256 signature of git diff or Basterix Sovereign Lock token'
+        required: true
+        default: false
+      expected_commit_sha:
+        description: 'Exact reviewed 40-character main commit SHA'
         type: string
-        required: false
+        required: true
         default: ''
 
 permissions:
@@ -36,7 +36,7 @@ jobs:
           SOURCE_REPOSITORY: ${{ github.repository }}
           SOURCE_REF: ${{ github.ref }}
         run: |
-          if ( [ "$SOURCE_REPOSITORY" != 'uscolective-byte/Trinity-antigravity' ] && [ "$SOURCE_REPOSITORY" != 'uscolective-byte/trinity-morhfeus' ] ) || [ "$SOURCE_REF" != 'refs/heads/main' ]; then
+          if [ "$SOURCE_REPOSITORY" != 'uscolective-byte/Trinity-antigravity' ] || [ "$SOURCE_REF" != 'refs/heads/main' ]; then
             echo '::error::Deployments must run from an authorized canonical repository on main.'
             exit 1
           fi
@@ -72,8 +72,11 @@ jobs:
 
   deploy-production:
     needs: [verify]
-    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy_production != false) }}
+    # Never deploy production on a push. A manual owner dispatch and exact SHA are required.
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_production == true }}
     runs-on: ubuntu-latest
+    environment:
+      name: production
     concurrency:
       group: deployment-production
       cancel-in-progress: false
@@ -81,6 +84,24 @@ jobs:
       run:
         working-directory: Trinity
     steps:
+      - name: Enforce authenticated owner approval for this exact commit
+        working-directory: .
+        env:
+          EXPECTED_COMMIT_SHA: ${{ inputs.expected_commit_sha }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ] ||
+             [ "$GITHUB_ACTOR" != "uscolective-byte" ] ||
+             [ "$GITHUB_REPOSITORY" != "uscolective-byte/Trinity-antigravity" ] ||
+             [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Production requires manual dispatch from the canonical owner on main."
+            exit 1
+          fi
+          if ! [[ "$EXPECTED_COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]] ||
+             [ "$EXPECTED_COMMIT_SHA" != "$GITHUB_SHA" ]; then
+            echo "::error::Approved commit SHA does not match the exact main commit."
+            exit 1
+          fi
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
@@ -108,9 +129,10 @@ jobs:
             echo "account_id=$ACCT" >> "$GITHUB_OUTPUT"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Neither CLOUDFLARE_API_TOKEN nor CF_API_TOKEN is configured in this repository; skipping remote deploy."
+            echo "::error::Cloudflare production credentials missing; refusing to claim successful deployment."
+            exit 1
           fi
-      - name: Sovereign Lock Gate (Git diff SHA-256 & Basterix Approval Verification)
+      - name: Record Git diff SHA-256 for audit (not authorization)
         env:
           GITHUB_ACTOR_NAME: ${{ github.actor }}
           GIT_COMMIT_SHA: ${{ github.sha }}
@@ -118,26 +140,25 @@ jobs:
           DIFF_HASH=$(git diff HEAD~1 HEAD | sha256sum | awk '{print $1}')
           echo "Verified Git Diff SHA-256: $DIFF_HASH for commit $GIT_COMMIT_SHA by $GITHUB_ACTOR_NAME"
           echo "DIFF_HASH=$DIFF_HASH" >> "$GITHUB_ENV"
-      - name: Apply production migrations (D1 trinity-v03)
+      - name: Check production D1 migration status (read-only, fail if pending)
         if: ${{ steps.credentials.outputs.available == 'true' }}
-        run: node scripts/compatible-migrations.mjs --remote --apply
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ steps.credentials.outputs.account_id }}
+        run: |
+          node scripts/compatible-migrations.mjs --remote --check > "$RUNNER_TEMP/trinity-d1-plan.json"
+          node -e '
+            const fs = require("node:fs");
+            const plan = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/trinity-d1-plan.json", "utf8"));
+            if (!plan.verified_complete || !Array.isArray(plan.pending) || plan.pending.length) {
+              console.error("Unapplied migrations require a separate backup, owner approval and verification.");
+              process.exit(1);
+            }
+            console.log("D1 migration state verified; no pending changes.");
+          '
       - name: Deploy production Worker (trinity -> auru.space & auru.dev)
         if: ${{ steps.credentials.outputs.available == 'true' }}
-        run: |
-          if ! npm run deploy -- --tag "$GITHUB_SHA"; then
-            echo "Retrying trinity production deploy after pruning unavailable optional service binding aliases..."
-            node -e '
-              const fs = require("fs");
-              const cfg = JSON.parse(fs.readFileSync("wrangler.jsonc", "utf8"));
-              const optional = new Set(["PROFILE_SERVICE"]);
-              if (Array.isArray(cfg.services)) cfg.services = cfg.services.filter(s => !optional.has(s.binding));
-              fs.writeFileSync("wrangler.jsonc", JSON.stringify(cfg, null, 2));
-            '
-            npm run deploy -- --tag "$GITHUB_SHA"
-          fi
+        run: npm run deploy -- --tag "$GITHUB_SHA"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ steps.credentials.outputs.account_id }}
