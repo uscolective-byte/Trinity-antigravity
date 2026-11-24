@@ -37,3 +37,26 @@ test('deployment receipt follows verification of both domains', () => {
   assert.ok(space >= 0 && dev > space && receipt > dev);
   assert.ok(!deploy.includes('Retrying trinity production deploy'));
 });
+
+const vercelWorkflow = readFileSync(new URL('../.github/workflows/vercel-deploy.yml', import.meta.url), 'utf8');
+const vercelStart = vercelWorkflow.indexOf('\n  deploy-production:\n');
+assert.ok(vercelStart !== -1, 'Vercel production job must exist');
+const vercelDeploy = vercelWorkflow.slice(vercelStart);
+
+test('Vercel deployment must be manual and guarded by owner and exact SHA', () => {
+  assert.ok(vercelWorkflow.includes('default: false'), 'Vercel deploy input must default to false');
+  assert.ok(vercelDeploy.includes("if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_production == true }}"));
+  assert.ok(!vercelDeploy.includes("github.event_name == 'push'"));
+  assert.ok(vercelDeploy.includes('"$GITHUB_ACTOR" != "uscolective-byte"'));
+  assert.ok(vercelDeploy.includes('"$GITHUB_REF" != "refs/heads/main"'));
+  assert.ok(vercelDeploy.includes('"$EXPECTED_COMMIT_SHA" != "$GITHUB_SHA"'));
+  assert.ok(vercelDeploy.includes('name: production'));
+});
+test('Vercel missing credentials cause failure before production deploy', () => {
+  const gate = vercelDeploy.indexOf('Require canonical owner approval and exact main commit');
+  const check = vercelDeploy.indexOf('Require deployment credentials');
+  const deployStep = vercelDeploy.indexOf('Deploy to Vercel Production');
+  assert.ok(gate >= 0 && gate < check && check < deployStep);
+  assert.ok(vercelDeploy.includes('Vercel credentials are incomplete; refusing'));
+  assert.ok(vercelDeploy.includes('exit 1'));
+});
