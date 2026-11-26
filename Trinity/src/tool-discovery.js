@@ -55,3 +55,60 @@ export function discoveryInstructions(activeTools) {
   ].filter(Boolean).join(' ');
   return `The describe_tools tool is an internal catalog: {"tool":"describe_tools","arguments":{"query":"desired capability"}} or {"tool":"describe_tools","arguments":{"name":"exact_name"}}. If you are unsure about arguments or do not see a suitable tool in the short overview, call describe_tools first and then invoke the actual tool. Use safe read-only tools automatically as needed for the task; the user does not need to know their names. ${workspaceGuide} The catalog does not grant permissions or service connectivity. For payments, purchases, deletions, and sensitive writes, respect existing approval requirements and request scope. Finally, report completed steps and unverified or pending outcomes strictly according to receipts. All authorized tool names for this request: ${[...new Set(activeTools)].join(', ')}.`;
 }
+
+function stripSchemaMeta(node) {
+  if (!node || typeof node !== 'object') return node;
+  if (Array.isArray(node)) return node.map(stripSchemaMeta);
+  const out = {};
+  for (const [k, v] of Object.entries(node)) {
+    if (k === '$schema' || k === 'additionalProperties') continue;
+    out[k] = stripSchemaMeta(v);
+  }
+  return out;
+}
+
+export function buildNativeToolDefinitions(toolNames, schemas, help, maxTools = 24) {
+  const unique = [...new Set(toolNames || [])].slice(0, maxTools);
+  const defs = [];
+  for (const name of unique) {
+    let parameters = { type: 'object', properties: {} };
+    if (schemas?.[name]) {
+      try {
+        const raw = toJSONSchema(schemas[name], { unrepresentable: 'any', io: 'input' });
+        const cleaned = stripSchemaMeta(raw);
+        if (cleaned && typeof cleaned === 'object' && cleaned.type === 'object') {
+          parameters = cleaned;
+        }
+      } catch {}
+    }
+    defs.push({
+      type: 'function',
+      function: {
+        name,
+        description: String(help?.[name] || name).slice(0, 320),
+        parameters
+      }
+    });
+  }
+  return defs;
+}
+
+export function formatToolCatalogWithArgs(toolNames, schemas, help) {
+  return [...new Set(toolNames || [])].map((name) => {
+    let sig = '';
+    if (schemas?.[name]) {
+      try {
+        const js = toJSONSchema(schemas[name], { unrepresentable: 'any', io: 'input' });
+        const props = js?.properties && typeof js.properties === 'object' ? Object.keys(js.properties) : [];
+        const req = new Set(Array.isArray(js?.required) ? js.required : []);
+        if (props.length) {
+          sig = `(${props.slice(0, 6).map((p) => (req.has(p) ? `${p}*` : p)).join(', ')}${props.length > 6 ? ', …' : ''})`;
+        } else {
+          sig = '()';
+        }
+      } catch {}
+    }
+    return `${name}: ${String(help?.[name] || name)}${sig ? ` [args: ${sig.slice(1, -1)}]` : ''}`;
+  }).join('; ');
+}
+

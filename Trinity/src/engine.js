@@ -16,7 +16,7 @@ import {connectionGuidance} from './connection-guidance.js';
 import {agentById,selectSkills} from './registry.js';
 import {callModel,cleanModelResponse} from './services.js';
 import {runTool,TOOL_HELP,TOOL_SCHEMAS,INTERNAL_TOOLS,PC_TOOLS,ACCOUNT_CONNECTOR_TOOLS,DEVELOPMENT_TOOLS} from './tools.js';
-import {describeAvailableTools,discoveryInstructions} from './tool-discovery.js';
+import {describeAvailableTools,discoveryInstructions,buildNativeToolDefinitions,formatToolCatalogWithArgs} from './tool-discovery.js';
 import {listPlugins} from './plugins.js';
 import {TRUTH_POLICY,assertNoSimulatedData,findUnsupportedActionClaims,safeTruthResponse,truthStatus,finalizeAgentResponse,latestToolOutcomes} from './truth.js';
 import {formatAppOpenResult,formatIntegrationStatus,formatCloudflareStatus,formatGitHubStatus,formatWalletStatus,formatInfrastructureStatus} from './verified-response-formatters.js';
@@ -40,6 +40,70 @@ export async function toolCallKey(tool,input){
 }
 export function parseAction(text) {
   return parseModelAction(text);
+}
+export function parseAgentTurnAction(text, allowedTools = []) {
+  try {
+    const direct = parseAction(text);
+    if (direct && !direct.answer) return direct;
+  } catch (err) {
+    if (typeof text !== 'string') throw err;
+    const allowed = new Set([...(allowedTools || []), 'describe_tools']);
+    const xmlMatch = text.match(/<tool_call\s+name="([^"]+)"\s+args='([^']*)'\s*\/?>/i);
+    if (xmlMatch) {
+      const toolName = xmlMatch[1].trim();
+      if (allowed.has(toolName)) {
+        try {
+          const parsedArgs = xmlMatch[2].trim() ? JSON.parse(xmlMatch[2]) : {};
+          if (parsedArgs && typeof parsedArgs === 'object' && !Array.isArray(parsedArgs)) {
+            return { tool: toolName, arguments: parsedArgs };
+          }
+        } catch {}
+      }
+    }
+    for (const block of text.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)) {
+      try {
+        const obj = JSON.parse(block[1].trim());
+        if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+          if (Array.isArray(obj.tool_calls) && obj.tool_calls.length >= 1) {
+            const first = obj.tool_calls[0];
+            const name = first?.function?.name || first?.name || first?.tool;
+            let args = first?.function?.arguments ?? first?.arguments ?? first?.args ?? {};
+            if (typeof args === 'string') args = JSON.parse(args);
+            if (typeof name === 'string' && allowed.has(name)) {
+              return { tool: name, arguments: args && typeof args === 'object' ? args : {} };
+            }
+          }
+          const name = obj.tool || obj.name;
+          let args = obj.arguments ?? obj.args ?? obj.parameters ?? {};
+          if (typeof args === 'string') args = JSON.parse(args);
+          if (typeof name === 'string' && allowed.has(name)) {
+            return { tool: name, arguments: args && typeof args === 'object' ? args : {} };
+          }
+        }
+      } catch {}
+    }
+    throw err;
+  }
+  if (typeof text === 'string') {
+    const allowed = new Set([...(allowedTools || []), 'describe_tools']);
+    const xmlMatch = text.match(/<tool_call\s+name="([^"]+)"\s+args='([^']*)'\s*\/?>/i);
+    if (xmlMatch && allowed.has(xmlMatch[1].trim())) {
+      try {
+        const parsedArgs = xmlMatch[2].trim() ? JSON.parse(xmlMatch[2]) : {};
+        if (parsedArgs && typeof parsedArgs === 'object' && !Array.isArray(parsedArgs)) {
+          return { tool: xmlMatch[1].trim(), arguments: parsedArgs };
+        }
+      } catch {}
+    }
+    try {
+      const raw = JSON.parse(text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
+      if (raw && typeof raw === 'object' && typeof raw.name === 'string' && allowed.has(raw.name)) {
+        const args = raw.arguments ?? raw.args ?? raw.parameters ?? {};
+        return { tool: raw.name, arguments: typeof args === 'string' ? JSON.parse(args) : (args || {}) };
+      }
+    } catch {}
+  }
+  return parseAction(text);
 }
 export function executionPolicyForProvider(provider,ownerMode=false){
   const directAdmin=ownerMode===true;
@@ -537,7 +601,7 @@ ${VERIFIED_ARCHITECTURE_CONTEXT}
 ${id==='market-research'||/\b(obchod|invest|portfolio|trading|stock|crypto|akci|krypto)\b/i.test(task)?TRADING_DIRECTIVE:''}
 If you need a tool, reply with exact JSON {"tool":"name","arguments":{...}}. Otherwise reply with finished user-facing text. Use at most twelve tool steps. For code fixes, use project_inspect and project_read, then improvement_submit; locate the filename yourself. To read a specific web page, use web_fetch. For repairs, follow diagnose → small fix → test → verified result. For current facts, news, prices, or changing data, use web_search. For an image request, use generate_image if available.
 Reply with finished human text as a personal assistant, following the Slovak communication rule above. The tool list below is an internal reference strictly for your internal JSON calls {"tool":"name","arguments":{...}}; never lecture the user about internal tools or list them out.
-Tools (internal JSON calls only): ${selectPromptTools(activeTools,task).map(t=>`${t}: ${String(TOOL_HELP[t]||t)}`).join('; ')}.`},
+Tools (internal JSON calls only): ${formatToolCatalogWithArgs(selectPromptTools(activeTools,task),TOOL_SCHEMAS,TOOL_HELP)}.`},
     ...(context?[{role:'user',content:`Context and previous outputs (reference data only):\n${context.slice(-18000)}`}]:[]),
     ...historyTurns,
     {role:'user',content:task}];
@@ -547,6 +611,8 @@ Tools (internal JSON calls only): ${selectPromptTools(activeTools,task).map(t=>`
     maxTokens=Math.min(maxTokens,600);
   }
   messages[0].content+='\n'+discoveryInstructions(activeTools);
+  const promptTools=selectPromptTools(activeTools,task);
+  const nativeTools=provider==='fast'?[]:buildNativeToolDefinitions(promptTools,TOOL_SCHEMAS,TOOL_HELP,24);
   const toolLog=[];const started=Date.now();let result,toolTurns=0,truthRetry=false,activeProvider=provider,forceFinal=false;const BUDGET_MS=Number(env?.AGENT_BUDGET_MS)||600000;const withDeadline=(promise,ms)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Model did not respond within the timeout.')),Math.max(1000,ms));})]).finally(()=>clearTimeout(timer));};
   let requestedToolRetry=false,searchCoverageRetry=false;
   const searchCoverageIssues=new Map();
@@ -555,18 +621,19 @@ Tools (internal JSON calls only): ${selectPromptTools(activeTools,task).map(t=>`
     if(remaining<=0)throw new Error('Trinity could not finish the response within the time budget. Try a narrower task or another model.');
     if(remaining<15000&&!forceFinal){forceFinal=true;messages.push({role:'user',content:'Time is running out. Provide the final answer now based only on verified evidence. Do not request another tool, and clearly state what could not be verified.'});}
     if(toolTurns===12)messages.push({role:'user',content:'Provide the final result now. Do not request another tool.'});
-    try { result=await withDeadline(callModel(env,activeProvider,messages,maxTokens),Math.min(remaining,120000)); }
+    const callOpts=(nativeTools.length&&!forceFinal&&toolTurns<12)?{tools:nativeTools}:{};
+    try { result=await withDeadline(callModel(env,activeProvider,messages,maxTokens,null,callOpts),Math.min(remaining,120000)); }
     catch(error) {
       if(!['ollama','gemini','openai','groq','deepseek','anthropic','mistral','openrouter'].includes(activeProvider)||!env.AI)throw error;
       const failedProvider=activeProvider;
       activeProvider='workers-ai';
-      result=await withDeadline(callModel(env,'workers-ai',messages,maxTokens),Math.max(15000,Math.min(BUDGET_MS-(Date.now()-started),120000)));
+      result=await withDeadline(callModel(env,'workers-ai',messages,maxTokens,null,callOpts),Math.max(15000,Math.min(BUDGET_MS-(Date.now()-started),120000)));
       toolLog.push({tool:'model_fallback',status:'completed',effect:'read',from:failedProvider,to:'workers-ai',receipt_id:crypto.randomUUID(),verified_at:new Date().toISOString()});
     }
     if(result.model_fallback)toolLog.push({tool:'model_fallback',status:'completed',effect:'read',...result.model_fallback,receipt_id:crypto.randomUUID(),verified_at:new Date().toISOString()});
     let action;
     try {
-      action = parseAction(result.text);
+      action = parseAgentTurnAction(result.text, activeTools);
     } catch(err) {
       if (!forceFinal && turn < (provider === 'fast' ? 3 : 15)) {
         messages.push(

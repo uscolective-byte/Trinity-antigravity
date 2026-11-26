@@ -119,17 +119,27 @@ export async function getOllamaKey(env) {
 }
 export function extractModelText(result) {
   if(typeof result==='string')return result;
-  if(typeof result?.output_text==='string')return result.output_text;
-  if(typeof result?.response==='string')return result.response;
+  if(Array.isArray(result?.tool_calls)&&result.tool_calls.length){
+    const tc=result.tool_calls[0];
+    if(tc?.function)return JSON.stringify({tool_calls:[tc]});
+    if(tc?.name)return JSON.stringify({tool:tc.name,arguments:tc.arguments??{}});
+  }
+  if(typeof result?.output_text==='string'&&result.output_text.trim())return result.output_text;
+  if(typeof result?.response==='string'&&result.response.trim())return result.response;
   const choiceMsg = result?.choices?.[0]?.message;
   if(Array.isArray(choiceMsg?.tool_calls) && choiceMsg.tool_calls.length) return JSON.stringify({ tool_calls: choiceMsg.tool_calls });
   if(choiceMsg?.function_call) return JSON.stringify({ type: 'function', function: choiceMsg.function_call });
   if(typeof choiceMsg?.content === 'string') return choiceMsg.content;
+  if(Array.isArray(result?.content)){
+    const toolUse=result.content.find(b=>b?.type==='tool_use'&&b?.name);
+    if(toolUse)return JSON.stringify({tool:toolUse.name,arguments:toolUse.input??{}});
+  }
   if(Array.isArray(result?.output)){
     return result.output.flatMap(item=>Array.isArray(item?.content)?item.content:[])
       .filter(part=>['output_text','text'].includes(part?.type)||typeof part?.text==='string')
       .map(part=>part.text||'').join('\n');
   }
+  if(typeof result?.response==='string')return result.response;
   if(result?.response&&typeof result.response==='object')return JSON.stringify(result.response);
   return '';
 }
@@ -294,13 +304,15 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
       const fallbackCandidates=[...new Set([interactionModel,...models.filter(m=>/flash/i.test(m)),...models])];
       for(const candidateModel of fallbackCandidates.slice(0,4)){
         const fallbackUrl=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidateModel)}:generateContent`;
+        const geminiPayload={
+          contents,
+          generationConfig:{maxOutputTokens:Math.min(maxTokens,16384),temperature:temp},
+          ...(Array.isArray(opts?.tools)&&opts.tools.length?{tools:[{functionDeclarations:opts.tools.map(t=>({name:t.function.name,description:t.function.description,parameters:t.function.parameters}))}]}:{})
+        };
         const fallbackResponse=await fetch(fallbackUrl,{
           method:'POST',
           headers:{'Content-Type':'application/json','x-goog-api-key':apiKey},
-          body:JSON.stringify({
-            contents,
-            generationConfig:{maxOutputTokens:Math.min(maxTokens,16384),temperature:temp}
-          }),
+          body:JSON.stringify(geminiPayload),
           signal:AbortSignal.timeout(120000),
           redirect:'manual'
         });
@@ -336,9 +348,10 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
       role:message.role==='system'?'system':message.role,
       content:String(message.content).slice(0,40000)
     }));
+    const openAiTools=Array.isArray(opts?.tools)&&opts.tools.length?{tools:opts.tools,tool_choice:'auto'}:{};
     let response=await fetch('https://api.openai.com/v1/chat/completions',{
       method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:0.7}),
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:0.7,...openAiTools}),
       signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     if(response.status===404){
@@ -365,9 +378,10 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
     apiKey=sanitizeApiKey(apiKey);
     if(!model)model=env.GROQ_MODEL||'llama-3.3-70b-versatile';
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
+    const groqTools=Array.isArray(opts?.tools)&&opts.tools.length?{tools:opts.tools,tool_choice:'auto'}:{};
     const response=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:temp}),
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:temp,...groqTools}),
       signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     const data=await readModelResponse(response,'Groq');
@@ -382,9 +396,10 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
     apiKey=sanitizeApiKey(apiKey);
     if(!model)model=env.DEEPSEEK_MODEL||'deepseek-chat';
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
+    const dsTools=Array.isArray(opts?.tools)&&opts.tools.length&&!/reasoner/i.test(model)?{tools:opts.tools,tool_choice:'auto'}:{};
     const response=await fetch('https://api.deepseek.com/chat/completions',{
       method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:temp}),
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:temp,...dsTools}),
       signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     const data=await readModelResponse(response,'DeepSeek');
@@ -400,13 +415,14 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
     if(!model)model=env.ANTHROPIC_MODEL||'claude-3-7-sonnet-20250219';
     const system=messages.filter(m=>m.role==='system').map(m=>m.content).join('\n\n').slice(0,40000);
     const chatMessages=messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'assistant':'user',content:String(m.content).slice(0,40000)}));
+    const claudeTools=Array.isArray(opts?.tools)&&opts.tools.length?{tools:opts.tools.map(t=>({name:t.function.name,description:t.function.description,input_schema:t.function.parameters}))}:{};
     const response=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01','Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:chatMessages,system:system||undefined,max_tokens:Math.min(maxTokens,8192),temperature:temp}),
+      body:JSON.stringify({model,messages:chatMessages,system:system||undefined,max_tokens:Math.min(maxTokens,8192),temperature:temp,...claudeTools}),
       signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     const data=await readModelResponse(response,'Anthropic');
-    const text=data.content?.[0]?.text||'';
+    const text=extractModelText(data)||(data.content?.[0]?.text||'');
     if(!text.trim())throw new Error('Anthropic Claude vrátil prázdnu odpoveď.');
     return {text,model:data.model||model,provider,usage:{input:data.usage?.input_tokens||0,output:data.usage?.output_tokens||0}};
   }
@@ -417,9 +433,10 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
     apiKey=sanitizeApiKey(apiKey);
     if(!model)model=env.MISTRAL_MODEL||'mistral-large-latest';
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
+    const mistralTools=Array.isArray(opts?.tools)&&opts.tools.length?{tools:opts.tools,tool_choice:'auto'}:{};
     const response=await fetch('https://api.mistral.ai/v1/chat/completions',{
       method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:temp}),
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:temp,...mistralTools}),
       signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     const data=await readModelResponse(response,'Mistral');
@@ -434,9 +451,10 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
     apiKey=sanitizeApiKey(apiKey);
     if(!model)model=env.OPENROUTER_MODEL||'deepseek/deepseek-r1:free';
     const chatMessages=messages.map(m=>({role:m.role==='system'?'system':m.role,content:String(m.content).slice(0,40000)}));
+    const orTools=Array.isArray(opts?.tools)&&opts.tools.length&&!/deepseek-r1/i.test(model)?{tools:opts.tools,tool_choice:'auto'}:{};
     const response=await fetch('https://openrouter.ai/api/v1/chat/completions',{
       method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'HTTP-Referer':'https://auru.space','X-Title':'Trinity AI','Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:temp}),
+      body:JSON.stringify({model,messages:chatMessages,max_tokens:Math.min(maxTokens,16384),temperature:temp,...orTools}),
       signal:AbortSignal.timeout(120000),redirect:'manual'
     });
     const data=await readModelResponse(response,'OpenRouter');
@@ -462,8 +480,9 @@ export async function callModel(env, provider, messages, maxTokens = 8192, custo
         }catch{}
         // Binding failure falls back to the already authorized Workers AI binding.
       }
+      const workersTools=Array.isArray(opts?.tools)&&opts.tools.length&&provider!=='deepseek-r1'&&!/deepseek-r1/i.test(selectedModel)?{tools:opts.tools}:{};
       let timer;
-      try { return await Promise.race([env.AI.run(selectedModel,{messages,max_tokens:Math.min(maxTokens,8192),temperature:Number.isFinite(opts?.temperature)?opts.temperature:0.65,top_p:0.9,repetition_penalty:1.12}),
+      try { return await Promise.race([env.AI.run(selectedModel,{messages,max_tokens:Math.min(maxTokens,8192),temperature:Number.isFinite(opts?.temperature)?opts.temperature:0.65,top_p:0.9,repetition_penalty:1.12,...workersTools}),
         new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Workers AI timeout')),provider==='fast'?30000:120000);})]); }
       finally {clearTimeout(timer);}
     };

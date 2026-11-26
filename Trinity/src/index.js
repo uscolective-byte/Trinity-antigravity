@@ -282,7 +282,7 @@ async function route(request,env,ctx){
     'Cache-Control':'no-cache, no-store, must-revalidate',
     'Content-Security-Policy':"default-src 'self'; script-src 'self'"
       +(drivePickerEnabled&&path!=='/ops'?" https://apis.google.com https://accounts.google.com":"")
-      +"; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; frame-src 'self' blob: data: https://open.spotify.com"
+      +"; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' data: blob:; frame-src 'self' blob: data: https://open.spotify.com"
       +(drivePickerEnabled&&path!=='/ops'?" https://accounts.google.com https://docs.google.com https://drive.google.com https://apis.google.com":"")
       +"; connect-src 'self' https:"
       +(drivePickerEnabled&&path!=='/ops'?" https://accounts.google.com https://www.googleapis.com":"")

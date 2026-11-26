@@ -78,8 +78,8 @@ const CLAIM_RULES=[
   {
     id:'change',
     patterns:[
-      /\b(?:zmenil[ao]?|zmenila|upravil[ao]?|upravila)\s+som\s+(?:nastavenie|nastavenia|konfiguráciu|konfiguraciu|účet|ucet|prístup|pristup)\b/iu,
-      /\b(?:i\s+(?:have\s+)?(?:changed|updated)\s+(?:the\s+)?(?:settings|configuration|account|access))\b/iu
+      /\b(?:zmenil[ao]?|zmenila|upravil[ao]?|upravila|aktualizoval[ao]?|aktualizovala|nakonfiguroval[ao]?|nakonfigurovala|pripojil[ao]?|pripojila|zálohoval[ao]?|zalohoval[ao]?)\s+som\b/iu,
+      /\b(?:i\s+(?:have\s+)?(?:changed|updated|configured|connected|backed\s+up)\s+(?:the\s+)?(?:settings|configuration|account|access|integration|connector|service|domain))\b/iu
     ]
   },
   {
@@ -96,8 +96,8 @@ const CLAIM_RULES=[
   {
     id:'execute',
     patterns:[
-      /\b(?:(?:spustil[ao]?|spustila)\s+som|som\s+(?:úspešne\s+)?spustil[ao]?)\s+(?:príkaz|prikaz|skript|program|server|testy|deploy)\b/iu,
-      /\b(?:i\s+(?:have\s+)?(?:ran|executed)\s+(?:the\s+)?(?:command|script|program|server|tests|deploy))\b/iu
+      /\b(?:(?:spustil[ao]?|spustila|vykonal[ao]?|vykonala)\s+som|som\s+(?:úspešne\s+)?(?:spustil[ao]?|vykonal[ao]?))\s+(?:príkaz|prikaz|skript|program|server|testy|deploy|nástroj|nastroj|operáciu|operaciu)\b/iu,
+      /\b(?:i\s+(?:have\s+)?(?:ran|executed)\s+(?:the\s+)?(?:command|script|program|server|tests|deploy|tool|operation))\b/iu
     ]
   },
   {
@@ -124,8 +124,8 @@ const CLAIM_RULES=[
   {
     id:'verify',
     patterns:[
-      /\b(?:overil[ao]?|overila|skontroloval[ao]?|skontrolovala)\s+som\b/iu,
-      /\b(?:i\s+(?:have\s+)?(?:verified|checked))\b/iu
+      /\b(?:overil[ao]?|overila|skontroloval[ao]?|skontrolovala|preveril[ao]?|preverila|zistil[ao]?|zistila)\s+som\b/iu,
+      /\b(?:i\s+(?:have\s+)?(?:verified|checked|inspected))\b/iu
     ]
   }
 ];

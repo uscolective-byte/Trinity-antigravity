@@ -1,6 +1,6 @@
 /* ==========================================================================
-   TRINITY 12.0 — RESPONSIVE & MOBILE ADAPTATIONS
-   Applies cleanly across sovereign-ui and legacy garage-ui body classes.
+   TRINITY v17.0 — RESPONSIVE & MOBILE ADAPTATIONS
+   Obsidian & Champagne Atelier responsive rules.
    ========================================================================== */
 
 @media (max-width: 1080px) {
@@ -12,6 +12,11 @@
     overflow-y: auto !important;
   }
 
+  .app {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
+
   .sidebar {
     position: static !important;
     width: 100% !important;
@@ -19,11 +24,17 @@
     max-height: none !important;
     padding: 12px 14px !important;
     border-right: 0 !important;
-    border-bottom: 1px solid var(--line) !important;
+    border-bottom: 1px solid var(--border) !important;
     flex-direction: row !important;
     flex-wrap: wrap !important;
     align-items: center !important;
     gap: 10px !important;
+  }
+
+  .sidebar-brand-row {
+    width: auto !important;
+    padding: 0 !important;
+    margin-right: auto !important;
   }
 
   .brand {
@@ -32,13 +43,20 @@
     margin-right: auto !important;
   }
 
-  .new {
-    width: auto !important;
-    margin: 0 !important;
-    padding: 8px 14px !important;
+  .sidebar-quick-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
     order: 2;
   }
 
+  #new-chat {
+    width: auto !important;
+    margin: 0 !important;
+    padding: 8px 14px !important;
+  }
+
+  .nav,
   .main-nav {
     width: 100% !important;
     order: 3;
@@ -53,10 +71,12 @@
     scrollbar-width: none;
   }
 
+  .nav::-webkit-scrollbar,
   .main-nav::-webkit-scrollbar {
     display: none;
   }
 
+  .nav button,
   .main-nav button {
     width: auto !important;
     flex: 0 0 auto !important;
@@ -65,15 +85,30 @@
     font-size: 12.5px !important;
   }
 
+  .nav-more-drawer {
+    flex: 0 0 auto !important;
+    margin-top: 0 !important;
+    overflow: visible !important;
+  }
+
+  .nav-more-summary {
+    white-space: nowrap !important;
+    padding: 7px 11px !important;
+  }
+
   .side-label,
+  .sidebar-section-label,
   #sessions,
+  .thread-list,
   .sidebar-status-clean,
-  .sidebar-quick-actions,
   .sidebar-legal-bar,
+  .sidebar-footer,
+  .sovereign-shield-badge,
   .sidebar-bottom {
     display: none !important;
   }
 
+  .main,
   main {
     margin-left: 0 !important;
     width: 100% !important;
@@ -97,7 +132,8 @@
 }
 
 @media (max-width: 760px) {
-  header {
+  header,
+  header.atelier-topbar {
     padding: 10px 14px !important;
     flex-wrap: wrap !important;
   }
@@ -122,12 +158,13 @@
   }
 
   #welcome {
-    padding: 20px 16px !important;
+    padding: 16px 12px !important;
     margin: 12px auto !important;
   }
 
-  #welcome h1 {
-    font-size: 22px !important;
+  #welcome h1,
+  .atelier-welcome-hero h2 {
+    font-size: 20px !important;
   }
 
   .composer-wrap {
@@ -166,14 +203,14 @@
   max-height: 85dvh;
   overflow: auto;
   padding: 18px;
-  border: 1px solid #46515d;
+  border: 1px solid var(--border-strong, rgba(214, 182, 118, 0.28));
   border-radius: 14px;
-  background: #171b20;
-  color: #f3f5f7;
+  background: #121216;
+  color: #f4f4f5;
 }
 
 .spotify-dialog::backdrop {
-  background: #0b0d12b3;
+  background: rgba(9, 9, 11, 0.76);
 }
 
 .spotify-dialog form {
