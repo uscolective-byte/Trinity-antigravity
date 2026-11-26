@@ -13,6 +13,7 @@
 import { HttpError } from './security.js';
 import { resolveProviderSecret } from './secret-vault.js';
 import { normalizeIban, normalizeBic, normalizeEvmAddress, readUsdcBalance, CRYPTO_CHAINS } from './wallet-terminals.js';
+import { getMt5Config, fetchMt5AccountSnapshot } from './mt5-connector.js';
 
 export const CONNECTOR_STATUSES = [
   'unsupported',
@@ -274,6 +275,52 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
     next_action: paysafeAccount ? 'Ready to accept Paysafecard vouchers and myPaysafe payments.' : 'Configure myPaysafe identifier or Paysafe account.'
   };
 
+  // 8. MetaTrader 5 (MT5 Trading Account via MetaApi Cloud or HTTPS Bridge)
+  const mt5Cfg = await getMt5Config(env, ownerId).catch(() => ({ configured: false, connected: false, has_token: false }));
+  const mt5Account = mt5Cfg?.snapshot?.account || null;
+  const mt5Verified = Boolean(mt5Cfg?.configured && mt5Cfg?.has_token && mt5Cfg?.snapshot?.verified === true && mt5Account);
+  const metatrader5 = {
+    id: 'metatrader5',
+    name: 'MetaTrader 5 (MT5 Trading Account)',
+    category: 'trading_platform',
+    account_type: mt5Cfg?.account_type || 'demo',
+    currency: mt5Account?.currency || mt5Cfg?.currency || 'EUR',
+    receiving_endpoint: {
+      mode: mt5Cfg?.mode || 'metaapi',
+      broker: mt5Account?.broker || mt5Cfg?.broker || null,
+      server: mt5Account?.server || mt5Cfg?.server || null,
+      login: mt5Cfg?.login_masked || null,
+      account_id: mt5Cfg?.account_id_masked || null
+    },
+    status: !mt5Cfg?.configured
+      ? 'needs_provider_setup'
+      : (!mt5Cfg?.has_token ? 'needs_provider_setup' : (mt5Verified ? 'live_verified' : 'needs_user_consent')),
+    status_reason: !mt5Cfg?.configured
+      ? 'MetaTrader 5 účet zatiaľ nie je nakonfigurovaný (zadaj MetaApi Account ID alebo HTTPS MT5 Bridge URL).'
+      : (!mt5Cfg?.has_token
+        ? 'MT5 profil je uložený, ale chýba šifrovaný MT5 API token (Secret Vault: metatrader5 alebo MT5_API_TOKEN).'
+        : (mt5Verified
+          ? `Overené pripojenie na MT5 (${mt5Cfg.snapshot.source}) · Balance: ${mt5Account.balance} ${mt5Account.currency}, Equity: ${mt5Account.equity} ${mt5Account.currency}.`
+          : 'MT5 je nakonfigurovaný a má token. Spusti synchronizáciu pre načítanie overeného zostatku a pozícií.')),
+    can_receive: false,
+    can_read_balance: Boolean(mt5Cfg?.configured && mt5Cfg?.has_token),
+    can_payout: false,
+    can_trade: Boolean(mt5Cfg?.allow_trade_execution),
+    requires_business: false,
+    verified_balance: mt5Verified ? {
+      amount: mt5Account.balance,
+      equity: mt5Account.equity,
+      free_margin: mt5Account.free_margin,
+      currency: mt5Account.currency,
+      as_of: mt5Cfg.last_verified_at,
+      verified_by: mt5Cfg.snapshot.source
+    } : null,
+    last_sync_at: mt5Cfg?.last_verified_at || null,
+    next_action: !mt5Cfg?.configured
+      ? 'Nakonfiguruj MetaTrader 5 v záložke MT5 v peňaženke.'
+      : (!mt5Cfg?.has_token ? 'Pridaj MT5 API token do Trezora tajomstiev.' : 'Spusti MT5 sync pre obnovenie zostatku a otvorených pozícií.')
+  };
+
   return {
     owner_id: ownerId,
     mode: 'sovereign_multiwallet',
@@ -286,7 +333,8 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
       cryptoEvm,
       sepaInstant,
       viberPay,
-      paysafe
+      paysafe,
+      metatrader5
     ]
   };
 }
@@ -295,6 +343,27 @@ export async function getConnectorsRegistry(env, ownerId = 'admin') {
  * Synchronize a specific connector
  */
 export async function syncConnector(env, ownerId = 'admin', connectorId) {
+  if (connectorId === 'metatrader5' || connectorId === 'mt5') {
+    const syncRes = await fetchMt5AccountSnapshot(env, ownerId);
+    return {
+      connector_id: 'metatrader5',
+      ok: syncRes.ok,
+      status: syncRes.status,
+      status_reason: syncRes.ok
+        ? `MT5 synchronizované (${syncRes.snapshot.source}).`
+        : syncRes.error,
+      verified_balance: syncRes.ok ? {
+        amount: syncRes.snapshot.account.balance,
+        equity: syncRes.snapshot.account.equity,
+        free_margin: syncRes.snapshot.account.free_margin,
+        currency: syncRes.snapshot.account.currency,
+        as_of: syncRes.synced_at,
+        verified_by: syncRes.snapshot.source
+      } : null,
+      snapshot: syncRes.snapshot || null,
+      synced_at: syncRes.synced_at || new Date().toISOString()
+    };
+  }
   const registry = await getConnectorsRegistry(env, ownerId);
   const connector = registry.connectors.find(c => c.id === connectorId);
   if (!connector) throw new HttpError(404, `Connector '${connectorId}' not found (Konektor '${connectorId}' neexistuje).`);

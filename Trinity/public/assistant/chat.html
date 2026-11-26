@@ -1903,6 +1903,10 @@
             <span class="tg-circle-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 19V5"/><polyline points="5 12 12 5 19 12"/></svg></span>
             <span class="tg-circle-label">Odoslať</span>
           </button>
+          <button type="button" class="subnav-btn tg-circle-action" data-wallet-tab="mt5">
+            <span class="tg-circle-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg></span>
+            <span class="tg-circle-label">Meta 5</span>
+          </button>
           <button type="button" class="subnav-btn tg-circle-action" data-wallet-tab="config">
             <span class="tg-circle-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
             <span class="tg-circle-label">Terminály</span>
@@ -1923,13 +1927,13 @@
           <div class="tg-asset-left">
             <span class="tg-asset-avatar eur">€</span>
             <div class="tg-asset-meta">
-              <b>Sandbox disponibilné</b>
-              <small>nie je to bankový ani on-chain zostatok</small>
+              <b>Evidovaný zostatok (Trinity)</b>
+              <small>súčet overených záznamov; nie je to bankový zostatok</small>
             </div>
           </div>
           <div class="tg-asset-right">
             <strong id="wstat-available">0,00 €</strong>
-            <small>EUR účet</small>
+            <small>EUR evidencia</small>
           </div>
         </div>
         <div class="tg-asset-row">
@@ -1937,7 +1941,7 @@
             <span class="tg-asset-avatar in">↓</span>
             <div class="tg-asset-meta">
               <b>Prijaté platby</b>
-              <small>cez POS terminály, Revolut &amp; SEPA</small>
+              <small>overené on-chain alebo potvrdené majiteľom</small>
             </div>
           </div>
           <div class="tg-asset-right">
@@ -1950,7 +1954,7 @@
             <span class="tg-asset-avatar out">↑</span>
             <div class="tg-asset-meta">
               <b>Evidované výbery</b>
-              <small>evidované položky; nie sú to vykonané výbery</small>
+              <small>potvrdené odoslané výbery (Trinity peniaze neposiela)</small>
             </div>
           </div>
           <div class="tg-asset-right">
@@ -1963,12 +1967,25 @@
             <span class="tg-asset-avatar pos">POS</span>
             <div class="tg-asset-meta">
               <b>Aktívne terminály</b>
-              <small>iba výslovne nastavené platobné kanály</small>
+              <small>výslovne nastavené platobné kanály + MetaTrader 5</small>
             </div>
           </div>
           <div class="tg-asset-right">
             <strong id="wstat-terminals-count">0</strong>
             <small>kanálov</small>
+          </div>
+        </div>
+        <div class="tg-asset-row">
+          <div class="tg-asset-left">
+            <span class="tg-asset-avatar pos">MT5</span>
+            <div class="tg-asset-meta">
+              <b>MetaTrader 5 (MT5)</b>
+              <small id="wstat-mt5-meta">nenastavené · napoj cez MetaApi Cloud alebo HTTPS MT5 Bridge</small>
+            </div>
+          </div>
+          <div class="tg-asset-right">
+            <strong id="wstat-mt5-equity">—</strong>
+            <button type="button" class="secondary" id="wstat-mt5-open-btn">Otvoriť MT5 →</button>
           </div>
         </div>
         <div class="tg-asset-row">
@@ -1985,7 +2002,7 @@
         </div>
       </section>
 
-      <p class="tg-wallet-disclaimer">Trinity eviduje sandbox zostatok a vytvára platobné požiadavky. Externé bankové alebo blockchainové prevody musíš podpísať a vykonať v príslušnej peňaženke; samotný odkaz ani QR nie je potvrdená platba.</p>
+      <p class="tg-wallet-disclaimer">Trinity eviduje iba overené záznamy a vytvára platobné požiadavky. Externé bankové, kryptomenové ani MT5 prevody Trinity sama bez potvrdenia nevykonáva; samotný odkaz ani QR nie je prijatá platba.</p>
 
       <!-- PANE 1: POS PAYMENT TERMINAL FOR RECEIVING PAYMENTS -->
       <div id="wallet-pane-terminal" class="wallet-tab-pane">
@@ -2008,7 +2025,7 @@
                   <input id="charge-amount" type="number" min="0.50" max="100000" step="0.50" value="50" required>
                 </label>
                 <label><span>Účel / Popis platby *</span><input id="charge-purpose" required minlength="2" maxlength="160" placeholder="napr. Tvorba webu na kľúč alebo nájom domény" value="Tvorba moderného webu"></label>
-                <label><span>Preferovaný terminál</span><select id="charge-terminal-type"><option value="all">Všetky (Zákazník si vyberie)</option><option value="sepa">🏦 SEPA Instant EPC QR kód</option><option value="revolut">⚡ Revolut Pay</option><option value="paypal">🅿 PayPal & Platobná karta</option><option value="crypto">🪙 Web3 Krypto (USDC/USDT)</option></select></label>
+                <label><span>Preferovaný terminál</span><select id="charge-terminal-type"><option value="all">Všetky nastavené kanály</option><option value="sepa">🏦 SEPA Instant EPC QR kód</option><option value="revolut">⚡ Revolut Pay</option><option value="paypal">🅿 PayPal &amp; Platobná karta</option><option value="crypto">🪙 Web3 Krypto (USDC)</option><option value="telegram_wallet">✈️ Telegram @wallet (TON)</option><option value="viber">💜 Viber Pay</option><option value="paysafe">🎟 Paysafe / myPaysafe</option></select></label>
                 <label><span>Variabilný symbol (voliteľné)</span><input id="charge-vs" maxlength="10" placeholder="napr. 20261001"></label>
                 <label><span>Meno platiteľa (voliteľné)</span><input id="charge-payer-name" maxlength="80" placeholder="napr. Martin Kováč"></label>
               </div>
@@ -2025,7 +2042,7 @@
               <span id="tdisp-amount-badge" class="detail-chip" style="font-size:14px;font-weight:700">0,00 €</span>
             </div>
             <div id="tdisp-body" style="text-align:center;padding:14px">
-              <p style="color:var(--muted);font-size:12px">Zadajte sumu a kliknite na „Aktivovať terminál“. Okamžite sa zobrazí interaktívny QR kód a platobné tlačidlá pre klienta.</p>
+              <p style="color:var(--muted);font-size:12px">Zadajte sumu a kliknite na „Aktivovať terminál“. Okamžite sa zobrazí interaktívny QR kód a platobné tlačidlá pre nastavené kanály.</p>
             </div>
           </section>
         </div>
@@ -2035,32 +2052,76 @@
       <div id="wallet-pane-payout" class="wallet-tab-pane" hidden>
         <section class="panel domain-env-panel">
           <div class="panel-head">
-            <div><span class="eyebrow">VÝBER PROSTRIEDKOV</span><h2>Vybrať peniaze na vlastný bankový účet alebo PayPal</h2></div>
-            <span class="detail-chip">OKAMŽITÝ SEPA PREVOD</span>
+            <div><span class="eyebrow">PRÍPRAVA VÝBERU</span><h2>Pripraviť inštrukciu a QR na výber prostriedkov</h2></div>
+            <span class="detail-chip">PRIPRAVENÁ INŠTRUKCIA</span>
           </div>
-          <p class="settings-help">Tu môžeš kedykoľvek zadať príkaz na výber peňazí z peňaženky Trinity na tvoj osobný bankový účet (IBAN), PayPal alebo Revolut. Každý výber sa overí a zapíše do auditného <b>Trinity Dokumentu</b>.</p>
+          <p class="settings-help">Trinity pripraví overenú platobnú inštrukciu a QR kód (SEPA EPC, PayPal, Revolut, USDC, Telegram TON, Viber Pay alebo Paysafe). <b>Trinity peniaze sama neodosiela</b> — platbu odošleš vo svojej aplikácii a potom ju potvrdíš v Histórii.</p>
           <form id="wallet-payout-form" class="secret-form commerce-form">
             <div class="commerce-form-grid">
-              <label><span>Suma na výber (EUR) *</span><input id="payout-amount" type="number" min="1" max="100000" step="1" value="100" required></label>
-              <label><span>Cieľová brána výberu *</span><select id="payout-dest-type"><option value="bank_iban">🏦 Bankový účet (SEPA príkaz na IBAN)</option><option value="paypal">🅿 PayPal účet (payout na email)</option><option value="revolut">⚡ Revolut účet (@revtag)</option><option value="crypto">🪙 Krypto peňaženka (USDC)</option></select></label>
-              <label><span>Cieľ (IBAN / PayPal email / Revtag) *</span><input id="payout-target" required minlength="4" maxlength="100" placeholder="napr. SK890200000000..."></label>
+              <label><span>Suma na výber (EUR) *</span><input id="payout-amount" type="number" min="1" max="100000" step="0.50" value="100" required></label>
+              <label><span>Cieľová brána výberu *</span><select id="payout-dest-type"><option value="bank_iban">🏦 Bankový účet (SEPA EPC QR na IBAN)</option><option value="paypal">🅿 PayPal účet (email / paypal.me)</option><option value="revolut">⚡ Revolut účet (@revtag)</option><option value="crypto">🪙 Krypto peňaženka (USDC)</option><option value="telegram_wallet">✈️ Telegram @wallet (TON)</option><option value="viber">💜 Viber Pay (+421...)</option><option value="paysafe">🎟 Paysafe / myPaysafe</option></select></label>
+              <label><span>Cieľ (IBAN / email / @tag / adresa / telefón) *</span><input id="payout-target" required minlength="3" maxlength="120" placeholder="napr. SK890200000000..."></label>
+              <label><span>Meno príjemcu (povinné pre IBAN)</span><input id="payout-recipient-name" maxlength="100" placeholder="napr. Ivan Sabo"></label>
               <label><span>Poznámka / Referencia</span><input id="payout-note" maxlength="140" placeholder="napr. Osobný výber zisku"></label>
             </div>
             <div class="commerce-form-actions">
-              <button class="primary" type="submit" id="payout-submit-btn">📤 Odoslať príkaz na výber peňazí</button>
+              <button class="primary" type="submit" id="payout-submit-btn">📤 Pripraviť inštrukciu a QR na výber</button>
             </div>
           </form>
           <div id="payout-result-box" class="domain-form-card" style="margin-top:14px" hidden></div>
         </section>
       </div>
 
-      <!-- PANE 3: TERMINAL CONFIGURATION & CRYPTO WALLET -->
+      <!-- PANE 3: METATRADER 5 (MT5) INTEGRATION -->
+      <div id="wallet-pane-mt5" class="wallet-tab-pane" hidden>
+        <div class="terminal-body-grid">
+          <section class="panel domain-env-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">METATRADER 5 · BROKER BRIDGE</span><h2>Napojenie peňaženky na MetaTrader 5 (MT5)</h2></div>
+              <button type="button" id="mt5-sync-btn" class="primary">↻ Synchronizovať MT5</button>
+            </div>
+            <p class="settings-help">Pripoj svoj MT5 účet cez <b>MetaApi Cloud REST</b> (podporuje všetkých MT5 brokerov) alebo cez vlastný <b>HTTPS MT5 Bridge</b>. API token sa ukladá výlučne zašifrovaný v Trezore tajomstiev (`metatrader5`).</p>
+            <form id="wallet-mt5-form" class="secret-form commerce-form">
+              <div class="commerce-form-grid">
+                <label><span>Spôsob napojenia *</span><select id="mt5-mode"><option value="metaapi">☁️ MetaApi Cloud REST (odporúčané pre MT5)</option><option value="bridge">🔗 Vlastný HTTPS MT5 Bridge (Windows PC / Tunnel)</option></select></label>
+                <label><span>Typ účtu</span><select id="mt5-account-type"><option value="demo">Demo účet</option><option value="live">Live reálny účet</option></select></label>
+                <label><span>Broker</span><input id="mt5-broker" maxlength="120" placeholder="napr. IC Markets, FTMO, Pepperstone, XTB"></label>
+                <label><span>MT5 Server</span><input id="mt5-server" maxlength="120" placeholder="napr. ICMarketsEU-MT5 alebo FTMO-Server"></label>
+                <label><span>MT5 Login (číslo účtu)</span><input id="mt5-login" maxlength="40" placeholder="napr. 51234567"></label>
+                <label><span>Mena účtu</span><input id="mt5-currency" maxlength="3" value="EUR" placeholder="EUR"></label>
+                <label id="mt5-account-id-wrap"><span>MetaApi Account ID *</span><input id="mt5-account-id" maxlength="120" placeholder="UUID účtu z app.metaapi.cloud"></label>
+                <label id="mt5-region-wrap"><span>MetaApi Región</span><select id="mt5-region"><option value="new-york">new-york</option><option value="london">london</option><option value="frankfurt">frankfurt</option><option value="singapore">singapore</option><option value="tokyo">tokyo</option><option value="vint-hill">vint-hill</option><option value="agiliumtrade">agiliumtrade</option></select></label>
+                <label id="mt5-bridge-url-wrap" hidden><span>HTTPS MT5 Bridge URL *</span><input id="mt5-bridge-url" maxlength="500" placeholder="https://mt5.tvoja-domena.sk"></label>
+                <label><span>MT5 API Token (zašifruje sa do Trezora)</span><input id="mt5-api-token" type="password" autocomplete="new-password" maxlength="4096" placeholder="Ponechaj prázdne, ak token už je uložený"></label>
+                <label style="display:flex;align-items:center;gap:8px;grid-column:1/-1"><input id="mt5-allow-trade" type="checkbox" style="width:auto"><span>Povoliť odosielanie obchodných pokynov (vždy vyžaduje explicitné potvrdenie majiteľa; vypnuté = len čítanie)</span></label>
+              </div>
+              <div class="commerce-form-actions">
+                <button class="primary" type="submit" id="mt5-save-btn">💾 Uložiť napojenie MetaTrader 5</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel domain-env-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">ŽIVÝ STAV ÚČTU MT5</span><h2 id="mt5-live-title">Čaká na synchronizáciu</h2></div>
+              <span id="mt5-status-badge" class="detail-chip">NENASTAVENÉ</span>
+            </div>
+            <div id="mt5-live-summary" style="font-size:13px;line-height:1.6">
+              <p style="color:var(--muted)">Po uložení údajov a API tokenu klikni na <b>Synchronizovať MT5</b>. Zobrazí sa overený Balance, Equity, Free Margin, páka a otvorené pozície.</p>
+            </div>
+            <div id="mt5-positions-list" class="api-key-list" style="margin-top:12px"></div>
+          </section>
+        </div>
+      </div>
+
+      <!-- PANE 4: TERMINAL CONFIGURATION & CRYPTO WALLET -->
       <div id="wallet-pane-config" class="wallet-tab-pane" hidden>
         <section class="panel domain-env-panel">
           <div class="panel-head">
-            <div><span class="eyebrow">NAPOJENIE TERMINÁLOV</span><h2>Nastavenie vlastného IBANu, Revolutu, PayPalu a Krypto peňaženky</h2></div>
+            <div><span class="eyebrow">NAPOJENIE TERMINÁLOV</span><h2>Nastavenie IBANu, Revolutu, PayPalu, TON, Viber Pay, Paysafe a Web3</h2></div>
             <button type="button" id="wallet-create-crypto-btn" class="primary">✨ Vygenerovať novú Web3 peňaženku</button>
           </div>
+          <div id="wallet-crypto-created-box" class="domain-form-card" style="margin-bottom:14px" hidden></div>
           <form id="wallet-config-form" class="secret-form commerce-form">
             <div class="commerce-form-grid">
               <label><span>Môj bankový IBAN (pre príjem SEPA)</span><input id="wcfg-iban" maxlength="34" placeholder="napr. SK8902000000001234567890"></label>
@@ -2068,6 +2129,9 @@
               <label><span>Meno príjemcu / Názov účtu</span><input id="wcfg-name" maxlength="70" placeholder="napr. Ivan Sabo"></label>
               <label><span>Revolut Handle / Odkaz</span><input id="wcfg-revolut" maxlength="100" placeholder="napr. https://revolut.me/saboivan alebo @saboivan"></label>
               <label><span>PayPal Email / Odkaz</span><input id="wcfg-paypal" maxlength="100" placeholder="napr. saboivan2008@gmail.com alebo paypal.me/..."></label>
+              <label><span>Telegram @wallet (TON adresa)</span><input id="wcfg-ton" maxlength="100" placeholder="EQ... alebo UQ..."></label>
+              <label><span>Viber Pay telefónne číslo</span><input id="wcfg-viber" maxlength="40" placeholder="napr. +421901123456"></label>
+              <label><span>Paysafe / myPaysafe účet</span><input id="wcfg-paysafe" maxlength="120" placeholder="napr. email alebo myPaysafe ID"></label>
               <label><span>Web3 EVM Krypto Adresa</span><input id="wcfg-crypto" maxlength="60" placeholder="0x..."></label>
               <label><span>Krypto Sieť</span><select id="wcfg-crypto-net"><option value="polygon">Polygon PoS (veľmi nízke poplatky, rýchle USDC)</option><option value="base">Base (Coinbase L2)</option><option value="arbitrum">Arbitrum One</option><option value="ethereum">Ethereum Mainnet</option></select></label>
             </div>
@@ -2078,11 +2142,11 @@
         </section>
       </div>
 
-      <!-- PANE 4: TRANSACTIONS & STATEMENTS -->
+      <!-- PANE 5: TRANSACTIONS & STATEMENTS -->
       <div id="wallet-pane-history" class="wallet-tab-pane" hidden>
         <section class="panel">
           <div class="panel-head">
-            <div><span class="eyebrow">TRANSAKČNÁ KNIHA</span><h2>História platieb a výberov</h2></div>
+            <div><span class="eyebrow">TRANSAKČNÁ KNIHA</span><h2>História platieb, overení a výberov</h2></div>
           </div>
           <div id="wallet-history-list" class="api-key-list"></div>
         </section>

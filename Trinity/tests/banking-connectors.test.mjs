@@ -34,10 +34,10 @@ test('Banking Connectors: no payment account or crypto address is invented when 
   const registry = await getConnectorsRegistry(env, 'admin');
 
   assert.equal(registry.mode, 'sovereign_multiwallet');
-  assert.equal(registry.connectors.length, 7);
+  assert.equal(registry.connectors.length, 8);
 
   const ids = registry.connectors.map(c => c.id);
-  assert.deepEqual(ids, ['revolut_personal', 'paypal', 'telegram_wallet', 'crypto_evm', 'sepa_instant', 'viber_pay', 'paysafe']);
+  assert.deepEqual(ids, ['revolut_personal', 'paypal', 'telegram_wallet', 'crypto_evm', 'sepa_instant', 'viber_pay', 'paysafe', 'metatrader5']);
 
   // Verify each connector has a valid status conforming to CONNECTOR_STATUSES
   for (const c of registry.connectors) {

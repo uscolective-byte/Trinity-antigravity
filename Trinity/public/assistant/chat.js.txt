@@ -2766,11 +2766,28 @@ window.openTrinityViewer = function (url, title = 'Náhľad') {
 // ==========================================
 let cachedWalletData = null;
 
+function escW(val) {
+  return String(val ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function fmtMoney(val, currency = 'EUR') {
+  try {
+    return new Intl.NumberFormat('sk-SK', { style: 'currency', currency: String(currency || 'EUR').toUpperCase() }).format(Number(val || 0));
+  } catch {
+    return `${Number(val || 0).toFixed(2)} ${currency || 'EUR'}`;
+  }
+}
+
 function switchWalletTab(tabId) {
   document.querySelectorAll('#wallet-subnav [data-wallet-tab]').forEach(b => {
     b.classList.toggle('active', b.dataset.walletTab === tabId);
   });
-  ['terminal', 'payout', 'config', 'history'].forEach(id => {
+  ['terminal', 'payout', 'mt5', 'config', 'history'].forEach(id => {
     const pane = $('wallet-pane-' + id);
     if (pane) pane.hidden = id !== tabId;
   });
@@ -2778,6 +2795,110 @@ function switchWalletTab(tabId) {
 document.querySelectorAll('#wallet-subnav [data-wallet-tab]').forEach(btn => {
   btn.addEventListener('click', () => switchWalletTab(btn.dataset.walletTab));
 });
+$('wstat-mt5-open-btn')?.addEventListener('click', () => switchWalletTab('mt5'));
+
+function toggleMt5ModeFields() {
+  const mode = $('mt5-mode')?.value || 'metaapi';
+  const isBridge = mode === 'bridge';
+  if ($('mt5-account-id-wrap')) $('mt5-account-id-wrap').hidden = isBridge;
+  if ($('mt5-region-wrap')) $('mt5-region-wrap').hidden = isBridge;
+  if ($('mt5-bridge-url-wrap')) $('mt5-bridge-url-wrap').hidden = !isBridge;
+}
+$('mt5-mode')?.addEventListener('change', toggleMt5ModeFields);
+
+function renderMt5View(mt5) {
+  const cfg = mt5 || {};
+  const snap = cfg.snapshot || null;
+  const acc = snap?.account || null;
+  const cur = acc?.currency || cfg.currency || 'EUR';
+
+  if ($('wstat-mt5-equity')) {
+    $('wstat-mt5-equity').textContent = acc ? fmtMoney(acc.equity, cur) : (cfg.configured ? 'Čaká na sync' : '—');
+  }
+  if ($('wstat-mt5-meta')) {
+    if (acc && snap?.verified) {
+      $('wstat-mt5-meta').textContent = `${cfg.broker || acc.broker || 'MT5'} (${cfg.account_type || 'demo'}) · Balance ${fmtMoney(acc.balance, cur)} · Pozície: ${snap.positions_count ?? 0}`;
+    } else if (cfg.configured) {
+      $('wstat-mt5-meta').textContent = `${cfg.broker || 'MT5'} (${cfg.mode}) · ${cfg.has_token ? 'token uložený, klikni Synchronizovať' : 'chýba API token'}`;
+    } else {
+      $('wstat-mt5-meta').textContent = 'nenastavené · napoj cez MetaApi Cloud alebo HTTPS MT5 Bridge';
+    }
+  }
+
+  // Pre-fill MT5 config form (never touches password field)
+  if ($('mt5-mode')) $('mt5-mode').value = cfg.mode || 'metaapi';
+  if ($('mt5-account-type')) $('mt5-account-type').value = cfg.account_type || 'demo';
+  if ($('mt5-broker')) $('mt5-broker').value = cfg.broker || '';
+  if ($('mt5-server')) $('mt5-server').value = cfg.server || '';
+  if ($('mt5-login')) $('mt5-login').value = cfg.login || '';
+  if ($('mt5-currency')) $('mt5-currency').value = cfg.currency || 'EUR';
+  if ($('mt5-account-id')) $('mt5-account-id').value = cfg.account_id || '';
+  if ($('mt5-region')) $('mt5-region').value = cfg.region || 'new-york';
+  if ($('mt5-bridge-url')) $('mt5-bridge-url').value = cfg.bridge_url || '';
+  if ($('mt5-allow-trade')) $('mt5-allow-trade').checked = Boolean(cfg.allow_trade_execution);
+  toggleMt5ModeFields();
+
+  const badge = $('mt5-status-badge');
+  const title = $('mt5-live-title');
+  const summary = $('mt5-live-summary');
+  const posList = $('mt5-positions-list');
+
+  if (badge) {
+    badge.textContent = acc && snap?.verified
+      ? `LIVE OVERENÉ (${String(cfg.account_type || 'demo').toUpperCase()})`
+      : (cfg.configured ? (cfg.has_token ? 'PRIPRAVENÉ NA SYNC' : 'CHÝBA TOKEN') : 'NENASTAVENÉ');
+  }
+  if (title) {
+    title.textContent = acc
+      ? `${acc.broker || cfg.broker || 'MetaTrader 5'} · ${acc.server || cfg.server || 'MT5'}`
+      : (cfg.configured ? `${cfg.broker || 'MetaTrader 5'} · Čaká na sync` : 'Čaká na konfiguráciu MT5');
+  }
+
+  if (summary) {
+    if (acc && snap?.verified) {
+      const pnlColor = acc.unrealized_pnl >= 0 ? '#10b981' : '#ef4444';
+      summary.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin-bottom:10px">
+          <div class="domain-form-card" style="padding:10px"><small style="color:var(--muted)">Balance</small><div style="font-size:16px;font-weight:700">${escW(fmtMoney(acc.balance, cur))}</div></div>
+          <div class="domain-form-card" style="padding:10px"><small style="color:var(--muted)">Equity</small><div style="font-size:16px;font-weight:700">${escW(fmtMoney(acc.equity, cur))}</div></div>
+          <div class="domain-form-card" style="padding:10px"><small style="color:var(--muted)">Otvorený P/L</small><div style="font-size:16px;font-weight:700;color:${pnlColor}">${escW(fmtMoney(acc.unrealized_pnl, cur))}</div></div>
+          <div class="domain-form-card" style="padding:10px"><small style="color:var(--muted)">Free Margin</small><div style="font-size:16px;font-weight:700">${escW(fmtMoney(acc.free_margin, cur))}</div></div>
+        </div>
+        <small style="color:var(--muted)">
+          Zdroj: <b>${escW(snap.source || cfg.mode)}</b> · Páka: <b>${acc.leverage ? `1:${escW(acc.leverage)}` : '—'}</b> · Margin Level: <b>${acc.margin_level != null ? `${escW(acc.margin_level)}%` : '—'}</b> · Overené: ${escW(new Date(snap.synced_at || cfg.last_verified_at).toLocaleString('sk-SK'))}
+        </small>
+      `;
+    } else if (cfg.configured) {
+      summary.innerHTML = `<p style="color:var(--muted)">MT5 profil je uložený (${escW(cfg.mode)}, ${cfg.has_token ? 'API token je v šifrovanom trezore' : 'chýba MT5 API token'}). Klikni na <b>↻ Synchronizovať MT5</b> pre načítanie reálneho zostatku a pozícií.</p>`;
+    } else {
+      summary.innerHTML = `<p style="color:var(--muted)">Po uložení údajov a API tokenu klikni na <b>↻ Synchronizovať MT5</b>. Zobrazí sa overený Balance, Equity, Free Margin, páka a otvorené pozície.</p>`;
+    }
+  }
+
+  if (posList) {
+    posList.replaceChildren();
+    const positions = Array.isArray(snap?.positions) ? snap.positions : [];
+    if (acc && snap?.verified) {
+      if (!positions.length) {
+        posList.append(node('p', 'Žiadne otvorené pozície na MT5 účte.', 'skeleton'));
+      } else {
+        positions.forEach(p => {
+          const row = node('article', undefined, 'api-key-item');
+          const info = node('div', undefined, 'commerce-offer-info');
+          const top = node('div', undefined, 'commerce-offer-top');
+          const isProfit = Number(p.profit || 0) >= 0;
+          top.append(
+            node('b', `${p.symbol} · ${p.type} · ${p.volume} lot`),
+            node('span', fmtMoney(p.profit, cur), isProfit ? 'domain-badge active' : 'domain-badge expired')
+          );
+          info.append(top, node('small', `Open: ${p.open_price} → Aktuálne: ${p.current_price}${p.stop_loss ? ' · SL: ' + p.stop_loss : ''}${p.take_profit ? ' · TP: ' + p.take_profit : ''}`));
+          row.append(info);
+          posList.append(row);
+        });
+      }
+    }
+  }
+}
 
 async function loadWalletView() {
   try {
@@ -2791,7 +2912,7 @@ async function loadWalletView() {
 
 function renderWalletView(data) {
   if (!data) return;
-  const fmt = v => new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR' }).format(Number(v || 0));
+  const fmt = v => fmtMoney(v, 'EUR');
 
   const w = data.wallet || {};
   const t = data.terminals || {};
@@ -2800,11 +2921,17 @@ function renderWalletView(data) {
   const available = w.evidenced_balance_eur != null ? w.evidenced_balance_eur : (w.available_payout_eur || 0);
   const received = w.evidenced_received_eur != null ? w.evidenced_received_eur : (w.total_received_eur || 0);
   const withdrawn = w.evidenced_paid_out_eur != null ? w.evidenced_paid_out_eur : (w.total_withdrawn_eur || 0);
+  const activeCount = w.configured_terminals_count != null
+    ? w.configured_terminals_count
+    : ['sepa', 'revolut', 'paypal', 'crypto', 'telegram_wallet', 'viber_pay', 'paysafe', 'mt5'].filter(k => t[k]?.configured).length;
 
   if ($('wstat-balance')) $('wstat-balance').textContent = fmt(balance);
   if ($('wstat-available')) $('wstat-available').textContent = fmt(available);
   if ($('wstat-received')) $('wstat-received').textContent = fmt(received);
   if ($('wstat-withdrawn')) $('wstat-withdrawn').textContent = fmt(withdrawn);
+  if ($('wstat-terminals-count')) $('wstat-terminals-count').textContent = String(activeCount);
+
+  renderMt5View(data.mt5 || t.mt5 || null);
 
   // Pre-fill config form
   if ($('wcfg-iban')) $('wcfg-iban').value = t.sepa?.iban || '';
@@ -2812,10 +2939,16 @@ function renderWalletView(data) {
   if ($('wcfg-name')) $('wcfg-name').value = t.sepa?.account_name || '';
   if ($('wcfg-revolut')) $('wcfg-revolut').value = t.revolut?.handle || '';
   if ($('wcfg-paypal')) $('wcfg-paypal').value = t.paypal?.account || t.paypal?.email || '';
+  if ($('wcfg-ton')) $('wcfg-ton').value = t.telegram_wallet?.ton_address || '';
+  if ($('wcfg-viber')) $('wcfg-viber').value = t.viber_pay?.phone || '';
+  if ($('wcfg-paysafe')) $('wcfg-paysafe').value = t.paysafe?.account || '';
   if ($('wcfg-crypto')) $('wcfg-crypto').value = t.crypto?.address || '';
   if ($('wcfg-crypto-net')) $('wcfg-crypto-net').value = t.crypto?.network || 'polygon';
+  if ($('payout-recipient-name') && !$('payout-recipient-name').value && t.sepa?.account_name) {
+    $('payout-recipient-name').value = t.sepa.account_name;
+  }
 
-  // Pre-fill payout target based on default
+  // Pre-fill payout target based on selected channel
   const payoutType = $('payout-dest-type')?.value || 'bank_iban';
   updatePayoutTargetDefault(payoutType, t);
 
@@ -2840,16 +2973,27 @@ function renderWalletView(data) {
           node('span', isExecuted ? 'ODOSLANÉ (POTVRDENÉ)' : 'NEODOSLANÉ (DRAFT)', isExecuted ? 'domain-badge active' : 'domain-badge expired'),
           node('span', po.reference || 'DRAFT', 'detail-chip')
         );
-        const delBtn = node('button', '🗑 Zmazať záznam', 'button-link');
-        delBtn.style.color = '#ef4444';
-        delBtn.style.marginLeft = 'auto';
-        delBtn.onclick = safe(async () => {
-          await api(`/wallet/payout/${po.id}/cancel`, {});
-          notice(`Záznam výberu ${po.id} bol trvalo vymazaný.`);
-          await loadWalletView();
-        });
-        top.append(delBtn);
-        info.append(top, node('small', `Cieľ: ${po.target}${po.note ? ' · ' + po.note : ''} · Stav: ${isExecuted ? 'Odoslané a overené bankovým výpisom' : 'Iba pripravená inštrukcia (Trinity peniaze neodoslala)'} · ${new Date(po.created_at).toLocaleString('sk-SK')}`));
+        if (!isExecuted) {
+          const confirmBtn = node('button', '✓ Potvrdiť odoslanie', 'button-link');
+          confirmBtn.style.color = '#10b981';
+          confirmBtn.style.marginLeft = 'auto';
+          confirmBtn.onclick = safe(async () => {
+            const ref = window.prompt(`Zadaj dôkaz / referenciu banky pre výber ${po.id}:`, po.reference || '');
+            if (!ref || ref.trim().length < 3) return;
+            await api('/wallet/terminal/confirm', { kind: 'payout', id: po.id, evidence_ref: ref.trim() });
+            notice(`Výber ${po.id} bol zapísaný do evidencie ako odoslaný.`);
+            await loadWalletView();
+          });
+          const delBtn = node('button', '🗑 Zmazať návrh', 'button-link');
+          delBtn.style.color = '#ef4444';
+          delBtn.onclick = safe(async () => {
+            await api(`/wallet/payout/${po.id}/cancel`, {});
+            notice(`Návrh výberu ${po.id} bol vymazaný.`);
+            await loadWalletView();
+          });
+          top.append(confirmBtn, delBtn);
+        }
+        info.append(top, node('small', `Cieľ: ${po.target}${po.note ? ' · ' + po.note : ''} · Stav: ${isExecuted ? `Odoslané (dôkaz: ${po.evidence_ref || 'potvrdené'})` : 'Iba pripravená inštrukcia (Trinity peniaze neodoslala)'} · ${new Date(po.created_at).toLocaleString('sk-SK')}`));
         row.append(info);
         hist.append(row);
       });
@@ -2858,27 +3002,52 @@ function renderWalletView(data) {
         const row = node('article', undefined, 'api-key-item');
         const info = node('div', undefined, 'commerce-offer-info');
         const top = node('div', undefined, 'commerce-offer-top');
+        const isPending = ch.status === 'pending';
         top.append(
           node('b', `Príkaz na príjem: ${fmt(ch.amount_eur)} — ${ch.purpose}`),
-          node('span', 'PLATOBNÝ PRÍKAZ', 'domain-badge active'),
+          node('span', isPending ? 'ČAKÁ NA PLATBU' : String(ch.status).toUpperCase(), isPending ? 'domain-badge expired' : 'domain-badge active'),
           node('span', ch.variable_symbol ? `VS: ${ch.variable_symbol}` : 'TERMINÁL', 'detail-chip')
         );
-        info.append(top, node('small', `Terminál: ${ch.terminal_type.toUpperCase()} · Stav: ${ch.status} · ${new Date(ch.created_at).toLocaleString('sk-SK')}`));
+        if (isPending) {
+          if (ch.terminal_type === 'crypto' || ch.terminal_type === 'all') {
+            const verifyBtn = node('button', '⛓ Overiť on-chain', 'button-link');
+            verifyBtn.style.color = '#a855f7';
+            verifyBtn.style.marginLeft = 'auto';
+            verifyBtn.onclick = safe(async () => {
+              const v = await api('/wallet/terminal/verify', { charge_id: ch.id });
+              notice(v.message || (v.verified ? 'Krypto platba overená!' : 'Platba zatiaľ nebola nájdená na blockchaine.'));
+              await loadWalletView();
+            });
+            top.append(verifyBtn);
+          }
+          const confirmBtn = node('button', '✓ Potvrdiť prijatie', 'button-link');
+          confirmBtn.style.color = '#10b981';
+          if (ch.terminal_type !== 'crypto' && ch.terminal_type !== 'all') confirmBtn.style.marginLeft = 'auto';
+          confirmBtn.onclick = safe(async () => {
+            const ref = window.prompt(`Zadaj číslo transakcie / výpisu pre prijatú platbu ${ch.id}:`, ch.variable_symbol ? `VS${ch.variable_symbol}` : '');
+            if (!ref || ref.trim().length < 3) return;
+            await api('/wallet/terminal/confirm', { kind: 'charge', id: ch.id, evidence_ref: ref.trim() });
+            notice(`Platba ${ch.id} bola zaevidovaná ako prijatá.`);
+            await loadWalletView();
+          });
+          top.append(confirmBtn);
+        }
+        info.append(top, node('small', `Terminál: ${ch.terminal_type.toUpperCase()} · Stav: ${ch.status}${ch.evidence_ref ? ' · Dôkaz: ' + ch.evidence_ref : ''} · ${new Date(ch.created_at).toLocaleString('sk-SK')}`));
         row.append(info);
         hist.append(row);
       });
 
-      txs.forEach(t => {
+      txs.forEach(tx => {
         const row = node('article', undefined, 'api-key-item');
         const info = node('div', undefined, 'commerce-offer-info');
         const top = node('div', undefined, 'commerce-offer-top');
-        const isDep = t.type === 'deposit';
+        const isDep = tx.type === 'deposit';
         top.append(
-          node('b', `${isDep ? 'Vklad / Príjem' : 'Platba'}: ${fmt(t.amount_eur)}`),
-          node('span', t.type.toUpperCase(), isDep ? 'domain-badge active' : 'domain-badge for_sale'),
-          node('span', `Zostatok: ${fmt(t.balance_after_eur)}`, 'detail-chip')
+          node('b', `${isDep ? 'Vklad / Príjem' : 'Platba'}: ${fmt(tx.amount_eur)}`),
+          node('span', tx.type.toUpperCase(), isDep ? 'domain-badge active' : 'domain-badge for_sale'),
+          node('span', `Zostatok: ${fmt(tx.balance_after_eur)}`, 'detail-chip')
         );
-        info.append(top, node('small', `${t.recipient ? 'Príjemca: ' + t.recipient + ' · ' : ''}${t.note || ''} · ${new Date(t.created_at).toLocaleString('sk-SK')}`));
+        info.append(top, node('small', `${tx.recipient ? 'Príjemca: ' + tx.recipient + ' · ' : ''}${tx.note || ''} · ${new Date(tx.created_at).toLocaleString('sk-SK')}`));
         row.append(info);
         hist.append(row);
       });
@@ -2893,14 +3062,23 @@ function updatePayoutTargetDefault(type, terms) {
     targetInput.placeholder = 'napr. SK890200000000...';
     targetInput.value = terms?.sepa?.iban || '';
   } else if (type === 'paypal') {
-    targetInput.placeholder = 'napr. mojemail@paypal.com';
-    targetInput.value = terms?.paypal?.email || '';
+    targetInput.placeholder = 'napr. mojemail@paypal.com alebo @handle';
+    targetInput.value = terms?.paypal?.account || terms?.paypal?.email || '';
   } else if (type === 'revolut') {
-    targetInput.placeholder = 'napr. @mojtag alebo telefón';
-    targetInput.value = terms?.revolut?.handle ? terms.revolut.handle.replace(/.*revolut\.me\//, '@') : '';
+    targetInput.placeholder = 'napr. @mojtag alebo revolut.me/mojtag';
+    targetInput.value = terms?.revolut?.handle ? '@' + terms.revolut.handle.replace(/^@/, '') : '';
   } else if (type === 'crypto') {
     targetInput.placeholder = '0x... (Polygon / EVM adresa)';
     targetInput.value = terms?.crypto?.address || '';
+  } else if (type === 'telegram_wallet') {
+    targetInput.placeholder = 'EQ... alebo UQ... (TON adresa)';
+    targetInput.value = terms?.telegram_wallet?.ton_address || '';
+  } else if (type === 'viber') {
+    targetInput.placeholder = 'napr. +421901123456';
+    targetInput.value = terms?.viber_pay?.phone || '';
+  } else if (type === 'paysafe') {
+    targetInput.placeholder = 'napr. email alebo myPaysafe ID';
+    targetInput.value = terms?.paysafe?.account || '';
   }
 }
 
@@ -2922,89 +3100,108 @@ $('wallet-charge-form')?.addEventListener('submit', safe(async e => {
       payer_name: $('charge-payer-name').value.trim() || undefined
     });
 
-    const box = $('terminal-display-box');
     const bTitle = $('tdisp-title');
     const bAmt = $('tdisp-amount-badge');
     const bBody = $('tdisp-body');
+    const channels = res.channels || res.terminals || {};
 
     if (bTitle) bTitle.textContent = `Aktivované: ${res.purpose}`;
-    if (bAmt) bAmt.textContent = `${res.amount_eur.toFixed(2)} €`;
+    if (bAmt) bAmt.textContent = `${Number(res.amount_eur || 0).toFixed(2)} €`;
 
     if (bBody) {
       bBody.replaceChildren();
-
-      const tabs = node('div', undefined, 'chart-quick-symbols');
-      const tabsDef = [
-        { id: 'sepa', label: '🏦 SEPA EPC QR' },
-        { id: 'revolut', label: '⚡ Revolut Pay' },
-        { id: 'paypal', label: '🅿 PayPal & Karta' },
-        { id: 'crypto', label: '🪙 Krypto USDC' }
+      const allDefs = [
+        { id: 'sepa', label: '🏦 SEPA QR' },
+        { id: 'revolut', label: '⚡ Revolut' },
+        { id: 'paypal', label: '🅿 PayPal' },
+        { id: 'crypto', label: '🪙 USDC' },
+        { id: 'telegram_wallet', label: '✈️ TON' },
+        { id: 'viber_pay', label: '💜 Viber' },
+        { id: 'paysafe', label: '🎟 Paysafe' }
       ];
+      const tabsDef = allDefs.filter(d => channels[d.id]);
+      const firstAvail = tabsDef.find(d => channels[d.id]?.available) || tabsDef[0];
+      const tabs = node('div', undefined, 'chart-quick-symbols');
 
       const renderActiveMethod = (mId) => {
+        const ch = channels[mId];
         const card = node('div', undefined, 'mm-scene-card');
         card.style.marginTop = '12px';
         card.style.textAlign = 'center';
 
-        if (mId === 'sepa') {
+        if (!ch || !ch.available) {
+          card.innerHTML = `<b style="color:#f59e0b">⚠️ Kanál nie je nastavený</b><p style="font-size:12px;color:var(--muted);margin-top:6px">${escW(ch?.reason || 'Najprv nastav tento kanál v záložke Terminály.')}</p>`;
+        } else if (mId === 'sepa') {
           card.innerHTML = `
             <b style="font-size:14px;color:#10b981">🏦 Okamžitá SEPA Platba (EPC QR Kód)</b>
-            <p>Naskenujte v akejkoľvek mobilnej banke (SLSP George, Tatra banka, VÚB, ČSOB, Revolut):</p>
-            <div style="margin:12px auto;display:inline-block">${res.terminals.sepa.qr_svg}</div>
+            <p>${escW(ch.note || 'Naskenujte v mobilnej banke.')}</p>
+            <div style="margin:12px auto;display:inline-block">${ch.qr_svg || ''}</div>
             <div style="font-size:11px;color:#94a3b8;margin-top:6px;font-family:monospace">
-              IBAN: ${res.terminals.sepa.iban}<br>
-              BIC: ${res.terminals.sepa.bic} · VS: ${res.variable_symbol}<br>
-              Suma: <b>${res.amount_eur.toFixed(2)} EUR</b>
+              IBAN: ${escW(ch.iban)}<br>
+              BIC: ${escW(ch.bic || '—')} · VS: ${escW(res.variable_symbol || '—')}<br>
+              Suma: <b>${Number(res.amount_eur).toFixed(2)} EUR</b>
             </div>
           `;
-          const copyBtn = node('button', '📋 Kopírovať SEPA EPC reťazec pre banku', 'primary');
+          const copyBtn = node('button', '📋 Kopírovať SEPA EPC reťazec', 'primary');
           copyBtn.style.marginTop = '8px';
           copyBtn.onclick = async () => {
-            await navigator.clipboard?.writeText(res.terminals.sepa.epc_payload);
+            await navigator.clipboard?.writeText(ch.epc_payload || '');
             notice('SEPA EPC QR payload skopírovaný do schránky.');
           };
           card.append(copyBtn);
-        } else if (mId === 'revolut') {
+        } else if (mId === 'revolut' || mId === 'paypal' || mId === 'viber_pay') {
+          const titleLabel = mId === 'revolut' ? '⚡ Revolut Pay' : (mId === 'paypal' ? '🅿 PayPal & Karta' : '💜 Viber Pay');
           card.innerHTML = `
-            <b style="font-size:14px;color:#38bdf8">⚡ Revolut Pay & Revolut.me</b>
-            <p>Priama platba cez Revolut aplikáciu alebo platobnú kartu:</p>
-            <div style="margin:12px auto;display:inline-block">${res.terminals.revolut.qr_svg}</div>
+            <b style="font-size:14px;color:#38bdf8">${titleLabel}</b>
+            <p style="font-size:12px">${escW(ch.note || '')}</p>
+            <div style="margin:12px auto;display:inline-block">${ch.qr_svg || ''}</div>
           `;
-          const act = node('div', undefined, 'commerce-offer-actions');
-          const revLink = node('a', '🚀 Otvoriť Revolut Pay platbu', 'primary');
-          revLink.href = res.terminals.revolut.url;
-          revLink.target = '_blank';
-          act.append(revLink);
-          card.append(act);
-        } else if (mId === 'paypal') {
-          card.innerHTML = `
-            <b style="font-size:14px;color:#f59e0b">🅿 PayPal & Platobné Karty</b>
-            <p>Bezpečná platba kartou Visa / Mastercard alebo zostatkom PayPal:</p>
-            <div style="margin:12px auto;display:inline-block">${res.terminals.paypal.qr_svg}</div>
-          `;
-          const act = node('div', undefined, 'commerce-offer-actions');
-          const ppLink = node('a', '💳 Otvoriť PayPal Checkout', 'primary');
-          ppLink.href = res.terminals.paypal.url;
-          ppLink.target = '_blank';
-          act.append(ppLink);
-          card.append(act);
+          if (ch.url) {
+            const act = node('div', undefined, 'commerce-offer-actions');
+            const link = node('a', `🚀 Otvoriť ${titleLabel}`, 'primary');
+            link.href = ch.url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            act.append(link);
+            card.append(act);
+          }
         } else if (mId === 'crypto') {
           card.innerHTML = `
-            <b style="font-size:14px;color:#a855f7">🪙 Web3 Krypto Platba (Polygon USDC / USDT)</b>
-            <p>Okamžitý prevod stablecoinov na sieti Polygon (nízke poplatky):</p>
-            <div style="margin:12px auto;display:inline-block">${res.terminals.crypto.qr_svg}</div>
+            <b style="font-size:14px;color:#a855f7">🪙 Web3 Krypto Platba (${escW(ch.network || 'polygon')} USDC)</b>
+            <p style="font-size:12px">${escW(ch.note || '')}</p>
+            <div style="margin:12px auto;display:inline-block">${ch.qr_svg || ''}</div>
             <div style="font-size:11px;color:#94a3b8;font-family:monospace;word-break:break-all">
-              Adresa: <b>${res.terminals.crypto.address}</b><br>
-              Sieť: Polygon PoS · Token: USDC / USDT
+              Adresa: <b>${escW(ch.address)}</b><br>
+              Suma: <b>${escW(ch.amount_usdc)} USDC</b>
             </div>
           `;
           const copyBtn = node('button', '📋 Kopírovať krypto adresu', 'primary');
           copyBtn.style.marginTop = '8px';
           copyBtn.onclick = async () => {
-            await navigator.clipboard?.writeText(res.terminals.crypto.address);
+            await navigator.clipboard?.writeText(ch.address || '');
             notice('Krypto adresa skopírovaná do schránky.');
           };
           card.append(copyBtn);
+        } else if (mId === 'telegram_wallet') {
+          card.innerHTML = `
+            <b style="font-size:14px;color:#38bdf8">✈️ Telegram @wallet (TON / USDT)</b>
+            <p style="font-size:12px">${escW(ch.note || '')}</p>
+            <div style="margin:12px auto;display:inline-block">${ch.qr_svg || ''}</div>
+            <div style="font-size:11px;color:#94a3b8;font-family:monospace;word-break:break-all">TON: <b>${escW(ch.ton_address)}</b></div>
+          `;
+          const copyBtn = node('button', '📋 Kopírovať TON adresu', 'primary');
+          copyBtn.style.marginTop = '8px';
+          copyBtn.onclick = async () => {
+            await navigator.clipboard?.writeText(ch.ton_address || '');
+            notice('TON adresa skopírovaná do schránky.');
+          };
+          card.append(copyBtn);
+        } else if (mId === 'paysafe') {
+          card.innerHTML = `
+            <b style="font-size:14px;color:#f59e0b">🎟 Paysafe / myPaysafe</b>
+            <p style="font-size:12px">${escW(ch.note || '')}</p>
+            <div style="font-size:11px;color:#94a3b8;font-family:monospace">Účet: <b>${escW(ch.account || '')}</b></div>
+          `;
         }
 
         const existingCard = bBody.querySelector('.mm-scene-card');
@@ -3012,8 +3209,8 @@ $('wallet-charge-form')?.addEventListener('submit', safe(async e => {
         bBody.append(card);
       };
 
-      tabsDef.forEach((td, idx) => {
-        const btn = node('button', td.label, 'chart-sym-pill' + (idx === 0 ? ' active' : ''));
+      tabsDef.forEach(td => {
+        const btn = node('button', td.label, 'chart-sym-pill' + (td.id === firstAvail?.id ? ' active' : ''));
         btn.type = 'button';
         btn.onclick = () => {
           tabs.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
@@ -3023,17 +3220,17 @@ $('wallet-charge-form')?.addEventListener('submit', safe(async e => {
       });
 
       bBody.append(tabs);
-      renderActiveMethod('sepa');
+      if (firstAvail) renderActiveMethod(firstAvail.id);
     }
 
-    notice(`Platobný terminál aktivovaný: vygenerovaný SEPA QR, Revolut, PayPal a krypto link pre sumu ${res.amount_eur.toFixed(2)} EUR (+ zapísaný Trinity Dokument).`);
+    notice(`Platobná požiadavka ${res.charge_id} pripravená pre sumu ${Number(res.amount_eur).toFixed(2)} EUR (platba ešte nebola prijatá).`);
     await loadWalletView();
   } finally {
     if (btn) btn.disabled = false;
   }
 }));
 
-// PAYOUT FORM (Withdraw Funds)
+// PAYOUT FORM (Prepare Withdrawal Instruction — Truth Policy 2.1)
 $('wallet-payout-form')?.addEventListener('submit', safe(async e => {
   e.preventDefault();
   const btn = $('payout-submit-btn');
@@ -3043,20 +3240,78 @@ $('wallet-payout-form')?.addEventListener('submit', safe(async e => {
       amount_eur: Number($('payout-amount').value) || 100,
       destination_type: $('payout-dest-type').value,
       target: $('payout-target').value.trim(),
+      recipient_name: $('payout-recipient-name')?.value.trim() || undefined,
       note: $('payout-note').value.trim() || undefined
     });
 
     const resBox = $('payout-result-box');
     if (resBox) {
+      const instr = res.instruction || {};
       resBox.innerHTML = `
-        <div class="dialog-head"><strong>✅ Príkaz na výber peňazí úspešne spracovaný</strong></div>
-        <p style="font-size:12px;margin:8px 0">Suma <b>${res.amount_eur.toFixed(2)} EUR</b> bola zadaná na prevod do <b>${res.destination_type.toUpperCase()}</b> (${res.target}).</p>
-        <small style="color:var(--muted)">Referencia: ${res.reference} · ID Výberu: ${res.payout_id} · Vytvorený Trinity Dokument.</small>
+        <div class="dialog-head"><strong>📋 Inštrukcia na výber pripravená (NEODOSLANÉ)</strong></div>
+        <p style="font-size:12px;margin:8px 0">Suma <b>${Number(res.amount_eur).toFixed(2)} EUR</b> · Cieľ: <b>${escW(String(res.destination_type).toUpperCase())}</b> (<code>${escW(res.target)}</code>).</p>
+        <p style="font-size:12px;color:#f59e0b;margin:6px 0">${escW(instr.how_to || res.message || 'Trinity peniaze neodoslala. Odošli platbu vo svojej aplikácii a potvrď ju v Histórii.')}</p>
+        ${instr.qr_svg ? `<div style="margin:10px auto;text-align:center">${instr.qr_svg}</div>` : ''}
+        ${instr.url ? `<div style="margin:8px 0"><a class="primary" href="${escW(instr.url)}" target="_blank" rel="noopener noreferrer">🚀 Otvoriť platobnú aplikáciu</a></div>` : ''}
+        <small style="color:var(--muted)">Referencia: ${escW(res.reference)} · ID: ${escW(res.payout_id)} · Stav: prepared (neodoslané)</small>
       `;
       resBox.hidden = false;
     }
 
-    notice(`Výber peňazí (${res.amount_eur.toFixed(2)} EUR) bol zaevidovaný a zapísaný do Trinity Dokumentov.`);
+    notice(`Pripravená inštrukcia na výber ${Number(res.amount_eur).toFixed(2)} EUR (peniaze NEBOLI odoslané).`);
+    await loadWalletView();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+// METATRADER 5 (MT5) CONFIG & SYNC HANDLERS
+$('wallet-mt5-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  const btn = $('mt5-save-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const mode = $('mt5-mode').value;
+    const payload = {
+      mode,
+      account_type: $('mt5-account-type').value,
+      broker: $('mt5-broker').value.trim() || undefined,
+      server: $('mt5-server').value.trim() || undefined,
+      login: $('mt5-login').value.trim() || undefined,
+      currency: ($('mt5-currency').value.trim() || 'EUR').toUpperCase(),
+      allow_trade_execution: Boolean($('mt5-allow-trade')?.checked)
+    };
+    if (mode === 'metaapi') {
+      payload.account_id = $('mt5-account-id').value.trim() || undefined;
+      payload.region = $('mt5-region').value;
+    } else {
+      payload.bridge_url = $('mt5-bridge-url').value.trim() || undefined;
+    }
+    const rawToken = $('mt5-api-token')?.value.trim();
+    if (rawToken) payload.api_token = rawToken;
+
+    const saved = await api('/wallet/mt5/config', payload);
+    if ($('mt5-api-token')) $('mt5-api-token').value = '';
+    renderMt5View(saved);
+    notice(`MetaTrader 5 (${saved.mode}) uložený${saved.token_stored_in_vault ? ' + API token zašifrovaný v Trezore' : ''}.`);
+    await loadWalletView();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+$('mt5-sync-btn')?.addEventListener('click', safe(async () => {
+  const btn = $('mt5-sync-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await api('/wallet/mt5/sync', {});
+    if (res.config) renderMt5View(res.config);
+    if (res.ok && res.verified) {
+      const acc = res.snapshot?.account;
+      notice(`MT5 synchronizované: Balance ${fmtMoney(acc?.balance, acc?.currency)}, Equity ${fmtMoney(acc?.equity, acc?.currency)} (${res.snapshot?.positions_count ?? 0} pozícií).`);
+    } else {
+      notice(`MT5 sync: ${res.error || 'nepodarilo sa overiť spojenie.'}`);
+    }
     await loadWalletView();
   } finally {
     if (btn) btn.disabled = false;
@@ -3072,6 +3327,9 @@ $('wallet-config-form')?.addEventListener('submit', safe(async e => {
     account_name: $('wcfg-name').value.trim() || undefined,
     revolut_handle: $('wcfg-revolut').value.trim() || undefined,
     paypal_email: $('wcfg-paypal').value.trim() || undefined,
+    ton_address: $('wcfg-ton')?.value.trim() || undefined,
+    viber_wallet_phone: $('wcfg-viber')?.value.trim() || undefined,
+    paysafe_account: $('wcfg-paysafe')?.value.trim() || undefined,
     crypto_address: $('wcfg-crypto').value.trim() || undefined,
     crypto_network: $('wcfg-crypto-net').value || 'polygon'
   });
@@ -3079,14 +3337,34 @@ $('wallet-config-form')?.addEventListener('submit', safe(async e => {
   await loadWalletView();
 }));
 
-// CREATE CRYPTO WALLET BTN
+// CREATE CRYPTO WALLET BTN (Shows one-time private key safely)
 $('wallet-create-crypto-btn')?.addEventListener('click', safe(async () => {
   const btn = $('wallet-create-crypto-btn');
   if (btn) btn.disabled = true;
   try {
     const res = await api('/wallet/terminal/create-crypto', {});
     if ($('wcfg-crypto')) $('wcfg-crypto').value = res.address;
-    notice(`Nová Web3 EVM kryptopeňaženka vytvorená: ${res.address} (Polygon PoS).`);
+    const box = $('wallet-crypto-created-box');
+    if (box) {
+      box.innerHTML = `
+        <div class="dialog-head"><strong>🔐 Nová Web3 EVM peňaženka vygenerovaná (${escW(res.network || 'polygon')})</strong></div>
+        <p style="font-size:12px;color:#f59e0b;margin:8px 0">${escW(res.private_key_warning || 'Ulož si privátny kľúč hneď teraz — Trinity ho neukladá!')}</p>
+        <div style="font-size:12px;font-family:monospace;word-break:break-all;margin:6px 0">
+          Adresa: <b>${escW(res.address)}</b><br>
+          Privátny kľúč (zobrazený iba raz): <code style="color:#ef4444">${escW(res.private_key)}</code>
+        </div>
+        ${res.qr_svg ? `<div style="margin:8px 0">${res.qr_svg}</div>` : ''}
+      `;
+      const copyKeyBtn = node('button', '📋 Kopírovať privátny kľúč do správcu hesiel', 'primary');
+      copyKeyBtn.type = 'button';
+      copyKeyBtn.onclick = async () => {
+        await navigator.clipboard?.writeText(res.private_key || '');
+        notice('Privátny kľúč skopírovaný do schránky — ihneď ho ulož do bezpečného správcu hesiel.');
+      };
+      box.append(copyKeyBtn);
+      box.hidden = false;
+    }
+    notice(`Nová Web3 EVM kryptopeňaženka vytvorená: ${res.address}. Ulož si privátny kľúč zobrazený na obrazovke!`);
     await loadWalletView();
   } finally {
     if (btn) btn.disabled = false;

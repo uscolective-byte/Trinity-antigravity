@@ -14,6 +14,7 @@ import { HttpError } from './security.js';
 import { createTrinityDocument } from './trinity-documents.js';
 import { normalizeViberPhone } from './viber-bridge.js';
 import { normalizePaysafeAccount } from './paysafe-connector.js';
+import { getMt5Config } from './mt5-connector.js';
 
 /*
  * Trinity Wallet & Payment Terminals — verified data only.
@@ -295,7 +296,19 @@ export async function getWalletTerminalOverview(env, ownerId = 'admin') {
   const pending = env.DB ? await env.DB.prepare("SELECT COALESCE(SUM(amount_cents),0) AS cents, COUNT(*) AS n FROM ops_terminal_charges_v2 WHERE owner_id=? AND status='pending'").bind(ownerId).first() : { cents: 0, n: 0 };
 
   const onchain = cryptoAddress ? await readUsdcBalance(chain, cryptoAddress) : null;
+  const mt5 = await getMt5Config(env, ownerId).catch(() => ({ configured: false, connected: false, has_token: false, snapshot: null }));
   const eur = (cents) => Number(((cents || 0) / 100).toFixed(2));
+
+  const configuredTerminalsCount = [
+    Boolean(iban),
+    Boolean(revolut),
+    Boolean(paypal),
+    Boolean(cryptoAddress),
+    Boolean(termRow?.ton_address),
+    Boolean(termRow?.viber_wallet_phone),
+    Boolean(termRow?.paysafe_account),
+    Boolean(mt5?.configured)
+  ].filter(Boolean).length;
 
   return {
     wallet: {
@@ -305,8 +318,10 @@ export async function getWalletTerminalOverview(env, ownerId = 'admin') {
       evidenced_balance_eur: eur((totals?.received || 0) - (totals?.paid_out || 0)),
       pending_charges_eur: eur(pending?.cents),
       pending_charges_count: pending?.n || 0,
+      configured_terminals_count: configuredTerminalsCount,
       basis: 'Súčet overených záznamov v evidencii Trinity (blockchain alebo potvrdenie majiteľa). Nie je to stav bankového účtu, PayPalu ani Revolutu.'
     },
+    mt5,
     terminals: {
       sepa: { configured: Boolean(iban), iban, bic: termRow?.bic ? normalizeBic(termRow.bic) : null, account_name: termRow?.account_name || null, standard: 'EPC069-12 (SEPA Credit Transfer QR)' },
       revolut: { configured: Boolean(revolut), handle: revolut, url: revolut ? `https://revolut.me/${revolut}` : null },
@@ -332,6 +347,20 @@ export async function getWalletTerminalOverview(env, ownerId = 'admin') {
         portal_url: 'https://my.paysafecard.com/',
         service: 'Paysafe & Paysafecard Wallet',
         supported_methods: ['myPaysafe', 'Paysafecard 16-digit PIN', 'Skrill EUR']
+      },
+      mt5: {
+        configured: Boolean(mt5?.configured),
+        connected: Boolean(mt5?.connected),
+        has_token: Boolean(mt5?.has_token),
+        mode: mt5?.mode || 'metaapi',
+        broker: mt5?.broker || null,
+        server: mt5?.server || null,
+        login_masked: mt5?.login_masked || null,
+        account_type: mt5?.account_type || 'demo',
+        currency: mt5?.currency || 'EUR',
+        balance: mt5?.snapshot?.account?.balance ?? null,
+        equity: mt5?.snapshot?.account?.equity ?? null,
+        last_verified_at: mt5?.last_verified_at || null
       },
       crypto: {
         configured: Boolean(cryptoAddress),

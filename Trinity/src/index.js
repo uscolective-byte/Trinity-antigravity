@@ -122,7 +122,8 @@ import {createPortfolio,listPortfolios,getPortfolio,recordTrade,setQuote} from '
 import {listCustomAgents,createOrUpdateCustomAgent,executeCustomAgent,provisionAgentDomain} from './agent-sandbox.js';
 import {getDevHubStatus,executeDevHubCommand} from './developer-hub.js';
 import {getWallet,transactWallet} from './wallet.js';
-import {getWalletTerminalOverview,saveWalletTerminalConfig,createPaymentTerminalCharge,executeWalletPayout,createCryptoWallet,cancelWalletPayout} from './wallet-terminals.js';
+import {getWalletTerminalOverview,saveWalletTerminalConfig,createPaymentTerminalCharge,executeWalletPayout,createCryptoWallet,cancelWalletPayout,verifyTerminalCharge,confirmTerminalEntry} from './wallet-terminals.js';
+import {getMt5Config,saveMt5Config,fetchMt5AccountSnapshot,getMt5History,prepareMt5TradeOrder} from './mt5-connector.js';
 import {getConnectorsRegistry,syncConnector} from './banking-connectors.js';
 import {handleInboundEmail} from './email.js';
 import {TRINITY2_CAPABILITIES,rolePermissions,requireCapability,updateRolePermission,analyzeImage,transcribeAudio,synthesizeSpeech,listVisualWorkflows,saveVisualWorkflow,listIncidents,resolveIncident,recordHealthIncident,exportAudit} from './trinity2.js';
@@ -2032,6 +2033,34 @@ async function route(request,env,ctx,authContext=null){
   if(path==='/api/assistant/wallet/terminal/create-crypto'&&request.method==='POST'){
     requireAdmin(user);
     return json(await createCryptoWallet(env,ownerId));
+  }
+  if(path==='/api/assistant/wallet/terminal/verify'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await verifyTerminalCharge(env,ownerId,await readJSON(request,8000)));
+  }
+  if(path==='/api/assistant/wallet/terminal/confirm'&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await confirmTerminalEntry(env,ownerId,await readJSON(request,8000)));
+  }
+  if(path==='/api/assistant/wallet/mt5/config'){
+    requireAdmin(user);
+    if(request.method==='GET')return json(await getMt5Config(env,ownerId));
+    if(request.method==='POST'){await rateLimit(env,`wallet-mt5-config:${user.id}`,20,300);return json(await saveMt5Config(env,ownerId,await readJSON(request,16000)));}
+  }
+  if(path==='/api/assistant/wallet/mt5/sync'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`wallet-mt5-sync:${user.id}`,30,300);
+    return json(await fetchMt5AccountSnapshot(env,ownerId));
+  }
+  if(path==='/api/assistant/wallet/mt5/history'&&request.method==='GET'){
+    requireAdmin(user);
+    const days=Number(url.searchParams.get('days')||30);
+    return json(await getMt5History(env,ownerId,{days}));
+  }
+  if(path==='/api/assistant/wallet/mt5/order'&&request.method==='POST'){
+    requireOwner(user);
+    await rateLimit(env,`wallet-mt5-order:${user.id}`,10,300);
+    return json(await prepareMt5TradeOrder(env,ownerId,await readJSON(request,8000)));
   }
   if(path==='/api/assistant/wallet/connectors'&&request.method==='GET'){
     requireAdmin(user);

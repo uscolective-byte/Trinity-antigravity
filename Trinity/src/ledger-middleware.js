@@ -18,7 +18,9 @@ const AUDITED_PATHS = [
   '/api/assistant/domains/environments/deploy',
   '/api/assistant/domains/register',
   '/api/assistant/wallet/terminal/charge',
-  '/api/assistant/wallet/terminal/payout'
+  '/api/assistant/wallet/terminal/payout',
+  '/api/assistant/wallet/terminal/confirm',
+  '/api/assistant/wallet/mt5/order'
 ];
 
 export function shouldAuditRequest(pathname, method) {
