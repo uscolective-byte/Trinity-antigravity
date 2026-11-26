@@ -22,7 +22,8 @@ test('spoofed owner id without verified principal cannot call a mutating tool', 
 
 test('server-verified owner may invoke typed tool', async () => {
   let writes = 0;
-  const env = { TRINITY_KV: { async put(key, value) {
+  let savedReceipt;
+  const env = { DB: { async batch() { return [{success:true}, {success:true, meta:{changes:1}}]; }, prepare() { return { bind(id) { savedReceipt = id; return { async run() { return { success: true, meta: { changes: 1 } }; } }; } }; } }, TRINITY_KV: { async put(key, value) {
     writes++;
     assert.equal(key, 'important');
     assert.equal(value, 'changed');
@@ -33,4 +34,14 @@ test('server-verified owner may invoke typed tool', async () => {
   assert.equal(writes, 1);
   assert.equal(result.hasToolCalls, true);
   assert.equal(result.results[0].status, 'SUCCESS');
+  assert.ok(savedReceipt);
+  assert.equal(result.results[0].receipt_id, savedReceipt);
+});
+
+test('missing receipt storage stops a verified owner mutation before dispatch', async () => {
+  let writes = 0;
+  const env = { TRINITY_KV: { async put() { writes++; } } };
+  const result = await executeToolCalls(llmCall, env, { authenticated: true, role: 'owner', userId: 'owner' });
+  assert.equal(writes, 0);
+  assert.equal(result.results[0].status, 'UNVERIFIED');
 });
