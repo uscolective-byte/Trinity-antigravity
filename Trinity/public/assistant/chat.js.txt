@@ -2939,7 +2939,7 @@ function renderWalletView(data) {
   if ($('wcfg-name')) $('wcfg-name').value = t.sepa?.account_name || '';
   if ($('wcfg-revolut')) $('wcfg-revolut').value = t.revolut?.handle || '';
   if ($('wcfg-paypal')) $('wcfg-paypal').value = t.paypal?.account || t.paypal?.email || '';
-  if ($('wcfg-ton')) $('wcfg-ton').value = t.telegram_wallet?.ton_address || '';
+  if ($('wcfg-tgwallet')) $('wcfg-tgwallet').value = t.telegram_wallet?.ton_address || '';
   if ($('wcfg-viber')) $('wcfg-viber').value = t.viber_pay?.phone || '';
   if ($('wcfg-paysafe')) $('wcfg-paysafe').value = t.paysafe?.account || '';
   if ($('wcfg-crypto')) $('wcfg-crypto').value = t.crypto?.address || '';
@@ -3071,7 +3071,7 @@ function updatePayoutTargetDefault(type, terms) {
     targetInput.placeholder = '0x... (Polygon / EVM adresa)';
     targetInput.value = terms?.crypto?.address || '';
   } else if (type === 'telegram_wallet') {
-    targetInput.placeholder = 'EQ... alebo UQ... (TON adresa)';
+    targetInput.placeholder = 'EQ... alebo UQ... (Telegram @wallet adresa)';
     targetInput.value = terms?.telegram_wallet?.ton_address || '';
   } else if (type === 'viber') {
     targetInput.placeholder = 'napr. +421901123456';
@@ -3115,7 +3115,7 @@ $('wallet-charge-form')?.addEventListener('submit', safe(async e => {
         { id: 'revolut', label: '⚡ Revolut' },
         { id: 'paypal', label: '🅿 PayPal' },
         { id: 'crypto', label: '🪙 USDC' },
-        { id: 'telegram_wallet', label: '✈️ TON' },
+        { id: 'telegram_wallet', label: '✈️ @wallet' },
         { id: 'viber_pay', label: '💜 Viber' },
         { id: 'paysafe', label: '🎟 Paysafe' }
       ];
@@ -3184,16 +3184,16 @@ $('wallet-charge-form')?.addEventListener('submit', safe(async e => {
           card.append(copyBtn);
         } else if (mId === 'telegram_wallet') {
           card.innerHTML = `
-            <b style="font-size:14px;color:#38bdf8">✈️ Telegram @wallet (TON / USDT)</b>
+            <b style="font-size:14px;color:#38bdf8">✈️ Telegram @wallet (USDT)</b>
             <p style="font-size:12px">${escW(ch.note || '')}</p>
             <div style="margin:12px auto;display:inline-block">${ch.qr_svg || ''}</div>
-            <div style="font-size:11px;color:#94a3b8;font-family:monospace;word-break:break-all">TON: <b>${escW(ch.ton_address)}</b></div>
+            <div style="font-size:11px;color:#94a3b8;font-family:monospace;word-break:break-all">Adresa: <b>${escW(ch.ton_address)}</b></div>
           `;
-          const copyBtn = node('button', '📋 Kopírovať TON adresu', 'primary');
+          const copyBtn = node('button', '📋 Kopírovať @wallet adresu', 'primary');
           copyBtn.style.marginTop = '8px';
           copyBtn.onclick = async () => {
             await navigator.clipboard?.writeText(ch.ton_address || '');
-            notice('TON adresa skopírovaná do schránky.');
+            notice('Telegram @wallet adresa skopírovaná do schránky.');
           };
           card.append(copyBtn);
         } else if (mId === 'paysafe') {
@@ -3327,7 +3327,7 @@ $('wallet-config-form')?.addEventListener('submit', safe(async e => {
     account_name: $('wcfg-name').value.trim() || undefined,
     revolut_handle: $('wcfg-revolut').value.trim() || undefined,
     paypal_email: $('wcfg-paypal').value.trim() || undefined,
-    ton_address: $('wcfg-ton')?.value.trim() || undefined,
+    ton_address: $('wcfg-tgwallet')?.value.trim() || undefined,
     viber_wallet_phone: $('wcfg-viber')?.value.trim() || undefined,
     paysafe_account: $('wcfg-paysafe')?.value.trim() || undefined,
     crypto_address: $('wcfg-crypto').value.trim() || undefined,

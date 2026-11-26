@@ -321,7 +321,7 @@ test('MT5 Integration: banking-connectors, wallet-terminals overview, tools.js (
   assert.match(chatHtml, /id="wallet-pane-mt5"/);
   assert.match(chatHtml, /id="wallet-mt5-form"/);
   assert.match(chatHtml, /id="payout-recipient-name"/);
-  assert.match(chatHtml, /id="wcfg-ton"/);
+  assert.match(chatHtml, /id="wcfg-tgwallet"/);
   assert.match(chatHtml, /id="wallet-crypto-created-box"/);
   assert.match(chatJs, /const channels = res\.channels \|\| res\.terminals/);
   assert.match(chatJs, /\/wallet\/mt5\/config/);

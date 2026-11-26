@@ -2025,7 +2025,7 @@
                   <input id="charge-amount" type="number" min="0.50" max="100000" step="0.50" value="50" required>
                 </label>
                 <label><span>Účel / Popis platby *</span><input id="charge-purpose" required minlength="2" maxlength="160" placeholder="napr. Tvorba webu na kľúč alebo nájom domény" value="Tvorba moderného webu"></label>
-                <label><span>Preferovaný terminál</span><select id="charge-terminal-type"><option value="all">Všetky nastavené kanály</option><option value="sepa">🏦 SEPA Instant EPC QR kód</option><option value="revolut">⚡ Revolut Pay</option><option value="paypal">🅿 PayPal &amp; Platobná karta</option><option value="crypto">🪙 Web3 Krypto (USDC)</option><option value="telegram_wallet">✈️ Telegram @wallet (TON)</option><option value="viber">💜 Viber Pay</option><option value="paysafe">🎟 Paysafe / myPaysafe</option></select></label>
+                <label><span>Preferovaný terminál</span><select id="charge-terminal-type"><option value="all">Všetky nastavené kanály</option><option value="sepa">🏦 SEPA Instant EPC QR kód</option><option value="revolut">⚡ Revolut Pay</option><option value="paypal">🅿 PayPal &amp; Platobná karta</option><option value="crypto">🪙 Web3 Krypto (USDC)</option><option value="telegram_wallet">✈️ Telegram @wallet</option><option value="viber">💜 Viber Pay</option><option value="paysafe">🎟 Paysafe / myPaysafe</option></select></label>
                 <label><span>Variabilný symbol (voliteľné)</span><input id="charge-vs" maxlength="10" placeholder="napr. 20261001"></label>
                 <label><span>Meno platiteľa (voliteľné)</span><input id="charge-payer-name" maxlength="80" placeholder="napr. Martin Kováč"></label>
               </div>
@@ -2055,11 +2055,11 @@
             <div><span class="eyebrow">PRÍPRAVA VÝBERU</span><h2>Pripraviť inštrukciu a QR na výber prostriedkov</h2></div>
             <span class="detail-chip">PRIPRAVENÁ INŠTRUKCIA</span>
           </div>
-          <p class="settings-help">Trinity pripraví overenú platobnú inštrukciu a QR kód (SEPA EPC, PayPal, Revolut, USDC, Telegram TON, Viber Pay alebo Paysafe). <b>Trinity peniaze sama neodosiela</b> — platbu odošleš vo svojej aplikácii a potom ju potvrdíš v Histórii.</p>
+          <p class="settings-help">Trinity pripraví overenú platobnú inštrukciu a QR kód (SEPA EPC, PayPal, Revolut, USDC, Telegram @wallet, Viber Pay alebo Paysafe). <b>Trinity peniaze sama neodosiela</b> — platbu odošleš vo svojej aplikácii a potom ju potvrdíš v Histórii.</p>
           <form id="wallet-payout-form" class="secret-form commerce-form">
             <div class="commerce-form-grid">
               <label><span>Suma na výber (EUR) *</span><input id="payout-amount" type="number" min="1" max="100000" step="0.50" value="100" required></label>
-              <label><span>Cieľová brána výberu *</span><select id="payout-dest-type"><option value="bank_iban">🏦 Bankový účet (SEPA EPC QR na IBAN)</option><option value="paypal">🅿 PayPal účet (email / paypal.me)</option><option value="revolut">⚡ Revolut účet (@revtag)</option><option value="crypto">🪙 Krypto peňaženka (USDC)</option><option value="telegram_wallet">✈️ Telegram @wallet (TON)</option><option value="viber">💜 Viber Pay (+421...)</option><option value="paysafe">🎟 Paysafe / myPaysafe</option></select></label>
+              <label><span>Cieľová brána výberu *</span><select id="payout-dest-type"><option value="bank_iban">🏦 Bankový účet (SEPA EPC QR na IBAN)</option><option value="paypal">🅿 PayPal účet (email / paypal.me)</option><option value="revolut">⚡ Revolut účet (@revtag)</option><option value="crypto">🪙 Krypto peňaženka (USDC)</option><option value="telegram_wallet">✈️ Telegram @wallet</option><option value="viber">💜 Viber Pay (+421...)</option><option value="paysafe">🎟 Paysafe / myPaysafe</option></select></label>
               <label><span>Cieľ (IBAN / email / @tag / adresa / telefón) *</span><input id="payout-target" required minlength="3" maxlength="120" placeholder="napr. SK890200000000..."></label>
               <label><span>Meno príjemcu (povinné pre IBAN)</span><input id="payout-recipient-name" maxlength="100" placeholder="napr. Ivan Sabo"></label>
               <label><span>Poznámka / Referencia</span><input id="payout-note" maxlength="140" placeholder="napr. Osobný výber zisku"></label>
@@ -2118,7 +2118,7 @@
       <div id="wallet-pane-config" class="wallet-tab-pane" hidden>
         <section class="panel domain-env-panel">
           <div class="panel-head">
-            <div><span class="eyebrow">NAPOJENIE TERMINÁLOV</span><h2>Nastavenie IBANu, Revolutu, PayPalu, TON, Viber Pay, Paysafe a Web3</h2></div>
+            <div><span class="eyebrow">NAPOJENIE TERMINÁLOV</span><h2>Nastavenie IBANu, Revolutu, PayPalu, Telegram @wallet, Viber Pay, Paysafe a Web3</h2></div>
             <button type="button" id="wallet-create-crypto-btn" class="primary">✨ Vygenerovať novú Web3 peňaženku</button>
           </div>
           <div id="wallet-crypto-created-box" class="domain-form-card" style="margin-bottom:14px" hidden></div>
@@ -2129,7 +2129,7 @@
               <label><span>Meno príjemcu / Názov účtu</span><input id="wcfg-name" maxlength="70" placeholder="napr. Ivan Sabo"></label>
               <label><span>Revolut Handle / Odkaz</span><input id="wcfg-revolut" maxlength="100" placeholder="napr. https://revolut.me/saboivan alebo @saboivan"></label>
               <label><span>PayPal Email / Odkaz</span><input id="wcfg-paypal" maxlength="100" placeholder="napr. saboivan2008@gmail.com alebo paypal.me/..."></label>
-              <label><span>Telegram @wallet (TON adresa)</span><input id="wcfg-ton" maxlength="100" placeholder="EQ... alebo UQ..."></label>
+              <label><span>Telegram @wallet adresa</span><input id="wcfg-tgwallet" maxlength="100" placeholder="EQ... alebo UQ..."></label>
               <label><span>Viber Pay telefónne číslo</span><input id="wcfg-viber" maxlength="40" placeholder="napr. +421901123456"></label>
               <label><span>Paysafe / myPaysafe účet</span><input id="wcfg-paysafe" maxlength="120" placeholder="napr. email alebo myPaysafe ID"></label>
               <label><span>Web3 EVM Krypto Adresa</span><input id="wcfg-crypto" maxlength="60" placeholder="0x..."></label>
