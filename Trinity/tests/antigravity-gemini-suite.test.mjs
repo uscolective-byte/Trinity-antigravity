@@ -182,9 +182,11 @@ test('Antigravity Suite 7: runTool dispatch for Antigravity tools and Triad tele
 
   // 3. triad_status cez runTool
   const triadRes = await runTool({}, agent, 'triad_status', {});
-  assert.equal(triadRes.status, 'active');
+  assert.equal(triadRes.status, 'ai_binding_missing');
+  assert.equal(triadRes.live_external_checked, false);
   assert.equal(triadRes.triad.trinity.role, 'Sovereign Orchestrator');
-  assert.equal(triadRes.gemini_gem.status, 'configured_in_code');
+  assert.equal(triadRes.triad.trinity.ready, false);
+  assert.equal(triadRes.gemini_gem.status, 'not_configured_in_env');
   assert.equal(triadRes.gemini_gem.user_gem_linked, false);
   assert.equal(triadRes.gemini_gem.execution, 'inference_only');
 });

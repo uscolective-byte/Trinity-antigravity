@@ -201,17 +201,22 @@ export function matchFastChatEdge(task,env={}){
   // 2. System status, 47 workers, and domain routing
   if(/^(?:prosim\s+)?(?:status|stav|stav systému|stav systemu|stav workerov|stav flotily|ake mam domeny|zoznam domen|domeny)$/.test(normalized)){
     const activeEnv=env?.ENVIRONMENT||env?.TRINITY_ENV||'production';
+    const d1Bound=Boolean(env?.DB||env?.TRINITY_D1);
+    const kvBound=Boolean(env?.TRINITY_KV||env?.Mastermind);
+    const aiBound=Boolean(env?.AI);
     return {
       matched:true,
       category:'system_fleet_domains',
       route:'fast-chat-edge',
       latency_ms:Date.now()-started,
       fleet_workers:47,
+      live_fleet_verified:false,
+      bindings:{d1:d1Bound,kv:kvBound,ai:aiBound},
       domains:{
         production:{domain:'auru.space',alias:'aura.space',worker:'trinity',d1:'trinity-v03',environment:'production'},
         mirror:{domain:'auru.dev',alias:'aura.dev',worker:'trinity',d1:'trinity-v03',environment:'production'}
       },
-      reply:`Flotila všetkých 47 Cloudflare Workerov je pripravená (bežíme v režime ${activeEnv}). Domény auru.space aj auru.dev obsluhuje jednotný produkčný Worker trinity s databázou trinity-v03.`
+      reply:`Architektúra definuje 47 Cloudflare Workerov (prostredie ${activeEnv}; živý stav workerov touto rýchlou odpoveďou nie je overený — na reálnu kontrolu použi /health, /ready alebo nástroj fleet_status). Domény auru.space aj auru.dev obsluhuje jednotný produkčný Worker trinity s databázou trinity-v03.`
     };
   }
 

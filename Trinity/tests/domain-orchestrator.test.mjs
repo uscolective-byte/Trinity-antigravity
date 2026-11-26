@@ -60,4 +60,14 @@ test('Domain Orchestrator: generates 10 strategic domains with DNS and escrow', 
 
   // Verify tool receipt
   assert.equal(receipts.length, 1);
+  assert.equal(result.scope, 'd1_staging_only');
+  assert.equal(result.liveDomainRegistered, false);
+  assert.equal(result.liveCloudflareDnsConfigured, false);
+});
+
+test('Domain Orchestrator: fails honestly when D1 database is not bound', async () => {
+  const res = await handleDomainOrchestration({});
+  assert.equal(res.ok, false);
+  assert.equal(res.success, false);
+  assert.equal(res.status, 'ERROR');
 });

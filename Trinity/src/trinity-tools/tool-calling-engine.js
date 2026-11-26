@@ -51,36 +51,40 @@ const TOOL_REGISTRY = {
  */
 export function parseToolCalls(llmOutput) {
   const calls = [];
+  if (typeof llmOutput !== 'string' || !llmOutput.trim()) return calls;
 
-  // Format 1: JSON code block
-  const jsonBlockMatch = llmOutput.match(/```json\s*([\s\S]*?)```/);
-  if (jsonBlockMatch) {
+  // Format 1: JSON code blocks (supports multiple blocks)
+  for (const jsonBlockMatch of llmOutput.matchAll(/```json\s*([\s\S]*?)```/g)) {
     try {
       const parsed = JSON.parse(jsonBlockMatch[1].trim());
       if (parsed.tool_calls && Array.isArray(parsed.tool_calls)) {
         for (const tc of parsed.tool_calls) {
-          if (tc.name && TOOL_REGISTRY[tc.name]) {
+          if (tc && typeof tc.name === 'string' && tc.name.trim()) {
             calls.push({
-              name: tc.name,
-              arguments: tc.arguments || {},
+              name: tc.name.trim(),
+              arguments: tc.arguments && typeof tc.arguments === 'object' ? tc.arguments : {},
               call_id: tc.call_id || generateCallId(),
+              unknown: !Object.hasOwn(TOOL_REGISTRY, tc.name.trim()),
             });
           }
         }
       }
-    } catch (_) { /* not JSON, try other formats */ }
+    } catch (_) { /* not valid JSON block */ }
   }
 
   // Format 2: <tool_call name="..." args='{...}' />
   const inlineMatches = llmOutput.matchAll(/<tool_call\s+name="([^"]+)"\s+args='([^']*)'\s*\/>/g);
   for (const m of inlineMatches) {
-    const name = m[1];
-    if (TOOL_REGISTRY[name]) {
-      try {
-        const args = JSON.parse(m[2]);
-        calls.push({ name, arguments: args, call_id: generateCallId() });
-      } catch (_) { /* skip malformed */ }
-    }
+    const name = m[1].trim();
+    try {
+      const args = JSON.parse(m[2]);
+      calls.push({
+        name,
+        arguments: args && typeof args === 'object' ? args : {},
+        call_id: generateCallId(),
+        unknown: !Object.hasOwn(TOOL_REGISTRY, name),
+      });
+    } catch (_) { /* skip malformed */ }
   }
 
   return calls;
@@ -134,41 +138,45 @@ export async function executeToolCalls(llmOutput, env, ctx) {
     const spec = TOOL_REGISTRY[call.name];
     let result;
 
-    try {
-      switch (spec.executor) {
-        case 'pc_bridge':
-          result = await dispatchToPcBridge(call, spec, env, ctx);
-          break;
-        case 'browser':
-          result = await dispatchToBrowser(call, spec, env, ctx);
-          break;
-        case 'd1':
-          result = await dispatchToD1(call, spec, env);
-          break;
-        case 'kv':
-          result = await dispatchToKV(call, spec, env);
-          break;
-        case 'ring0':
-          if (spec.action === 'orchestrate_domains') {
-            const { handleDomainOrchestration } = await import('../tools/domain-orchestrator.js');
-            result = await handleDomainOrchestration(env, { ...call.arguments, sessionId: ctx?.sessionId, runId: call.call_id });
-          } else {
-            result = { status: 'ERROR', message: `Unknown ring0 action: ${spec.action}` };
-          }
-          break;
-        default:
-          result = { status: 'ERROR', message: `Unknown executor: ${spec.executor}` };
+    if (!spec) {
+      result = { status: 'ERROR', executed: false, reason: 'UNKNOWN_TOOL', message: `Unknown tool: ${call.name}` };
+    } else {
+      try {
+        switch (spec.executor) {
+          case 'pc_bridge':
+            result = await dispatchToPcBridge(call, spec, env, ctx);
+            break;
+          case 'browser':
+            result = await dispatchToBrowser(call, spec, env, ctx);
+            break;
+          case 'd1':
+            result = await dispatchToD1(call, spec, env);
+            break;
+          case 'kv':
+            result = await dispatchToKV(call, spec, env);
+            break;
+          case 'ring0':
+            if (spec.action === 'orchestrate_domains') {
+              const { handleDomainOrchestration } = await import('../tools/domain-orchestrator.js');
+              result = await handleDomainOrchestration(env, { ...call.arguments, sessionId: ctx?.sessionId, runId: call.call_id });
+            } else {
+              result = { status: 'ERROR', message: `Unknown ring0 action: ${spec.action}` };
+            }
+            break;
+          default:
+            result = { status: 'ERROR', message: `Unknown executor: ${spec.executor}` };
+        }
+      } catch (err) {
+        result = { status: 'ERROR', message: err.message || String(err) };
       }
-    } catch (err) {
-      result = { status: 'ERROR', message: err.message || String(err) };
     }
 
     // Record receipt in D1
     await recordReceipt(env, {
       call_id: call.call_id,
       tool_name: call.name,
-      executor: spec.executor,
-      action: spec.action,
+      executor: spec?.executor || 'unknown',
+      action: spec?.action || 'unknown',
       arguments: JSON.stringify(call.arguments),
       status: result.status || 'UNKNOWN',
       result: JSON.stringify(result),
@@ -187,15 +195,19 @@ export async function executeToolCalls(llmOutput, env, ctx) {
 async function dispatchToPcBridge(call, spec, env, ctx) {
   const bridgeService = env.PC_BRIDGE_V2 || env.PC_BRIDGE_SERVICE;
   if (!bridgeService) {
-    return { status: 'ERROR', message: 'PC_BRIDGE service binding not configured' };
+    return { status: 'ERROR', executed: false, message: 'PC_BRIDGE service binding not configured' };
   }
 
-  // Check if PC is online (via PC_STATE KV)
-  const pcStatus = await env.PC_STATE.get('pc:status');
-  if (pcStatus) {
-    const status = JSON.parse(pcStatus);
-    if (status.online !== true) {
-      return { status: 'OFFLINE', message: 'PC Bridge is not connected. Daemon must be running on the target machine.' };
+  // Check if PC is online (via PC_STATE KV when bound)
+  if (env.PC_STATE && typeof env.PC_STATE.get === 'function') {
+    const pcStatus = await env.PC_STATE.get('pc:status');
+    if (pcStatus) {
+      try {
+        const status = JSON.parse(pcStatus);
+        if (status.online !== true) {
+          return { status: 'OFFLINE', executed: false, message: 'PC Bridge is not connected. Daemon must be running on the target machine.' };
+        }
+      } catch { /* ignore malformed status JSON and defer to live bridge check */ }
     }
   }
 
@@ -215,7 +227,7 @@ async function dispatchToPcBridge(call, spec, env, ctx) {
   });
 
   if (!response.ok) {
-    return { status: 'ERROR', message: `PC Bridge returned ${response.status}` };
+    return { status: 'ERROR', executed: false, message: `PC Bridge returned ${response.status}` };
   }
 
   return await response.json();
@@ -300,6 +312,9 @@ async function dispatchToBrowser(call, spec, env, ctx) {
 async function dispatchToD1(call, spec, env) {
   const db = env.DB || env.TRINITY_D1;
   if (!db) return { status: 'ERROR', message: 'D1 binding not configured' };
+  if (!call.arguments?.sql || typeof call.arguments.sql !== 'string') {
+    return { status: 'ERROR', message: 'Missing required SQL statement' };
+  }
 
   if (spec.action === 'query') {
     const result = await db.prepare(call.arguments.sql).bind(...(call.arguments.params || [])).all();
@@ -314,6 +329,9 @@ async function dispatchToD1(call, spec, env) {
 async function dispatchToKV(call, spec, env) {
   const kv = env.TRINITY_KV || env.Mastermind;
   if (!kv) return { status: 'ERROR', message: 'KV binding not configured' };
+  if (!call.arguments?.key || typeof call.arguments.key !== 'string') {
+    return { status: 'ERROR', message: 'Missing required KV key' };
+  }
 
   if (spec.action === 'get') {
     const value = await kv.get(call.arguments.key);

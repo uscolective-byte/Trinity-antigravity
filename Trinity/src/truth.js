@@ -30,7 +30,7 @@ export function findSimulationMarkers(value,path='',found=[],depth=0){
   for(const [key,item] of Object.entries(value)){
     const here=path?`${path}.${key}`:key;
     if(SIMULATION_MARKER_KEYS.includes(key.toLowerCase())&&item===true)found.push(here);
-    else if(key==='status'&&typeof item==='string'&&/^(simulated|mock|demo|fake)$/i.test(item.trim()))found.push(here);
+    else if(key==='status'&&typeof item==='string'&&/^(?:simulated(?:_[a-z0-9_]+)?|mock(?:_[a-z0-9_]+)?|demo(?:_[a-z0-9_]+)?|fake(?:_[a-z0-9_]+)?)$/i.test(item.trim()))found.push(here);
     else if(item&&typeof item==='object')findSimulationMarkers(item,here,found,depth+1);
   }
   return found;

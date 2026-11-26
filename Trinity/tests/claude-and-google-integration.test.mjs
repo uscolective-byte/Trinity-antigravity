@@ -208,10 +208,11 @@ test('runTool supports execute_claude and dual_engine_deliberate', async () => {
     assert.match(claudeToolRes.text, /Odpoveď cez runTool execute_claude/);
 
     const triadRes = await runTool(env, agent, 'triad_status', {});
-    assert.equal(triadRes.status, 'active');
+    assert.equal(triadRes.live_external_checked, false);
     assert.ok(triadRes.claude_agent);
     assert.equal(triadRes.claude_agent.provider, 'Anthropic Messages API');
-    assert.equal(triadRes.dual_engine.status, 'active');
+    assert.equal(triadRes.claude_agent.status, 'configured_in_env_unverified');
+    assert.equal(triadRes.dual_engine.status, 'configured_unverified');
   } finally {
     globalThis.fetch = originalFetch;
   }

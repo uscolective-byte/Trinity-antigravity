@@ -3,6 +3,32 @@
 import { executeToolCalls, TOOL_CALLING_SYSTEM_PROMPT } from './trinity-tools/tool-calling-engine.js';
 import { authenticate } from './security.js';
 import { executeWithCircuitBreaker } from './pentad-circuit-breaker.js';
+import { finalizeAgentResponse } from './truth.js';
+
+function mapChatToolReceiptsToTruthLog(toolReceipts = []) {
+  const now = new Date().toISOString();
+  return toolReceipts.map((r) => {
+    const ok = r && r.status === 'SUCCESS';
+    const tool = r?.tool || 'unknown';
+    const isMutation = /^(pc_write|pc_create|pc_execute|pc_run|pc_open|db_execute|kv_put|domain_)/.test(tool);
+    return ok
+      ? {
+          tool,
+          status: 'completed',
+          effect: isMutation ? 'mutation' : 'read',
+          actions: isMutation ? ['execute', 'change', 'create_file'] : ['verify'],
+          receipt_id: r.call_id || r.receiptId || `${tool}:${crypto.randomUUID()}`,
+          verified_at: now
+        }
+      : {
+          tool,
+          status: 'failed',
+          effect: 'diagnostic',
+          error: r?.message || r?.reason || r?.status || 'failed',
+          verified_at: now
+        };
+  });
+}
 
 export class ChatAgent {
   constructor(state, env) {
@@ -83,6 +109,11 @@ export class ChatAgent {
 
         if (inferenceResponse.ok) {
           const respBody = await inferenceResponse.json();
+          if (typeof respBody.response === "string") {
+            const truthChecked = finalizeAgentResponse({ text: respBody.response, tool_log: [] }, "sk");
+            respBody.response = truthChecked.text;
+            respBody.truth = truthChecked.truth;
+          }
 
           // Store assistant response in history
           if (respBody.response) {
@@ -239,11 +270,13 @@ export class ChatAgent {
           await this._log(traceId, "chat-agent", "tools.processed", "info",
             `Processed ${toolResult.calls.length} tool request(s)`, { calls: toolResult.calls, receipts: toolReceipts });
 
-            finalResponse = await this._summarizeToolResults('edge-llama-70b', primaryModel, messages, toolReceipts, maxTokens);
+          finalResponse = await this._summarizeToolResults('edge-llama-70b', primaryModel, messages, toolReceipts, maxTokens);
         }
       } catch (toolErr) {
         await this._log(traceId, "chat-agent", "tools.error", "warn", toolErr.message);
+        finalResponse = `Vykonanie nástroja zlyhalo a výsledok nie je overený: ${toolErr.message}`;
       }
+      finalResponse = finalizeAgentResponse({ text: finalResponse, tool_log: mapChatToolReceiptsToTruthLog(toolReceipts) }, 'sk').text;
 
       const ms = Date.now() - start;
 
@@ -300,11 +333,13 @@ export class ChatAgent {
             await this._log(traceId, "chat-agent", "tools.processed", "info",
               `Processed ${toolResult.calls.length} tool request(s) on fallback`, { calls: toolResult.calls, receipts: toolReceipts });
 
-              finalResponse = await this._summarizeToolResults('edge-llama-8b', fallbackModel, messages, toolReceipts, maxTokens);
+            finalResponse = await this._summarizeToolResults('edge-llama-8b', fallbackModel, messages, toolReceipts, maxTokens);
           }
         } catch (toolErr) {
           await this._log(traceId, "chat-agent", "tools.error", "warn", toolErr.message);
+          finalResponse = `Vykonanie nástroja zlyhalo a výsledok nie je overený: ${toolErr.message}`;
         }
+        finalResponse = finalizeAgentResponse({ text: finalResponse, tool_log: mapChatToolReceiptsToTruthLog(toolReceipts) }, 'sk').text;
 
         const ms = Date.now() - start;
 

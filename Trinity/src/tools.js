@@ -1004,7 +1004,8 @@ export async function runTool(env, agent, name, input, executionContext={}) {
       owner_profiles:ownerProfiles,
       meta_connector:meta||{status:'not_connected',url:'/connect/meta'},
       post_draft:postDraft,
-      status:'operational',
+      status:meta?.status==='connected_read_only'?'meta_connected_read_only':'unverified_remote_service',
+      live_service_checked:false,
       capabilities:['oauth_pkce','meta_graph','instagram_professional','facebook_pages','auto_posting','comment_moderation','link_shortening'],
       _evidence:{effect:'read',receipt_id:`morpheus:status:${crypto.randomUUID()}`}
     };
@@ -1498,28 +1499,32 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     return {status:'ok',action:args.action,plugin_count:plugins.length,plugins:plugins.map(p=>p.id||p.name)};
   }
   if(name==='triad_status'){
+    const hasWorkersAi = Boolean(env?.AI?.run);
+    const hasGeminiKey = Boolean(env?.GEMINI_API_KEY || env?.GOOGLE_API_KEY);
+    const hasClaudeKey = Boolean(env?.ANTHROPIC_API_KEY);
     return {
-      status: 'active',
+      status: hasWorkersAi ? 'runtime_available' : 'ai_binding_missing',
+      live_external_checked: false,
       triad: {
-        trinity: { role: 'Sovereign Orchestrator', ready: true },
+        trinity: { role: 'Sovereign Orchestrator', ready: hasWorkersAi },
         codex: { role: 'Background Developer', status: 'not_verified' },
         antigravity: { role: 'Agentic Controller', status: 'not_verified' }
       },
       gemini_gem: {
-        status: 'configured_in_code',
+        status: hasGeminiKey ? 'configured_in_env_unverified' : 'not_configured_in_env',
         provider: 'Gemini API',
         user_gem_linked: false,
         execution: 'inference_only',
         quota: 'provider_managed_unverified'
       },
       claude_agent: {
-        status: 'configured_in_code',
+        status: hasClaudeKey ? 'configured_in_env_unverified' : 'not_configured_in_env',
         provider: 'Anthropic Messages API',
         model_cascade: ['claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'],
         fallback: 'google_gemini'
       },
       dual_engine: {
-        status: 'active',
+        status: (hasGeminiKey || hasClaudeKey || hasWorkersAi) ? 'configured_unverified' : 'unavailable',
         collaboration: 'cross_deliberation'
       }
     };
@@ -1549,34 +1554,60 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     }
     if(args.action==='ai_generate'){
       const prompt=args.prompt||'Priprav strategický rozbor pre expanziu a sociálne médiá.';
-      let aiResult='Meta AI odpoveď vygenerovaná.';
       const modelName=args.model==='llama-3.1-8b'?'@cf/meta/llama-3.1-8b-instruct-fp8-fast':'@cf/meta/llama-3.3-70b-instruct-fp8-fast';
-      if(env.AI?.run){
-        try{
-          const response=await env.AI.run(modelName,{
-            messages:[
-              {role:'system',content:'Si Meta AI (Llama 3.3 70B), pokročilý inteligentný model integrovaný v suverénnom OS Trinity pre Saba Ivana (Basterix). Poskytuj presné, priame, vysoko kvalitné strategické a kreatívne odpovede.'},
-              {role:'user',content:prompt}
-            ],
-            max_tokens:1200
-          });
-          aiResult=response?.response||response?.text||JSON.stringify(response);
-        }catch(err){
-          aiResult=`Meta AI inferenčný beh: ${err.message}`;
-        }
+      if(!env.AI?.run){
+        return {
+          ok:false,
+          status:'unavailable',
+          action:'ai_generate',
+          model:modelName,
+          prompt,
+          error:'Cloudflare Workers AI binding (AI) nie je dostupný; generovanie neprebehlo.'
+        };
       }
-      return {
-        action:'ai_generate',
-        model:modelName,
-        prompt,
-        response:aiResult,
-        _evidence:{effect:'read',action:'meta_manage:ai_generate',receipt_id:crypto.randomUUID()}
-      };
+      try{
+        const response=await env.AI.run(modelName,{
+          messages:[
+            {role:'system',content:'Si Meta AI (Llama 3.3 70B), pokročilý inteligentný model integrovaný v suverénnom OS Trinity pre Saba Ivana (Basterix). Poskytuj presné, priame, vysoko kvalitné strategické a kreatívne odpovede.'},
+            {role:'user',content:prompt}
+          ],
+          max_tokens:1200
+        });
+        const aiResult=response?.response||response?.text||'';
+        if(!String(aiResult).trim()){
+          return {
+            ok:false,
+            status:'failed',
+            action:'ai_generate',
+            model:modelName,
+            prompt,
+            error:'Model nevrátil žiadny text.'
+          };
+        }
+        return {
+          ok:true,
+          action:'ai_generate',
+          model:modelName,
+          prompt,
+          response:aiResult,
+          _evidence:{effect:'read',action:'meta_manage:ai_generate',receipt_id:crypto.randomUUID()}
+        };
+      }catch(err){
+        return {
+          ok:false,
+          status:'failed',
+          action:'ai_generate',
+          model:modelName,
+          prompt,
+          error:`Meta AI inferencia zlyhala: ${err.message}`
+        };
+      }
     }
     if(args.action==='create_post_draft'){
       const topic=args.topic||args.prompt||'Autonómny vývoj a suverenita Trinity AI';
       const platform=args.target_platform||'all';
       let caption='';
+      let generatedBy='static_template';
       const modelName='@cf/meta/llama-3.3-70b-instruct-fp8-fast';
       if(env.AI?.run){
         try{
@@ -1588,6 +1619,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
             max_tokens:800
           });
           caption=response?.response||response?.text||'';
+          if(String(caption).trim()) generatedBy='workers-ai';
         }catch{}
       }
       if(!caption){
@@ -1598,6 +1630,8 @@ export async function runTool(env, agent, name, input, executionContext={}) {
         topic,
         platform,
         caption,
+        generated_by:generatedBy,
+        published:false,
         status:'draft_ready',
         target_profiles:{
           facebook_page:'underground Street collective',
@@ -1620,7 +1654,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
           {id:'@cf/meta/llama-3.1-8b-instruct-fp8-fast',role:'Fast Routing & Filtering',tokens:'128k'},
           {id:'@cf/meta/llama-3.2-11b-vision-instruct',role:'Multimodal Vision & Media',tokens:'128k'}
         ],
-        status:'active'
+        status:env?.AI?.run?'bound':'unbound'
       },
       connect_url:`${origin}/connect/meta`,
       capabilities:['meta_ai_inference','account_status','pages_and_instagram_inspection','post_draft_generation'],

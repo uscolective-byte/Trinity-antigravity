@@ -647,7 +647,8 @@ test('Module 10: Sovereign Monolith Tool Engine (execute_d1_sql, cloudflare_flee
 
   // 3. cloudflare_fleet_control
   const cfRes = await executeTool('cloudflare_fleet_control', { worker_name: 'trinity-profile', operation: 'check_health' }, mockEnv);
-  assert.equal(cfRes.status, 'SIMULATED_LOCAL');
+  assert.equal(cfRes.ok, false);
+  assert.equal(cfRes.status, 'NOT_CONFIGURED');
   assert.equal(cfRes.worker, 'trinity-profile');
 
   // 4. crypto_oracle_query & GET /api/crypto/prices
@@ -656,7 +657,8 @@ test('Module 10: Sovereign Monolith Tool Engine (execute_d1_sql, cloudflare_flee
   const pricesBody = await pricesHttp.json();
   assert.equal(pricesBody.oracle, 'jericho-edge');
   assert.equal(pricesBody.BTC_USD, 93000);
-  assert.equal(pricesBody.TETRAKIS_USD, 1.042);
+  assert.equal(pricesBody.TETRAKIS_USD, null);
+  assert.equal(pricesBody.TETRAKIS_STATUS, 'UNAVAILABLE_NO_LIVE_MARKET_FEED');
 
   // 5. kv_memory_store via POST /api/tools/execute
   const kvPutHttp = await devGateway.fetch(

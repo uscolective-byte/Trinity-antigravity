@@ -121,22 +121,30 @@ export async function cfR2Manage(env, { action = 'list', key, body, contentType 
 }
 
 export async function cfSelfDeploy(env, { reason = 'Autonomous self-improvement rollout' }) {
-  const receipt_id = `deploy_intent_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
-  if (env.DB) {
-    await env.DB.prepare(
-      "INSERT INTO ops_events (action, details) VALUES (?, ?)"
-    ).bind('self_deploy_triggered', JSON.stringify({ reason, receipt_id, at: new Date().toISOString() })).run().catch(() => {});
+  const intent_id = `deploy_intent_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
+  let intent_recorded = false;
+  if (env?.DB?.prepare) {
+    try {
+      await env.DB.prepare(
+        "INSERT INTO ops_events (action, details) VALUES (?, ?)"
+      ).bind('self_deploy_intent', JSON.stringify({ reason, intent_id, executed: false, at: new Date().toISOString() })).run();
+      intent_recorded = true;
+    } catch {}
   }
   return {
-    ok: true,
+    ok: false,
+    status: 'not_executed',
+    deployed: false,
     action: 'deploy',
-    receipt_id,
+    intent_id,
+    intent_recorded,
     reason,
-    verified_at: new Date().toISOString(),
+    error: 'cf_self_deploy nespúšťa skutočný Cloudflare deploy. Nasadenie vyžaduje overený CI alebo Wrangler deploy s commit SHA.',
+    verified_at: null,
     _evidence: {
-      receipt_id,
-      effect: 'mutation',
-      actions: ['deploy']
+      receipt_id: null,
+      effect: 'proposal',
+      actions: []
     }
   };
 }
@@ -342,7 +350,9 @@ export async function mailEngine(env, { action = 'send', to, subject, body, html
   }
 
   if (action === 'read_inbox') {
-    if (!env.DB) return { ok: true, messages: [] };
+    if (!env?.DB?.prepare) {
+      return { ok: false, status: 'unavailable', messages: [], error: 'D1 databáza nie je pripojená; históriu e-mailov nie je možné načítať.', duration_ms: Date.now() - start };
+    }
     const rows = await env.DB.prepare(
       "SELECT * FROM ops_events WHERE action IN ('mail_dispatched', 'inbound_email') ORDER BY created_at DESC LIMIT 20"
     ).all().catch(() => ({ results: [] }));
@@ -466,24 +476,29 @@ export async function pcShellExec(env, { command, shell = 'powershell', cwd = 'C
 }
 
 export async function pcSystemTelemetry(env) {
-  // Query direct status from PC bridge worker and KV PC_STATE
+  // Query direct status from PC bridge worker and KV PC_STATE; never fabricate host telemetry.
   const bridgeStatus = await getPCBridgeStatus(env);
   let kvTelemetry = null;
-  if (env.PC_STATE) {
+  if (env?.PC_STATE?.get) {
     try {
       const raw = await env.PC_STATE.get('telemetry:latest');
       if (raw) kvTelemetry = JSON.parse(raw);
     } catch {}
   }
+  if (!kvTelemetry) {
+    return {
+      ok: false,
+      status: 'unavailable',
+      verified: false,
+      bridge: bridgeStatus,
+      telemetry: null,
+      error: 'Žiadna overená telemetria z PC Bridge nie je uložená v PC_STATE KV.'
+    };
+  }
   return {
     ok: true,
+    verified: Boolean(bridgeStatus?.connected),
     bridge: bridgeStatus,
-    telemetry: kvTelemetry || {
-      platform: 'win32',
-      hostname: 'Basterix-Host',
-      status: bridgeStatus.connected ? 'online' : 'listening',
-      prislub_verified: true,
-      last_heartbeat: bridgeStatus.last_seen || Date.now()
-    }
+    telemetry: kvTelemetry
   };
 }

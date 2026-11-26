@@ -79,12 +79,22 @@ test('Omni-Tools: cfR2Manage handles list, upload and download', async () => {
   assert.equal(down.content, 'hello r2');
 });
 
-test('Omni-Tools: cfSelfDeploy records deployment receipt', async () => {
+test('Omni-Tools: cfSelfDeploy records intent honestly without claiming deployment', async () => {
   const env = { DB: null };
   const deploy = await cfSelfDeploy(env, { reason: 'Test deploy' });
-  assert.equal(deploy.ok, true);
+  assert.equal(deploy.ok, false);
+  assert.equal(deploy.status, 'not_executed');
+  assert.equal(deploy.deployed, false);
   assert.equal(deploy.action, 'deploy');
-  assert.ok(deploy._evidence?.receipt_id);
+  assert.equal(deploy._evidence?.receipt_id, null);
+  assert.equal(deploy._evidence?.effect, 'proposal');
+});
+
+test('Omni-Tools: pcSystemTelemetry never fabricates host telemetry when KV is empty', async () => {
+  const res = await pcSystemTelemetry({ PC_STATE: null });
+  assert.equal(res.ok, false);
+  assert.equal(res.status, 'unavailable');
+  assert.equal(res.telemetry, null);
 });
 
 test('Skill-Matrix: routeSkillsSemantic includes core skills and ranks candidates', async () => {
