@@ -1,3 +1,4 @@
+import {checkRequestedTrinityHealth} from './requested-health.js';
 import {ZodError} from 'zod';
 import {pcRetryScope} from './pc-retry-scope.js';
 import {hash} from './security.js';
@@ -220,6 +221,12 @@ function resolveAppTarget(task, context = '') {
   return 'calculator';
 }
 async function runAgentUnchecked(env, id, task, context='', provider='workers-ai', maxTokens=8192,language='auto',ownerMode=false,opts={}) {
+  const health = await checkRequestedTrinityHealth(task);
+  if (health) {
+    const evidence = health.tool_result;
+    return {text:health.response, provider:'internal', model:'trinity-health', agent_id:id,
+      tool_log:[{tool:evidence.tool, status:evidence.serving ? 'completed' : 'unverified', effect:'read', verified_at:evidence.checked_at, output:evidence}]};
+  }
   const agent=agentById(id);if(!agent)throw new Error('Unknown agent');
   if(id==='gemini-gem'&&provider==='workers-ai'){provider='gemini';}
   const executionPolicy=executionPolicyForProvider(provider,ownerMode);
