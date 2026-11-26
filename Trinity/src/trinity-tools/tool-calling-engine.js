@@ -130,6 +130,13 @@ export async function executeToolCalls(llmOutput, env, ctx) {
     };
   }
 
+  if (!(env.DB || env.TRINITY_D1)?.batch) {
+    return { calls, hasToolCalls: true, results: calls.map(call => ({
+      call_id: call.call_id, tool: call.name, status: 'UNVERIFIED',
+      executed: false, reason: 'RECEIPT_STORE_UNAVAILABLE'
+    })) };
+  }
+
   const results = [];
   let stepNum = 0;
 
@@ -172,7 +179,9 @@ export async function executeToolCalls(llmOutput, env, ctx) {
     }
 
     // Record receipt in D1
-    await recordReceipt(env, {
+    const receiptId = crypto.randomUUID();
+    const stored = await recordReceipt(env, {
+      receipt_id: receiptId,
       call_id: call.call_id,
       tool_name: call.name,
       executor: spec?.executor || 'unknown',
@@ -185,7 +194,10 @@ export async function executeToolCalls(llmOutput, env, ctx) {
       step: stepNum,
     });
 
-    results.push({ call_id: call.call_id, tool: call.name, ...result });
+    if (stored?.success !== true || stored.meta?.changes !== 1) {
+      throw new Error('Tool dispatched but receipt storage was not confirmed');
+    }
+    results.push({ ...result, call_id: call.call_id, tool: call.name, receipt_id: receiptId });
   }
 
   return { calls, results, hasToolCalls: true };
@@ -363,43 +375,19 @@ async function recordReceipt(env, receipt) {
     session_id: receipt.session_id,
   });
 
-  // Try the extended schema first (if ALTER TABLE was applied);
-  // fall back to base schema if the extra columns don't exist.
-  try {
-    await db.prepare(`
-      INSERT INTO core_tool_receipts
-        (receipt_id, run_id, step, tool, status, input_json, output_json,
-         executor, action, user_id, session_id, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-    `).bind(
-      receipt.call_id,
-      receipt.session_id || 'run_' + receipt.call_id,
-      receipt.step || 0,
-      receipt.tool_name,
-      receipt.status,
-      inputJson,
-      receipt.result,
-      receipt.executor,
-      receipt.action,
-      receipt.user_id,
-      receipt.session_id,
-    ).run();
-  } catch (_extendedError) {
-    // Fallback: base schema only (no executor/action/user_id/session_id columns)
-    await db.prepare(`
-      INSERT INTO core_tool_receipts
-        (receipt_id, run_id, step, tool, status, input_json, output_json, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
-    `).bind(
-      receipt.call_id,
-      receipt.session_id || 'run_' + receipt.call_id,
-      receipt.step || 0,
-      receipt.tool_name,
-      receipt.status,
-      inputJson,
-      receipt.result,
-    ).run();
-  }
+  const id = receipt.receipt_id;
+  const completed = receipt.status === 'SUCCESS';
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(inputJson));
+  const inputHash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+  const writes = await db.batch([
+    db.prepare(`INSERT INTO core_agent_runs
+      (id,idempotency_key,input_hash,trace_id,prompt,max_steps,status) VALUES (?,?,?,?,?,1,?)`)
+      .bind(id, id, inputHash, receipt.session_id, receipt.tool_name, completed ? 'completed' : 'failed'),
+    db.prepare(`INSERT INTO core_tool_receipts
+      (id,receipt_id,run_id,step,tool,status,input_json,output_json) VALUES (?,?,?,1,?,?,?,?)`)
+      .bind(id, id, id, receipt.tool_name, completed ? 'completed' : 'failed', inputJson, receipt.result)
+  ]);
+  return writes[1];
 }
 
 // ── System prompt fragment for tool-calling ──────────────────────────

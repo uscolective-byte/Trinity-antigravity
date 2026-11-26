@@ -1,3 +1,4 @@
+import { checkRequestedTrinityHealth } from './requested-health.js';
 // src/chat-agent.js - Durable Object ChatAgent
 // + Model fallback cascade + D1 system prompts + Trace logging + Tool-Calling Engine
 import { executeToolCalls, TOOL_CALLING_SYSTEM_PROMPT } from './trinity-tools/tool-calling-engine.js';
@@ -8,7 +9,7 @@ import { finalizeAgentResponse } from './truth.js';
 function mapChatToolReceiptsToTruthLog(toolReceipts = []) {
   const now = new Date().toISOString();
   return toolReceipts.map((r) => {
-    const ok = r && r.status === 'SUCCESS';
+    const ok = r?.status === 'SUCCESS' && r.executed !== false && Boolean(r.receipt_id);
     const tool = r?.tool || 'unknown';
     const isMutation = /^(pc_write|pc_create|pc_execute|pc_run|pc_open|db_execute|kv_put|domain_)/.test(tool);
     return ok
@@ -17,7 +18,7 @@ function mapChatToolReceiptsToTruthLog(toolReceipts = []) {
           status: 'completed',
           effect: isMutation ? 'mutation' : 'read',
           actions: isMutation ? ['execute', 'change', 'create_file'] : ['verify'],
-          receipt_id: r.call_id || r.receiptId || `${tool}:${crypto.randomUUID()}`,
+          receipt_id: r.receipt_id,
           verified_at: now
         }
       : {
@@ -84,6 +85,13 @@ export class ChatAgent {
     const boundedHistory = history.slice(-20);
     await this.state.storage.put("history", boundedHistory);
 
+    const health = await checkRequestedTrinityHealth(task);
+    if (health) {
+      boundedHistory.push({ role: 'assistant', content: health.response, timestamp: Date.now() });
+      await this.state.storage.put('history', boundedHistory.slice(-20));
+      return Response.json({ ...health, trace_id: traceId });
+    }
+
     // Try CHAT_INFERENCE_SERVICE binding first
     if (this.env.CHAT_INFERENCE_SERVICE) {
       const start = Date.now();
@@ -110,7 +118,22 @@ export class ChatAgent {
         if (inferenceResponse.ok) {
           const respBody = await inferenceResponse.json();
           if (typeof respBody.response === "string") {
-            const truthChecked = finalizeAgentResponse({ text: respBody.response, tool_log: [] }, "sk");
+            let receipts = [];
+            try {
+              const tools = await executeToolCalls(respBody.response, this.env, {
+                userId: principal?.id, role: principal?.role,
+                authenticated: principal?.role === 'owner' && Boolean(principal?.id),
+                sessionId: traceId, traceId
+              });
+              if (tools.hasToolCalls) {
+                receipts = tools.results;
+                respBody.tool_receipts = receipts;
+                respBody.response = receipts.map(r => [r.tool, r.status, r.receipt_id].filter(Boolean).join(' · ')).join('\n');
+              }
+            } catch {
+              respBody.response = 'Výsledok operácie sa nepodarilo potvrdiť.';
+            }
+            const truthChecked = finalizeAgentResponse({ text: respBody.response, tool_log: mapChatToolReceiptsToTruthLog(receipts) }, "sk");
             respBody.response = truthChecked.text;
             respBody.truth = truthChecked.truth;
           }
