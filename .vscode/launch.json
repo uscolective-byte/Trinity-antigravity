@@ -2,6 +2,41 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "firefox",
+      "request": "launch",
+      "reAttach": true,
+      "name": "Launch localhost",
+      "url": "http://localhost/index.html",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "name": "Debugger for Mainframe: INTERTEST™ FOR BATCH",
+      "type": "intertest-batch",
+      "request": "launch",
+      "programName": [
+        "PROGNAME"
+      ],
+      "protsym": [
+        "PROTSYM"
+      ],
+      "host": "HOST",
+      "port": 0,
+      "interTestUserName": "USER",
+      "interTestSecure": true,
+      "ssh": {
+        "enabled": false
+      },
+      "convertedJCL": ""
+    },
+    {
+      "type": "cmake",
+      "request": "launch",
+      "name": "CMake: Configure project",
+      "cmakeDebugType": "configure",
+      "clean": false,
+      "configureAll": false
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Trinity: Launch Next.js Dashboard",
