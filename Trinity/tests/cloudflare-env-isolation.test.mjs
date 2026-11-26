@@ -11,7 +11,7 @@ test('tracked config uses unified single-production architecture without staging
   assert.equal(report.checked,'configuration-only');
   assert.deepEqual(report.shared_mutable_resources,[]);
   assert.equal(cfg.env?.staging,undefined);
-  assert.deepEqual(cfg.routes,[{pattern:'auru.space',custom_domain:true},{pattern:'auru.dev',custom_domain:true}]);
+  assert.deepEqual(cfg.routes,[{pattern:'auru.space',custom_domain:true}]);
 });
 test('staging audit still rejects shared mutable resources',()=>{
   const cfg={

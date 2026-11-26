@@ -1,0 +1,102 @@
+name: Auru-Dev Worker (auru.dev)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Auru-Dev-Worker/**'
+      - '.github/workflows/auru-dev-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      deploy_production:
+        description: 'Explicitly deploy Auru-Dev-Worker to https://auru.dev'
+        type: boolean
+        required: true
+        default: false
+      expected_commit_sha:
+        description: 'Exact reviewed 40-character main commit SHA'
+        type: string
+        required: true
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auru-dev-deploy
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Trinity/package-lock.json
+      - name: Install Wrangler toolchain
+        working-directory: Trinity
+        run: npm ci
+      - name: Test Auru-Dev-Worker
+        run: npm --prefix Auru-Dev-Worker test
+      - name: Build Auru-Dev-Worker (dry-run)
+        run: npm --prefix Auru-Dev-Worker run build
+
+  deploy-auru-dev:
+    needs: [verify]
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_production == true }}
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - name: Enforce authenticated owner approval for this exact commit
+        env:
+          EXPECTED_COMMIT_SHA: ${{ inputs.expected_commit_sha }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ] ||
+             [ "$GITHUB_ACTOR" != "uscolective-byte" ] ||
+             [ "$GITHUB_REPOSITORY" != "uscolective-byte/Trinity-antigravity" ] ||
+             [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Deployment requires manual dispatch from the canonical owner on main."
+            exit 1
+          fi
+          if ! [[ "$EXPECTED_COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]] ||
+             [ "$EXPECTED_COMMIT_SHA" != "$GITHUB_SHA" ]; then
+            echo "::error::Approved commit SHA does not match the exact main commit."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Trinity/package-lock.json
+      - name: Install Wrangler toolchain
+        working-directory: Trinity
+        run: npm ci
+      - name: Deploy Auru-Dev-Worker to auru.dev
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CF_ACCOUNT_ID || 'b60342e5e52f5646fbd4e913bb409334' }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Cloudflare credentials missing."
+            exit 1
+          fi
+          npm --prefix Auru-Dev-Worker run deploy -- --tag "$GITHUB_SHA"
+      - name: Verify live https://auru.dev/health
+        run: |
+          node -e '
+            (async () => {
+              const res = await fetch("https://auru.dev/health");
+              if (!res.ok) throw new Error("Health HTTP " + res.status);
+              const body = await res.json();
+              if (body.service !== "AuruDev" || body.separated_from_trinity !== true) {
+                throw new Error("Unexpected /health payload: " + JSON.stringify(body));
+              }
+              console.log("Verified AuruDev live:", JSON.stringify(body));
+            })().catch(e => { console.error(e); process.exit(1); });
+          '

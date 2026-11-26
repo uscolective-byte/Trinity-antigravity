@@ -46,7 +46,9 @@ jobs:
         run: node --test tests/production-deploy-workflow.test.mjs
 
       - name: Run Full Test Suite
-        run: npm test
+        run: |
+          npm --prefix Auru-Dev-Worker test
+          npm test
 
       - name: Validate Cloudflare Secrets Store metadata
         run: node Trinity/scripts/secrets-store-doctor.mjs

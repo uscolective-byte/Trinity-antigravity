@@ -156,7 +156,7 @@ jobs:
             }
             console.log("D1 migration state verified; no pending changes.");
           '
-      - name: Deploy production Worker (trinity -> auru.space & auru.dev)
+      - name: Deploy production Worker (trinity -> auru.space)
         if: ${{ steps.credentials.outputs.available == 'true' }}
         run: npm run deploy -- --tag "$GITHUB_SHA"
         env:
@@ -169,7 +169,6 @@ jobs:
           CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET || secrets.CF_ACCESS_CLIENT_SECRET }}
         run: |
           node scripts/verify-deployment.mjs https://auru.space "$GITHUB_SHA"
-          node scripts/verify-deployment.mjs https://auru.dev "$GITHUB_SHA"
       - name: Emit verified DEPLOYMENT_RECEIPT.json artifact
         working-directory: .
         run: |
@@ -181,7 +180,6 @@ jobs:
               git_diff_sha256: process.env.DIFF_HASH,
               actor: process.env.GITHUB_ACTOR,
               production_url: 'https://auru.space',
-              secondary_url: 'https://auru.dev',
               exit_code: 0,
               verified_at: new Date().toISOString()
             };

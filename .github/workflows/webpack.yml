@@ -14,6 +14,7 @@ on:
       - 'Local-Desktop/**'
       - 'src/**'
       - 'tests/**'
+      - 'Auru-Dev-Worker/**'
       - 'package.json'
       - '.github/**'
   pull_request:
@@ -29,6 +30,7 @@ on:
       - 'Local-Desktop/**'
       - 'src/**'
       - 'tests/**'
+      - 'Auru-Dev-Worker/**'
       - 'package.json'
       - '.github/**'
   workflow_dispatch:
@@ -106,6 +108,11 @@ jobs:
         run: |
           npm ci --prefix PC-Bridge-Worker
           npm test --prefix PC-Bridge-Worker
+
+      - name: Validate Auru-Dev Worker (auru.dev)
+        run: |
+          npm test --prefix Auru-Dev-Worker
+          npm run build --prefix Auru-Dev-Worker
 
       - name: Ensure native workspace search dependency
         run: |

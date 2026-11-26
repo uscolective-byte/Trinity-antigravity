@@ -1,0 +1,13 @@
+{
+  "name": "auru-dev-worker",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Independent Cloudflare Worker and Obsidian & Champagne Atelier UI for auru.dev, separated from main Trinity (auru.space).",
+  "scripts": {
+    "dev": "npx --prefix ../Trinity wrangler dev --ip 127.0.0.1 --config wrangler.jsonc",
+    "build": "npx --prefix ../Trinity wrangler deploy --dry-run --config wrangler.jsonc --outdir dist",
+    "deploy": "npx --prefix ../Trinity wrangler deploy --config wrangler.jsonc",
+    "test": "node --test tests/*.test.mjs"
+  }
+}

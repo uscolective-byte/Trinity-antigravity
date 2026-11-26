@@ -46,7 +46,7 @@ test('production routing is unchanged when build-only mode is absent', () => {
   }
 });
 
-test('auru.space and auru.dev belong to unified production Worker and previews fail closed', () => {
+test('auru.space belongs to main Trinity production Worker (separated from auru.dev) and previews fail closed', () => {
   const config = JSON.parse(readFileSync('wrangler.jsonc', 'utf8').replace(/^\uFEFF/, ''));
   assert.deepEqual(config.previews, {vars: {TRINITY_PREVIEW_MODE: 'build-only'}});
   assert.equal(config.vars.TRINITY_PREVIEW_MODE, undefined);
@@ -54,7 +54,7 @@ test('auru.space and auru.dev belong to unified production Worker and previews f
   assert.equal(config.ai.binding, 'AI');
   assert.ok(config.d1_databases.some(database => database.binding === 'DB'));
   assert.ok(config.routes.some(route => route.pattern === 'auru.space'));
-  assert.ok(config.routes.some(route => route.pattern === 'auru.dev'));
+  assert.equal(config.routes.some(route => route.pattern === 'auru.dev'), false);
   assert.equal(config.env?.staging, undefined);
   assert.ok(config.services.some(binding=>binding.binding==='KNOWLEDGE_SERVICE'&&binding.service==='trinity-knowledge'));
   assert.deepEqual(config.version_metadata,{binding:'CF_VERSION_METADATA'});

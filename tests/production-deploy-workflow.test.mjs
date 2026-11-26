@@ -30,11 +30,10 @@ test('migration gate is read-only and credentials failures are fatal', () => {
   assert.ok(deploy.includes('Cloudflare production credentials missing; refusing'));
   assert.ok(deploy.includes('exit 1'));
 });
-test('deployment receipt follows verification of both domains', () => {
+test('deployment receipt follows verification of auru.space', () => {
   const space = deploy.indexOf('verify-deployment.mjs https://auru.space');
-  const dev = deploy.indexOf('verify-deployment.mjs https://auru.dev');
   const receipt = deploy.indexOf('Emit verified DEPLOYMENT_RECEIPT.json artifact');
-  assert.ok(space >= 0 && dev > space && receipt > dev);
+  assert.ok(space >= 0 && receipt > space);
   assert.ok(!deploy.includes('Retrying trinity production deploy'));
 });
 

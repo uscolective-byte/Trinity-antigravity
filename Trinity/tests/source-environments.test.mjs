@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {TRINITY_SOURCE} from '../src/version.js';
 
-test('auru.space and auru.dev both serve unified production Worker without separate staging',()=>{
+test('auru.space serves main Trinity production Worker separated from auru.dev',()=>{
  const config=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
  assert.equal(config.name,'trinity');
- assert.deepEqual(config.routes,[{pattern:'auru.space',custom_domain:true},{pattern:'auru.dev',custom_domain:true}]);
+ assert.deepEqual(config.routes,[{pattern:'auru.space',custom_domain:true}]);
  assert.equal(config.vars.TRINITY_ENV,'production');
  assert.equal(config.vars.TRINITY_GITHUB_REPO,TRINITY_SOURCE.repository);
  assert.equal(config.vars.TRINITY_GITHUB_BRANCH,TRINITY_SOURCE.branch);
