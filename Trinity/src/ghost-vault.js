@@ -640,14 +640,14 @@ export async function handleGhostVaultApi(request, env, ctx) {
 
   // 8b. Generate invite QR code (ISO 18004 SVG)
   if (method === 'GET' && path === '/api/ghost/invite-qr') {
-    const data = url.searchParams.get('data') || url.searchParams.get('url') || 'https://auru.dev/#encrypted_shits';
+    const data = url.searchParams.get('data') || url.searchParams.get('url') || new URL('/#encrypted_shits', url.origin).href;
     const size = Math.min(Math.max(parseInt(url.searchParams.get('size') || '240', 10), 100), 600);
     try {
       const svg = generateQrSvg(data, size);
       return new Response(svg, {
         headers: {
           'Content-Type': 'image/svg+xml; charset=utf-8',
-          'Cache-Control': 'public, max-age=3600'
+          'Cache-Control': 'private, no-store'
         }
       });
     } catch {
