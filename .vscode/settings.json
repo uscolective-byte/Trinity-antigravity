@@ -23,5 +23,8 @@
     "js/ts.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis": true,
     "js/ts.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets": true,
     "js/ts.format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces": true,
-    "git.supportCancellation": true
+    "git.supportCancellation": true,
+    "files.readonlyInclude": {
+        "{**/.c4z/.extsrcs/*.PROTSYM.cbl,**/.c4z/.extsrcs/*.PROTSYM.listing}": true
+    }
 }
