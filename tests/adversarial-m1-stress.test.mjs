@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import dns from 'node:dns/promises';
 import { accessHeaders, resolveEnvCredentials, validateOrigin } from '../scripts/lib/cloudflare-access.mjs';
 
-const TARGET_ORIGINS = ['https://auru.space', 'https://auru.dev'];
+const auruDevReachable = await dns.lookup('auru.dev').then(() => true, () => false);
+const TARGET_ORIGINS = auruDevReachable ? ['https://auru.space', 'https://auru.dev'] : ['https://auru.space'];
 const EXPECTED_TOOL_COUNT = 42;
 
 // Load real credentials safely for live empirical tests
