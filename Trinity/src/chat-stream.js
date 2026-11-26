@@ -1,3 +1,4 @@
+import {checkRequestedTrinityHealth} from './requested-health.js';
 /**
  * @module TRINITY_OMNI_CORE
  * @subsystem LIVE_CHAT_STREAMING
@@ -245,6 +246,18 @@ export async function handleLiveChatStream(env, ctx, { message, session, languag
   const sessionId = session || crypto.randomUUID();
   const jobId = crypto.randomUUID();
 
+  const health = await checkRequestedTrinityHealth(message);
+  if (health) {
+    const events = [
+      { type: 'context', session: sessionId, model: 'trinity-health', memories: [], history: 0 },
+      { type: 'tool', name: health.tool_result.tool, status: health.tool_result.serving ? 'completed' : 'unverified', evidence: health.tool_result },
+      { type: 'delta', text: health.response }
+    ];
+    const persistence = persistStreamTurn(env, {jobId, sessionId, message, answer: health.response, provider: 'internal', remember});
+    if (ctx?.waitUntil) ctx.waitUntil(persistence);
+    else await persistence;
+    return new Response(events.map(event => JSON.stringify(event)).join('\n') + '\n', {headers: {'Content-Type':'application/x-ndjson; charset=utf-8','Cache-Control':'no-store'}});
+  }
   const capabilityAnswer = allow_files || engine === 'local' ? null : selfImprovementAnswer(message,language);
 
   const cloudRequest=ownerMode&&!allow_files&&engine!=='local'
