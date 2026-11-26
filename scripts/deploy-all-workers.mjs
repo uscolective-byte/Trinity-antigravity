@@ -22,7 +22,7 @@ import {
   PROFILE_WORKER
 } from './lib/worker-deployments.mjs';
 
-// Canonical fleet includes all 46 Cloudflare workers plus trinity-profile (47 targets total).
+// Canonical fleet includes 46 deployable Cloudflare worker targets (including trinity-profile and master trinity).
 
 const ROOT_DIR = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const DRY_RUN = process.argv.includes('--dry-run') || !process.argv.includes('--deploy');

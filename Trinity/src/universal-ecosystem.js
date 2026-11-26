@@ -75,7 +75,7 @@ class UniversalEcosystem {
   }
 
   _loadPredefinedCatalog() {
-    // Initialize baseline applications from predefined templates
+    // Initialize baseline application templates (not deployed runtime apps)
     for (const app of APPLICATION_TEMPLATES) {
       this._synthesizedApps.set(app.templateId, {
         id: app.templateId,
@@ -83,14 +83,17 @@ class UniversalEcosystem {
         type: app.type,
         domain: app.domain,
         version: '1.0.0',
-        status: 'ready',
+        status: 'template',
+        persisted: false,
+        executable: false,
+        verified: false,
         synthesizedAt: new Date().toISOString()
       });
     }
   }
 
   /**
-   * Dynamically creates and registers a new skill in Trinity.
+   * Dynamically registers a skill specification (or in-memory handler if supplied) in Trinity.
    */
   synthesizeSkill(name, domain = 'software-dev', handlerOrOptions = {}) {
     if (!name || typeof name !== 'string') {
@@ -98,17 +101,21 @@ class UniversalEcosystem {
     }
     const skillId = `skill_${name.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`;
     const domainMeta = UNIVERSAL_DOMAINS.find(d => d.id === domain) || UNIVERSAL_DOMAINS[0];
+    const hasCustomHandler = typeof handlerOrOptions === 'function';
 
-    const handler = typeof handlerOrOptions === 'function' 
-      ? handlerOrOptions 
-      : async (input, env, opts = {}) => {
+    const handler = hasCustomHandler
+      ? handlerOrOptions
+      : async (input) => {
           return {
             skill: skillId,
             domain: domainMeta.id,
             executedAt: new Date().toISOString(),
-            status: 'success',
+            status: 'spec_proposed',
+            persisted: false,
+            executable: false,
+            verified: false,
             input,
-            message: `Skill '${name}' in domain '${domainMeta.name}' executed successfully.`
+            message: `Skill '${name}' in domain '${domainMeta.name}' is a proposed specification only (not persisted or executable).`
           };
         };
 
@@ -120,6 +127,10 @@ class UniversalEcosystem {
       icon: domainMeta.icon,
       version: '1.0.0',
       synthesized: true,
+      status: hasCustomHandler ? 'registered_in_memory' : 'spec_proposed',
+      persisted: false,
+      executable: hasCustomHandler,
+      verified: false,
       createdAt: new Date().toISOString()
     };
 
@@ -161,7 +172,10 @@ class UniversalEcosystem {
       skills: registeredSkillIds,
       enabled: true,
       required: false,
-      synthesized: true
+      synthesized: true,
+      status: 'spec_proposed',
+      persisted: false,
+      verified: false
     };
 
     copilotPluginRegistry.register(pluginManifest);
@@ -171,7 +185,7 @@ class UniversalEcosystem {
   }
 
   /**
-   * Dynamically creates a new application definition (or AI Studio / API Builder project).
+   * Proposes a new application specification in-memory (not persisted or deployed).
    */
   synthesizeApp(name, domain = 'software-dev', options = {}) {
     if (!name || typeof name !== 'string') {
@@ -188,7 +202,10 @@ class UniversalEcosystem {
       type: options.type || 'web-app',
       version: '1.0.0',
       prompt: options.prompt || `Create application ${name} for domain ${domainMeta.name}`,
-      status: 'ready',
+      status: 'spec_proposed',
+      persisted: false,
+      executable: false,
+      verified: false,
       synthesized: true,
       features: options.features || ['Responsive interface', 'Audit logging', 'Offline cache'],
       createdAt: new Date().toISOString()
@@ -249,7 +266,7 @@ class UniversalEcosystem {
   }
 
   /**
-   * Returns overall statistics for the available and generative ecosystem.
+   * Returns honest catalog statistics for the registered ecosystem.
    */
   getStats() {
     const appsCount = this._synthesizedApps.size;
@@ -258,17 +275,16 @@ class UniversalEcosystem {
     const extendedSkillsCount = EXTENDED_SKILLS.length;
     const extendedPluginsCount = EXTENDED_PLUGINS.length;
 
-    // Number of deterministic and generative combinations across domains, skills, plugins, and app templates
-    const virtualCombinations = UNIVERSAL_DOMAINS.length * 100000;
-
     return {
       domains_count: UNIVERSAL_DOMAINS.length,
       active_apps: appsCount,
+      app_templates_count: APPLICATION_TEMPLATES.length,
       active_plugins: pluginsCount,
       active_skills: skillsCount,
       extended_skills_available: extendedSkillsCount,
       extended_plugins_available: extendedPluginsCount,
-      infinite_scale_capacity: virtualCombinations,
+      total_catalog_items: appsCount + pluginsCount + skillsCount,
+      persisted_runtime_synthesis: false,
       status: 'operational',
       engine: 'Trinity Universal Ecosystem 2.0'
     };

@@ -36,11 +36,13 @@ export class SkillForge {
   }
 
   /**
-   * Forges a new skill based on a specification from QCE-Fusion.
+   * Forges a new skill specification from QCE-Fusion.
+   * Only marks the skill executable when a real callable handler function is supplied.
    */
   async forgeSkillFromQCE(skillSpec, { cycleId, genome }) {
     await this.init();
     const skillName = skillSpec?.name || `dynamic_${Date.now().toString(36)}`;
+    const hasHandler = typeof skillSpec?.handler === 'function';
 
     const forgedSkill = {
       name: skillName,
@@ -49,13 +51,9 @@ export class SkillForge {
       generation: genome?.generation || 1,
       cycleId,
       created_at: new Date().toISOString(),
-      handler: (params) => {
-        return {
-          status: 'completed',
-          synthesizedResponse: `Skill [${skillName}] successfully processed request: ${JSON.stringify(params)}`,
-          archetypeEffect: skillSpec?.archetype || 'creator'
-        };
-      }
+      executable: hasHandler,
+      status: hasHandler ? 'registered_in_memory' : 'spec_only',
+      handler: hasHandler ? skillSpec.handler : null
     };
 
     this.runtimeRegistry.set(skillName, forgedSkill);
@@ -64,7 +62,15 @@ export class SkillForge {
       try {
         const persistable = {};
         for (const [k, v] of this.runtimeRegistry.entries()) {
-          persistable[k] = { name: v.name, task: v.task, archetype: v.archetype, generation: v.generation, created_at: v.created_at };
+          persistable[k] = {
+            name: v.name,
+            task: v.task,
+            archetype: v.archetype,
+            generation: v.generation,
+            created_at: v.created_at,
+            executable: false,
+            status: 'spec_only'
+          };
         }
         await this.storage.put('forged_skills', persistable);
       } catch (err) {
@@ -76,7 +82,7 @@ export class SkillForge {
   }
 
   /**
-   * Executes a skill from the runtime registry.
+   * Executes a skill from the runtime registry. Fails closed if no real handler exists.
    */
   async execute(skillName, params = {}) {
     await this.init();
@@ -85,8 +91,17 @@ export class SkillForge {
       return { success: false, error: `Skill "${skillName}" is not registered in SkillForge.` };
     }
 
+    if (typeof skill.handler !== 'function') {
+      return {
+        success: false,
+        skillName,
+        executable: false,
+        error: `Skill "${skillName}" is not executable (specification only or reloaded without a runtime handler).`
+      };
+    }
+
     try {
-      const output = typeof skill.handler === 'function' ? skill.handler(params) : { executed: true, params };
+      const output = await skill.handler(params);
       return { success: true, skillName, result: output };
     } catch (err) {
       return { success: false, skillName, error: err?.message || String(err) };

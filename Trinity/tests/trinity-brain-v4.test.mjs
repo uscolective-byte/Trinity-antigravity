@@ -50,22 +50,34 @@ test('EvoEngineV3: evaluation, mutation and failure rollback', async () => {
   assert.ok(evalRes.newFitness >= 100);
 
   const failRes = await evo.recordFailure({ cycleId: 'cycle_err', error: 'Simulovaná chyba' });
-  assert.equal(failRes.autoRollbackEngaged, true);
+  assert.equal(failRes.autoRollbackEngaged, false);
+  assert.equal(failRes.rollback_supported, false);
+  assert.equal(failRes.failureRecorded, true);
+  assert.equal(failRes.failureCount, 1);
 });
 
-test('SkillForge: dynamic forging and execution', async () => {
+test('SkillForge: spec-only skills fail closed while caller-supplied handlers execute', async () => {
   const forge = new SkillForge(null, {});
   await forge.init();
 
-  const skill = await forge.forgeSkillFromQCE(
-    { name: 'skill_test_echo', task: 'Echo textu', archetype: 'creator' },
+  const specOnly = await forge.forgeSkillFromQCE(
+    { name: 'skill_spec_only', task: 'Specifikácia bez handlera', archetype: 'creator' },
     { cycleId: 'cycle_1', genome: { generation: 1 } }
   );
+  assert.equal(specOnly.name, 'skill_spec_only');
+  assert.equal(specOnly.executable, false);
+  const specExec = await forge.execute('skill_spec_only', { paramA: 42 });
+  assert.equal(specExec.success, false);
+  assert.equal(specExec.executable, false);
 
-  assert.equal(skill.name, 'skill_test_echo');
+  const realSkill = await forge.forgeSkillFromQCE(
+    { name: 'skill_test_echo', task: 'Echo textu', archetype: 'creator', handler: (params) => ({ echoed: params.paramA }) },
+    { cycleId: 'cycle_2', genome: { generation: 1 } }
+  );
+  assert.equal(realSkill.executable, true);
   const exec = await forge.execute('skill_test_echo', { paramA: 42 });
   assert.equal(exec.success, true);
-  assert.ok(exec.result.synthesizedResponse.includes('42'));
+  assert.equal(exec.result.echoed, 42);
 });
 
 test('HybridBrain: cloud vs local bridge routing', async () => {

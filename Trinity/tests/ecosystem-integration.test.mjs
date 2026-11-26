@@ -93,7 +93,8 @@ test('GET /api/ecosystem/stats returns live operational ecosystem metrics withou
   assert.ok(data.domains_count>=15);
   assert.ok(data.active_apps>=10);
   assert.ok(data.active_skills>=20);
-  assert.ok(data.infinite_scale_capacity>=1000000);
+  assert.equal(data.infinite_scale_capacity,undefined);
+  assert.equal(data.total_catalog_items,data.active_apps+data.active_plugins+data.active_skills);
 });
 
 test('GET /api/ecosystem/domains returns all universal domains and application templates',async()=>{
@@ -129,6 +130,9 @@ test('POST /api/ecosystem/synthesize/skill generates and registers a new dynamic
   assert.equal(data.name,'DataQualityChecker');
   assert.equal(data.domain,'data-science');
   assert.equal(data.synthesized,true);
+  assert.equal(data.status,'spec_proposed');
+  assert.equal(data.persisted,false);
+  assert.equal(data.executable,false);
   assert.equal(data.id,'skill_dataqualitychecker');
 });
 
@@ -146,7 +150,7 @@ test('POST /api/ecosystem/synthesize/plugin bundles skills into an active plugin
   assert.ok(data.skills.includes('skill_deployverifier'));
 });
 
-test('POST /api/ecosystem/synthesize/app creates an interactive application blueprint',async()=>{
+test('POST /api/ecosystem/synthesize/app creates an honest proposed application specification',async()=>{
   const res=await req('/api/ecosystem/synthesize/app',{
     name:'CyberThreatMatrix',
     domain:'cybersecurity',
@@ -156,7 +160,10 @@ test('POST /api/ecosystem/synthesize/app creates an interactive application blue
   const data=await res.json();
   assert.equal(data.name,'CyberThreatMatrix');
   assert.equal(data.domain,'cybersecurity');
-  assert.equal(data.status,'ready');
+  assert.equal(data.status,'spec_proposed');
+  assert.equal(data.persisted,false);
+  assert.equal(data.executable,false);
+  assert.equal(data.verified,false);
 });
 
 test('GET /api/copilot/plugins & /api/copilot/skills returns registered registries',async()=>{
@@ -242,7 +249,8 @@ test('MCP exposes ecosystem and copilot tools for remote clients',async()=>{
   assert.equal(statsRes.status,200);
   const statsText=await statsRes.text();
   assert.match(statsText,/domains_count/);
-  assert.match(statsText,/infinite_scale_capacity/);
+  assert.match(statsText,/total_catalog_items/);
+  assert.doesNotMatch(statsText,/infinite_scale_capacity/);
 
   // 3. Call synthesize_skill
   const synthRes=await req('/mcp',{

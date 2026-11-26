@@ -1,58 +1,58 @@
 ---
 name: trinity-fleet-ops
 description: >-
-  Inspect and safely operate Trinity 11 Cloudflare Workers, Secrets Store,
-  D1, KV, R2, AI and integrations. Use for staging and production work.
-  Prefer proof of runner, permissions, isolation and deployment receipts.
+  Inspect and safely operate the Trinity Cloudflare Workers fleet (unified
+  production Worker trinity with 40 service bindings across 34 unique services
+  and 46 canonical worker entrypoints), Secrets Store, D1, KV, R2, AI, and
+  integrations. Prefer proof of runner, permissions, isolation, and deployment
+  receipts.
 ---
 
-# Trinity Fleet Operations — safe rollout
+# Trinity Fleet Operations — Safe Rollout
 
-Use the dedicated Cloudflare Secrets Store skill in
-.agents/skills/cloudflare-secrets-store/SKILL.md before binding credentials.
-Source of truth: Trinity/wrangler.jsonc, not historical development screenshots.
+Use `.agents/skills/cloudflare-secrets-store/SKILL.md` before binding or auditing Secrets Store credentials.
+Source of truth: `Trinity/wrangler.jsonc` (mirrored to root `wrangler.jsonc`) and `scripts/lib/worker-deployments.mjs`.
 
-## Preflight (PowerShell 7 / Antigravity / Codex)
+## Fleet Topology (Verified Metadata)
 
-~~~powershell
-Set-Location C:\Users\saboi\Trinity-antigravity
+- **Unified Production Worker:** `trinity` serving both `https://auru.space` and `https://auru.dev` (main D1 `trinity-v03`, KV `Mastermind`).
+- **Service Bindings:** 40 service bindings targeting 34 unique Cloudflare Workers in `Trinity/wrangler.jsonc`.
+- **Canonical Worker Entrypoints:** 46 deployable worker entrypoints verified by `scripts/test-all-workers-build.mjs` (`scripts/lib/worker-deployments.mjs`).
+- **Registered Specialist Agents:** 46 roles in `Trinity/src/registry.js`.
+- **Single-Production Mode:** Historical `staging` (`trinity-staging`) and `development` (`trinity-development`) targets were consolidated away into the unified production Worker `trinity`. Do not target removed `--env staging` or `--env development` configs.
+
+## Preflight (Linux / macOS / PowerShell)
+
+```bash
 git status --short
 node Trinity/scripts/secrets-store-doctor.mjs
 node Trinity/scripts/cloudflare-env-audit.mjs --strict
-npm run check
-~~~
+node scripts/sync-root-wrangler.mjs --check
+node scripts/pre-deploy-check.mjs
+npm run docs:check
+npm test
+```
 
-A failing isolation audit is a genuine blocker. Currently some D1/KV/R2
-identifiers are shared between staging and production. Do not run state-
-changing staging tests against those until separate resources are verified.
+## Build & Dry-Run Verification
 
-## Wrangler environments
+```bash
+npm --prefix Trinity run build
+node scripts/test-all-workers-build.mjs
+```
 
-- Unified Production (`auru.space` + `auru.dev`): default config, Worker `trinity`, D1 `trinity-v03`.
-- Older docs mention `staging` (`trinity-staging`) or `development` (`trinity-development`); these were consolidated away into the single production Worker `trinity`.
-- Do not infer live version or external connection from configuration.
+## Governed Production Deployment
 
-After successful checks and authorization:
+- Never infer live version, auth state, or external connectivity from local config files alone.
+- Push to `main` runs verification checks only (`ci.yml`, `self-deploy.yml` `verify` job).
+- Production deployment requires explicit owner (`uscolective-byte`) manual `workflow_dispatch` on `.github/workflows/self-deploy.yml` with `deploy_production=true` and the exact 40-character `expected_commit_sha`, followed by read-only D1 migration check (`compatible-migrations.mjs --remote --check`), tagged deploy (`npm run deploy -- --tag "$GITHUB_SHA"`), and live readiness verification (`verify-deployment.mjs` on `https://auru.space` and `https://auru.dev`).
+- Do not run `deploy:all`, apply remote D1 migrations without backup/approval, alter secrets, or force-push simply because a general repair was requested.
 
-~~~powershell
-Set-Location C:\Users\saboi\Trinity-antigravity\Trinity
-node scripts/build-mcp-app.mjs
-npx wrangler deploy --dry-run
-~~~
+## Evidence (Truth Policy 2.1)
 
-Actual staging deploy requires explicit approved access and verified
-storage isolation, then post-deploy health/readiness and commit metadata.
-Production deployment is a separate, later action after staging evidence.
-Do not run deploy:all, enable all plugins, apply D1 migrations, alter secrets
-or force-push simply because the owner asked for a general repair.
+Record confirmed test results, exact command receipts, exit codes, deployment ID, commit SHA/tag, and live `/health` + `/ready` responses (`NO RECEIPT = NO SUCCESS, NO EVIDENCE = NO FACT`).
+A workflow queued is not a workflow succeeded. Unauthenticated `wrangler whoami` (even if exit code 0) is not authenticated deployment access.
 
-## Evidence
+## References
 
-Record confirmed tests, deployment ID, git SHA, environment and actual
-service-health results in TEAM-HANDOFF.md (CLAIM → UPDATE → HANDOFF).
-CI run created is not CI run succeeded. Runner 0 and steps 0 is not tested.
-PC offline means no Antigravity local install or command execution occurred.
-
-References:
-https://developers.cloudflare.com/workers/wrangler/configuration/
-https://developers.cloudflare.com/secrets-store/integrations/workers/
+- https://developers.cloudflare.com/workers/wrangler/configuration/
+- https://developers.cloudflare.com/secrets-store/integrations/workers/

@@ -397,6 +397,21 @@ export async function saveWalletTerminalConfig(env, ownerId = 'admin', input = {
     if (!clean.paysafe_account) throw new HttpError(400, 'Paysafe konto musí byť e-mail alebo myPaysafe identifikátor.');
   }
 
+  const existing = env.DB ? await env.DB.prepare('SELECT * FROM ops_wallet_terminals WHERE owner_id=?').bind(ownerId).first() : null;
+  const pick = (key, nextVal, fallback) => (Object.hasOwn(input, key) ? (nextVal || null) : (fallback ?? null));
+
+  const finalIban = pick('iban', clean.iban, existing?.iban);
+  const finalBic = pick('bic', clean.bic, existing?.bic);
+  const finalAccountName = pick('account_name', data.account_name, existing?.account_name);
+  const finalRevolut = pick('revolut_handle', clean.revolut, existing?.revolut_handle);
+  const finalPaypal = pick('paypal_email', clean.paypal?.value, existing?.paypal_email);
+  const finalCrypto = pick('crypto_address', clean.crypto, existing?.crypto_address);
+  const finalNetwork = Object.hasOwn(input, 'crypto_network') ? data.crypto_network : (existing?.crypto_network || data.crypto_network);
+  const finalDefault = Object.hasOwn(input, 'default_terminal') ? data.default_terminal : (existing?.default_terminal || data.default_terminal);
+  const finalTon = pick('ton_address', clean.ton_address, existing?.ton_address);
+  const finalViber = pick('viber_wallet_phone', clean.viber_wallet_phone, existing?.viber_wallet_phone);
+  const finalPaysafe = pick('paysafe_account', clean.paysafe_account, existing?.paysafe_account);
+
   await env.DB.prepare(`
     INSERT INTO ops_wallet_terminals(owner_id, iban, bic, account_name, revolut_handle, paypal_email, crypto_address, crypto_network, default_terminal, ton_address, viber_wallet_phone, paysafe_account, updated_at)
     VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
@@ -404,9 +419,9 @@ export async function saveWalletTerminalConfig(env, ownerId = 'admin', input = {
       revolut_handle=excluded.revolut_handle, paypal_email=excluded.paypal_email, crypto_address=excluded.crypto_address,
       crypto_network=excluded.crypto_network, default_terminal=excluded.default_terminal, ton_address=excluded.ton_address,
       viber_wallet_phone=excluded.viber_wallet_phone, paysafe_account=excluded.paysafe_account, updated_at=datetime('now')
-  `).bind(ownerId, clean.iban || null, clean.bic || null, data.account_name || null, clean.revolut || null,
-    clean.paypal?.value || null, clean.crypto || null, data.crypto_network, data.default_terminal, clean.ton_address || null,
-    clean.viber_wallet_phone || null, clean.paysafe_account || null).run();
+  `).bind(ownerId, finalIban, finalBic, finalAccountName, finalRevolut,
+    finalPaypal, finalCrypto, finalNetwork, finalDefault, finalTon,
+    finalViber, finalPaysafe).run();
   await env.DB.prepare("INSERT INTO ops_events(action,details) VALUES('wallet_terminals_config_updated',?)")
     .bind(JSON.stringify({ owner_id: ownerId, updated_at: new Date().toISOString() })).run();
 
@@ -414,8 +429,8 @@ export async function saveWalletTerminalConfig(env, ownerId = 'admin', input = {
     title: 'Nastavenie platobných terminálov Trinity',
     category: 'commerce',
     step_name: 'terminal_config',
-    summary: `Uložené overené prijímacie údaje: ${[clean.iban && 'IBAN', clean.revolut && 'Revolut', clean.paypal && 'PayPal', clean.crypto && 'krypto adresa', clean.ton_address && 'Telegram @wallet', clean.viber_wallet_phone && 'Viber Pay', clean.paysafe_account && 'Paysafe'].filter(Boolean).join(', ') || 'žiadne'}.`,
-    content: `## Nastavenie platobných terminálov\n\n- IBAN: \`${clean.iban || '—'}\` (BIC: \`${clean.bic || '—'}\`)\n- Meno príjemcu: ${data.account_name || '—'}\n- Revolut: ${clean.revolut ? `revolut.me/${clean.revolut}` : '—'}\n- PayPal: ${clean.paypal?.value || '—'}\n- Krypto adresa: \`${clean.crypto || '—'}\` (${data.crypto_network})\n- Telegram TON: \`${clean.ton_address || '—'}\`\n- Viber Pay: \`${clean.viber_wallet_phone || '—'}\`\n- Paysafe: \`${clean.paysafe_account || '—'}\`\n- Čas: ${new Date().toISOString()}\n\nToto je iba uloženie údajov o príjemcovi. Nie je to potvrdenie žiadnej platby.`
+    summary: `Uložené overené prijímacie údaje: ${[finalIban && 'IBAN', finalRevolut && 'Revolut', finalPaypal && 'PayPal', finalCrypto && 'krypto adresa', finalTon && 'Telegram @wallet', finalViber && 'Viber Pay', finalPaysafe && 'Paysafe'].filter(Boolean).join(', ') || 'žiadne'}.`,
+    content: `## Nastavenie platobných terminálov\n\n- IBAN: \`${finalIban || '—'}\` (BIC: \`${finalBic || '—'}\`)\n- Meno príjemcu: ${finalAccountName || '—'}\n- Revolut: ${finalRevolut ? `revolut.me/${finalRevolut}` : '—'}\n- PayPal: ${finalPaypal || '—'}\n- Krypto adresa: \`${finalCrypto || '—'}\` (${finalNetwork})\n- Telegram TON: \`${finalTon || '—'}\`\n- Viber Pay: \`${finalViber || '—'}\`\n- Paysafe: \`${finalPaysafe || '—'}\`\n- Čas: ${new Date().toISOString()}\n\nToto je iba uloženie údajov o príjemcovi. Nie je to potvrdenie žiadnej platby.`
   });
   return getWalletTerminalOverview(env, ownerId);
 }
@@ -654,14 +669,33 @@ export async function executeWalletPayout(env, ownerId = 'admin', input = {}) {
     const handle = normalizeRevolutHandle(data.target);
     if (!handle) throw new HttpError(400, 'Revolut meno príjemcu je neplatné.');
     target = handle;
-    instruction = { type: 'link', url: `https://revolut.me/${handle}`, how_to: `Otvor odkaz v aplikácii Revolut a pošli ${amount.toFixed(2)} EUR sám.` };
-  } else {
+    instruction = { type: 'link', url: `https://revolut.me/${handle}`, qr_svg: generateQrSvg(`https://revolut.me/${handle}`), how_to: `Otvor odkaz v aplikácii Revolut a pošli ${amount.toFixed(2)} EUR sám.` };
+  } else if (data.destination_type === 'telegram_wallet') {
+    const tonAddr = normalizeTonAddress(data.target);
+    if (!tonAddr) throw new HttpError(400, 'TON adresa pre Telegram @wallet je neplatná.');
+    target = tonAddr;
+    const tonUri = `ton://transfer/${tonAddr}?text=${encodeURIComponent(reference)}`;
+    instruction = { type: 'ton_transfer', uri: tonUri, qr_svg: generateQrSvg(tonUri), how_to: `Otvor Telegram @wallet alebo TON peňaženku a odošli ekvivalent ${amount.toFixed(2)} EUR (USDT/TON) na ${tonAddr} s poznámkou ${reference}. Trinity peniaze neodosiela.` };
+  } else if (data.destination_type === 'viber') {
+    const phone = normalizeViberPhone(data.target);
+    if (!phone) throw new HttpError(400, 'Telefónne číslo pre Viber Pay je neplatné (+421... alebo 09...).');
+    target = phone;
+    const viberUrl = `viber://contact?number=${encodeURIComponent(phone)}`;
+    instruction = { type: 'viber_pay', url: viberUrl, qr_svg: generateQrSvg(viberUrl), how_to: `Otvor Viber Pay a pošli ${amount.toFixed(2)} EUR na číslo ${phone} s poznámkou ${reference} sám.` };
+  } else if (data.destination_type === 'paysafe') {
+    const account = normalizePaysafeAccount(data.target);
+    if (!account) throw new HttpError(400, 'Paysafe účet príjemcu musí byť platný e-mail alebo myPaysafe identifikátor.');
+    target = account;
+    instruction = { type: 'manual', url: 'https://my.paysafecard.com/', how_to: `Prihlás sa do myPaysafe a odošli ${amount.toFixed(2)} EUR na konto ${account} s referenciou ${reference} sám.` };
+  } else if (data.destination_type === 'paypal') {
     const account = normalizePaypalAccount(data.target);
     if (!account) throw new HttpError(400, 'PayPal príjemcu musí byť e-mail alebo paypal.me meno.');
     target = account.value;
     instruction = account.kind === 'handle'
-      ? { type: 'link', url: `https://www.paypal.me/${account.value}/${amount.toFixed(2)}EUR`, how_to: 'Odkaz otvor a platbu potvrď vo svojom PayPal účte sám.' }
+      ? { type: 'link', url: `https://www.paypal.me/${account.value}/${amount.toFixed(2)}EUR`, qr_svg: generateQrSvg(`https://www.paypal.me/${account.value}/${amount.toFixed(2)}EUR`), how_to: 'Odkaz otvor a platbu potvrď vo svojom PayPal účte sám.' }
       : { type: 'manual', how_to: `V PayPale použi „Odoslať“ na ${account.value} a zadaj ${amount.toFixed(2)} EUR sám.` };
+  } else {
+    throw new HttpError(400, `Nepodporovaný cieľový kanál výberu: ${data.destination_type}`);
   }
 
   await env.DB.prepare(`INSERT INTO ops_terminal_payouts_v2(id, owner_id, amount_cents, currency, destination_type, target, recipient_name, note, reference, status)
@@ -681,8 +715,13 @@ export const prepareWalletPayout = executeWalletPayout;
 
 export async function cancelWalletPayout(env, ownerId, payoutId) {
   if (!env.DB) throw new HttpError(503, 'Databáza nie je pripojená.');
-  await env.DB.prepare('DELETE FROM ops_terminal_payouts_v2 WHERE (id=? OR reference=?) AND owner_id=?').bind(payoutId, payoutId, ownerId).run();
-  return { id: payoutId, deleted: true, message: 'Návrh výberu bol zmazaný.' };
+  await ensureTerminalTables(env);
+  const existing = await env.DB.prepare('SELECT id, status FROM ops_terminal_payouts_v2 WHERE (id=? OR reference=?) AND owner_id=?').bind(payoutId, payoutId, ownerId).first();
+  if (!existing) throw new HttpError(404, 'Návrh výberu neexistuje.');
+  if (existing.status !== 'prepared') throw new HttpError(409, `Výber so stavom ${existing.status} nemožno zmazať.`);
+  const res = await env.DB.prepare("DELETE FROM ops_terminal_payouts_v2 WHERE id=? AND owner_id=? AND status='prepared'").bind(existing.id, ownerId).run();
+  const deleted = (res?.meta?.changes ?? 1) > 0;
+  return { id: existing.id, deleted, message: deleted ? 'Návrh výberu bol zmazaný.' : 'Návrh výberu sa nepodarilo zmazať.' };
 }
 
 // ── Non-custodial EVM crypto wallet ─────────────────────────────────────────

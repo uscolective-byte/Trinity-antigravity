@@ -26,18 +26,27 @@ for(const task of ['prepoj PayPal owner@example.test','pripoj Revolut IBAN','pre
  });
 }
 
-test('cancelWalletPayout executes delete statement on database', async () => {
+test('cancelWalletPayout executes guarded delete statement on prepared payouts in database', async () => {
   let executedSql = '';
   let boundParams = [];
   const fakeDb = {
     prepare(sql) {
-      executedSql = sql;
       return {
+        async run() {
+          return { success: true };
+        },
         bind(...params) {
-          boundParams = params;
           return {
+            async first() {
+              if (sql.includes('SELECT id, status FROM ops_terminal_payouts_v2')) {
+                return { id: params[0], status: 'prepared' };
+              }
+              return null;
+            },
             async run() {
-              return { success: true };
+              executedSql = sql;
+              boundParams = params;
+              return { success: true, meta: { changes: 1 } };
             }
           };
         }
@@ -47,5 +56,6 @@ test('cancelWalletPayout executes delete statement on database', async () => {
   const res = await cancelWalletPayout({ DB: fakeDb }, 'admin', 'PAYOUT-804CA2AF');
   assert.equal(res.deleted, true);
   assert.ok(executedSql.includes('DELETE FROM ops_terminal_payouts_v2'));
-  assert.deepEqual(boundParams, ['PAYOUT-804CA2AF', 'PAYOUT-804CA2AF', 'admin']);
+  assert.ok(executedSql.includes("status='prepared'"));
+  assert.deepEqual(boundParams, ['PAYOUT-804CA2AF', 'admin']);
 });

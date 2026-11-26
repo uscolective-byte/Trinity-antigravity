@@ -1,4 +1,4 @@
-name: Trinity CI
+name: Trinity Extended CI
 
 on:
   push:

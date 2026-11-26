@@ -71,7 +71,8 @@ export async function getPayPalAccessToken(env) {
       'Authorization': `Basic ${auth}`,
       'Content-Type': 'application/x-www-form-urlencoded'
     },
-    body: 'grant_type=client_credentials'
+    body: 'grant_type=client_credentials',
+    signal: AbortSignal.timeout(15000)
   });
 
   if (!response.ok) {
@@ -129,7 +130,8 @@ export async function createPayPalOrder(env, { amountEur, description, reference
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(15000)
   });
 
   if (!response.ok) {
@@ -166,7 +168,8 @@ export async function capturePayPalOrder(env, orderId) {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
-    }
+    },
+    signal: AbortSignal.timeout(15000)
   });
 
   if (!response.ok) {
@@ -179,11 +182,11 @@ export async function capturePayPalOrder(env, orderId) {
   const amountEur = captureUnit?.amount?.value ? Number(captureUnit.amount.value) : null;
   const isCompleted = data.status === 'COMPLETED';
 
-  // Automatically record verified payment in ops_wallet_ledger if DB is present
-  if (isCompleted && env?.DB?.prepare) {
+  // Automatically record verified payment in ops_wallet_ledger if DB is present and amount > 0
+  const amountCents = Number.isFinite(amountEur) ? Math.round(amountEur * 100) : 0;
+  if (isCompleted && amountCents > 0 && env?.DB?.prepare) {
     try {
       const entryId = crypto.randomUUID();
-      const amountCents = Math.round((amountEur || 0) * 100);
       await env.DB.prepare(`INSERT OR IGNORE INTO ops_wallet_ledger(id, owner_id, kind, amount_cents, currency, channel, ref_id, evidence_type, evidence_ref, note)
         VALUES(?, 'admin', 'received', ?, 'EUR', 'paypal', ?, 'paypal_capture', ?, ?)`).bind(
         entryId,
@@ -223,7 +226,8 @@ export async function getPayPalOrderStatus(env, orderId) {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
-    }
+    },
+    signal: AbortSignal.timeout(15000)
   });
 
   if (!response.ok) {

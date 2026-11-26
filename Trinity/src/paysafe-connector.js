@@ -94,6 +94,9 @@ export function paysafeIntegrationStatus(env) {
  */
 export async function createPaysafeChargeSession(env, params = {}) {
   const amountEur = Number(Number(params.amount_eur || params.amount || 0).toFixed(2));
+  if (!Number.isFinite(amountEur) || amountEur <= 0) {
+    return { ok: false, provider: 'paysafe', status: 'invalid_amount', error: 'Suma v EUR musí byť kladné číslo.' };
+  }
   const purpose = String(params.purpose || 'Trinity Service Invoice').slice(0, 120);
   const vs = String(params.variable_symbol || Date.now()).slice(-10);
   const returnUrl = params.return_url || 'https://auru.space/connect?paysafe=complete';
@@ -121,7 +124,8 @@ export async function createPaysafeChargeSession(env, params = {}) {
           'Content-Type': 'application/json',
           'Authorization': `Basic ${basicAuth}`
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(12000)
       });
 
       if (res.ok) {
@@ -141,11 +145,12 @@ export async function createPaysafeChargeSession(env, params = {}) {
     } catch {}
   }
 
-  // Fallback for direct myPaysafe wallet usage or 16-digit voucher codes
+  // Fallback for direct myPaysafe wallet usage or 16-digit voucher codes (never marks payment as received)
   return {
     ok: true,
     provider: 'paysafe',
     status: 'prepared',
+    paid: false,
     amount_eur: amountEur,
     currency: 'EUR',
     variable_symbol: vs,
@@ -154,14 +159,14 @@ export async function createPaysafeChargeSession(env, params = {}) {
     instructions: [
       '1. Open your myPaysafe wallet (https://my.paysafecard.com/) or purchase a 16-digit Paysafecard voucher.',
       `2. Include the payment reference: VS${vs} - ${purpose}.`,
-      '3. After payment, submit the 16-digit PIN in Trinity for ledger recording and verification.'
+      '3. After payment, confirm the payment receipt in Trinity after verifying it in your Paysafe account.'
     ],
     method: 'MYPAYSAFE_OR_VOUCHER'
   };
 }
 
 /**
- * Validates and formats a submitted 16-digit Paysafecard voucher PIN.
+ * Validates format of a submitted 16-digit Paysafecard voucher PIN without echoing plaintext PIN or faking redemption.
  * @param {string} rawPin
  * @param {number} expectedAmountEur
  * @returns {object}
@@ -171,16 +176,17 @@ export function verifyPaysafeVoucherFormat(rawPin, expectedAmountEur = 0) {
   if (!normalized) {
     return {
       valid: false,
+      redeemed: false,
       reason: 'Invalid Paysafecard PIN format. The code must contain exactly 16 digits (e.g. 0123-4567-8901-2345).'
     };
   }
 
   return {
     valid: true,
+    redeemed: false,
     masked_pin: maskPaysafePin(normalized),
-    formatted_pin: formatPaysafePin(normalized),
-    expected_amount_eur: Number(expectedAmountEur.toFixed(2)),
-    status: 'voucher_recorded',
-    note: 'Voucher formatted and staged for settlement in the Trinity treasury.'
+    expected_amount_eur: Number(Number(expectedAmountEur || 0).toFixed(2)),
+    status: 'format_valid_unredeemed',
+    note: 'Formát 16-miestneho PIN kódu je platný; kupón nebol uplatnený ani pripísaný cez Paysafe API.'
   };
 }

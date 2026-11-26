@@ -32,7 +32,6 @@ function docs(){run(process.execPath,['scripts/sync-release-docs.mjs','--check']
 function build(){
  docs();
  for(const project of workers)script(project,'build');
- script('Trinity','build:development');
  run(npm,['exec','--','wrangler','deploy','--config','wrangler.integrations.jsonc','--dry-run','--outdir','dist-integrations'],resolve(root,'Trinity'));
 }
 function test(){

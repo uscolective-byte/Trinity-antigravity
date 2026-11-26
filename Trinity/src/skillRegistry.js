@@ -326,15 +326,6 @@ export const integrationSkills = {
     );
 
     if (!endpoint) {
-      if (options.mock) {
-        return {
-          conversations: [{
-            id: 'mock-conv-' + Date.now(),
-            reply: `[Power Platform Demo] Response to query: "${query}"`,
-            created_at: new Date().toISOString()
-          }]
-        };
-      }
       throw new Error('POWER_PLATFORM_URL is not configured (POWER_PLATFORM_URL nie je nakonfigurovaná).');
     }
 
@@ -370,14 +361,6 @@ export const integrationSkills = {
 
   // Web-search: searches the web and returns relevant excerpts
   webSearch: async (query, env, options = {}) => {
-    if (options.mock) {
-      return {
-        query,
-        results: [
-          { title: 'Overview: ' + query, url: 'https://example.com/search?q=' + encodeURIComponent(query), snippet: 'Sample search result snippet for ' + query }
-        ]
-      };
-    }
     const token = env?.OLLAMA_API_KEY || (typeof env?.OLLAMA_SECRET === 'string' ? env.OLLAMA_SECRET : null);
     if (!token) {
       return { query, results: [], note: 'Web search requires an active OLLAMA_API_KEY or Bing connector.' };
@@ -403,9 +386,6 @@ export const integrationSkills = {
   // Image generation: generates visual output via Workers AI and stores it in R2
   generateImage: async (prompt, env, options = {}) => {
     if (!env?.AI || (!env?.ARTIFACTS && !env?.R2)) {
-      if (options.mock) {
-        return { id: 'mock-img-id', url: '/media/mock-image.jpg', prompt, mock: true };
-      }
       throw new Error('Image generation requires Workers AI and an R2 bucket (ARTIFACTS).');
     }
     const model = env.IMAGE_MODEL || '@cf/black-forest-labs/flux-1-schnell';
@@ -487,15 +467,11 @@ export const integrationSkills = {
     const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(command));
     const sha256 = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
 
-    if (options.mock) {
-      return { success: true, sha256, command, stdout: 'Mock script execution OK', stderr: '', exit_code: 0 };
+    const bridge = env?.PC_BRIDGE_SERVICE || env?.PC_BRIDGE_V2;
+    if (!bridge || typeof bridge.fetch !== 'function') {
+      throw new Error('PC Bridge service binding (PC_BRIDGE_SERVICE / PC_BRIDGE_V2) is not connected or available.');
     }
 
-    if (!env?.PC_BRIDGE && !env?.TRINITY_PC_BRIDGE) {
-      throw new Error('PC Bridge is not connected or available.');
-    }
-
-    const bridge = env.PC_BRIDGE || env.TRINITY_PC_BRIDGE;
     const resp = await bridge.fetch('http://pc-bridge/run', {
       method: 'POST',
       headers: {
@@ -1112,28 +1088,38 @@ async function resolveDataverseToken(env, options = {}) {
   return null;
 }
 
+async function resolveDataverseConfig(env, options = {}) {
+  const instanceUrl = String(options.url || env?.DATAVERSE_URL || '').trim().replace(/\/+$/, '');
+  if (!instanceUrl) {
+    throw new Error('Dataverse org URL (DATAVERSE_URL) is not configured.');
+  }
+  const token = await resolveDataverseToken(env, options);
+  if (!token) {
+    throw new Error('Dataverse credentials are not configured (missing DATAVERSE_TOKEN, POWER_PLATFORM_TOKEN, or OAuth client credentials).');
+  }
+  return { instanceUrl, token };
+}
+
 export const dataverseSkills = {
-  dataverseWhoAmI: async (env = {}, options = {}) => {
-    if (env && !env.DB && !env.AI && !env.DATAVERSE_TOKEN && typeof env === 'object' && Object.keys(options).length === 0) {
+  dataverseWhoAmI: async (env = {}, options = {}, extraOptions = {}) => {
+    if (typeof env === 'string') {
+      env = options && typeof options === 'object' ? options : {};
+      options = extraOptions && typeof extraOptions === 'object' ? extraOptions : {};
+    } else if (
+      env &&
+      !env.DB &&
+      !env.AI &&
+      !env.DATAVERSE_TOKEN &&
+      !env.POWER_PLATFORM_TOKEN &&
+      !env.DATAVERSE_URL &&
+      !env.MICROSOFT_CLIENT_ID &&
+      typeof env === 'object' &&
+      Object.keys(options).length === 0
+    ) {
       options = env;
       env = {};
     }
-    const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
-    const token = await resolveDataverseToken(env, options);
-
-    if (options.mock || !token) {
-      return {
-        instance_url: instanceUrl,
-        organization_id: DEFAULT_DATAVERSE_ORG_ID,
-        environment_id: DEFAULT_DATAVERSE_ENV_ID,
-        user_id: '8659177c-c9ca-f111-be88-00224874567f',
-        business_unit_id: DEFAULT_DATAVERSE_ORG_ID,
-        status: token ? 'connected' : 'mock-ready',
-        geo: 'Europe / EFTA (Switzerland)',
-        environment_type: 'Developer',
-        mock: !token || Boolean(options.mock)
-      };
-    }
+    const { instanceUrl, token } = await resolveDataverseConfig(env, options);
 
     const resp = await fetch(`${instanceUrl}/api/data/v9.2/WhoAmI`, {
       headers: {
@@ -1162,21 +1148,7 @@ export const dataverseSkills = {
     if (!entitySet || typeof entitySet !== 'string') {
       throw new Error('dataverseQuery requires an entity set name (e.g., accounts, contacts, incidents)');
     }
-    const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
-    const token = await resolveDataverseToken(env, options);
-
-    if (options.mock || !token) {
-      return {
-        entitySet,
-        count: 2,
-        value: [
-          { id: 'mock-1', name: `Sample record 1 (${entitySet})`, createdon: new Date().toISOString() },
-          { id: 'mock-2', name: `Sample record 2 (${entitySet})`, createdon: new Date().toISOString() }
-        ],
-        instance_url: instanceUrl,
-        mock: !token || Boolean(options.mock)
-      };
-    }
+    const { instanceUrl, token } = await resolveDataverseConfig(env, options);
 
     const queryParts = [];
     if (queryParams.$select) queryParts.push(`$select=${encodeURIComponent(queryParams.$select)}`);
@@ -1209,18 +1181,7 @@ export const dataverseSkills = {
 
   dataverseCreateRecord: async (entitySet, recordData = {}, env = {}, options = {}) => {
     if (!entitySet || typeof entitySet !== 'string') throw new Error('dataverseCreateRecord requires entitySet');
-    const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
-    const token = await resolveDataverseToken(env, options);
-
-    if (options.mock || !token) {
-      return {
-        id: 'mock-record-' + Date.now(),
-        entitySet,
-        ...recordData,
-        createdon: new Date().toISOString(),
-        mock: !token || Boolean(options.mock)
-      };
-    }
+    const { instanceUrl, token } = await resolveDataverseConfig(env, options);
 
     const resp = await fetch(`${instanceUrl}/api/data/v9.2/${entitySet}`, {
       method: 'POST',
@@ -1244,19 +1205,7 @@ export const dataverseSkills = {
 
   dataverseUpdateRecord: async (entitySet, id, recordData = {}, env = {}, options = {}) => {
     if (!entitySet || !id) throw new Error('dataverseUpdateRecord requires entitySet and id');
-    const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
-    const token = await resolveDataverseToken(env, options);
-
-    if (options.mock || !token) {
-      return {
-        id,
-        entitySet,
-        ...recordData,
-        updatedon: new Date().toISOString(),
-        updated: true,
-        mock: !token || Boolean(options.mock)
-      };
-    }
+    const { instanceUrl, token } = await resolveDataverseConfig(env, options);
 
     const resp = await fetch(`${instanceUrl}/api/data/v9.2/${entitySet}(${id})`, {
       method: 'PATCH',
@@ -1280,12 +1229,7 @@ export const dataverseSkills = {
 
   dataverseDeleteRecord: async (entitySet, id, env = {}, options = {}) => {
     if (!entitySet || !id) throw new Error('dataverseDeleteRecord requires entitySet and id');
-    const instanceUrl = (options.url || env?.DATAVERSE_URL || DEFAULT_DATAVERSE_URL).replace(/\/+$/, '');
-    const token = await resolveDataverseToken(env, options);
-
-    if (options.mock || !token) {
-      return { id, entitySet, deleted: true, mock: !token || Boolean(options.mock) };
-    }
+    const { instanceUrl, token } = await resolveDataverseConfig(env, options);
 
     const resp = await fetch(`${instanceUrl}/api/data/v9.2/${entitySet}(${id})`, {
       method: 'DELETE',
@@ -1636,14 +1580,17 @@ export const domainSkills = {
 export const coreCatalogSkills = {
   planning: async (params = {}) => ({
     skill: "planning",
-    status: "completed",
+    status: "guidance-only",
+    mode: "guidance-only",
+    verified: false,
+    executed: false,
     actionable_plan: {
       goal: String(params.query || params.goal || "Task planning").slice(0, 300),
       phases: [
-        { phase: 1, name: "Requirements analysis and validation", status: "ready" },
-        { phase: 2, name: "Technical design and assumption verification", status: "ready" },
-        { phase: 3, name: "Implementation with edge-case testing", status: "ready" },
-        { phase: 4, name: "Verification, audit, and deployment", status: "ready" }
+        { phase: 1, name: "Requirements analysis and validation", status: "pending" },
+        { phase: 2, name: "Technical design and assumption verification", status: "pending" },
+        { phase: 3, name: "Implementation with edge-case testing", status: "pending" },
+        { phase: 4, name: "Verification, audit, and deployment", status: "pending" }
       ],
       success_criteria: ["Independent verifiability", "Zero unauthorized changes", "Recorded in audit log"]
     },
@@ -1651,19 +1598,25 @@ export const coreCatalogSkills = {
   }),
   "secure-development": async (params = {}) => ({
     skill: "secure-development",
-    status: "completed",
-    security_verifications: {
-      input_validation: "zod / strict schema enforced",
-      least_privilege: "bounded RBAC + signed proposals",
-      injection_prevention: "parameterized SQL / strict regex arguments",
-      secrets_protection: "vault / worker secrets isolated"
+    status: "guidance-only",
+    mode: "guidance-only",
+    verified: false,
+    executed: false,
+    security_checklist: {
+      input_validation: "Verify zod / strict schema enforcement on all inputs",
+      least_privilege: "Verify bounded RBAC + signed proposals on privileged endpoints",
+      injection_prevention: "Verify parameterized SQL / strict regex arguments and HTML escaping",
+      secrets_protection: "Verify vault / worker secrets remain isolated and never logged"
     },
     params,
     timestamp: new Date().toISOString()
   }),
   "cloud-operations": async (params = {}, env = {}) => ({
     skill: "cloud-operations",
-    status: "completed",
+    status: "guidance-only",
+    mode: "guidance-only",
+    verified: false,
+    live_verified: false,
     bindings_status: {
       d1_db: Boolean(env?.DB),
       kv_mastermind: Boolean(env?.Mastermind),
@@ -1674,57 +1627,80 @@ export const coreCatalogSkills = {
   }),
   "evidence-research": async (params = {}) => ({
     skill: "evidence-research",
-    status: "completed",
+    status: "guidance-only",
+    mode: "guidance-only",
+    verified: false,
+    executed: false,
     evidence_structure: {
       topic: String(params.query || params.topic || "Research").slice(0, 300),
       truth_policy: "evidence-required",
-      status: "verified"
+      verification_status: "unverified-guidance-only"
     },
     timestamp: new Date().toISOString()
   }),
   "integration-design": async (params = {}) => ({
     skill: "integration-design",
-    status: "completed",
+    status: "guidance-only",
+    mode: "guidance-only",
+    verified: false,
+    executed: false,
     contract: {
       target_service: String(params.service || "External Connector").slice(0, 100),
       auth_type: "vault-encrypted-token",
       timeout_ms: 30000,
-      circuit_breaker: "active"
+      circuit_breaker: "recommended"
     },
     timestamp: new Date().toISOString()
   }),
   "quality-review": async (params = {}) => ({
     skill: "quality-review",
-    status: "completed",
+    status: "guidance-only",
+    mode: "guidance-only",
+    verified: false,
+    executed: false,
     quality_checklist: {
-      unit_tests_passed: true,
-      truth_mode_compliant: true,
-      rollback_available: true,
-      error_handling_graceful: true
+      unit_tests_passed: false,
+      truth_mode_compliant: false,
+      rollback_available: false,
+      error_handling_graceful: false,
+      required_checks: [
+        "Execute real unit/integration test suite and capture receipts",
+        "Verify Truth Policy 2.1 compliance (no fabricated outputs)",
+        "Verify rollback path before deployment",
+        "Verify fail-closed error handling"
+      ]
     },
     timestamp: new Date().toISOString()
   }),
   "paper-trading": async (params = {}) => ({
     skill: "paper-trading",
-    status: "completed",
+    status: "guidance-only",
+    mode: "simulation-only",
+    verified: false,
     commodity_sectors: ["Precious Metals", "Energy", "Industrial Metals", "Agriculture", "Livestock & Meat"],
     total_commodities_tracked: 22,
-    mode: "simulation-only",
     timestamp: new Date().toISOString()
   }),
   "memory-hygiene": async (params = {}) => ({
     skill: "memory-hygiene",
-    status: "completed",
+    status: "guidance-only",
+    mode: "guidance-only",
+    verified: false,
+    executed: false,
     hygiene_report: {
-      duplicates_pruned: true,
-      stale_assertions_archived: true,
-      provenance_retained: true
+      duplicates_pruned: false,
+      stale_assertions_archived: false,
+      provenance_retained: true,
+      note: "Guidance only — no memory records were pruned or modified."
     },
     timestamp: new Date().toISOString()
   }),
   "integration-recovery": async (params = {}) => ({
     skill: "integration-recovery",
-    status: "completed",
+    status: "guidance-only",
+    mode: "guidance-only",
+    verified: false,
+    executed: false,
     recovery_protocol: {
       backoff: "exponential",
       fallback_provider: "workers-ai",
@@ -1734,7 +1710,9 @@ export const coreCatalogSkills = {
   }),
   "clear-communication": async (params = {}) => ({
     skill: "clear-communication",
-    status: "completed",
+    status: "guidance-only",
+    mode: "guidance-only",
+    verified: false,
     guidelines: [
       "Result first",
       "Concise and factual explanation in Slovak",
@@ -1744,7 +1722,9 @@ export const coreCatalogSkills = {
   }),
   "customer-acquisition": async (params = {}) => ({
     skill: "customer-acquisition",
-    status: "completed",
+    status: "guidance-only",
+    mode: "guidance-only",
+    verified: false,
     blueprint: {
       segment: String(params.segment || "General").slice(0, 100),
       offer_type: "managed-services",
@@ -1755,11 +1735,15 @@ export const coreCatalogSkills = {
   }),
   "managed-evolution": async (params = {}) => ({
     skill: "managed-evolution",
-    status: "completed",
+    status: "guidance-only",
+    mode: "guidance-only",
+    verified: false,
+    executed: false,
     evolution_cycle: {
-      ui_evolve_ready: true,
-      self_evolve_ready: true,
-      trinity_documents_audit: true
+      ui_evolve_ready: false,
+      self_evolve_ready: false,
+      trinity_documents_audit: false,
+      note: "Guidance only — verify live readiness before executing evolution pipelines."
     },
     timestamp: new Date().toISOString()
   })

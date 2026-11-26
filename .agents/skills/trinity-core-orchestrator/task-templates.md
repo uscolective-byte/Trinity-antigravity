@@ -4,30 +4,32 @@
 ```markdown
 ### Plán orchestrácie
 - **Cieľ:** [Stručný popis cieľa]
-- **Prostredie:** [auru.dev / auru.space]
-- **Zodpovední agenti:**
-  - `CORE-DEV-WORKER`: [Podúloha A]
-  - `INFRA-EDGE-WORKER`: [Podúloha B]
-  - `TRUTH-VERIFIER-WORKER`: [Verifikácia a audit]
-- **Vstupy a závislosti:** [D1 / KV / API keys]
-- **Očakávaný výstup:** [Overený výsledok so záznamom v Ledgeri]
+- **Cieľová produkcia:** Unified Worker `trinity` (`https://auru.space` & `https://auru.dev`, D1 `trinity-v03`)
+- **Zodpovedné bindings (`WORKER_CATALOG`) / roly (`AGENTS`):**
+  - `AURA_ARCHITECT` / `AURA_CODEGEN`: [Návrh a implementácia]
+  - `DISPATCHER` / `CONNECTORS` / `INTEGRATIONS_SERVICE`: [Integrácie cez `/mcp` a `POST /api/mcp/invoke`]
+  - `AURA_TESTER` / `GUARDIAN` / `AUDIT_SERVICE`: [Testy, Truth Policy 2.1 a `GET /api/audit-ledger/verify`]
+- **Vstupy a závislosti:** [D1 `trinity-v03` / KV `Mastermind` / Secrets Store metadata]
+- **Očakávaný výstup:** [Overený výsledok s presným príkazom, exit kódom a záznamom v Ledgeri]
 ```
 
 ## 2. Handoff & Sync Template
 ```markdown
 ### Odovzdanie stavu (Handoff)
-- **Odosielateľ:** [Agent A]
-- **Prijímateľ:** [Agent B]
-- **Doručené zmeny:** [Zoznam commitov / súborov]
-- **Identifikované riziká:** [Potenciálne kolízie / limity pamäte]
+- **Odosielateľ:** [Worker / Agent A]
+- **Prijímateľ:** [Worker / Agent B]
+- **Doručené zmeny:** [Zoznam commitov / upravených súborov]
+- **Overovacie doklady (Truth Policy 2.1):** [Príkazy, exit kódy, počty testov]
+- **Identifikované riziká a výhrady:** [Potenciálne kolízie / neoverené externé závislosti]
 - **Ďalší krok:** [Konkrétna akcia pre prijímateľa]
 ```
 
-## 3. Final Synthesis Template
+## 3. Final Synthesis & Truth Receipt Template
 ```markdown
-### Záverečná syntéza a audit
-- **Stav nasadenia:** [Servíruje / Verzia ID]
-- **Výsledok testov:** [X / X úspešných]
-- **Sovereign Ledger Status:** [valid: true / dĺžka reťazca]
-- **Zhrnutie doručených hodnôt:** [Popis funkcionality pre používateľa]
+### Záverečná syntéza a audit (Truth Policy 2.1)
+- **Commit SHA / Vetva:** [40-znakový SHA / branch]
+- **Stav nasadenia:** [Live `/health` + `/ready` receipt alebo `pre-flight only` ak chýbajú CF kredenciály]
+- **Výsledok testov a buildov:** [X / X úspešných, exit code 0]
+- **Sovereign Ledger Status (`GET /api/audit-ledger/verify`):** [valid: true / dĺžka reťazca]
+- **Zhrnutie doručených hodnôt:** [Popis overenej funkcionality pre vlastníka]
 ```

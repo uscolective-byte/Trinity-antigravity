@@ -23,8 +23,23 @@ export const transferProposalSchema = z.object({
 
 export const transferConfirmSchema = z.object({
   proposal_id: z.string().trim().min(8).max(80),
-  confirmation_token: z.string().trim().min(4).max(128).optional()
+  confirmation_token: z.string().trim().min(4).max(128)
 }).strict();
+
+function generateConfirmationCode() {
+  const bytes = new Uint32Array(1);
+  crypto.getRandomValues(bytes);
+  return String(100000 + (bytes[0] % 900000));
+}
+
+function constantTimeEquals(a, b) {
+  const x = String(a || '');
+  const y = String(b || '');
+  if (x.length !== y.length) return false;
+  let diff = 0;
+  for (let i = 0; i < x.length; i += 1) diff |= x.charCodeAt(i) ^ y.charCodeAt(i);
+  return diff === 0;
+}
 
 const readyDatabases = new WeakSet();
 async function ensureFinanceTables(env) {
@@ -91,7 +106,7 @@ export async function proposeTransfer(env, ownerId, input) {
   }
 
   const proposalId = `fin_${crypto.randomUUID().slice(0, 18)}`;
-  const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const confirmationCode = generateConfirmationCode();
   const expiresAt = Date.now() + 300_000; // 5 minutes
 
   const signatureHash = await hash(`${proposalId}:${ownerId}:${amountCents}:${params.recipient}:${confirmationCode}:${expiresAt}`);
@@ -110,6 +125,7 @@ export async function proposeTransfer(env, ownerId, input) {
 
   return {
     proposal_id: proposalId,
+    confirmation_code: confirmationCode,
     status: 'pending_confirmation',
     amount_eur: amountEur,
     currency: 'EUR',
@@ -151,8 +167,8 @@ export async function confirmTransfer(env, ownerId, input) {
     throw new HttpError(400, 'Financial proposal expired (5-minute validity window). Create a new transfer order.');
   }
 
-  // Verify confirmation code / token
-  if (confirmation_token && confirmation_token !== proposal.confirmation_code) {
+  // Strictly verify confirmation code (never allow omitting confirmation_token)
+  if (!confirmation_token || !constantTimeEquals(confirmation_token, proposal.confirmation_code)) {
     throw new HttpError(403, 'Invalid payment confirmation code.');
   }
 

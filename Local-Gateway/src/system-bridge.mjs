@@ -333,36 +333,42 @@ export async function createSystemBridgeServer(options = {}) {
                 appToOpen = appMap[clean] || rawApp;
               }
               let appResult = null;
+              let launchFailed = false;
+              const desktopRunner = typeof options.executeDesktopFn === 'function' ? options.executeDesktopFn : executeDesktop;
+              const listWindowsRunner = typeof options.listDesktopWindowsFn === 'function' ? options.listDesktopWindowsFn : listDesktopWindows;
               if (appToOpen) {
                 try {
-                  appResult = await executeDesktop({ task: 'desktop-control', operation: 'launch', app: appToOpen });
+                  appResult = await desktopRunner({ task: 'desktop-control', operation: 'launch', app: appToOpen });
                 } catch (err) {
-                  const windows = await listDesktopWindows().catch(() => []);
-                  appResult = { operation: 'launch_fallback_list', app: appToOpen, note: err.message, active_windows_count: windows.length };
+                  launchFailed = true;
+                  const windows = await listWindowsRunner().catch(() => []);
+                  appResult = { operation: 'launch_fallback_list', app: appToOpen, error: err.message, note: err.message, active_windows_count: windows.length };
                 }
               } else {
-                const windows = await listDesktopWindows().catch(() => []);
+                const windows = await listWindowsRunner().catch(() => []);
                 appResult = { operation: 'list', active_windows_count: windows.length, sample_windows: windows.slice(0, 5) };
               }
+              const exitCode = launchFailed ? 1 : 0;
+              const finalStatus = launchFailed ? 'failed' : 'completed';
               const localLedger = appendLocalSovereignLedger(targetDataDir, {
                 actor: verifiedAuth.operator,
                 channel: verifiedAuth.channel,
                 identifier: verifiedAuth.identifier,
                 operation: input.action.toUpperCase(),
-                exit_code: 0,
+                exit_code: exitCode,
                 windows_sid: winSession.sid,
                 app_result: appResult
               });
               return {
-                status: 'completed',
-                exit_code: 0,
+                status: finalStatus,
+                exit_code: exitCode,
                 operator: verifiedAuth.operator,
                 channel: verifiedAuth.channel,
                 identifier: verifiedAuth.identifier,
                 windows_sid: winSession.sid,
                 os_token_verified: winSession.osTokenVerified,
                 app_execution: appResult,
-                receipt: { action: 'open_app', target: appToOpen, desktop: appResult, success: !appResult?.note },
+                receipt: { action: 'open_app', target: appToOpen, desktop: appResult, success: !launchFailed },
                 local_ledger_receipt: localLedger,
                 executed_at: new Date().toISOString()
               };

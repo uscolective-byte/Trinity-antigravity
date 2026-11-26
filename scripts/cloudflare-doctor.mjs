@@ -18,7 +18,19 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const worker=resolve(root,'Trinity');
 const cli=resolve(worker,'node_modules/wrangler/bin/wrangler.js');
 
+const UNAUTHENTICATED_WHOAMI_RE=/you are not authenticated|not logged in|please run [`'"]?wrangler login[`'"]?|unable to authenticate|authentication error/i;
+const AUTHENTICATED_WHOAMI_RE=/you are logged in|associated with the email|account name[\s\S]*account id/i;
+
+export function parseWranglerWhoamiAuth(res){
+ if(!res||res.error||res.status!==0)return false;
+ const output=`${res.stdout||''}\n${res.stderr||''}`;
+ if(!output.trim())return false;
+ if(UNAUTHENTICATED_WHOAMI_RE.test(output))return false;
+ return AUTHENTICATED_WHOAMI_RE.test(output);
+}
+
 export function configStatus(config){
+ const hasStaging=Boolean(config.env?.staging);
  const prod=config.d1_databases?.find(x=>x.binding==='DB');
  const stage=config.env?.staging?.d1_databases?.find(x=>x.binding==='DB');
  return {
@@ -26,20 +38,24 @@ export function configStatus(config){
    staging_worker:config.env?.staging?.name||null,
    production_route:config.routes?.some(x=>x.pattern==='auru.space')===true,
    staging_route:config.env?.staging?.routes?.some(x=>x.pattern==='auru.dev')===true,
-   d1_environment_isolation:Boolean(prod?.database_id&&stage?.database_id&&prod.database_id!==stage.database_id),
+   d1_environment_isolation:hasStaging
+     ?Boolean(prod?.database_id&&stage?.database_id&&prod.database_id!==stage.database_id)
+     :true,
    kv_shared_namespaces:(config.kv_namespaces||[]).filter(x=>(config.env?.staging?.kv_namespaces||[]).some(y=>y.id===x.id)).length,
    r2_shared_buckets:(config.r2_buckets||[]).filter(x=>(config.env?.staging?.r2_buckets||[]).some(y=>y.bucket_name===x.bucket_name)).length
  };
 }
 
-function cliStatus(args){
+function cliStatus(args,validator){
  if(!existsSync(cli))return {available:false,ok:false};
  const res=spawnSync(process.execPath,[cli,...args],{
    cwd:worker,encoding:'utf8',windowsHide:true,timeout:45000,
-   maxBuffer:1024*1024
+   maxBuffer:1024*1024,
+   env:{...process.env,WRANGLER_SEND_METRICS:'false'}
  });
  // No stderr or stdout returned: they may contain personal/account data.
- return {available:true,ok:res.status===0&&!res.error};
+ const ok=validator?Boolean(validator(res)):(res.status===0&&!res.error);
+ return {available:true,ok};
 }
 
 export async function checkCloudflare(){
@@ -47,7 +63,7 @@ export async function checkCloudflare(){
  const accountId=config.account_id||config.vars?.CF_ACCOUNT_ID;
  const token=process.env.CLOUDFLARE_API_TOKEN||process.env.CF_API_TOKEN||'';
  const verification=await verifyCloudflareToken(token,accountId);
- const whoami=cliStatus(['whoami']);
+ const whoami=cliStatus(['whoami'],parseWranglerWhoamiAuth);
  const production=cliStatus(['secret','list','--env=']);
  const staging=config.env?.staging?cliStatus(['secret','list','--env=staging']):{available:false,ok:false};
  const result={

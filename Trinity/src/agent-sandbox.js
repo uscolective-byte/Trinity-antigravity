@@ -33,7 +33,7 @@ export const agentExecutionSchema = z.object({
 export const domainProvisionSchema = z.object({
   domain_name: z.string().trim().min(3).max(253).toLowerCase().regex(/^[a-z0-9.-]+\.[a-z]{2,}$/, 'Invalid domain name format.'),
   agent_id: z.string().trim().min(2).max(64),
-  target_worker: z.string().trim().default('trinity-development'),
+  target_worker: z.string().trim().default('trinity'),
   enable_waf: z.boolean().default(true),
   ssl_mode: z.enum(['full', 'strict', 'flexible']).default('strict')
 }).strict();
@@ -290,31 +290,38 @@ export async function provisionAgentDomain(env, ownerId = 'admin', input) {
   const data = domainProvisionSchema.parse(input);
   const cfToken = env.CF_API_TOKEN || env.CLOUDFLARE_API_TOKEN;
 
-  const dnsRecords = [
+  if (!cfToken) {
+    throw new HttpError(503, 'Cloudflare API token (CF_API_TOKEN / CLOUDFLARE_API_TOKEN) is not configured; domain provisioning aborted.');
+  }
+
+  const plannedDnsRecords = [
     { type: 'A', name: '@', content: '192.0.2.1', proxied: true, comment: 'Trinity AI Agent Sandbox Root' },
     { type: 'CNAME', name: 'agent', content: `${data.target_worker}.saboivan2008.workers.dev`, proxied: true, comment: 'Custom Agent Endpoint' },
     { type: 'CNAME', name: 'api', content: `${data.target_worker}.saboivan2008.workers.dev`, proxied: true, comment: 'Agent REST/WebSocket API' },
     { type: 'TXT', name: '@', content: `trinity-agent-verification=${data.agent_id}`, comment: 'Trinity Ownership Proof' }
   ];
 
-  let zoneId = 'cf_mock_zone_' + crypto.randomUUID().slice(0, 16);
-  let liveStatus = 'dns_configured';
-
-  if (cfToken) {
-    try {
-      const zoneResp = await fetch('https://api.cloudflare.com/client/v4/zones', {
-        headers: { Authorization: `Bearer ${cfToken}`, 'Content-Type': 'application/json' }
-      });
-      const zoneData = await zoneResp.json().catch(() => ({}));
-      const matchedZone = (zoneData.result || []).find(z => z.name === data.domain_name);
-      if (matchedZone) {
-        zoneId = matchedZone.id;
-        liveStatus = 'active_cloudflare_zone';
-      }
-    } catch {
-      liveStatus = 'local_dns_ready';
-    }
+  let zoneResp;
+  try {
+    zoneResp = await fetch(`https://api.cloudflare.com/client/v4/zones?name=${encodeURIComponent(data.domain_name)}`, {
+      headers: { Authorization: `Bearer ${cfToken}`, 'Content-Type': 'application/json' }
+    });
+  } catch (err) {
+    throw new HttpError(502, `Cloudflare zone lookup failed for ${data.domain_name}: ${err?.message || 'network error'}`);
   }
+
+  if (!zoneResp.ok) {
+    throw new HttpError(502, `Cloudflare API returned HTTP ${zoneResp.status} while looking up zone ${data.domain_name}.`);
+  }
+
+  const zoneData = await zoneResp.json().catch(() => ({}));
+  const matchedZone = (zoneData.result || []).find(z => z.name === data.domain_name);
+  if (!matchedZone?.id) {
+    throw new HttpError(404, `Cloudflare zone not found for domain ${data.domain_name}; cannot provision without an active Cloudflare zone.`);
+  }
+
+  const zoneId = matchedZone.id;
+  const liveStatus = 'zone_verified_pending_dns';
 
   if (env.DB) {
     await env.DB.prepare(`
@@ -327,16 +334,16 @@ export async function provisionAgentDomain(env, ownerId = 'admin', input) {
         dns_records_json = excluded.dns_records_json,
         ssl_mode = excluded.ssl_mode,
         updated_at = datetime('now')
-    `).bind(data.domain_name, data.agent_id, ownerId, zoneId, liveStatus, JSON.stringify(dnsRecords), data.ssl_mode).run();
+    `).bind(data.domain_name, data.agent_id, ownerId, zoneId, liveStatus, JSON.stringify(plannedDnsRecords), data.ssl_mode).run();
 
     await env.DB.prepare('UPDATE ops_custom_agents SET domain_binding = ? WHERE id = ?').bind(data.domain_name, data.agent_id).run().catch(() => null);
   }
 
   await createTrinityDocument(env, ownerId, {
-    title: `New domain bound to agent: ${data.domain_name}`,
+    title: `Cloudflare zone verified for agent: ${data.domain_name}`,
     category: 'domains',
     step_name: 'agent_domain_provision',
-    summary: `Domain ${data.domain_name} has been registered and bound to AI agent [${data.agent_id}]. DNS records, SSL, and WAF rules have been configured.`,
+    summary: `Cloudflare zone ${zoneId} was verified for ${data.domain_name} and associated with AI agent [${data.agent_id}] (target worker: ${data.target_worker}). DNS records, SSL, and WAF rules were NOT mutated automatically.`,
     tags: ['cloudflare', 'domain', 'agent_sandbox', data.domain_name]
   }).catch(() => null);
 
@@ -344,10 +351,15 @@ export async function provisionAgentDomain(env, ownerId = 'admin', input) {
     ok: true,
     domain_name: data.domain_name,
     agent_id: data.agent_id,
+    target_worker: data.target_worker,
     zone_id: zoneId,
     status: liveStatus,
-    ssl_mode: data.ssl_mode,
-    dns_records: dnsRecords,
+    dns_configured: false,
+    ssl_configured: false,
+    waf_configured: false,
+    requested_ssl_mode: data.ssl_mode,
+    requested_waf: data.enable_waf,
+    planned_dns_records: plannedDnsRecords,
     endpoint: `https://${data.domain_name}`
   };
 }

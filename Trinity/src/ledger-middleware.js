@@ -32,25 +32,24 @@ export function resolveLedgerDatabase(env) {
   return env?.DB || env?.TRINITY_D1 || env?.rea || null;
 }
 
-export function extractActorFromRequest(request) {
-  const actorHeader =
-    request.headers.get('X-Trinity-Actor') ||
-    request.headers.get('X-User-Id') ||
-    request.headers.get('X-Owner-Id');
-
-  if (actorHeader && actorHeader.trim().length > 0) {
-    return actorHeader.trim();
+export function resolveVerifiedActor(user) {
+  if (!user || typeof user !== 'object') return null;
+  const candidate = user.username || user.email || user.id || user.actor;
+  if (typeof candidate === 'string' && candidate.trim().length > 0) {
+    return candidate.trim();
   }
-
-  const authHeader = request.headers.get('Authorization');
-  if (authHeader && authHeader.trim().length > 0) {
-    return 'authenticated_operator';
-  }
-
-  return 'basterix_edge_gateway';
+  return null;
 }
 
-export async function recordRequestAudit({ request, response, env, ctx, pathname, method, durationMs, errorMessage = null }) {
+export function extractActorFromRequest(_request, user = null) {
+  const verified = resolveVerifiedActor(user);
+  if (verified) {
+    return verified;
+  }
+  return 'unauthenticated';
+}
+
+export async function recordRequestAudit({ request, response, env, ctx, pathname, method, durationMs, errorMessage = null, user = null, actor: explicitActor = null }) {
   const db = resolveLedgerDatabase(env);
   if (!db) {
     console.warn('[LEDGER AUDIT] No D1 binding (DB / TRINITY_D1) is available; skipping automatic audit write.');
@@ -58,7 +57,9 @@ export async function recordRequestAudit({ request, response, env, ctx, pathname
   }
 
   const ledger = new SovereignLedgerEngine(env, db);
-  const actor = extractActorFromRequest(request);
+  const actor = (typeof explicitActor === 'string' && explicitActor.trim().length > 0)
+    ? explicitActor.trim()
+    : extractActorFromRequest(request, user);
   const statusCode = response ? response.status : 500;
   const outcome = !errorMessage && statusCode >= 200 && statusCode < 400 ? 'SUCCESS' : 'FAILURE';
   const operation = `HTTP_${method.toUpperCase()}_${pathname.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_')}`;
@@ -91,7 +92,18 @@ export async function recordRequestAudit({ request, response, env, ctx, pathname
   return await writePromise;
 }
 
-export async function handleAuditLedgerRoutes(request, env, url) {
+export async function handleAuditLedgerRoutes(request, env, url, user = null) {
+  const verifiedActor = resolveVerifiedActor(user);
+  if (!verifiedActor) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'Sign in to Trinity.'
+      }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
   const db = resolveLedgerDatabase(env);
   if (!db) {
     return new Response(
@@ -174,9 +186,28 @@ export async function handleAuditLedgerRoutes(request, env, url) {
   }
 
   if (url.pathname === '/api/audit-ledger/append' && request.method === 'POST') {
+    if (!['admin', 'owner'].includes(user?.role)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Táto operácia je dostupná iba správcovi Trinity.'
+        }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    let body;
     try {
-      const body = await request.json();
-      const actor = typeof body?.actor === 'string' && body.actor.trim() ? body.actor.trim() : extractActorFromRequest(request);
+      body = await request.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid JSON body.' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    try {
+      const actor = verifiedActor;
       const operation = typeof body?.operation === 'string' && body.operation.trim() ? body.operation.trim() : null;
       const payload = body?.payload ?? {};
 

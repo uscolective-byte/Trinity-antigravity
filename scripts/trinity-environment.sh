@@ -5,9 +5,13 @@ cd "$TASK_ROOT"
 case "${1:-check}" in
   setup)
     # Codespaces/devcontainer bootstrap: the root package has no `setup` script.
-    # Install dependencies without triggering any deployment or credential flows.
-    npm ci
-    npm --prefix Trinity ci
+    # Install all 6 CI workspaces without triggering deployment or credential flows.
+    npm ci --no-audit --no-fund --ignore-scripts
+    npm --prefix packages/contracts ci --no-audit --no-fund --ignore-scripts
+    npm --prefix packages/crypto-core ci --no-audit --no-fund --ignore-scripts || npm --prefix packages/crypto-core ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts
+    npm --prefix Jericho-Worker ci --no-audit --no-fund
+    npm --prefix contracts/tetrakis ci --no-audit --no-fund
+    npm --prefix Trinity ci --no-audit --no-fund
     ;;
   check)
     npm run check

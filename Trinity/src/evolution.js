@@ -10,6 +10,7 @@
  * Automatic failure analysis and continuous self-improvement for Trinity.
  */
 import {readControl, assertRunning} from './control.js';
+import {resolveGitHubToken} from './project-evolution.js';
 import {createSelfImprovementProposal,approveSelfImprovementProposal,applySelfImprovementProposal,reconcileSelfImprovements} from './self-improvement.js';
 
 export async function runEvolutionCycle(env) {
@@ -51,7 +52,7 @@ export async function runEvolutionCycle(env) {
       lesson: `An error occurred while executing the job: ${errorText}. Recommendation: Verify tool parameters and availability of provider ${job.provider}.`
     };
 
-    if (env.TRINITY_AUTO_IMPROVE === 'true' && (env.TRINITY_GITHUB_TOKEN || env.GITHUB_TOKEN || env.trinitygithube_key || env.GITHUBE_API_KEY)) {
+    if (env.TRINITY_AUTO_IMPROVE === 'true' && Boolean(resolveGitHubToken(env))) {
       const proposal=await createSelfImprovementProposal(env,{title:`Fix failed job ${job.id}`.slice(0,120),description:`Identify the root cause and prepare the minimal fix with a test. Task: ${String(job.task).slice(0,2000)}. Error: ${errorText}`,kind:'code_improvement'},'evolution-engine');
       await approveSelfImprovementProposal(env,proposal.id,'owner-standing-policy:TRINITY_AUTO_IMPROVE');
       try { diagnosis.execution=await applySelfImprovementProposal(env,proposal.id,'evolution-engine'); }

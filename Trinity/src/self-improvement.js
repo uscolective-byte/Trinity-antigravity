@@ -7,7 +7,14 @@
  */
 import {z} from 'zod';
 import {HttpError} from './security.js';
-import {prepareCodeImprovement,dispatchDeployment,githubRequest,mergeVerifiedImprovement} from './project-evolution.js';
+import {
+  PROJECT_REPOSITORY,
+  prepareCodeImprovement,
+  dispatchDeployment,
+  githubRequest,
+  mergeVerifiedImprovement,
+  resolveGitHubToken
+} from './project-evolution.js';
 
 const proposalSchema = z.object({
   title: z.string().trim().min(3).max(120),
@@ -83,7 +90,7 @@ export async function applySelfImprovementProposal(env, id, actor, installPlugin
     await audit(env, 'self_improvement_rule_activated', {id, actor, title: row.title});
     return present(activated);
   }
-  if (['code_improvement','deployment'].includes(row.kind) && (env.TRINITY_GITHUB_TOKEN || env.GITHUB_TOKEN)) {
+  if (['code_improvement','deployment'].includes(row.kind) && Boolean(resolveGitHubToken(env))) {
     const previous = row.result_json ? JSON.parse(row.result_json) : null;
     if (previous && !['failed'].includes(previous.status)) return present(row);
     const claim = JSON.stringify({status:'preparing',started_at:new Date().toISOString()});
@@ -149,20 +156,66 @@ export function behaviorRulesDirective(rules) {
     + rules.map((r, i) => `${i + 1}) ${r.description}`).join(' ');
 }
 
+async function finalizeMergedProposal(env, proposalId, baseReceipt, mergeSha, mergedAt) {
+  const receipt = {
+    ...baseReceipt,
+    status: 'merged',
+    merge_sha: mergeSha,
+    merged_at: mergedAt,
+    deployed: false
+  };
+  await env.DB.prepare("UPDATE self_improvement_proposals SET status='applied',result_json=?,updated_at=datetime('now') WHERE id=? AND status='approved'")
+    .bind(JSON.stringify(receipt), proposalId).run();
+  await audit(env, 'self_improvement_source_integrated', {id: proposalId, merge_sha: mergeSha, deployed: false});
+  return receipt;
+}
+
 // A merged PR is source integration, never evidence of a successful deployment.
 export async function reconcileSelfImprovements(env) {
-  if (!(env.TRINITY_GITHUB_TOKEN || env.GITHUB_TOKEN)) return [];
-  const proposals = (await listSelfImprovementProposals(env)).filter(p=>p.status==='approved'&&p.result_json?.status==='pull_request_created').slice(0,3);
-  const results=[];
+  if (!resolveGitHubToken(env)) return [];
+  const proposals = (await listSelfImprovementProposals(env))
+    .filter(p => p.status === 'approved' && ['pull_request_created', 'patch_ready'].includes(p.result_json?.status))
+    .slice(0, 3);
+  const results = [];
+  const owner = (env.TRINITY_GITHUB_REPO || PROJECT_REPOSITORY).split('/')[0];
+
   for (const proposal of proposals) {
-    const pr=await githubRequest(env,`/pulls/${proposal.result_json.pull_request}`);
+    let currentReceipt = proposal.result_json;
+    let pr = null;
+
+    if (currentReceipt.status === 'patch_ready') {
+      const branch = currentReceipt.branch || `trinity/evolution-${proposal.id}`;
+      const matches = await githubRequest(env, `/pulls?head=${encodeURIComponent(`${owner}:${branch}`)}&state=all`);
+      if (!Array.isArray(matches) || !matches.length) continue;
+      const linked = matches[0];
+      currentReceipt = {
+        ...currentReceipt,
+        status: 'pull_request_created',
+        pull_request: linked.number,
+        url: linked.html_url,
+        head_sha: linked.head?.sha || null,
+        branch
+      };
+      await env.DB.prepare("UPDATE self_improvement_proposals SET result_json=?,updated_at=datetime('now') WHERE id=? AND status='approved'")
+        .bind(JSON.stringify(currentReceipt), proposal.id).run();
+      await audit(env, 'self_improvement_pr_linked', {id: proposal.id, pull_request: linked.number, branch});
+      pr = linked.merged_at ? linked : await githubRequest(env, `/pulls/${linked.number}`);
+    } else {
+      pr = await githubRequest(env, `/pulls/${currentReceipt.pull_request}`);
+    }
+
     if (!pr.merged_at) {
-      await mergeVerifiedImprovement(env,pr);
+      const mergeOutcome = await mergeVerifiedImprovement(env, pr);
+      if (mergeOutcome.status === 'merged') {
+        const receipt = await finalizeMergedProposal(env, proposal.id, currentReceipt, mergeOutcome.merge_sha, new Date().toISOString());
+        results.push(receipt);
+      } else if (proposal.result_json.status === 'patch_ready') {
+        results.push(currentReceipt);
+      }
       continue;
     }
-    const receipt={...proposal.result_json,status:'merged',merge_sha:pr.merge_commit_sha,merged_at:pr.merged_at,deployed:false};
-    await env.DB.prepare("UPDATE self_improvement_proposals SET status='applied',result_json=?,updated_at=datetime('now') WHERE id=? AND status='approved'").bind(JSON.stringify(receipt),proposal.id).run();
-    await audit(env,'self_improvement_source_integrated',{id:proposal.id,merge_sha:pr.merge_commit_sha,deployed:false});
+
+    const receipt = await finalizeMergedProposal(env, proposal.id, currentReceipt, pr.merge_commit_sha, pr.merged_at);
     results.push(receipt);
   }
   return results;

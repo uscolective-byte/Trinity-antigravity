@@ -203,7 +203,7 @@ async function handleScopedMcp(request,env,ctx){
   const forwarded=new Request(request.url,{method:'POST',headers:request.headers,body:JSON.stringify(body)});
   return handleMcp(forwarded,env,ctx,{projectControl:true,principal:`api-key:${client.id}`,ownerId:client.owner_id});
 }
-async function route(request,env,ctx){
+async function route(request,env,ctx,authContext=null){
   const previewResponse=buildOnlyPreviewResponse(request,env,{version:TRINITY_VERSION,agents:AGENTS.length});
   if(previewResponse)return previewResponse;
   const knowledgeResponse=await handleKnowledge(request,env);
@@ -391,10 +391,17 @@ async function route(request,env,ctx){
     return json(getFleetClusterSummary());
   }
   if((path==='/api/social/status'||path==='/api/assistant/social/status')&&request.method==='GET'){
+    const telegramConfigured=Boolean(env.TELEGRAM_BOT_TOKEN);
+    const whatsappConfigured=Boolean(env.WHATSAPP_ACCESS_TOKEN||env.META_ACCESS_TOKEN);
+    const metaOAuthConfigured=Boolean(env.META_APP_ID&&env.META_APP_SECRET);
+    const linkedinConfigured=Boolean(env.LINKEDIN_ACCESS_TOKEN||env.LINKEDIN_CLIENT_ID);
+    const viberConfigured=Boolean(env.VIBER_AUTH_TOKEN);
+    const paysafeConfigured=Boolean(env.PAYSAFE_API_KEY&&env.PAYSAFE_ACCOUNT_NUMBER);
     return json({
       ok: true,
       service: 'Trinity Omnichannel Social Bridge',
-      version: '1.2.0',
+      version: TRINITY_VERSION,
+      live_verified: false,
       timestamp: new Date().toISOString(),
       channels: {
         telegram: {
@@ -405,33 +412,38 @@ async function route(request,env,ctx){
             supported_assets: ['USDT', 'TON', 'TTK'],
             deep_link_base: 'ton://transfer/'
           },
-          status: 'active'
+          configured: telegramConfigured,
+          status: telegramConfigured ? 'configured' : 'unconfigured'
         },
         whatsapp: {
           platform: 'Meta Cloud API & Direct Click-to-Chat',
           click_to_chat: 'https://wa.me/',
           webhook_endpoint: '/api/v1/webhooks/whatsapp',
-          status: 'configured'
+          configured: whatsappConfigured,
+          status: whatsappConfigured ? 'configured' : 'unconfigured'
         },
         facebook: {
           platform: 'Meta Graph API',
           page_identity: 'underground Street collective',
           oauth_endpoint: '/connect/meta',
           webhook_endpoint: '/api/v1/webhooks/meta',
-          status: 'ready_oauth'
+          configured: metaOAuthConfigured,
+          status: metaOAuthConfigured ? 'configured' : 'unconfigured'
         },
         instagram: {
           platform: 'Meta Graph API',
           profile_handle: '@old_dirty_bastard013',
           oauth_endpoint: '/connect/meta',
-          status: 'ready_oauth'
+          configured: metaOAuthConfigured,
+          status: metaOAuthConfigured ? 'configured' : 'unconfigured'
         },
         linkedin: {
           platform: 'LinkedIn Share & B2B Lead Generator',
           share_base: 'https://www.linkedin.com/sharing/share-offsite/',
-          feed_drafting: 'active',
-          lead_scanner: 'active',
-          status: 'active'
+          feed_drafting: linkedinConfigured ? 'configured' : 'unconfigured',
+          lead_scanner: linkedinConfigured ? 'configured' : 'unconfigured',
+          configured: linkedinConfigured,
+          status: linkedinConfigured ? 'configured' : 'unconfigured'
         },
         viber: {
           platform: 'Viber Chat API & Viber Pay Wallet',
@@ -442,14 +454,16 @@ async function route(request,env,ctx){
             currency: 'EUR',
             p2p_transfer: 'supported'
           },
-          status: env.VIBER_AUTH_TOKEN ? 'active' : 'configured'
+          configured: viberConfigured,
+          status: viberConfigured ? 'configured' : 'unconfigured'
         },
         paysafe: {
           platform: 'Paysafe Financial Group',
           service: 'myPaysafe & Paysafecard',
           supported_methods: ['myPaysafe Wallet', 'Paysafecard 16-digit PIN', 'Skrill EUR'],
           webhook_endpoint: '/api/v1/webhooks/paysafe',
-          status: (env.PAYSAFE_API_KEY && env.PAYSAFE_ACCOUNT_NUMBER) ? 'active' : 'configured'
+          configured: paysafeConfigured,
+          status: paysafeConfigured ? 'configured' : 'unconfigured'
         }
       },
       tetrakis_crypto: {
@@ -467,6 +481,7 @@ async function route(request,env,ctx){
   if(path.startsWith('/api/internal/')){
     checkOrigin(request,env);
     const internalActor=await authenticate(request,env);
+    if(authContext)authContext.user=internalActor;
     requireAdmin(internalActor);
     if(path==='/api/internal/status'||path==='/api/internal/ping'){
       return json({
@@ -527,11 +542,12 @@ async function route(request,env,ctx){
   if(path==='/api/manifest'&&request.method==='GET'){
     return new Response(JSON.stringify({
       system:'TRINITY OMNI-CORE',
-      version:'11.2.0-SOVEREIGN',
+      version:TRINITY_VERSION,
       environment:env.ENVIRONMENT||env.TRINITY_ENV||'production',
       owner:'Ivan Sabo (Basterix)',
       ring_level:0,
-      active_fleet:47,
+      agents:AGENTS.length,
+      active_fleet:AGENTS.length,
       bindings:{
         d1:Boolean(env.DB||env.TRINITY_D1),
         kv:Boolean(env.TRINITY_KV||env.Mastermind),
@@ -539,10 +555,13 @@ async function route(request,env,ctx){
         profile_service:Boolean(env.PROFILE_SERVICE),
         jericho_service:Boolean(env.JERICHO_SERVICE)
       },
-      status:'ONLINE_OPERATIONAL'
+      status:'serving'
     },null,2),{headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
   }
   if(request.method==='POST'&&path==='/api/tools/execute'){
+    const toolUser=await authenticate(request,env);
+    if(authContext)authContext.user=toolUser;
+    requireAdmin(toolUser);
     let toolReq={};
     try{toolReq=await readJSON(request,32000);}catch(err){return json({error:err.message},err.status||400);}
     const shield=await enforceAntiSpamShield(request,env,{
@@ -563,6 +582,9 @@ async function route(request,env,ctx){
     return new Response(JSON.stringify({oracle:'jericho-edge',...prices}),{headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
   }
   if(request.method==='POST'&&(path==='/chat'||path==='/api/chat')){
+    const chatUser=await authenticate(request,env);
+    if(authContext)authContext.user=chatUser;
+    const chatActor=chatUser.username||chatUser.email||chatUser.id;
     let body={};
     try{body=await request.clone().json();}catch{
       return new Response(JSON.stringify({error:'NEPLATNÝ JSON V TELE POŽIADAVKY'}),{status:400,headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
@@ -577,7 +599,7 @@ async function route(request,env,ctx){
     const fastEdge=handleFastEdgeRoute(latestMessage,env);
     const fast=fastEdge.handled?{handled:true,response:fastEdge.text}:handleFastChat(latestMessage,env);
     if(fast.handled){
-      recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'FAST_CHAT_EDGE_HIT',payload:{query:latestMessage}});
+      recordAuditLog(env,ctx,{actor:chatActor,environment:runtimeEnvironment(request,env),action:'FAST_CHAT_EDGE_HIT',payload:{query:latestMessage}});
       return withRateLimitHeaders(new Response(JSON.stringify({reply:fast.response,mode:'fast-edge',route:'fast-edge-sub10ms',timestamp:Date.now()}),{
         headers:{
           'Content-Type':'application/json',
@@ -586,7 +608,7 @@ async function route(request,env,ctx){
         }
       }),shield.rateLimitHeaders);
     }
-    recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'CHAT_INFERENCE_INVOKED',payload:{query:latestMessage.substring(0,100)}});
+    recordAuditLog(env,ctx,{actor:chatActor,environment:runtimeEnvironment(request,env),action:'CHAT_INFERENCE_INVOKED',payload:{query:latestMessage.substring(0,100)}});
     const stream=env.AI?await runInferenceCascade(messages,env):await executeInferenceCascade(messages,env);
     return withRateLimitHeaders(new Response(stream,{
       headers:{
@@ -598,10 +620,13 @@ async function route(request,env,ctx){
     }),shield.rateLimitHeaders);
   }
   if(path.startsWith('/api/profiles/')||path.startsWith('/profiles/')){
+    const profileUser=await authenticate(request,env);
+    if(authContext)authContext.user=profileUser;
+    const profileActor=profileUser.username||profileUser.email||profileUser.id;
     const traceId=crypto.randomUUID();
     const targetUrl=new URL(request.url);
     targetUrl.pathname=targetUrl.pathname.replace(/^\/api(?=\/profiles\/)/,'');
-    recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'ROUTE_PROFILE_MAKER',payload:{path,traceId}});
+    recordAuditLog(env,ctx,{actor:profileActor,environment:runtimeEnvironment(request,env),action:'ROUTE_PROFILE_MAKER',payload:{path,traceId}});
     const forwarded=new Request(targetUrl.toString(),request);
     if(env.PROFILE_SERVICE&&typeof env.PROFILE_SERVICE.fetch==='function'){
       return await env.PROFILE_SERVICE.fetch(forwarded);
@@ -609,30 +634,21 @@ async function route(request,env,ctx){
     return await tapProfileService.fetch(forwarded,env,ctx);
   }
   if(path==='/api/crypto/oracle'||path==='/crypto/oracle'||path==='/api/crypto/tetrakis/vault/deposit'||path==='/crypto/tetrakis/vault/deposit'){
+    let cryptoActor='unauthenticated';
+    if(path.includes('/tetrakis/vault/deposit')||request.method!=='GET'){
+      const cryptoUser=await authenticate(request,env);
+      if(authContext)authContext.user=cryptoUser;
+      cryptoActor=cryptoUser.username||cryptoUser.email||cryptoUser.id;
+    }
     const traceId=crypto.randomUUID();
     const targetUrl=new URL(request.url);
     targetUrl.pathname=targetUrl.pathname.replace(/^\/api(?=\/crypto\/)/,'');
-    recordAuditLog(env,ctx,{actor:'Basterix',environment:runtimeEnvironment(request,env),action:'ROUTE_CRYPTO_JERICHO',payload:{path,traceId}});
+    recordAuditLog(env,ctx,{actor:cryptoActor,environment:runtimeEnvironment(request,env),action:'ROUTE_CRYPTO_JERICHO',payload:{path,traceId}});
     const forwarded=new Request(targetUrl.toString(),request);
     if(env.JERICHO_SERVICE&&typeof env.JERICHO_SERVICE.fetch==='function'){
       return await env.JERICHO_SERVICE.fetch(forwarded);
     }
     return await jerichoCryptoService.fetch(forwarded,env,ctx);
-  }
-  if(path==='/api/audit-ledger'&&request.method==='GET'){
-    await authenticate(request,env);
-    return json({ok:true,items:await listAuditLogs(env,Number(url.searchParams.get('limit')||50))});
-  }
-  if(path==='/api/audit-ledger'&&request.method==='POST'){
-    const auditActor=await authenticate(request,env);
-    const body=await readJSON(request,16000);
-    const receipt=recordAuditLog(env,ctx,{
-      actor:auditActor?.email||auditActor?.id||'Basterix',
-      environment:runtimeEnvironment(request,env),
-      action:String(body?.action||'MANUAL_AUDIT_ENTRY'),
-      payload:body?.payload||{}
-    });
-    return json({ok:true,receipt:{id:receipt.id,actor:receipt.actor,environment:receipt.environment,action:receipt.action,timestamp:receipt.timestamp,dispatched:receipt.dispatched}},202);
   }
   if(path==='/api/status'&&request.method==='GET'){
     return json({
@@ -646,8 +662,6 @@ async function route(request,env,ctx){
         sole_owner:SOVEREIGN_IDENTITY.sovereign_identity.sole_owner,
         role:SOVEREIGN_IDENTITY.sovereign_identity.role,
         code_modification_policy:SOVEREIGN_IDENTITY.sovereign_identity.code_modification_policy,
-        windows_users:ROOT_REGISTRY.windows_users,
-        google_accounts:ROOT_REGISTRY.google_accounts,
         phone_channels:ROOT_REGISTRY.phone_numbers.length,
         legal_clauses_count:SOVEREIGN_LEGAL_CHARTER_20.length
       },
@@ -670,7 +684,7 @@ async function route(request,env,ctx){
         firebase_project:env.FIREBASE_PROJECT_ID||'trinity-morhfeus-20261001',
         firebase_service_account:Boolean(env.FIREBASE_SERVICE_ACCOUNT_KEY)?'configured':'awaiting_secret',
         firecrawl_engine:Boolean(env.FIRECRAWL_API_KEY||env.firecrawl)?'configured':'awaiting_api_key',
-        omnidev_studio:'active',
+        omnidev_studio:Boolean(env.AI&&(env.DB||env.TRINITY_D1))?'configured':'unconfigured',
         local_system_bridge_port:7788
       },
       source:sourceMetadata(env),
@@ -709,6 +723,8 @@ async function route(request,env,ctx){
     return json(getAzureFoundryAgentStatus(env));
   }
   if(path==='/api/azure/agent'&&request.method==='POST'){
+    const azureUser=await authenticate(request,env);
+    if(authContext)authContext.user=azureUser;
     const body=await readJSON(request,32000);
     const shield=await enforceAntiSpamShield(request,env,{
       route:path,
@@ -1233,6 +1249,7 @@ async function route(request,env,ctx){
   let user;
   try {
     user=await authenticate(request,env);
+    if(authContext)authContext.user=user;
   } catch(err) {
     if(['/api/assistant/status','/api/assistant/sessions','/api/assistant/history'].includes(path)&&request.method==='GET'){
       user={id:'guest',email:null,role:'guest'};
@@ -2739,19 +2756,25 @@ export default {
 
     let response = null;
     let caughtError = null;
+    const authContext = { user: null };
 
     try {
-      // 1. Direct Sovereign Ledger administration and verification
+      // 1. Direct Sovereign Ledger administration and verification (authenticated)
       if (pathname.startsWith('/api/audit-ledger')) {
-        const ledgerResponse = await handleAuditLedgerRoutes(request, env, url);
+        const ledgerUser = await authenticate(request, env);
+        authContext.user = ledgerUser;
+        if (pathname === '/api/audit-ledger/append' && method === 'POST') {
+          requireAdmin(ledgerUser);
+        }
+        const ledgerResponse = await handleAuditLedgerRoutes(request, env, url, ledgerUser);
         if (ledgerResponse) {
-          response = ledgerResponse;
+          response = secure(ledgerResponse);
         } else {
           response = secure(json({ error: `Nepodporovaný endpoint alebo metóda pre audit-ledger: ${method} ${pathname}` }, 404));
         }
       } else {
         // 2. Delegate to the primary Trinity application router
-        response = secure(await route(request, env, ctx));
+        response = secure(await route(request, env, ctx, authContext));
       }
     } catch (err) {
       caughtError = err;
@@ -2781,6 +2804,7 @@ export default {
         pathname,
         method,
         durationMs,
+        user: authContext.user,
         errorMessage: caughtError ? (caughtError.message || String(caughtError)) : null
       });
     }

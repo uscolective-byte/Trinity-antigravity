@@ -71,19 +71,28 @@ test('shouldAuditRequest: correctly identifies audited paths and excludes GET/HE
   assert.equal(shouldAuditRequest('/api/random/untracked', 'POST'), false);
 });
 
-test('extractActorFromRequest: extracts actor from headers or falls back gracefully', () => {
-  const reqWithActor = new Request('https://test.local', {
-    headers: { 'X-Trinity-Actor': 'operator-42' }
+test('extractActorFromRequest: ignores spoofable headers, defaults unauthenticated, and derives from verified user', () => {
+  const reqWithSpoofedActor = new Request('https://test.local', {
+    headers: { 'X-Trinity-Actor': 'spoofed-operator', 'X-User-Id': 'spoofed-user', 'X-Owner-Id': 'basterix' }
   });
-  assert.equal(extractActorFromRequest(reqWithActor), 'operator-42');
+  assert.equal(extractActorFromRequest(reqWithSpoofedActor), 'unauthenticated');
 
   const reqWithAuth = new Request('https://test.local', {
     headers: { 'Authorization': 'Bearer token-xyz' }
   });
-  assert.equal(extractActorFromRequest(reqWithAuth), 'authenticated_operator');
+  assert.equal(extractActorFromRequest(reqWithAuth), 'unauthenticated');
 
   const reqFallback = new Request('https://test.local');
-  assert.equal(extractActorFromRequest(reqFallback), 'basterix_edge_gateway');
+  assert.equal(extractActorFromRequest(reqFallback), 'unauthenticated');
+
+  assert.equal(
+    extractActorFromRequest(reqWithSpoofedActor, { id: 'usr_1', email: 'operator@auru.space', role: 'admin' }),
+    'operator@auru.space'
+  );
+  assert.equal(
+    extractActorFromRequest(reqFallback, { id: 'usr_2', username: 'verified_admin', email: 'a@b.sk', role: 'owner' }),
+    'verified_admin'
+  );
 });
 
 test('SovereignLedgerEngine: Appends cryptographic blocks, verifies integrity and detects tampering', async () => {
@@ -121,38 +130,55 @@ test('SovereignLedgerEngine: Appends cryptographic blocks, verifies integrity an
   assert.match(failedVerification.error, /Invalid checksum for block/);
 });
 
-test('handleAuditLedgerRoutes: Handles GET verify, GET list, and POST append', async () => {
+test('handleAuditLedgerRoutes: Enforces auth/admin and handles GET verify, GET list, and POST append', async () => {
   const mockDb = createMockDb();
   const env = { DB: mockDb };
+  const adminUser = { id: 'admin-1', email: 'admin@auru.space', role: 'admin' };
+  const regularUser = { id: 'user-1', email: 'user@auru.space', role: 'user' };
 
-  // 1. Append record via POST
-  const appendReq = new Request('https://test.local/api/audit-ledger/append', {
+  // 0. Unauthenticated requests must be rejected with 401
+  const unauthListReq = new Request('https://test.local/api/audit-ledger?limit=10', { method: 'GET' });
+  const unauthListRes = await handleAuditLedgerRoutes(unauthListReq, env, new URL(unauthListReq.url));
+  assert.equal(unauthListRes.status, 401);
+
+  // Non-admin append must be rejected with 403
+  const nonAdminAppendReq = new Request('https://test.local/api/audit-ledger/append', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ operation: 'UNAUTHORIZED_OP', payload: {} })
+  });
+  const nonAdminAppendRes = await handleAuditLedgerRoutes(nonAdminAppendReq, env, new URL(nonAdminAppendReq.url), regularUser);
+  assert.equal(nonAdminAppendRes.status, 403);
+
+  // 1. Append record via POST as admin (body.actor must NOT spoof verified admin identity)
+  const appendReq = new Request('https://test.local/api/audit-ledger/append', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Trinity-Actor': 'spoofed' },
     body: JSON.stringify({
-      actor: 'tester',
+      actor: 'spoofed-tester',
       operation: 'UNIT_TEST_OP',
       payload: { hello: 'ledger' }
     })
   });
-  const appendRes = await handleAuditLedgerRoutes(appendReq, env, new URL(appendReq.url));
+  const appendRes = await handleAuditLedgerRoutes(appendReq, env, new URL(appendReq.url), adminUser);
   assert.equal(appendRes.status, 201);
   const appendData = await appendRes.json();
   assert.equal(appendData.success, true);
   assert.equal(appendData.record.blockId, 1);
+  assert.equal(appendData.record.actor, 'admin@auru.space');
 
-  // 2. Query list via GET
+  // 2. Query list via GET as authenticated user
   const listReq = new Request('https://test.local/api/audit-ledger?limit=10', { method: 'GET' });
-  const listRes = await handleAuditLedgerRoutes(listReq, env, new URL(listReq.url));
+  const listRes = await handleAuditLedgerRoutes(listReq, env, new URL(listReq.url), regularUser);
   assert.equal(listRes.status, 200);
   const listData = await listRes.json();
   assert.equal(listData.success, true);
   assert.equal(listData.count, 1);
   assert.equal(listData.blocks[0].operation, 'UNIT_TEST_OP');
 
-  // 3. Verify integrity via GET
+  // 3. Verify integrity via GET as authenticated user
   const verifyReq = new Request('https://test.local/api/audit-ledger/verify', { method: 'GET' });
-  const verifyRes = await handleAuditLedgerRoutes(verifyReq, env, new URL(verifyReq.url));
+  const verifyRes = await handleAuditLedgerRoutes(verifyReq, env, new URL(verifyReq.url), regularUser);
   assert.equal(verifyRes.status, 200);
   const verifyData = await verifyRes.json();
   assert.equal(verifyData.success, true);

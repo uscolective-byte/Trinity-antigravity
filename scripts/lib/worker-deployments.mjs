@@ -1,7 +1,7 @@
 /**
  * Canonical source-of-truth for Trinity's deployable Worker targets.
- * Covers all 46 canonical Cloudflare workers + Worker #47 (trinity-profile),
- * totaling 47 targets across AURA, Core, Standalone, and Auxiliary fleets.
+ * Covers all 46 canonical Cloudflare worker targets (including trinity-profile
+ * and master trinity) across AURA, Core, Standalone, and Auxiliary fleets.
  */
 
 export const AURA_WORKERS = [

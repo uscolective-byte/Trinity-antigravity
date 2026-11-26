@@ -8,20 +8,25 @@ test('evolution uses the consolidated repository by default',()=>{
 });
 
 test('verification-only workflow dispatch never claims a development deployment',async()=>{
- const previous=globalThis.fetch;let calls=0;
+ const previous=globalThis.fetch;const calls=[];const headSha='a'.repeat(40);
  try{
   globalThis.fetch=async(url,options)=>{
-   calls++;
+   calls.push({url:String(url),method:options.method,body:options.body?JSON.parse(options.body):null});
+   if(String(url).includes('/git/ref/heads/main')){
+    assert.equal(options.method,'GET');
+    return Response.json({object:{sha:headSha}});
+   }
    assert.match(String(url),/actions\/workflows\/self-deploy\.yml\/dispatches$/);
    assert.equal(options.method,'POST');
-   assert.deepEqual(JSON.parse(options.body),{ref:'main',inputs:{deploy_production:false}});
+   assert.deepEqual(JSON.parse(options.body),{ref:'main',inputs:{deploy_production:false,expected_commit_sha:headSha}});
    return new Response(null,{status:204});
   };
   const result=await dispatchDeployment({TRINITY_GITHUB_TOKEN:'test-fixture-token'});
-  assert.equal(calls,1);
+  assert.equal(calls.length,2);
   assert.equal(result.status,'verification_queued');
   assert.equal(result.environment,null);
   assert.equal(result.deployment_requested,false);
+  assert.equal(result.expected_commit_sha,headSha);
   assert.equal(result.deployed,false);
  }finally{globalThis.fetch=previous;}
 });
@@ -91,7 +96,7 @@ test('automatic merge checks actual GitHub filenames and successful CI for the e
  const {mergeVerifiedImprovement}=await import('../src/project-evolution.js');const old=globalThis.fetch;let mergeCalls=0,checksPassed=false;
  try{globalThis.fetch=async(url,options)=>{
   if(url.includes('/files?'))return Response.json([{filename:'Trinity/public/assistant/chat.css'}]);
-  if(url.includes('/check-runs?')){assert.match(url,/commits\/exact-head\/check-runs/);return Response.json({total_count:1,check_runs:[{name:'Cloudflare build, tests, dependency and AI policy',app:{slug:'github-actions'},status:'completed',conclusion:checksPassed?'success':'failure'}]});}
+  if(url.includes('/check-runs?')){assert.match(url,/commits\/exact-head\/check-runs/);return Response.json({total_count:1,check_runs:[{name:'Full Test Suite & Validation',app:{slug:'github-actions'},status:'completed',conclusion:checksPassed?'success':'failure'}]});}
   mergeCalls++;assert.equal(JSON.parse(options.body).sha,'exact-head');return Response.json({merged:true,sha:'merged-sha'});
  };
  const env={TRINITY_GITHUB_TOKEN:'test-only',TRINITY_AUTO_MERGE:'true'},pr={number:1,changed_files:1,mergeable:true,mergeable_state:'clean',head:{sha:'exact-head'}};

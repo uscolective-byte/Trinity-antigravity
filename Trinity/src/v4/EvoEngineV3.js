@@ -58,7 +58,7 @@ export class EvoEngineV3 {
   }
 
   /**
-   * Records a cycle failure and engages automatic rollback to a verified state.
+   * Records a cycle failure without claiming an unimplemented automatic rollback.
    */
   async recordFailure({ cycleId, error, genome }) {
     this.failureHistory.push({
@@ -77,7 +77,12 @@ export class EvoEngineV3 {
       }
     }
 
-    return { autoRollbackEngaged: true, failureCount: this.failureHistory.length };
+    return {
+      autoRollbackEngaged: false,
+      rollback_supported: false,
+      failureRecorded: true,
+      failureCount: this.failureHistory.length
+    };
   }
 
   /**

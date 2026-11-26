@@ -10,9 +10,27 @@ import {HttpError} from './security.js';
 import {boundedText,callModel} from './services.js';
 
 export const PROJECT_REPOSITORY='uscolective-byte/Trinity-antigravity';
+export const REQUIRED_CI_CHECK_NAME='Full Test Suite & Validation';
+const COMMIT_SHA_RE=/^[a-f0-9]{40}$/i;
 const root=env=>`https://api.github.com/repos/${env.TRINITY_GITHUB_REPO||PROJECT_REPOSITORY}`;
+
+export function resolveGitHubToken(env={}){
+  const candidates=[
+    env?.TRINITY_GITHUB_TOKEN,
+    env?.GITHUB_TOKEN,
+    env?.trinitygithube_key,
+    env?.GITHUBE_API_KEY,
+    env?.GTH,
+    env?.GITHUBE_FINE_TOKEN
+  ];
+  for(const candidate of candidates){
+    if(typeof candidate==='string'&&candidate.trim())return candidate.trim();
+  }
+  return null;
+}
+
 export async function githubRequest(env,path,method='GET',body){
-  const token=env.TRINITY_GITHUB_TOKEN||env.GITHUB_TOKEN||env.GITHUBE_API_KEY||env.GTH||env.GITHUBE_FINE_TOKEN;
+  const token=resolveGitHubToken(env);
   if(!token)throw new HttpError(503,'Missing Worker secret TRINITY_GITHUB_TOKEN with access to the Trinity repository.');
   const response=await fetch(root(env)+path,{method,headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','Content-Type':'application/json','User-Agent':'Trinity-Evolution','X-GitHub-Api-Version':'2022-11-28'},body:body===undefined?undefined:JSON.stringify(body),redirect:'manual',signal:AbortSignal.timeout(20000)});
   if(!response.ok)throw new HttpError(502,`GitHub ${method} ${path.split('?')[0]}: HTTP ${response.status}`);
@@ -76,6 +94,7 @@ export async function prepareCodeImprovement(env,proposal){
   const artifact={
     status:'patch_ready',
     repository:snapshot.repository,
+    branch,
     base_sha:snapshot.base_sha,
     summary:patch.summary,
     changes:parsed.changes,
@@ -88,10 +107,41 @@ export async function prepareCodeImprovement(env,proposal){
   }
   return artifact;
 }
-export async function dispatchDeployment(env){
+export async function dispatchDeployment(env,options={}){
   const ref=env.TRINITY_GITHUB_BRANCH||'main';
-  await githubRequest(env,'/actions/workflows/self-deploy.yml/dispatches','POST',{ref,inputs:{deploy_production:false}});
-  return {status:'verification_queued',environment:null,deployment_requested:false,url:`https://github.com/${env.TRINITY_GITHUB_REPO||PROJECT_REPOSITORY}/actions/workflows/self-deploy.yml`,deployed:false,note:'Only verification checks were requested; deploy_production=false does not trigger a deployment to any environment.'};
+  const explicitSha=options?.expectedCommitSha??options?.expected_commit_sha;
+  let expectedCommitSha='';
+  if(explicitSha!==undefined&&explicitSha!==null&&explicitSha!==''){
+    const normalized=String(explicitSha).trim().toLowerCase();
+    if(!COMMIT_SHA_RE.test(normalized)){
+      throw new HttpError(400,'expected_commit_sha must be a 40-character hexadecimal commit SHA.');
+    }
+    expectedCommitSha=normalized;
+  }else{
+    const headRef=await githubRequest(env,`/git/ref/heads/${encodeURIComponent(ref)}`);
+    const resolvedSha=String(headRef?.object?.sha||'').trim().toLowerCase();
+    if(!COMMIT_SHA_RE.test(resolvedSha)){
+      throw new HttpError(502,'GitHub returned an invalid HEAD commit SHA for verification dispatch.');
+    }
+    expectedCommitSha=resolvedSha;
+  }
+  await githubRequest(env,'/actions/workflows/self-deploy.yml/dispatches','POST',{
+    ref,
+    inputs:{
+      deploy_production:false,
+      expected_commit_sha:expectedCommitSha
+    }
+  });
+  return {
+    status:'verification_queued',
+    environment:null,
+    deployment_requested:false,
+    ref,
+    expected_commit_sha:expectedCommitSha,
+    url:`https://github.com/${env.TRINITY_GITHUB_REPO||PROJECT_REPOSITORY}/actions/workflows/self-deploy.yml`,
+    deployed:false,
+    note:'Only verification checks were requested; deploy_production=false does not trigger a deployment to any environment.'
+  };
 }
 
 export function automaticMergeAllowed(files){
@@ -102,7 +152,7 @@ export async function mergeVerifiedImprovement(env,pr){
   const files=await githubRequest(env,`/pulls/${pr.number}/files?per_page=100`);
   if(files.length!==pr.changed_files||!automaticMergeAllowed(files.map(f=>({path:f.filename}))))return {status:'review_required'};
   const checks=await githubRequest(env,`/commits/${pr.head.sha}/check-runs?per_page=100`);
-  const required='Cloudflare build, tests, dependency and AI policy';
+  const required=REQUIRED_CI_CHECK_NAME;
   if(checks.total_count!==checks.check_runs.length||!checks.check_runs.some(c=>c.name===required&&c.app?.slug==='github-actions'&&c.status==='completed'&&c.conclusion==='success')||checks.check_runs.some(c=>c.status!=='completed'||c.conclusion!=='success'))return {status:'waiting_for_checks'};
   const merged=await githubRequest(env,`/pulls/${pr.number}/merge`,'PUT',{sha:pr.head.sha,merge_method:'squash'});
   return {status:merged.merged?'merged':'review_required',merge_sha:merged.sha};

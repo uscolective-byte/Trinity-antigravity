@@ -55,7 +55,10 @@ test('Universal Ecosystem: synthesizeApp vytvorí a uloží definíciu novej apl
 
   assert.equal(app.name, 'BioGenomeVisualizer');
   assert.equal(app.domain, 'biotech-health');
-  assert.equal(app.status, 'ready');
+  assert.equal(app.status, 'spec_proposed');
+  assert.equal(app.persisted, false);
+  assert.equal(app.executable, false);
+  assert.equal(app.verified, false);
 });
 
 test('Universal Ecosystem: searchCatalog umožňuje rýchle hľadanie naprieč ekosystémom', () => {
@@ -66,13 +69,14 @@ test('Universal Ecosystem: searchCatalog umožňuje rýchle hľadanie naprieč e
   assert.ok(searchCyber.total > 0);
 });
 
-test('Universal Ecosystem: getStats vracia komplexné štatistiky a kapacitu', () => {
+test('Universal Ecosystem: getStats vracia poctivé katalógové štatistiky bez vymyslenej kapacity', () => {
   const stats = universalEcosystem.getStats();
   assert.ok(stats.domains_count >= 15);
   assert.ok(stats.active_apps >= 10);
   assert.ok(stats.active_plugins >= 7);
   assert.ok(stats.active_skills >= 20);
-  assert.ok(stats.infinite_scale_capacity > 1000000);
+  assert.equal(stats.infinite_scale_capacity, undefined);
+  assert.equal(stats.total_catalog_items, stats.active_apps + stats.active_plugins + stats.active_skills);
   assert.equal(stats.status, 'operational');
 });
 

@@ -13,6 +13,16 @@ import { listDomains } from './domains.js';
 import { buildEpcPayload, generateQrSvg } from './wallet-terminals.js';
 import { sendTelegramAlert } from './domain-desk-advanced.js';
 import { recordStepDocument } from './trinity-documents.js';
+import { getMarketSeries } from './market-data.js';
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 export const priceAlertSchema = z.object({
   symbol: z.string().trim().min(2).max(20),
@@ -36,22 +46,69 @@ export const invoiceGenerateSchema = z.object({
 // ----------------------------------------------------
 
 export function calculateSupportResistance(commodity) {
-  const price = commodity.price_eur || commodity.base_price || 100;
-  // Standard pivot calculation using volatility band
-  const support = Math.round(price * 0.96 * 100) / 100;
-  const resistance = Math.round(price * 1.04 * 100) / 100;
-  return { support, resistance };
+  const rawPrice = commodity?.live_price_eur ?? commodity?.price_eur ?? commodity?.price;
+  if (typeof rawPrice !== 'number' || !Number.isFinite(rawPrice) || rawPrice <= 0) {
+    return { support: null, resistance: null, live_price_unavailable: true };
+  }
+  // Standard pivot calculation using volatility band around verified live price
+  const support = Math.round(rawPrice * 0.96 * 100) / 100;
+  const resistance = Math.round(rawPrice * 1.04 * 100) / 100;
+  return { support, resistance, live_price_unavailable: false };
 }
 
-export async function createPriceAlert(env, actor = 'admin', input) {
+async function resolveLiveCommodityPrice(env, symbol, { liveQuotes = null, fetchImpl = null, fetchLive = true } = {}) {
+  if (liveQuotes && typeof liveQuotes === 'object') {
+    const key = Object.keys(liveQuotes).find(k => k.toLowerCase() === symbol.toLowerCase());
+    if (key !== undefined) {
+      const entry = liveQuotes[key];
+      if (typeof entry === 'number' && Number.isFinite(entry) && entry > 0) {
+        return { available: true, price: entry, currency: 'EUR', source: 'live-quote' };
+      }
+      if (entry && typeof entry === 'object' && entry.available !== false && typeof entry.price === 'number' && Number.isFinite(entry.price) && entry.price > 0) {
+        return { available: true, price: entry.price, currency: entry.currency || 'EUR', source: entry.source || 'live-quote' };
+      }
+      return { available: false, reason: 'live_price_unavailable' };
+    }
+  }
+
+  if (!fetchLive) {
+    return { available: false, reason: 'live_price_unavailable' };
+  }
+
+  try {
+    const series = await getMarketSeries(env, symbol, { fetchImpl });
+    if (series?.available && typeof series.price === 'number' && Number.isFinite(series.price) && series.price > 0) {
+      return {
+        available: true,
+        price: series.price,
+        currency: series.currency || 'EUR',
+        source: series.source || 'market-data'
+      };
+    }
+    return { available: false, reason: series?.reason || 'live_price_unavailable' };
+  } catch (err) {
+    return { available: false, reason: err?.message || 'live_price_unavailable' };
+  }
+}
+
+export async function createPriceAlert(env, actor = 'admin', input, options = {}) {
   const parsed = priceAlertSchema.parse(input);
   const comm = ALL_COMMODITIES.find(c => c.symbol.toLowerCase() === parsed.symbol.toLowerCase());
   if (!comm) throw new HttpError(404, `Commodity with symbol ${parsed.symbol} not found.`);
 
-  const { support, resistance } = calculateSupportResistance(comm);
+  const liveQuotes = options.liveQuotes || (typeof options.live_price_eur === 'number' ? { [comm.symbol]: options.live_price_eur } : null);
+  const quote = await resolveLiveCommodityPrice(env, comm.symbol, {
+    liveQuotes,
+    fetchImpl: options.fetchImpl,
+    fetchLive: options.fetchLive ?? Boolean(options.fetchImpl)
+  });
+
+  const currentPrice = quote.available ? quote.price : null;
+  const { support, resistance } = currentPrice !== null
+    ? calculateSupportResistance({ ...comm, price_eur: currentPrice })
+    : { support: null, resistance: null };
   const alertId = `alt-p-${crypto.randomUUID()}`;
 
-  const currentPrice = comm.price_eur || comm.base_price || 100;
   if (env.DB) {
     await env.DB.prepare(`
       INSERT INTO commodity_price_alerts(
@@ -78,6 +135,8 @@ export async function createPriceAlert(env, actor = 'admin', input) {
     current_price: currentPrice,
     support_level: support,
     resistance_level: resistance,
+    live_price_status: quote.available ? 'live' : 'live_price_unavailable',
+    price_source: quote.available ? quote.source : null,
     status: 'active'
   };
 }
@@ -92,36 +151,49 @@ export async function listPriceAlerts(env) {
   return { alerts: rows };
 }
 
-export async function checkPriceAlerts(env, { notify = true } = {}) {
-  if (!env.DB) return { success: false, triggered_count: 0, alerts: [] };
+export async function checkPriceAlerts(env, { notify = true, liveQuotes = null, fetchImpl = null, fetchLive = true } = {}) {
+  if (!env.DB) return { success: false, triggered_count: 0, alerts: [], skipped_count: 0, skipped: [] };
 
   const activeAlerts = (await env.DB.prepare("SELECT * FROM commodity_price_alerts WHERE status = 'active'").all()).results || [];
   const triggered = [];
+  const skipped = [];
 
   for (const alt of activeAlerts) {
     const comm = ALL_COMMODITIES.find(c => c.symbol.toLowerCase() === alt.symbol.toLowerCase());
     if (!comm) continue;
 
-    const price = comm.price_eur || comm.base_price || 100;
+    const quote = await resolveLiveCommodityPrice(env, comm.symbol, { liveQuotes, fetchImpl, fetchLive });
+    if (!quote.available) {
+      skipped.push({
+        alert_id: alt.id,
+        symbol: comm.symbol,
+        status: 'live_price_unavailable',
+        reason: quote.reason || 'Live market price quote is unavailable.'
+      });
+      continue;
+    }
+
+    const price = quote.price;
+    const currency = quote.currency || 'EUR';
     let isBreached = false;
     let reason = '';
 
     if (alt.condition === 'above' && price >= alt.target_price) {
       isBreached = true;
-      reason = `${comm.symbol} price rose above target level: ${price} EUR >= ${alt.target_price} EUR`;
+      reason = `${comm.symbol} price rose above target level: ${price} ${currency} >= ${alt.target_price} ${currency}`;
     } else if (alt.condition === 'below' && price <= alt.target_price) {
       isBreached = true;
-      reason = `${comm.symbol} price dropped below target level: ${price} EUR <= ${alt.target_price} EUR`;
+      reason = `${comm.symbol} price dropped below target level: ${price} ${currency} <= ${alt.target_price} ${currency}`;
     } else if (alt.condition === 'cross_support' && alt.support_level && price <= alt.support_level) {
       isBreached = true;
-      reason = `${comm.symbol} price crossed below support level: ${price} EUR <= ${alt.support_level} EUR`;
+      reason = `${comm.symbol} price crossed below support level: ${price} ${currency} <= ${alt.support_level} ${currency}`;
     } else if (alt.condition === 'cross_resistance' && alt.resistance_level && price >= alt.resistance_level) {
       isBreached = true;
-      reason = `${comm.symbol} price broke above resistance level: ${price} EUR >= ${alt.resistance_level} EUR`;
+      reason = `${comm.symbol} price broke above resistance level: ${price} ${currency} >= ${alt.resistance_level} ${currency}`;
     }
 
     if (isBreached) {
-      triggered.push({ alert: alt, reason, price });
+      triggered.push({ alert: alt, reason, price, currency, source: quote.source });
       await env.DB.prepare(`
         UPDATE commodity_price_alerts 
         SET status = 'triggered', current_price = ?, triggered_at = datetime('now')
@@ -129,7 +201,7 @@ export async function checkPriceAlerts(env, { notify = true } = {}) {
       `).bind(price, alt.id).run().catch(() => {});
 
       if (notify) {
-        const msg = `🔔 <b>SMART PRICE ALERT: ${comm.name} (${comm.symbol})</b>\n\n${reason}\nCurrent spot price: <b>${price} EUR</b>\n\n<i>Trinity Commodity Desk Watchdog</i>`;
+        const msg = `🔔 <b>SMART PRICE ALERT: ${escapeHtml(comm.name)} (${escapeHtml(comm.symbol)})</b>\n\n${escapeHtml(reason)}\nVerified market price: <b>${escapeHtml(price)} ${escapeHtml(currency)}</b> (${escapeHtml(quote.source)})\n\n<i>Trinity Commodity Desk Watchdog</i>`;
         await sendTelegramAlert(env, msg).catch(() => {});
       }
     }
@@ -137,9 +209,12 @@ export async function checkPriceAlerts(env, { notify = true } = {}) {
 
   return {
     success: true,
+    status: skipped.length > 0 && triggered.length === 0 ? 'live_price_unavailable' : 'checked',
     total_active: activeAlerts.length,
     triggered_count: triggered.length,
-    triggered
+    triggered,
+    skipped_count: skipped.length,
+    skipped
   };
 }
 
@@ -150,13 +225,24 @@ export async function checkPriceAlerts(env, { notify = true } = {}) {
 export async function generateInvoiceWithSepaQr(env, actor = 'admin', input) {
   const parsed = invoiceGenerateSchema.parse(input);
   const now = new Date();
-  const invoiceNumber = `2026${now.getMonth() + 1}${String(Math.floor(Math.random() * 9000 + 1000))}`;
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const randomBuf = new Uint32Array(1);
+  crypto.getRandomValues(randomBuf);
+  const invoiceSuffix = String(1000 + (randomBuf[0] % 9000));
+  const invoiceNumber = `${year}${month}${invoiceSuffix}`;
   const variableSymbol = parsed.variable_symbol || invoiceNumber.replace(/\D/g, '').slice(-10);
 
-  // Default owner IBAN if not supplied
-  const iban = parsed.iban || 'SK3111000000002949000000';
-  const bic = parsed.bic || 'TATRSKBX';
-  const recipientName = 'Ivan Sabo (Basterix) · Auru Platform';
+  // Require an explicit or environment-configured IBAN (fail closed — never emit placeholder IBAN)
+  const iban = String(parsed.iban || env?.SEPA_IBAN || env?.TRINITY_SEPA_IBAN || env?.BANK_IBAN || '').trim();
+  if (!iban || iban.length < 15 || iban.length > 34) {
+    throw new HttpError(400, 'SEPA IBAN is required: provide iban in the request or configure SEPA_IBAN / TRINITY_SEPA_IBAN.');
+  }
+  const bic = String(parsed.bic || env?.SEPA_BIC || env?.TRINITY_SEPA_BIC || '').trim();
+  const recipientName = String(env?.SEPA_RECIPIENT_NAME || 'Ivan Sabo (Basterix) · Auru Platform').trim();
+  const paypalBusiness = String(env?.PAYPAL_BUSINESS_EMAIL || 'saboivan2008@gmail.com').trim();
+  const revolutUrl = String(env?.REVOLUT_ME_URL || 'https://revolut.me/isabo91').trim();
+  const paypalUrl = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(paypalBusiness)}&currency_code=EUR&amount=${parsed.amount_eur.toFixed(2)}&item_name=${encodeURIComponent(parsed.item_description)}`;
 
   const epcPayload = buildEpcPayload({
     iban,
@@ -168,11 +254,21 @@ export async function generateInvoiceWithSepaQr(env, actor = 'admin', input) {
 
   const qrSvg = generateQrSvg(epcPayload, 220);
 
+  const safeInvoiceNumber = escapeHtml(invoiceNumber);
+  const safeRecipientName = escapeHtml(recipientName);
+  const safeClientName = escapeHtml(parsed.client_name);
+  const safeClientEmail = parsed.client_email ? escapeHtml(parsed.client_email) : '';
+  const safeItemDescription = escapeHtml(parsed.item_description);
+  const safeIban = escapeHtml(iban);
+  const safeBic = escapeHtml(bic || 'N/A');
+  const safeVariableSymbol = escapeHtml(variableSymbol);
+  const safeDate = escapeHtml(now.toLocaleDateString('sk-SK'));
+
   const htmlInvoice = `<!doctype html>
 <html lang="sk">
 <head>
   <meta charset="utf-8">
-  <title>Faktúra č. ${invoiceNumber} · Auru</title>
+  <title>Faktúra č. ${safeInvoiceNumber} · Auru</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 32px 16px; margin: 0; }
     .invoice-box { max-width: 680px; margin: 0 auto; background: #1e293b; border-radius: 16px; border: 1px solid #334155; padding: 36px; box-shadow: 0 20px 48px rgba(0,0,0,0.4); }
@@ -194,26 +290,26 @@ export async function generateInvoiceWithSepaQr(env, actor = 'admin', input) {
   <div class="invoice-box">
     <div class="header">
       <div>
-        <span class="badge">OFICIÁLNA FAKTÚRA & DOKLAD</span>
-        <h1 style="margin:8px 0 0">Faktúra ${invoiceNumber}</h1>
+        <span class="badge">OFICIÁLNA FAKTÚRA &amp; DOKLAD</span>
+        <h1 style="margin:8px 0 0">Faktúra ${safeInvoiceNumber}</h1>
       </div>
       <div style="text-align:right">
         <div style="font-size:12px;color:#94a3b8">Dátum vystavenia</div>
-        <b>${now.toLocaleDateString('sk-SK')}</b>
+        <b>${safeDate}</b>
       </div>
     </div>
 
     <div class="parties">
       <div>
         <div style="color:#94a3b8;margin-bottom:4px">DODÁVATEĽ</div>
-        <b>${recipientName}</b><br>
+        <b>${safeRecipientName}</b><br>
         Auru Cloud Platform<br>
         Slovenská republika
       </div>
       <div>
         <div style="color:#94a3b8;margin-bottom:4px">ODBERATEĽ</div>
-        <b>${parsed.client_name}</b><br>
-        ${parsed.client_email ? parsed.client_email + '<br>' : ''}
+        <b>${safeClientName}</b><br>
+        ${safeClientEmail ? safeClientEmail + '<br>' : ''}
         Platba prevodom / Instant SEPA
       </div>
     </div>
@@ -224,7 +320,7 @@ export async function generateInvoiceWithSepaQr(env, actor = 'admin', input) {
       </thead>
       <tbody>
         <tr>
-          <td><b>${parsed.item_description}</b></td>
+          <td><b>${safeItemDescription}</b></td>
           <td style="text-align:right"><b>${parsed.amount_eur.toFixed(2)} €</b></td>
         </tr>
         <tr>
@@ -237,11 +333,11 @@ export async function generateInvoiceWithSepaQr(env, actor = 'admin', input) {
     <div class="sepa-card">
       <div class="sepa-details">
         <b style="color:#38bdf8">Platobné inštrukcie (SEPA Instant / Pay by square):</b><br>
-        IBAN: <b>${iban}</b><br>
-        BIC / SWIFT: <b>${bic}</b><br>
-        Variabilný symbol: <b>${variableSymbol}</b><br>
+        IBAN: <b>${safeIban}</b><br>
+        BIC / SWIFT: <b>${safeBic}</b><br>
+        Variabilný symbol: <b>${safeVariableSymbol}</b><br>
         Suma: <b>${parsed.amount_eur.toFixed(2)} EUR</b><br>
-        Správa pre príjemcu: <b>VS${variableSymbol} ${parsed.client_name}</b>
+        Správa pre príjemcu: <b>VS${safeVariableSymbol} ${safeClientName}</b>
       </div>
       <div class="qr-box">
         ${qrSvg}
@@ -249,8 +345,8 @@ export async function generateInvoiceWithSepaQr(env, actor = 'admin', input) {
     </div>
 
     <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-      <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=saboivan2008%40gmail.com&currency_code=EUR&amount=${parsed.amount_eur.toFixed(2)}&item_name=${encodeURIComponent(parsed.item_description)}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;border-radius:999px;background:#ffc439;color:#003087;font-weight:700;font-size:13px;text-decoration:none">💙 Zaplatiť ${parsed.amount_eur.toFixed(2)} € cez PayPal</a>
-      <a href="https://revolut.me/isabo91" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;border-radius:999px;background:#38bdf8;color:#0f172a;font-weight:700;font-size:13px;text-decoration:none">⚡ Zaplatiť cez Revolut (@isabo91)</a>
+      <a href="${escapeHtml(paypalUrl)}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;border-radius:999px;background:#ffc439;color:#003087;font-weight:700;font-size:13px;text-decoration:none">💙 Zaplatiť ${parsed.amount_eur.toFixed(2)} € cez PayPal</a>
+      <a href="${escapeHtml(revolutUrl)}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;border-radius:999px;background:#38bdf8;color:#0f172a;font-weight:700;font-size:13px;text-decoration:none">⚡ Zaplatiť cez Revolut</a>
     </div>
     <div style="text-align:center">
       <button class="print-btn" onclick="window.print()">🖨️ Tlačiť faktúru / Uložiť ako PDF</button>
@@ -297,8 +393,8 @@ export async function generateInvoiceWithSepaQr(env, actor = 'admin', input) {
     bic,
     qr_svg: qrSvg,
     epc_payload: epcPayload,
-    paypal_url: `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=saboivan2008%40gmail.com&currency_code=EUR&amount=${parsed.amount_eur.toFixed(2)}&item_name=${encodeURIComponent(parsed.item_description)}`,
-    revolut_url: 'https://revolut.me/isabo91',
+    paypal_url: paypalUrl,
+    revolut_url: revolutUrl,
     html_invoice: htmlInvoice
   };
 }
@@ -318,41 +414,43 @@ export async function listGeneratedInvoices(env) {
 // ----------------------------------------------------
 
 export async function getAggregatedNetWorth(env, actor = 'admin') {
-  // 1. Bank liquidity
-  const walletData = await getWallet(env).catch(() => ({ balance_eur: 0 }));
-  const liquidCash = walletData.balance_eur || 0;
+  // 1. Sandbox wallet liquidity (pass actor and read canonical balance field)
+  const walletData = await getWallet(env, actor).catch(() => null);
+  const rawWalletBalance = walletData?.balance ?? walletData?.balance_eur ?? 0;
+  const liquidCash = Number.isFinite(Number(rawWalletBalance)) ? Number(rawWalletBalance) : 0;
 
-  // 2. Open trading & commodity equity
-  const commDesk = await getCommodityDeskOverview(env, actor).catch(() => ({ portfolio: { equity_eur: 25000, cash_eur: 25000, open_positions_value_eur: 0 } }));
-  const tradingEquity = commDesk.portfolio?.equity_eur || 25000;
-  const openPositionsValue = commDesk.portfolio?.open_positions_value_eur || 0;
+  // 2. Paper-trading & commodity equity (never fabricate a fallback 25,000 EUR balance)
+  const commDesk = await getCommodityDeskOverview(env, actor).catch(() => null);
+  const rawTradingEquity = commDesk?.portfolio?.equity_eur ?? 0;
+  const tradingEquity = Number.isFinite(Number(rawTradingEquity)) ? Number(rawTradingEquity) : 0;
+  const rawOpenPositions = commDesk?.portfolio?.open_positions_value_eur ?? 0;
+  const openPositionsValue = Number.isFinite(Number(rawOpenPositions)) ? Number(rawOpenPositions) : 0;
 
-  // 3. Managed Domain portfolio valuation
+  // 3. Managed Domain portfolio valuation (only count explicit recorded sale prices; never fabricate 390 EUR baselines)
   const domains = await listDomains(env, {}).catch(() => []);
   let domainPortfolioValue = 0;
+  let unpricedDomainsCount = 0;
   for (const d of domains) {
-    if (d.sale_price && d.sale_price > 0) {
+    if (typeof d.sale_price === 'number' && Number.isFinite(d.sale_price) && d.sale_price > 0) {
       domainPortfolioValue += d.sale_price;
     } else {
-      // Default market appraisal baseline
-      domainPortfolioValue += 390;
+      unpricedDomainsCount += 1;
     }
   }
 
-  // 4. Combined Net Worth
+  // 4. Combined Recorded Portfolio Value (clearly marked as sandbox/paper + recorded valuations, no fabricated history)
   const totalNetWorth = Math.round((liquidCash + tradingEquity + domainPortfolioValue) * 100) / 100;
+  const nowIso = new Date().toISOString();
 
-  // Historical points for sparkline/chart
   const history = [
-    { date: '1 Oct 2026', net_worth: totalNetWorth * 0.88 },
-    { date: '7 Oct 2026', net_worth: totalNetWorth * 0.91 },
-    { date: '14 Oct 2026', net_worth: totalNetWorth * 0.95 },
-    { date: '21 Oct 2026', net_worth: totalNetWorth * 0.98 },
-    { date: 'Today', net_worth: totalNetWorth }
+    { date: nowIso, net_worth: totalNetWorth, verified: true }
   ];
 
   return {
     success: true,
+    real_bank_balance_verified: false,
+    synthetic_history: false,
+    includes_sandbox_and_paper_balances: true,
     total_net_worth_eur: totalNetWorth,
     breakdown: {
       liquid_cash_eur: liquidCash,
@@ -362,9 +460,10 @@ export async function getAggregatedNetWorth(env, actor = 'admin') {
     },
     counts: {
       domains_count: domains.length,
-      open_positions_count: commDesk.portfolio?.open_positions?.length || 0
+      unpriced_domains_count: unpricedDomainsCount,
+      open_positions_count: commDesk?.portfolio?.open_positions?.length || 0
     },
     history,
-    updated_at: new Date().toISOString()
+    updated_at: nowIso
   };
 }

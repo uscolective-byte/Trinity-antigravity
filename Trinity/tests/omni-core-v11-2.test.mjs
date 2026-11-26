@@ -541,14 +541,25 @@ test('Module 9: DEV MODE (Zero Verification / Open Access) handleFastChat, execu
   }
   assert.match(sseText, /Architektúra Trinity beží na Cloudflare Edge/);
 
-  // 3. Zero-verification POST /chat on Trinity index.js (Fast-Edge)
-  const fastChatHttp = await trinityWorker.fetch(
+  // 3. Authenticated POST /chat on dev-gateway (Fast-Edge) + unauth returns 401
+  const devOpsKey = 'test-dev-gateway-ops-key-123456';
+  const unauthChatHttp = await trinityWorker.fetch(
     new Request('https://auru.dev/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: '5+5' })
     }),
-    { ENVIRONMENT: 'staging', STRICT_MODE: 'false' }
+    { ENVIRONMENT: 'staging', TRINITY_OPS_KEY: devOpsKey }
+  );
+  assert.equal(unauthChatHttp.status, 401);
+
+  const fastChatHttp = await trinityWorker.fetch(
+    new Request('https://auru.dev/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${devOpsKey}` },
+      body: JSON.stringify({ message: '5+5' })
+    }),
+    { ENVIRONMENT: 'staging', TRINITY_OPS_KEY: devOpsKey }
   );
   assert.equal(fastChatHttp.status, 200);
   assert.equal(fastChatHttp.headers.get('Access-Control-Allow-Origin'), '*');
@@ -556,19 +567,19 @@ test('Module 9: DEV MODE (Zero Verification / Open Access) handleFastChat, execu
   assert.equal(fastChatBody.mode, 'fast-edge');
   assert.equal(fastChatBody.reply, 'Výsledok výpočtu: 10');
 
-  // 4. Zero-verification POST /api/chat on Trinity index.js (SSE stream)
+  // 4. Authenticated POST /api/chat on dev-gateway (SSE stream)
   const cascadeHttp = await trinityWorker.fetch(
     new Request('https://auru.dev/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${devOpsKey}` },
       body: JSON.stringify({ messages: [{ role: 'user', content: 'Aký je plán?' }] })
     }),
     {
       ENVIRONMENT: 'staging',
-      STRICT_MODE: 'false',
+      TRINITY_OPS_KEY: devOpsKey,
       AI: {
         async run() {
-          return { response: 'Plán je 6 klastrov a 47 workerov.' };
+          return { response: 'Plán je 6 klastrov a 46 workerov.' };
         }
       }
     }
@@ -577,7 +588,7 @@ test('Module 9: DEV MODE (Zero Verification / Open Access) handleFastChat, execu
   assert.equal(cascadeHttp.headers.get('Access-Control-Allow-Origin'), '*');
   assert.match(cascadeHttp.headers.get('Content-Type') || '', /text\/event-stream/);
   const streamOut = await cascadeHttp.text();
-  assert.match(streamOut, /Plán je 6 klastrov a 47 workerov/);
+  assert.match(streamOut, /Plán je 6 klastrov a 46 workerov/);
 });
 
 test('Module 10: Sovereign Monolith Tool Engine (execute_d1_sql, cloudflare_fleet_control, crypto_oracle_query, kv_memory_store)', async () => {
@@ -600,8 +611,10 @@ test('Module 10: Sovereign Monolith Tool Engine (execute_d1_sql, cloudflare_flee
 
   // 2. execute_d1_sql
   const kvMap = new Map();
+  const toolOpsKey = 'test-monolith-tools-ops-key-999';
   const mockEnv = {
     ENVIRONMENT: 'staging',
+    TRINITY_OPS_KEY: toolOpsKey,
     DB: {
       prepare(sql) {
         return {
@@ -660,11 +673,24 @@ test('Module 10: Sovereign Monolith Tool Engine (execute_d1_sql, cloudflare_flee
   assert.equal(pricesBody.TETRAKIS_USD, null);
   assert.equal(pricesBody.TETRAKIS_STATUS, 'UNAVAILABLE_NO_LIVE_MARKET_FEED');
 
-  // 5. kv_memory_store via POST /api/tools/execute
-  const kvPutHttp = await devGateway.fetch(
+  // 5. kv_memory_store via POST /api/tools/execute (must reject unauthenticated with 401)
+  const unauthKvPutHttp = await devGateway.fetch(
     new Request('https://aura.dev/api/tools/execute', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tool: 'kv_memory_store',
+        arguments: { action: 'put', key: 'ring0_state', value: 'LOCKED_ACTIVE', ttl_seconds: 60 }
+      })
+    }),
+    mockEnv
+  );
+  assert.equal(unauthKvPutHttp.status, 401);
+
+  const kvPutHttp = await devGateway.fetch(
+    new Request('https://aura.dev/api/tools/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${toolOpsKey}` },
       body: JSON.stringify({
         tool: 'kv_memory_store',
         arguments: { action: 'put', key: 'ring0_state', value: 'LOCKED_ACTIVE', ttl_seconds: 60 }

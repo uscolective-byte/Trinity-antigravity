@@ -97,3 +97,62 @@ test('System Bridge (Port 7788): /api/status vracia ONLINE s overeným Windows S
     await new Promise(resolve => server.close(resolve));
   }
 });
+
+test('System Bridge (Port 7788): failed open_app launch records exit_code 1 and status failed in response and Sovereign Ledger', async () => {
+  const tmpDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'trinity-bridge-fail-launch-'));
+  const windowsSession = {
+    username: 'saboi',
+    domain: 'basterix-pc',
+    sid: 'S-1-5-21-3847291048-1928374650-2837465910-1001',
+    osTokenVerified: true
+  };
+  const server = await createSystemBridgeServer({
+    port: 0,
+    dataDir: tmpDataDir,
+    windowsSession,
+    executeDesktopFn: async () => {
+      throw new Error('Desktop executable launch failed: EACCES');
+    },
+    listDesktopWindowsFn: async () => []
+  });
+
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const address = server.address();
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+  const prevToken = process.env.TRINITY_BRIDGE_TOKEN;
+  process.env.TRINITY_BRIDGE_TOKEN = 'test-bridge-token-fail-launch';
+
+  try {
+    const res = await fetch(`${baseUrl}/api/execute-privileged`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Trinity-Bridge-Token': process.env.TRINITY_BRIDGE_TOKEN
+      },
+      body: JSON.stringify({
+        action: 'open_app',
+        payload: { app: 'notepad' }
+      })
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.status, 'failed');
+    assert.equal(data.exit_code, 1);
+    assert.equal(data.receipt.success, false);
+    assert.match(data.app_execution.error, /EACCES/);
+
+    const ledgerLines = fs
+      .readFileSync(path.join(tmpDataDir, 'sovereign-bridge-ledger.jsonl'), 'utf8')
+      .trim()
+      .split(/\r?\n/)
+      .map(line => JSON.parse(line));
+    assert.equal(ledgerLines.length, 1);
+    assert.equal(ledgerLines[0].exit_code, 1);
+    assert.equal(ledgerLines[0].operation, 'OPEN_APP');
+  } finally {
+    if (prevToken === undefined) delete process.env.TRINITY_BRIDGE_TOKEN;
+    else process.env.TRINITY_BRIDGE_TOKEN = prevToken;
+    await new Promise(resolve => server.close(resolve));
+    fs.rmSync(tmpDataDir, { recursive: true, force: true });
+  }
+});

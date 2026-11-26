@@ -268,17 +268,32 @@ test('Core Skill: recordMetrics zapisuje metriky', () => {
 // 2️⃣ INTEGRATION SKILLS TESTY
 // ─────────────────────────────────────────────────────────────
 
-test('Integration Skill: callPowerPlatform spracuje Copilot Studio odpoveď', async () => {
-  // Mock režim
-  const mockResult = await skills.callPowerPlatform('Ako optimalizovať proces?', {}, { mock: true });
-  assert.ok(Array.isArray(mockResult.conversations));
-  assert.match(mockResult.conversations[0].reply, /Power Platform Demo/);
-
-  // Test chýbajúcej URL
+test('Integration Skill: callPowerPlatform spracuje Copilot Studio odpoveď a zlyhá bez konfigurácie', async () => {
+  // Chýbajúca URL zlyhá aj pri options.mock: true (Truth Policy 2.1)
   await assert.rejects(
-    skills.callPowerPlatform('Dotaz bez URL', {}),
+    skills.callPowerPlatform('Dotaz bez URL', {}, { mock: true }),
     /POWER_PLATFORM_URL nie je nakonfigurovaná/
   );
+
+  // Skutočné volanie proti nakonfigurovanému endpointu
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    assert.match(String(url), /^https:\/\/power\.example\/copilotstudio\//);
+    assert.equal(init.method, 'POST');
+    return Response.json({
+      conversations: [{ id: 'conv-live-1', reply: 'Skutočná odpoveď Power Platform' }]
+    });
+  };
+  try {
+    const liveResult = await skills.callPowerPlatform(
+      'Ako optimalizovať proces?',
+      { POWER_PLATFORM_URL: 'https://power.example', POWER_PLATFORM_TOKEN: 'tok-pp' }
+    );
+    assert.ok(Array.isArray(liveResult));
+    assert.equal(liveResult[0].reply, 'Skutočná odpoveď Power Platform');
+  } finally {
+    globalThis.fetch = realFetch;
+  }
 });
 
 test('Integration Skill: analyzeText analyzuje štatistiku textu, entity a sentiment', () => {
@@ -309,11 +324,26 @@ test('Integration Skill: calculate a statistics vykonávajú presnú matematiku'
   assert.equal(stats.max, 50);
 });
 
-test('Integration Skill: pcRunScript overuje SHA-256 a podporuje mock beh', async () => {
-  const res = await skills.pcRunScript('node -v', {}, { mock: true });
+test('Integration Skill: pcRunScript overuje SHA-256 cez PC_BRIDGE_SERVICE a zlyhá bez bindingu', async () => {
+  await assert.rejects(
+    skills.pcRunScript('node -v', {}, { mock: true }),
+    /PC_BRIDGE_SERVICE/
+  );
+
+  let seenSha = null;
+  const res = await skills.pcRunScript('node -v', {
+    TRINITY_GATEWAY_KEY: 'gw-test',
+    PC_BRIDGE_SERVICE: {
+      fetch: async (url, init) => {
+        assert.equal(url, 'http://pc-bridge/run');
+        seenSha = init.headers['X-Command-SHA256'];
+        return Response.json({ success: true, command: 'node -v', stdout: 'v22.0.0', exit_code: 0 });
+      }
+    }
+  });
   assert.equal(res.success, true);
   assert.equal(res.command, 'node -v');
-  assert.match(res.sha256, /^[a-f0-9]{64}$/);
+  assert.match(seenSha, /^[a-f0-9]{64}$/);
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -462,20 +492,31 @@ test('TrinityCopilotAgent isolates dialogue and never caches contextual answers'
 
 test('TrinityCopilotAgent spracuje Power Platform volanie s fallbackom pri nedostupnosti', async () => {
   const mockDB = createMockDB();
-  const env = { DB: mockDB };
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    assert.match(String(url), /^https:\/\/power\.example\/copilotstudio\//);
+    return Response.json({
+      conversations: [{ id: 'conv-live-2', reply: 'Power Platform Live Odpoveď' }]
+    });
+  };
+  try {
+    const resPower = await TrinityCopilotAgent('Skontroluj stav objednávky', {
+      DB: mockDB,
+      POWER_PLATFORM_URL: 'https://power.example',
+      POWER_PLATFORM_TOKEN: 'tok-live'
+    }, {
+      usePowerPlatform: true
+    });
+    assert.equal(resPower.provider, 'power-platform');
+    assert.match(JSON.stringify(resPower.content), /Power Platform Live Odpoveď/);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
 
-  // Volanie s mock Power Platform
-  const resPower = await TrinityCopilotAgent('Skontroluj stav objednávky', env, {
+  // Volanie bez konfigurácie zlyhá a spadne na fallback (aj pri mock: true)
+  const resFallback = await TrinityCopilotAgent('Neexistujúca služba', { DB: mockDB }, {
     usePowerPlatform: true,
-    mock: true
-  });
-  assert.equal(resPower.provider, 'power-platform');
-  assert.match(JSON.stringify(resPower.content), /Power Platform Demo/);
-
-  // Volanie s chybou a fallbackom
-  const resFallback = await TrinityCopilotAgent('Neexistujúca služba', env, {
-    usePowerPlatform: true,
-    mock: false,
+    mock: true,
     enableFallback: true,
     retries: 0
   });
@@ -484,47 +525,90 @@ test('TrinityCopilotAgent spracuje Power Platform volanie s fallbackom pri nedos
   assert.ok(Array.isArray(resFallback.suggestions));
 });
 
-test('Microsoft Dataverse / Dynamics 365 Dataverse skills pracujú korektne', async () => {
-  const env = {
+test('Microsoft Dataverse / Dynamics 365 Dataverse skills fail closed without token and perform real HTTP calls when configured', async () => {
+  const envNoToken = {
     DATAVERSE_URL: 'https://org35ccf923.crm17.dynamics.com'
   };
 
-  // 1. WhoAmI
-  const whoami = await skills.dataverseWhoAmI(env, { mock: true });
-  assert.equal(whoami.instance_url, 'https://org35ccf923.crm17.dynamics.com');
-  assert.equal(whoami.organization_id, '8659177c-c9ca-f111-be88-00224874567f');
-  assert.equal(whoami.environment_id, '263ab070-afaa-ebda-a227-c1f465562341');
+  // Fail closed when token is missing (even with mock: true)
+  await assert.rejects(skills.dataverseWhoAmI(envNoToken, { mock: true }), /credentials are not configured/i);
+  await assert.rejects(skills.dataverseQuery('accounts', { $top: 5 }, envNoToken, { mock: true }), /credentials are not configured/i);
+  await assert.rejects(skills.dataverseCreateRecord('contacts', { firstname: 'Ivan' }, envNoToken, { mock: true }), /credentials are not configured/i);
+  await assert.rejects(skills.dataverseUpdateRecord('contacts', 'id-1', { telephone1: '+421900000000' }, envNoToken, { mock: true }), /credentials are not configured/i);
+  await assert.rejects(skills.dataverseDeleteRecord('contacts', 'id-1', envNoToken, { mock: true }), /credentials are not configured/i);
 
-  // 2. Query
-  const queryRes = await skills.dataverseQuery('accounts', { $top: 5, $select: 'name,accountnumber' }, env, { mock: true });
-  assert.equal(queryRes.entitySet, 'accounts');
-  assert.ok(Array.isArray(queryRes.value));
-  assert.equal(queryRes.count, 2);
+  // Real HTTP CRUD against configured Dataverse org
+  const env = {
+    DATAVERSE_URL: 'https://org35ccf923.crm17.dynamics.com',
+    DATAVERSE_TOKEN: 'live-dataverse-bearer-token'
+  };
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(init.headers?.Authorization, 'Bearer live-dataverse-bearer-token');
+    const u = String(url);
+    if (u.endsWith('/api/data/v9.2/WhoAmI')) {
+      return Response.json({
+        OrganizationId: '8659177c-c9ca-f111-be88-00224874567f',
+        UserId: 'user-guid-1',
+        BusinessUnitId: 'bu-guid-1'
+      });
+    }
+    if (u.includes('/api/data/v9.2/accounts') && (!init.method || init.method === 'GET')) {
+      return Response.json({ value: [{ accountid: 'acc-1', name: 'Auru' }, { accountid: 'acc-2', name: 'Trinity' }] });
+    }
+    if (u.endsWith('/api/data/v9.2/contacts') && init.method === 'POST') {
+      const payload = JSON.parse(init.body);
+      return Response.json({ id: 'contact-real-1', ...payload });
+    }
+    if (u.includes('/api/data/v9.2/contacts(contact-real-1)') && init.method === 'PATCH') {
+      const payload = JSON.parse(init.body);
+      return Response.json({ id: 'contact-real-1', updated: true, ...payload });
+    }
+    if (u.includes('/api/data/v9.2/contacts(contact-real-1)') && init.method === 'DELETE') {
+      return new Response(null, { status: 204 });
+    }
+    return new Response('not found', { status: 404 });
+  };
 
-  // 3. Create, Update, Delete CRUD
-  const created = await skills.dataverseCreateRecord('contacts', { firstname: 'Ivan', lastname: 'Trinity' }, env, { mock: true });
-  assert.ok(created.id);
-  assert.equal(created.firstname, 'Ivan');
+  try {
+    // 1. WhoAmI
+    const whoami = await skills.dataverseWhoAmI(env);
+    assert.equal(whoami.instance_url, 'https://org35ccf923.crm17.dynamics.com');
+    assert.equal(whoami.organization_id, '8659177c-c9ca-f111-be88-00224874567f');
+    assert.equal(whoami.status, 'connected');
 
-  const updated = await skills.dataverseUpdateRecord('contacts', created.id, { telephone1: '+421900000000' }, env, { mock: true });
-  assert.equal(updated.updated, true);
-  assert.equal(updated.telephone1, '+421900000000');
+    // 2. Query
+    const queryRes = await skills.dataverseQuery('accounts', { $top: 5, $select: 'name,accountnumber' }, env);
+    assert.equal(queryRes.entitySet, 'accounts');
+    assert.ok(Array.isArray(queryRes.value));
+    assert.equal(queryRes.count, 2);
 
-  const deleted = await skills.dataverseDeleteRecord('contacts', created.id, env, { mock: true });
-  assert.equal(deleted.deleted, true);
+    // 3. Create, Update, Delete CRUD
+    const created = await skills.dataverseCreateRecord('contacts', { firstname: 'Ivan', lastname: 'Trinity' }, env);
+    assert.equal(created.id, 'contact-real-1');
+    assert.equal(created.firstname, 'Ivan');
 
-  // 4. Overenie cez SkillRegistry a TrinityCopilotAgent
-  assert.ok(skillRegistry.has('dataverseWhoAmI'));
-  const regWhoami = await skillRegistry.execute('dataverseWhoAmI', env, { mock: true });
-  assert.equal(regWhoami.organization_id, '8659177c-c9ca-f111-be88-00224874567f');
+    const updated = await skills.dataverseUpdateRecord('contacts', created.id, { telephone1: '+421900000000' }, env);
+    assert.equal(updated.updated, true);
+    assert.equal(updated.telephone1, '+421900000000');
 
-  const mockDB = createMockDB();
-  const agentRes = await TrinityCopilotAgent('Over stav Dynamics 365', { DB: mockDB, ...env }, {
-    skill: 'dataverseWhoAmI',
-    mock: true
-  });
-  assert.equal(agentRes.provider, 'skill:dataverseWhoAmI');
-  assert.equal(agentRes.content.organization_id, '8659177c-c9ca-f111-be88-00224874567f');
+    const deleted = await skills.dataverseDeleteRecord('contacts', created.id, env);
+    assert.equal(deleted.deleted, true);
+
+    // 4. Overenie cez SkillRegistry a TrinityCopilotAgent
+    assert.ok(skillRegistry.has('dataverseWhoAmI'));
+    const regWhoami = await skillRegistry.execute('dataverseWhoAmI', env);
+    assert.equal(regWhoami.organization_id, '8659177c-c9ca-f111-be88-00224874567f');
+
+    const mockDB = createMockDB();
+    const agentRes = await TrinityCopilotAgent('Over stav Dynamics 365', { DB: mockDB, ...env }, {
+      skill: 'dataverseWhoAmI'
+    });
+    assert.equal(agentRes.provider, 'skill:dataverseWhoAmI');
+    assert.equal(agentRes.content.organization_id, '8659177c-c9ca-f111-be88-00224874567f');
+  } finally {
+    globalThis.fetch = realFetch;
+  }
 });
 
 test('Gemini developer skills never fabricate execution evidence', async () => {

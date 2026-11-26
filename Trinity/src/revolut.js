@@ -176,22 +176,24 @@ function renderCheckoutPageHtml(product,accounts,env){
   ${product.description?`<p class="desc">${escapeHtml(product.description)}</p>`:''}
   <div class="price-box"><span>Amount due</span><strong>${eur} €</strong></div>
   ${isPayPal && clientId ? `<div id="paypal-button-container" style="min-height:45px"></div>` : ''}
-  <a class="pp-btn" href="${escapeHtml(product.payment_url)}" rel="noopener noreferrer">💙 Pay ${eur} € via PayPal</a>
+  <a class="pp-btn" href="${escapeHtml(product.payment_url)}" rel="noopener noreferrer">${isPayPal ? `💙 Pay ${eur} € via PayPal` : `💳 Pay ${eur} € via Revolut`}</a>
   <a class="pp-direct" href="${escapeHtml(product.payment_url)}" rel="noopener noreferrer">Open direct payment link ↗</a>
   <div class="meta">${escapeHtml(note)}<br>Offer ID: <code>${escapeHtml(product.id)}</code></div>
 </main>
 ${isPayPal && clientId ? `<script src="https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=EUR"></script>
 <script>
   if (window.paypal) {
+    const ORDER_PAYLOAD = ${JSON.stringify({ amountEur: eur, description: String(product.name || ''), sku: String(product.id || '') }).replace(/</g, '\\u003c')};
     paypal.Buttons({
       style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal' },
       createOrder: async function() {
         const res = await fetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amountEur: '${eur}', description: '${escapeHtml(product.name)}', sku: '${escapeHtml(product.id)}' })
+          body: JSON.stringify(ORDER_PAYLOAD)
         });
         const data = await res.json();
+        if (!res.ok || !(data.id || data.order_id)) throw new Error(data.error || 'Order creation failed');
         return data.id || data.order_id;
       },
       onApprove: async function(data) {
@@ -199,8 +201,12 @@ ${isPayPal && clientId ? `<script src="https://www.paypal.com/sdk/js?client-id=$
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
-        const details = await res.json();
-        alert('Payment completed successfully! ID: ' + (details.id || details.order_id || 'OK'));
+        const details = await res.json().catch(() => ({}));
+        if (!res.ok || details.completed !== true) {
+          alert('Payment was not confirmed: ' + (details.error || ('HTTP ' + res.status)));
+          return;
+        }
+        alert('Payment completed successfully! ID: ' + (details.capture_id || details.id || details.order_id));
         window.location.reload();
       }
     }).render('#paypal-button-container');
