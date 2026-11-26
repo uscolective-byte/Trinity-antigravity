@@ -19,5 +19,5 @@ Coordinate multi-agent workflows, delegate tasks to specialized workers, and man
 4. **Synthesize:** Combine verified outputs into a cohesive final result with cryptographic proof in Sovereign Ledger.
 
 ## Auxiliary Resources
-- [examples.md](file:///C:/Users/saboi/Trinity/Trinity-antigravity/skills/trinity-core-orchestrator/examples.md): Concrete multi-agent orchestration workflow examples across the TRINITY ecosystem.
-- [task-templates.md](file:///C:/Users/saboi/Trinity/Trinity-antigravity/skills/trinity-core-orchestrator/task-templates.md): Reusable task breakdown, delegation, and synchronization templates.
+- [examples.md](examples.md): Concrete multi-agent orchestration workflow examples across the TRINITY ecosystem.
+- [task-templates.md](task-templates.md): Reusable task breakdown, delegation, and synchronization templates.
