@@ -1218,6 +1218,8 @@ body.studio-ui header.atelier-topbar .page-heading #page-title,
 /* Keep workspace text readable when the older theme rules style the same controls. */
 html body.studio-ui main header.atelier-topbar .page-heading #page-title {
   color: var(--workspace-text) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
   opacity: 1;
 }
 
