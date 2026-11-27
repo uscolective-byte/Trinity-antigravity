@@ -838,3 +838,166 @@ body.studio-ui header.atelier-topbar .page-heading #page-title,
   color: var(--workspace-accent-text) !important;
   border-color: transparent !important;
 }
+
+.studio-ui #documents-view {
+  --docs-code-bg: var(--workspace-rail);
+  max-width: 1180px;
+  width: 100%;
+  margin-inline: auto;
+  color: var(--workspace-text);
+}
+
+#documents-view .docs-heading {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  height: auto !important;
+  padding: 0 0 20px !important;
+  background: transparent !important;
+  border-bottom: 1px solid var(--workspace-line) !important;
+}
+
+#documents-view .docs-heading h1 {
+  margin: 0;
+  color: var(--workspace-text);
+  font: 400 clamp(34px, 5vw, 54px)/1.05 "Instrument Serif", Georgia, serif;
+}
+
+#documents-view .docs-heading p {
+  margin: 8px 0 0;
+  color: var(--workspace-muted);
+}
+
+#documents-view .docs-heading .docs-hero-actions,
+#documents-view .docs-search-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#documents-view :is(.docs-feedback, .docs-search-results, #docs-search-clear, .doc-tab-pane)[hidden] {
+  display: none !important;
+}
+
+#documents-view .docs-search-wrapper {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+}
+
+#documents-view .docs-search-wrapper > label {
+  color: var(--workspace-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#documents-view .docs-search-input-box {
+  display: flex;
+  gap: 8px;
+}
+
+#documents-view #docs-global-search {
+  min-width: 0;
+  flex: 1;
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+#documents-view :is(#docs-global-search, #docs-search-clear, .docs-result, .btn-docs-action, #docs-subnav button) {
+  border: 1px solid var(--workspace-line);
+  border-radius: 9px;
+  background: var(--workspace-surface);
+  color: var(--workspace-text);
+}
+
+#documents-view :is(#docs-search-clear, .docs-result, .btn-docs-action, #docs-subnav button) {
+  min-height: 36px;
+  padding: 7px 12px;
+  font-size: 13px;
+}
+
+#documents-view :is(.docs-result, .btn-docs-action, #docs-subnav button):hover,
+#documents-view #docs-subnav button[aria-pressed="true"] {
+  background: var(--workspace-selected);
+  color: var(--workspace-text);
+  border-color: var(--workspace-accent);
+}
+
+#documents-view .docs-feedback {
+  margin: 4px 0;
+  color: var(--workspace-muted);
+  font-size: 13px;
+}
+
+#documents-view #docs-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+#documents-view .docs-archive-summary {
+  margin: 8px 0 18px;
+  padding: 10px 12px;
+  border: 1px solid var(--workspace-line);
+  border-radius: 10px;
+  color: var(--workspace-muted);
+}
+
+#documents-view .docs-archive-summary summary {
+  cursor: pointer;
+}
+
+#documents-view .docs-archive-summary .metric-grid {
+  margin: 12px 0 0;
+}
+
+#documents-view .docs-portal-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 14px;
+}
+
+#documents-view .docs-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--workspace-line) !important;
+  border-radius: 14px;
+  background: var(--workspace-surface) !important;
+  color: var(--workspace-text);
+  box-shadow: none;
+  overflow-wrap: anywhere;
+}
+
+#documents-view .docs-card :is(h2, h3, p, li, small) {
+  color: var(--workspace-text) !important;
+  line-height: 1.55;
+}
+
+#documents-view .docs-card :is(pre, code) {
+  background: var(--docs-code-bg);
+  color: var(--workspace-text);
+}
+
+#documents-view pre {
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+@media print {
+  #documents-view .docs-archive-summary,
+  #documents-view .docs-feedback {
+    display: none;
+  }
+}
+
+@media print {
+  #documents-view .docs-heading {
+    display: block;
+  }
+}

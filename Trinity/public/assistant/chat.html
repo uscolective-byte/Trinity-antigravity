@@ -1,4 +1,4 @@
-<!doctype html><html lang="sk" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#f8f5ef"><meta name="description" content="Trinity — Sovereign AI Workspace, Tetrakis ($TTK) Space, @wallet, Encrypted Vault and Connectors for auru.space."><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · Sovereign AI Workspace</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"><link rel="stylesheet" href="/chat.css?v=17.0.0"><link rel="stylesheet" href="/builder.css?v=17.0.0"><link rel="stylesheet" href="/theme.css?v=17.0.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=17.1.0" defer></script><script src="/ghost-crypto.js?v=17.0.0" defer></script><link rel="stylesheet" href="/garage.css?v=17.0.0"><link rel="stylesheet" href="/mobile.css?v=17.1.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui" data-atelier="v17.0">
+<!doctype html><html lang="sk" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"><meta name="theme-color" content="#f8f5ef"><meta name="description" content="Trinity — Sovereign AI Workspace, Tetrakis ($TTK) Space, @wallet, Encrypted Vault and Connectors for auru.space."><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Trinity"><link rel="apple-touch-icon" href="/mobile-icon-192.png"><title>Trinity · Sovereign AI Workspace</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"><link rel="stylesheet" href="/chat.css?v=17.0.0"><link rel="stylesheet" href="/builder.css?v=17.0.0"><link rel="stylesheet" href="/theme.css?v=17.0.0"><script src="/auth-bootstrap.js" defer></script><script src="/chat.js?v=17.2.0" defer></script><script src="/ghost-crypto.js?v=17.0.0" defer></script><link rel="stylesheet" href="/garage.css?v=17.0.0"><link rel="stylesheet" href="/mobile.css?v=17.2.0"><script src="/mobile-device.js?v=2" defer></script><script src="/spotify.js" defer></script></head><body class="studio-ui" data-atelier="v17.0">
 <aside class="sidebar" aria-label="Navigácia pracovného priestoru">
   <div class="sidebar-brand-row">
     <a href="#chat" class="brand" data-view-link="chat">
@@ -2420,66 +2420,54 @@
     </section>
 
     <section id="documents-view" class="view documents-view" hidden>
-      <div class="section-intro"><span class="eyebrow">TRINITY 11.1 KNOWLEDGE CENTER · PRÍRUČKA, ARCHITEKTÚRA, LICENCIE & DOKUMENTY</span><h1>Dokumentácia, Kompletná Architektúra, Licencie & Help</h1><p>Oficiálna príručka ako správne používať Trinity 11.1, technická architektúra systému (Cloudflare Edge + 46 agentov + Quantum Brain), návod na pripojenie bánk a platobných brán, licenčné podmienky a archív vygenerovaných dokumentov (<code>.md</code> / <code>.pdf</code>).</p></div>
-      <div class="metric-grid domain-metrics tabular-metrics">
-        <article class="metric blue"><span>VERZIA JADRA</span><strong id="knowledge-core-version">Trinity 11.1</strong><small>45 agentov · 150 pluginov · 322 skillov</small></article>
-        <article class="metric teal"><span>DOKUMENTY V ARCHÍVE</span><strong id="docstat-total">—</strong><small>uložené v D1 (<span id="docstat-steps">0</span> krokov)</small></article>
-        <article class="metric gold"><span>UI & SAMOROZVOJ</span><strong id="docstat-ui">—</strong><small>aplikované zmeny a pravidlá</small></article>
-        <article class="metric purple"><span>DOMÉNY & OBCHOD</span><strong id="docstat-domains">—</strong><small>produkčné prostredia a obchody</small></article>
-      </div>
-
-      <!-- Live Hero Banner & Status Indicator -->
-      <div class="docs-hero-banner">
-        <div class="docs-hero-status">
-          <span class="status-indicator-live"><span class="pulse-dot"></span> <b>PRODUKCIA ONLINE:</b> auru.space &amp; auru.dev</span>
-          <span class="docs-hero-pill">🛡️ Sovereign Ledger: 860+ Blokov</span>
-          <span class="docs-hero-pill">🤖 46 Autonómnych Agentov</span>
-          <span class="docs-hero-pill">⚡ MCP JSON-RPC 2.0</span>
-          <span class="docs-hero-pill">💻 PC Bridge: 7777 / 8791</span>
+      <header class="docs-heading">
+        <div>
+          <h1>Dokumentácia Trinity</h1>
+          <p>Návody, technická referencia a prevádzka Trinity.</p>
         </div>
         <div class="docs-hero-actions">
-          <button type="button" class="btn-docs-action" id="btn-docs-verify-live">↻ Overiť živý stav</button>
-          <button type="button" class="btn-docs-action" id="btn-docs-print">🖨️ Tlačiť / PDF Príručka</button>
+          <button type="button" class="btn-docs-action" id="btn-docs-verify-live">Overiť stav</button>
+          <button type="button" class="btn-docs-action" id="btn-docs-print">Tlač / PDF</button>
         </div>
-      </div>
+      </header>
+      <p id="docs-live-status" class="docs-feedback" role="status" hidden></p>
 
-      <!-- Real-Time Interactive Search & Quick Category Filter -->
       <div class="docs-search-wrapper">
+        <label for="docs-global-search">Hľadať v dokumentácii</label>
         <div class="docs-search-input-box">
-          <span class="docs-search-icon">🔍</span>
-          <input type="search" id="docs-global-search" placeholder="Hľadať v celej dokumentácii (napr. MCP, nástroje, krypto, WhatsApp, SEPA, ledger, API token)..." aria-label="Hľadať v dokumentácii">
-          <button type="button" id="docs-search-clear" hidden>✕</button>
+          <input type="search" id="docs-global-search" placeholder="Napríklad prihlásenie, MCP alebo PC Bridge" autocomplete="off">
+          <button type="button" id="docs-search-clear" hidden>Vymazať</button>
         </div>
-        <div class="docs-quick-tags" id="docs-quick-tags">
-          <button type="button" class="docs-tag-chip active" data-docs-filter="all">🌟 Všetko</button>
-          <button type="button" class="docs-tag-chip" data-docs-filter="guide">📖 Help &amp; Štart</button>
-          <button type="button" class="docs-tag-chip" data-docs-filter="tools">🔧 Nástroje &amp; API (25+)</button>
-          <button type="button" class="docs-tag-chip" data-docs-filter="crypto">💎 Tetrakis ($TTK) &amp; Krypto</button>
-          <button type="button" class="docs-tag-chip" data-docs-filter="connectors">🌐 Siete, Poslovia &amp; Webhooky</button>
-          <button type="button" class="docs-tag-chip" data-docs-filter="ledger">🛡️ Sovereign Ledger</button>
-          <button type="button" class="docs-tag-chip" data-docs-filter="architecture">🏗️ Architektúra</button>
-          <button type="button" class="docs-tag-chip" data-docs-filter="banking">🏦 Banky &amp; SEPA</button>
-          <button type="button" class="docs-tag-chip" data-docs-filter="omnidev">💻 PC Bridge &amp; Vývoj</button>
-          <button type="button" class="docs-tag-chip" data-docs-filter="truth">⚖️ Truth Policy</button>
-        </div>
+        <p id="docs-search-status" class="docs-feedback" role="status" hidden></p>
+        <div id="docs-search-results" class="docs-search-results" aria-label="Nájdené kapitoly" hidden></div>
       </div>
 
       <nav class="trinity-subnav" id="docs-subnav" aria-label="Kapitoly dokumentácie">
-        <button type="button" class="subnav-btn active" data-doc-tab="guide">📖 Ako používať Trinity (Help)</button>
-        <button type="button" class="subnav-btn" data-doc-tab="tools">🔧 Nástroje &amp; API (25+)</button>
-        <button type="button" class="subnav-btn" data-doc-tab="crypto">💎 Tetrakis ($TTK) &amp; Web3</button>
-        <button type="button" class="subnav-btn" data-doc-tab="connectors">🌐 Siete, Poslovia &amp; Webhooky</button>
-        <button type="button" class="subnav-btn" data-doc-tab="ledger">🛡️ Sovereign Ledger &amp; MMR</button>
-        <button type="button" class="subnav-btn" data-doc-tab="architecture">🏗️ Kompletná Architektúra</button>
-        <button type="button" class="subnav-btn" data-doc-tab="banking">🏦 Banky, SEPA &amp; Terminály</button>
-        <button type="button" class="subnav-btn" data-doc-tab="truth">⚔️ Truth Policy &amp; Dôkazy</button>
-        <button type="button" class="subnav-btn" data-doc-tab="omnidev">💻 Omni-Dev &amp; PC Bridge</button>
-        <button type="button" class="subnav-btn" data-doc-tab="meta">♾️ Meta AI &amp; Social</button>
-        <button type="button" class="subnav-btn" data-doc-tab="oath">👑 Prísaha vernosti Basterixovi</button>
-        <button type="button" class="subnav-btn" data-doc-tab="licenses">⚖️ Licencie &amp; Bezpečnosť</button>
-        <button type="button" class="subnav-btn" data-doc-tab="gdpr">🛡️ GDPR &amp; Súhlas</button>
-        <button type="button" class="subnav-btn" data-doc-tab="archive">📁 Archív záznamov (MD / PDF)</button>
+          <button type="button" class="subnav-btn active" data-doc-tab="guide" aria-controls="doc-pane-guide" aria-pressed="true">Začíname</button>
+          <button type="button" class="subnav-btn" data-doc-tab="tools" aria-controls="doc-pane-tools" aria-pressed="false">Nástroje a API</button>
+          <button type="button" class="subnav-btn" data-doc-tab="crypto" aria-controls="doc-pane-crypto" aria-pressed="false">Tetrakis a Web3</button>
+          <button type="button" class="subnav-btn" data-doc-tab="connectors" aria-controls="doc-pane-connectors" aria-pressed="false">Konektory a webhooky</button>
+          <button type="button" class="subnav-btn" data-doc-tab="ledger" aria-controls="doc-pane-ledger" aria-pressed="false">Auditný denník</button>
+          <button type="button" class="subnav-btn" data-doc-tab="architecture" aria-controls="doc-pane-architecture" aria-pressed="false">Architektúra</button>
+          <button type="button" class="subnav-btn" data-doc-tab="banking" aria-controls="doc-pane-banking" aria-pressed="false">Banky a SEPA</button>
+          <button type="button" class="subnav-btn" data-doc-tab="truth" aria-controls="doc-pane-truth" aria-pressed="false">Overovanie výsledkov</button>
+          <button type="button" class="subnav-btn" data-doc-tab="omnidev" aria-controls="doc-pane-omnidev" aria-pressed="false">Omni-Dev a PC Bridge</button>
+          <button type="button" class="subnav-btn" data-doc-tab="meta" aria-controls="doc-pane-meta" aria-pressed="false">Meta a sociálne siete</button>
+          <button type="button" class="subnav-btn" data-doc-tab="oath" aria-controls="doc-pane-oath" aria-pressed="false">Charta projektu</button>
+          <button type="button" class="subnav-btn" data-doc-tab="licenses" aria-controls="doc-pane-licenses" aria-pressed="false">Licencie a bezpečnosť</button>
+          <button type="button" class="subnav-btn" data-doc-tab="gdpr" aria-controls="doc-pane-gdpr" aria-pressed="false">Ochrana osobných údajov</button>
+          <button type="button" class="subnav-btn" data-doc-tab="archive" aria-controls="doc-pane-archive" aria-pressed="false">Archív dokumentov</button>
       </nav>
+
+      <details class="docs-archive-summary">
+        <summary>Prehľad archívu</summary>
+      <div class="metric-grid domain-metrics tabular-metrics">
+        <article class="metric blue"><span>VERZIA JADRA</span><strong id="knowledge-core-version">Trinity 11.1</strong><small>Verzia zobrazovaného rozhrania</small></article>
+        <article class="metric teal"><span>DOKUMENTY V ARCHÍVE</span><strong id="docstat-total">—</strong><small>uložené v D1 (<span id="docstat-steps">0</span> krokov)</small></article>
+        <article class="metric gold"><span>ZMENA ROZHRANIA</span><strong id="docstat-ui">—</strong><small>aplikované zmeny a pravidlá</small></article>
+        <article class="metric purple"><span>ZÁZNAMY O DOMÉNACH</span><strong id="docstat-domains">—</strong><small>záznamy v archíve</small></article>
+      </div>
+      </details>
 
       <div id="doc-pane-ledger" class="doc-tab-pane" hidden>
         <div class="docs-portal-grid">
@@ -2597,28 +2585,18 @@
 
       <div id="doc-pane-guide" class="doc-tab-pane">
         <div class="docs-portal-grid">
-          <article class="docs-card">
-            <span class="docs-badge">KAPITOLA 1 · RÝCHLY ŠTART</span>
-            <h3>1. Ako správne komunikovať a zadávať úlohy v Chate</h3>
-            <p>Trinity nie je obyčajný chatbot — je to autonómny operačný systém napojený na 25 výkonných nástrojov, databázu D1, Cloudflare DNS, tvoje bankové odkazy a komoditný desk.</p>
-            <ul class="docs-list">
-              <li><b>Výber AI motora (dole v Chate):</b>
-                <ul>
-                  <li><code>Cloudflare Workers AI (GPT-OSS-120B)</code> — predvolený rýchly motor bežiaci priamo na Cloudflare Edge bez externých poplatkov.</li>
-                  <li><code>OpenAI / ChatGPT (GPT-4o)</code> alebo <code>Google Gemini</code> — pre komplexné kódovanie, hĺbkové analýzy a multimodálnu prácu.</li>
-                  <li><code>Môj počítač · PC Bridge</code> — keď chceš, aby Trinity vykonala schválenú akciu na tvojom Windows PC (spustenie aplikácie, lokálny súbor).</li>
-                </ul>
-              </li>
-              <li><b>Priame príkazy v prirodzenej slovenčine:</b> Môžeš napísať napr.:
-                <ul>
-                  <li><i>„Trinity, zmeň svoje UI na kybernetickú zlatú tému a pridaj widget s mojimi cieľmi.“</i></li>
-                  <li><i>„Vytvor doménu moja-znacka.sk so staging a production prostredím a vyprodukuj na ňu AI SaaS web.“</i></li>
-                  <li><i>„Zanalyzuj všetky komodity, synchronizuj živé ceny a investuj 2 000 € do najlepších kovov.“</i></li>
-                </ul>
-              </li>
-              <li><b>Trvalá pamäť a hlas:</b> Zaškrtni <code>Zapamätať si</code> pre uloženie faktov do dlhodobej pamäte alebo použi <code>● Hlas</code> / <code>▧ Obrázok</code> pre multimodálny vstup.</li>
-            </ul>
-            <div class="docs-card-actions"><button type="button" class="primary" data-view="chat">Otvoriť Chat s Trinity →</button></div>
+          <article class="docs-card full-span-card">
+            <h2>Prvý rozhovor</h2>
+            <p>Otvor Chat a napíš, čo potrebuješ vyriešiť. Pri zložitejšej úlohe uveď kontext a požadovaný výsledok.</p>
+            <ol class="docs-list">
+              <li><strong>Pridaj podklady.</strong> Použi tlačidlo <b>+</b> pri poli správy a vyber súbor alebo dostupný nástroj.</li>
+              <li><strong>Vyber model.</strong> Automatický výber je predvolený. Dostupnosť jednotlivých modelov závisí od prostredia a pripojení.</li>
+              <li><strong>Skontroluj výsledok.</strong> Pri úlohe, ktorá mení súbory alebo spúšťa build, sleduj jej stav a potvrdenie o vykonaní.</li>
+            </ol>
+            <div class="docs-card-actions">
+              <button type="button" class="primary" data-view="chat">Otvoriť chat</button>
+              <button type="button" data-view="settings">Základné nastavenia</button>
+            </div>
           </article>
 
           <article class="docs-card">

@@ -1703,17 +1703,15 @@ function switchCommodityTab(tabId){
 document.querySelectorAll('[data-comm-tab]').forEach(btn=>btn.addEventListener('click',()=>switchCommodityTab(btn.dataset.commTab)));
 
 function switchDocTab(tabId){
-  document.querySelectorAll('[data-doc-tab]').forEach(b=>b.classList.toggle('active',b.dataset.docTab===tabId));
-  document.querySelectorAll('.doc-tab-pane').forEach(pane=>{
-    pane.hidden = (pane.id !== 'doc-pane-' + tabId);
+  if (!$('doc-pane-' + tabId)) return;
+  document.querySelectorAll('#docs-subnav [data-doc-tab]').forEach(button => {
+    const active = button.dataset.docTab === tabId;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
   });
-  document.querySelectorAll('.docs-tag-chip').forEach(chip => {
-    chip.classList.toggle('active', chip.dataset.docsFilter === tabId);
+  document.querySelectorAll('#documents-view .doc-tab-pane').forEach(pane => {
+    pane.hidden = pane.id !== 'doc-pane-' + tabId;
   });
-  if (typeof filterDocsCards === 'function') {
-    const searchVal = $('docs-global-search')?.value;
-    if (searchVal) filterDocsCards(searchVal);
-  }
 }
 
 window.copyToolPromptToChat = function(promptText) {
@@ -1728,63 +1726,61 @@ window.copyToolPromptToChat = function(promptText) {
   }
 };
 
-function filterDocsCards(query) {
-  const q = String(query || '').trim().toLowerCase();
-  const activePane = document.querySelector('.doc-tab-pane:not([hidden])');
-  if (!activePane) return;
-  const cards = activePane.querySelectorAll('.docs-card');
-  cards.forEach(card => {
-    if (!q) {
-      card.style.display = '';
-      return;
-    }
-    const text = card.textContent.toLowerCase();
-    card.style.display = text.includes(q) ? '' : 'none';
-  });
-}
+const normalizeDocsText = value => value.toLocaleLowerCase('sk')
+  .normalize('NFD').replace(/\p{Diacritic}/gu, '');
 
 function initDocsSearch() {
-  const searchInput = $('docs-global-search');
-  const clearBtn = $('docs-search-clear');
-  if (!searchInput) return;
-
-  searchInput.addEventListener('input', () => {
-    const q = searchInput.value.trim().toLowerCase();
-    if (clearBtn) clearBtn.hidden = !q;
-    filterDocsCards(q);
-  });
-
-  clearBtn?.addEventListener('click', () => {
-    searchInput.value = '';
-    clearBtn.hidden = true;
-    filterDocsCards('');
-  });
-
-  document.querySelectorAll('.docs-tag-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      document.querySelectorAll('.docs-tag-chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      const target = chip.dataset.docsFilter;
-      if (target === 'all') {
-        switchDocTab('guide');
-      } else {
-        switchDocTab(target);
-      }
-    });
-  });
-
-  $('btn-docs-verify-live')?.addEventListener('click', async () => {
-    const btn = $('btn-docs-verify-live');
-    btn.disabled = true;
-    btn.textContent = '⏳ Overujem...';
-    try {
-      const res = await fetch('/health').then(r => r.json());
-      btn.textContent = `✅ Overené: v${res.version || '11.1.0'} (${res.agents || 46} agentov)`;
-      if (typeof notice === 'function') notice(`Zdravie systému overené: ${res.service} v${res.version} na ${res.environment}.`);
-    } catch {
-      btn.textContent = '⚠️ Edge OK';
+  const input = $('docs-global-search'), clear = $('docs-search-clear');
+  const status = $('docs-search-status'), results = $('docs-search-results');
+  const chapterButtons = [...document.querySelectorAll('#docs-subnav [data-doc-tab]')];
+  const update = () => {
+    const terms = normalizeDocsText(input.value.trim()).split(/\s+/).filter(Boolean);
+    const searching = terms.length > 0;
+    clear.hidden = status.hidden = results.hidden = !searching;
+    results.replaceChildren();
+    if (!searching) return;
+    for (const chapter of chapterButtons) {
+      const id = chapter.dataset.docTab;
+      const text = normalizeDocsText(chapter.textContent + ' ' + $('doc-pane-' + id).textContent);
+      if (!terms.every(term => text.includes(term))) continue;
+      const result = node('button', chapter.textContent, 'docs-result');
+      result.type = 'button';
+      result.addEventListener('click', () => {
+        switchDocTab(id);
+        chapter.focus();
+        $('doc-pane-' + id).scrollIntoView({block:'nearest'});
+      });
+      results.append(result);
     }
-    setTimeout(() => { btn.disabled = false; btn.textContent = '↻ Overiť živý stav'; }, 3000);
+    const count = results.childElementCount;
+    status.textContent = count ? `Nájdené kapitoly: ${count}` : 'Žiadna kapitola nezodpovedá hľadaniu.';
+  };
+
+  input.addEventListener('input', update);
+  clear.addEventListener('click', () => {
+    input.value = '';
+    update();
+    input.focus();
+  });
+
+  $('btn-docs-verify-live').addEventListener('click', async event => {
+    const button = event.currentTarget;
+    const report = $('docs-live-status');
+    report.hidden = false;
+    report.textContent = 'Overujem dostupnosť…';
+    button.disabled = true;
+    try {
+      const responses = await Promise.all(['/health','/ready'].map(path =>
+        fetch(path, {signal:AbortSignal.timeout(8_000),cache:'no-store'})));
+      const [health, readiness] = await Promise.all(responses.map(response => response.json()));
+      if (!responses[0].ok || health.service !== 'Trinity' || health.ok !== true) throw new Error('Health check failed');
+      const environment = {production:'Produkcia',staging:'Staging',local:'Lokálne'}[health.environment] || health.environment;
+      report.textContent = `Trinity ${health.version} · ${environment} · ${responses[1].ok && readiness.ready === true ? 'Pripravená' : 'Obmedzená dostupnosť'}`;
+    } catch {
+      report.textContent = 'Stav Trinity sa nepodarilo overiť.';
+    } finally {
+      button.disabled = false;
+    }
   });
 
   $('btn-docs-print')?.addEventListener('click', () => {
