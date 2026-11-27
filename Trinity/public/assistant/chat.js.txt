@@ -6803,13 +6803,13 @@ async function loadEncryptedShitsView() {
   const pubParam = hashParams.get('pub') || searchParams.get('pub');
 
   if (peerParam && peerParam !== encState.myPeerId) {
-    const directContact = {
+    const directContact = encState.contacts.find(contact => contact.peer_id === peerParam) || {
       peer_id: peerParam,
       alias: aliasParam || peerParam,
-      public_key: pubParam ? decodeURIComponent(pubParam) : null,
-      status: 'online',
+      public_key: pubParam || null,
+      status: 'offline',
       avatar_color: '#8b5cf6',
-      is_registered: true
+      is_registered: false
     };
     if (!encState.contacts.some(c => c.peer_id === directContact.peer_id)) {
       encState.contacts.unshift(directContact);
@@ -6912,13 +6912,13 @@ function renderEncContactsList(contacts) {
     const isActive = encState.activeContact && encState.activeContact.peer_id === c.peer_id;
     if (isActive) item.style.background = '#1e293b';
 
-    const color = c.avatar_color || '#3b82f6';
+    const color = /^#[0-9a-f]{6}$/i.test(c.avatar_color) ? c.avatar_color : '#3b82f6';
     const initial = (c.alias || c.peer_id).charAt(0).toUpperCase();
     const registeredBadge = c.is_registered 
       ? '<span style="background:rgba(37,99,235,0.2);color:#60a5fa;border:1px solid rgba(37,99,235,0.3);padding:1px 5px;border-radius:4px;font-size:9px;font-weight:600;">🛡️ Profil</span>'
       : '';
     const subtitle = c.email 
-      ? `<span style="color:#94a3b8;font-size:10px;">${c.email}</span>` 
+      ? `<span style="color:#94a3b8;font-size:10px;">${encContactText(c.email)}</span>`
       : '<span style="color:#64748b;font-size:10px;">🔒 Šifrovaná relácia</span>';
 
     const unread = encContactUnreadMap.get(c.peer_id) || 0;
@@ -6933,14 +6933,14 @@ function renderEncContactsList(contacts) {
     item.innerHTML = `
       <div style="position:relative;display:inline-block;flex-shrink:0;">
         <div style="width:36px;height:36px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;">
-          ${initial}
+          ${encContactText(initial)}
         </div>
         <span style="position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:${presence.dotColor};border:2px solid #0f172a;box-sizing:border-box;" title="${presence.label}"></span>
       </div>
       <div style="flex:1;min-width:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
           <div style="display:flex;align-items:center;gap:6px;min-width:0;">
-            <b style="font-size:13px;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.alias || c.peer_id}</b>
+            <b style="font-size:13px;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${encContactText(c.alias || c.peer_id)}</b>
             ${registeredBadge}
           </div>
           ${unreadBadge}
@@ -6980,7 +6980,7 @@ async function selectEncContact(contact) {
     avatarElem.style.background = contact.avatar_color || '#10b981';
   }
   if (nameElem) {
-    nameElem.innerHTML = `${contact.alias || contact.peer_id} ${contact.is_registered ? '<span style="background:rgba(37,99,235,0.2);color:#60a5fa;border:1px solid rgba(37,99,235,0.3);padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;margin-left:6px;">🛡️ Registrovaný profil</span>' : ''}`;
+    nameElem.innerHTML = `${encContactText(contact.alias || contact.peer_id)} ${contact.is_registered ? '<span style="background:rgba(37,99,235,0.2);color:#60a5fa;border:1px solid rgba(37,99,235,0.3);padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;margin-left:6px;">🛡️ Registrovaný profil</span>' : ''}`;
   }
 
   const presence = formatPresenceStatus(contact.last_seen);
@@ -7062,12 +7062,32 @@ async function selectEncContact(contact) {
   void pollEncInbox();
 }
 
+function encContactText(value) {
+  const span = document.createElement('span');
+  span.textContent = value;
+  return span.innerHTML;
+}
+
+function encInviteUrl() {
+  const params = new URLSearchParams({peer: encState.myPeerId, alias: encState.myAlias || encState.myPeerId});
+  return new URL(`#encrypted_shits?${params}`, window.location.origin + window.location.pathname).href;
+}
+
+async function copyEncInvite() {
+  const url = encInviteUrl();
+  try {
+    await navigator.clipboard.writeText(url);
+  } catch {
+    prompt('Skopíruj pozývací odkaz:', url);
+    return;
+  }
+  notice('Pozývací odkaz bol skopírovaný.');
+}
 function openEncShareModal() {
   const modal = $('enc-share-modal');
   if (!modal) return;
-  const origin = window.location.origin;
-  const inviteUrl = `${origin}/#encrypted_shits?peer=${encodeURIComponent(encState.myPeerId)}&alias=${encodeURIComponent(encState.myAlias)}`;
-  const inviteText = `Ahoj, pripájaj sa k môjmu šifrovanému chatu so sebazničením správ na Trinity. Kľúč: ${encState.myPeerId}`;
+  const inviteUrl = encInviteUrl();
+  const inviteText = 'Pozvánka do môjho chatu na Trinity.';
 
   const linkInput = $('enc-share-link-input');
   if (linkInput) linkInput.value = inviteUrl;
@@ -7170,48 +7190,18 @@ function initEncEvents() {
 
   // Native share on mobile / desktop (navigator.share)
   $('enc-native-share-btn')?.addEventListener('click', async () => {
-    const inviteUrl = $('enc-share-link-input')?.value || `${window.location.origin}/#encrypted_shits?peer=${encodeURIComponent(encState.myPeerId)}`;
-    const text = `Ahoj, pripájaj sa k môjmu šifrovanému chatu so sebazničením správ na Trinity. Kľúč: ${encState.myPeerId}`;
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: 'Trinity E2EE Ephemeral Messenger',
-          text: text,
-          url: inviteUrl
-        });
+        await navigator.share({title: 'Trinity Messenger', text: 'Pozvánka do môjho chatu na Trinity.', url: encInviteUrl()});
         return;
-      } catch (err) {
-        // User cancelled sharing or share failed
+      } catch (error) {
+        if (error.name === 'AbortError') return;
       }
     }
-    await navigator.clipboard?.writeText(inviteUrl);
-    if (typeof notice === 'function') notice('Odkaz skopírovaný do schránky!');
-    else alert('Odkaz skopírovaný!');
+    await copyEncInvite();
   });
-
-  // Copy link inside modal
-  $('enc-modal-copy-link-btn')?.addEventListener('click', () => {
-    const linkInput = $('enc-share-link-input');
-    if (!linkInput) return;
-    navigator.clipboard?.writeText(linkInput.value).then(() => {
-      if (typeof notice === 'function') notice('Pozývací odkaz skopírovaný!');
-      else alert('Odkaz skopírovaný!');
-    }).catch(() => {
-      prompt('Skopírujte odkaz:', linkInput.value);
-    });
-  });
-
-  // Quick copy of my invite link
-  $('enc-copy-my-link-btn')?.addEventListener('click', () => {
-    const inviteUrl = `${window.location.origin}/#encrypted_shits?peer=${encodeURIComponent(encState.myPeerId)}&alias=${encodeURIComponent(encState.myAlias)}`;
-    navigator.clipboard?.writeText(inviteUrl).then(() => {
-      if (typeof notice === 'function') notice('Tvoj tajný odkaz bol skopírovaný!');
-      else alert('Odkaz skopírovaný!\nPošli ho kontaktu cez Telegram, Signal, WhatsApp alebo Viber.');
-    }).catch(() => {
-      prompt('Skopírujte tajný odkaz:', inviteUrl);
-    });
-  });
-
+  $('enc-modal-copy-link-btn')?.addEventListener('click', copyEncInvite);
+  $('enc-copy-my-link-btn')?.addEventListener('click', copyEncInvite);
   // Send message
   const sendAction = async () => {
     const inputBox = $('enc-input-box');
