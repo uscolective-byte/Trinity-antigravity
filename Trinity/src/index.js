@@ -148,6 +148,8 @@ import refreshCSS from '../public/refresh.css';
 import {selectChatProvider,pickChatProvider,routeChatWithResonance,CHAT_ENGINE_VALUES,normalizeChatEngine,QuantumRouter,ResonanceMatrix369,globalEntanglementBridge} from './chat-routing.js';
 import assistantHTML from '../public/assistant/chat.html';
 import assistantCSS from '../public/assistant/chat.css';
+import mobileCSS from '../public/assistant/mobile.css';
+import mobileDeviceJS from '../public/assistant/mobile-device.js.txt';
 import builderCSS from '../public/assistant/builder.css';
 import assistantJS from '../public/assistant/chat.js.txt';
 import {handleMobileAsset} from './mobile-assets.js';
@@ -300,6 +302,8 @@ async function route(request,env,ctx,authContext=null){
   if(request.method==='GET'&&path==='/chat.js')return new Response(assistantJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/auth-bootstrap.js')return new Response(authBootstrapJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/chat.css')return new Response(assistantCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
+  if(request.method==='GET'&&path==='/mobile.css')return new Response(mobileCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
+  if(request.method==='GET'&&path==='/mobile-device.js')return new Response(mobileDeviceJS,{headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'}});
   if(request.method==='GET'&&path==='/builder.css')return new Response(builderCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/garage.css')return new Response(garageCSS,{headers:{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}});
   if(request.method==='GET'&&path==='/tetrakis-logo.png')return new Response(tetrakisLogo,{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=86400'}});

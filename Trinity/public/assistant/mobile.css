@@ -330,3 +330,511 @@ main:has(#app-views:not([hidden]) #chat-view:not([hidden])) {
     padding: 6px 10px !important;
   }
 }
+
+/* Shared workspace layout and color roles. Loaded after the module styles. */
+html {
+  --workspace-bg: #17171c;
+  --workspace-rail: #1c1b22;
+  --workspace-surface: #24232c;
+  --workspace-text: #f5f0e9;
+  --workspace-muted: #c0b7c8;
+  --workspace-line: #413c4a;
+  --workspace-accent: #f9cf8b;
+  --workspace-accent-text: #241b17;
+  --workspace-selected: #3c304a;
+}
+
+html[data-theme="light"] {
+  --workspace-bg: #f8f5ef;
+  --workspace-rail: #efebe5;
+  --workspace-surface: #fff;
+  --workspace-text: #261f27;
+  --workspace-muted: #5b4d5c;
+  --workspace-line: #d7cdd6;
+  --workspace-accent: #6b3e2b;
+  --workspace-accent-text: #fff;
+  --workspace-selected: #efe1f3;
+}
+
+body.studio-ui,
+body.studio-ui #chat-view {
+  background: var(--workspace-bg) !important;
+  color: var(--workspace-text) !important;
+}
+
+body.studio-ui {
+  font-family: Inter, system-ui, sans-serif !important;
+  padding-bottom: 0;
+}
+
+body.studio-ui > .sidebar {
+  background: var(--workspace-rail) !important;
+  border-color: var(--workspace-line) !important;
+  padding: 14px 12px !important;
+}
+
+.studio-ui .brand-copy b,
+.studio-ui .main-nav button b,
+.studio-ui .nav-more-summary {
+  color: inherit !important;
+}
+
+.studio-ui .brand .brand-copy {
+  color: var(--workspace-text) !important;
+}
+
+.studio-ui .brand .brand-mark,
+.studio-ui #send {
+  background: var(--workspace-accent) !important;
+  color: var(--workspace-accent-text) !important;
+  box-shadow: none !important;
+}
+
+.studio-ui #new-chat,
+.studio-ui .main-nav button,
+.studio-ui .nav-more-summary {
+  min-height: 40px;
+  color: var(--workspace-muted) !important;
+}
+
+.studio-ui #new-chat {
+  background: var(--workspace-surface) !important;
+  border-color: var(--workspace-line) !important;
+  color: var(--workspace-text) !important;
+}
+
+.studio-ui .main-nav button.active,
+.studio-ui .main-nav button:hover,
+.studio-ui .nav-more-summary:hover {
+  background: var(--workspace-selected) !important;
+  color: var(--workspace-text) !important;
+}
+
+.studio-ui .side-label {
+  color: var(--workspace-muted) !important;
+}
+
+body.studio-ui header.atelier-topbar {
+  min-height: 58px;
+  height: auto !important;
+  padding: 9px clamp(12px, 2.5vw, 28px) !important;
+  background: var(--workspace-bg) !important;
+  border-color: var(--workspace-line) !important;
+  gap: 6px 16px;
+  flex-wrap: wrap;
+}
+
+.studio-ui #page-title {
+  color: var(--workspace-text) !important;
+  font-size: 16px !important;
+}
+
+.studio-ui .header-actions {
+  flex-wrap: wrap;
+}
+
+.studio-ui .header-actions :is(#header-settings, #theme, #logout, #language, #mobile-device-button) {
+  min-height: 34px;
+  background: var(--workspace-surface) !important;
+  border-color: var(--workspace-line) !important;
+  color: var(--workspace-text) !important;
+}
+
+.studio-ui #environment-badge[data-environment="vývoj"]:not([hidden]) {
+  display: inline-flex !important;
+  align-items: center;
+  background: var(--workspace-selected) !important;
+  border-color: var(--workspace-line) !important;
+  color: var(--workspace-text) !important;
+}
+
+.studio-ui #chat-area,
+.studio-ui #chat-view > .composer-wrap {
+  max-width: 900px !important;
+}
+
+.studio-ui #welcome {
+  max-width: 620px !important;
+  margin: clamp(16px, 5vh, 52px) auto 16px !important;
+  padding: 0 !important;
+}
+
+.studio-ui .atelier-welcome-mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border: 1px solid var(--workspace-line);
+  border-radius: 16px;
+  background: var(--workspace-selected) !important;
+  color: var(--workspace-accent) !important;
+  box-shadow: none;
+}
+
+.studio-ui #welcome h1 {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: clamp(32px, 5vw, 52px) !important;
+  font-weight: 400 !important;
+  letter-spacing: -.035em;
+  line-height: 1.02;
+  color: var(--workspace-text) !important;
+}
+
+.studio-ui #welcome p {
+  margin: 12px 0 22px !important;
+  color: var(--workspace-muted) !important;
+  font-size: 14px !important;
+}
+
+.studio-ui #welcome .suggestions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px !important;
+}
+
+.studio-ui #welcome .suggestions button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 4px 12px;
+  justify-items: start;
+  min-height: 70px;
+  padding: 12px 14px !important;
+  border: 1px solid var(--workspace-line) !important;
+  border-radius: 14px !important;
+  background: var(--workspace-surface) !important;
+  color: var(--workspace-text) !important;
+  text-align: left;
+  white-space: normal;
+}
+
+.studio-ui #welcome .suggestions button:hover {
+  background: var(--workspace-selected) !important;
+}
+
+.studio-ui #welcome .suggestions strong {
+  font-size: 14px !important;
+}
+
+.studio-ui #welcome .suggestions small {
+  grid-row: 2;
+  font-size: 12px !important;
+  color: var(--workspace-muted) !important;
+}
+
+.studio-ui #welcome .suggestions button > span {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--workspace-accent);
+}
+
+.studio-ui #chat-view .message {
+  color: var(--workspace-text) !important;
+  font-size: 15px !important;
+}
+
+.studio-ui #chat-view .message.user {
+  background: var(--workspace-selected) !important;
+  border-color: var(--workspace-line) !important;
+}
+
+.studio-ui #chat-view .message.assistant .name {
+  color: var(--workspace-accent) !important;
+}
+
+.studio-ui #chat-form {
+  background: var(--workspace-surface) !important;
+  border-color: var(--workspace-line) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 12px 26px rgba(10, 15, 27, .12) !important;
+}
+
+.studio-ui #chat-form:focus-within {
+  border-color: var(--workspace-accent) !important;
+}
+
+.studio-ui #chat-form #message {
+  color: var(--workspace-text) !important;
+  font-size: 16px !important;
+}
+
+.studio-ui #chat-form #message::placeholder {
+  color: var(--workspace-muted) !important;
+}
+
+.studio-ui #send {
+  min-width: 86px !important;
+  width: auto !important;
+  height: 42px !important;
+  padding: 0 14px !important;
+  border-radius: 11px !important;
+  font-size: 13px !important;
+}
+
+.studio-ui #send:hover {
+  transform: none !important;
+  filter: brightness(1.08);
+}
+
+.studio-ui #chat-plus-btn {
+  min-width: 42px;
+  min-height: 42px;
+}
+
+.studio-ui :is(button, a, summary, select, input, textarea):focus-visible {
+  outline: 2px solid var(--workspace-accent);
+  outline-offset: 3px;
+}
+
+.studio-ui #login .auth-showcase {
+  background: var(--workspace-selected) !important;
+  border-color: var(--workspace-line) !important;
+}
+
+.studio-ui #login .auth-showcase h1,
+.studio-ui #login #auth-title {
+  color: var(--workspace-text) !important;
+}
+
+.studio-ui #login .auth-showcase p,
+.studio-ui #login #auth-subtitle {
+  color: var(--workspace-muted) !important;
+}
+
+.studio-ui #login .auth-card-wrapper {
+  background: var(--workspace-surface) !important;
+  border-color: var(--workspace-line) !important;
+}
+
+@media (max-width: 1080px) {
+  body.studio-ui > .sidebar {
+    gap: 6px 10px !important;
+    padding: 8px 12px !important;
+  }
+
+  .studio-ui .sidebar .brand {
+    display: inline-flex !important;
+    margin: 0 !important;
+  }
+
+  .studio-ui .sidebar #new-chat {
+    display: inline-flex !important;
+  }
+
+  .studio-ui .main-nav button {
+    flex-direction: row !important;
+  }
+
+  .studio-ui .main-nav button b {
+    font-size: 12px !important;
+  }
+
+  .studio-ui .main-nav:has(details[open]) {
+    flex-wrap: wrap !important;
+    overflow: visible !important;
+  }
+
+  .studio-ui .nav-more-drawer[open] {
+    flex: 1 0 100% !important;
+  }
+
+  .studio-ui .nav-more-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  body.studio-ui:has(#chat-view:not([hidden])) > .sidebar:has(details[open]) {
+    max-height: 44% !important;
+  }
+
+  body.studio-ui main:has(#app-views:not([hidden]) #chat-view:not([hidden])) {
+    min-height: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .studio-ui .header-actions {
+    gap: 4px !important;
+  }
+
+  .studio-ui #welcome .suggestions button {
+    min-height: 62px;
+    padding: 9px 10px !important;
+  }
+
+  .studio-ui #chat-view > .composer-wrap {
+    padding-inline: 10px !important;
+  }
+}
+
+.studio-ui #chat-view {
+  background-image: radial-gradient(ellipse at 50% -18%, var(--workspace-selected), transparent 58%) !important;
+}
+
+.studio-ui .atelier-welcome-mark {
+  transform: rotate(-8deg);
+  border-radius: 18px 8px 18px 8px;
+}
+
+.studio-ui .atelier-welcome-mark svg {
+  transform: rotate(8deg);
+}
+
+.studio-ui #settings-view {
+  background: var(--workspace-bg);
+  color: var(--workspace-text);
+}
+
+.studio-ui #settings-view .preference-panel {
+  background: var(--workspace-surface) !important;
+  border-color: var(--workspace-line) !important;
+  color: var(--workspace-text) !important;
+}
+
+.studio-ui #settings-view .preference-panel :is(h2, label) {
+  color: var(--workspace-text) !important;
+}
+
+.studio-ui :is(#login, #app-views, .header-actions > *, .main-nav button)[hidden] {
+  display: none !important;
+}
+
+.studio-ui .header-actions #language {
+  width: auto !important;
+  min-width: 62px;
+}
+
+.studio-ui .main-nav svg {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.studio-ui .nav-more-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.studio-ui .sidebar-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 9px;
+  align-items: center;
+  font-size: 11px;
+}
+
+.studio-ui .shield-badge-row {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.studio-ui #login:not([hidden]) {
+  padding: 0 !important;
+  overflow: hidden;
+  background: var(--workspace-surface) !important;
+  border: 1px solid var(--workspace-line) !important;
+}
+
+.studio-ui #login .auth-showcase,
+.studio-ui #login .auth-card-wrapper {
+  padding: clamp(18px, 4vw, 44px) !important;
+}
+
+.studio-ui #login .auth-card-wrapper {
+  text-align: left;
+}
+
+.studio-ui #login .auth-card-wrapper :is(input, button) {
+  min-height: 42px;
+}
+
+.studio-ui #chat-form #message,
+.studio-ui #chat-form :is(select, #attach-image, #record-voice, #chat-plus-btn) {
+  background: var(--workspace-surface) !important;
+  color: var(--workspace-text) !important;
+  border-color: var(--workspace-line) !important;
+}
+
+@media (max-width: 680px) {
+  .studio-ui #login:not([hidden]) {
+    display: flex !important;
+    flex-direction: column;
+    width: calc(100% - 24px) !important;
+    max-width: 420px;
+    max-height: calc(100dvh - 24px);
+    overflow: auto;
+  }
+
+  .studio-ui #login .auth-showcase {
+    display: none !important;
+  }
+
+  .studio-ui #login .auth-card-wrapper {
+    width: 100% !important;
+  }
+
+  body.studio-ui header.atelier-topbar {
+    min-height: 46px;
+  }
+
+  .studio-ui #page-title {
+    color: var(--workspace-text) !important;
+  }
+
+  .studio-ui #welcome {
+    margin-top: 14px !important;
+  }
+
+  .studio-ui .atelier-welcome-hero {
+    padding: 15px 12px !important;
+  }
+
+  .studio-ui .atelier-welcome-mark {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+  }
+
+  .studio-ui #welcome p {
+    margin: 8px 0 0 !important;
+  }
+
+  .studio-ui #chat-form .compose-settings {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px !important;
+  }
+
+  .studio-ui #chat-form .compose-settings #engine {
+    width: auto !important;
+    max-width: 112px;
+  }
+
+  .studio-ui #chat-form #message {
+    min-height: 48px !important;
+  }
+}
+
+body.studio-ui header.atelier-topbar .page-heading #page-title,
+.studio-ui .header-actions #open-legal-header-btn {
+  color: var(--workspace-muted) !important;
+}
+
+.studio-ui #login #credentials-submit-btn {
+  background: var(--workspace-accent) !important;
+  color: var(--workspace-accent-text) !important;
+  border-color: transparent !important;
+}

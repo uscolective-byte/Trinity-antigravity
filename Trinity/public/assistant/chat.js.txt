@@ -5,7 +5,7 @@ function applyVersionToUI(verStr){
   const shortVer=parts.slice(0,2).join('.')||'11.1';
   const host=location.hostname,mode=host==='auru.space'?'PRODUKCIA':host==='auru.dev'?'VÝVOJ':'LOKÁL';
   const badge=document.getElementById('environment-badge');
-  if(badge){badge.textContent=`TRINITY ${shortVer} · ${mode}`;badge.dataset.environment=mode.toLowerCase();}
+  if(badge){badge.textContent=mode;badge.dataset.environment=mode.toLowerCase();badge.hidden=host!=='auru.dev';}
   const kicker=document.getElementById('page-kicker');
   if(kicker)kicker.textContent=`TRINITY ${shortVer}`;
   const kVer=document.getElementById('knowledge-core-version');
@@ -585,7 +585,7 @@ async function loadHistory(){const generation=++chatGeneration;controller?.abort
 function renderEnvironment(){
  const host=location.hostname,mode=host==='auru.space'?'PRODUKCIA':host==='auru.dev'?'VÝVOJ':'LOKÁL';
  const badge=$('environment-badge');
- if(badge){const shortVer=(window.TRINITY_VERSION||'11.1').split('.').slice(0,2).join('.');badge.textContent=`TRINITY ${shortVer} · ${mode}`;badge.dataset.environment=mode.toLowerCase();}
+ if(badge){badge.textContent=mode;badge.dataset.environment=mode.toLowerCase();badge.hidden=host!=='auru.dev';}
  const devLink = document.querySelector('.bridge-link.dev-link');
  const spaceLink = document.querySelector('.bridge-link.space-link');
  if(devLink && spaceLink){
@@ -660,8 +660,17 @@ function lockSession(message='Prihlás sa do Trinity.'){
  if(message)notice(message);
 }
 async function init(){
- renderEnvironment();document.documentElement.dataset.theme=localStorage.getItem('trinity-theme')||'dark';
- $('theme').onclick=()=>{const theme=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=theme;localStorage.setItem('trinity-theme',theme);};
+ renderEnvironment();
+ const applyTheme=(value)=>{
+  const theme=value==='dark'?'dark':'light';
+  document.documentElement.dataset.theme=theme;
+  $('settings-theme').value=theme;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content',theme==='light'?'#f8f5ef':'#17171c');
+  localStorage.setItem('trinity-theme',theme);
+ };
+ applyTheme(localStorage.getItem('trinity-theme'));
+ $('theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
+ $('settings-theme').onchange=event=>applyTheme(event.currentTarget.value);
  try{
   state=await TrinityAuth.requestJSON('/api/assistant/status');
   if(!state.account?.role||state.account.role==='guest'){lockSession();return;}
@@ -1224,7 +1233,7 @@ $('domain-register-form')?.addEventListener('submit',safe(async(e)=>{e.preventDe
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{const target=$(b.dataset.close);if(!target)return;if(typeof target.close==='function')target.close();else target.open=false;});
 $('login-form').onsubmit=safe(async()=>{await TrinityAuth.requestJSON('/api/ops/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:$('key').value})});$('key').value='';await init();});
 localize();
-Object.assign(words.sk,{greeting:'Ahoj Ivan. Na čom pracujeme?',intro:'Píš priamo a prirodzene — odpovedám naživo v reálnom čase.',welcomeLabel:'TRINITY · AI STUDIO',loginTitle:'Vstúp do Trinity',footnote:'Jedna Trinity. Spoločná pamäť. Skutočné výsledky, nie simulácia.'});
+Object.assign(words.sk,{greeting:'Na čom pracujeme?',intro:'Napíš otázku alebo otvor nástroj, ktorý potrebuješ.',welcomeLabel:'TRINITY · AI STUDIO',loginTitle:'Vstúp do Trinity',footnote:'Jedna Trinity. Spoločná pamäť. Skutočné výsledky, nie simulácia.'});
 localize();
 void TrinityAuth.start({configure:async()=>{await configureGoogleLogin();initPasskeyLogin();},initialize:init,lock:()=>lockSession(''),notice});
 
