@@ -1214,3 +1214,34 @@ body.studio-ui header.atelier-topbar .page-heading #page-title,
   border-color: var(--workspace-accent) !important;
   color: var(--workspace-accent-text) !important;
 }
+
+/* Keep workspace text readable when the older theme rules style the same controls. */
+html body.studio-ui main header.atelier-topbar .page-heading #page-title {
+  color: var(--workspace-text) !important;
+  opacity: 1;
+}
+
+html[data-theme="light"] body.studio-ui .atelier-topbar :is(#pc-bridge-badge, #sovereign-shield-badge, #open-legal-header-btn) {
+  color: #493b46 !important;
+  background: #fff !important;
+  border-color: #b8aab7 !important;
+}
+
+html body.studio-ui .private-messenger :is(h1,h2,p,small,label,code) {
+  color: var(--workspace-text) !important;
+}
+
+html body.studio-ui .private-messenger :is(input,textarea)::placeholder {
+  color: var(--workspace-muted) !important;
+  opacity: 1;
+}
+
+html body.studio-ui .private-messenger button:not(#enc-send):not(#enc-trust) {
+  color: var(--workspace-text) !important;
+  background: var(--workspace-surface) !important;
+  border: 1px solid var(--workspace-line) !important;
+}
+
+html body.studio-ui .private-messenger .private-contact[aria-pressed="true"] {
+  background: var(--workspace-selected) !important;
+}
