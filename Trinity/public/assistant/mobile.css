@@ -1001,3 +1001,216 @@ body.studio-ui header.atelier-topbar .page-heading #page-title,
     display: block;
   }
 }
+
+.studio-ui .private-messenger {
+  width: min(100%, 1180px);
+  margin-inline: auto;
+  color: var(--workspace-text);
+}
+
+.studio-ui .private-messenger [hidden] { display: none !important; }
+
+.private-heading,
+.private-thread-header,
+.private-compose-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.private-heading {
+  padding: 4px 0 16px;
+  border-bottom: 1px solid var(--workspace-line);
+}
+
+.private-heading h1 {
+  margin: 0;
+  color: var(--workspace-text);
+  font: 400 clamp(36px, 5vw, 56px)/1.03 "Instrument Serif", Georgia, serif;
+}
+
+.private-heading p,
+.private-status,
+.private-verification p,
+.private-messenger small {
+  margin: 6px 0;
+  color: var(--workspace-muted);
+}
+
+.private-status {
+  min-height: 24px;
+  font-size: 13px;
+}
+
+.private-desk {
+  display: grid;
+  grid-template-columns: minmax(210px, 270px) minmax(0,1fr);
+  min-height: 480px;
+  border: 1px solid var(--workspace-line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--workspace-surface);
+}
+
+.private-contacts {
+  min-width: 0;
+  padding: 16px;
+  border-inline-end: 1px solid var(--workspace-line);
+  background: var(--workspace-rail);
+}
+
+.private-contacts h2,
+.private-thread h2 {
+  margin: 0;
+  color: var(--workspace-text);
+  font: 600 16px Inter, system-ui, sans-serif;
+}
+
+.private-contact-list {
+  display: grid;
+  gap: 6px;
+  max-height: 55vh;
+  margin-top: 12px;
+  overflow: auto;
+}
+
+.private-messenger :is(input:not([type="checkbox"]), textarea, select) {
+  border: 1px solid var(--workspace-line) !important;
+  border-radius: 10px !important;
+  background: var(--workspace-surface) !important;
+  color: var(--workspace-text) !important;
+}
+
+.private-messenger :is(input:not([type="checkbox"]), button,select) {
+  min-height: 40px;
+}
+
+.private-contact-list button {
+  width: 100%;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.private-contact-list button[aria-pressed="true"],
+.private-verification {
+  background: var(--workspace-selected) !important;
+  color: var(--workspace-text) !important;
+}
+
+.private-messenger #enc-search { margin: 10px 0 8px; }
+
+.private-thread {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.private-thread-header {
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--workspace-line);
+}
+
+.private-thread-header p { margin: 0; color: var(--workspace-muted); font-size: 13px; }
+
+.private-verification {
+  margin: 12px 18px;
+  padding: 12px;
+  border: 1px solid var(--workspace-line);
+  border-radius: 12px;
+}
+
+.private-verification code {
+  display: block;
+  margin: 9px 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  color: var(--workspace-text);
+}
+
+.private-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  max-height: 49vh;
+  min-height: 145px;
+  overflow: auto;
+  padding: 16px 18px;
+}
+
+.private-message {
+  align-self: flex-start;
+  max-width: 86%;
+  padding: 8px 12px;
+  background: var(--workspace-rail);
+  border: 1px solid var(--workspace-line);
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+
+.private-message.mine {
+  align-self: flex-end;
+  background: var(--workspace-selected);
+}
+
+.private-message p {
+  margin: 4px 0;
+  white-space: pre-wrap;
+}
+
+.private-compose,
+.private-profile {
+  padding: 14px 16px;
+  border: 1px solid var(--workspace-line);
+  background: var(--workspace-surface);
+}
+
+.private-profile { max-width: 480px; border-radius: 14px; }
+.private-profile label { display: block; margin-block: 0 8px; }
+.private-profile input { width: 100%; margin-bottom: 8px; }
+
+.private-compose {
+  border-width: 1px 0 0;
+}
+
+.private-compose textarea {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.private-compose-actions { margin-top: 8px; justify-content: flex-start; }
+.private-compose-actions label { font-size: 12px; color: var(--workspace-muted); }
+.private-compose-actions select { width: auto !important; }
+.private-compose-actions button { margin-inline-start: auto; }
+#enc-back { display: none; }
+
+@media (max-width: 680px) {
+  .private-desk { grid-template-columns: minmax(0,1fr); min-height: 0; }
+  .private-contacts { border: 0; }
+  .private-desk:not(.has-thread) .private-thread,
+  .private-desk.has-thread .private-contacts { display: none; }
+  .private-desk.has-thread #enc-back { display: inline-flex; }
+  .private-thread-header, .private-messages, .private-compose { padding-inline: 12px; }
+}
+
+.private-compose-actions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.private-compose-actions input[type="checkbox"] {
+  width: auto !important;
+  min-width: 0;
+  margin: 0;
+  accent-color: var(--workspace-accent);
+}
+
+.private-messenger :is(#enc-send, #enc-trust) {
+  background: var(--workspace-accent) !important;
+  border-color: var(--workspace-accent) !important;
+  color: var(--workspace-accent-text) !important;
+}

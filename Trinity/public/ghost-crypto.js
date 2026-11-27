@@ -9,8 +9,8 @@
  * Key properties:
  * - ECDH (NIST P-256) for peer-to-peer key exchange
  * - 256-bit AES-GCM for message encryption with a 96-bit random IV
- * - Safety Numbers for MITM detection (Signal-style)
- * - Anti-forensic in-memory wiping / shredding
+ * - Safety numbers for participants to compare independently
+ * - Controls for clearing the local conversation display
  */
 
 const subtle = (typeof globalThis !== 'undefined' && globalThis.crypto?.subtle)
@@ -102,25 +102,6 @@ const GhostCrypto = {
       { name: 'ECDH', public: peerPublicKey },
       myPrivateKey,
       { name: 'AES-GCM', length: 256 },
-      false,
-      ['encrypt', 'decrypt']
-    );
-  },
-
-  /**
-   * Derives a symmetric 256-bit AES-GCM room key from the Room ID.
-   * Serves as a deterministic fallback when the peer has not published
-   * an ECDH public key yet.
-   */
-  async deriveRoomKey(roomId) {
-    if (!subtle) throw new Error('Web Crypto API is not available.');
-    const enc = new TextEncoder();
-    const roomBytes = enc.encode('trinity_ghost_vault_room_key_v1:' + String(roomId));
-    const hash = await subtle.digest('SHA-256', roomBytes);
-    return await subtle.importKey(
-      'raw',
-      hash,
-      { name: 'AES-GCM' },
       false,
       ['encrypt', 'decrypt']
     );
