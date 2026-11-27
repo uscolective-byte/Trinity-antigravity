@@ -1245,3 +1245,90 @@ html body.studio-ui .private-messenger button:not(#enc-send):not(#enc-trust) {
 html body.studio-ui .private-messenger .private-contact[aria-pressed="true"] {
   background: var(--workspace-selected) !important;
 }
+
+.studio-ui .nav-more-drawer:has([aria-current="page"]) > summary {
+  background: var(--workspace-selected) !important;
+  color: var(--workspace-text) !important;
+  border-color: var(--workspace-line);
+}
+
+@media (max-width: 680px) {
+  body.studio-ui .main-nav {
+    display: grid !important;
+    grid-template-columns: .78fr 1.28fr 1fr .82fr;
+    gap: 4px !important;
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  body.studio-ui .main-nav > button,
+  body.studio-ui .main-nav .nav-more-summary {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 4px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    padding: 4px !important;
+    white-space: normal !important;
+    text-align: center;
+  }
+
+  body.studio-ui .main-nav > button b,
+  body.studio-ui .main-nav .nav-more-summary > span {
+    font-size: 11px !important;
+    line-height: 1.15;
+  }
+
+  body.studio-ui .main-nav > button .nav-ico,
+  body.studio-ui .main-nav > button svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  body.studio-ui #nav-more-drawer {
+    padding: 0 !important;
+    min-width: 0;
+  }
+
+  body.studio-ui #nav-more-drawer[open] {
+    grid-column: 1 / -1;
+  }
+
+  body.studio-ui #nav-more-drawer[open] > summary {
+    justify-content: space-between !important;
+    padding-inline: 10px !important;
+  }
+
+  body.studio-ui #nav-more-drawer .nav-more-items {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  body.studio-ui #nav-more-drawer .nav-more-items button {
+    min-width: 0 !important;
+    min-height: 42px;
+    white-space: normal !important;
+  }
+
+  body.studio-ui .main-nav button[hidden] {
+    display: none !important;
+  }
+
+  body.studio-ui:has(#chat-view:not([hidden])) > .sidebar:has(#nav-more-drawer[open]) {
+    max-height: min(52dvh, 410px) !important;
+  }
+}
+
+@media (max-width: 360px) {
+  body.studio-ui .main-nav {
+    grid-template-columns: minmax(0,.78fr) minmax(0,1.28fr) minmax(0,1fr) minmax(0,.82fr);
+  }
+
+  body.studio-ui .main-nav > button,
+  body.studio-ui .main-nav .nav-more-summary {
+    flex-direction: column !important;
+    overflow-wrap: anywhere;
+  }
+}
