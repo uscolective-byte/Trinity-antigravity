@@ -1,0 +1,174 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "trinity-staging",
+  "main": "src/index.js",
+  "account_id": "b60342e5e52f5646fbd4e913bb409334",
+  "compatibility_date": "2026-10-11",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "alias": {
+    "zod": "./node_modules/zod",
+    "@noble/hashes/sha3": "./node_modules/@noble/hashes/sha3.js",
+    "@noble/hashes/sha3.js": "./node_modules/@noble/hashes/sha3.js",
+    "@noble/curves/secp256k1": "./node_modules/@noble/curves/secp256k1.js",
+    "@noble/curves/secp256k1.js": "./node_modules/@noble/curves/secp256k1.js"
+  },
+  "rules": [
+    {
+      "type": "Data",
+      "globs": [
+        "**/*.webp",
+        "**tetrakis-logo.png"
+      ],
+      "fallthrough": true
+    },
+    {
+      "type": "Text",
+      "globs": [
+        "**/*.html",
+        "**/*.css",
+        "**/*.js.txt"
+      ],
+      "fallthrough": true
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
+  "observability": {
+    "enabled": true,
+    "issues": {
+      "enabled": true
+    },
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": true
+    }
+  },
+  "limits": {
+    "cpu_ms": 30000
+  },
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": {
+    "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "AI_FALLBACK_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
+    "AI_FAST_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
+    "IMAGE_MODEL": "@cf/black-forest-labs/flux-1-schnell",
+    "VISION_MODEL": "@cf/meta/llama-3.2-11b-vision-instruct",
+    "STT_MODEL": "@cf/openai/whisper-large-v3-turbo",
+    "TTS_MODEL": "@cf/myshell-ai/melotts",
+    "TRINITY_GITHUB_REPO": "uscolective-byte/Trinity-antigravity",
+    "TRINITY_GITHUB_BRANCH": "main",
+    "AI_FAST_FALLBACK_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "TRINITY_ENV": "staging",
+    "ENVIRONMENT": "staging",
+    "STRICT_MODE": "true",
+    "GOOGLE_ENABLED": "false",
+    "TRINITY_TAP_ENABLED": "false",
+    "TRINITY_AUTO_IMPROVE": "false",
+    "TRINITY_AUTO_MERGE": "false"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "trinity-development",
+      "database_id": "1cce5249-e044-4c93-868c-0df534a778b5",
+      "migrations_dir": "migrations"
+    },
+    {
+      "binding": "TRINITY_D1",
+      "database_name": "trinity-development",
+      "database_id": "1cce5249-e044-4c93-868c-0df534a778b5",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "TRINITY_KV",
+      "id": "76f5a49c1225477db2bab019fdc2a50d"
+    },
+    {
+      "binding": "Mastermind",
+      "id": "76f5a49c1225477db2bab019fdc2a50d"
+    },
+    {
+      "binding": "PC_STATE",
+      "id": "7335f27a99574fe097010cec9c602cb6"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ARTIFACTS",
+      "bucket_name": "trinity-staging-artifacts"
+    },
+    {
+      "binding": "TRINITY_STORAGE",
+      "bucket_name": "trinity-staging-artifacts"
+    },
+    {
+      "binding": "R2",
+      "bucket_name": "trinity-staging-artifacts"
+    }
+  ],
+  "vectorize": [
+    {
+      "binding": "VECTORIZE",
+      "index_name": "trinity-vector-index-staging"
+    },
+    {
+      "binding": "AURA_MEMORY_VECTOR",
+      "index_name": "aura-memory-staging"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "Brain",
+        "class_name": "TrinityAgent"
+      },
+      {
+        "name": "CHAT_AGENT",
+        "class_name": "ChatAgent"
+      },
+      {
+        "name": "GUARDIAN_AGENT",
+        "class_name": "GuardianAgent"
+      }
+    ]
+  },
+  "version_metadata": {
+    "binding": "CF_VERSION_METADATA"
+  },
+  "exports": {
+    "TrinityAgent": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    },
+    "ChatAgent": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    },
+    "GuardianAgent": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
+  },
+  "workflows": [
+    {
+      "binding": "OPS_WORKFLOW",
+      "name": "trinity-operations-staging",
+      "class_name": "TrinityOperations"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "auru.dev",
+      "custom_domain": true
+    }
+  ]
+}
