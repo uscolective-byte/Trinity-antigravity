@@ -54,3 +54,17 @@ Search remains inside the configured workspace, omits protected credentials and 
 Official sources: https://github.com/BurntSushi/ripgrep/releases/tag/15.2.0 and https://nodejs.org/api/path.html#pathmatchesglobpath-pattern.
 
 A content search with no matching candidate files reports `search_performed: false` and `coverage: no_candidate_files`. This does not establish absence across other file types. The assistant checks unrequested extension filters before accepting a negative conclusion. Raw gateway flags are type-checked as well as Worker tool arguments.
+
+## Cloud runner pre staging
+
+Z koreňa repozitára zostav image pomocou
+`docker build -f Local-Gateway/Dockerfile.cloud -t trinity-cloud-runner .`.
+Runner potrebuje jednu repliku, zapisovateľný trvalý volume pre
+`TRINITY_GATEWAY_DATA`, samostatný staging `TRINITY_GATEWAY_KEY` a odchádzajúce
+HTTPS na `auru.dev`. Koncový bod `/health` zobrazuje stav pripojenia bez kľúčov.
+
+Runner preberá iba schválené úlohy pre build a testy Trinity, testy brány a
+kontrolu verzie Node.js. Pred preberaním úloh overí, že `auru.dev/health`
+identifikuje samostatný staging Worker Trinity. Nasadenie vyžaduje staging
+front akcií a vlastné oprávnenia. Používaj obraz zostavený zo skontrolovaného
+commitu. Výstupy úloh sa vracajú cez existujúci protokol potvrdení.

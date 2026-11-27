@@ -72,7 +72,7 @@ export async function browseWorkspacePath(workspaceRoot,relativePath){
   return {path:relativePath,is_directory:true,files,truncated};
 }
 
-export async function executeProposal(workspaceRoot,proposal,dataDir){
+export async function executeProposal(workspaceRoot,proposal,dataDir,{taskEnvironment}={}){
   if(proposal.status!=='approved')throw new Error('Návrh nebol schválený.');
   if(new Date(proposal.expiresAt).getTime()<Date.now())throw new Error('Schválenie vypršalo.');
   const payload=proposal.payload||{};
@@ -98,7 +98,7 @@ export async function executeProposal(workspaceRoot,proposal,dataDir){
     }
     if(payload.task==='desktop-control')return {action:'run',task:'desktop-control',desktop:await executeDesktop(payload)};
     const project=validateProject(payload.project);const task=RUN_TASKS[payload.task];if(!task)throw new Error('Úloha nie je povolená.');
-    const cwd=await resolveSafePath(workspaceRoot,project);const result=await runProcess(task.command,task.args,{cwd});return {action:'run',project,task:payload.task,...result};
+    const cwd=await resolveSafePath(workspaceRoot,project);const result=await runProcess(task.command,task.args,{cwd,environment:taskEnvironment});return {action:'run',project,task:payload.task,...result};
   }
   if(proposal.action==='deploy'){
     const project=validateProject(payload.project);if(project!=='Trinity')throw new Error('Nasadenie je povolené iba pre Trinity.');

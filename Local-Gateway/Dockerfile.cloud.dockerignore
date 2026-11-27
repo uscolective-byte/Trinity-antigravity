@@ -1,0 +1,13 @@
+**/.git
+**/node_modules
+**/.wrangler
+**/.credentials
+**/.env
+**/.env.*
+**/.dev.vars
+**/.dev.vars.*
+**/*.dpapi
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
