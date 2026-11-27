@@ -15,6 +15,7 @@
     <button data-view="chat" class="active"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><b data-i18n="chat">Chat</b></button>
     <button data-view="crypto" id="crypto-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><polygon points="12 3 3 19 21 19"/><line x1="12" y1="3" x2="12" y2="19"/><line x1="12" y1="13" x2="3" y2="19"/><line x1="12" y1="13" x2="21" y2="19"/></svg></span><b>Tetrakis ($TTK)</b></button>
     <button data-view="wallet"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span><b>Peňaženka @wallet</b></button>
+    <button data-view="hustle" id="hustle-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span><b>Hustle</b></button>
     <button data-view="connect" id="connect-nav-btn"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span><b>Prepojenia</b></button>
     <button data-view="documents"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><b>Dokumentácia</b></button>
     <button data-view="settings"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><b data-i18n="settings">Nastavenia &amp; Trezor</b></button>
@@ -2260,6 +2261,176 @@
           </div>
           <div id="module-macro-result" style="margin-top:12px;font-size:0.86rem;background:rgba(0,0,0,0.25);padding:10px;border-radius:6px;min-height:50px">Vyber krajinu a ukazovateľ.</div>
         </article>
+      </div>
+    </section>
+
+    <section id="hustle-view" class="view hustle-view" hidden>
+      <div class="tg-wallet-hero">
+        <div class="tg-wallet-topbar">
+          <span class="tg-wallet-badge"><span class="tg-wallet-badge-dot"></span>TRINITY HUSTLE · LINKEDIN ENGINE</span>
+          <button type="button" id="hustle-refresh-btn" class="tg-wallet-refresh">↻ Obnoviť</button>
+        </div>
+        <span class="tg-wallet-label">OVERENÝ ZÁROBOK (HUSTLE)</span>
+        <strong id="hustle-stat-earned" class="tg-wallet-balance">0,00 €</strong>
+        <small id="hustle-stat-sub" class="tg-wallet-sub">Pipeline: 0,00 € · LinkedIn: nepripojené</small>
+        <nav id="hustle-subnav" class="tg-wallet-actions" aria-label="Sekcie Hustle">
+          <button type="button" class="subnav-btn tg-circle-action active" data-hustle-tab="ai">
+            <span class="tg-circle-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+            <span class="tg-circle-label">Trinity Kód</span>
+          </button>
+          <button type="button" class="subnav-btn tg-circle-action" data-hustle-tab="linkedin">
+            <span class="tg-circle-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></span>
+            <span class="tg-circle-label">LinkedIn</span>
+          </button>
+          <button type="button" class="subnav-btn tg-circle-action" data-hustle-tab="pipeline">
+            <span class="tg-circle-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+            <span class="tg-circle-label">Ponuky &amp; Leady</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="metric-grid domain-metrics tabular-metrics" style="margin-bottom:16px">
+        <article class="metric teal"><span>OVERENÉ PRÍJMY</span><strong id="hustle-m-earned">0,00 €</strong><small>Iba zaplatené s dôkazom platby</small></article>
+        <article class="metric gold"><span>AKTÍVNY PIPELINE</span><strong id="hustle-m-pipeline">0,00 €</strong><small id="hustle-m-leads">0 aktívnych leadov</small></article>
+        <article class="metric blue"><span>LINKEDIN API</span><strong id="hustle-m-linkedin">Nepripojené</strong><small id="hustle-m-linkedin-sub">Nastav OAuth token</small></article>
+        <article class="metric purple"><span>LINKEDIN PRÍSPEVKY</span><strong id="hustle-m-posts">0</strong><small id="hustle-m-posts-sub">0 draftov</small></article>
+      </div>
+
+      <!-- HUSTLE PANE 1: HUSTLE TRINITY AI (CODER, ETHICAL APPSEC AUDITOR, LINKEDIN COPYWRITER) -->
+      <div id="hustle-pane-ai" class="hustle-tab-pane">
+        <div class="terminal-body-grid">
+          <section class="panel domain-env-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">HUSTLE TRINITY · KÓDOVANIE &amp; ETICKÝ APPSEC</span><h2>Zadaj úlohu pre Hustle Trinity</h2></div>
+              <span class="detail-chip">CODER + APPSEC + LINKEDIN</span>
+            </div>
+            <p class="settings-help">Hustle Trinity tvorí produkčný kód, vykonáva <b>etické bezpečnostné audity a hardening (OWASP AppSec)</b> na autorizovaných projektoch, píše LinkedIn príspevky, DM správy a cenové ponuky s platobným odkazom.</p>
+            <form id="hustle-ai-form" class="secret-form commerce-form">
+              <div class="commerce-form-grid">
+                <label><span>Režim Hustle Trinity *</span><select id="hustle-ai-mode">
+                  <option value="code">💻 Full-Stack Kódovanie &amp; Web / API</option>
+                  <option value="appsec_audit">🛡️ Etický Security Audit &amp; Hardening (AppSec)</option>
+                  <option value="linkedin_post">💼 LinkedIn B2B Príspevok (s CTA na platbu)</option>
+                  <option value="linkedin_dm">📩 LinkedIn Outreach DM správa</option>
+                  <option value="proposal">📄 Cenová ponuka v EUR pre klienta</option>
+                </select></label>
+                <label><span>Služba z katalógu</span><select id="hustle-ai-offer">
+                  <option value="hustle-web-fullstack">Full-Stack Kódovanie &amp; Web na kľúč (490 €)</option>
+                  <option value="hustle-appsec-audit">Etický Bezpečnostný Audit &amp; Hardening (390 €)</option>
+                  <option value="hustle-ai-automation">AI Automatizácia &amp; Vlastný Agent (690 €)</option>
+                  <option value="hustle-code-sprint">Rýchly Code Fix &amp; Platobné Brány (190 €)</option>
+                </select></label>
+                <label><span>Cieľový klient / firma (voliteľné)</span><input id="hustle-ai-client" maxlength="160" placeholder="napr. SaaS startup / e-shop na LinkedIne"></label>
+                <label><span>Platobný / Checkout odkaz (voliteľné)</span><input id="hustle-ai-checkout" maxlength="500" placeholder="napr. https://auru.space/pay/checkout/..."></label>
+                <label style="grid-column:1/-1"><span>Zadanie (čo má Hustle Trinity nakódovať, zauditovať alebo napísať) *</span><textarea id="hustle-ai-prompt" rows="4" required minlength="5" maxlength="4000" placeholder="Napr.: Priprav landing page pre audit bezpečnosti webov a pútavý LinkedIn post pre majiteľov e-shopov..."></textarea></label>
+              </div>
+              <div class="commerce-form-actions">
+                <button class="primary" type="submit" id="hustle-ai-submit-btn">⚡ Spustiť Hustle Trinity</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel domain-env-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">VÝSTUP HUSTLE TRINITY</span><h2 id="hustle-ai-out-title">Pripravená na zadanie</h2></div>
+              <span id="hustle-ai-out-badge" class="detail-chip">ČAKÁ</span>
+            </div>
+            <pre id="hustle-ai-output" style="white-space:pre-wrap;word-break:break-word;font-family:var(--font-mono, monospace);font-size:12.5px;line-height:1.55;background:rgba(0,0,0,0.28);padding:14px;border-radius:12px;min-height:220px;max-height:460px;overflow:auto;margin:0">Zadaj úlohu vľavo — Hustle Trinity vygeneruje hotový kód, etický bezpečnostný audit, cenovú ponuku alebo príspevok na LinkedIn.</pre>
+            <div class="commerce-form-actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+              <button type="button" id="hustle-copy-out-btn" class="secondary">📋 Kopírovať výstup</button>
+              <button type="button" id="hustle-send-to-li-btn" class="primary">💼 Preniesť do LinkedIn príspevku →</button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- HUSTLE PANE 2: LINKEDIN CONNECTION & PUBLISHER -->
+      <div id="hustle-pane-linkedin" class="hustle-tab-pane" hidden>
+        <div class="terminal-body-grid">
+          <section class="panel domain-env-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">LINKEDIN OAUTH 2.0 · API NAPOJENIE</span><h2>Pripojenie účtu LinkedIn</h2></div>
+              <button type="button" id="hustle-li-verify-btn" class="primary">✓ Overiť LinkedIn spojenie</button>
+            </div>
+            <p class="settings-help">Pripoj svoj LinkedIn účet pomocou <b>OAuth 2.0 Access Tokenu</b> (oprávnenia <code>openid</code>, <code>profile</code>, <code>w_member_social</code>). Token sa zašifruje do AES-GCM Trezora tajomstiev (`linkedin`) a nikdy sa nevypisuje späť.</p>
+            <form id="hustle-li-config-form" class="secret-form commerce-form">
+              <div class="commerce-form-grid">
+                <label><span>LinkedIn profil URL</span><input id="hustle-li-url" maxlength="300" placeholder="https://www.linkedin.com/in/tvoj-profil"></label>
+                <label><span>Odborný titulok (Headline)</span><input id="hustle-li-headline" maxlength="200" placeholder="AI Architect · Full-Stack &amp; AppSec Engineer"></label>
+                <label><span>LinkedIn Author URN (doplní sa po overení)</span><input id="hustle-li-urn" maxlength="120" placeholder="urn:li:person:..."></label>
+                <label><span>LinkedIn OAuth Client ID (voliteľné)</span><input id="hustle-li-client-id" maxlength="120" placeholder="Client ID z LinkedIn Developer Portal"></label>
+                <label style="grid-column:1/-1"><span>LinkedIn OAuth Access Token (zašifruje sa do Trezora)</span><input id="hustle-li-token" type="password" autocomplete="new-password" maxlength="4096" placeholder="Ponechaj prázdne, ak token už je uložený"></label>
+              </div>
+              <div class="commerce-form-actions">
+                <button class="primary" type="submit" id="hustle-li-save-btn">💾 Uložiť napojenie LinkedIn</button>
+              </div>
+            </form>
+            <div id="hustle-li-status-box" class="domain-form-card" style="margin-top:12px;font-size:12.5px">Stav LinkedIn sa načítava…</div>
+          </section>
+
+          <section class="panel domain-env-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">LINKEDIN PUBLISHER</span><h2>Publikovať ponuku / case study na LinkedIn</h2></div>
+              <span class="detail-chip">TRUTH POLICY 2.1</span>
+            </div>
+            <form id="hustle-li-post-form" class="secret-form commerce-form">
+              <div class="commerce-form-grid">
+                <label style="grid-column:1/-1"><span>Text príspevku na LinkedIn *</span><textarea id="hustle-li-post-text" rows="6" required minlength="10" maxlength="3000" placeholder="Napíš alebo prenes z Hustle Trinity odborný LinkedIn príspevok s výzvou k akcii..."></textarea></label>
+                <label><span>Priložený odkaz (Checkout / Portfólio)</span><input id="hustle-li-post-url" maxlength="500" placeholder="https://auru.space"></label>
+                <label><span>Viditeľnosť</span><select id="hustle-li-post-vis"><option value="PUBLIC">Verejné (PUBLIC)</option><option value="CONNECTIONS">Iba spojenia (CONNECTIONS)</option></select></label>
+              </div>
+              <div class="commerce-form-actions" style="display:flex;gap:8px;flex-wrap:wrap">
+                <button type="button" id="hustle-li-draft-btn" class="secondary">📝 Uložiť ako draft</button>
+                <button type="submit" id="hustle-li-publish-btn" class="primary">🚀 Publikovať naživo na LinkedIn</button>
+              </div>
+            </form>
+            <div id="hustle-posts-list" class="api-key-list" style="margin-top:14px"></div>
+          </section>
+        </div>
+      </div>
+
+      <!-- HUSTLE PANE 3: OFFERS & LEAD PIPELINE -->
+      <div id="hustle-pane-pipeline" class="hustle-tab-pane" hidden>
+        <section class="panel domain-env-panel" style="margin-bottom:16px">
+          <div class="panel-head">
+            <div><span class="eyebrow">KATALÓG SLUŽIEB NA ZÁROBOK</span><h2>Hotové balíky Hustle Trinity (1-klik platobná požiadavka)</h2></div>
+            <button type="button" class="secondary" data-view="wallet">💳 Otvoriť Peňaženku →</button>
+          </div>
+          <div id="hustle-offers-grid" class="api-key-list"></div>
+        </section>
+
+        <div class="terminal-body-grid">
+          <section class="panel domain-env-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">NOVÝ KLIENT Z LINKEDINU</span><h2>Pridať príležitosť (Lead)</h2></div>
+            </div>
+            <form id="hustle-lead-form" class="secret-form commerce-form">
+              <div class="commerce-form-grid">
+                <label><span>Meno klienta *</span><input id="hustle-lead-name" required minlength="2" maxlength="120" placeholder="napr. Peter Novák"></label>
+                <label><span>Firma</span><input id="hustle-lead-company" maxlength="120" placeholder="napr. E-Shop s.r.o."></label>
+                <label><span>LinkedIn profil klienta</span><input id="hustle-lead-linkedin" maxlength="300" placeholder="https://www.linkedin.com/in/..."></label>
+                <label><span>Služba</span><select id="hustle-lead-service">
+                  <option value="hustle-web-fullstack">Full-Stack Web (490 €)</option>
+                  <option value="hustle-appsec-audit">AppSec Audit (390 €)</option>
+                  <option value="hustle-ai-automation">AI Automatizácia (690 €)</option>
+                  <option value="hustle-code-sprint">Code Fix / Integrácia (190 €)</option>
+                </select></label>
+                <label><span>Hodnota obchodu (EUR) *</span><input id="hustle-lead-value" type="number" min="1" max="1000000" step="10" value="490" required></label>
+                <label><span>Poznámka</span><input id="hustle-lead-notes" maxlength="500" placeholder="napr. Záujem o audit + nový web"></label>
+              </div>
+              <div class="commerce-form-actions">
+                <button class="primary" type="submit" id="hustle-lead-add-btn">➕ Pridať do Hustle Pipeline</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel domain-env-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">OBCHODNÁ PIPELINE</span><h2>Klienti, ponuky a overené platby</h2></div>
+            </div>
+            <div id="hustle-leads-list" class="api-key-list"></div>
+          </section>
+        </div>
       </div>
     </section>
 

@@ -124,6 +124,7 @@ import {getDevHubStatus,executeDevHubCommand} from './developer-hub.js';
 import {getWallet,transactWallet} from './wallet.js';
 import {getWalletTerminalOverview,saveWalletTerminalConfig,createPaymentTerminalCharge,executeWalletPayout,createCryptoWallet,cancelWalletPayout,verifyTerminalCharge,confirmTerminalEntry} from './wallet-terminals.js';
 import {getMt5Config,saveMt5Config,fetchMt5AccountSnapshot,getMt5History,prepareMt5TradeOrder} from './mt5-connector.js';
+import {getHustleOverview,saveLinkedInConfig,verifyLinkedInConnection,publishLinkedInPost,addHustleLead,updateHustleLeadStage,deleteHustleLead,runHustleTrinityTask} from './linkedin-hustle.js';
 import {getConnectorsRegistry,syncConnector} from './banking-connectors.js';
 import {handleInboundEmail} from './email.js';
 import {TRINITY2_CAPABILITIES,rolePermissions,requireCapability,updateRolePermission,analyzeImage,transcribeAudio,synthesizeSpeech,listVisualWorkflows,saveVisualWorkflow,listIncidents,resolveIncident,recordHealthIncident,exportAudit} from './trinity2.js';
@@ -2061,6 +2062,45 @@ async function route(request,env,ctx,authContext=null){
     requireOwner(user);
     await rateLimit(env,`wallet-mt5-order:${user.id}`,10,300);
     return json(await prepareMt5TradeOrder(env,ownerId,await readJSON(request,8000)));
+  }
+  if(path==='/api/assistant/hustle/overview'&&request.method==='GET'){
+    requireAdmin(user);
+    return json(await getHustleOverview(env,ownerId));
+  }
+  if(path==='/api/assistant/hustle/linkedin/config'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`hustle-li-cfg:${user.id}`,20,300);
+    return json(await saveLinkedInConfig(env,ownerId,await readJSON(request,16000)));
+  }
+  if(path==='/api/assistant/hustle/linkedin/verify'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`hustle-li-verify:${user.id}`,20,300);
+    return json(await verifyLinkedInConnection(env,ownerId));
+  }
+  if(path==='/api/assistant/hustle/linkedin/post'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`hustle-li-post:${user.id}`,15,300);
+    return json(await publishLinkedInPost(env,ownerId,await readJSON(request,16000)));
+  }
+  if(path==='/api/assistant/hustle/leads'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`hustle-lead-add:${user.id}`,30,300);
+    return json(await addHustleLead(env,ownerId,await readJSON(request,8000)),201);
+  }
+  const hustleLeadStageMatch=path.match(/^\/api\/assistant\/hustle\/leads\/([A-Za-z0-9_-]+)\/stage$/);
+  if(hustleLeadStageMatch&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await updateHustleLeadStage(env,ownerId,hustleLeadStageMatch[1],await readJSON(request,4000)));
+  }
+  const hustleLeadDelMatch=path.match(/^\/api\/assistant\/hustle\/leads\/([A-Za-z0-9_-]+)\/delete$/);
+  if(hustleLeadDelMatch&&request.method==='POST'){
+    requireAdmin(user);
+    return json(await deleteHustleLead(env,ownerId,hustleLeadDelMatch[1]));
+  }
+  if(path==='/api/assistant/hustle/run'&&request.method==='POST'){
+    requireAdmin(user);
+    await rateLimit(env,`hustle-run:${user.id}`,25,300);
+    return json(await runHustleTrinityTask(env,ownerId,await readJSON(request,16000)));
   }
   if(path==='/api/assistant/wallet/connectors'&&request.method==='GET'){
     requireAdmin(user);

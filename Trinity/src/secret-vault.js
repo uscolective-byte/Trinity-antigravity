@@ -12,7 +12,7 @@ import {HttpError} from './security.js';
 
 export const secretInputSchema=z.object({
   provider:z.enum([
-    'github','cloudflare','gemini','google_ai_studio','google_cloud','onedrive','local_bridge','openai','firecrawl','firebase','supabase','vercel','telegram','slack','discord','notion','linear','stripe','wordpress','resend','webhook','mcp_server','meta','dataverse','microsoft','powerplatform','custom','groq','deepseek','anthropic','claude','mistral','openrouter','revolut','paypal','metatrader5'
+    'github','cloudflare','gemini','google_ai_studio','google_cloud','onedrive','local_bridge','openai','firecrawl','firebase','supabase','vercel','telegram','slack','discord','notion','linear','stripe','wordpress','resend','webhook','mcp_server','meta','dataverse','microsoft','powerplatform','custom','groq','deepseek','anthropic','claude','mistral','openrouter','revolut','paypal','metatrader5','linkedin'
   ]),
   name:z.string().trim().min(2).max(80),
   secret:z.string().trim().min(8).max(65536)
@@ -594,7 +594,8 @@ export async function resolveProviderSecret(env,provider){
     claude:[env?.ANTHROPIC_API_KEY,env?.ANTHROPIC_KEY,env?.TRINITY_MASTER_CLAUDE,env?.claude,env?.anthropic],
     mistral:[env?.MISTRAL_API_KEY,env?.mistral],
     openrouter:[env?.OPENROUTER_API_KEY,env?.openrouter],
-    metatrader5:[env?.MT5_API_TOKEN,env?.METAAPI_TOKEN,env?.METATRADER5_TOKEN]
+    metatrader5:[env?.MT5_API_TOKEN,env?.METAAPI_TOKEN,env?.METATRADER5_TOKEN],
+    linkedin:[env?.LINKEDIN_ACCESS_TOKEN,env?.LINKEDIN_TOKEN]
   };
   const candidates=Array.isArray(envMap[provider])?envMap[provider]:[];
   for(const candidate of candidates){

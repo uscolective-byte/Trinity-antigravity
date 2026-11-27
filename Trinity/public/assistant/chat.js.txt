@@ -364,14 +364,16 @@ async function readChatStream(response,onEvent){
   finally{try{await reader.cancel();}catch{}reader.releaseLock();}
 }
 async function sessions(){const rows=await api('/sessions');$('sessions').replaceChildren();for(const row of rows){const button=node('button',row.title.slice(0,45));button.onclick=safe(async()=>{session=row.session;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');});$('sessions').append(button);}}
-const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],commodities:['TRINITY COMMODITY DESK','Komodity & Trading','Analýza všetkých 22 svetových komodít, autonómne investovanie, nákup a predaj v portfóliu.'],wallet:['FINANČNÉ CENTRUM TRINITY','Peňaženka & Platobné Terminály','Skutočná správa zostatkov, platobné terminály na príjem a okamžité výbery peňazí.'],modules:['TRINITY OPEN-DATA','Open-Data Moduly','100% bezplatné živé API: počasie, Wikipédia, DoH DNSSEC, spot krypto, HN tech správy a Svetová banka.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.'],graph:['TRINITY GRAPH RAG','Pamäťový Graf','Vizuálne prepojenie dlhodobej pamäte, domén, projektov a transakcií v reálnom čase.'],omnidev:['TRINITY OMNI-DEV','Omni-Dev Studio (auru.dev)','Autonómne štúdio s ovládaním PC, dynamickými skillmi, editorom kódu a auditom.'],
+const viewMeta={dashboard:['TRINITY','overview','dashboardHere'],chat:['TRINITY CHAT','chat','here'],studio:['AI STUDIO','AI Studio','builderIntro'],projects:['WORKSPACE','projects','projectsIntro'],settings:['SETTINGS','settings','settingsIntro'],domains:['DOMÉNY A HOSTING','Domény a hosting','Vyhľadávanie, registrácia, prostredia, DNS, subdomény a nasadenie webov.'],commodities:['TRINITY COMMODITY DESK','Komodity & Trading','Analýza všetkých 22 svetových komodít, autonómne investovanie, nákup a predaj v portfóliu.'],wallet:['FINANČNÉ CENTRUM TRINITY','Peňaženka & Platobné Terminály','Skutočná správa zostatkov, platobné terminály na príjem a okamžité výbery peňazí.'],
+hustle:['TRINITY HUSTLE · LINKEDIN ENGINE','Hustle','Kódovanie, etické bezpečnostné audity (AppSec), AI automatizácie a priame napojenie na LinkedIn na získavanie klientov.'],
+modules:['TRINITY OPEN-DATA','Open-Data Moduly','100% bezplatné živé API: počasie, Wikipédia, DoH DNSSEC, spot krypto, HN tech správy a Svetová banka.'],documents:['TRINITY DOCUMENTS','Trinity Dokumenty','Automatická dokumentácia každého kroku, zmien UI, domén a samorozvoja.'],graph:['TRINITY GRAPH RAG','Pamäťový Graf','Vizuálne prepojenie dlhodobej pamäte, domén, projektov a transakcií v reálnom čase.'],omnidev:['TRINITY OMNI-DEV','Omni-Dev Studio (auru.dev)','Autonómne štúdio s ovládaním PC, dynamickými skillmi, editorom kódu a auditom.'],
 crypto:['TETRAKIS ($TTK) · BASE L2 SPACE','Tetrakis Space ($TTK)','Natívny Web3 priestor pre $TTK, overenie kontraktu na Base L2 a neväzobné platby.'],
 connect:['PREPOJENIA & SIETE TRINITY','Prepojenia & Siete','Jediné centrum pre všetky kanály: Telegram @wallet, Viber Pay, Paysafe, WhatsApp, Meta, LinkedIn, Webhooky a PC Bridge.'],
 ghost:['TRINITY GHOST VAULT','Ghost Vault (E2EE)','Nekompromisne šifrovaná komunikácia medzi účastníkmi s automatickou sebadeštrukciou správ.'],
 encrypted_shits:['ENCRYPTED_SHITS · SOVEREIGN E2EE','encrypted_shits','Nekompromisne šifrovaný sovereign messenger s kontaktmi a automatickou sebadeštrukciou správ.'],
 agentlab:['AI AGENT SANDBOX & LAB','AI Agent Lab (auru.dev)','Vytváranie, trénovanie, testovanie a spúšťanie autonómnych AI agentov.'],workflows:['VISUAL WORKFLOWS','Drag & Drop Workflows','Vizuálna orchestrácia procesov, exekúcie PC brány a automatizácie.']};
 function updateHeading(){const meta=viewMeta[currentView]||viewMeta.dashboard;$('page-kicker').textContent=meta[0];$('page-title').textContent=meta[1].includes(' ')?meta[1]:t(meta[1]);$('subtitle').textContent=t(meta[2]);}
-async function setView(name,updateHash=true){if(name&&name.startsWith('#'))name=name.slice(1);let cleanName=(name||'').split('?')[0];const queryStr=(name||'').includes('?')?name.slice(name.indexOf('?')):'';if(cleanName==='dashboard'&&state?.account?.role!=='owner'){cleanName='chat';name='chat';}let targetName=viewMeta[cleanName]?cleanName:'dashboard';currentView=targetName;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${targetName}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===targetName));updateHeading();if(updateHash)history.replaceState(null,'',`#${targetName}${queryStr}`);if(targetName==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(targetName==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();void loadAiStudioBridge();}if(targetName==='projects')await loadProjects();if(targetName==='domains'){await loadDomains();await loadDomainEnvironments();}if(targetName==='commodities')await loadCommodityDesk();if(targetName==='wallet')await loadWalletView();if(targetName==='crypto')await loadCryptoView();if(targetName==='modules')await loadModulesView();if(targetName==='documents')await loadTrinityDocuments();if(targetName==='graph')await loadGraphView();if(targetName==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(targetName==='omnidev'){await loadOmniDev();initOmniDevEvents();}if(targetName==='ghost'||targetName==='encrypted_shits')await loadEncryptedShitsView();
+async function setView(name,updateHash=true){if(name&&name.startsWith('#'))name=name.slice(1);let cleanName=(name||'').split('?')[0];const queryStr=(name||'').includes('?')?name.slice(name.indexOf('?')):'';if(cleanName==='dashboard'&&state?.account?.role!=='owner'){cleanName='chat';name='chat';}let targetName=viewMeta[cleanName]?cleanName:'dashboard';currentView=targetName;document.querySelectorAll('.view').forEach(view=>view.hidden=view.id!==`${targetName}-view`);document.querySelectorAll('.main-nav [data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===targetName));updateHeading();if(updateHash)history.replaceState(null,'',`#${targetName}${queryStr}`);if(targetName==='dashboard'){await loadDashboard();await refreshUiEvolutionLive();}if(targetName==='studio'){await loadStudio();await loadVisualWorkflows();await loadMultimediaStudio();void loadAiStudioBridge();}if(targetName==='projects')await loadProjects();if(targetName==='domains'){await loadDomains();await loadDomainEnvironments();}if(targetName==='commodities')await loadCommodityDesk();if(targetName==='wallet')await loadWalletView();if(targetName==='hustle')await loadHustleView();if(targetName==='crypto')await loadCryptoView();if(targetName==='modules')await loadModulesView();if(targetName==='documents')await loadTrinityDocuments();if(targetName==='graph')await loadGraphView();if(targetName==='settings'){await loadSettings();await loadTrinity2Settings();await loadUiEvolution();}if(targetName==='omnidev'){await loadOmniDev();initOmniDevEvents();}if(targetName==='ghost'||targetName==='encrypted_shits')await loadEncryptedShitsView();
 if(targetName==='agentlab'){await loadAgentLab();initAgentLabEvents();}if(targetName==='workflows'){await loadVisualWorkflows();initAgentLabEvents();}if(targetName==='chat')setTimeout(()=>$('message').focus(),0);}
 function renderDashboardActivity(listId,items){const list=$(listId);list.replaceChildren();for(const item of items){const row=node('div',undefined,'activity-item'),icon=node('div',item.status==='completed'?'✓':item.status==='failed'?'!':'·','activity-dot'),text=node('span');text.append(node('b',item.task),node('small',`${t(item.status)||item.status} · ${item.updated_at}`));row.append(icon,text);row.onclick=async()=>{session=item.session_id;localStorage.setItem('trinity-chat-session',session);await loadHistory();await setView('chat');};list.append(row);}if(!items.length)list.append(node('p',t('noChanges'),'skeleton'));}
 async function loadDashboard(){const data=await api('/dashboard'),admin=data.dashboard_mode==='admin';$('user-dashboard').hidden=admin;$('admin-dashboard').hidden=!admin;if($('metric-tasks'))$('metric-tasks').textContent=data.today_completed??0;if($('metric-memory'))$('metric-memory').textContent=data.memory_count??0;if($('metric-projects'))$('metric-projects').textContent=data.project_count??0;if($('metric-health'))$('metric-health').textContent=(data.available_services??0)+'/'+(data.total_services??0)+(data.pc_bridge?.connected?' · PC ✓':'');if(admin){const metrics=data.admin||{};$('admin-active-jobs').textContent=metrics.active_jobs??0;$('admin-failed-jobs').textContent=metrics.failed_today??0;$('admin-pending-users').textContent=metrics.pending_users??0;$('admin-services').textContent=data.available_services+'/'+data.total_services;$('admin-gateway-state').textContent=data.pc_bridge?.connected?'Cloud + PC brána pripojená':'Cloud aktívny · PC brána nepripojená';$('admin-system-state').textContent=metrics.emergency_stop?'NÚDZOVÉ ZASTAVENIE':'Systém beží';$('admin-system-state').className='admin-state '+(metrics.emergency_stop?'stopped':'running');renderDashboardActivity('admin-dashboard-activity',data.recent_jobs);return;}renderDashboardActivity('dashboard-activity',data.recent_jobs);}
@@ -3380,6 +3382,316 @@ document.querySelectorAll('.chip-btn[data-set-amount]').forEach(btn => {
     if ($('charge-amount')) $('charge-amount').value = val;
   });
 });
+
+// ==========================================
+// TRINITY HUSTLE & LINKEDIN REVENUE HUB
+// ==========================================
+let cachedHustleData = null;
+
+function switchHustleTab(tabId) {
+  document.querySelectorAll('#hustle-subnav [data-hustle-tab]').forEach(b => {
+    b.classList.toggle('active', b.dataset.hustleTab === tabId);
+  });
+  ['ai', 'linkedin', 'pipeline'].forEach(id => {
+    const pane = $('hustle-pane-' + id);
+    if (pane) pane.hidden = id !== tabId;
+  });
+}
+document.querySelectorAll('#hustle-subnav [data-hustle-tab]').forEach(btn => {
+  btn.addEventListener('click', () => switchHustleTab(btn.dataset.hustleTab));
+});
+
+async function loadHustleView() {
+  try {
+    const data = await api('/hustle/overview', undefined, 'GET');
+    cachedHustleData = data;
+    renderHustleView(data);
+  } catch (e) {
+    console.error('loadHustleView error:', e);
+  }
+}
+
+function renderHustleView(data) {
+  if (!data) return;
+  const m = data.metrics || {};
+  const li = data.linkedin || {};
+  const earnedStr = fmtMoney(m.verified_earned_eur || 0, 'EUR');
+  const pipeStr = fmtMoney(m.pipeline_eur || 0, 'EUR');
+
+  if ($('hustle-stat-earned')) $('hustle-stat-earned').textContent = earnedStr;
+  if ($('hustle-stat-sub')) {
+    $('hustle-stat-sub').textContent = `Pipeline: ${pipeStr} · LinkedIn: ${li.verified ? `Overené (${li.profile_name || li.author_urn})` : (li.has_token ? 'Token uložený (overiť)' : 'nepripojené')}`;
+  }
+  if ($('hustle-m-earned')) $('hustle-m-earned').textContent = earnedStr;
+  if ($('hustle-m-pipeline')) $('hustle-m-pipeline').textContent = pipeStr;
+  if ($('hustle-m-leads')) $('hustle-m-leads').textContent = `${m.leads_count || 0} príležitostí`;
+  if ($('hustle-m-linkedin')) $('hustle-m-linkedin').textContent = li.verified ? 'LIVE Overené' : (li.has_token ? 'Čaká na overenie' : 'Nepripojené');
+  if ($('hustle-m-linkedin-sub')) $('hustle-m-linkedin-sub').textContent = li.profile_name || li.author_urn || 'Nastav OAuth token';
+  if ($('hustle-m-posts')) $('hustle-m-posts').textContent = String(m.published_posts_count || 0);
+  if ($('hustle-m-posts-sub')) $('hustle-m-posts-sub').textContent = `${m.draft_posts_count || 0} draftov`;
+
+  // Pre-fill LinkedIn config form
+  if ($('hustle-li-url')) $('hustle-li-url').value = li.profile_url || '';
+  if ($('hustle-li-headline')) $('hustle-li-headline').value = li.headline || '';
+  if ($('hustle-li-urn')) $('hustle-li-urn').value = li.author_urn || '';
+  if ($('hustle-li-client-id')) $('hustle-li-client-id').value = li.client_id || '';
+
+  const liBox = $('hustle-li-status-box');
+  if (liBox) {
+    if (li.verified) {
+      liBox.innerHTML = `<b style="color:#10b981">✅ LinkedIn API pripojené a overené</b><br>Profil: <b>${escW(li.profile_name || '—')}</b>${li.profile_email ? ` (${escW(li.profile_email)})` : ''}<br>Author URN: <code>${escW(li.author_urn || '—')}</code> · Overené: ${escW(li.last_verified_at ? new Date(li.last_verified_at).toLocaleString('sk-SK') : '—')}`;
+    } else if (li.has_token) {
+      liBox.innerHTML = `<b style="color:#f59e0b">⚠️ LinkedIn token je uložený v Trezore, ale spojenie ešte nebolo overené.</b><br>Klikni na <b>✓ Overiť LinkedIn spojenie</b> pre načítanie profilu a Author URN.`;
+    } else {
+      liBox.innerHTML = `<b style="color:#94a3b8">ℹ️ LinkedIn OAuth token zatiaľ nie je nastavený.</b><br>Vlož LinkedIn Access Token (oprávnenia <code>openid</code>, <code>profile</code>, <code>w_member_social</code>) a ulož — alebo zatiaľ ukladaj príspevky ako drafty.`;
+    }
+  }
+
+  // Render LinkedIn posts history
+  const postsEl = $('hustle-posts-list');
+  if (postsEl) {
+    postsEl.replaceChildren();
+    const posts = Array.isArray(data.posts) ? data.posts : [];
+    if (!posts.length) {
+      postsEl.append(node('p', 'Zatiaľ žiadne LinkedIn príspevky ani drafty.', 'skeleton'));
+    } else {
+      posts.forEach(p => {
+        const row = node('article', undefined, 'api-key-item');
+        const info = node('div', undefined, 'commerce-offer-info');
+        const top = node('div', undefined, 'commerce-offer-top');
+        const isPub = p.status === 'published';
+        top.append(
+          node('b', `${String(p.text || '').slice(0, 72)}${String(p.text || '').length > 72 ? '…' : ''}`),
+          node('span', isPub ? 'PUBLIKOVANÉ' : String(p.status || 'draft').toUpperCase(), isPub ? 'domain-badge active' : 'domain-badge expired')
+        );
+        if (!isPub) {
+          const loadBtn = node('button', '✎ Načítať do editora', 'button-link');
+          loadBtn.style.marginLeft = 'auto';
+          loadBtn.onclick = () => {
+            if ($('hustle-li-post-text')) $('hustle-li-post-text').value = p.text || '';
+            if ($('hustle-li-post-url')) $('hustle-li-post-url').value = p.share_url || '';
+          };
+          top.append(loadBtn);
+        }
+        info.append(top, node('small', `${p.remote_post_id ? 'LinkedIn ID: ' + p.remote_post_id + ' · ' : ''}${p.error_message ? 'Chyba: ' + p.error_message + ' · ' : ''}${new Date(p.created_at).toLocaleString('sk-SK')}`));
+        row.append(info);
+        postsEl.append(row);
+      });
+    }
+  }
+
+  // Render Hustle service offers
+  const offersEl = $('hustle-offers-grid');
+  if (offersEl) {
+    offersEl.replaceChildren();
+    (data.offers || []).forEach(off => {
+      const row = node('article', undefined, 'api-key-item');
+      const info = node('div', undefined, 'commerce-offer-info');
+      const top = node('div', undefined, 'commerce-offer-top');
+      top.append(
+        node('b', `${off.name}`),
+        node('span', fmtMoney(off.price_eur, 'EUR'), 'domain-badge active'),
+        node('span', `~${off.delivery_days} dní`, 'detail-chip')
+      );
+      const postBtn = node('button', '💼 LinkedIn post', 'button-link');
+      postBtn.style.marginLeft = 'auto';
+      postBtn.onclick = () => {
+        if ($('hustle-ai-mode')) $('hustle-ai-mode').value = 'linkedin_post';
+        if ($('hustle-ai-offer')) $('hustle-ai-offer').value = off.id;
+        if ($('hustle-ai-prompt')) $('hustle-ai-prompt').value = `Priprav pútavý odborný LinkedIn príspevok na predaj služby: ${off.name} (${off.price_eur} EUR).`;
+        switchHustleTab('ai');
+      };
+      const chargeBtn = node('button', '💳 POS QR platba', 'button-link');
+      chargeBtn.style.color = '#10b981';
+      chargeBtn.onclick = safe(async () => {
+        await setView('wallet');
+        if ($('charge-amount')) $('charge-amount').value = String(off.price_eur);
+        if ($('charge-purpose')) $('charge-purpose').value = off.name;
+        notice(`Služba „${off.name}“ (${off.price_eur} €) predvyplnená v POS termináli Peňaženky.`);
+      });
+      top.append(postBtn, chargeBtn);
+      info.append(top, node('small', off.description));
+      row.append(info);
+      offersEl.append(row);
+    });
+  }
+
+  // Render Leads pipeline
+  const leadsEl = $('hustle-leads-list');
+  if (leadsEl) {
+    leadsEl.replaceChildren();
+    const leads = Array.isArray(data.leads) ? data.leads : [];
+    if (!leads.length) {
+      leadsEl.append(node('p', 'Zatiaľ žiadni pridaní klienti v Hustle Pipeline.', 'skeleton'));
+    } else {
+      leads.forEach(ld => {
+        const row = node('article', undefined, 'api-key-item');
+        const info = node('div', undefined, 'commerce-offer-info');
+        const top = node('div', undefined, 'commerce-offer-top');
+        const isPaid = ld.stage === 'paid';
+        top.append(
+          node('b', `${ld.client_name}${ld.company ? ' · ' + ld.company : ''}`),
+          node('span', fmtMoney(ld.value_eur, 'EUR'), isPaid ? 'domain-badge active' : 'domain-badge for_sale'),
+          node('span', String(ld.stage).toUpperCase(), 'detail-chip')
+        );
+        if (!isPaid) {
+          const paidBtn = node('button', '✓ Označiť ZAPLATENÉ', 'button-link');
+          paidBtn.style.color = '#10b981';
+          paidBtn.style.marginLeft = 'auto';
+          paidBtn.onclick = safe(async () => {
+            const ref = window.prompt(`Zadaj dôkaz / číslo platby pre klienta ${ld.client_name} (${ld.value_eur} €):`);
+            if (!ref || ref.trim().length < 3) return;
+            await api(`/hustle/leads/${ld.id}/stage`, { stage: 'paid', payment_ref: ref.trim() });
+            notice(`Obchod ${ld.client_name} (${ld.value_eur} €) zaevidovaný ako ZAPLATENÝ.`);
+            await loadHustleView();
+          });
+          const dmBtn = node('button', '📩 DM návrh', 'button-link');
+          dmBtn.onclick = () => {
+            if ($('hustle-ai-mode')) $('hustle-ai-mode').value = 'linkedin_dm';
+            if ($('hustle-ai-offer')) $('hustle-ai-offer').value = ld.service_id || 'hustle-web-fullstack';
+            if ($('hustle-ai-client')) $('hustle-ai-client').value = `${ld.client_name}${ld.company ? ' (' + ld.company + ')' : ''}`;
+            if ($('hustle-ai-prompt')) $('hustle-ai-prompt').value = ld.notes || `Oslovenie klienta ${ld.client_name} na LinkedIne s konkrétnou technickou ponukou.`;
+            switchHustleTab('ai');
+          };
+          top.append(paidBtn, dmBtn);
+        }
+        const delBtn = node('button', '🗑', 'button-link');
+        delBtn.style.color = '#ef4444';
+        delBtn.onclick = safe(async () => {
+          await api(`/hustle/leads/${ld.id}/delete`, {});
+          await loadHustleView();
+        });
+        top.append(delBtn);
+        info.append(top, node('small', `${ld.linkedin_url ? ld.linkedin_url + ' · ' : ''}${ld.payment_ref ? 'Dôkaz platby: ' + ld.payment_ref + ' · ' : ''}${ld.notes || ''}`));
+        row.append(info);
+        leadsEl.append(row);
+      });
+    }
+  }
+}
+
+$('hustle-refresh-btn')?.addEventListener('click', safe(loadHustleView));
+
+$('hustle-ai-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  const btn = $('hustle-ai-submit-btn');
+  if (btn) btn.disabled = true;
+  if ($('hustle-ai-out-badge')) $('hustle-ai-out-badge').textContent = 'PRACUJEM…';
+  try {
+    const res = await api('/hustle/run', {
+      mode: $('hustle-ai-mode').value,
+      offer_id: $('hustle-ai-offer').value,
+      target_client: $('hustle-ai-client').value.trim(),
+      checkout_url: $('hustle-ai-checkout').value.trim(),
+      prompt: $('hustle-ai-prompt').value.trim()
+    });
+    if ($('hustle-ai-output')) $('hustle-ai-output').textContent = res.output || '';
+    if ($('hustle-ai-out-title')) $('hustle-ai-out-title').textContent = `${res.offer?.name || 'Hustle Trinity'} (${res.mode})`;
+    if ($('hustle-ai-out-badge')) $('hustle-ai-out-badge').textContent = res.ai_generated ? 'AI HOTOVO' : 'ŠABLÓNA';
+    notice(`Hustle Trinity dokončila úlohu (${res.mode}).`);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+$('hustle-copy-out-btn')?.addEventListener('click', safe(async () => {
+  const txt = $('hustle-ai-output')?.textContent || '';
+  await navigator.clipboard?.writeText(txt);
+  notice('Výstup Hustle Trinity skopírovaný do schránky.');
+}));
+
+$('hustle-send-to-li-btn')?.addEventListener('click', () => {
+  const txt = $('hustle-ai-output')?.textContent || '';
+  if ($('hustle-li-post-text')) $('hustle-li-post-text').value = txt.slice(0, 3000);
+  const ck = $('hustle-ai-checkout')?.value.trim();
+  if (ck && $('hustle-li-post-url')) $('hustle-li-post-url').value = ck;
+  switchHustleTab('linkedin');
+  notice('Výstup prenesený do LinkedIn editora.');
+});
+
+$('hustle-li-config-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  const btn = $('hustle-li-save-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const payload = {
+      profile_url: $('hustle-li-url').value.trim() || undefined,
+      headline: $('hustle-li-headline').value.trim() || undefined,
+      author_urn: $('hustle-li-urn').value.trim() || undefined,
+      client_id: $('hustle-li-client-id').value.trim() || undefined
+    };
+    const tok = $('hustle-li-token')?.value.trim();
+    if (tok) payload.access_token = tok;
+    const saved = await api('/hustle/linkedin/config', payload);
+    if ($('hustle-li-token')) $('hustle-li-token').value = '';
+    notice(`LinkedIn konfigurácia uložená${saved.token_stored_in_vault ? ' + OAuth token zašifrovaný v Trezore' : ''}.`);
+    await loadHustleView();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+$('hustle-li-verify-btn')?.addEventListener('click', safe(async () => {
+  const btn = $('hustle-li-verify-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await api('/hustle/linkedin/verify', {});
+    notice(res.ok ? `LinkedIn overené: ${res.linkedin?.profile_name || res.linkedin?.author_urn}` : (res.error || 'Overenie LinkedIn zlyhalo.'));
+    await loadHustleView();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
+
+async function submitLinkedInPost(publishLive) {
+  const text = $('hustle-li-post-text')?.value.trim() || '';
+  if (text.length < 10) {
+    notice('Príspevok na LinkedIn musí mať aspoň 10 znakov.');
+    return;
+  }
+  const shareUrl = $('hustle-li-post-url')?.value.trim() || undefined;
+  const visibility = $('hustle-li-post-vis')?.value || 'PUBLIC';
+  const res = await api('/hustle/linkedin/post', {
+    text,
+    share_url: shareUrl,
+    visibility,
+    publish_live: Boolean(publishLive)
+  });
+  notice(res.published
+    ? `Príspevok bol úspešne publikovaný na LinkedIn (ID: ${res.remote_post_id}).`
+    : (res.error || res.message || 'Príspevok bol uložený ako draft.'));
+  await loadHustleView();
+}
+
+$('hustle-li-draft-btn')?.addEventListener('click', safe(() => submitLinkedInPost(false)));
+$('hustle-li-post-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  await submitLinkedInPost(true);
+}));
+
+$('hustle-lead-form')?.addEventListener('submit', safe(async e => {
+  e.preventDefault();
+  const btn = $('hustle-lead-add-btn');
+  if (btn) btn.disabled = true;
+  try {
+    await api('/hustle/leads', {
+      client_name: $('hustle-lead-name').value.trim(),
+      company: $('hustle-lead-company').value.trim(),
+      linkedin_url: $('hustle-lead-linkedin').value.trim() || undefined,
+      service_id: $('hustle-lead-service').value,
+      value_eur: Number($('hustle-lead-value').value) || 490,
+      notes: $('hustle-lead-notes').value.trim()
+    });
+    if ($('hustle-lead-name')) $('hustle-lead-name').value = '';
+    if ($('hustle-lead-company')) $('hustle-lead-company').value = '';
+    if ($('hustle-lead-linkedin')) $('hustle-lead-linkedin').value = '';
+    if ($('hustle-lead-notes')) $('hustle-lead-notes').value = '';
+    notice('Nový klient bol pridaný do Hustle Pipeline.');
+    await loadHustleView();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}));
 
 // OPEN-DATA LIVE MODULES VIEW LOADER
 async function loadModulesView(){

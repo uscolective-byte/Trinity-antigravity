@@ -47,6 +47,7 @@ import {generateMusicTrack,generateVideoCreation,generatePresentationDeck,genera
 import {manageCloudflare,manageGitHub,scrapeWithFirecrawl,manageFirebase,manageOneDrive,manageGoogleCloud,manageLocalBridge,manageVercel,listAllIntegrations} from './external-integrations.js';
 import {getWalletTerminalOverview,createPaymentTerminalCharge,executeWalletPayout,saveWalletTerminalConfig,createCryptoWallet,terminalConfigSchema,terminalChargeSchema,terminalPayoutSchema} from './wallet-terminals.js';
 import {getMt5Config,fetchMt5AccountSnapshot} from './mt5-connector.js';
+import {getHustleOverview,publishLinkedInPost,linkedInPostSchema} from './linkedin-hustle.js';
 import {FREE_MODULES_CATALOG,fetchWeather,fetchWikipedia,resolveDns,fetchCryptoMarkets,fetchTechNews,fetchWorldBankIndicator} from './free-modules.js';
 import {cfD1Query,cfKVStore,cfR2Manage,cfSelfDeploy,mailEngine,httpFetchPro} from './omni-tools.js';
 import {applySelfModification} from './self-evolution.js';
@@ -354,6 +355,8 @@ export const TOOL_SCHEMAS={
   ,wallet_create:terminalConfigSchema
   ,mt5_status:z.object({}).strict()
   ,mt5_sync:z.object({}).strict()
+  ,hustle_status:z.object({}).strict()
+  ,linkedin_post:linkedInPostSchema
   ,delegate_worker:z.object({
     worker:z.string().trim().min(1),
     action:z.string().trim().min(1),
@@ -1146,7 +1149,7 @@ export async function runTool(env, agent, name, input, executionContext={}) {
     const status=completed?'completed':record.status==='executed'?'not_verified':record.status==='executing'?'running':record.status;
     return {id:record.id,status,approval_status:record.status,result:record.result,error:record.error_message,_evidence:completed?record.result._evidence:null};
   }
-  if(name==='wallet_terminals_status'||name==='terminal_charge'||name==='terminal_payout'||name==='wallet_create'||name==='mt5_status'||name==='mt5_sync'){
+  if(name==='wallet_terminals_status'||name==='terminal_charge'||name==='terminal_payout'||name==='wallet_create'||name==='mt5_status'||name==='mt5_sync'||name==='hustle_status'||name==='linkedin_post'){
     var walletOwner=String(executionContext.ownerId||executionContext.userEmail||env.TRINITY_OWNER_EMAIL||'admin').trim();
   }
   if(name==='wallet_terminals_status'){
@@ -1172,6 +1175,14 @@ export async function runTool(env, agent, name, input, executionContext={}) {
   if(name==='mt5_sync'){
     const res=await fetchMt5AccountSnapshot(env,walletOwner);
     return {...res,_evidence:{effect:'read',receipt_id:`mt5:sync:${crypto.randomUUID()}`}};
+  }
+  if(name==='hustle_status'){
+    const res=await getHustleOverview(env,walletOwner);
+    return {...res,_evidence:{effect:'read',receipt_id:`hustle:status:${crypto.randomUUID()}`}};
+  }
+  if(name==='linkedin_post'){
+    const res=await publishLinkedInPost(env,walletOwner,args);
+    return {...res,_evidence:res._evidence||{effect:'read',receipt_id:`linkedin:draft:${res.post_id}`}};
   }
   if(name==='brain_mode'){
     const brain=new NeuralBrain();
@@ -1807,6 +1818,8 @@ export const TOOL_HELP={
   wallet_terminals_status:'Prehľad peňaženky Trinity, zostatok, MetaTrader 5 (MT5) a pripojené platobné terminály (SEPA IBAN, Revolut, PayPal, Telegram @wallet, Viber Pay, Paysafe, Web3 krypto): {}',
   mt5_status:'Overený stav napojenia MetaTrader 5 (MT5) účtu v peňaženke (broker, server, posledný overený zostatok a pozície, bez vymyslených hodnôt): {}',
   mt5_sync:'Živá read-only synchronizácia MetaTrader 5 (MT5) účtu cez nakonfigurovaný MetaApi Cloud alebo HTTPS MT5 Bridge (balance, equity, margin, pozície): {}',
+  hustle_status:'Prehľad Hustle zárobkového centra Trinity: overené príjmy v EUR, aktívny LinkedIn pipeline, stav LinkedIn API a publikované príspevky: {}',
+  linkedin_post:'Uloží draft alebo publikuje príspevok na pripojený LinkedIn účet (iba s overeným OAuth tokenom a publish_live:true): {text:string, share_url?:string, share_title?:string, visibility?:PUBLIC|CONNECTIONS, publish_live?:boolean}',
   terminal_charge:'Pripraví podklady na prijatie platby podľa zvoleného terminálu. Príjem platby vyžaduje samostatné overenie. Argumenty: {amount_eur, purpose, terminal_type?, variable_symbol?, payer_name?}',
   terminal_payout:'Pripraví a uloží inštrukcie na ručné odoslanie platby. Stav prepared znamená pripravené podklady. Argumenty: {amount_eur, destination_type:bank_iban|paypal|revolut|crypto, target, note?}',
   delegate_worker:'Priamo deleguje akciu na niektorého z 23 špecializovaných workerov Trinity (AURA, CORE, DISPATCHER, atď.): {worker:string, action:string, data?:object}',
